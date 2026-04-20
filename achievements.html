@@ -1,0 +1,1881 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PeaceFlow — Huy Hiệu & Thành Tích</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Patrick+Hand&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --cream: #FFF8F0;
+            --warm-white: #FFFDF7;
+            --kraft: #D4A574;
+            --kraft-light: #E8CBA7;
+            --kraft-dark: #B8895A;
+            --mint: #A8D5BA;
+            --mint-light: #C5E8D2;
+            --mint-dark: #7BBF95;
+            --peach: #FFCBA4;
+            --peach-light: #FFE0C4;
+            --peach-dark: #E8A876;
+            --sky: #A8D8EA;
+            --sky-light: #C5E8F5;
+            --lavender: #C3AED6;
+            --lavender-light: #DDD1EB;
+            --coral: #FF8B8B;
+            --coral-light: #FFB3B3;
+            --gold: #FFD93D;
+            --gold-light: #FFF3B0;
+            --rose: #F4A0B0;
+            --rose-light: #FDDDE6;
+            --text-primary: #4A3728;
+            --text-secondary: #7A6555;
+            --text-light: #A89585;
+            --shadow-paper: 3px 3px 0px rgba(74, 55, 40, 0.1);
+            --shadow-paper-hover: 5px 5px 0px rgba(74, 55, 40, 0.15);
+            --border-radius: 16px;
+            --border-radius-sm: 10px;
+            --transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            --sidebar-width: 240px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background: var(--cream);
+            color: var(--text-primary);
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        .paper-card {
+            background: var(--warm-white);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-paper);
+            border: 2px solid var(--kraft-light);
+            transition: var(--transition);
+        }
+
+        /* ===== SIDEBAR ===== */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            width: var(--sidebar-width);
+            background: var(--warm-white);
+            border-right: 2px solid var(--kraft-light);
+            z-index: 200;
+            display: flex;
+            flex-direction: column;
+            padding: 20px 0;
+        }
+
+        .sidebar-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 0 20px 20px;
+            border-bottom: 2px dashed var(--kraft-light);
+            margin-bottom: 16px;
+            text-decoration: none;
+        }
+
+        .sidebar-logo .logo-icon {
+            width: 38px;
+            height: 38px;
+            background: var(--mint);
+            border-radius: 10px;
+            border: 2px solid var(--mint-dark);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            box-shadow: 2px 2px 0px var(--mint-dark);
+        }
+
+        .sidebar-logo .logo-text {
+            font-size: 1.2rem;
+            font-weight: 800;
+            color: var(--text-primary);
+        }
+
+        .sidebar-logo .logo-text span {
+            color: var(--mint-dark);
+        }
+
+        .sidebar-nav {
+            flex: 1;
+            padding: 0 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            overflow-y: auto;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            border-radius: var(--border-radius-sm);
+            text-decoration: none;
+            color: var(--text-secondary);
+            font-weight: 600;
+            font-size: 0.88rem;
+            transition: var(--transition);
+        }
+
+        .nav-item:hover {
+            background: var(--mint-light);
+            color: var(--text-primary);
+        }
+
+        .nav-item.active {
+            background: var(--mint-light);
+            color: var(--text-primary);
+            border: 1.5px solid var(--mint);
+        }
+
+        .nav-item .ni {
+            font-size: 1.1rem;
+            width: 22px;
+            text-align: center;
+        }
+
+        .nav-section-label {
+            font-size: 0.68rem;
+            font-weight: 700;
+            color: var(--text-light);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            padding: 10px 12px 4px;
+        }
+
+        .sidebar-bottom {
+            padding: 12px;
+            border-top: 2px dashed var(--kraft-light);
+            margin-top: auto;
+        }
+
+        .user-card-mini {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            background: var(--cream);
+            border-radius: var(--border-radius-sm);
+            border: 1.5px solid var(--kraft-light);
+        }
+
+        .user-avatar-mini {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--lavender-light);
+            border: 2px solid var(--kraft);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+        }
+
+        .user-info-mini .user-name {
+            font-size: 0.85rem;
+            font-weight: 700;
+        }
+
+        .user-info-mini .user-level {
+            font-size: 0.72rem;
+            color: var(--text-light);
+        }
+
+        .emergency-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 12px;
+            background: rgba(255, 139, 139, 0.1);
+            border: 1.5px solid var(--coral);
+            border-radius: var(--border-radius-sm);
+            color: var(--coral);
+            font-size: 0.78rem;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 8px;
+            transition: var(--transition);
+            text-decoration: none;
+        }
+
+        .emergency-btn:hover {
+            background: rgba(255, 139, 139, 0.2);
+        }
+
+        /* ===== MOBILE ===== */
+        .mobile-topbar {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background: var(--warm-white);
+            border-bottom: 2px solid var(--kraft-light);
+            z-index: 300;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 16px;
+        }
+
+        .mobile-menu-btn {
+            background: none;
+            border: none;
+            font-size: 1.4rem;
+            cursor: pointer;
+        }
+
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(74, 55, 40, 0.3);
+            z-index: 150;
+        }
+
+        /* ===== MAIN ===== */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            padding: 28px;
+            min-height: 100vh;
+        }
+
+        .btn-primary {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 10px 20px;
+            border: 2px solid var(--mint-dark);
+            border-radius: 50px;
+            background: var(--mint);
+            color: var(--text-primary);
+            font-family: 'Nunito', sans-serif;
+            font-size: 0.88rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: var(--transition);
+            box-shadow: 2px 2px 0px var(--mint-dark);
+            text-decoration: none;
+        }
+
+        .btn-primary:hover {
+            background: var(--mint-dark);
+            color: white;
+            transform: translate(1px, 1px);
+            box-shadow: 1px 1px 0px var(--mint-dark);
+        }
+
+        .btn-outline {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 9px 18px;
+            border: 2px solid var(--kraft-light);
+            border-radius: 50px;
+            background: transparent;
+            color: var(--text-secondary);
+            font-family: 'Nunito', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .btn-outline:hover {
+            background: var(--kraft-light);
+            color: var(--text-primary);
+        }
+
+        /* ===== BREADCRUMB ===== */
+        .breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 20px;
+            font-size: 0.8rem;
+            color: var(--text-light);
+        }
+
+        .breadcrumb a {
+            color: var(--text-light);
+            text-decoration: none;
+        }
+
+        .breadcrumb a:hover {
+            color: var(--mint-dark);
+        }
+
+        .breadcrumb span {
+            color: var(--text-secondary);
+            font-weight: 600;
+        }
+
+        /* ===== HERO BANNER ===== */
+        .hero-banner {
+            padding: 24px 28px;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, var(--gold-light), var(--peach-light), var(--lavender-light));
+            border-color: var(--gold);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hb-deco {
+            position: absolute;
+            right: -10px;
+            top: -10px;
+            font-size: 7rem;
+            opacity: 0.07;
+        }
+
+        .hb-deco2 {
+            position: absolute;
+            left: 20px;
+            bottom: -15px;
+            font-size: 5rem;
+            opacity: 0.05;
+        }
+
+        .hb-content {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .hb-avatar {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            border: 4px solid white;
+            background: var(--lavender-light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            box-shadow: 3px 3px 0px var(--kraft-light);
+            flex-shrink: 0;
+        }
+
+        .hb-info {
+            flex: 1;
+        }
+
+        .hb-name {
+            font-size: 1.3rem;
+            font-weight: 800;
+            margin-bottom: 3px;
+        }
+
+        .hb-level {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 12px;
+            background: var(--gold-light);
+            border: 2px solid var(--gold);
+            border-radius: 50px;
+            font-size: 0.82rem;
+            font-weight: 800;
+            color: #7a5a00;
+            margin-bottom: 8px;
+        }
+
+        .hb-xp-wrap {
+            max-width: 300px;
+        }
+
+        .hb-xp-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.72rem;
+            color: var(--text-secondary);
+            margin-bottom: 3px;
+        }
+
+        .hb-xp-bar {
+            height: 8px;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 50px;
+            overflow: hidden;
+        }
+
+        .hb-xp-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--gold), var(--peach-dark));
+            border-radius: 50px;
+            transition: width 1.5s ease;
+        }
+
+        .hb-stats {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin-top: 12px;
+        }
+
+        .hb-stat {
+            text-align: center;
+        }
+
+        .hb-stat-num {
+            font-size: 1.2rem;
+            font-weight: 800;
+            color: var(--text-primary);
+        }
+
+        .hb-stat-label {
+            font-size: 0.62rem;
+            color: var(--text-secondary);
+        }
+
+        /* ===== LAYOUT ===== */
+        .achievements-layout {
+            display: grid;
+            grid-template-columns: 1fr 280px;
+            gap: 20px;
+            max-width: 1100px;
+        }
+
+        /* ===== VIEW TABS ===== */
+        .view-tabs {
+            display: flex;
+            gap: 0;
+            margin-bottom: 20px;
+            border: 2px solid var(--kraft-light);
+            border-radius: 50px;
+            overflow: hidden;
+            background: var(--cream);
+            width: fit-content;
+        }
+
+        .view-tab {
+            padding: 9px 18px;
+            font-family: 'Nunito', sans-serif;
+            font-size: 0.82rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            color: var(--text-secondary);
+            border: none;
+            background: transparent;
+        }
+
+        .view-tab.active {
+            background: var(--mint);
+            color: var(--text-primary);
+            font-weight: 700;
+        }
+
+        /* ===== TAB PANELS ===== */
+        .tab-panel {
+            display: none;
+            animation: fade-up 0.3s ease;
+        }
+
+        .tab-panel.active {
+            display: block;
+        }
+
+        @keyframes fade-up {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* ===== BADGE GALLERY ===== */
+        .badge-filter {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+        }
+
+        .bf-btn {
+            padding: 6px 14px;
+            border: 1.5px solid var(--kraft-light);
+            border-radius: 50px;
+            font-family: 'Nunito', sans-serif;
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            background: var(--warm-white);
+            color: var(--text-secondary);
+            transition: var(--transition);
+        }
+
+        .bf-btn:hover {
+            background: var(--mint-light);
+            border-color: var(--mint);
+        }
+
+        .bf-btn.active {
+            background: var(--mint-light);
+            border-color: var(--mint-dark);
+            color: var(--text-primary);
+        }
+
+        .badge-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 12px;
+        }
+
+        .badge-card {
+            padding: 18px 14px;
+            text-align: center;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .badge-card:hover {
+            box-shadow: var(--shadow-paper-hover);
+            transform: translateY(-3px);
+        }
+
+        .badge-card.earned {
+            border-color: var(--gold);
+            background: linear-gradient(135deg, var(--gold-light), var(--warm-white));
+        }
+
+        .badge-card.locked {
+            opacity: 0.5;
+            filter: grayscale(0.5);
+        }
+
+        .badge-card.new-badge::before {
+            content: 'NEW';
+            position: absolute;
+            top: 8px;
+            right: -12px;
+            background: var(--coral);
+            color: white;
+            font-size: 0.55rem;
+            font-weight: 800;
+            padding: 2px 14px;
+            transform: rotate(45deg);
+            letter-spacing: 1px;
+        }
+
+        .bc-icon {
+            font-size: 2.2rem;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .bc-icon.locked-icon {
+            filter: grayscale(1);
+            opacity: 0.4;
+        }
+
+        .bc-name {
+            font-size: 0.78rem;
+            font-weight: 800;
+            margin-bottom: 3px;
+        }
+
+        .bc-desc {
+            font-size: 0.62rem;
+            color: var(--text-secondary);
+            line-height: 1.4;
+            margin-bottom: 5px;
+        }
+
+        .bc-date {
+            font-size: 0.6rem;
+            color: var(--mint-dark);
+            font-weight: 700;
+        }
+
+        .bc-locked-hint {
+            font-size: 0.6rem;
+            color: var(--text-light);
+            font-style: italic;
+        }
+
+        .bc-progress {
+            height: 4px;
+            background: var(--kraft-light);
+            border-radius: 50px;
+            overflow: hidden;
+            margin-top: 6px;
+        }
+
+        .bc-progress-fill {
+            height: 100%;
+            background: var(--mint-dark);
+            border-radius: 50px;
+        }
+
+        .bc-progress-label {
+            font-size: 0.58rem;
+            color: var(--text-light);
+            margin-top: 2px;
+        }
+
+        .earned-stamp {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            width: 22px;
+            height: 22px;
+            background: var(--gold);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            border: 2px solid white;
+        }
+
+        /* ===== LEVEL ROADMAP ===== */
+        .level-roadmap {
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+        }
+
+        .level-item {
+            display: flex;
+            gap: 16px;
+            padding: 16px 0;
+            position: relative;
+        }
+
+        .level-item:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            left: 19px;
+            top: 52px;
+            bottom: 0;
+            width: 2px;
+            background: var(--kraft-light);
+        }
+
+        .li-circle {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 3px solid var(--kraft-light);
+            background: var(--cream);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            flex-shrink: 0;
+            position: relative;
+            z-index: 1;
+            transition: var(--transition);
+        }
+
+        .li-circle.current {
+            background: var(--mint-light);
+            border-color: var(--mint-dark);
+            box-shadow: 0 0 0 4px rgba(168, 213, 186, 0.3);
+        }
+
+        .li-circle.done {
+            background: var(--mint-dark);
+            border-color: var(--mint-dark);
+        }
+
+        .li-circle.locked {
+            opacity: 0.4;
+        }
+
+        .li-content {
+            flex: 1;
+        }
+
+        .li-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 4px;
+        }
+
+        .li-level {
+            font-size: 0.92rem;
+            font-weight: 800;
+        }
+
+        .li-badge {
+            font-size: 0.65rem;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 50px;
+        }
+
+        .lb-current {
+            background: var(--mint-light);
+            color: var(--mint-dark);
+            border: 1px solid var(--mint);
+        }
+
+        .lb-done {
+            background: var(--mint-dark);
+            color: white;
+        }
+
+        .lb-locked {
+            background: var(--cream);
+            color: var(--text-light);
+            border: 1px solid var(--kraft-light);
+        }
+
+        .li-xp {
+            font-size: 0.72rem;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+        }
+
+        .li-unlocks {
+            display: flex;
+            gap: 4px;
+            flex-wrap: wrap;
+        }
+
+        .li-unlock-tag {
+            font-size: 0.62rem;
+            padding: 2px 7px;
+            border-radius: 50px;
+            background: var(--sky-light);
+            color: #4a90aa;
+            border: 1px solid var(--sky);
+        }
+
+        .li-progress-wrap {
+            margin-top: 6px;
+        }
+
+        .li-progress-bar {
+            height: 6px;
+            background: var(--kraft-light);
+            border-radius: 50px;
+            overflow: hidden;
+        }
+
+        .li-progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--mint-dark), var(--lavender));
+            border-radius: 50px;
+            transition: width 1s ease;
+        }
+
+        .li-progress-label {
+            font-size: 0.62rem;
+            color: var(--text-light);
+            margin-top: 2px;
+        }
+
+        /* ===== STREAK CALENDAR ===== */
+        .streak-hero {
+            padding: 18px;
+            margin-bottom: 16px;
+            background: linear-gradient(135deg, var(--peach-light), var(--gold-light));
+            border-color: var(--peach);
+        }
+
+        .sh-top {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .sh-flame {
+            font-size: 2.5rem;
+            animation: flame 2s ease-in-out infinite;
+        }
+
+        @keyframes flame {
+
+            0%,
+            100% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.15) rotate(-5deg);
+            }
+        }
+
+        .sh-num {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--peach-dark);
+        }
+
+        .sh-label {
+            font-size: 0.82rem;
+            color: var(--text-secondary);
+        }
+
+        .sh-record {
+            font-size: 0.72rem;
+            color: var(--text-light);
+        }
+
+        .streak-calendar {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 4px;
+        }
+
+        .sc-day-h {
+            font-size: 0.6rem;
+            font-weight: 700;
+            color: var(--text-light);
+            text-align: center;
+            padding: 2px 0;
+        }
+
+        .sc-day {
+            width: 100%;
+            aspect-ratio: 1;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.65rem;
+            font-weight: 600;
+            transition: var(--transition);
+            cursor: default;
+        }
+
+        .sc-day.done {
+            background: var(--mint-dark);
+            color: white;
+        }
+
+        .sc-day.today {
+            background: var(--mint-light);
+            border: 2px solid var(--mint-dark);
+            font-weight: 800;
+        }
+
+        .sc-day.missed {
+            background: rgba(255, 139, 139, 0.15);
+            color: var(--text-light);
+        }
+
+        .sc-day.empty {
+            background: transparent;
+        }
+
+        .sc-day.future {
+            background: var(--cream);
+            color: var(--text-light);
+        }
+
+        /* ===== SPECIAL CHALLENGES ===== */
+        .challenge-card {
+            padding: 16px;
+            margin-bottom: 12px;
+            cursor: pointer;
+        }
+
+        .challenge-card:hover {
+            box-shadow: var(--shadow-paper-hover);
+            transform: translateY(-2px);
+        }
+
+        .cc-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            margin-bottom: 10px;
+        }
+
+        .cc-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: var(--border-radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+            flex-shrink: 0;
+            border: 2px solid;
+        }
+
+        .cc-icon.seasonal {
+            background: var(--gold-light);
+            border-color: var(--gold);
+        }
+
+        .cc-icon.weekly {
+            background: var(--mint-light);
+            border-color: var(--mint);
+        }
+
+        .cc-icon.special {
+            background: var(--lavender-light);
+            border-color: var(--lavender);
+        }
+
+        .cc-info {
+            flex: 1;
+        }
+
+        .cc-name {
+            font-size: 0.88rem;
+            font-weight: 800;
+            margin-bottom: 2px;
+        }
+
+        .cc-desc {
+            font-size: 0.72rem;
+            color: var(--text-secondary);
+            line-height: 1.4;
+        }
+
+        .cc-meta {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 8px;
+        }
+
+        .cc-meta-item {
+            font-size: 0.65rem;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 3px;
+        }
+
+        .cc-reward {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .cc-reward-item {
+            font-size: 0.65rem;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 50px;
+        }
+
+        .cr-xp {
+            background: var(--gold-light);
+            color: #7a5a00;
+            border: 1px solid var(--gold);
+        }
+
+        .cr-badge {
+            background: var(--lavender-light);
+            color: #8a6aaa;
+            border: 1px solid var(--lavender);
+        }
+
+        .cr-title {
+            background: var(--mint-light);
+            color: var(--mint-dark);
+            border: 1px solid var(--mint);
+        }
+
+        .cc-progress {
+            height: 6px;
+            background: var(--kraft-light);
+            border-radius: 50px;
+            overflow: hidden;
+            margin-top: 8px;
+        }
+
+        .cc-fill {
+            height: 100%;
+            border-radius: 50px;
+        }
+
+        .cc-fill.seasonal {
+            background: linear-gradient(90deg, var(--gold), var(--peach-dark));
+        }
+
+        .cc-fill.weekly {
+            background: var(--mint-dark);
+        }
+
+        .cc-fill.special {
+            background: var(--lavender);
+        }
+
+        .cc-status {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.62rem;
+            color: var(--text-light);
+            margin-top: 3px;
+        }
+
+        .cc-join-btn {
+            padding: 6px 14px;
+            border: 1.5px solid var(--mint-dark);
+            border-radius: 50px;
+            background: var(--mint-light);
+            color: var(--mint-dark);
+            font-family: 'Nunito', sans-serif;
+            font-size: 0.72rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .cc-join-btn:hover {
+            background: var(--mint-dark);
+            color: white;
+        }
+
+        .cc-join-btn.joined {
+            background: var(--warm-white);
+            border-color: var(--kraft-light);
+            color: var(--text-light);
+            cursor: default;
+        }
+
+        /* ===== HALL OF FAME ===== */
+        .hof-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 14px;
+            border-radius: var(--border-radius-sm);
+            margin-bottom: 8px;
+            transition: var(--transition);
+        }
+
+        .hof-item:hover {
+            background: var(--cream);
+        }
+
+        .hof-item.rank-1 {
+            background: linear-gradient(135deg, var(--gold-light), var(--warm-white));
+            border: 1.5px solid var(--gold);
+        }
+
+        .hof-item.rank-2 {
+            background: linear-gradient(135deg, rgba(192, 192, 192, 0.15), var(--warm-white));
+            border: 1.5px solid #ccc;
+        }
+
+        .hof-item.rank-3 {
+            background: linear-gradient(135deg, rgba(184, 115, 51, 0.1), var(--warm-white));
+            border: 1.5px solid #c8a87a;
+        }
+
+        .hof-rank {
+            width: 28px;
+            text-align: center;
+            font-size: 1rem;
+            font-weight: 800;
+            flex-shrink: 0;
+        }
+
+        .hof-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: 2px solid var(--kraft-light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+
+        .hof-info {
+            flex: 1;
+        }
+
+        .hof-name {
+            font-size: 0.82rem;
+            font-weight: 700;
+        }
+
+        .hof-badges {
+            display: flex;
+            gap: 3px;
+            flex-wrap: wrap;
+            margin-top: 2px;
+        }
+
+        .hof-badge-mini {
+            font-size: 0.75rem;
+        }
+
+        .hof-xp {
+            font-size: 0.82rem;
+            font-weight: 800;
+            color: var(--mint-dark);
+        }
+
+        /* ===== RIGHT SIDEBAR ===== */
+        .right-card {
+            padding: 14px;
+            margin-bottom: 14px;
+        }
+
+        .rc-title {
+            font-size: 0.85rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .next-badge-card {
+            padding: 14px;
+            background: linear-gradient(135deg, var(--lavender-light), var(--mint-light));
+            border-color: var(--lavender);
+            margin-bottom: 14px;
+        }
+
+        .nb-icon {
+            font-size: 2rem;
+            text-align: center;
+            margin-bottom: 6px;
+        }
+
+        .nb-name {
+            font-size: 0.88rem;
+            font-weight: 800;
+            text-align: center;
+            margin-bottom: 4px;
+        }
+
+        .nb-desc {
+            font-size: 0.72rem;
+            color: var(--text-secondary);
+            text-align: center;
+            margin-bottom: 8px;
+            line-height: 1.4;
+        }
+
+        .nb-progress {
+            height: 8px;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 50px;
+            overflow: hidden;
+            margin-bottom: 4px;
+        }
+
+        .nb-fill {
+            height: 100%;
+            background: var(--lavender);
+            border-radius: 50px;
+            transition: width 1s ease;
+        }
+
+        .nb-label {
+            font-size: 0.68rem;
+            color: var(--text-secondary);
+            text-align: center;
+        }
+
+        .quick-stat {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .qs-item {
+            padding: 10px 8px;
+            text-align: center;
+            background: var(--cream);
+            border-radius: var(--border-radius-sm);
+            border: 1.5px solid var(--kraft-light);
+        }
+
+        .qs-num {
+            font-size: 1.1rem;
+            font-weight: 800;
+            color: var(--mint-dark);
+        }
+
+        .qs-label {
+            font-size: 0.6rem;
+            color: var(--text-secondary);
+        }
+
+        .motivational-card {
+            padding: 14px;
+            background: linear-gradient(135deg, var(--mint-light), var(--sky-light));
+            border-color: var(--mint);
+        }
+
+        .mc-mascot {
+            font-size: 1.5rem;
+            margin-bottom: 6px;
+        }
+
+        .mc-text {
+            font-family: 'Patrick Hand', cursive;
+            font-size: 0.88rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        /* ===== BADGE DETAIL MODAL ===== */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(74, 55, 40, 0.5);
+            z-index: 500;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal-overlay.show {
+            display: flex;
+        }
+
+        .badge-modal {
+            background: var(--warm-white);
+            border-radius: 24px;
+            border: 2px solid var(--kraft-light);
+            width: 100%;
+            max-width: 400px;
+            padding: 28px;
+            animation: pop-in 0.4s ease;
+            text-align: center;
+        }
+
+        @keyframes pop-in {
+            from {
+                transform: scale(0.8);
+                opacity: 0;
+            }
+
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .bm-close {
+            float: right;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: var(--cream);
+            border: 1.5px solid var(--kraft-light);
+            cursor: pointer;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
+        }
+
+        .bm-close:hover {
+            background: var(--kraft-light);
+        }
+
+        .bm-icon {
+            font-size: 3.5rem;
+            margin: 12px 0;
+            display: block;
+            animation: bounce-badge 2s ease-in-out infinite;
+        }
+
+        @keyframes bounce-badge {
+
+            0%,
+            100% {
+                transform: translateY(0) scale(1);
+            }
+
+            50% {
+                transform: translateY(-8px) scale(1.1);
+            }
+        }
+
+        .bm-name {
+            font-size: 1.1rem;
+            font-weight: 800;
+            margin-bottom: 6px;
+        }
+
+        .bm-desc {
+            font-size: 0.82rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-bottom: 12px;
+        }
+
+        .bm-condition {
+            padding: 10px 14px;
+            background: var(--cream);
+            border-radius: var(--border-radius-sm);
+            border: 1.5px solid var(--kraft-light);
+            font-size: 0.78rem;
+            color: var(--text-secondary);
+            margin-bottom: 10px;
+        }
+
+        .bm-earned-date {
+            font-size: 0.72rem;
+            color: var(--mint-dark);
+            font-weight: 700;
+        }
+
+        /* ===== EMERGENCY ===== */
+        .emergency-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(74, 55, 40, 0.5);
+            z-index: 1000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .emergency-overlay.show {
+            display: flex;
+        }
+
+        .emergency-popup {
+            background: var(--warm-white);
+            border-radius: 24px;
+            border: 3px solid var(--coral);
+            padding: 32px;
+            max-width: 420px;
+            width: 100%;
+            box-shadow: 6px 6px 0px rgba(255, 139, 139, 0.3);
+            animation: pop-in 0.4s ease;
+        }
+
+        .ep-icon {
+            font-size: 2.5rem;
+            text-align: center;
+            margin-bottom: 8px;
+        }
+
+        .ep-title {
+            font-size: 1.2rem;
+            font-weight: 800;
+            color: var(--coral);
+            text-align: center;
+            margin-bottom: 6px;
+        }
+
+        .ep-text {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-bottom: 16px;
+            text-align: center;
+        }
+
+        .ep-hotline {
+            padding: 14px;
+            background: rgba(255, 139, 139, 0.1);
+            border: 2px solid var(--coral);
+            border-radius: var(--border-radius-sm);
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .ep-hotline .eph-num {
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: var(--coral);
+        }
+
+        .ep-hotline .eph-label {
+            font-size: 0.72rem;
+            color: var(--text-secondary);
+        }
+
+        .ep-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .ep-btn {
+            padding: 12px;
+            border-radius: 50px;
+            font-family: 'Nunito', sans-serif;
+            font-size: 0.88rem;
+            font-weight: 700;
+            cursor: pointer;
+            text-align: center;
+            transition: var(--transition);
+            text-decoration: none;
+            display: block;
+            border: 2px solid;
+        }
+
+        .ep-btn-red {
+            background: var(--coral);
+            color: white;
+            border-color: #c05050;
+        }
+
+        .ep-btn-green {
+            background: var(--mint-light);
+            color: var(--mint-dark);
+            border-color: var(--mint);
+        }
+
+        .ep-btn-ghost {
+            background: transparent;
+            color: var(--text-light);
+            border-color: var(--kraft-light);
+            font-size: 0.8rem;
+        }
+
+        /* Confetti */
+        .confetti-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 999;
+        }
+
+        .confetti-piece {
+            position: absolute;
+            border-radius: 2px;
+            animation: cffall linear forwards;
+        }
+
+        @keyframes cffall {
+            0% {
+                transform: translateY(-20px) rotate(0deg);
+                opacity: 1;
+            }
+
+            100% {
+                transform: translateY(100vh) rotate(720deg);
+                opacity: 0;
+            }
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media(max-width:900px) {
+            :root {
+                --sidebar-width: 0px;
+            }
+
+            .sidebar {
+                transform: translateX(-240px);
+                width: 240px;
+                transition: transform 0.3s ease;
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+
+            .sidebar-overlay.open {
+                display: block;
+            }
+
+            .main-content {
+                margin-left: 0;
+                padding: 76px 16px 20px;
+            }
+
+            .mobile-topbar {
+                display: flex;
+            }
+
+            .achievements-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media(max-width:600px) {
+            .badge-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .view-tabs {
+                width: 100%;
+            }
+
+            .view-tab {
+                flex: 1;
+                text-align: center;
+                font-size: 0.72rem;
+                padding: 8px 8px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="confetti-container" id="confettiContainer"></div>
+
+    <!-- Badge Detail Modal -->
+    <div class="modal-overlay" id="badgeModalOverlay" onclick="closeBadgeModal(event)">
+        <div class="badge-modal" id="badgeModal">
+            <button class="bm-close" onclick="closeBadgeModalDirect()">✕</button>
+            <span class="bm-icon" id="bmIcon">🌱</span>
+            <div class="bm-name" id="bmName">Tên huy hiệu</div>
+            <div class="bm-desc" id="bmDesc">Mô tả huy hiệu</div>
+            <div class="bm-condition" id="bmCondition">Điều kiện đạt được</div>
+            <div class="bm-earned-date" id="bmDate"></div>
+            <div style="margin-top:14px;">
+                <button class="btn-primary" style="width:100%;justify-content:center;"
+                    onclick="closeBadgeModalDirect()">Tuyệt vời! 🎉</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Emergency Overlay -->
+    <div class="emergency-overlay" id="emergencyOverlay">
+        <div class="emergency-popup">
+            <div class="ep-icon">❤️</div>
+            <div class="ep-title">Bạn không đơn độc</div>
+            <p class="ep-text">Nếu bạn đang cảm thấy rất khó khăn, hãy để ai đó giúp bạn ngay bây giờ.</p>
+            <div class="ep-hotline">
+                <div class="eph-num">📞 1800-599-920</div>
+                <div class="eph-label">Đường dây nóng sức khỏe tâm thần — Miễn phí, 24/7</div>
+            </div>
+            <div class="ep-actions">
+                <a href="tel:1800599920" class="ep-btn ep-btn-red">📞 Gọi ngay hotline</a>
+                <a href="experts.html" class="ep-btn ep-btn-green">💬 Kết nối chuyên gia</a>
+                <button class="ep-btn ep-btn-ghost" onclick="closeEmergency()">Tôi ổn, đóng lại</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+    <div class="mobile-topbar">
+        <button class="mobile-menu-btn" onclick="toggleSidebar()">☰</button>
+        <a href="index.html" style="display:flex;align-items:center;gap:8px;text-decoration:none;">
+            <div
+                style="width:32px;height:32px;background:var(--mint);border-radius:8px;border:2px solid var(--mint-dark);display:flex;align-items:center;justify-content:center;font-size:1rem;box-shadow:2px 2px 0px var(--mint-dark);">
+                🌿</div>
+            <span style="font-size:1.1rem;font-weight:800;color:var(--text-primary);">Peace<span
+                    style="color:var(--mint-dark);">Craft</span></span>
+        </a>
+        <span
+            style="background:var(--peach-light);padding:3px 10px;border-radius:50px;font-size:0.75rem;font-weight:700;color:var(--peach-dark);border:1.5px solid var(--peach);">⭐
+            295 XP</span>
+    </div>
+
+    <aside class="sidebar" id="sidebar">
+        <a href="index.html" class="sidebar-logo">
+            <div class="logo-icon">🌿</div>
+            <div class="logo-text">Peace<span>Craft</span></div>
+        </a>
+        <nav class="sidebar-nav">
+            <div class="nav-section-label">Chính</div>
+            <a href="dashboard.html" class="nav-item"><span class="ni">🏡</span> Tổng quan</a>
+            <a href="mood-checkin.html" class="nav-item"><span class="ni">💭</span> Tâm trạng</a>
+            <a href="tasks.html" class="nav-item"><span class="ni">🎮</span> Nhiệm vụ</a>
+            <a href="journal.html" class="nav-item"><span class="ni">📝</span> Nhật ký</a>
+            <div class="nav-section-label" style="margin-top:8px;">Kết nối</div>
+            <a href="experts.html" class="nav-item"><span class="ni">🩺</span> Chuyên gia</a>
+            <a href="community.html" class="nav-item"><span class="ni">👥</span> Cộng đồng</a>
+            <div class="nav-section-label" style="margin-top:8px;">Phân tích</div>
+            <a href="report.html" class="nav-item">
+                <span class="ni">📊</span> Báo cáo
+            </a>
+            <a href="achievements.html" class="nav-item active">
+                <span class="ni">🏅</span> Thành tích
+            </a>
+            <div class="nav-section-label" style="margin-top:8px;">Cài đặt</div>
+            <a href="profile.html" class="nav-item"><span class="ni">👤</span> Hồ sơ</a>
+        </nav>
+        <div class="sidebar-bottom">
+            <div class="user-card-mini">
+                <div class="user-avatar-mini">🐱</div>
+                <div class="user-info-mini">
+                    <div class="user-name">Minh Anh</div>
+                    <div class="user-level">⭐ 295 XP · Level 2</div>
+                </div>
+            </div>
+            <a href="#" class="emergency-btn" onclick="showEmergency();return false;">🆘 Hỗ trợ khẩn cấp</a>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <div class="breadcrumb">
+            <a href="dashboard.html">🏡 Tổng quan</a><span>›</span>
+            <span>🏅 Huy hiệu & Thành tích</span>
+        </div>
+
+        <!-- Hero Banner -->
+        <div class="paper-card hero-banner">
+            <div class="hb-deco">🏆</div>
+            <div class="hb-deco2">🌟</div>
+            <div class="hb-content">
+                <div class="hb-avatar">🐱</div>
+                <div class="hb-info">
+                    <div class="hb-name">Minh Anh — Người Khám Phá</div>
+                    <div class="hb-level">⭐ Level 2 — Người Khám Phá</div>
+                    <div class="hb-xp-wrap">
+                        <div class="hb-xp-label"><span>295 / 300 XP</span><span>Còn 5 XP → Level 3!</span></div>
+                        <div class="hb-xp-bar">
+                            <div class="hb-xp-fill" style="width:97.5%"></div>
+                        </div>
+                    </div>
+                    <div class="hb-stats">
+                        <div class="hb-stat">
+                            <div class="hb-stat-num">5</div>
+                            <div class="hb-stat-label">Huy hiệu đạt</div>
+                        </div>
+                        <div class="hb-stat">
+                            <div class="hb-stat-num">47</div>
+                            <div class="hb-stat-label">Nhiệm vụ xong</div>
+                        </div>
+                        <div class="hb-stat">
+                            <div class="hb-stat-num">7🔥</div>
+                            <div class="hb-stat-label">Streak ngày</div>
+                        </div>
+                        <div class="hb-stat">
+                            <div class="hb-stat-num">2</div>
+                            <div class="hb-stat-label">Thử thách</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- View Tabs -->
+        <div class="view-tabs">
+            <div class="view-tab active" id="tab-badges" onclick="switchTab('badges')">🏅 Huy hiệu</div>
+            <div class="view-tab" id="tab-levels" onclick="switchTab('levels')">📈 Cấp độ</div>
+            <div class="view-tab" id="tab-streak" onclick="switchTab('streak')">🔥 Streak</div>
+            <div class="view-tab" id="tab-challenges" onclick="switchTab('challenges')">🎯 Thử thách</div>
+            <div class="view-tab" id="tab-hof" onclick="switchTab('hof')">🌟 Vinh danh</div>
+        </div>
+
+        <div class="achievements-layout">
+            <!-- LEFT: Main Content -->
+            <div>
+                <!-- TAB: BADGES -->
+                <div class="tab-panel active" id="panel-badges">
+                    <div class="badge-filter" id="badgeFilter"></div>
+                    <div class="badge-grid" id="badgeGrid"></div>
+                </div>
+
+                <!-- TAB: LEVELS -->
+                <div class="tab-panel" id="panel-levels">
+                    <div class="paper-card" style="padding:20px;">
+                        <div
+                            style="font-size:0.92rem;font-weight:800;margin-bottom:16px;padding-bottom:8px;border-bottom:2px dashed var(--kraft-light);">
+                            📈 Lộ trình cấp độ PeaceFlow</div>
+                        <div class="level-roadmap" id="levelRoadmap"></div>
+                    </div>
+                </div>
+
+                <!-- TAB: STREAK -->
+                <div class="tab-panel" id="panel-streak">
+                    <div class="paper-card streak-hero">
+                        <div class="sh-top">
+                            <span class="sh-flame">🔥</span>
+                            <div>
+                                <div class="sh-num">7 ngày</div>
+                                <div class="sh-label">Chuỗi hoạt động hiện tại</div>
+                                <div class="sh-record">🏆 Kỷ lục cá nhân: 14 ngày</div>
+                            </div>
+                        </div>
+                        <div style="font-size:0.78rem;font-weight:700;color:var(--text-secondary);margin-bottom:8px;">
+                            Tháng 6, 2025</div>
+                        <div class="streak-calendar" id="streakCalendar"></div>
+                        <div style="display:flex;gap:12px;margin-top:8px;font-size:0.65rem;color:var(--text-light);">
+                            <span style="display:flex;align-items:center;gap:4px;"><span
+                                    style="width:10px;height:10px;border-radius:2px;background:var(--mint-dark);display:inline-block;"></span>Hoàn
+                                thành</span>
+                            <span style="display:flex;align-items:center;gap:4px;"><span
+                                    style="width:10px;height:10px;border-radius:2px;background:rgba(255,139,139,0.3);display:inline-block;"></span>Bỏ
+                                lỡ</span>
+                            <span style="display:flex;align-items:center;gap:4px;"><span
+                                    style="width:10px;height:10px;border-radius:2px;background:var(--mint-light);border:1.5px solid var(--mint-dark);display:inline-block;"></span>Hôm
+                                nay</span>
+                        </div>
+                    </div>
+                    <div class="paper-card" style="padding:18px;">
+                        <div style="font-size:0.88rem;font-weight:700;margin-bottom:12px;">📊 Thống kê streak</div>
+                        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;">
+                            <div
+                                style="text-align:center;padding:12px 8px;background:var(--cream);border-radius:var(--border-radius-sm);border:1.5px solid var(--kraft-light);">
+                                <div style="font-size:1.3rem;font-weight:800;color:var(--peach-dark);">7🔥</div>
+                                <div style="font-size:0.62rem;color:var(--text-secondary);">Streak hiện tại</div>
+                            </div>
+                            <div
+                                style="text-align:center;padding:12px 8px;background:var(--cream);border-radius:var(--border-radius-sm);border:1.5px solid var(--kraft-light);">
+                                <div style="font-size:1.3rem;font-weight:800;color:var(--gold);">14🏆</div>
+                                <div style="font-size:0.62rem;color:var(--text-secondary);">Kỷ lục</div>
+                            </div>
+                            <div
+                                style="text-align:center;padding:12px 8px;background:var(--cream);border-radius:var(--border-radius-sm);border:1.5px solid var(--kraft-light);">
+                                <div style="font-size:1.3rem;font-weight:800;color:var(--mint-dark);">38</div>
+                                <div style="font-size:0.62rem;color:var(--text-secondary);">Tổng ngày active</div>
+                            </div>
+                        </div>
+                        <div
+                            style="margin-top:12px;padding:12px 14px;background:var(--mint-light);border:1.5px solid var(--mint);border-radius:var(--border-radius-sm);font-size:0.78rem;color:var(--text-secondary);line-height:1.5;">
+                            🐱 <strong>PeaceCat nói:</strong> Bạn chỉ cần 5 XP nữa là lên Level 3! Hôm nay hãy hoàn
+                            thành 1 nhiệm vụ để giữ streak và đạt mục tiêu nhé 💪
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB: CHALLENGES -->
+                <div class="tab-panel" id="panel-challenges">
+                    <div style="font-size:0.88rem;font-weight:700;margin-bottom:12px;color:var(--text-secondary);">🎯
+                        Thử thách đặc biệt — Tham gia để nhận phần thưởng độc quyền!</div>
+                    <div id="challengeList"></div>
+                </div>
+
+                <!-- TAB: HALL OF FAME -->
+                <div class="tab-panel" id="panel-hof">
+                    <div class="paper-card" style="padding:20px;margin-bottom:16px;">
+                        <div style="font-size:0.92rem;font-weight:800;margin-bottom:4px;">🌟 Bảng Vinh Danh PeaceFlow
+                        </div>
+                        <div style="font-size:0.78rem;color:var(--text-secondary);margin-bottom:16px;">Những người dùng
+                            xuất sắc nhất tháng này</div>
+                        <div id="hofList"></div>
+                    </div>
+                    <div class="paper-card" style="padding:16px;">
+                        <div style="font-size:0.88rem;font-weight:700;margin-bottom:10px;">📍 Vị trí của bạn</div>
+                        <div class="hof-item" style="background:var(--mint-light);border:1.5px solid var(--mint);">
+                            <div class="hof-rank">#47</div>
+                            <div class="hof-avatar" style="background:var(--lavender-light);">🐱</div>
+                            <div class="hof-info">
+                                <div class="hof-name">Minh Anh (Bạn)</div>
+                                <div class="hof-badges"><span class="hof-badge-mini">🌱</span><span
+                                        class="hof-badge-mini">🌿</span><span class="hof-badge-mini">🧘</span></div>
+                            </div>
+                            <div class="hof-xp">295 XP</div>
+                        </div>
+                        <div style="font-size:0.72rem;color:var(--text-secondary);margin-top:8px;text-align:center;">Còn
+                            <strong>5 XP</strong> nữa để vào top 40! 🚀
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RIGHT SIDEBAR -->
+            <div>
+                <!-- Next Badge -->
+                <div class="paper-card next-badge-card">
+                    <div class="rc-title">🎯 Huy hiệu tiếp theo</div>
+                    <div class="nb-icon">🌳</div>
+                    <div class="nb-name">Cây Lớn</div>
+                    <div class="nb-desc">Duy trì streak 30 ngày liên tục. Bạn đang làm rất tốt!</div>
+                    <div class="nb-progress">
+                        <div class="nb-fill" style="width:23%"></div>
+                    </div>
+                    <div class="nb-label">7 / 30 ngày (23%)</div>
+                </div>
+
+                <!-- Quick Stats -->
+                <div class="paper-card right-card">
+                    <div class="rc-title">📊 Tổng quan thành tích</div>
+                    <div class="quick-stat">
+                        <div class="qs-item">
+                            <div class="qs-num">5/16</div>
+                            <div class="qs-label">Huy hiệu</div>
+                        </div>
+                        <div class="qs-item">
+                            <div class="qs-num">Level 2</div>
+                            <div class="qs-label">Cấp độ</div>
+                        </div>
+                        <div class="qs-item">
+                            <div class="qs-num">295</div>
+                            <div class="qs-label">Tổng XP</div>
+                        </div>
+                        <div class="qs-item">
+                            <div class="qs-num">2/5</div>
+                            <div class="qs-label">Thử thách</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Motivational -->
+                <div class="paper-card motivational-card">
+                    <div class="mc-mascot">🐱</div>
+                    <div class="mc-text">"Mỗi huy hiệu là một câu chuyện về sự kiên trì của bạn. Hãy tiếp tục viết thêm
+                        những trang mới! 🌱"</div>
+                </div>
+
+                <!-- Recent Badges -->
+                <div class="paper-card right-card">
+                    <div class="rc-title">🆕 Huy hiệu gần đây</div>
+                    <div id="recentBadges"></div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // ============================================================
+        // DATA
+        // ============================================================
+        const BADGES = [
+            { id: 1, icon: '🌱', name: 'Mầm Non', desc: 'Hoàn thành nhiệm vụ đầu tiên — bước đầu tiên luôn là quan trọng nhất!', condition: 'Hoàn thành 1 nhiệm vụ bất kỳ', earned: true, date: '02/05/2025', category: 'milestone', isNew: false, progress: 1, total: 1 },
+            { id: 2, icon: '🌿', name: 'Cây Con', desc: 'Duy trì streak 7 ngày liên tục — bạn đang xây dựng thói quen tuyệt vời!', condition: 'Hoàn thành ít nhất 1 nhiệm vụ trong 7 ngày liên tục', earned: true, date: '09/05/2025', category: 'streak', isNew: false, progress: 7, total: 7 },
+            { id: 3, icon: '🧘', name: 'Thiền Sư Giấy', desc: 'Hoàn thành 10 buổi thiền — tâm trí bạn đang trở nên bình yên hơn.', condition: 'Hoàn thành bài thiền 10 lần', earned: true, date: '20/05/2025', category: 'task', isNew: false, progress: 10, total: 10 },
+            { id: 4, icon: '📝', name: 'Nhà Văn Nhỏ', desc: 'Viết nhật ký 5 ngày liên tục — cảm xúc được giải phóng qua con chữ.', condition: 'Viết nhật ký 5 ngày liên tục', earned: true, date: '25/05/2025', category: 'journal', isNew: false, progress: 5, total: 5 },
+            { id: 5, icon: '💨', name: 'Hơi Thở Bình Yên', desc: 'Hoàn thành 5 bài tập thở — bạn đã học cách điều hòa hệ thần kinh.', condition: 'Hoàn thành bài tập thở 5 lần', earned: true, date: '01/06/2025', category: 'task', isNew: true, progress: 5, total: 5 },
+            { id: 6, icon: '🌳', name: 'Cây Lớn', desc: 'Duy trì streak 30 ngày — bạn sẽ trở thành người kiên trì nhất!', condition: 'Hoàn thành ít nhất 1 nhiệm vụ trong 30 ngày liên tục', earned: false, date: null, category: 'streak', isNew: false, progress: 7, total: 30 },
+            { id: 7, icon: '💪', name: 'Chiến Binh', desc: 'Hoàn thành 5 nhiệm vụ cấp độ khó — bạn đang thực sự thay đổi!', condition: 'Hoàn thành 5 nhiệm vụ cấp độ Khó (Cấp 3)', earned: false, date: null, category: 'task', isNew: false, progress: 0, total: 5 },
+            { id: 8, icon: '❤️', name: 'Người Tử Tế', desc: 'Thực hiện 10 hành động tử tế — yêu thương lan tỏa từ bạn.', condition: 'Hoàn thành 10 nhiệm vụ liên quan đến tử tế/cộng đồng', earned: false, date: null, category: 'community', isNew: false, progress: 2, total: 10 },
+            { id: 9, icon: '🏔️', name: 'Người Leo Núi', desc: 'Vượt qua khủng hoảng — từ điểm stress cao xuống mức ổn định.', condition: 'Giảm điểm stress từ mức Cao xuống Nhẹ trong 2 tuần', earned: false, date: null, category: 'milestone', isNew: false, progress: 0, total: 1 },
+            { id: 10, icon: '🌟', name: 'Ngôi Sao', desc: 'Tích lũy 500 XP — bạn là ngôi sao của hành trình này!', condition: 'Đạt tổng cộng 500 XP', earned: false, date: null, category: 'milestone', isNew: false, progress: 295, total: 500 },
+            { id: 11, icon: '🦋', name: 'Biến Đổi', desc: 'Hoàn thành 30 nhiệm vụ — bạn đang thực sự thay đổi từ bên trong.', condition: 'Hoàn thành tổng cộng 30 nhiệm vụ', earned: false, date: null, category: 'task', isNew: false, progress: 47, total: 30 },
+            { id: 12, icon: '🌙', name: 'Người Canh Đêm', desc: 'Check-in tâm trạng lúc 10 giờ tối trong 7 ngày liên tục.', condition: 'Check-in tâm trạng buổi tối 7 ngày liên tục', earned: false, date: null, category: 'mood', isNew: false, progress: 3, total: 7 },
+            { id: 13, icon: '🤝', name: 'Người Kết Nối', desc: 'Tham gia cộng đồng và chia sẻ 5 bài viết.', condition: 'Đăng 5 bài viết trong cộng đồng', earned: false, date: null, category: 'community', isNew: false, progress: 1, total: 5 },
+            { id: 14, icon: '🩺', name: 'Dũng Cảm', desc: 'Đặt lịch tư vấn với chuyên gia — đây là bước dũng cảm nhất.', condition: 'Hoàn thành 1 buổi tư vấn với chuyên gia', earned: false, date: null, category: 'expert', isNew: false, progress: 0, total: 1 },
+            { id: 15, icon: '🌈', name: 'Cầu Vồng', desc: 'Trải qua 30 ngày với đa dạng cảm xúc và vẫn tiếp tục.', condition: 'Sử dụng PeaceFlow liên tục trong 30 ngày', earned: false, date: null, category: 'milestone', isNew: false, progress: 32, total: 30 },
+            { id: 16, icon: '👑', name: 'Bậc Thầy', desc: 'Đạt Level 5 — bạn là bậc thầy bình yên thực sự!', condition: 'Đạt Level 5 (1000 XP)', earned: false, date: null, category: 'milestone', isNew: false, progress: 295, total: 1000 },
+        ];
+
+        const LEVELS = [
+        {level: 1, max_xp: 100},
+        {level: 2, max_xp: 300},
+        {level: 3, max_xp: 600},
+        {level: 4, max_xp: 1000},
+        {level: 5, max_xp: 1500}
+    ];
+    function getLevel(xp) {
+        return LEVELS.find(l => xp < l.max_xp) || LEVELS[LEVELS.length - 1];
+    }
+    function toggleSidebar() { document.getElementById('sidebar').classList.add('open'); document.getElementById('sidebarOverlay').classList.add('open'); }
+    function closeSidebar() { document.getElementById('sidebar').classList.remove('open'); document.getElementById('sidebarOverlay').classList.remove('open'); }
+    function showEmergency() { document.getElementById('emergencyOverlay').classList.add('show'); }
+    function closeEmergency() { document.getElementById('emergencyOverlay').classList.remove('show'); }
+    </script>
+</body>
+</html>

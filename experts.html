@@ -1,0 +1,2177 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PeaceFlow — Kết Nối Chuyên Gia Tâm Lý</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Patrick+Hand&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --cream: #FFF8F0;
+            --warm-white: #FFFDF7;
+            --kraft: #D4A574;
+            --kraft-light: #E8CBA7;
+            --kraft-dark: #B8895A;
+            --mint: #A8D5BA;
+            --mint-light: #C5E8D2;
+            --mint-dark: #7BBF95;
+            --peach: #FFCBA4;
+            --peach-light: #FFE0C4;
+            --peach-dark: #E8A876;
+            --sky: #A8D8EA;
+            --sky-light: #C5E8F5;
+            --lavender: #C3AED6;
+            --lavender-light: #DDD1EB;
+            --coral: #FF8B8B;
+            --coral-light: #FFB3B3;
+            --gold: #FFD93D;
+            --gold-light: #FFF3B0;
+            --text-primary: #4A3728;
+            --text-secondary: #7A6555;
+            --text-light: #A89585;
+            --shadow-paper: 3px 3px 0px rgba(74, 55, 40, 0.1);
+            --shadow-paper-hover: 5px 5px 0px rgba(74, 55, 40, 0.15);
+            --border-radius: 16px;
+            --border-radius-sm: 10px;
+            --transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            --sidebar-width: 240px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background: var(--cream);
+            color: var(--text-primary);
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        .paper-card {
+            background: var(--warm-white);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-paper);
+            border: 2px solid var(--kraft-light);
+            transition: var(--transition);
+        }
+
+        /* ===== SIDEBAR ===== */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            width: var(--sidebar-width);
+            background: var(--warm-white);
+            border-right: 2px solid var(--kraft-light);
+            z-index: 200;
+            display: flex;
+            flex-direction: column;
+            padding: 20px 0;
+        }
+
+        .sidebar-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 0 20px 20px;
+            border-bottom: 2px dashed var(--kraft-light);
+            margin-bottom: 16px;
+            text-decoration: none;
+        }
+
+        .sidebar-logo .logo-icon {
+            width: 38px;
+            height: 38px;
+            background: var(--mint);
+            border-radius: 10px;
+            border: 2px solid var(--mint-dark);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            box-shadow: 2px 2px 0px var(--mint-dark);
+        }
+
+        .sidebar-logo .logo-text {
+            font-size: 1.2rem;
+            font-weight: 800;
+            color: var(--text-primary);
+        }
+
+        .sidebar-logo .logo-text span {
+            color: var(--mint-dark);
+        }
+
+        .sidebar-nav {
+            flex: 1;
+            padding: 0 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            overflow-y: auto;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            border-radius: var(--border-radius-sm);
+            text-decoration: none;
+            color: var(--text-secondary);
+            font-weight: 600;
+            font-size: 0.88rem;
+            transition: var(--transition);
+        }
+
+        .nav-item:hover {
+            background: var(--mint-light);
+            color: var(--text-primary);
+        }
+
+        .nav-item.active {
+            background: var(--mint-light);
+            color: var(--text-primary);
+            border: 1.5px solid var(--mint);
+        }
+
+        .nav-item .ni {
+            font-size: 1.1rem;
+            width: 22px;
+            text-align: center;
+        }
+
+        .nav-section-label {
+            font-size: 0.68rem;
+            font-weight: 700;
+            color: var(--text-light);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            padding: 10px 12px 4px;
+        }
+
+        .sidebar-bottom {
+            padding: 12px;
+            border-top: 2px dashed var(--kraft-light);
+            margin-top: auto;
+        }
+
+        .user-card-mini {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            background: var(--cream);
+            border-radius: var(--border-radius-sm);
+            border: 1.5px solid var(--kraft-light);
+        }
+
+        .user-avatar-mini {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--lavender-light);
+            border: 2px solid var(--kraft);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+        }
+
+        .user-info-mini .user-name {
+            font-size: 0.85rem;
+            font-weight: 700;
+        }
+
+        .user-info-mini .user-level {
+            font-size: 0.72rem;
+            color: var(--text-light);
+        }
+
+        .emergency-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 12px;
+            background: rgba(255, 139, 139, 0.1);
+            border: 1.5px solid var(--coral);
+            border-radius: var(--border-radius-sm);
+            color: var(--coral);
+            font-size: 0.78rem;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 8px;
+            transition: var(--transition);
+            text-decoration: none;
+        }
+
+        .emergency-btn:hover {
+            background: rgba(255, 139, 139, 0.2);
+        }
+
+        /* ===== MOBILE ===== */
+        .mobile-topbar {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background: var(--warm-white);
+            border-bottom: 2px solid var(--kraft-light);
+            z-index: 300;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 16px;
+        }
+
+        .mobile-menu-btn {
+            background: none;
+            border: none;
+            font-size: 1.4rem;
+            cursor: pointer;
+        }
+
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(74, 55, 40, 0.3);
+            z-index: 150;
+        }
+
+        /* ===== MAIN ===== */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            padding: 28px;
+            min-height: 100vh;
+        }
+
+        .btn-primary {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 10px 20px;
+            border: 2px solid var(--mint-dark);
+            border-radius: 50px;
+            background: var(--mint);
+            color: var(--text-primary);
+            font-family: 'Nunito', sans-serif;
+            font-size: 0.88rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: var(--transition);
+            box-shadow: 2px 2px 0px var(--mint-dark);
+            text-decoration: none;
+        }
+
+        .btn-primary:hover {
+            background: var(--mint-dark);
+            color: white;
+            transform: translate(1px, 1px);
+            box-shadow: 1px 1px 0px var(--mint-dark);
+        }
+
+        .btn-outline {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 9px 18px;
+            border: 2px solid var(--kraft-light);
+            border-radius: 50px;
+            background: transparent;
+            color: var(--text-secondary);
+            font-family: 'Nunito', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .btn-outline:hover {
+            background: var(--kraft-light);
+            color: var(--text-primary);
+        }
+
+        .badge-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 3px 10px;
+            border-radius: 50px;
+            font-size: 0.72rem;
+            font-weight: 700;
+        }
+
+        .badge-mint {
+            background: var(--mint-light);
+            color: var(--mint-dark);
+            border: 1.5px solid var(--mint);
+        }
+
+        .badge-peach {
+            background: var(--peach-light);
+            color: var(--peach-dark);
+            border: 1.5px solid var(--peach);
+        }
+
+        .badge-sky {
+            background: var(--sky-light);
+            color: #4a90aa;
+            border: 1.5px solid var(--sky);
+        }
+
+        .badge-lavender {
+            background: var(--lavender-light);
+            color: #8a6aaa;
+            border: 1.5px solid var(--lavender);
+        }
+
+        .badge-coral {
+            background: var(--coral-light);
+            color: #c05050;
+            border: 1.5px solid var(--coral);
+        }
+
+        /* ===== BREADCRUMB ===== */
+        .breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 20px;
+            font-size: 0.8rem;
+            color: var(--text-light);
+        }
+
+        .breadcrumb a {
+            color: var(--text-light);
+            text-decoration: none;
+        }
+
+        .breadcrumb a:hover {
+            color: var(--mint-dark);
+        }
+
+        .breadcrumb span {
+            color: var(--text-secondary);
+            font-weight: 600;
+        }
+
+        /* ===== PAGE HEADER ===== */
+        .page-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .page-title {
+            font-size: 1.5rem;
+            font-weight: 800;
+        }
+
+        .page-subtitle {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        /* ===== AI MATCH BANNER ===== */
+        .ai-match-banner {
+            padding: 16px 20px;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, var(--lavender-light), var(--mint-light));
+            border-color: var(--lavender);
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .amb-mascot {
+            font-size: 2rem;
+            animation: bounce-m 3s ease-in-out infinite;
+            flex-shrink: 0;
+        }
+
+        @keyframes bounce-m {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-5px);
+            }
+        }
+
+        .amb-text .at-title {
+            font-size: 0.92rem;
+            font-weight: 700;
+            margin-bottom: 3px;
+        }
+
+        .amb-text .at-sub {
+            font-size: 0.78rem;
+            color: var(--text-secondary);
+        }
+
+        .amb-action {
+            margin-left: auto;
+            flex-shrink: 0;
+        }
+
+        /* ===== STATS BAR ===== */
+        .stats-bar {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            padding: 16px;
+            text-align: center;
+        }
+
+        .sc-num {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--mint-dark);
+        }
+
+        .sc-label {
+            font-size: 0.72rem;
+            color: var(--text-secondary);
+        }
+
+        /* ===== FILTER BAR ===== */
+        .filter-section {
+            margin-bottom: 20px;
+        }
+
+        .filter-row {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 10px;
+            align-items: center;
+        }
+
+        .filter-btn {
+            padding: 7px 14px;
+            border: 2px solid var(--kraft-light);
+            border-radius: 50px;
+            background: var(--warm-white);
+            font-family: 'Nunito', sans-serif;
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .filter-btn:hover {
+            background: var(--kraft-light);
+        }
+
+        .filter-btn.active {
+            background: var(--mint-light);
+            border-color: var(--mint-dark);
+            color: var(--text-primary);
+            box-shadow: 2px 2px 0px var(--mint-dark);
+        }
+
+        .search-wrap {
+            display: flex;
+            gap: 8px;
+            flex: 1;
+            min-width: 220px;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 8px 14px;
+            border: 2px solid var(--kraft-light);
+            border-radius: 50px;
+            background: var(--warm-white);
+            font-family: 'Nunito', sans-serif;
+            font-size: 0.82rem;
+            color: var(--text-primary);
+            outline: none;
+            transition: var(--transition);
+        }
+
+        .search-input:focus {
+            border-color: var(--mint);
+        }
+
+        .sort-select {
+            padding: 8px 14px;
+            border: 2px solid var(--kraft-light);
+            border-radius: 50px;
+            background: var(--warm-white);
+            font-family: 'Nunito', sans-serif;
+            font-size: 0.78rem;
+            color: var(--text-secondary);
+            outline: none;
+            cursor: pointer;
+        }
+
+        /* ===== EXPERT GRID ===== */
+        .expert-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 18px;
+            margin-bottom: 24px;
+        }
+
+        /* ===== EXPERT CARD ===== */
+        .expert-card {
+            padding: 0;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        .expert-card:hover {
+            box-shadow: var(--shadow-paper-hover);
+            transform: translateY(-3px);
+        }
+
+        .ec-top-banner {
+            height: 6px;
+        }
+
+        .ec-top-banner.available {
+            background: linear-gradient(90deg, var(--mint), var(--mint-dark));
+        }
+
+        .ec-top-banner.busy {
+            background: linear-gradient(90deg, var(--peach), var(--peach-dark));
+        }
+
+        .ec-top-banner.offline {
+            background: linear-gradient(90deg, var(--kraft-light), var(--kraft));
+        }
+
+        .ec-body {
+            padding: 18px;
+        }
+
+        .ec-header {
+            display: flex;
+            gap: 14px;
+            margin-bottom: 14px;
+        }
+
+        .ec-avatar {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            border: 3px solid var(--kraft-light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            flex-shrink: 0;
+            position: relative;
+            background: var(--lavender-light);
+        }
+
+        .ec-status-dot {
+            position: absolute;
+            bottom: 2px;
+            right: 2px;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            border: 2px solid white;
+        }
+
+        .ec-status-dot.online {
+            background: #4CAF50;
+        }
+
+        .ec-status-dot.busy {
+            background: var(--peach-dark);
+        }
+
+        .ec-status-dot.offline {
+            background: var(--kraft);
+        }
+
+        .ec-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .ec-name {
+            font-size: 1rem;
+            font-weight: 800;
+            margin-bottom: 2px;
+        }
+
+        .ec-degree {
+            font-size: 0.72rem;
+            color: var(--text-light);
+            margin-bottom: 5px;
+        }
+
+        .ec-rating {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .ec-stars {
+            color: var(--gold);
+            font-size: 0.85rem;
+        }
+
+        .ec-rating-num {
+            font-size: 0.78rem;
+            font-weight: 700;
+        }
+
+        .ec-sessions {
+            font-size: 0.68rem;
+            color: var(--text-light);
+        }
+
+        .ec-specialties {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+            margin-bottom: 10px;
+        }
+
+        .ec-specialty {
+            font-size: 0.65rem;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 50px;
+            background: var(--mint-light);
+            color: var(--mint-dark);
+            border: 1.5px solid var(--mint);
+        }
+
+        .ec-bio {
+            font-size: 0.78rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
+            margin-bottom: 12px;
+            display: -webkit-box;
+            line-clamp: 2;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .ec-meta {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
+
+        .ec-meta-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 0.72rem;
+            color: var(--text-secondary);
+        }
+
+        .ec-price-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 12px;
+            background: var(--cream);
+            border-radius: var(--border-radius-sm);
+            border: 1.5px solid var(--kraft-light);
+            margin-bottom: 12px;
+        }
+
+        .ec-price {
+            font-size: 0.88rem;
+            font-weight: 800;
+            color: var(--text-primary);
+        }
+
+        .ec-price-label {
+            font-size: 0.65rem;
+            color: var(--text-light);
+        }
+
+        .ec-next {
+            font-size: 0.72rem;
+            color: var(--mint-dark);
+            font-weight: 600;
+        }
+
+        .ec-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .ec-btn-book {
+            flex: 1;
+            padding: 9px;
+            border: 2px solid var(--mint-dark);
+            border-radius: 50px;
+            background: var(--mint);
+            color: var(--text-primary);
+            font-family: 'Nunito', sans-serif;
+            font-size: 0.8rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: var(--transition);
+            text-align: center;
+        }
+
+        .ec-btn-book:hover {
+            background: var(--mint-dark);
+            color: white;
+        }
+
+        .ec-btn-msg {
+            padding: 9px 14px;
+            border: 2px solid var(--kraft-light);
+            border-radius: 50px;
+            background: transparent;
+            color: var(--text-secondary);
+            font-family: 'Nunito', sans-serif;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .ec-btn-msg:hover {
+            background: var(--kraft-light);
+        }
+
+        .ec-match-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 3px 8px;
+            border-radius: 50px;
+            font-size: 0.65rem;
+            font-weight: 700;
+            background: var(--gold-light);
+            color: #b8860b;
+            border: 1.5px solid var(--gold);
+            margin-bottom: 8px;
+        }
+
+        /* ===== BOOKING MODAL ===== */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(74, 55, 40, 0.5);
+            z-index: 500;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal-overlay.show {
+            display: flex;
+        }
+
+        .booking-modal {
+            background: var(--warm-white);
+            border-radius: 24px;
+            border: 2px solid var(--kraft-light);
+            width: 100%;
+            max-width: 580px;
+            max-height: 92vh;
+            overflow-y: auto;
+            animation: modal-in 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .booking-modal::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .booking-modal::-webkit-scrollbar-thumb {
+            background: var(--kraft-light);
+        }
+
+        @keyframes modal-in {
+            from {
+                transform: scale(0.85);
+                opacity: 0;
+            }
+
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .bm-header {
+            padding: 22px 24px 16px;
+            border-bottom: 2px dashed var(--kraft-light);
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            position: relative;
+        }
+
+        .bm-close {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--cream);
+            border: 2px solid var(--kraft-light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: var(--transition);
+        }
+
+        .bm-close:hover {
+            background: var(--kraft-light);
+        }
+
+        .bm-avatar {
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            border: 3px solid var(--mint);
+            background: var(--lavender-light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+            flex-shrink: 0;
+        }
+
+        .bm-name {
+            font-size: 1rem;
+            font-weight: 800;
+        }
+
+        .bm-degree {
+            font-size: 0.72rem;
+            color: var(--text-light);
+        }
+
+        .bm-body {
+            padding: 20px 24px;
+        }
+
+        .bm-step-indicator {
+            display: flex;
+            gap: 0;
+            margin-bottom: 20px;
+        }
+
+        .bm-step {
+            flex: 1;
+            padding: 8px 6px;
+            text-align: center;
+            border: 1.5px solid var(--kraft-light);
+            background: var(--cream);
+            font-size: 0.72rem;
+            font-weight: 600;
+            color: var(--text-light);
+            transition: var(--transition);
+        }
+
+        .bm-step:first-child {
+            border-radius: var(--border-radius-sm) 0 0 var(--border-radius-sm);
+        }
+
+        .bm-step:last-child {
+            border-radius: 0 var(--border-radius-sm) var(--border-radius-sm) 0;
+        }
+
+        .bm-step.active {
+            background: var(--mint-light);
+            border-color: var(--mint-dark);
+            color: var(--text-primary);
+            font-weight: 700;
+        }
+
+        .bm-step.done {
+            background: var(--mint);
+            border-color: var(--mint-dark);
+            color: white;
+        }
+
+        .bm-section {
+            margin-bottom: 18px;
+        }
+
+        .bm-section-title {
+            font-size: 0.85rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* Session type cards */
+        .session-types {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+        }
+
+        .session-type-card {
+            padding: 12px;
+            border: 2px solid var(--kraft-light);
+            border-radius: var(--border-radius-sm);
+            cursor: pointer;
+            transition: var(--transition);
+            background: var(--cream);
+        }
+
+        .session-type-card:hover {
+            border-color: var(--mint);
+            background: var(--mint-light);
+        }
+
+        .session-type-card.selected {
+            border-color: var(--mint-dark);
+            background: var(--mint-light);
+            box-shadow: 2px 2px 0px var(--mint-dark);
+        }
+
+        .stc-icon {
+            font-size: 1.3rem;
+            margin-bottom: 5px;
+        }
+
+        .stc-name {
+            font-size: 0.82rem;
+            font-weight: 700;
+            margin-bottom: 2px;
+        }
+
+        .stc-price {
+            font-size: 0.72rem;
+            color: var(--text-secondary);
+        }
+
+        .stc-duration {
+            font-size: 0.65rem;
+            color: var(--text-light);
+        }
+
+        /* Calendar */
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 4px;
+            margin-bottom: 10px;
+        }
+
+        .cal-header {
+            font-size: 0.65rem;
+            font-weight: 700;
+            color: var(--text-light);
+            text-align: center;
+            padding: 4px 0;
+        }
+
+        .cal-day {
+            padding: 7px 4px;
+            text-align: center;
+            border-radius: var(--border-radius-sm);
+            font-size: 0.78rem;
+            cursor: pointer;
+            transition: var(--transition);
+            border: 1.5px solid transparent;
+        }
+
+        .cal-day:hover {
+            background: var(--mint-light);
+            border-color: var(--mint);
+        }
+
+        .cal-day.selected {
+            background: var(--mint-dark);
+            color: white;
+            border-color: var(--mint-dark);
+        }
+
+        .cal-day.today {
+            border-color: var(--mint);
+            font-weight: 700;
+        }
+
+        .cal-day.disabled {
+            color: var(--text-light);
+            cursor: default;
+        }
+
+        .cal-day.disabled:hover {
+            background: transparent;
+            border-color: transparent;
+        }
+
+        /* Time slots */
+        .time-slots {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 6px;
+        }
+
+        .time-slot {
+            padding: 7px 6px;
+            text-align: center;
+            border: 1.5px solid var(--kraft-light);
+            border-radius: var(--border-radius-sm);
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            background: var(--cream);
+        }
+
+        .time-slot:hover {
+            border-color: var(--mint);
+            background: var(--mint-light);
+        }
+
+        .time-slot.selected {
+            background: var(--mint-dark);
+            color: white;
+            border-color: var(--mint-dark);
+        }
+
+        .time-slot.unavailable {
+            color: var(--text-light);
+            cursor: default;
+            text-decoration: line-through;
+        }
+
+        .time-slot.unavailable:hover {
+            background: transparent;
+            border-color: var(--kraft-light);
+        }
+
+        /* Problem description */
+        .problem-textarea {
+            width: 100%;
+            padding: 12px 14px;
+            border: 2px solid var(--kraft-light);
+            border-radius: var(--border-radius-sm);
+            background: var(--cream);
+            font-family: 'Patrick Hand', cursive;
+            font-size: 0.9rem;
+            color: var(--text-primary);
+            outline: none;
+            resize: none;
+            transition: var(--transition);
+            line-height: 1.7;
+        }
+
+        .problem-textarea:focus {
+            border-color: var(--mint);
+        }
+
+        /* Summary */
+        .booking-summary {
+            padding: 14px;
+            background: var(--mint-light);
+            border: 1.5px solid var(--mint);
+            border-radius: var(--border-radius-sm);
+        }
+
+        .bs-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.82rem;
+            padding: 4px 0;
+            border-bottom: 1px dashed var(--mint);
+        }
+
+        .bs-row:last-child {
+            border-bottom: none;
+            font-weight: 700;
+            font-size: 0.88rem;
+        }
+
+        .bm-actions {
+            display: flex;
+            gap: 10px;
+            padding: 16px 24px;
+            border-top: 2px dashed var(--kraft-light);
+        }
+
+        /* ===== PROFILE MODAL ===== */
+        .profile-modal {
+            background: var(--warm-white);
+            border-radius: 24px;
+            border: 2px solid var(--kraft-light);
+            width: 100%;
+            max-width: 640px;
+            max-height: 92vh;
+            overflow-y: auto;
+            animation: modal-in 0.4s ease;
+        }
+
+        .pm-hero {
+            padding: 28px;
+            background: linear-gradient(135deg, var(--lavender-light), var(--mint-light));
+            border-radius: var(--border-radius) var(--border-radius) 0 0;
+            text-align: center;
+            position: relative;
+        }
+
+        .pm-close {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.7);
+            border: 2px solid var(--kraft-light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        .pm-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            border: 4px solid white;
+            background: var(--lavender-light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.2rem;
+            margin: 0 auto 12px;
+            box-shadow: 3px 3px 0px var(--kraft-light);
+        }
+
+        .pm-name {
+            font-size: 1.2rem;
+            font-weight: 800;
+            margin-bottom: 4px;
+        }
+
+        .pm-degree {
+            font-size: 0.78rem;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .pm-tags {
+            display: flex;
+            gap: 6px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .pm-body {
+            padding: 24px;
+        }
+
+        .pm-section {
+            margin-bottom: 18px;
+        }
+
+        .pm-section-title {
+            font-size: 0.88rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding-bottom: 6px;
+            border-bottom: 1.5px dashed var(--kraft-light);
+        }
+
+        .pm-bio {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+
+        .pm-cred-item {
+            display: flex;
+            gap: 10px;
+            padding: 8px 0;
+            border-bottom: 1px dashed var(--kraft-light);
+            font-size: 0.82rem;
+            color: var(--text-secondary);
+        }
+
+        .pm-cred-item:last-child {
+            border-bottom: none;
+        }
+
+        .pm-cred-icon {
+            flex-shrink: 0;
+            font-size: 1rem;
+        }
+
+        .pm-approach-item {
+            padding: 8px 12px;
+            background: var(--cream);
+            border-radius: var(--border-radius-sm);
+            border: 1.5px solid var(--kraft-light);
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+        }
+
+        .pm-reviews {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .pm-review {
+            padding: 12px 14px;
+            background: var(--cream);
+            border-radius: var(--border-radius-sm);
+            border: 1.5px solid var(--kraft-light);
+        }
+
+        .pmr-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 5px;
+        }
+
+        .pmr-name {
+            font-size: 0.78rem;
+            font-weight: 700;
+        }
+
+        .pmr-stars {
+            color: var(--gold);
+            font-size: 0.78rem;
+        }
+
+        .pmr-text {
+            font-size: 0.78rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
+            font-style: italic;
+        }
+
+        .pm-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+
+        .pm-stat {
+            text-align: center;
+            padding: 12px 8px;
+            background: var(--cream);
+            border-radius: var(--border-radius-sm);
+            border: 1.5px solid var(--kraft-light);
+        }
+
+        .pm-stat-num {
+            font-size: 1.2rem;
+            font-weight: 800;
+            color: var(--mint-dark);
+        }
+
+        .pm-stat-label {
+            font-size: 0.65rem;
+            color: var(--text-secondary);
+        }
+
+        /* ===== EMERGENCY ===== */
+        .emergency-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(74, 55, 40, 0.5);
+            z-index: 1000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .emergency-overlay.show {
+            display: flex;
+        }
+
+        .emergency-popup {
+            background: var(--warm-white);
+            border-radius: 24px;
+            border: 3px solid var(--coral);
+            padding: 32px;
+            max-width: 420px;
+            width: 100%;
+            box-shadow: 6px 6px 0px rgba(255, 139, 139, 0.3);
+            animation: modal-in 0.4s ease;
+        }
+
+        .ep-icon {
+            font-size: 2.5rem;
+            text-align: center;
+            margin-bottom: 8px;
+        }
+
+        .ep-title {
+            font-size: 1.2rem;
+            font-weight: 800;
+            color: var(--coral);
+            text-align: center;
+            margin-bottom: 6px;
+        }
+
+        .ep-text {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-bottom: 16px;
+            text-align: center;
+        }
+
+        .ep-hotline {
+            padding: 14px;
+            background: rgba(255, 139, 139, 0.1);
+            border: 2px solid var(--coral);
+            border-radius: var(--border-radius-sm);
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .ep-hotline .eph-num {
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: var(--coral);
+        }
+
+        .ep-hotline .eph-label {
+            font-size: 0.72rem;
+            color: var(--text-secondary);
+        }
+
+        .ep-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .ep-btn {
+            padding: 12px;
+            border-radius: 50px;
+            font-family: 'Nunito', sans-serif;
+            font-size: 0.88rem;
+            font-weight: 700;
+            cursor: pointer;
+            text-align: center;
+            transition: var(--transition);
+            text-decoration: none;
+            display: block;
+            border: 2px solid;
+        }
+
+        .ep-btn-red {
+            background: var(--coral);
+            color: white;
+            border-color: #c05050;
+        }
+
+        .ep-btn-green {
+            background: var(--mint-light);
+            color: var(--mint-dark);
+            border-color: var(--mint);
+        }
+
+        .ep-btn-ghost {
+            background: transparent;
+            color: var(--text-light);
+            border-color: var(--kraft-light);
+            font-size: 0.8rem;
+        }
+
+        /* ===== HOTLINE BANNER ===== */
+        .hotline-banner {
+            padding: 14px 18px;
+            background: rgba(255, 139, 139, 0.08);
+            border: 2px solid var(--coral);
+            border-radius: var(--border-radius-sm);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .hb-icon {
+            font-size: 1.4rem;
+            flex-shrink: 0;
+        }
+
+        .hb-text {
+            flex: 1;
+            font-size: 0.82rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        .hb-btn {
+            padding: 8px 16px;
+            border: 2px solid var(--coral);
+            border-radius: 50px;
+            background: var(--coral-light);
+            color: #c05050;
+            font-family: 'Nunito', sans-serif;
+            font-size: 0.78rem;
+            font-weight: 700;
+            cursor: pointer;
+            flex-shrink: 0;
+            transition: var(--transition);
+        }
+
+        .hb-btn:hover {
+            background: var(--coral);
+            color: white;
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media(max-width:1100px) {
+            .stats-bar {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media(max-width:900px) {
+            :root {
+                --sidebar-width: 0px;
+            }
+
+            .sidebar {
+                transform: translateX(-240px);
+                width: 240px;
+                transition: transform 0.3s ease;
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+
+            .sidebar-overlay.open {
+                display: block;
+            }
+
+            .main-content {
+                margin-left: 0;
+                padding: 76px 16px 20px;
+            }
+
+            .mobile-topbar {
+                display: flex;
+            }
+
+            .expert-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .session-types {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media(max-width:600px) {
+            .stats-bar {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .time-slots {
+                grid-template-columns: repeat(3, 1fr);
+            }
+
+            .pm-stats-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Emergency Overlay -->
+    <div class="emergency-overlay" id="emergencyOverlay">
+        <div class="emergency-popup">
+            <div class="ep-icon">❤️</div>
+            <div class="ep-title">Bạn không đơn độc</div>
+            <p class="ep-text">Nếu bạn đang cảm thấy rất khó khăn, hãy để ai đó giúp bạn ngay bây giờ.</p>
+            <div class="ep-hotline">
+                <div class="eph-num">📞 1800-599-920</div>
+                <div class="eph-label">Đường dây nóng sức khỏe tâm thần — Miễn phí, 24/7</div>
+            </div>
+            <div class="ep-actions">
+                <a href="tel:1800599920" class="ep-btn ep-btn-red">📞 Gọi ngay hotline</a>
+                <button class="ep-btn ep-btn-green" onclick="closeEmergency()">💬 Kết nối chuyên gia ngay</button>
+                <button class="ep-btn ep-btn-ghost" onclick="closeEmergency()">Tôi ổn, đóng lại</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Booking Modal -->
+    <div class="modal-overlay" id="bookingModalOverlay" onclick="closeBookingIfOutside(event)">
+        <div class="booking-modal" id="bookingModal">
+            <div class="bm-header">
+                <button class="bm-close" onclick="closeBookingModal()">✕</button>
+                <div class="bm-avatar" id="bmAvatar">👩‍⚕️</div>
+                <div>
+                    <div class="bm-name" id="bmName">Đặt lịch tư vấn</div>
+                    <div class="bm-degree" id="bmDegree">Chọn hình thức và thời gian phù hợp</div>
+                </div>
+            </div>
+            <div class="bm-body">
+                <!-- Step Indicator -->
+                <div class="bm-step-indicator">
+                    <div class="bm-step active" id="bm-step-1">1. Hình thức</div>
+                    <div class="bm-step" id="bm-step-2">2. Lịch hẹn</div>
+                    <div class="bm-step" id="bm-step-3">3. Mô tả</div>
+                    <div class="bm-step" id="bm-step-4">4. Xác nhận</div>
+                </div>
+
+                <!-- Step 1: Session Type -->
+                <div id="booking-step-1">
+                    <div class="bm-section">
+                        <div class="bm-section-title">💬 Chọn hình thức tư vấn</div>
+                        <div class="session-types">
+                            <div class="session-type-card selected"
+                                onclick="selectSessionType(this,'chat','200.000đ','30 phút')">
+                                <div class="stc-icon">💬</div>
+                                <div class="stc-name">Chat text</div>
+                                <div class="stc-price">200.000đ</div>
+                                <div class="stc-duration">30 phút</div>
+                            </div>
+                            <div class="session-type-card"
+                                onclick="selectSessionType(this,'voice','350.000đ','45 phút')">
+                                <div class="stc-icon">📞</div>
+                                <div class="stc-name">Gọi thoại</div>
+                                <div class="stc-price">350.000đ</div>
+                                <div class="stc-duration">45 phút</div>
+                            </div>
+                            <div class="session-type-card"
+                                onclick="selectSessionType(this,'video','500.000đ','60 phút')">
+                                <div class="stc-icon">📹</div>
+                                <div class="stc-name">Video call</div>
+                                <div class="stc-price">500.000đ</div>
+                                <div class="stc-duration">60 phút</div>
+                            </div>
+                            <div class="session-type-card"
+                                onclick="selectSessionType(this,'inperson','700.000đ','60 phút')">
+                                <div class="stc-icon">🏥</div>
+                                <div class="stc-name">Gặp trực tiếp</div>
+                                <div class="stc-price">700.000đ</div>
+                                <div class="stc-duration">60 phút</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div style="display:flex;justify-content:flex-end;">
+                        <button class="btn-primary" onclick="goBookingStep(2)">Tiếp theo →</button>
+                    </div>
+                </div>
+
+                <!-- Step 2: Calendar -->
+                <div id="booking-step-2" style="display:none;">
+                    <div class="bm-section">
+                        <div class="bm-section-title">📅 Chọn ngày</div>
+                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                            <button class="btn-outline" style="padding:5px 12px;font-size:0.75rem;"
+                                onclick="changeMonth(-1)">← Tháng trước</button>
+                            <span style="font-size:0.85rem;font-weight:700;" id="calMonthLabel">Tháng 6, 2025</span>
+                            <button class="btn-outline" style="padding:5px 12px;font-size:0.75rem;"
+                                onclick="changeMonth(1)">Tháng sau →</button>
+                        </div>
+                        <div class="calendar-grid" id="calendarGrid"></div>
+                    </div>
+                    <div class="bm-section">
+                        <div class="bm-section-title">⏰ Chọn giờ</div>
+                        <div class="time-slots" id="timeSlots"></div>
+                    </div>
+                    <div style="display:flex;gap:10px;justify-content:flex-end;">
+                        <button class="btn-outline" onclick="goBookingStep(1)">← Quay lại</button>
+                        <button class="btn-primary" onclick="goBookingStep(3)">Tiếp theo →</button>
+                    </div>
+                </div>
+
+                <!-- Step 3: Problem Description -->
+                <div id="booking-step-3" style="display:none;">
+                    <div class="bm-section">
+                        <div class="bm-section-title">📝 Mô tả ngắn vấn đề (tùy chọn)</div>
+                        <textarea class="problem-textarea" rows="5" placeholder="Chia sẻ ngắn gọn điều bạn muốn được hỗ trợ... Thông tin này giúp chuyên gia chuẩn bị tốt hơn cho buổi tư vấn.
+
+Ví dụ: Tôi đang gặp khó khăn với lo âu công việc và mất ngủ trong 2 tuần gần đây..."></textarea>
+                        <div style="font-size:0.72rem;color:var(--text-light);margin-top:4px;">🔒 Thông tin được mã hóa
+                            AES-256 và chỉ chuyên gia được chọn mới có thể xem</div>
+                    </div>
+                    <div style="display:flex;gap:10px;justify-content:flex-end;">
+                        <button class="btn-outline" onclick="goBookingStep(2)">← Quay lại</button>
+                        <button class="btn-primary" onclick="goBookingStep(4)">Xem tóm tắt →</button>
+                    </div>
+                </div>
+
+                <!-- Step 4: Confirmation -->
+                <div id="booking-step-4" style="display:none;">
+                    <div class="bm-section">
+                        <div class="bm-section-title">✅ Xác nhận đặt lịch</div>
+                        <div class="booking-summary" id="bookingSummary">
+                            <div class="bs-row"><span>Chuyên gia</span><span id="bs-expert">—</span></div>
+                            <div class="bs-row"><span>Hình thức</span><span id="bs-type">—</span></div>
+                            <div class="bs-row"><span>Ngày & giờ</span><span id="bs-datetime">—</span></div>
+                            <div class="bs-row"><span>Thời lượng</span><span id="bs-duration">—</span></div>
+                            <div class="bs-row"><span>Tổng thanh toán</span><span id="bs-price">—</span></div>
+                        </div>
+                        <div
+                            style="margin-top:10px;padding:10px 12px;background:var(--peach-light);border:1.5px solid var(--peach);border-radius:var(--border-radius-sm);font-size:0.75rem;color:var(--text-secondary);line-height:1.5;">
+                            ⚠️ Bạn sẽ nhận được nhắc nhở 1 giờ trước buổi tư vấn. Hủy lịch miễn phí trước 24 giờ.
+                        </div>
+                    </div>
+                    <div style="display:flex;gap:10px;justify-content:flex-end;">
+                        <button class="btn-outline" onclick="goBookingStep(3)">← Quay lại</button>
+                        <button class="btn-primary" onclick="confirmBooking()">✓ Xác nhận đặt lịch</button>
+                    </div>
+                </div>
+
+                <!-- Success -->
+                <div id="booking-success" style="display:none;text-align:center;padding:20px 0;">
+                    <div style="font-size:3rem;margin-bottom:12px;animation:bounce-s 1s ease-in-out infinite;">🎉</div>
+                    <div style="font-size:1.1rem;font-weight:800;margin-bottom:6px;">Đặt lịch thành công!</div>
+                    <div style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:16px;">Bạn sẽ nhận thông báo
+                        xác nhận qua email. Chúng tôi mong chờ được gặp bạn!</div>
+                    <div
+                        style="padding:14px;background:var(--mint-light);border:1.5px solid var(--mint);border-radius:var(--border-radius-sm);margin-bottom:14px;font-size:0.82rem;color:var(--text-secondary);">
+                        📅 <strong id="success-datetime">Thứ 3, 01/07/2025 lúc 10:00</strong><br>
+                        💬 <span id="success-type">Chat text</span> với <strong id="success-expert">Chuyên gia</strong>
+                    </div>
+                    <button class="btn-primary" onclick="closeBookingModal()">Đóng</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Profile Modal -->
+    <div class="modal-overlay" id="profileModalOverlay" onclick="closeProfileIfOutside(event)">
+        <div class="profile-modal" id="profileModal">
+            <div class="pm-hero">
+                <button class="pm-close" onclick="closeProfileModal()">✕</button>
+                <div class="pm-avatar" id="pmAvatar">👩‍⚕️</div>
+                <div class="pm-name" id="pmName">Tên chuyên gia</div>
+                <div class="pm-degree" id="pmDegree">Bằng cấp</div>
+                <div class="pm-tags" id="pmTags"></div>
+            </div>
+            <div class="pm-body">
+                <div class="pm-stats-grid" id="pmStats"></div>
+                <div style="margin-top:16px;"></div>
+                <div class="pm-section">
+                    <div class="pm-section-title">👤 Giới thiệu</div>
+                    <div class="pm-bio" id="pmBio"></div>
+                </div>
+                <div class="pm-section">
+                    <div class="pm-section-title">🎓 Bằng cấp & Chứng chỉ</div>
+                    <div id="pmCredentials"></div>
+                </div>
+                <div class="pm-section">
+                    <div class="pm-section-title">🧠 Phương pháp trị liệu</div>
+                    <div id="pmApproaches"></div>
+                </div>
+                <div class="pm-section">
+                    <div class="pm-section-title">⭐ Đánh giá từ người dùng</div>
+                    <div class="pm-reviews" id="pmReviews"></div>
+                </div>
+                <div style="display:flex;gap:10px;margin-top:16px;">
+                    <button class="btn-primary" style="flex:1;justify-content:center;"
+                        onclick="closeProfileModal();openBookingModal(currentExpertId)">📅 Đặt lịch ngay</button>
+                    <button class="btn-outline" onclick="closeProfileModal()">Đóng</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar Overlay -->
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+    <!-- Mobile Topbar -->
+    <div class="mobile-topbar">
+        <button class="mobile-menu-btn" onclick="toggleSidebar()">☰</button>
+        <a href="index.html" style="display:flex;align-items:center;gap:8px;text-decoration:none;">
+            <div
+                style="width:32px;height:32px;background:var(--mint);border-radius:8px;border:2px solid var(--mint-dark);display:flex;align-items:center;justify-content:center;font-size:1rem;box-shadow:2px 2px 0px var(--mint-dark);">
+                🌿</div>
+            <span style="font-size:1.1rem;font-weight:800;color:var(--text-primary);">Peace<span
+                    style="color:var(--mint-dark);">Craft</span></span>
+        </a>
+        <span
+            style="background:var(--peach-light);padding:3px 10px;border-radius:50px;font-size:0.75rem;font-weight:700;color:var(--peach-dark);border:1.5px solid var(--peach);">⭐
+            295 XP</span>
+    </div>
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <a href="index.html" class="sidebar-logo">
+            <div class="logo-icon">🌿</div>
+            <div class="logo-text">Peace<span>Craft</span></div>
+        </a>
+        <nav class="sidebar-nav">
+            <div class="nav-section-label">Chính</div>
+            <a href="dashboard.html" class="nav-item"><span class="ni">🏡</span> Tổng quan</a>
+            <a href="mood-checkin.html" class="nav-item"><span class="ni">💭</span> Tâm trạng</a>
+            <a href="tasks.html" class="nav-item"><span class="ni">🎮</span> Nhiệm vụ</a>
+            <a href="journal.html" class="nav-item"><span class="ni">📝</span> Nhật ký</a>
+            <div class="nav-section-label" style="margin-top:8px;">Kết nối</div>
+            <a href="experts.html" class="nav-item active"><span class="ni">🩺</span> Chuyên gia</a>
+            <a href="community.html" class="nav-item"><span class="ni">👥</span> Cộng đồng</a>
+            <div class="nav-section-label" style="margin-top:8px;">Phân tích</div>
+            <a href="report.html" class="nav-item">
+                <span class="ni">📊</span> Báo cáo
+            </a>
+            <a href="achievements.html" class="nav-item">
+                <span class="ni">🏅</span> Thành tích
+            </a>
+            <div class="nav-section-label" style="margin-top:8px;">Cài đặt</div>
+            <a href="profile.html" class="nav-item"><span class="ni">👤</span> Hồ sơ</a>
+        </nav>
+        <div class="sidebar-bottom">
+            <div class="user-card-mini">
+                <div class="user-avatar-mini">🐱</div>
+                <div class="user-info-mini">
+                    <div class="user-name">Minh Anh</div>
+                    <div class="user-level">⭐ 295 XP · Level 2</div>
+                </div>
+            </div>
+            <a href="#" class="emergency-btn" onclick="showEmergency();return false;">🆘 Hỗ trợ khẩn cấp</a>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="breadcrumb">
+            <a href="dashboard.html">🏡 Tổng quan</a><span>›</span>
+            <span>🩺 Chuyên gia tâm lý</span>
+        </div>
+
+        <div class="page-header">
+            <div>
+                <div class="page-title">🩺 Kết Nối Chuyên Gia Tâm Lý</div>
+                <div class="page-subtitle">Đội ngũ 30+ chuyên gia được chứng nhận — sẵn sàng đồng hành cùng bạn</div>
+            </div>
+            <button class="btn-primary" onclick="showEmergency()">🆘 Hỗ trợ khẩn cấp</button>
+        </div>
+
+        <!-- Hotline Banner -->
+        <div class="hotline-banner">
+            <span class="hb-icon">📞</span>
+            <div class="hb-text"><strong>Đường dây nóng sức khỏe tâm thần:</strong> 1800-599-920 — Miễn phí, hoạt động
+                24/7. Nếu bạn đang trong tình trạng khủng hoảng, hãy gọi ngay.</div>
+            <a href="tel:1800599920" class="hb-btn">Gọi ngay</a>
+        </div>
+
+        <!-- AI Match Banner -->
+        <div class="paper-card ai-match-banner">
+            <div class="amb-mascot">🐱</div>
+            <div class="amb-text">
+                <div class="at-title">🤖 PeaceCat đã tìm được 3 chuyên gia phù hợp với bạn!</div>
+                <div class="at-sub">Dựa trên kết quả DASS-21 (Lo âu: Nhẹ) và lịch sử tâm trạng — PeaceCat gợi ý các
+                    chuyên
+                    gia chuyên về lo âu và stress công việc.</div>
+            </div>
+            <div class="amb-action">
+                <button class="btn-primary" onclick="filterExperts('matched',null)">Xem gợi ý →</button>
+            </div>
+        </div>
+
+        <!-- Stats Bar -->
+        <div class="stats-bar">
+            <div class="paper-card stat-card">
+                <div class="sc-num">32</div>
+                <div class="sc-label">Chuyên gia đang hoạt động</div>
+            </div>
+            <div class="paper-card stat-card">
+                <div class="sc-num">4.8⭐</div>
+                <div class="sc-label">Đánh giá trung bình</div>
+            </div>
+            <div class="paper-card stat-card">
+                <div class="sc-num">2,847</div>
+                <div class="sc-label">Phiên tư vấn hoàn thành</div>
+            </div>
+            <div class="paper-card stat-card">
+                <div class="sc-num">96%</div>
+                <div class="sc-label">Người dùng hài lòng</div>
+            </div>
+        </div>
+
+        <!-- Filter Bar -->
+        <div class="filter-section">
+            <div class="filter-row">
+                <button class="filter-btn active" onclick="filterExperts('all',this)">🌿 Tất cả</button>
+                <button class="filter-btn" onclick="filterExperts('available',this)">🟢 Đang trực tuyến</button>
+                <button class="filter-btn" onclick="filterExperts('anxiety',this)">😰 Lo âu</button>
+                <button class="filter-btn" onclick="filterExperts('depression',this)">🌧️ Trầm cảm</button>
+                <button class="filter-btn" onclick="filterExperts('stress',this)">💼 Stress công việc</button>
+                <button class="filter-btn" onclick="filterExperts('sleep',this)">😴 Mất ngủ</button>
+                <button class="filter-btn" onclick="filterExperts('relationship',this)">💑 Mối quan hệ</button>
+                <button class="filter-btn" onclick="filterExperts('trauma',this)">🛡️ Trauma</button>
+            </div>
+            <div class="filter-row">
+                <div class="search-wrap">
+                    <input type="text" class="search-input" placeholder="🔍 Tìm chuyên gia..."
+                        oninput="searchExperts(this.value)">
+                </div>
+                <select class="sort-select" onchange="sortExperts(this.value)">
+                    <option value="rating">Sắp xếp: Đánh giá cao nhất</option>
+                    <option value="sessions">Nhiều phiên nhất</option>
+                    <option value="price_asc">Giá thấp nhất</option>
+                    <option value="price_desc">Giá cao nhất</option>
+                    <option value="available">Đang trực tuyến</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Expert Grid -->
+        <div class="expert-grid" id="expertGrid"></div>
+
+        <!-- Disclaimer -->
+        <div
+            style="padding:14px 16px;background:rgba(255,203,164,0.15);border:1.5px solid var(--peach);border-radius:var(--border-radius-sm);font-size:0.75rem;color:var(--text-secondary);line-height:1.6;margin-bottom:20px;">
+            ⚠️ <strong>Tuyên bố miễn trách:</strong> PeaceFlow kết nối người dùng với các chuyên gia tâm lý độc lập.
+            Chúng tôi không cung cấp dịch vụ y tế trực tiếp. Nếu bạn đang trong tình trạng khẩn cấp, hãy gọi
+            <strong>1800-599-920</strong> hoặc đến cơ sở y tế gần nhất.
+        </div>
+    </main>
+
+    <script>
+        // ============================================================
+        // EXPERTS DATA
+        // ============================================================
+        const EXPERTS = [
+            {
+                id: 1, avatar: '👩‍⚕️', name: 'ThS. Nguyễn Thị Lan Anh',
+                degree: 'Thạc sĩ Tâm lý lâm sàng · ĐH Y Hà Nội',
+                status: 'online', rating: 4.9, sessions: 248, price: 350000,
+                location: 'Hà Nội', experience: 8,
+                specialties: ['Lo âu', 'Trầm cảm', 'Stress công việc', 'Burnout'],
+                tags: ['anxiety', 'depression', 'stress'],
+                bio: 'Chuyên gia tâm lý lâm sàng với 8 năm kinh nghiệm, từng công tác tại Viện Sức khỏe Tâm thần Quốc gia. Chuyên điều trị lo âu, trầm cảm và các rối loạn liên quan đến stress.',
+                matched: true, nextSlot: 'Hôm nay, 14:00',
+                credentials: ['🎓 Thạc sĩ Tâm lý lâm sàng — ĐH Y Hà Nội (2016)', '🏥 Chứng chỉ CBT — Beck Institute, Philadelphia (2018)', '🌏 Chứng chỉ MBSR — ĐH Massachusetts (2020)', '📜 Thành viên Hội Tâm lý học Việt Nam'],
+                approaches: ['Trị liệu Nhận thức Hành vi (CBT)', 'Chánh niệm (Mindfulness)', 'Trị liệu Chấp nhận và Cam kết (ACT)']
+            },
+            {
+                id: 2, avatar: '👨‍⚕️', name: 'TS. Trần Văn Minh',
+                degree: 'Tiến sĩ Tâm lý học Giáo dục · ĐH Sư phạm',
+                status: 'online', rating: 4.8, sessions: 512, price: 500000,
+                location: 'TP. HCM', experience: 15,
+                specialties: ['Mối quan hệ', 'Căng thẳng học đường', 'Trầm cảm', 'Gia đình'],
+                tags: ['relationship', 'depression', 'stress'],
+                bio: 'Hơn 15 năm kinh nghiệm trong tư vấn tâm lý giáo dục và gia đình.TS Minh nổi tiếng với cách tiếp cận nhẹ nhàng, thấu hiểu và tập trung vào giải pháp.',
+                matched: true, nextSlot: 'Hôm nay, 16:30',
+                credentials: ['🎓 Tiến sĩ Tâm lý học — ĐH Sư phạm TP.HCM', '🏥 Chứng chỉ Trị liệu Hệ thống Gia đình — Úc', '📜 Cố vấn cấp cao tại nhiều trung tâm tâm lý'],
+                approaches: ['Trị liệu Hệ thống', 'Trị liệu Tập trung vào Giải pháp (SFBT)', 'Tâm lý học Tích cực']
+            },
+            {
+                id: 3, avatar: '👩‍⚕️', name: 'ThS. Lê Hải Yến',
+                degree: 'Thạc sĩ Tâm lý · ĐH Monash (Úc)',
+                status: 'busy', rating: 5.0, sessions: 186, price: 450000,
+                location: 'Online / Hà Nội', experience: 6,
+                specialties: ['Trauma', 'Mất ngủ', 'Lo âu', 'Self-esteem'],
+                tags: ['trauma', 'sleep', 'anxiety'],
+                bio: 'Chuyên gia phục hồi sau sang chấn và các rối loạn giấc ngủ. Cô luôn tạo ra không gian an toàn tuyệt đối để khách hàng có thể mở lòng.',
+                matched: false, nextSlot: 'Ngày mai, 09:00',
+                credentials: ['🎓 Thạc sĩ Tư vấn Tâm lý — Monash University', '🏥 Chứng chỉ EMDR — Hiệp hội Quốc tế', '🌏 Chứng chỉ Trị liệu Sang chấn — Hoa Kỳ'],
+                approaches: ['EMDR', 'Trị liệu Nhận thức Hành vi (CBT)', 'Trị liệu Nghệ thuật']
+            }
+        ];
+
+        let currentExpertId = null;
+        let bookingData = {
+            type: 'chat',
+            price: '200.000đ',
+            duration: '30 phút',
+            date: '01/07/2025',
+            time: '10:00'
+        };
+
+        // ============================================================
+        // CORE FUNCTIONS
+        // ============================================================
+
+        function renderExperts(data) {
+            const grid = document.getElementById('expertGrid');
+            if (!grid) return;
+
+            grid.innerHTML = data.map(ex => `
+                <div class="paper-card expert-card" onclick="openProfileModal(${ex.id})">
+                    <div class="ec-top-banner ${ex.status}"></div>
+                    <div class="ec-body">
+                        ${ex.matched ? '<div class="ec-match-badge">✨ PeaceCat khuyên dùng</div>' : ''}
+                        <div class="ec-header">
+                            <div class="ec-avatar">
+                                ${ex.avatar}
+                                <div class="ec-status-dot ${ex.status}"></div>
+                            </div>
+                            <div class="ec-info">
+                                <div class="ec-name">${ex.name}</div>
+                                <div class="ec-degree">${ex.degree}</div>
+                                <div class="ec-rating">
+                                    <span class="ec-stars">${'⭐'.repeat(Math.round(ex.rating))}</span>
+                                    <span class="ec-rating-num">${ex.rating}</span>
+                                    <span class="ec-sessions">(${ex.sessions} phiên)</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="ec-specialties">
+                            ${ex.specialties.map(s => `<span class="ec-specialty">${s}</span>`).join('')}
+                        </div>
+                        <p class="ec-bio">${ex.bio}</p>
+                        <div class="ec-meta">
+                            <div class="ec-meta-item">📍 ${ex.location}</div>
+                            <div class="ec-meta-item">📅 ${ex.experience} năm kinh nghiệm</div>
+                        </div>
+                        <div class="ec-price-row">
+                            <div>
+                                <div class="ec-price">${ex.price.toLocaleString()}đ</div>
+                                <div class="ec-price-label">Giá từ / phiên</div>
+                            </div>
+                            <div class="ec-next">⏰ ${ex.nextSlot}</div>
+                        </div>
+                        <div class="ec-actions">
+                            <button class="ec-btn-book" onclick="event.stopPropagation();openBookingModal(${ex.id})">Đặt lịch ngay</button>
+                            <button class="ec-btn-msg" onclick="event.stopPropagation();location.href='chat.html?id=${ex.id}'">Nhắn tin</button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function filterExperts(criteria, btn) {
+            // Update UI
+            if (btn) {
+                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+            }
+
+            let filtered = EXPERTS;
+            if (criteria === 'available') {
+                filtered = EXPERTS.filter(ex => ex.status === 'online');
+            } else if (criteria === 'matched') {
+                filtered = EXPERTS.filter(ex => ex.matched);
+            } else if (criteria !== 'all') {
+                filtered = EXPERTS.filter(ex => ex.tags.includes(criteria));
+            }
+            renderExperts(filtered);
+        }
+
+        function searchExperts(query) {
+            const q = query.toLowerCase();
+            const filtered = EXPERTS.filter(ex =>
+                ex.name.toLowerCase().includes(q) ||
+                ex.specialties.some(s => s.toLowerCase().includes(q)) ||
+                ex.bio.toLowerCase().includes(q)
+            );
+            renderExperts(filtered);
+        }
+
+        function sortExperts(method) {
+            let sorted = [...EXPERTS];
+            if (method === 'rating') sorted.sort((a, b) => b.rating - a.rating);
+            if (method === 'sessions') sorted.sort((a, b) => b.sessions - a.sessions);
+            if (method === 'price_asc') sorted.sort((a, b) => a.price - b.price);
+            if (method === 'price_desc') sorted.sort((a, b) => b.price - a.price);
+            if (method === 'available') sorted.sort((a, b) => (a.status === 'online' ? -1 : 1));
+            renderExperts(sorted);
+        }
+
+        // ============================================================
+        // MODAL MANAGEMENT
+        // ============================================================
+
+        function openProfileModal(id) {
+            const expert = EXPERTS.find(ex => ex.id === id);
+            if (!expert) return;
+
+            currentExpertId = id;
+            document.getElementById('pmAvatar').innerText = expert.avatar;
+            document.getElementById('pmName').innerText = expert.name;
+            document.getElementById('pmDegree').innerText = expert.degree;
+            document.getElementById('pmTags').innerHTML = expert.specialties.map(s => `<span class="badge-pill badge-mint">${s}</span>`).join('');
+            document.getElementById('pmStats').innerHTML = `
+                <div class="stat-card">
+                    <div class="sc-num">${expert.rating}⭐</div>
+                    <div class="sc-label">Đánh giá</div>
+                </div>
+                <div class="stat-card">
+                    <div class="sc-num">${expert.sessions}</div>
+                    <div class="sc-label">Phiên tư vấn</div>
+                </div>
+                <div class="stat-card">
+                    <div class="sc-num">${expert.experience}</div>
+                    <div class="sc-label">Năm KN</div>
+                </div>
+            `;
+            document.getElementById('pmBio').innerText = expert.bio;
+            document.getElementById('pmCredentials').innerHTML = expert.credentials.map(c => `<div style="font-size:0.8rem;margin-bottom:4px;">${c}</div>`).join('');
+            document.getElementById('pmApproaches').innerHTML = expert.approaches.map(a => `<span class="badge-pill badge-sky" style="margin-right:6px;margin-bottom:6px;">${a}</span>`).join('');
+
+            document.getElementById('profileModalOverlay').classList.add('show');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeProfileModal() {
+            document.getElementById('profileModalOverlay').classList.remove('show');
+            document.body.style.overflow = '';
+        }
+
+        function openBookingModal(id) {
+            const expert = EXPERTS.find(ex => ex.id === id);
+            if (!expert) return;
+
+            currentExpertId = id;
+            document.getElementById('bmAvatar').innerText = expert.avatar;
+            document.getElementById('bmName').innerText = `Đặt lịch với ${expert.name}`;
+            document.getElementById('bs-expert').innerText = expert.name;
+
+            goBookingStep(1);
+            document.getElementById('bookingModalOverlay').classList.add('show');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeBookingModal() {
+            document.getElementById('bookingModalOverlay').classList.remove('show');
+            document.body.style.overflow = '';
+            // Reset for next time
+            setTimeout(() => {
+                document.getElementById('booking-success').style.display = 'none';
+                document.getElementById('booking-step-1').style.display = 'block';
+            }, 300);
+        }
+
+        function goBookingStep(n) {
+            for (let i = 1; i <= 4; i++) {
+                const stepEl = document.getElementById(`booking-step-${i}`);
+                if (stepEl) stepEl.style.display = (i === n) ? 'block' : 'none';
+
+                const indictor = document.getElementById(`bm-step-${i}`);
+                if (indictor) i === n ? indictor.classList.add('active') : indictor.classList.remove('active');
+            }
+
+            if (n === 4) {
+                document.getElementById('bs-type').innerText = bookingData.type;
+                document.getElementById('bs-datetime').innerText = `${bookingData.date} lúc ${bookingData.time}`;
+                document.getElementById('bs-duration').innerText = bookingData.duration;
+                document.getElementById('bs-price').innerText = bookingData.price;
+            }
+
+            if (n === 2) {
+                renderCalendar();
+                renderTimeSlots();
+            }
+        }
+
+        function selectSessionType(el, type, price, duration) {
+            document.querySelectorAll('.session-type-card').forEach(c => c.classList.remove('selected'));
+            el.classList.add('selected');
+            bookingData.type = type;
+            bookingData.price = price;
+            bookingData.duration = duration;
+        }
+
+        function renderCalendar() {
+            const grid = document.getElementById('calendarGrid');
+            const dates = [28, 29, 30, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]; // Sample dates
+            grid.innerHTML = dates.map(d => `
+                <div class="calendar-day ${d < 20 ? 'valid' : 'prev-month'} ${d === 1 ? 'selected' : ''}" 
+                     onclick="bookingData.date='${d}/07/2025';this.parentElement.querySelectorAll('.calendar-day').forEach(dx=>dx.classList.remove('selected'));this.classList.add('selected')">
+                    ${d}
+                </div>
+            `).join('');
+        }
+
+        function renderTimeSlots() {
+            const grid = document.getElementById('timeSlots');
+            const slots = ['08:00', '09:00', '10:00', '14:00', '15:00', '16:00', '20:00'];
+            grid.innerHTML = slots.map(s => `
+                <div class="time-slot ${s === '10:00' ? 'selected' : ''}" 
+                     onclick="bookingData.time='${s}';this.parentElement.querySelectorAll('.time-slot').forEach(sx=>sx.classList.remove('selected'));this.classList.add('selected')">
+                    ${s}
+                </div>
+            `).join('');
+        }
+
+        function confirmBooking() {
+            document.getElementById('booking-step-4').style.display = 'none';
+            document.getElementById('booking-success').style.display = 'block';
+            document.getElementById('success-datetime').innerText = `${bookingData.date} lúc ${bookingData.time}`;
+            document.getElementById('success-expert').innerText = EXPERTS.find(ex => ex.id === currentExpertId).name;
+            document.getElementById('success-type').innerText = bookingData.type;
+        }
+
+        // ============================================================
+        // DATA PERSISTENCE & SIDEBAR
+        // ============================================================
+        function loadData() {
+            try {
+                const savedStats = localStorage.getItem('PeaceFlow_user_stats');
+                if (savedStats) {
+                    const stats = JSON.parse(savedStats);
+                    const threshold = 200;
+                    const level = Math.floor(stats.xp / threshold) + 1;
+
+                    // Update Sidebar
+                    document.querySelectorAll('.user-name').forEach(el => el.innerText = stats.name || 'Minh Anh');
+                    document.querySelectorAll('.user-level').forEach(el => el.innerText = `⭐ ${stats.xp} XP · Level ${level}`);
+
+                    // Update Mobile Topbar XP
+                    const mobileXp = document.querySelector('.mobile-topbar span[style*="background:var(--peach-light)"]');
+                    if (mobileXp) mobileXp.innerText = `⭐ ${stats.xp} XP`;
+                }
+            } catch (e) { console.error("Error loading stats", e); }
+        }
+
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('open');
+            document.getElementById('sidebarOverlay').classList.toggle('open');
+        }
+        function closeSidebar() {
+            document.getElementById('sidebar').classList.remove('open');
+            document.getElementById('sidebarOverlay').classList.remove('open');
+        }
+        function closeBookingIfOutside(e) { if (e.target.id === 'bookingModalOverlay') closeBookingModal(); }
+        function closeProfileIfOutside(e) { if (e.target.id === 'profileModalOverlay') closeProfileModal(); }
+        function showEmergency() { document.getElementById('emergencyOverlay').classList.add('show'); }
+        function closeEmergency() { document.getElementById('emergencyOverlay').classList.remove('show'); }
+
+        // ============================================================
+        // INIT
+        // ============================================================
+        window.onload = () => {
+            loadData();
+            renderExperts(EXPERTS);
+        };
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,2091 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PeaceFlow — Bài Kiểm Tra Tâm Lý Chuẩn Hóa</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Patrick+Hand&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --cream: #FFF8F0;
+            --warm-white: #FFFDF7;
+            --kraft: #D4A574;
+            --kraft-light: #E8CBA7;
+            --kraft-dark: #B8895A;
+            --mint: #A8D5BA;
+            --mint-light: #C5E8D2;
+            --mint-dark: #7BBF95;
+            --peach: #FFCBA4;
+            --peach-light: #FFE0C4;
+            --peach-dark: #E8A876;
+            --sky: #A8D8EA;
+            --sky-light: #C5E8F5;
+            --lavender: #C3AED6;
+            --lavender-light: #DDD1EB;
+            --coral: #FF8B8B;
+            --coral-light: #FFB3B3;
+            --text-primary: #4A3728;
+            --text-secondary: #7A6555;
+            --text-light: #A89585;
+            --shadow-paper: 3px 3px 0px rgba(74, 55, 40, 0.1);
+            --shadow-paper-hover: 5px 5px 0px rgba(74, 55, 40, 0.15);
+            --border-radius: 16px;
+            --border-radius-sm: 10px;
+            --transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            --sidebar-width: 240px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background: var(--cream);
+            color: var(--text-primary);
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        .handwritten {
+            font-family: 'Patrick Hand', cursive;
+        }
+
+        .paper-card {
+            background: var(--warm-white);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-paper);
+            border: 2px solid var(--kraft-light);
+            transition: var(--transition);
+        }
+
+        /* ===== SIDEBAR ===== */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            width: var(--sidebar-width);
+            background: var(--warm-white);
+            border-right: 2px solid var(--kraft-light);
+            z-index: 200;
+            display: flex;
+            flex-direction: column;
+            padding: 20px 0;
+        }
+
+        .sidebar-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 0 20px 20px;
+            border-bottom: 2px dashed var(--kraft-light);
+            margin-bottom: 16px;
+            text-decoration: none;
+        }
+
+        .sidebar-logo .logo-icon {
+            width: 38px;
+            height: 38px;
+            background: var(--mint);
+            border-radius: 10px;
+            border: 2px solid var(--mint-dark);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            box-shadow: 2px 2px 0px var(--mint-dark);
+        }
+
+        .sidebar-logo .logo-text {
+            font-size: 1.2rem;
+            font-weight: 800;
+            color: var(--text-primary);
+        }
+
+        .sidebar-logo .logo-text span {
+            color: var(--mint-dark);
+        }
+
+        .sidebar-nav {
+            flex: 1;
+            padding: 0 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            border-radius: var(--border-radius-sm);
+            text-decoration: none;
+            color: var(--text-secondary);
+            font-weight: 600;
+            font-size: 0.88rem;
+            transition: var(--transition);
+        }
+
+        .nav-item:hover {
+            background: var(--mint-light);
+            color: var(--text-primary);
+        }
+
+        .nav-item.active {
+            background: var(--mint-light);
+            color: var(--text-primary);
+            border: 1.5px solid var(--mint);
+        }
+
+        .nav-item .ni {
+            font-size: 1.1rem;
+            width: 22px;
+            text-align: center;
+        }
+
+        .nav-section-label {
+            font-size: 0.68rem;
+            font-weight: 700;
+            color: var(--text-light);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            padding: 10px 12px 4px;
+        }
+
+        .sidebar-bottom {
+            padding: 12px;
+            border-top: 2px dashed var(--kraft-light);
+            margin-top: auto;
+        }
+
+        .user-card-mini {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            background: var(--cream);
+            border-radius: var(--border-radius-sm);
+            border: 1.5px solid var(--kraft-light);
+        }
+
+        .user-avatar-mini {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--lavender-light);
+            border: 2px solid var(--kraft);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+        }
+
+        .user-info-mini .user-name {
+            font-size: 0.85rem;
+            font-weight: 700;
+        }
+
+        .user-info-mini .user-level {
+            font-size: 0.72rem;
+            color: var(--text-light);
+        }
+
+        .emergency-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 12px;
+            background: rgba(255, 139, 139, 0.1);
+            border: 1.5px solid var(--coral);
+            border-radius: var(--border-radius-sm);
+            color: var(--coral);
+            font-size: 0.78rem;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 8px;
+            transition: var(--transition);
+            text-decoration: none;
+        }
+
+        .emergency-btn:hover {
+            background: rgba(255, 139, 139, 0.2);
+        }
+
+        /* ===== MOBILE ===== */
+        .mobile-topbar {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background: var(--warm-white);
+            border-bottom: 2px solid var(--kraft-light);
+            z-index: 300;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 16px;
+        }
+
+        .mobile-menu-btn {
+            background: none;
+            border: none;
+            font-size: 1.4rem;
+            cursor: pointer;
+        }
+
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(74, 55, 40, 0.3);
+            z-index: 150;
+        }
+
+        /* ===== MAIN ===== */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            padding: 28px;
+            min-height: 100vh;
+        }
+
+        .page-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .page-title {
+            font-size: 1.5rem;
+            font-weight: 800;
+        }
+
+        .page-subtitle {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .btn-primary {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 10px 20px;
+            border: 2px solid var(--mint-dark);
+            border-radius: 50px;
+            background: var(--mint);
+            color: var(--text-primary);
+            font-family: 'Nunito', sans-serif;
+            font-size: 0.88rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: var(--transition);
+            box-shadow: 2px 2px 0px var(--mint-dark);
+            text-decoration: none;
+        }
+
+        .btn-primary:hover {
+            background: var(--mint-dark);
+            color: white;
+            transform: translate(1px, 1px);
+            box-shadow: 1px 1px 0px var(--mint-dark);
+        }
+
+        .btn-outline {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 9px 18px;
+            border: 2px solid var(--kraft-light);
+            border-radius: 50px;
+            background: transparent;
+            color: var(--text-secondary);
+            font-family: 'Nunito', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .btn-outline:hover {
+            background: var(--kraft-light);
+            color: var(--text-primary);
+        }
+
+        .badge-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 3px 10px;
+            border-radius: 50px;
+            font-size: 0.72rem;
+            font-weight: 700;
+        }
+
+        .badge-mint {
+            background: var(--mint-light);
+            color: var(--mint-dark);
+            border: 1.5px solid var(--mint);
+        }
+
+        .badge-peach {
+            background: var(--peach-light);
+            color: var(--peach-dark);
+            border: 1.5px solid var(--peach);
+        }
+
+        .badge-coral {
+            background: var(--coral-light);
+            color: #c05050;
+            border: 1.5px solid var(--coral);
+        }
+
+        .badge-sky {
+            background: var(--sky-light);
+            color: #4a90aa;
+            border: 1.5px solid var(--sky);
+        }
+
+        .badge-lavender {
+            background: var(--lavender-light);
+            color: #8a6aaa;
+            border: 1.5px solid var(--lavender);
+        }
+
+        /* ===== DISCLAIMER ===== */
+        .disclaimer-banner {
+            padding: 14px 18px;
+            background: rgba(255, 203, 164, 0.2);
+            border: 2px solid var(--peach);
+            border-radius: var(--border-radius-sm);
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            margin-bottom: 24px;
+            font-size: 0.82rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        .db-icon {
+            font-size: 1.2rem;
+            flex-shrink: 0;
+            margin-top: 1px;
+        }
+
+        /* ===== TEST SELECTOR GRID ===== */
+        .test-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-bottom: 28px;
+        }
+
+        .test-select-card {
+            padding: 20px;
+            cursor: pointer;
+            border: 2px solid var(--kraft-light);
+            border-radius: var(--border-radius);
+            background: var(--warm-white);
+            transition: var(--transition);
+            box-shadow: var(--shadow-paper);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .test-select-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            border-radius: var(--border-radius) var(--border-radius) 0 0;
+        }
+
+        .test-select-card.dass::before {
+            background: linear-gradient(90deg, var(--peach), var(--coral));
+        }
+
+        .test-select-card.gad::before {
+            background: linear-gradient(90deg, var(--sky), var(--lavender));
+        }
+
+        .test-select-card.hars::before {
+            background: linear-gradient(90deg, var(--lavender), #c080d0);
+        }
+
+        .test-select-card.phq::before {
+            background: linear-gradient(90deg, var(--mint), var(--sky));
+        }
+
+        .test-select-card.psqi::before {
+            background: linear-gradient(90deg, var(--kraft), var(--peach));
+        }
+
+        .test-select-card:hover {
+            box-shadow: var(--shadow-paper-hover);
+            transform: translateY(-3px);
+        }
+
+        .tsc-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+            margin-bottom: 10px;
+            border: 2px solid;
+        }
+
+        .tsc-name {
+            font-size: 1rem;
+            font-weight: 800;
+            margin-bottom: 4px;
+        }
+
+        .tsc-fullname {
+            font-size: 0.72rem;
+            color: var(--text-light);
+            margin-bottom: 8px;
+        }
+
+        .tsc-desc {
+            font-size: 0.78rem;
+            color: var(--text-secondary);
+            margin-bottom: 10px;
+            line-height: 1.5;
+        }
+
+        .tsc-meta {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .tsc-last {
+            font-size: 0.68rem;
+            color: var(--text-light);
+            margin-top: 6px;
+        }
+
+        .tsc-recommended {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+        }
+
+        /* ===== TEST AREA ===== */
+        .test-area {
+            display: none;
+            max-width: 760px;
+            margin: 0 auto;
+        }
+
+        .test-area.active {
+            display: block;
+            animation: fade-in 0.4s ease;
+        }
+
+        @keyframes fade-in {
+            from {
+                opacity: 0;
+                transform: translateY(16px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Test header */
+        .test-header-card {
+            padding: 24px 28px;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, var(--mint-light), var(--sky-light));
+            border-color: var(--mint);
+        }
+
+        .th-top {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 14px;
+        }
+
+        .th-icon {
+            width: 52px;
+            height: 52px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            border: 2px solid;
+            flex-shrink: 0;
+        }
+
+        .th-info .th-name {
+            font-size: 1.1rem;
+            font-weight: 800;
+        }
+
+        .th-info .th-fullname {
+            font-size: 0.78rem;
+            color: var(--text-secondary);
+        }
+
+        .th-progress-wrap {
+            margin-bottom: 8px;
+        }
+
+        .th-progress-bar {
+            height: 10px;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 50px;
+            overflow: hidden;
+            border: 1.5px solid rgba(255, 255, 255, 0.7);
+        }
+
+        .th-progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--mint-dark), var(--mint));
+            border-radius: 50px;
+            transition: width 0.4s ease;
+        }
+
+        .th-progress-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        /* Question card */
+        .question-wrap {
+            perspective: 1000px;
+            margin-bottom: 16px;
+        }
+
+        .question-card {
+            padding: 28px 32px;
+            position: relative;
+            transform-origin: top center;
+            animation: card-flip 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        @keyframes card-flip {
+            from {
+                opacity: 0;
+                transform: rotateX(-15deg) translateY(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: rotateX(0) translateY(0);
+            }
+        }
+
+        .q-num {
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: var(--text-light);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+
+        .q-category {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 2px 8px;
+            border-radius: 50px;
+            font-size: 0.68rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .q-text {
+            font-size: 1rem;
+            font-weight: 700;
+            line-height: 1.6;
+            margin-bottom: 20px;
+            color: var(--text-primary);
+        }
+
+        .q-subtext {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-bottom: 16px;
+            font-style: italic;
+        }
+
+        /* Likert scale */
+        .likert-wrap {
+            display: grid;
+            gap: 8px;
+        }
+
+        .likert-wrap.cols-4 {
+            grid-template-columns: repeat(4, 1fr);
+        }
+
+        .likert-wrap.cols-5 {
+            grid-template-columns: repeat(5, 1fr);
+        }
+
+        .likert-wrap.cols-3 {
+            grid-template-columns: repeat(3, 1fr);
+        }
+
+        .likert-option {
+            padding: 12px 8px;
+            border: 2px solid var(--kraft-light);
+            border-radius: var(--border-radius-sm);
+            background: var(--warm-white);
+            cursor: pointer;
+            text-align: center;
+            transition: var(--transition);
+            box-shadow: var(--shadow-paper);
+        }
+
+        .likert-option:hover {
+            border-color: var(--mint-dark);
+            background: var(--mint-light);
+            box-shadow: 2px 2px 0px var(--mint-dark);
+            transform: translate(-1px, -1px);
+        }
+
+        .likert-option.selected {
+            border-color: var(--mint-dark);
+            background: var(--mint-light);
+            box-shadow: 2px 2px 0px var(--mint-dark);
+            transform: translate(-1px, -1px);
+        }
+
+        .lo-emoji {
+            font-size: 1.5rem;
+            margin-bottom: 5px;
+            display: block;
+        }
+
+        .lo-label {
+            font-size: 0.68rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            line-height: 1.3;
+        }
+
+        .lo-score {
+            font-size: 0.6rem;
+            color: var(--text-light);
+            margin-top: 2px;
+        }
+
+        /* Navigation */
+        .q-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+        }
+
+        .q-nav-info {
+            font-size: 0.78rem;
+            color: var(--text-light);
+        }
+
+        /* ===== RESULT PANEL ===== */
+        .result-panel {
+            display: none;
+            max-width: 760px;
+            margin: 0 auto;
+        }
+
+        .result-panel.active {
+            display: block;
+            animation: fade-in 0.5s ease;
+        }
+
+        .result-header {
+            padding: 32px;
+            text-align: center;
+            background: linear-gradient(135deg, var(--mint-light), var(--sky-light));
+            border-color: var(--mint);
+            margin-bottom: 16px;
+            border-radius: var(--border-radius);
+        }
+
+        .rh-mascot {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            animation: bounce-r 2s ease-in-out infinite;
+        }
+
+        @keyframes bounce-r {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-8px);
+            }
+        }
+
+        .rh-title {
+            font-size: 1.3rem;
+            font-weight: 800;
+            margin-bottom: 6px;
+        }
+
+        .rh-subtitle {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .result-scores-grid {
+            display: grid;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .rsg-1 {
+            grid-template-columns: 1fr;
+        }
+
+        .rsg-2 {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .rsg-3 {
+            grid-template-columns: repeat(3, 1fr);
+        }
+
+        .rs-card {
+            padding: 18px;
+            text-align: center;
+            border-radius: var(--border-radius-sm);
+            border: 2px solid;
+        }
+
+        .rs-card.level-0 {
+            background: var(--mint-light);
+            border-color: var(--mint);
+        }
+
+        .rs-card.level-1 {
+            background: var(--sky-light);
+            border-color: var(--sky);
+        }
+
+        .rs-card.level-2 {
+            background: var(--peach-light);
+            border-color: var(--peach);
+        }
+
+        .rs-card.level-3 {
+            background: #fff3cd;
+            border-color: #f0c040;
+        }
+
+        .rs-card.level-4 {
+            background: var(--coral-light);
+            border-color: var(--coral);
+        }
+
+        .rs-icon {
+            font-size: 1.6rem;
+            margin-bottom: 5px;
+        }
+
+        .rs-score {
+            font-size: 1.8rem;
+            font-weight: 800;
+        }
+
+        .rs-max {
+            font-size: 0.75rem;
+            color: var(--text-light);
+        }
+
+        .rs-label {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .rs-level-badge {
+            display: inline-flex;
+            padding: 3px 10px;
+            border-radius: 50px;
+            font-size: 0.68rem;
+            font-weight: 700;
+            margin-top: 4px;
+        }
+
+        .result-interpretation {
+            padding: 20px;
+            margin-bottom: 16px;
+        }
+
+        .ri-title {
+            font-size: 0.9rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .ri-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 10px 12px;
+            border-radius: var(--border-radius-sm);
+            margin-bottom: 8px;
+            font-size: 0.82rem;
+            line-height: 1.6;
+        }
+
+        .ri-item.good {
+            background: var(--mint-light);
+            border: 1.5px solid var(--mint);
+        }
+
+        .ri-item.medium {
+            background: var(--peach-light);
+            border: 1.5px solid var(--peach);
+        }
+
+        .ri-item.bad {
+            background: var(--coral-light);
+            border: 1.5px solid var(--coral);
+        }
+
+        .ri-icon {
+            font-size: 1rem;
+            flex-shrink: 0;
+            margin-top: 1px;
+        }
+
+        .result-comparison {
+            padding: 20px;
+            margin-bottom: 16px;
+        }
+
+        .rc-title {
+            font-size: 0.9rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+
+        .rc-bars {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .rcb-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .rcb-label {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            width: 100px;
+            flex-shrink: 0;
+            font-weight: 600;
+        }
+
+        .rcb-bars {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+
+        .rcb-bar-wrap {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .rcb-bar {
+            flex: 1;
+            height: 8px;
+            background: var(--kraft-light);
+            border-radius: 50px;
+            overflow: hidden;
+        }
+
+        .rcb-fill {
+            height: 100%;
+            border-radius: 50px;
+            transition: width 1s ease;
+        }
+
+        .rcb-val {
+            font-size: 0.68rem;
+            font-weight: 700;
+            width: 30px;
+            text-align: right;
+        }
+
+        .rcb-date {
+            font-size: 0.6rem;
+            color: var(--text-light);
+        }
+
+        .result-tasks {
+            padding: 20px;
+            margin-bottom: 16px;
+        }
+
+        .rt-title {
+            font-size: 0.9rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+
+        .rt-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 14px;
+            border: 1.5px solid var(--kraft-light);
+            border-radius: var(--border-radius-sm);
+            background: var(--cream);
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .rt-item:hover {
+            background: var(--mint-light);
+            border-color: var(--mint);
+        }
+
+        .rt-icon-box {
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            border: 2px solid var(--mint);
+            background: var(--mint-light);
+            flex-shrink: 0;
+        }
+
+        .rt-info {
+            flex: 1;
+        }
+
+        .rt-name {
+            font-size: 0.85rem;
+            font-weight: 700;
+        }
+
+        .rt-meta {
+            font-size: 0.7rem;
+            color: var(--text-light);
+        }
+
+        .rt-xp {
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: var(--peach-dark);
+            background: var(--peach-light);
+            padding: 2px 8px;
+            border-radius: 50px;
+            border: 1.5px solid var(--peach);
+        }
+
+        .expert-recommend {
+            padding: 18px;
+            background: rgba(195, 174, 214, 0.1);
+            border: 2px solid var(--lavender);
+            border-radius: var(--border-radius);
+            margin-bottom: 16px;
+            display: none;
+        }
+
+        .expert-recommend.show {
+            display: block;
+        }
+
+        .result-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            padding: 0 0 20px;
+        }
+
+        /* ===== HISTORY SECTION ===== */
+        .history-section {
+            margin-top: 8px;
+        }
+
+        .history-title {
+            font-size: 1rem;
+            font-weight: 800;
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .history-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .history-card {
+            padding: 14px 16px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .history-card:hover {
+            box-shadow: var(--shadow-paper-hover);
+            transform: translateY(-2px);
+        }
+
+        .hc-test {
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: var(--text-light);
+            margin-bottom: 4px;
+        }
+
+        .hc-date {
+            font-size: 0.7rem;
+            color: var(--text-light);
+            margin-bottom: 8px;
+        }
+
+        .hc-scores {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .hc-score-item {
+            font-size: 0.7rem;
+            font-weight: 700;
+            padding: 2px 7px;
+            border-radius: 50px;
+        }
+
+        /* ===== EMERGENCY POPUP ===== */
+        .emergency-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(74, 55, 40, 0.5);
+            z-index: 1000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .emergency-overlay.show {
+            display: flex;
+        }
+
+        .emergency-popup {
+            background: var(--warm-white);
+            border-radius: 24px;
+            border: 3px solid var(--coral);
+            padding: 32px;
+            max-width: 420px;
+            width: 100%;
+            box-shadow: 6px 6px 0px rgba(255, 139, 139, 0.3);
+            animation: pop-in 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        @keyframes pop-in {
+            from {
+                transform: scale(0.8);
+                opacity: 0;
+            }
+
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .ep-icon {
+            font-size: 2.5rem;
+            text-align: center;
+            margin-bottom: 8px;
+        }
+
+        .ep-title {
+            font-size: 1.2rem;
+            font-weight: 800;
+            color: var(--coral);
+            text-align: center;
+            margin-bottom: 6px;
+        }
+
+        .ep-text {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-bottom: 16px;
+            text-align: center;
+        }
+
+        .ep-hotline {
+            padding: 14px;
+            background: rgba(255, 139, 139, 0.1);
+            border: 2px solid var(--coral);
+            border-radius: var(--border-radius-sm);
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .ep-hotline .eph-num {
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: var(--coral);
+        }
+
+        .ep-hotline .eph-label {
+            font-size: 0.72rem;
+            color: var(--text-secondary);
+        }
+
+        .ep-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .ep-btn {
+            padding: 12px;
+            border-radius: 50px;
+            font-family: 'Nunito', sans-serif;
+            font-size: 0.88rem;
+            font-weight: 700;
+            cursor: pointer;
+            text-align: center;
+            transition: var(--transition);
+            text-decoration: none;
+            display: block;
+            border: 2px solid;
+        }
+
+        .ep-btn-red {
+            background: var(--coral);
+            color: white;
+            border-color: #c05050;
+        }
+
+        .ep-btn-green {
+            background: var(--mint-light);
+            color: var(--mint-dark);
+            border-color: var(--mint);
+        }
+
+        .ep-btn-ghost {
+            background: transparent;
+            color: var(--text-light);
+            border-color: var(--kraft-light);
+            font-size: 0.8rem;
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media(max-width:1100px) {
+            .test-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .history-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media(max-width:900px) {
+            :root {
+                --sidebar-width: 0px;
+            }
+
+            .sidebar {
+                transform: translateX(-240px);
+                width: 240px;
+                transition: transform 0.3s ease;
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+
+            .sidebar-overlay.open {
+                display: block;
+            }
+
+            .main-content {
+                margin-left: 0;
+                padding: 76px 16px 20px;
+            }
+
+            .mobile-topbar {
+                display: flex;
+            }
+
+            .test-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        @media(max-width:600px) {
+            .test-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .likert-wrap.cols-4,
+            .likert-wrap.cols-5 {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .rsg-3 {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .history-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .result-actions {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Emergency Overlay -->
+    <div class="emergency-overlay" id="emergencyOverlay">
+        <div class="emergency-popup">
+            <div class="ep-icon">❤️</div>
+            <div class="ep-title">Bạn không đơn độc</div>
+            <p class="ep-text">Nếu điểm số cao và bạn đang cảm thấy khó khăn, hãy để ai đó giúp bạn ngay bây giờ.</p>
+            <div class="ep-hotline">
+                <div class="eph-num">📞 1800-599-920</div>
+                <div class="eph-label">Đường dây nóng sức khỏe tâm thần — Miễn phí, 24/7</div>
+            </div>
+            <div class="ep-actions">
+                <a href="tel:1800599920" class="ep-btn ep-btn-red">📞 Gọi ngay hotline</a>
+                <a href="experts.html" class="ep-btn ep-btn-green">💬 Kết nối chuyên gia</a>
+                <button class="ep-btn ep-btn-ghost" onclick="closeEmergency()">Tôi hiểu, đóng lại</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar Overlay -->
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+    <!-- Mobile Topbar -->
+    <div class="mobile-topbar">
+        <button class="mobile-menu-btn" onclick="toggleSidebar()">☰</button>
+        <a href="index.html" style="display:flex;align-items:center;gap:8px;text-decoration:none;">
+            <div
+                style="width:32px;height:32px;background:var(--mint);border-radius:8px;border:2px solid var(--mint-dark);display:flex;align-items:center;justify-content:center;font-size:1rem;box-shadow:2px 2px 0px var(--mint-dark);">
+                🌿</div>
+            <span style="font-size:1.1rem;font-weight:800;color:var(--text-primary);">Peace<span
+                    style="color:var(--mint-dark);">Flow</span></span>
+        </a>
+        <span
+            style="background:var(--peach-light);padding:3px 10px;border-radius:50px;font-size:0.75rem;font-weight:700;color:var(--peach-dark);border:1.5px solid var(--peach);">⭐
+            295 XP</span>
+    </div>
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <a href="index.html" class="sidebar-logo">
+            <div class="logo-icon">🌿</div>
+            <div class="logo-text">Peace<span>Flow</span></div>
+        </a>
+        <nav class="sidebar-nav">
+            <div class="nav-section-label">Chính</div>
+            <a href="dashboard.html" class="nav-item"><span class="ni">🏡</span> Tổng quan</a>
+            <a href="mood-checkin.html" class="nav-item active"><span class="ni">💭</span> Tâm trạng</a>
+            <a href="tasks.html" class="nav-item"><span class="ni">🎮</span> Nhiệm vụ</a>
+            <a href="journal.html" class="nav-item"><span class="ni">📝</span> Nhật ký</a>
+            <div class="nav-section-label" style="margin-top:8px;">Kết nối</div>
+            <a href="experts.html" class="nav-item"><span class="ni">🩺</span> Chuyên gia</a>
+            <a href="community.html" class="nav-item"><span class="ni">👥</span> Cộng đồng</a>
+            <div class="nav-section-label" style="margin-top:8px;">Phân tích</div>
+            <a href="report.html" class="nav-item">
+                <span class="ni">📊</span> Báo cáo
+            </a>
+            <a href="achievements.html" class="nav-item">
+                <span class="ni">🏅</span> Thành tích
+            </a>
+            <div class="nav-section-label" style="margin-top:8px;">Cài đặt</div>
+            <a href="profile.html" class="nav-item"><span class="ni">👤</span> Hồ sơ</a>
+        </nav>
+        <div class="sidebar-bottom">
+            <div class="user-card-mini">
+                <div class="user-avatar-mini">🐱</div>
+                <div class="user-info-mini">
+                    <div class="user-name">Minh Anh</div>
+                    <div class="user-level">⭐ 295 XP · Level 2</div>
+                </div>
+            </div>
+            <a href="#" class="emergency-btn" onclick="showEmergency();return false;">🆘 Hỗ trợ khẩn cấp</a>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+
+        <!-- ===== TEST SELECTOR VIEW ===== -->
+        <div id="selectorView">
+            <div class="page-header">
+                <div>
+                    <div class="page-title">📋 Bài Kiểm Tra Tâm Lý Chuẩn Hóa</div>
+                    <div class="page-subtitle">Các thang đo lâm sàng được sử dụng rộng rãi — giúp bạn hiểu sâu hơn về
+                        bản thân</div>
+                </div>
+                <div style="display:flex;gap:8px;">
+                    <a href="mood-checkin.html" class="btn-outline">← Quay lại</a>
+                    <a href="mood-chat.html" class="btn-outline">💬 Chat AI</a>
+                </div>
+            </div>
+
+            <div class="disclaimer-banner">
+                <span class="db-icon">⚠️</span>
+                <div><strong>Lưu ý quan trọng:</strong> Các bài kiểm tra này là công cụ <strong>sàng lọc tham
+                        khảo</strong>, không phải chẩn đoán y khoa. Kết quả chỉ mang tính định hướng. Nếu điểm số ở mức
+                    cao, hãy tham khảo ý kiến chuyên gia tâm lý lâm sàng. Ứng dụng này <strong>không thay thế</strong>
+                    dịch vụ y tế chuyên nghiệp.</div>
+            </div>
+
+            <div class="test-grid">
+                <!-- DASS-21 -->
+                <div class="test-select-card dass" onclick="startTest('dass21')">
+                    <div class="tsc-recommended"><span class="badge-pill badge-peach">⭐ Phổ biến nhất</span></div>
+                    <div class="tsc-icon" style="background:var(--peach-light);border-color:var(--peach);">📊</div>
+                    <div class="tsc-name">DASS-21</div>
+                    <div class="tsc-fullname">Depression Anxiety Stress Scales</div>
+                    <div class="tsc-desc">Đánh giá đồng thời 3 chiều: Trầm cảm, Lo âu và Căng thẳng. Thang đo được sử
+                        dụng rộng rãi nhất trong lâm sàng.</div>
+                    <div class="tsc-meta">
+                        <span class="badge-pill badge-peach">21 câu hỏi</span>
+                        <span class="badge-pill badge-mint">~8 phút</span>
+                        <span class="badge-pill"
+                            style="background:var(--sky-light);color:#4a90aa;border:1.5px solid var(--sky);">2
+                            tuần/lần</span>
+                    </div>
+                    <div class="tsc-last">🕐 Lần cuối: 14 ngày trước</div>
+                </div>
+
+                <!-- GAD-7 -->
+                <div class="test-select-card gad" onclick="startTest('gad7')">
+                    <div class="tsc-icon" style="background:var(--sky-light);border-color:var(--sky);">😰</div>
+                    <div class="tsc-name">GAD-7</div>
+                    <div class="tsc-fullname">Generalized Anxiety Disorder 7-item</div>
+                    <div class="tsc-desc">Đánh giá mức độ lo âu tổng quát. Nhanh chóng, chính xác và được khuyến nghị
+                        thực hiện hàng tuần.</div>
+                    <div class="tsc-meta">
+                        <span class="badge-pill badge-sky">7 câu hỏi</span>
+                        <span class="badge-pill badge-mint">~3 phút</span>
+                        <span class="badge-pill badge-mint">Hàng tuần</span>
+                    </div>
+                    <div class="tsc-last">🕐 Lần cuối: 7 ngày trước</div>
+                </div>
+
+                <!-- HARS -->
+                <div class="test-select-card hars" onclick="startTest('hars')">
+                    <div class="tsc-icon" style="background:var(--lavender-light);border-color:var(--lavender);">🧠
+                    </div>
+                    <div class="tsc-name">HARS</div>
+                    <div class="tsc-fullname">Hamilton Anxiety Rating Scale</div>
+                    <div class="tsc-desc">Thang đánh giá lo âu lâm sàng Hamilton. Đánh giá cả triệu chứng tâm lý lẫn thể
+                        chất của lo âu.</div>
+                    <div class="tsc-meta">
+                        <span class="badge-pill badge-lavender">14 câu hỏi</span>
+                        <span class="badge-pill badge-mint">~6 phút</span>
+                        <span class="badge-pill"
+                            style="background:var(--lavender-light);color:#8a6aaa;border:1.5px solid var(--lavender);">Khi
+                            cần sâu</span>
+                    </div>
+                    <div class="tsc-last">🕐 Lần cuối: 30 ngày trước</div>
+                </div>
+
+                <!-- PHQ-9 -->
+                <div class="test-select-card phq" onclick="startTest('phq9')">
+                    <div class="tsc-icon" style="background:var(--mint-light);border-color:var(--mint);">🌧️</div>
+                    <div class="tsc-name">PHQ-9</div>
+                    <div class="tsc-fullname">Patient Health Questionnaire-9</div>
+                    <div class="tsc-desc">Sàng lọc và đánh giá mức độ trầm cảm. Công cụ tiêu chuẩn được WHO khuyến nghị
+                        sử dụng.</div>
+                    <div class="tsc-meta">
+                        <span class="badge-pill badge-mint">9 câu hỏi</span>
+                        <span class="badge-pill badge-mint">~4 phút</span>
+                        <span class="badge-pill badge-peach">2 tuần/lần</span>
+                    </div>
+                    <div class="tsc-last">🕐 Lần cuối: 14 ngày trước</div>
+                </div>
+
+                <!-- PSQI -->
+                <div class="test-select-card psqi" onclick="startTest('psqi')">
+                    <div class="tsc-icon" style="background:var(--peach-light);border-color:var(--kraft);">😴</div>
+                    <div class="tsc-name">PSQI</div>
+                    <div class="tsc-fullname">Pittsburgh Sleep Quality Index</div>
+                    <div class="tsc-desc">Đánh giá chất lượng giấc ngủ trong 1 tháng gần nhất. Phát hiện rối loạn giấc
+                        ngủ liên quan đến stress.</div>
+                    <div class="tsc-meta">
+                        <span class="badge-pill badge-peach">10 câu hỏi</span>
+                        <span class="badge-pill badge-mint">~5 phút</span>
+                        <span class="badge-pill"
+                            style="background:var(--kraft-light);color:var(--kraft-dark);border:1.5px solid var(--kraft);">Hàng
+                            tháng</span>
+                    </div>
+                    <div class="tsc-last">🕐 Lần cuối: 28 ngày trước</div>
+                </div>
+            </div>
+
+            <!-- History -->
+            <div class="history-section">
+                <div class="history-title">📅 Lịch sử kiểm tra gần đây</div>
+                <div class="history-grid">
+                    <div class="paper-card history-card" onclick="startTest('dass21')">
+                        <div class="hc-test">DASS-21</div>
+                        <div class="hc-date">14 ngày trước — 12/06/2025</div>
+                        <div class="hc-scores">
+                            <span class="hc-score-item"
+                                style="background:var(--mint-light);color:var(--mint-dark);">Trầm cảm: 6</span>
+                            <span class="hc-score-item"
+                                style="background:var(--peach-light);color:var(--peach-dark);">Lo âu: 8</span>
+                            <span class="hc-score-item" style="background:var(--sky-light);color:#4a90aa;">Stress:
+                                10</span>
+                        </div>
+                    </div>
+                    <div class="paper-card history-card" onclick="startTest('gad7')">
+                        <div class="hc-test">GAD-7</div>
+                        <div class="hc-date">7 ngày trước — 19/06/2025</div>
+                        <div class="hc-scores">
+                            <span class="hc-score-item"
+                                style="background:var(--peach-light);color:var(--peach-dark);">Lo âu: 7/21</span>
+                            <span class="hc-score-item"
+                                style="background:var(--mint-light);color:var(--mint-dark);">Nhẹ</span>
+                        </div>
+                    </div>
+                    <div class="paper-card history-card" onclick="startTest('phq9')">
+                        <div class="hc-test">PHQ-9</div>
+                        <div class="hc-date">14 ngày trước — 12/06/2025</div>
+                        <div class="hc-scores">
+                            <span class="hc-score-item"
+                                style="background:var(--mint-light);color:var(--mint-dark);">Trầm cảm: 5/27</span>
+                            <span class="hc-score-item" style="background:var(--mint-light);color:var(--mint-dark);">Tối
+                                thiểu</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== TEST AREA ===== -->
+        <div class="test-area" id="testArea">
+            <div
+                style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px;">
+                <button class="btn-outline" onclick="backToSelector()">← Chọn bài khác</button>
+                <div style="display:flex;gap:8px;align-items:center;">
+                    <span class="badge-pill badge-mint" id="testBadge">DASS-21</span>
+                    <button class="btn-outline" style="font-size:0.78rem;padding:7px 14px;" onclick="showEmergency()">🆘
+                        Khẩn cấp</button>
+                </div>
+            </div>
+
+            <!-- Test Header -->
+            <div class="paper-card test-header-card">
+                <div class="th-top">
+                    <div class="th-icon" id="testHeaderIcon"
+                        style="background:var(--peach-light);border-color:var(--peach);">📊</div>
+                    <div class="th-info">
+                        <div class="th-name" id="testHeaderName">DASS-21</div>
+                        <div class="th-fullname" id="testHeaderFull">Depression Anxiety Stress Scales</div>
+                    </div>
+                    <div style="margin-left:auto;text-align:right;">
+                        <div style="font-size:1.2rem;font-weight:800;" id="qProgressText">1/21</div>
+                        <div style="font-size:0.72rem;color:var(--text-secondary);">câu hỏi</div>
+                    </div>
+                </div>
+                <div class="th-progress-wrap">
+                    <div class="th-progress-bar">
+                        <div class="th-progress-fill" id="testProgressBar" style="width:0%"></div>
+                    </div>
+                    <div class="th-progress-labels">
+                        <span id="progressLabel">Câu 1</span>
+                        <span id="progressPct">0%</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Question Card -->
+            <div class="question-wrap">
+                <div class="paper-card question-card" id="questionCard">
+                    <div class="q-num" id="qNum">Câu 1 / 21</div>
+                    <div class="q-category badge-pill badge-peach" id="qCategory">Trầm cảm</div>
+                    <div class="q-text" id="qText">Tôi không thể cảm nhận được bất kỳ cảm xúc tích cực nào</div>
+                    <div class="q-subtext" id="qSubtext">Trong tuần qua, điều này xảy ra với bạn ở mức độ nào?</div>
+                    <div class="likert-wrap cols-4" id="likertOptions"></div>
+                    <div class="q-nav">
+                        <button class="btn-outline" id="prevBtn" onclick="prevQuestion()" style="display:none;">← Câu
+                            trước</button>
+                        <div class="q-nav-info" id="qNavInfo">Chọn một đáp án để tiếp tục</div>
+                        <button class="btn-primary" id="nextBtn" onclick="nextQuestion()" style="display:none;">Câu tiếp
+                            →</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== RESULT PANEL ===== -->
+        <div class="result-panel" id="resultPanel">
+            <div
+                style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px;">
+                <button class="btn-outline" onclick="backToSelector()">← Chọn bài khác</button>
+                <div style="display:flex;gap:8px;">
+                    <button class="btn-outline" onclick="retakeTest()">🔄 Làm lại</button>
+                    <button class="btn-primary" onclick="window.print()">📄 Xuất PDF</button>
+                </div>
+            </div>
+
+            <div class="paper-card result-header">
+                <div class="rh-mascot" id="resultMascot">🐱</div>
+                <div class="rh-title" id="resultTitle">Kết quả DASS-21 của bạn</div>
+                <div class="rh-subtitle" id="resultSubtitle">Hoàn thành lúc 10:30 — 26/06/2025</div>
+            </div>
+
+            <div class="result-scores-grid rsg-3" id="resultScoresGrid"></div>
+
+            <div class="paper-card result-interpretation">
+                <div class="ri-title">🔍 Diễn giải kết quả</div>
+                <div id="resultInterpretation"></div>
+            </div>
+
+            <div class="paper-card result-comparison">
+                <div class="rc-title">📈 So sánh với lần trước</div>
+                <div class="rc-bars" id="resultComparison"></div>
+            </div>
+
+            <div class="expert-recommend" id="expertRecommend">
+                <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+                    <span style="font-size:1.4rem;">🩺</span>
+                    <div>
+                        <div style="font-size:0.9rem;font-weight:700;">Nên tham khảo chuyên gia</div>
+                        <div style="font-size:0.78rem;color:var(--text-secondary);">Kết quả cho thấy bạn có thể cần hỗ
+                            trợ chuyên sâu hơn</div>
+                    </div>
+                </div>
+                <a href="experts.html" class="btn-primary" style="width:100%;justify-content:center;">📅 Đặt lịch tư vấn
+                    ngay</a>
+            </div>
+
+            <div class="paper-card result-tasks">
+                <div class="rt-title">🎯 Nhiệm vụ được gợi ý dựa trên kết quả</div>
+                <div id="resultTasks"></div>
+            </div>
+
+            <div
+                style="padding:12px 16px;background:rgba(255,203,164,0.15);border:1.5px solid var(--peach);border-radius:var(--border-radius-sm);font-size:0.75rem;color:var(--text-secondary);margin-bottom:16px;line-height:1.6;">
+                ⚠️ <strong>Tuyên bố miễn trách:</strong> Kết quả này chỉ mang tính tham khảo và <strong>không phải chẩn
+                    đoán y khoa</strong>. Chỉ bác sĩ hoặc chuyên gia tâm lý lâm sàng mới có thể đưa ra chẩn đoán chính
+                thức. Nếu bạn lo lắng về sức khỏe tâm thần, hãy liên hệ chuyên gia hoặc gọi
+                <strong>1800-599-920</strong>.
+            </div>
+
+            <div class="result-actions">
+                <a href="tasks.html" class="btn-primary">🎮 Bắt đầu nhiệm vụ</a>
+                <a href="mood-chat.html" class="btn-outline">💬 Chat với PeaceCat</a>
+                <a href="experts.html" class="btn-outline">🩺 Kết nối chuyên gia</a>
+                <a href="dashboard.html" class="btn-outline">🏡 Dashboard</a>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        // ============================================================
+        // TEST DATA
+        // ============================================================
+        const TESTS = {
+            dass21: {
+                name: 'DASS-21', fullname: 'Depression Anxiety Stress Scales',
+                icon: '📊', iconBg: 'var(--peach-light)', iconBorder: 'var(--peach)',
+                timeRef: '2 tuần qua', totalQ: 21, maxScore: 42,
+                subscales: ['depression', 'anxiety', 'stress'],
+                questions: [
+                    { text: 'Tôi không thể cảm nhận được bất kỳ cảm xúc tích cực nào', cat: 'depression', catLabel: 'Trầm cảm' },
+                    { text: 'Tôi cảm thấy khô miệng', cat: 'anxiety', catLabel: 'Lo âu' },
+                    { text: 'Tôi không thể trải nghiệm bất kỳ cảm giác tích cực nào', cat: 'depression', catLabel: 'Trầm cảm' },
+                    { text: 'Tôi gặp khó khăn trong việc thở (thở gấp, khó thở dù không vận động)', cat: 'anxiety', catLabel: 'Lo âu' },
+                    { text: 'Tôi thấy khó có thể bắt đầu làm bất cứ việc gì', cat: 'depression', catLabel: 'Trầm cảm' },
+                    { text: 'Tôi có xu hướng phản ứng thái quá với các tình huống', cat: 'stress', catLabel: 'Căng thẳng' },
+                    { text: 'Tôi cảm thấy run rẩy (ví dụ: tay run)', cat: 'anxiety', catLabel: 'Lo âu' },
+                    { text: 'Tôi cảm thấy mình đang tiêu tốn nhiều năng lượng thần kinh', cat: 'stress', catLabel: 'Căng thẳng' },
+                    { text: 'Tôi lo lắng về những tình huống có thể khiến tôi hoảng sợ hoặc bị coi là ngốc nghếch', cat: 'anxiety', catLabel: 'Lo âu' },
+                    { text: 'Tôi cảm thấy không có gì để mong đợi', cat: 'depression', catLabel: 'Trầm cảm' },
+                    { text: 'Tôi thấy bản thân trở nên kích động', cat: 'stress', catLabel: 'Căng thẳng' },
+                    { text: 'Tôi thấy khó thư giãn', cat: 'stress', catLabel: 'Căng thẳng' },
+                    { text: 'Tôi cảm thấy buồn bã và chán nản', cat: 'depression', catLabel: 'Trầm cảm' },
+                    { text: 'Tôi không kiên nhẫn khi bị gián đoạn', cat: 'stress', catLabel: 'Căng thẳng' },
+                    { text: 'Tôi cảm thấy gần như hoảng loạn', cat: 'anxiety', catLabel: 'Lo âu' },
+                    { text: 'Tôi không thể hào hứng với bất cứ điều gì', cat: 'depression', catLabel: 'Trầm cảm' },
+                    { text: 'Tôi cảm thấy mình không có giá trị như một con người', cat: 'depression', catLabel: 'Trầm cảm' },
+                    { text: 'Tôi cảm thấy khá dễ bị kích thích', cat: 'stress', catLabel: 'Căng thẳng' },
+                    { text: 'Tôi nhận thức được nhịp tim của mình dù không vận động thể chất', cat: 'anxiety', catLabel: 'Lo âu' },
+                    { text: 'Tôi cảm thấy sợ hãi mà không có lý do chính đáng', cat: 'anxiety', catLabel: 'Lo âu' },
+                    { text: 'Tôi cảm thấy cuộc sống vô nghĩa', cat: 'depression', catLabel: 'Trầm cảm' }
+                ],
+                likertOptions: [
+                    { emoji: '😊', label: 'Không xảy ra', score: 0 },
+                    { emoji: '😐', label: 'Đôi khi', score: 1 },
+                    { emoji: '😟', label: 'Thường xuyên', score: 2 },
+                    { emoji: '😰', label: 'Hầu hết lúc', score: 3 }
+                ],
+                scoring: {
+                    depression: { indices: [0, 2, 4, 9, 12, 15, 16, 20], multiplier: 2, levels: [{ max: 9, 'label': 'Bình thường', 'class': 'level-0' }, { max: 13, 'label': 'Nhẹ', 'class': 'level-1' }, { max: 20, 'label': 'Vừa', 'class': 'level-2' }, { max: 27, 'label': 'Nặng', 'class': 'level-3' }, { max: 999, 'label': 'Rất nặng', 'class': 'level-4' }] },
+                    anxiety: { indices: [1, 3, 6, 8, 14, 18, 19], multiplier: 2, levels: [{ max: 7, 'label': 'Bình thường', 'class': 'level-0' }, { max: 9, 'label': 'Nhẹ', 'class': 'level-1' }, { max: 14, 'label': 'Vừa', 'class': 'level-2' }, { max: 19, 'label': 'Nặng', 'class': 'level-3' }, { max: 999, 'label': 'Rất nặng', 'class': 'level-4' }] },
+                    stress: { indices: [5, 7, 10, 11, 13, 17], multiplier: 2, levels: [{ max: 14, 'label': 'Bình thường', 'class': 'level-0' }, { max: 18, 'label': 'Nhẹ', 'class': 'level-1' }, { max: 25, 'label': 'Vừa', 'class': 'level-2' }, { max: 33, 'label': 'Nặng', 'class': 'level-3' }, { max: 999, 'label': 'Rất nặng', 'class': 'level-4' }] }
+                },
+                prevScores: { depression: 6, anxiety: 8, stress: 10 }
+            },
+            gad7: {
+                name: 'GAD-7', fullname: 'Generalized Anxiety Disorder 7-item',
+                icon: '😰', iconBg: 'var(--sky-light)', iconBorder: 'var(--sky)',
+                timeRef: '2 tuần qua', totalQ: 7, maxScore: 21,
+                subscales: ['anxiety'],
+                questions: [
+                    { text: 'Cảm thấy lo lắng, bồn chồn hoặc căng thẳng', cat: 'anxiety', catLabel: 'Lo âu' },
+                    { text: 'Không thể ngừng hoặc kiểm soát được sự lo lắng', cat: 'anxiety', catLabel: 'Lo âu' },
+                    { text: 'Lo lắng quá mức về nhiều thứ khác nhau', cat: 'anxiety', catLabel: 'Lo âu' },
+                    { text: 'Khó thư giãn', cat: 'anxiety', catLabel: 'Lo âu' },
+                    { text: 'Bồn chồn đến mức khó ngồi yên', cat: 'anxiety', catLabel: 'Lo âu' },
+                    { text: 'Dễ bực bội hoặc cáu kỉnh', cat: 'anxiety', catLabel: 'Lo âu' },
+                    { text: 'Cảm thấy sợ hãi như thể có điều gì đó tồi tệ sắp xảy ra', cat: 'anxiety', catLabel: 'Lo âu' }
+                ],
+                likertOptions: [
+                    { emoji: '🙂', label: 'Không bao giờ', score: 0 },
+                    { emoji: '😐', label: 'Vài ngày', score: 1 },
+                    { emoji: '😟', label: 'Hơn nửa số ngày', score: 2 },
+                    { emoji: '😰', label: 'Gần như mọi ngày', score: 3 }
+                ],
+                scoring: {
+                    anxiety: { indices: [0, 1, 2, 3, 4, 5, 6], multiplier: 1, levels: [{ max: 4, 'label': 'Bình thường', 'class': 'level-0' }, { max: 9, 'label': 'Nhẹ', 'class': 'level-1' }, { max: 14, 'label': 'Vừa', 'class': 'level-2' }, { max: 21, 'label': 'Nặng', 'class': 'level-3' }, { max: 999, 'label': 'Rất nặng', 'class': 'level-4' }] }
+                },
+                prevScores: { anxiety: 7 }
+            },
+            hars: {
+                name: 'HARS', fullname: 'Hamilton Anxiety Rating Scale',
+                icon: '🧠', iconBg: 'var(--lavender-light)', iconBorder: 'var(--lavender)',
+                timeRef: 'Gần đây', totalQ: 14, maxScore: 56,
+                subscales: ['somatic', 'psychic'],
+                questions: [
+                    { text: 'Tâm trạng lo âu (lo lắng, linh cảm xấu, sợ hãi thái quá)', cat: 'psychic', catLabel: 'Tâm lý' },
+                    { text: 'Căng thẳng (hay giật mình, dễ khóc, run rẩy, bồn chồn)', cat: 'psychic', catLabel: 'Tâm lý' },
+                    { text: 'Sợ hãi (sợ bóng tối, người lạ, ở một mình, đám đông)', cat: 'psychic', catLabel: 'Tâm lý' },
+                    { text: 'Mất ngủ (khó ngủ, ngủ không sâu, hay gặp ác mộng, mệt mỏi khi dậy)', cat: 'psychic', catLabel: 'Tâm lý' },
+                    { text: 'Nhận thức và suy nghĩ (khó tập trung, trí nhớ kém)', cat: 'psychic', catLabel: 'Tâm lý' },
+                    { text: 'Tâm trạng trầm cảm (mất hứng thú, không thấy vui, dậy sớm)', cat: 'psychic', catLabel: 'Tâm lý' },
+                    { text: 'Triệu chứng cơ bắp (đau nhức cơ, co giật, căng cứng)', cat: 'somatic', catLabel: 'Thể chất' },
+                    { text: 'Triệu chứng giác quan (ù tai, mờ mắt, nóng lạnh bất thường)', cat: 'somatic', catLabel: 'Thể chất' },
+                    { text: 'Triệu chứng tim mạch (tim đập nhanh, đau ngực, mạch đập mạnh)', cat: 'somatic', catLabel: 'Thể chất' },
+                    { text: 'Triệu chứng hô hấp (khó thở, ngột ngạt, nghẹn họng)', cat: 'somatic', catLabel: 'Thể chất' },
+                    { text: 'Triệu chứng tiêu hóa (khó nuốt, đau dạ dày, buồn nôn, tiêu chảy)', cat: 'somatic', catLabel: 'Thể chất' },
+                    { text: 'Hệ bài tiết/Sinh dục (đi tiểu nhiều, giảm ham muốn)', cat: 'somatic', catLabel: 'Thể chất' },
+                    { text: 'Triệu chứng thần kinh thực vật (khô miệng, đổ mồ hôi, đỏ mặt, tái nhợt)', cat: 'somatic', catLabel: 'Thể chất' },
+                    { text: 'Hành vi bồn chồn (thở dài, nuốt liên tục, run rẩy khi giao tiếp)', cat: 'psychic', catLabel: 'Tâm lý' }
+                ],
+                likertOptions: [
+                    { emoji: '✅', label: 'Không có', score: 0 },
+                    { emoji: '🟡', label: 'Nhẹ', score: 1 },
+                    { emoji: '🟠', label: 'Vừa phải', score: 2 },
+                    { emoji: '🔴', label: 'Nặng', score: 3 },
+                    { emoji: '🚨', label: 'Rất nặng', score: 4 }
+                ],
+                scoring: {
+                    psychic: { indices: [0, 1, 2, 3, 4, 5, 13], multiplier: 1, levels: [{ max: 999, 'label': 'Tâm lý', 'class': 'level-1' }] },
+                    somatic: { indices: [6, 7, 8, 9, 10, 11, 12], multiplier: 1, levels: [{ max: 999, 'label': 'Thể chất', 'class': 'level-2' }] },
+                    total: { indices: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13], multiplier: 1, levels: [{ max: 17, 'label': 'Bình thường / Nhẹ', 'class': 'level-0' }, { max: 24, 'label': 'Vừa', 'class': 'level-2' }, { max: 30, 'label': 'Nặng', 'class': 'level-3' }, { max: 999, 'label': 'Rất nặng', 'class': 'level-4' }] }
+                },
+                prevScores: null
+            },
+            phq9: {
+                name: 'PHQ-9', fullname: 'Patient Health Questionnaire-9',
+                icon: '🌧️', iconBg: 'var(--mint-light)', iconBorder: 'var(--mint)',
+                timeRef: '2 tuần qua', totalQ: 9, maxScore: 27,
+                subscales: ['depression'],
+                questions: [
+                    { text: 'Ít hứng thú hoặc niềm vui khi làm việc / sinh hoạt', cat: 'depression', catLabel: 'Trầm cảm' },
+                    { text: 'Cảm thấy buồn bã, chán nản hoặc tuyệt vọng', cat: 'depression', catLabel: 'Trầm cảm' },
+                    { text: 'Khó đi vào giấc ngủ, ngủ không sâu giấc, hoặc ngủ quá nhiều', cat: 'depression', catLabel: 'Trầm cảm' },
+                    { text: 'Cảm thấy mệt mỏi hoặc ít năng lượng', cat: 'depression', catLabel: 'Trầm cảm' },
+                    { text: 'Chán ăn hoặc ăn quá mức', cat: 'depression', catLabel: 'Trầm cảm' },
+                    { text: 'Cảm thấy tồi tệ về bản thân - hoặc cảm thấy mình là kẻ thất bại, làm gia đình thất vọng', cat: 'depression', catLabel: 'Trầm cảm' },
+                    { text: 'Khó tập trung vào mọi việc (ví dụ: đọc báo, công việc, xem tivi)', cat: 'depression', catLabel: 'Trầm cảm' },
+                    { text: 'Di chuyển hoặc nói chuyện chậm chạp đến mức người khác cũng chú ý. Hoặc ngược lại - bồn chồn, đi lại liên tục', cat: 'depression', catLabel: 'Trầm cảm' },
+                    { text: 'Có ý nghĩ thà chết đi cho xong hoặc muốn tự làm hại bản thân bằng một cách nào đó', cat: 'depression', catLabel: 'Trầm cảm' }
+                ],
+                likertOptions: [
+                    { emoji: '🙂', label: 'Không bao giờ', score: 0 },
+                    { emoji: '😐', label: 'Vài ngày', score: 1 },
+                    { emoji: '😟', label: 'Hơn nửa số ngày', score: 2 },
+                    { emoji: '😰', label: 'Gần như mọi ngày', score: 3 }
+                ],
+                scoring: {
+                    depression: { indices: [0, 1, 2, 3, 4, 5, 6, 7, 8], multiplier: 1, levels: [{ max: 4, 'label': 'Bình thường', 'class': 'level-0' }, { max: 9, 'label': 'Nhẹ', 'class': 'level-1' }, { max: 14, 'label': 'Vừa', 'class': 'level-2' }, { max: 19, 'label': 'Nặng trung bình', 'class': 'level-3' }, { max: 999, 'label': 'Nghiêm trọng', 'class': 'level-4' }] }
+                },
+                prevScores: { depression: 5 }
+            },
+            psqi: {
+                name: 'PSQI', fullname: 'Pittsburgh Sleep Quality Index (Bản chuẩn hóa trắc nghiệm)',
+                icon: '😴', iconBg: 'var(--peach-light)', iconBorder: 'var(--kraft)',
+                timeRef: '1 tháng qua', totalQ: 10, maxScore: 30,
+                subscales: ['sleep'],
+                questions: [
+                    { text: 'Bạn đánh giá chất lượng giấc ngủ tổng thể của mình ở mức nào?', cat: 'sleep', catLabel: 'Giấc ngủ', likertOptions: [{ emoji: '😀', label: 'Rất tốt', score: 0 }, { emoji: '🙂', label: 'Khá tốt', score: 1 }, { emoji: '😟', label: 'Khá kém', score: 2 }, { emoji: '😰', label: 'Rất kém', score: 3 }] },
+                    { text: 'Bạn thường mất bao lâu để chìm vào giấc ngủ mỗi đêm?', cat: 'sleep', catLabel: 'Giấc ngủ', likertOptions: [{ emoji: '⏱️', label: '< 15 phút', score: 0 }, { emoji: '⏱️', label: '16 - 30 phút', score: 1 }, { emoji: '⏱️', label: '31 - 60 phút', score: 2 }, { emoji: '⏱️', label: '> 60 phút', score: 3 }] },
+                    { text: 'Bạn thực sự ngủ được bao nhiêu tiếng mỗi đêm? (Không tính thời gian nằm trằn trọc)', cat: 'sleep', catLabel: 'Giấc ngủ', likertOptions: [{ emoji: '🛌', label: '> 7 tiếng', score: 0 }, { emoji: '🛌', label: '6 - 7 tiếng', score: 1 }, { emoji: '🛌', label: '5 - 6 tiếng', score: 2 }, { emoji: '🛌', label: '< 5 tiếng', score: 3 }] },
+                    { text: 'Tần suất bạn không thể chìm vào giấc ngủ trong vòng 30 phút?', cat: 'sleep', catLabel: 'Giấc ngủ' },
+                    { text: 'Tần suất bạn thức giấc giữa đêm hoặc dậy quá sớm vào buổi sáng?', cat: 'sleep', catLabel: 'Giấc ngủ' },
+                    { text: 'Tần suất bạn phải thức dậy đi lại để đi vệ sinh?', cat: 'sleep', catLabel: 'Giấc ngủ' },
+                    { text: 'Tần suất bạn gặp khó khăn do ho, khó thở hoặc ngáy to?', cat: 'sleep', catLabel: 'Giấc ngủ' },
+                    { text: 'Tần suất bạn ngủ không ngon vì gặp ác mộng, hoặc cảm thấy quá nóng/quá lạnh?', cat: 'sleep', catLabel: 'Giấc ngủ' },
+                    { text: 'Tần suất bạn phải dùng thuốc (được kê đơn hoặc không) để dễ ngủ?', cat: 'sleep', catLabel: 'Giấc ngủ' },
+                    { text: 'Tần suất bạn cảm thấy buồn ngủ, mệt mỏi vào ban ngày khi làm việc, lái xe hay giao tiếp?', cat: 'sleep', catLabel: 'Giấc ngủ' }
+                ],
+                likertOptions: [
+                    { emoji: '✅', label: 'Không bao giờ trong tháng qua', score: 0 },
+                    { emoji: '🟡', label: 'Tuyệt đối hiếm (< 1 lần/tuần)', score: 1 },
+                    { emoji: '🟠', label: 'Vài lần (1-2 lần/tuần)', score: 2 },
+                    { emoji: '🚨', label: 'Thường xuyên (≥ 3 lần/tuần)', score: 3 }
+                ],
+                scoring: {
+                    sleep: { indices: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9], multiplier: 1, levels: [{ max: 4, 'label': 'Rất tốt', 'class': 'level-0' }, { max: 7, 'label': 'Đạt tiêu chuẩn', 'class': 'level-1' }, { max: 14, 'label': 'Nguy cơ Mất ngủ', 'class': 'level-2' }, { max: 20, 'label': 'Mất ngủ trầm trọng', 'class': 'level-3' }, { max: 999, 'label': 'Đặc biệt nghiêm trọng', 'class': 'level-4' }] }
+                },
+                prevScores: null
+            }
+        };
+
+        // ============================================================
+        // STATE & LOGIC
+        // ============================================================
+        let currentTestId = null;
+        let currentQIndex = 0;
+        let answers = [];
+
+        function startTest(testId) {
+            currentTestId = testId;
+            currentQIndex = 0;
+            answers = [];
+            const testData = TESTS[testId];
+
+            // UI Views
+            document.getElementById('selectorView').style.display = 'none';
+            document.getElementById('testArea').style.display = 'block';
+
+            // Layout Config
+            document.getElementById('testBadge').innerText = testData.name;
+            document.getElementById('testHeaderName').innerText = testData.name;
+            document.getElementById('testHeaderFull').innerText = testData.fullname;
+            document.getElementById('testHeaderIcon').innerText = testData.icon;
+            document.getElementById('testHeaderIcon').style.background = testData.iconBg;
+            document.getElementById('testHeaderIcon').style.borderColor = testData.iconBorder;
+
+            renderQuestion(0);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function renderQuestion(index) {
+            const testData = TESTS[currentTestId];
+            if (index < 0 || index >= testData.totalQ) return;
+            currentQIndex = index;
+            const q = testData.questions[index];
+
+            // Progress Bar
+            document.getElementById('qProgressText').innerText = `${index + 1}/${testData.totalQ}`;
+            const pct = Math.round(((index) / testData.totalQ) * 100);
+            document.getElementById('testProgressBar').style.width = pct + '%';
+            document.getElementById('progressLabel').innerText = `Câu ${index + 1}`;
+            document.getElementById('progressPct').innerText = pct + '%';
+
+            // Question Data
+            document.getElementById('qNum').innerText = `Câu ${index + 1} / ${testData.totalQ}`;
+            document.getElementById('qCategory').innerText = q.catLabel;
+            document.getElementById('qText').innerText = q.text;
+            document.getElementById('qSubtext').innerText = testData.timeRef ? `Trong thời gian: ${testData.timeRef}` : '';
+
+            // Likert Option Mapping
+            const opts = q.likertOptions || testData.likertOptions;
+            const wrap = document.getElementById('likertOptions');
+            wrap.className = `likert-wrap cols-${opts.length}`;
+            wrap.innerHTML = opts.map(opt => `
+            <div class="likert-option ${answers[index] === opt.score ? 'selected' : ''}" onclick="selectAnswer(${opt.score})">
+                <span class="lo-emoji">${opt.emoji}</span>
+                <span class="lo-label">${opt.label}</span>
+            </div>
+        `).join('');
+
+            // Navigation Handling
+            document.getElementById('prevBtn').style.display = index > 0 ? 'inline-flex' : 'none';
+            if (answers[index] !== undefined) {
+                document.getElementById('nextBtn').style.display = 'inline-flex';
+                document.getElementById('qNavInfo').innerText = 'Đã chọn. Nhấn Câu tiếp ->';
+            } else {
+                document.getElementById('nextBtn').style.display = 'none';
+                document.getElementById('qNavInfo').innerText = 'Chọn một đáp án để tiếp tục';
+            }
+        }
+
+        function selectAnswer(score) {
+            answers[currentQIndex] = score;
+
+            // EMERGENCY TRIGGER: PHQ-9 Question 9 (Suicidal thoughts)
+            const isSpecialPHQ9 = (currentTestId === 'phq9' && currentQIndex === 8 && score > 0);
+            if (isSpecialPHQ9) {
+                showEmergency();
+            }
+
+            // Re-render UI to show selected state
+            renderQuestion(currentQIndex);
+
+            // Auto-advance
+            setTimeout(() => {
+                if (currentQIndex < TESTS[currentTestId].totalQ - 1) {
+                    nextQuestion();
+                } else {
+                    // Completed -> ensure Progress hits 100%
+                    document.getElementById('testProgressBar').style.width = '100%';
+                    document.getElementById('progressPct').innerText = '100%';
+                    setTimeout(finishTest, 400);
+                }
+            }, 350); // slight delay for visual UX
+        }
+
+        function nextQuestion() {
+            renderQuestion(currentQIndex + 1);
+        }
+
+        function prevQuestion() {
+            renderQuestion(currentQIndex - 1);
+        }
+
+        function finishTest() {
+            // UI Views
+            document.getElementById('testArea').style.display = 'none';
+            document.getElementById('resultPanel').classList.add('active');
+
+            const testData = TESTS[currentTestId];
+            document.getElementById('resultMascot').innerText = testData.icon;
+            document.getElementById('resultTitle').innerText = `Kết quả ${testData.name} của bạn`;
+
+            const now = new Date();
+            document.getElementById('resultSubtitle').innerText = `Hoàn thành lúc ${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')} — ${now.toLocaleDateString('vi-VN')}`;
+
+            // Evaluate logic
+            const subScores = {};
+            Object.keys(testData.scoring).forEach(key => {
+                const sc = testData.scoring[key];
+                let rawSum = 0;
+                sc.indices.forEach(idx => {
+                    rawSum += (answers[idx] || 0);
+                });
+                let finalScore = rawSum * sc.multiplier;
+                subScores[key] = { score: finalScore, config: sc };
+            });
+
+            // Render Result Cards
+            const scGrid = document.getElementById('resultScoresGrid');
+            scGrid.innerHTML = '';
+            let isWarning = false;
+
+            const keys = Object.keys(subScores);
+            scGrid.className = `result-scores-grid rsg-${Math.min(3, keys.length)}`;
+
+            let analysisStr = "";
+            keys.forEach(key => {
+                const s = subScores[key];
+                const levelConfig = s.config.levels.find(l => s.score <= l.max) || s.config.levels[s.config.levels.length - 1];
+
+                let icon = "📊";
+                if (levelConfig.class === 'level-0' || levelConfig.class === 'level-1') icon = "✅";
+                else if (levelConfig.class === 'level-2') icon = "⚠️";
+                else {
+                    icon = "🚨";
+                    if (key !== 'somatic' && key !== 'psychic') isWarning = true;
+                }
+
+                // For general tests, if label is specifically psychic or somatic, adapt it
+                const displayLabel = levelConfig.label === 'Tâm lý' || levelConfig.label === 'Thể chất'
+                    ? levelConfig.label
+                    : (testData.questions.find(q => q.cat === key)?.catLabel || key);
+
+                scGrid.innerHTML += `
+                <div class="rs-card ${levelConfig.class}">
+                    <div class="rs-icon">${icon}</div>
+                    <div class="rs-label">${displayLabel}</div>
+                    <div><span class="rs-score">${s.score}</span><span class="rs-max">/ ${testData.maxScore}</span></div>
+                    <div class="rs-level-badge" style="background:rgba(255,255,255,0.4); border:1px solid currentColor;">${levelConfig.label}</div>
+                </div>
+            `;
+                analysisStr += `<li class="ri-item ${levelConfig.class === 'level-0' || levelConfig.class === 'level-1' ? 'good' : (levelConfig.class === 'level-2' ? 'medium' : 'bad')}">
+                <span class="ri-icon">${icon}</span>
+                <div><strong>${displayLabel}:</strong> Mức điểm ${s.score} — thuộc nhóm <strong>${levelConfig.label}</strong>. ${isWarning ? "Mức độ này có ảnh hưởng đáng kể tới chất lượng cuộc sống của bạn." : "Hãy tiếp tục giữ vững tâm lý theo nhịp độ này nhé."}</div>
+            </li>`;
+            });
+
+            document.getElementById('resultInterpretation').innerHTML = `<ul style="padding:0; margin:0; list-style:none;">${analysisStr}</ul>`;
+
+            // Previous Comparison Logic
+            const rcBars = document.getElementById('resultComparison');
+            if (testData.prevScores) {
+                rcBars.innerHTML = '';
+                keys.forEach(key => {
+                    const currentSc = subScores[key].score;
+                    const prevSc = testData.prevScores[key];
+                    if (prevSc === undefined) return;
+
+                    const maxLvl = testData.scoring[key].levels.slice(-1)[0].max;
+                    const maxSc = maxLvl > 100 ? testData.maxScore : maxLvl;
+
+                    const currPct = Math.min(100, Math.max(0, Math.round((currentSc / maxSc) * 100)));
+                    const prevPct = Math.min(100, Math.max(0, Math.round((prevSc / maxSc) * 100)));
+
+                    const label = testData.questions.find(q => q.cat === key)?.catLabel || key;
+
+                    rcBars.innerHTML += `
+                    <div class="rcb-item" style="margin-bottom:8px;">
+                        <div class="rcb-label">${label}</div>
+                        <div class="rcb-bars">
+                            <div class="rcb-bar-wrap">
+                                <div class="rcb-date">Hiện tại</div>
+                                <div class="rcb-bar"><div class="rcb-fill" style="width:${currPct}%; background:var(--mint-dark);"></div></div>
+                                <div class="rcb-val">${currentSc}</div>
+                            </div>
+                            <div class="rcb-bar-wrap">
+                                <div class="rcb-date">Lần trước</div>
+                                <div class="rcb-bar"><div class="rcb-fill" style="width:${prevPct}%; background:var(--kraft-dark);"></div></div>
+                                <div class="rcb-val">${prevSc}</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                });
+            } else {
+                rcBars.innerHTML = '<div style="font-size:0.8rem;color:var(--text-secondary);font-style:italic;padding:8px 0;">Bài kiểm tra lần đầu — Chưa có dữ liệu cơ sở để so sánh.</div>';
+            }
+
+            // Show Expert recommendations if warning
+            document.getElementById('expertRecommend').style.display = isWarning ? 'block' : 'none';
+
+            // Suggested Tasks Box
+            const tasksDiv = document.getElementById('resultTasks');
+            if (isWarning || testData.name === 'PHQ-9') {
+                tasksDiv.innerHTML = `
+                <div class="rt-item" onclick="location.href='task-breathing.html'">
+                    <div class="rt-icon-box">🌬️</div>
+                    <div class="rt-info">
+                        <div class="rt-name">Hít thở vuông 4-4-4 khẩn cấp</div>
+                        <div class="rt-meta">Can thiệp giảm lo âu lập tức</div>
+                    </div>
+                    <div class="rt-xp">+15 XP</div>
+                </div>
+                <div class="rt-item" onclick="location.href='task-detail.html'">
+                    <div class="rt-icon-box">🎧</div>
+                    <div class="rt-info">
+                        <div class="rt-name">Thải độc cảm xúc bằng âm thanh Binaural</div>
+                        <div class="rt-meta">Binaural beats • 10 phút</div>
+                    </div>
+                    <div class="rt-xp">+25 XP</div>
+                </div>
+            `;
+            } else if (testData.name === 'PSQI') {
+                tasksDiv.innerHTML = `
+                <div class="rt-item" onclick="location.href='task-meditation.html'">
+                    <div class="rt-icon-box">🧘</div>
+                    <div class="rt-info">
+                        <div class="rt-name">Thiền buông thư trước khi ngủ</div>
+                        <div class="rt-meta">Body scan • 15 phút</div>
+                    </div>
+                    <div class="rt-xp">+20 XP</div>
+                </div>
+            `;
+            } else {
+                tasksDiv.innerHTML = `
+                <div class="rt-item" onclick="location.href='task-detail.html'">
+                    <div class="rt-icon-box">🧠</div>
+                    <div class="rt-info">
+                        <div class="rt-name">Thực hành chánh niệm tổng quát</div>
+                        <div class="rt-meta">Cải thiện tính bền bỉ và tập trung</div>
+                    </div>
+                    <div class="rt-xp">+20 XP</div>
+                </div>
+                <div class="rt-item" onclick="location.href='task-detail.html'">
+                    <div class="rt-icon-box">📝</div>
+                    <div class="rt-info">
+                        <div class="rt-name">Nhật ký biết ơn cuối ngày</div>
+                        <div class="rt-meta">Nhìn nhận các khía cạnh tích cực</div>
+                    </div>
+                    <div class="rt-xp">+15 XP</div>
+                </div>
+            `;
+            }
+        }
+
+        function retakeTest() {
+            startTest(currentTestId);
+            document.getElementById('resultPanel').classList.remove('active');
+        }
+
+        function backToSelector() {
+            document.getElementById('testArea').style.display = 'none';
+            document.getElementById('resultPanel').classList.remove('active');
+            document.getElementById('selectorView').style.display = 'block';
+        }
+
+        // Modal Control
+        function showEmergency() { document.getElementById('emergencyOverlay').classList.add('show'); }
+        function closeEmergency() { document.getElementById('emergencyOverlay').classList.remove('show'); }
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('open');
+            document.getElementById('sidebarOverlay').classList.toggle('open');
+        }
+        function closeSidebar() {
+            document.getElementById('sidebar').classList.remove('open');
+            document.getElementById('sidebarOverlay').classList.remove('open');
+        }
+
+    </script>
+</body>
+
+</html>

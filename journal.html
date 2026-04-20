@@ -1,0 +1,1929 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PeaceFlow — Nhật Ký Cảm Xúc</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Patrick+Hand&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --cream: #FFF8F0;
+            --warm-white: #FFFDF7;
+            --kraft: #D4A574;
+            --kraft-light: #E8CBA7;
+            --kraft-dark: #B8895A;
+            --mint: #A8D5BA;
+            --mint-light: #C5E8D2;
+            --mint-dark: #7BBF95;
+            --peach: #FFCBA4;
+            --peach-light: #FFE0C4;
+            --peach-dark: #E8A876;
+            --sky: #A8D8EA;
+            --sky-light: #C5E8F5;
+            --lavender: #C3AED6;
+            --lavender-light: #DDD1EB;
+            --coral: #FF8B8B;
+            --coral-light: #FFB3B3;
+            --gold: #FFD93D;
+            --gold-light: #FFF3B0;
+            --rose: #F4A0B0;
+            --rose-light: #FDDDE6;
+            --text-primary: #4A3728;
+            --text-secondary: #7A6555;
+            --text-light: #A89585;
+            --shadow-paper: 3px 3px 0px rgba(74, 55, 40, 0.1);
+            --shadow-paper-hover: 5px 5px 0px rgba(74, 55, 40, 0.15);
+            --border-radius: 16px;
+            --border-radius-sm: 10px;
+            --transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            --sidebar-width: 240px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background: var(--cream);
+            color: var(--text-primary);
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        .paper-card {
+            background: var(--warm-white);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-paper);
+            border: 2px solid var(--kraft-light);
+            transition: var(--transition);
+        }
+
+        .handwritten {
+            font-family: 'Patrick Hand', cursive;
+        }
+
+        /* ===== SIDEBAR ===== */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            width: var(--sidebar-width);
+            background: var(--warm-white);
+            border-right: 2px solid var(--kraft-light);
+            z-index: 200;
+            display: flex;
+            flex-direction: column;
+            padding: 20px 0;
+        }
+
+        .sidebar-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 0 20px 20px;
+            border-bottom: 2px dashed var(--kraft-light);
+            margin-bottom: 16px;
+            text-decoration: none;
+        }
+
+        .sidebar-logo .logo-icon {
+            width: 38px;
+            height: 38px;
+            background: var(--mint);
+            border-radius: 10px;
+            border: 2px solid var(--mint-dark);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            box-shadow: 2px 2px 0px var(--mint-dark);
+        }
+
+        .sidebar-logo .logo-text {
+            font-size: 1.2rem;
+            font-weight: 800;
+            color: var(--text-primary);
+        }
+
+        .sidebar-logo .logo-text span {
+            color: var(--mint-dark);
+        }
+
+        .sidebar-nav {
+            flex: 1;
+            padding: 0 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            overflow-y: auto;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            border-radius: var(--border-radius-sm);
+            text-decoration: none;
+            color: var(--text-secondary);
+            font-weight: 600;
+            font-size: 0.88rem;
+            transition: var(--transition);
+        }
+
+        .nav-item:hover {
+            background: var(--mint-light);
+            color: var(--text-primary);
+        }
+
+        .nav-item.active {
+            background: var(--mint-light);
+            color: var(--text-primary);
+            border: 1.5px solid var(--mint);
+        }
+
+        .nav-item .ni {
+            font-size: 1.1rem;
+            width: 22px;
+            text-align: center;
+        }
+
+        .nav-section-label {
+            font-size: 0.68rem;
+            font-weight: 700;
+            color: var(--text-light);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            padding: 10px 12px 4px;
+        }
+
+        .sidebar-bottom {
+            padding: 12px;
+            border-top: 2px dashed var(--kraft-light);
+            margin-top: auto;
+        }
+
+        .user-card-mini {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            background: var(--cream);
+            border-radius: var(--border-radius-sm);
+            border: 1.5px solid var(--kraft-light);
+        }
+
+        .user-avatar-mini {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--lavender-light);
+            border: 2px solid var(--kraft);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+        }
+
+        .user-info-mini .user-name {
+            font-size: 0.85rem;
+            font-weight: 700;
+        }
+
+        .user-info-mini .user-level {
+            font-size: 0.72rem;
+            color: var(--text-light);
+        }
+
+        .emergency-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 12px;
+            background: rgba(255, 139, 139, 0.1);
+            border: 1.5px solid var(--coral);
+            border-radius: var(--border-radius-sm);
+            color: var(--coral);
+            font-size: 0.78rem;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 8px;
+            transition: var(--transition);
+            text-decoration: none;
+        }
+
+        .emergency-btn:hover {
+            background: rgba(255, 139, 139, 0.2);
+        }
+
+        /* ===== MOBILE ===== */
+        .mobile-topbar {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background: var(--warm-white);
+            border-bottom: 2px solid var(--kraft-light);
+            z-index: 300;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 16px;
+        }
+
+        .mobile-menu-btn {
+            background: none;
+            border: none;
+            font-size: 1.4rem;
+            cursor: pointer;
+        }
+
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(74, 55, 40, 0.3);
+            z-index: 150;
+        }
+
+        /* ===== MAIN ===== */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            padding: 28px;
+            min-height: 100vh;
+        }
+
+        .btn-primary {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 10px 20px;
+            border: 2px solid var(--mint-dark);
+            border-radius: 50px;
+            background: var(--mint);
+            color: var(--text-primary);
+            font-family: 'Nunito', sans-serif;
+            font-size: 0.88rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: var(--transition);
+            box-shadow: 2px 2px 0px var(--mint-dark);
+            text-decoration: none;
+        }
+
+        .btn-primary:hover {
+            background: var(--mint-dark);
+            color: white;
+            transform: translate(1px, 1px);
+            box-shadow: 1px 1px 0px var(--mint-dark);
+        }
+
+        .btn-outline {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 9px 18px;
+            border: 2px solid var(--kraft-light);
+            border-radius: 50px;
+            background: transparent;
+            color: var(--text-secondary);
+            font-family: 'Nunito', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .btn-outline:hover {
+            background: var(--kraft-light);
+            color: var(--text-primary);
+        }
+
+        /* ===== BREADCRUMB ===== */
+        .breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 20px;
+            font-size: 0.8rem;
+            color: var(--text-light);
+        }
+
+        .breadcrumb a {
+            color: var(--text-light);
+            text-decoration: none;
+        }
+
+        .breadcrumb a:hover {
+            color: var(--mint-dark);
+        }
+
+        .breadcrumb span {
+            color: var(--text-secondary);
+            font-weight: 600;
+        }
+
+        /* ===== PAGE HEADER ===== */
+        .page-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .page-title {
+            font-size: 1.5rem;
+            font-weight: 800;
+        }
+
+        .page-subtitle {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        /* ===== LAYOUT ===== */
+        .journal-layout {
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: 24px;
+            max-width: 1100px;
+        }
+
+        /* ===== VIEW TABS ===== */
+        .view-tabs {
+            display: flex;
+            gap: 0;
+            margin-bottom: 20px;
+            border: 2px solid var(--kraft-light);
+            border-radius: 50px;
+            overflow: hidden;
+            background: var(--cream);
+            width: fit-content;
+        }
+
+        .view-tab {
+            padding: 8px 18px;
+            font-family: 'Nunito', sans-serif;
+            font-size: 0.82rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            color: var(--text-secondary);
+            border: none;
+            background: transparent;
+        }
+
+        .view-tab.active {
+            background: var(--mint);
+            color: var(--text-primary);
+            font-weight: 700;
+        }
+
+        /* ===== EDITOR VIEW ===== */
+        .editor-view {
+            display: block;
+        }
+
+        .history-view {
+            display: none;
+        }
+
+        /* ===== JOURNAL EDITOR ===== */
+        .editor-card {
+            padding: 0;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .editor-top-bar {
+            padding: 14px 20px;
+            background: linear-gradient(135deg, var(--rose-light), var(--lavender-light));
+            border-bottom: 2px dashed var(--kraft-light);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .etb-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .etb-date {
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .etb-mood {
+            display: flex;
+            gap: 6px;
+        }
+
+        .mood-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: 2px solid var(--kraft-light);
+            background: var(--cream);
+            cursor: pointer;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
+        }
+
+        .mood-btn:hover,
+        .mood-btn.selected {
+            border-color: var(--mint-dark);
+            background: var(--mint-light);
+            transform: scale(1.15);
+        }
+
+        .etb-right {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .privacy-toggle {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.72rem;
+            color: var(--text-secondary);
+            cursor: pointer;
+        }
+
+        .privacy-icon {
+            font-size: 0.9rem;
+        }
+
+        /* Prompt bar */
+        .prompt-bar {
+            padding: 12px 20px;
+            background: var(--peach-light);
+            border-bottom: 1.5px dashed var(--kraft-light);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .pb-label {
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: var(--peach-dark);
+            flex-shrink: 0;
+        }
+
+        .pb-prompt {
+            font-family: 'Patrick Hand', cursive;
+            font-size: 0.88rem;
+            color: var(--text-secondary);
+            flex: 1;
+            line-height: 1.4;
+        }
+
+        .pb-refresh {
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            border: 1.5px solid var(--peach);
+            background: var(--peach-light);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            flex-shrink: 0;
+            transition: var(--transition);
+        }
+
+        .pb-refresh:hover {
+            background: var(--peach);
+            transform: rotate(180deg);
+        }
+
+        /* Toolbar */
+        .editor-toolbar {
+            padding: 8px 16px;
+            border-bottom: 1.5px dashed var(--kraft-light);
+            display: flex;
+            gap: 4px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .tb-btn {
+            width: 30px;
+            height: 30px;
+            border-radius: 6px;
+            border: 1.5px solid transparent;
+            background: transparent;
+            cursor: pointer;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
+            color: var(--text-secondary);
+        }
+
+        .tb-btn:hover {
+            background: var(--mint-light);
+            border-color: var(--mint);
+        }
+
+        .tb-sep {
+            width: 1px;
+            height: 20px;
+            background: var(--kraft-light);
+            margin: 0 4px;
+        }
+
+        .tb-color-btn {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid white;
+            box-shadow: 0 0 0 1.5px var(--kraft-light);
+            transition: var(--transition);
+        }
+
+        .tb-color-btn:hover,
+        .tb-color-btn.active {
+            box-shadow: 0 0 0 2px var(--mint-dark);
+        }
+
+        /* Writing area */
+        .writing-area-wrap {
+            padding: 20px 24px;
+            min-height: 280px;
+            position: relative;
+        }
+
+        .journal-title-input {
+            width: 100%;
+            border: none;
+            background: transparent;
+            font-family: 'Patrick Hand', cursive;
+            font-size: 1.3rem;
+            color: var(--text-primary);
+            outline: none;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .journal-title-input::placeholder {
+            color: var(--text-light);
+        }
+
+        .journal-textarea {
+            width: 100%;
+            min-height: 200px;
+            border: none;
+            background: transparent;
+            font-family: 'Patrick Hand', cursive;
+            font-size: 1rem;
+            color: var(--text-primary);
+            outline: none;
+            resize: none;
+            line-height: 1.9;
+        }
+
+        .journal-textarea::placeholder {
+            color: var(--text-light);
+        }
+
+        /* Lined paper effect */
+        .lined-paper {
+            background-image: repeating-linear-gradient(transparent, transparent 31px, rgba(168, 213, 186, 0.3) 31px, rgba(168, 213, 186, 0.3) 32px);
+            background-size: 100% 32px;
+        }
+
+        /* Editor bottom */
+        .editor-bottom {
+            padding: 12px 20px;
+            border-top: 2px dashed var(--kraft-light);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .eb-meta {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .eb-wordcount {
+            font-size: 0.72rem;
+            color: var(--text-light);
+        }
+
+        .eb-tags {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+        }
+
+        .tag-chip {
+            padding: 3px 10px;
+            border: 1.5px solid var(--kraft-light);
+            border-radius: 50px;
+            font-size: 0.65rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            background: var(--cream);
+        }
+
+        .tag-chip:hover {
+            background: var(--mint-light);
+            border-color: var(--mint);
+        }
+
+        .tag-chip.selected {
+            background: var(--mint-light);
+            border-color: var(--mint-dark);
+        }
+
+        .eb-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        /* ===== AI ANALYSIS ===== */
+        .ai-analysis-card {
+            padding: 18px;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, var(--lavender-light), var(--sky-light));
+            border-color: var(--lavender);
+            display: none;
+        }
+
+        .ai-analysis-card.show {
+            display: block;
+            animation: fade-up 0.4s ease;
+        }
+
+        @keyframes fade-up {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .aac-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .aac-mascot {
+            font-size: 1.4rem;
+            animation: bounce-m 3s ease-in-out infinite;
+        }
+
+        @keyframes bounce-m {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-5px);
+            }
+        }
+
+        .aac-title {
+            font-size: 0.88rem;
+            font-weight: 700;
+        }
+
+        .aac-sentiment {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+        }
+
+        .sentiment-bar {
+            flex: 1;
+            min-width: 80px;
+            padding: 8px 10px;
+            border-radius: var(--border-radius-sm);
+            border: 1.5px solid;
+        }
+
+        .sb-positive {
+            background: var(--mint-light);
+            border-color: var(--mint);
+        }
+
+        .sb-neutral {
+            background: var(--sky-light);
+            border-color: var(--sky);
+        }
+
+        .sb-negative {
+            background: var(--peach-light);
+            border-color: var(--peach);
+        }
+
+        .sb-label {
+            font-size: 0.65rem;
+            font-weight: 700;
+            color: var(--text-secondary);
+            margin-bottom: 3px;
+        }
+
+        .sb-value {
+            font-size: 1rem;
+            font-weight: 800;
+        }
+
+        .sb-bar {
+            height: 4px;
+            border-radius: 50px;
+            margin-top: 4px;
+        }
+
+        .sb-bar-fill {
+            height: 100%;
+            border-radius: 50px;
+            transition: width 1s ease;
+        }
+
+        .aac-keywords {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+            margin-bottom: 10px;
+        }
+
+        .keyword-tag {
+            padding: 3px 8px;
+            border-radius: 50px;
+            font-size: 0.65rem;
+            font-weight: 700;
+        }
+
+        .kt-positive {
+            background: var(--mint-light);
+            color: var(--mint-dark);
+            border: 1px solid var(--mint);
+        }
+
+        .kt-negative {
+            background: var(--peach-light);
+            color: var(--peach-dark);
+            border: 1px solid var(--peach);
+        }
+
+        .kt-neutral {
+            background: var(--sky-light);
+            color: #4a90aa;
+            border: 1px solid var(--sky);
+        }
+
+        .aac-insight {
+            font-size: 0.78rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            padding: 10px 12px;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: var(--border-radius-sm);
+        }
+
+        .aac-suggestion {
+            margin-top: 10px;
+            padding: 10px 12px;
+            background: rgba(255, 255, 255, 0.6);
+            border-radius: var(--border-radius-sm);
+            border: 1.5px solid var(--lavender);
+        }
+
+        .as-title {
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 6px;
+        }
+
+        .as-tasks {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .as-task {
+            padding: 5px 10px;
+            border: 1.5px solid var(--mint);
+            border-radius: 50px;
+            font-size: 0.68rem;
+            font-weight: 600;
+            background: var(--mint-light);
+            color: var(--mint-dark);
+            cursor: pointer;
+            transition: var(--transition);
+            text-decoration: none;
+        }
+
+        .as-task:hover {
+            background: var(--mint-dark);
+            color: white;
+        }
+
+        /* ===== HISTORY VIEW ===== */
+        .history-filters {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+        }
+
+        .hf-btn {
+            padding: 6px 14px;
+            border: 1.5px solid var(--kraft-light);
+            border-radius: 50px;
+            font-family: 'Nunito', sans-serif;
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            background: var(--warm-white);
+            color: var(--text-secondary);
+            transition: var(--transition);
+        }
+
+        .hf-btn:hover {
+            background: var(--mint-light);
+            border-color: var(--mint);
+        }
+
+        .hf-btn.active {
+            background: var(--mint-light);
+            border-color: var(--mint-dark);
+            color: var(--text-primary);
+        }
+
+        .search-bar {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 9px 16px;
+            border: 2px solid var(--kraft-light);
+            border-radius: 50px;
+            background: var(--warm-white);
+            font-family: 'Nunito', sans-serif;
+            font-size: 0.82rem;
+            outline: none;
+            transition: var(--transition);
+        }
+
+        .search-input:focus {
+            border-color: var(--mint);
+        }
+
+        /* Journal entry cards */
+        .entry-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .entry-card {
+            padding: 18px 20px;
+            cursor: pointer;
+            border-left: 4px solid var(--kraft-light);
+        }
+
+        .entry-card:hover {
+            box-shadow: var(--shadow-paper-hover);
+            transform: translateY(-2px);
+        }
+
+        .entry-card.mood-happy {
+            border-left-color: var(--mint-dark);
+        }
+
+        .entry-card.mood-calm {
+            border-left-color: var(--sky);
+        }
+
+        .entry-card.mood-neutral {
+            border-left-color: var(--kraft);
+        }
+
+        .entry-card.mood-sad {
+            border-left-color: var(--lavender);
+        }
+
+        .entry-card.mood-anxious {
+            border-left-color: var(--peach-dark);
+        }
+
+        .ec-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            gap: 10px;
+        }
+
+        .ec-title {
+            font-size: 0.92rem;
+            font-weight: 800;
+            flex: 1;
+        }
+
+        .ec-date {
+            font-size: 0.68rem;
+            color: var(--text-light);
+            flex-shrink: 0;
+        }
+
+        .ec-meta-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+            flex-wrap: wrap;
+        }
+
+        .ec-mood-emoji {
+            font-size: 1rem;
+        }
+
+        .ec-sentiment {
+            font-size: 0.65rem;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 50px;
+        }
+
+        .ec-sentiment.positive {
+            background: var(--mint-light);
+            color: var(--mint-dark);
+        }
+
+        .ec-sentiment.neutral {
+            background: var(--sky-light);
+            color: #4a90aa;
+        }
+
+        .ec-sentiment.negative {
+            background: var(--peach-light);
+            color: var(--peach-dark);
+        }
+
+        .ec-wordcount {
+            font-size: 0.65rem;
+            color: var(--text-light);
+        }
+
+        .ec-preview {
+            font-family: 'Patrick Hand', cursive;
+            font-size: 0.88rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            margin-bottom: 8px;
+        }
+
+        .ec-tags-row {
+            display: flex;
+            gap: 4px;
+            flex-wrap: wrap;
+        }
+
+        .ec-tag {
+            padding: 2px 7px;
+            border-radius: 50px;
+            font-size: 0.62rem;
+            font-weight: 600;
+            background: var(--cream);
+            border: 1px solid var(--kraft-light);
+            color: var(--text-secondary);
+        }
+
+        .ec-actions {
+            display: flex;
+            gap: 6px;
+            margin-top: 8px;
+            justify-content: flex-end;
+        }
+
+        .ec-action-btn {
+            padding: 5px 10px;
+            border: 1.5px solid var(--kraft-light);
+            border-radius: 50px;
+            background: transparent;
+            font-family: 'Nunito', sans-serif;
+            font-size: 0.68rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            color: var(--text-secondary);
+        }
+
+        .ec-action-btn:hover {
+            background: var(--mint-light);
+            border-color: var(--mint);
+        }
+
+        .ec-action-btn.delete:hover {
+            background: var(--coral-light);
+            border-color: var(--coral);
+            color: #c05050;
+        }
+
+        /* ===== CALENDAR MINI ===== */
+        .mini-calendar {
+            padding: 16px;
+            margin-bottom: 14px;
+        }
+
+        .mc-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        .mc-nav {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            padding: 4px;
+        }
+
+        .mc-month {
+            font-size: 0.82rem;
+            font-weight: 700;
+        }
+
+        .mc-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 2px;
+        }
+
+        .mc-day-h {
+            font-size: 0.58rem;
+            font-weight: 700;
+            color: var(--text-light);
+            text-align: center;
+            padding: 2px 0;
+        }
+
+        .mc-day {
+            width: 100%;
+            aspect-ratio: 1;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.68rem;
+            cursor: pointer;
+            transition: var(--transition);
+            position: relative;
+        }
+
+        .mc-day:hover:not(.empty):not(.disabled) {
+            background: var(--mint-light);
+        }
+
+        .mc-day.today {
+            background: var(--mint-light);
+            font-weight: 800;
+            border: 1.5px solid var(--mint);
+        }
+
+        .mc-day.has-entry::after {
+            content: '';
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            background: var(--mint-dark);
+            position: absolute;
+            bottom: 2px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .mc-day.selected {
+            background: var(--mint-dark);
+            color: white;
+        }
+
+        /* ===== STATS CARD ===== */
+        .stats-card {
+            padding: 16px;
+            margin-bottom: 14px;
+        }
+
+        .sc-title {
+            font-size: 0.88rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 10px 6px;
+            background: var(--cream);
+            border-radius: var(--border-radius-sm);
+            border: 1.5px solid var(--kraft-light);
+        }
+
+        .si-num {
+            font-size: 1.2rem;
+            font-weight: 800;
+            color: var(--mint-dark);
+        }
+
+        .si-label {
+            font-size: 0.62rem;
+            color: var(--text-secondary);
+        }
+
+        /* ===== MOOD TREND ===== */
+        .mood-trend-card {
+            padding: 16px;
+            margin-bottom: 14px;
+        }
+
+        .mt-title {
+            font-size: 0.88rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .mood-trend-chart {
+            display: flex;
+            align-items: flex-end;
+            gap: 4px;
+            height: 60px;
+            margin-bottom: 8px;
+        }
+
+        .mtc-bar {
+            flex: 1;
+            border-radius: 4px 4px 0 0;
+            min-height: 4px;
+            transition: var(--transition);
+            cursor: pointer;
+            position: relative;
+        }
+
+        .mtc-bar:hover::after {
+            content: attr(data-label);
+            position: absolute;
+            top: -24px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.6rem;
+            background: var(--text-primary);
+            color: white;
+            padding: 2px 5px;
+            border-radius: 4px;
+            white-space: nowrap;
+        }
+
+        .mood-days {
+            display: flex;
+            gap: 4px;
+        }
+
+        .md-label {
+            flex: 1;
+            text-align: center;
+            font-size: 0.6rem;
+            color: var(--text-light);
+        }
+
+        /* ===== PROMPTS ===== */
+        .prompts-card {
+            padding: 16px;
+            margin-bottom: 14px;
+        }
+
+        .pc-title {
+            font-size: 0.88rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .prompt-list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .prompt-item {
+            padding: 10px 12px;
+            background: var(--cream);
+            border-radius: var(--border-radius-sm);
+            border: 1.5px solid var(--kraft-light);
+            cursor: pointer;
+            transition: var(--transition);
+            font-family: 'Patrick Hand', cursive;
+            font-size: 0.82rem;
+            color: var(--text-secondary);
+            line-height: 1.4;
+        }
+
+        .prompt-item:hover {
+            background: var(--peach-light);
+            border-color: var(--peach);
+        }
+
+        /* ===== ENTRY DETAIL MODAL ===== */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(74, 55, 40, 0.5);
+            z-index: 500;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal-overlay.show {
+            display: flex;
+        }
+
+        .entry-modal {
+            background: var(--warm-white);
+            border-radius: 24px;
+            border: 2px solid var(--kraft-light);
+            width: 100%;
+            max-width: 620px;
+            max-height: 90vh;
+            overflow-y: auto;
+            animation: pop-in 0.4s ease;
+        }
+
+        @keyframes pop-in {
+            from {
+                transform: scale(0.85);
+                opacity: 0;
+            }
+
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .em-header {
+            padding: 20px 24px 14px;
+            border-bottom: 2px dashed var(--kraft-light);
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .em-close {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: var(--cream);
+            border: 2px solid var(--kraft-light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 0.9rem;
+            flex-shrink: 0;
+            transition: var(--transition);
+        }
+
+        .em-close:hover {
+            background: var(--kraft-light);
+        }
+
+        .em-title {
+            font-family: 'Patrick Hand', cursive;
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+
+        .em-meta {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-top: 4px;
+            font-size: 0.72rem;
+            color: var(--text-light);
+        }
+
+        .em-body {
+            padding: 20px 24px;
+        }
+
+        .em-content {
+            font-family: 'Patrick Hand', cursive;
+            font-size: 1rem;
+            color: var(--text-primary);
+            line-height: 1.9;
+            white-space: pre-wrap;
+        }
+
+        .em-ai-section {
+            margin-top: 16px;
+            padding: 14px;
+            background: var(--lavender-light);
+            border: 1.5px solid var(--lavender);
+            border-radius: var(--border-radius-sm);
+        }
+
+        .em-ai-title {
+            font-size: 0.78rem;
+            font-weight: 700;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .em-ai-text {
+            font-size: 0.78rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        /* ===== EMERGENCY ===== */
+        .emergency-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(74, 55, 40, 0.5);
+            z-index: 1000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .emergency-overlay.show {
+            display: flex;
+        }
+
+        .emergency-popup {
+            background: var(--warm-white);
+            border-radius: 24px;
+            border: 3px solid var(--coral);
+            padding: 32px;
+            max-width: 420px;
+            width: 100%;
+            box-shadow: 6px 6px 0px rgba(255, 139, 139, 0.3);
+            animation: pop-in 0.4s ease;
+        }
+
+        .ep-icon {
+            font-size: 2.5rem;
+            text-align: center;
+            margin-bottom: 8px;
+        }
+
+        .ep-title {
+            font-size: 1.2rem;
+            font-weight: 800;
+            color: var(--coral);
+            text-align: center;
+            margin-bottom: 6px;
+        }
+
+        .ep-text {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-bottom: 16px;
+            text-align: center;
+        }
+
+        .ep-hotline {
+            padding: 14px;
+            background: rgba(255, 139, 139, 0.1);
+            border: 2px solid var(--coral);
+            border-radius: var(--border-radius-sm);
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .ep-hotline .eph-num {
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: var(--coral);
+        }
+
+        .ep-hotline .eph-label {
+            font-size: 0.72rem;
+            color: var(--text-secondary);
+        }
+
+        .ep-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .ep-btn {
+            padding: 12px;
+            border-radius: 50px;
+            font-family: 'Nunito', sans-serif;
+            font-size: 0.88rem;
+            font-weight: 700;
+            cursor: pointer;
+            text-align: center;
+            transition: var(--transition);
+            text-decoration: none;
+            display: block;
+            border: 2px solid;
+        }
+
+        .ep-btn-red {
+            background: var(--coral);
+            color: white;
+            border-color: #c05050;
+        }
+
+        .ep-btn-green {
+            background: var(--mint-light);
+            color: var(--mint-dark);
+            border-color: var(--mint);
+        }
+
+        .ep-btn-ghost {
+            background: transparent;
+            color: var(--text-light);
+            border-color: var(--kraft-light);
+            font-size: 0.8rem;
+        }
+
+        /* XP Toast */
+        .xp-toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: var(--warm-white);
+            border: 2px solid var(--mint-dark);
+            border-radius: 50px;
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.88rem;
+            font-weight: 700;
+            box-shadow: 3px 3px 0px var(--mint-dark);
+            z-index: 800;
+            transform: translateY(80px);
+            opacity: 0;
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .xp-toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media(max-width:900px) {
+            :root {
+                --sidebar-width: 0px;
+            }
+
+            .sidebar {
+                transform: translateX(-240px);
+                width: 240px;
+                transition: transform 0.3s ease;
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+
+            .sidebar-overlay.open {
+                display: block;
+            }
+
+            .main-content {
+                margin-left: 0;
+                padding: 76px 16px 20px;
+            }
+
+            .mobile-topbar {
+                display: flex;
+            }
+
+            .journal-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media(max-width:600px) {
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .session-types {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- XP Toast -->
+    <div class="xp-toast" id="xpToast">⭐ <span id="xpToastText">+15 XP đã được cộng!</span></div>
+
+    <!-- Emergency Overlay -->
+    <div class="emergency-overlay" id="emergencyOverlay">
+        <div class="emergency-popup">
+            <div class="ep-icon">❤️</div>
+            <div class="ep-title">Bạn không đơn độc</div>
+            <p class="ep-text">Nếu bạn đang cảm thấy rất khó khăn, hãy để ai đó giúp bạn ngay bây giờ.</p>
+            <div class="ep-hotline">
+                <div class="eph-num">📞 1800-599-920</div>
+                <div class="eph-label">Đường dây nóng sức khỏe tâm thần — Miễn phí, 24/7</div>
+            </div>
+            <div class="ep-actions">
+                <a href="tel:1800599920" class="ep-btn ep-btn-red">📞 Gọi ngay hotline</a>
+                <a href="experts.html" class="ep-btn ep-btn-green">💬 Kết nối chuyên gia</a>
+                <button class="ep-btn ep-btn-ghost" onclick="closeEmergency()">Tôi ổn, đóng lại</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Entry Detail Modal -->
+    <div class="modal-overlay" id="entryModalOverlay" onclick="closeEntryModal(event)">
+        <div class="entry-modal" id="entryModal">
+            <div class="em-header">
+                <div>
+                    <div class="em-title" id="emTitle">Tiêu đề bài viết</div>
+                    <div class="em-meta" id="emMeta"></div>
+                </div>
+                <button class="em-close" onclick="closeEntryModalDirect()">✕</button>
+            </div>
+            <div class="em-body">
+                <div class="em-content" id="emContent"></div>
+                <div class="em-ai-section" id="emAiSection">
+                    <div class="em-ai-title">🐱 Phân tích của PeaceCat</div>
+                    <div class="em-ai-text" id="emAiText"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+    <div class="mobile-topbar">
+        <button class="mobile-menu-btn" onclick="toggleSidebar()">☰</button>
+        <a href="index.html" style="display:flex;align-items:center;gap:8px;text-decoration:none;">
+            <div
+                style="width:32px;height:32px;background:var(--mint);border-radius:8px;border:2px solid var(--mint-dark);display:flex;align-items:center;justify-content:center;font-size:1rem;box-shadow:2px 2px 0px var(--mint-dark);">
+                🌿</div>
+            <span style="font-size:1.1rem;font-weight:800;color:var(--text-primary);">Peace<span
+                    style="color:var(--mint-dark);">Flow</span></span>
+        </a>
+        <span
+            style="background:var(--peach-light);padding:3px 10px;border-radius:50px;font-size:0.75rem;font-weight:700;color:var(--peach-dark);border:1.5px solid var(--peach);">⭐
+            295 XP</span>
+    </div>
+
+    <aside class="sidebar" id="sidebar">
+        <a href="index.html" class="sidebar-logo">
+            <div class="logo-icon">🌿</div>
+            <div class="logo-text">Peace<span>Flow</span></div>
+        </a>
+        <nav class="sidebar-nav">
+            <div class="nav-section-label">Chính</div>
+            <a href="dashboard.html" class="nav-item"><span class="ni">🏡</span> Tổng quan</a>
+            <a href="mood-checkin.html" class="nav-item"><span class="ni">💭</span> Tâm trạng</a>
+            <a href="tasks.html" class="nav-item"><span class="ni">🎮</span> Nhiệm vụ</a>
+            <a href="journal.html" class="nav-item active"><span class="ni">📝</span> Nhật ký</a>
+            <div class="nav-section-label" style="margin-top:8px;">Kết nối</div>
+            <a href="experts.html" class="nav-item"><span class="ni">🩺</span> Chuyên gia</a>
+            <a href="community.html" class="nav-item"><span class="ni">👥</span> Cộng đồng</a>
+            <div class="nav-section-label" style="margin-top:8px;">Phân tích</div>
+            <a href="report.html" class="nav-item">
+                <span class="ni">📊</span> Báo cáo
+            </a>
+            <a href="achievements.html" class="nav-item">
+                <span class="ni">🏅</span> Thành tích
+            </a>
+            <div class="nav-section-label" style="margin-top:8px;">Cài đặt</div>
+            <a href="profile.html" class="nav-item"><span class="ni">👤</span> Hồ sơ</a>
+        </nav>
+        <div class="sidebar-bottom">
+            <div class="user-card-mini">
+                <div class="user-avatar-mini">🐱</div>
+                <div class="user-info-mini">
+                    <div class="user-name">Minh Anh</div>
+                    <div class="user-level">⭐ 295 XP · Level 2</div>
+                </div>
+            </div>
+            <a href="#" class="emergency-btn" onclick="showEmergency();return false;">🆘 Hỗ trợ khẩn cấp</a>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <div class="breadcrumb">
+            <a href="dashboard.html">🏡 Tổng quan</a><span>›</span>
+            <span>📝 Nhật ký cảm xúc</span>
+        </div>
+
+        <div class="page-header">
+            <div>
+                <div class="page-title">📝 Nhật Ký Cảm Xúc</div>
+                <div class="page-subtitle">Không gian riêng tư — mã hóa AES-256 — chỉ bạn mới có thể đọc</div>
+            </div>
+            <div style="display:flex;gap:8px;">
+                <button class="btn-outline" onclick="showHistory()">📚 Xem lại</button>
+                <button class="btn-primary" onclick="showEditor()">✏️ Viết mới</button>
+            </div>
+        </div>
+
+        <!-- View Tabs -->
+        <div class="view-tabs">
+            <div class="view-tab active" id="tab-editor" onclick="showEditor()">✏️ Viết nhật ký</div>
+            <div class="view-tab" id="tab-history" onclick="showHistory()">📚 Thư viện</div>
+        </div>
+
+        <div class="journal-layout">
+            <!-- LEFT COLUMN -->
+            <div>
+                <!-- EDITOR VIEW -->
+                <div class="editor-view" id="editorView">
+                    <!-- Editor Card -->
+                    <div class="paper-card editor-card">
+                        <!-- Top Bar -->
+                        <div class="editor-top-bar">
+                            <div class="etb-left">
+                                <div class="etb-date" id="editorDate">📅 Thứ 3, 01/07/2025</div>
+                                <div style="font-size:0.72rem;color:var(--text-secondary);">Cảm xúc hôm nay:</div>
+                                <div class="etb-mood">
+                                    <div class="mood-btn" onclick="selectMood(this,'😊')" title="Vui vẻ">😊</div>
+                                    <div class="mood-btn" onclick="selectMood(this,'😌')" title="Thoải mái">😌</div>
+                                    <div class="mood-btn" onclick="selectMood(this,'😐')" title="Bình thường">😐</div>
+                                    <div class="mood-btn" onclick="selectMood(this,'😟')" title="Lo lắng">😟</div>
+                                    <div class="mood-btn" onclick="selectMood(this,'😢')" title="Buồn">😢</div>
+                                    <div class="mood-btn" onclick="selectMood(this,'😡')" title="Tức giận">😡</div>
+                                </div>
+                            </div>
+                            <div class="etb-right">
+                                <div class="privacy-toggle" onclick="togglePrivacy(this)">
+                                    <span class="privacy-icon" id="privacyIcon">🔒</span>
+                                    <span id="privacyLabel">Riêng tư</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Prompt Bar -->
+                        <div class="prompt-bar">
+                            <span class="pb-label">💡 Gợi ý:</span>
+                            <span class="pb-prompt" id="promptText">Hôm nay bạn đã làm được điều gì khiến bạn tự hào? Dù
+                                nhỏ thôi cũng được...</span>
+                            <button class="pb-refresh" onclick="refreshPrompt()" title="Gợi ý khác">🔄</button>
+                        </div>
+
+                        <!-- Toolbar -->
+                        <div class="editor-toolbar">
+                            <button class="tb-btn" onclick="formatText('bold')" title="Đậm"><strong>B</strong></button>
+                            <button class="tb-btn" onclick="formatText('italic')" title="Nghiêng"><em>I</em></button>
+                            <button class="tb-btn" onclick="formatText('underline')" title="Gạch chân"><u>U</u></button>
+                            <div class="tb-sep"></div>
+                            <button class="tb-btn" onclick="insertEmoji('😊')" title="Emoji vui">😊</button>
+                            <button class="tb-btn" onclick="insertEmoji('💭')" title="Suy nghĩ">💭</button>
+                            <button class="tb-btn" onclick="insertEmoji('🌱')" title="Tăng trưởng">🌱</button>
+                            <button class="tb-btn" onclick="insertEmoji('❤️')" title="Yêu thương">❤️</button>
+                            <button class="tb-btn" onclick="insertEmoji('✨')" title="Tuyệt vời">✨</button>
+                            <div class="tb-sep"></div>
+                            <button class="tb-btn" onclick="toggleLinedPaper()" title="Giấy kẻ dòng">📄</button>
+                            <button class="tb-btn" onclick="increaseFontSize()" title="Chữ lớn hơn">A+</button>
+                            <button class="tb-btn" onclick="decreaseFontSize()" title="Chữ nhỏ hơn">A-</button>
+                        </div>
+
+                        <!-- Writing Area -->
+                        <div class="writing-area-wrap" id="writingAreaWrap">
+                            <input type="text" class="journal-title-input" id="journalTitle"
+                                placeholder="Tiêu đề bài viết... (tùy chọn)" oninput="updateWordCount()">
+                            <textarea class="journal-textarea" id="journalTextarea"
+                                placeholder="Bắt đầu viết... Đây là không gian hoàn toàn của bạn. Không có gì là đúng hay sai. Hãy để cảm xúc chảy tự nhiên qua những con chữ... 🌿"
+                                oninput="updateWordCount();analyzeText(this.value)" rows="12"></textarea>
+                        </div>
+
+                        <!-- Bottom Bar -->
+                        <div class="editor-bottom">
+                            <div class="eb-meta">
+                                <span class="eb-wordcount" id="wordCount">0 từ · 0 ký tự</span>
+                                <div class="eb-tags">
+                                    <span style="font-size:0.68rem;color:var(--text-light);">Tags:</span>
+                                    <div class="tag-chip" onclick="toggleTag(this,'#cảmxúc')">#cảmxúc</div>
+                                    <div class="tag-chip" onclick="toggleTag(this,'#biếtơn')">#biếtơn</div>
+                                    <div class="tag-chip" onclick="toggleTag(this,'#suyngẫm')">#suyngẫm</div>
+                                    <div class="tag-chip" onclick="toggleTag(this,'#mụctiêu')">#mụctiêu</div>
+                                    <div class="tag-chip" onclick="toggleTag(this,'#tứcgiận')">#tứcgiận</div>
+                                    <div class="tag-chip" onclick="toggleTag(this,'#hạnhphúc')">#hạnhphúc</div>
+                                </div>
+                            </div>
+                            <div class="eb-actions">
+                                <button class="btn-outline" onclick="clearEditor()">🗑️ Xóa</button>
+                                <button class="btn-primary" onclick="saveEntry()">💾 Lưu nhật ký (+15 XP)</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- AI Analysis Card -->
+                    <div class="paper-card ai-analysis-card" id="aiAnalysisCard">
+                        <div class="aac-header">
+                            <span class="aac-mascot">🐱</span>
+                            <div>
+                                <div class="aac-title">PeaceCat đang phân tích cảm xúc của bạn...</div>
+                                <div style="font-size:0.72rem;color:var(--text-secondary);">Phân tích NLP realtime —
+                                    hoàn toàn riêng tư</div>
+                            </div>
+                        </div>
+                        <div class="aac-sentiment" id="sentimentBars"></div>
+                        <div style="font-size:0.72rem;font-weight:700;color:var(--text-secondary);margin-bottom:6px;">
+                            🏷️ Từ khóa cảm xúc phát hiện:</div>
+                        <div class="aac-keywords" id="keywordTags"></div>
+                        <div class="aac-insight" id="aiInsight"></div>
+                        <div class="aac-suggestion" id="aiSuggestion" style="display:none;">
+                            <div class="as-title">💡 PeaceCat gợi ý bài tập phù hợp:</div>
+                            <div class="as-tasks" id="suggestedTasks"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- HISTORY VIEW -->
+                <div class="history-view" id="historyView">
+                    <div class="history-filters">
+                        <button class="hf-btn active" onclick="filterEntries('all',this)">📚 Tất cả</button>
+                        <button class="hf-btn" onclick="filterEntries('happy',this)">😊 Vui vẻ</button>
+                        <button class="hf-btn" onclick="filterEntries('calm',this)">😌 Thoải mái</button>
+                        <button class="hf-btn" onclick="filterEntries('sad',this)">😢 Buồn</button>
+                        <button class="hf-btn" onclick="filterEntries('anxious',this)">😟 Lo lắng</button>
+                        <button class="hf-btn" onclick="filterEntries('grateful',this)">🙏 Biết ơn</button>
+                    </div>
+                    <div class="search-bar">
+                        <input type="text" class="search-input" placeholder="🔍 Tìm kiếm trong nhật ký..."
+                            oninput="searchEntries(this.value)">
+                    </div>
+                    <div class="entry-list" id="entryList"></div>
+                </div>
+            </div>
+
+            <!-- RIGHT COLUMN -->
+            <div>
+                <!-- Mini Calendar -->
+                <div class="paper-card mini-calendar">
+                    <div class="mc-header">
+                        <button class="mc-nav" onclick="changeMiniMonth(-1)">‹</button>
+                        <div class="mc-month" id="miniMonthLabel">Tháng 6, 2025</div>
+                        <button class="mc-nav" onclick="changeMiniMonth(1)">›</button>
+                    </div>
+                    <div class="mc-grid" id="miniCalGrid"></div>
+                    <div style="font-size:0.68rem;color:var(--text-light);margin-top:6px;text-align:center;">● Có bài
+                        viết</div>
+                </div>
+
+                <!-- Stats -->
+                <div class="paper-card stats-card">
+                    <div class="sc-title">📊 Thống kê nhật ký</div>
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <div class="si-num">23</div>
+                            <div class="si-label">Bài viết</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="si-num">7 🔥</div>
+                            <div class="si-label">Streak ngày</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="si-num">4,820</div>
+                            <div class="si-label">Tổng từ</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="si-num">68%</div>
+                            <div class="si-label">Tích cực</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Mood Trend -->
+                <div class="paper-card mood-trend-card">
+                    <div class="mt-title">📈 Tâm trạng 7 ngày</div>
+                    <div class="mood-trend-chart" id="moodTrendChart"></div>
+                    <div class="mood-days" id="moodDays"></div>
+                </div>
+
+                <!-- Writing Prompts -->
+                <div class="paper-card prompts-card">
+                    <div class="pc-title">💡 Gợi ý viết hôm nay</div>
+                    <div class="prompt-list" id="promptList"></div>
+                </div>
+
+                <!-- PeaceCat Tip -->
+                <div class="paper-card" style="padding:14px;margin-bottom:14px;">
+                    <div style="display:flex;gap:8px;align-items:flex-start;">
+                        <span style="font-size:1.2rem;">🐱</span>
+                        <div style="font-size:0.78rem;color:var(--text-secondary);line-height:1.5;">Viết nhật ký đều đặn
+                            giúp giảm lo âu 25% và tăng khả năng xử lý cảm xúc. Chỉ cần 10 phút mỗi ngày! 💚</div>
+                    </div>
+                </div>
+
+                <!-- Security Note -->
+                <div class="paper-card" style="padding:14px;">
+                    <div style="font-size:0.72rem;color:var(--text-secondary);line-height:1.6;">
+                        🔒 <strong>Bảo mật tuyệt đối:</strong> Nhật ký của bạn được mã hóa AES-256. Ngay cả đội ngũ
+                        PeaceFlow cũng không thể đọc. Bạn có thể xóa toàn bộ bất kỳ lúc nào.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // ============================================================
+        // DATA
+        // ============================================================
+        const PROMPTS = [
+            'Hôm nay bạn đã làm được điều gì khiến bạn tự hào? Dù nhỏ thôi cũng được...',
+            '3 điều bạn biết ơn hôm nay là gì? Hãy cảm nhận thật sự khi viết...',
+            'Nếu hôm nay là ngày cuối cùng của tháng, bạn muốn nhớ điều gì nhất?',
+            'Điều gì đang làm bạn lo lắng? Hãy viết ra và để nó "ra khỏi đầu"...',
+            'Bạn đã đối xử tốt với bản thân hôm nay chưa? Theo cách nào?',
+            'Kể về một khoảnh khắc nhỏ đẹp trong ngày hôm nay...',
+            'Điều gì đang chiếm nhiều năng lượng của bạn nhất? Tại sao?',
+            'Nếu bạn có thể nói chuyện với bản thân 5 năm trước, bạn sẽ nói gì?',
+            'Hôm nay bạn học được điều gì — về bản thân, về người khác, về cuộc sống?',
+            'Điều gì khiến bạn cảm thấy "sống" nhất trong tuần này?',
+            'Bạn đang mang theo nỗi sợ nào? Hãy đặt tên cho nó...',
+            'Nếu tâm trạng hôm nay là một màu sắc, đó là màu gì? Tại sao?',
+            'Viết một lá thư ngắn cho bản thân tương lai 1 năm nữa...',
+            'Điều gì bạn muốn buông bỏ trước khi ngủ tối nay?',
+            'Bạn đang cần gì nhất lúc này — không phải muốn, mà là cần?'
+        ];
+
+        const SAMPLE_ENTRIES = [
+            {
+                id: 1, title: 'Ngày đầu tuần bình yên', mood: '😊', moodClass: 'mood-happy',
+                date: 'Hôm nay, 08:30', wordCount: 245,
+                sentiment: 'positive', sentimentLabel: 'Tích cực',
+                tags: ['#biếtơn', '#hạnhphúc'],
+                preview: 'Sáng nay thức dậy sớm hơn thường lệ. Trời còn mờ sương nhưng lòng mình lại thấy nhẹ nhàng lạ. Đã lâu rồi mình không có cảm giác này...',
+                content: 'Sáng nay thức dậy sớm hơn thường lệ. Trời còn mờ sương nhưng lòng mình lại thấy nhẹ nhàng lạ. Đã lâu rồi mình không có cảm giác này — cảm giác bình yên khi chưa cần làm gì cả.\n\nNgồi uống trà, nhìn ra cửa sổ. Một chú chim đang hót trên cành. Mình nghĩ: "Ừ, hôm nay sẽ là một ngày tốt."\n\n3 điều biết ơn hôm nay:\n1. Sức khỏe ổn định\n2. Có công việc để làm\n3. Có người thân bên cạnh',
+                aiAnalysis: 'Bài viết thể hiện trạng thái tâm lý tích cực và chánh niệm. Bạn đang thực hành "biết ơn" một cách tự nhiên — đây là dấu hiệu rất tốt cho sức khỏe tâm thần.'
+            },
+            {
+                id: 2, title: 'Áp lực deadline', mood: '😟', moodClass: 'mood-anxious',
+                date: 'Hôm qua, 22:15', wordCount:
