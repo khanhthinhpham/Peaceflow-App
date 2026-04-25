@@ -2256,17 +2256,6 @@
             }, 1000);
         }
 
-        // --- 3. SESSION CHECK ---
-        document.addEventListener('DOMContentLoaded', async () => {
-            if (window.supabaseClient) {
-                const { data: { session } } = await window.supabaseClient.auth.getSession();
-                if (session) {
-                    window.location.href = 'dashboard.html';
-                }
-            } else if (localStorage.getItem('PeaceFlow_session') === 'mock_session') {
-                window.location.href = 'dashboard.html';
-            }
-        });
     </script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/supabase-config.js"></script>
