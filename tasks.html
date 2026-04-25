@@ -1602,7 +1602,7 @@
         <div class="paper-card ai-suggestion">
             <div class="ai-mascot">🐱</div>
             <div class="ai-text">
-                <div class="at-title">🤖 ZenCat gợi ý cho bạn hôm nay</div>
+                <div class="at-title">🤖 PeaceCat gợi ý cho bạn hôm nay</div>
                 <div class="at-sub">Dựa trên tâm trạng 6.2/10 và lịch sử nhiệm vụ — mình nghĩ 3 nhiệm vụ này sẽ phù hợp
                     với bạn!</div>
             </div>
@@ -1731,33 +1731,23 @@
                 currentTasks = TASKS;
             } else {
                 const v = val.toLowerCase();
-                currentTasks = TASKS.filter(t => t.name.toLowerCase().includes(v) || t.desc.toLowerCase().includes(v));
+            if (bannerSub && suggestions.length > 0) {
+                // We don't have the exact score in the return value, but we can just say:
+                bannerSub.innerText = `Dựa trên phân tích tâm trạng gần đây của bạn, PeaceCat đã chọn ra ${suggestions.length} nhiệm vụ chữa lành phù hợp nhất lúc này!`;
             }
-            renderTasks();
-        }
 
-        function showEmergency() {
-            location.href = 'emergency.html';
-        }
-
-        function toggleSidebar() {
-            document.getElementById('sidebar').classList.toggle('open');
-            document.getElementById('sidebarOverlay').classList.toggle('open');
-            document.body.style.overflow = document.body.style.overflow === 'hidden' ? '' : 'hidden';
-        }
-
-        function closeSidebar() {
-            document.getElementById('sidebar').classList.remove('open');
-            document.getElementById('sidebarOverlay').classList.remove('open');
-            document.body.style.overflow = '';
-        }
-
-        // Init
-        window.onload = () => {
             renderTasks();
         };
 
+        function scrollToSuggested() {
+            filterTasks('suggested', null);
+        }
+
     </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase-config.js"></script>
+    <script src="js/app.js"></script>
 </body>
 
 </html>

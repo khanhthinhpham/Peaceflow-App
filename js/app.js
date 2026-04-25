@@ -1,4 +1,4 @@
-﻿/**
+/**
  * ============================================================
  * PeaceFlow — Main JavaScript (app.js)
  * Paper Craft Stop Motion Mental Health Platform
@@ -117,34 +117,37 @@ const Store = {
 
   // Default user state
   getUser() {
-    return this.get('user') || {
-      name: 'Minh Anh',
+    return this.get('user_stats') || {
+      name: 'Người dùng',
       avatar: '🐱',
-      level: 2,
-      xp: 295,
-      streak: 7,
+      level: 1,
+      xp: 0,
+      streak: 0,
       lastActive: new Date().toDateString(),
-      badges: ['first_task', 'streak_7', 'meditate_10'],
-      tasksCompleted: 47,
-      meditationCount: 12,
-      kindnessCount: 3,
-      hardTasksCount: 1,
-      journalCount: 23,
+      badges: [],
+      tasksCompleted: 0,
+      meditationCount: 0,
+      kindnessCount: 0,
+      hardTasksCount: 0,
+      journalCount: 0,
     };
   },
 
   saveUser(userData) {
-    this.set('user', userData);
+    this.set('user_stats', userData);
+    this.syncToRemote('profiles', userData);
   },
 
   getMoodHistory() {
-    return this.get('mood_history') || [];
+    return this.get('logs') || [];
   },
 
   addMoodEntry(entry) {
     const history = this.getMoodHistory();
-    history.unshift({ ...entry, id: Date.now(), timestamp: new Date().toISOString() });
-    this.set('mood_history', history.slice(0, 365)); // keep 1 year
+    const newEntry = { ...entry, id: Date.now(), timestamp: new Date().toISOString() };
+    history.unshift(newEntry);
+    this.set('logs', history.slice(0, 365)); // keep 1 year
+    this.syncToRemote('mood_logs', newEntry);
   },
 
   getSettings() {
@@ -168,6 +171,111 @@ const Store = {
   saveSettings(settings) {
     this.set('settings', settings);
   },
+
+  // --- SUPABASE SYNC ---
+  async syncFromRemote() {
+    if (!window.supabaseClient) return;
+    const { data: { session } } = await window.supabaseClient.auth.getSession();
+    if (!session) return;
+    const userId = session.user.id;
+
+    try {
+      // 1. Sync Profile
+      const { data: profile } = await window.supabaseClient.from('profiles').select('*').eq('id', userId).single();
+      if (profile) {
+        // Merge with defaults
+        const current = this.getUser();
+        const merged = { ...current, ...profile };
+        // Map db fields to local fields if needed (e.g. last_active to lastActive)
+        if (profile.last_active) merged.lastActive = new Date(profile.last_active).toDateString();
+        this.set('user_stats', merged);
+      }
+
+      // 2. Sync Mood Logs (Last 30 days for local cache)
+      const { data: moods } = await window.supabaseClient.from('mood_logs').select('*').eq('user_id', userId).order('created_at', { ascending: false }).limit(30);
+      if (moods && moods.length > 0) {
+        const localMoods = moods.map(m => ({
+          id: m.id,
+          mood: m.mood,
+          level: m.score,
+          tags: m.tags || [],
+          note: m.note || '',
+          date: new Date(m.created_at).toLocaleDateString('vi-VN'),
+          timestamp: m.created_at
+        }));
+        this.set('logs', localMoods);
+      }
+
+      // 3. Sync Journals
+      const { data: journals } = await window.supabaseClient.from('journals').select('*').eq('user_id', userId).order('created_at', { ascending: false }).limit(50);
+      if (journals && journals.length > 0) {
+        const localJournals = journals.map(j => ({
+          id: j.id,
+          content: j.content,
+          mood: j.mood,
+          tags: j.tags || [],
+          sentiment: j.sentiment,
+          wordCount: j.word_count,
+          date: new Date(j.created_at).toLocaleDateString('vi-VN'),
+          timestamp: j.created_at
+        }));
+        this.set('journal_entries', localJournals);
+      }
+      
+      console.log('✅ Synced data from Supabase');
+      window.dispatchEvent(new Event('dataSynced'));
+    } catch (err) {
+      console.error('Lỗi đồng bộ dữ liệu:', err);
+    }
+  },
+
+  async syncToRemote(table, data) {
+    if (!window.supabaseClient) return;
+    const { data: { session } } = await window.supabaseClient.auth.getSession();
+    if (!session) return;
+    const userId = session.user.id;
+
+    try {
+      if (table === 'profiles') {
+        await window.supabaseClient.from('profiles').upsert({
+          id: userId,
+          name: data.name,
+          avatar: data.avatar,
+          level: data.level,
+          xp: data.xp,
+          streak: data.streak,
+          last_active: new Date(data.lastActive).toISOString(),
+          badges: data.badges
+        });
+      } else if (table === 'mood_logs') {
+        await window.supabaseClient.from('mood_logs').insert({
+          user_id: userId,
+          mood: data.mood,
+          score: data.level,
+          tags: data.tags,
+          note: data.note
+        });
+      } else if (table === 'journals') {
+        await window.supabaseClient.from('journals').insert({
+          user_id: userId,
+          content: data.content,
+          mood: data.mood,
+          tags: data.tags,
+          sentiment: data.sentiment,
+          word_count: data.wordCount
+        });
+      } else if (table === 'user_tasks') {
+        await window.supabaseClient.from('user_tasks').insert({
+          user_id: userId,
+          task_id: data.taskId,
+          category: data.category,
+          xp_earned: data.xpAmount
+        });
+      }
+    } catch (err) {
+      console.error(`Lỗi lưu lên ${table}:`, err);
+    }
+  }
 };
 
 /* ============================================================
@@ -571,6 +679,8 @@ const TaskModule = {
     if (category === 'hard')       user.hardTasksCount  = (user.hardTasksCount  || 0) + 1;
 
     Store.saveUser(user);
+    Store.syncToRemote('user_tasks', { taskId, category, xpAmount });
+    
     UserModule.addXP(xpAmount, `task_${taskId}`);
     AnimationModule.triggerConfetti();
     Toast.show(`🎉 Nhiệm vụ hoàn thành! +${xpAmount} XP`, 3000);
@@ -603,21 +713,55 @@ const TaskModule = {
     return `${m}:${s}`;
   },
 
-  // AI Task Recommendation (simplified rule-based)
-  recommend(moodScore, timeOfDay, level) {
+  // AI Task Recommendation (Personalized & History-based)
+  recommend() {
+    const user = Store.getUser();
+    const history = Store.getMoodHistory() || [];
     const hour = new Date().getHours();
     const tod = hour < 12 ? 'morning' : hour < 18 ? 'afternoon' : 'evening';
 
-    if (moodScore <= 2) {
-      return ['task-breathing.html', 'emergency.html'];
+    // 1. Calculate base stress level from recent history
+    let recentStress = 0; // 0 = no stress, 100 = max stress
+    if (history.length > 0) {
+      const recentLogs = history.slice(0, 7); // up to 7 last entries
+      let totalScore = 0;
+      recentLogs.forEach(log => {
+        totalScore += (10 - log.level); // Convert 1-10 mood to 0-9 stress
+      });
+      recentStress = (totalScore / (recentLogs.length * 9)) * 100;
     }
-    if (moodScore <= 4 && tod === 'evening') {
-      return ['task-meditation.html', 'journal.html'];
+
+    // 2. Adjust based on current time & level
+    if (tod === 'evening') recentStress += 10; // Usually more tired in the evening
+    if (user.level >= 3) recentStress -= 10; // Higher level = better coping mechanism
+    
+    recentStress = Math.max(0, Math.min(100, recentStress));
+
+    console.log(`🧠 AI Analysis: Stress Level ${Math.round(recentStress)}%`);
+
+    // 3. Recommend tasks based on calculated stress (returning Task IDs)
+    let suggestions = [];
+    if (recentStress >= 70) {
+      // High stress: Breathing, Grounding, Venting
+      suggestions = ['E1', 'E2', '1.3', '1.1']; 
+    } else if (recentStress >= 40) {
+      // Medium stress: Meditation, Journal, Walking
+      suggestions = ['2.3', '2.4', '1.2'];
+    } else {
+      // Low stress: Gratitude, Learning, Social
+      if (tod === 'morning') {
+        suggestions = ['2.4', '2.3', '2.2'];
+      } else {
+        suggestions = ['2.3', '3.1', '3.3'];
+      }
     }
-    if (level >= 2) {
-      return ['task-breathing.html', 'task-meditation.html', 'journal.html'];
+    
+    // Fallback based on level if they want to try new things
+    if (user.level >= 2 && recentStress < 70 && !suggestions.includes('2.3')) {
+      suggestions.push('2.3'); // meditation
     }
-    return ['task-breathing.html', 'task-meditation.html'];
+
+    return suggestions.slice(0, 3); // Max 3 suggestions
   },
 };
 
@@ -783,7 +927,8 @@ const JournalModule = {
 
     const entries = Store.get('journal_entries') || [];
     const sentiment = this.analyzeSentiment(content);
-    entries.unshift({
+    
+    const newEntry = {
       id: Date.now(),
       content,
       mood,
@@ -792,8 +937,11 @@ const JournalModule = {
       timestamp: new Date().toISOString(),
       date: new Date().toLocaleDateString('vi-VN'),
       wordCount: content.trim().split(/\s+/).length,
-    });
+    };
+    entries.unshift(newEntry);
     Store.set('journal_entries', entries.slice(0, 500));
+    Store.syncToRemote('journals', newEntry);
+
     UserModule.addXP(15, 'journal');
     Toast.show('📝 Nhật ký đã được lưu! +15 XP 🌿');
 
@@ -1229,16 +1377,19 @@ const Utils = {
    19. APP INITIALIZATION
 ============================================================ */
 const App = {
-  init() {
+  async init() {
     // Wait for DOM
     if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', () => this._boot());
+      document.addEventListener('DOMContentLoaded', async () => await this._boot());
     } else {
-      this._boot();
+      await this._boot();
     }
   },
 
-  _boot() {
+  async _boot() {
+    // Sync data from Supabase if logged in
+    await Store.syncFromRemote();
+
     // Core modules
     UserModule.init();
     NavModule.init();

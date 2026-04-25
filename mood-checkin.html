@@ -1860,54 +1860,38 @@
             // Decide Tasks based on score
             let taskHtml = '';
             if (checkinData.score <= 4) {
-                taskHtml += `<div class="rt-item" onclick="location.href='task-breathing.html'">
-                                <div class="rt-icon">🌬️</div>
+                taskHtml += <div class="rt-item" onclick="location.href='task-breathing.html'">
+                                <div class="rt-icon">???</div>
                                 <div class="rt-info">
-                                    <div class="rt-name">Hít thở sâu 4-4-4</div>
-                                    <div class="rt-meta">Giảm căng thẳng ngay lập tức • 3 phút</div>
+                                    <div class="rt-name">H�t th? s�u 4-4-4</div>
+                                    <div class="rt-meta">Gi?m cang th?ng ngay l?p t?c � 3 ph�t</div>
                                 </div>
                                 <div class="rt-xp">+15 XP</div>
-                            </div>`;
-                taskHtml += `<div class="rt-item" onclick="location.href='task-detail.html'">
-                                <div class="rt-icon">🎧</div>
-                                <div class="rt-info">
-                                    <div class="rt-name">Thả lỏng qua âm thanh mưa</div>
-                                    <div class="rt-meta">Binaural beats • 5 phút</div>
-                                </div>
-                                <div class="rt-xp">+10 XP</div>
-                            </div>`;
+                            </div>;
             } else {
-                taskHtml += `<div class="rt-item" onclick="location.href='task-detail.html'">
-                                <div class="rt-icon">📝</div>
+                taskHtml += <div class="rt-item" onclick="location.href='task-detail.html'">
+                                <div class="rt-icon">??</div>
                                 <div class="rt-info">
-                                    <div class="rt-name">Viết 3 điều biết ơn</div>
-                                    <div class="rt-meta">Tăng cường cảm xúc tích cực • 5 phút</div>
+                                    <div class="rt-name">Vi?t 3 di?u bi?t on</div>
+                                    <div class="rt-meta">Tang cu?ng c?m x�c t�ch c?c � 5 ph�t</div>
                                 </div>
                                 <div class="rt-xp">+20 XP</div>
-                            </div>`;
+                            </div>;
             }
             document.getElementById('suggestedTasks').innerHTML = taskHtml;
 
-            // Save to localStorage
-            let logs = [];
-            try { logs = JSON.parse(localStorage.getItem('PeaceFlow_logs') || "[]"); } catch (e) { }
-            logs.push({
-                date: new Date().toISOString(),
-                mood: checkinData.mood,
-                label: checkinData.moodLabel,
-                score: checkinData.score,
-                tags: Array.from(checkinData.tags),
-                timestamp: Date.now()
-            });
-            localStorage.setItem('PeaceFlow_logs', JSON.stringify(logs));
-
-            // XP REWARD
-            const xpReward = 10;
-            userStats.xp += xpReward;
-            localStorage.setItem('PeaceFlow_user_stats', JSON.stringify(userStats));
-            loadData(); // REFRESH UI
-
-            // Proceed to Step 4
+            if (window.Store && window.UserModule) {
+                window.Store.addMoodEntry({ mood: checkinData.mood, level: checkinData.score, tags: Array.from(checkinData.tags), note: '' });
+                window.UserModule.addXP(10, 'checkin');
+            } else {
+                let logs = [];
+                try { logs = JSON.parse(localStorage.getItem('PeaceFlow_logs') || "[]"); } catch (e) { }
+                logs.push({ date: new Date().toISOString(), mood: checkinData.mood, score: checkinData.score, tags: Array.from(checkinData.tags), timestamp: Date.now() });
+                localStorage.setItem('PeaceFlow_logs', JSON.stringify(logs));
+                userStats.xp += 10;
+                localStorage.setItem('PeaceFlow_user_stats', JSON.stringify(userStats));
+            }
+            loadData();
             goCheckinStep(4);
         }
 
@@ -1923,6 +1907,10 @@
         // Dummy for tab safety
         function switchMode(mode, btn) { }
     </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase-config.js"></script>
+    <script src="js/app.js"></script>
 </body>
 
 </html>

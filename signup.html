@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng Ký — PeaceFlow</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Patrick+Hand&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .auth-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, var(--cream) 0%, var(--peach-light) 100%);
+            padding: 20px;
+        }
+        .auth-card {
+            width: 100%;
+            max-width: 400px;
+            padding: 40px 30px;
+            text-align: center;
+            background: var(--warm-white);
+        }
+        .auth-logo {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 56px;
+            height: 56px;
+            background: var(--peach);
+            border-radius: var(--radius-sm);
+            border: 2px solid var(--peach-dark);
+            font-size: 1.8rem;
+            box-shadow: 3px 3px 0px var(--peach-dark);
+            margin-bottom: 20px;
+        }
+        .auth-title {
+            font-size: 1.5rem;
+            margin-bottom: 8px;
+        }
+        .auth-subtitle {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-bottom: 24px;
+        }
+        .auth-form {
+            text-align: left;
+        }
+        .auth-links {
+            margin-top: 20px;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+        .auth-links a {
+            color: var(--peach-dark);
+            font-weight: 700;
+        }
+        #signupError {
+            display: none;
+            color: var(--coral-dark);
+            background: var(--coral-light);
+            padding: 10px;
+            border-radius: var(--radius-sm);
+            font-size: 0.85rem;
+            margin-bottom: 15px;
+            border: 1px solid var(--coral);
+        }
+        #signupSuccess {
+            display: none;
+            color: var(--mint-dark);
+            background: var(--mint-light);
+            padding: 10px;
+            border-radius: var(--radius-sm);
+            font-size: 0.85rem;
+            margin-bottom: 15px;
+            border: 1px solid var(--mint);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="auth-container">
+        <div class="paper-card auth-card" style="border-color: var(--peach);">
+            <div class="auth-logo">🌸</div>
+            <h1 class="auth-title">Bắt đầu hành trình</h1>
+            <p class="auth-subtitle">Tạo tài khoản để lưu giữ nhật ký và tiến trình của bạn.</p>
+
+            <div id="signupError"></div>
+            <div id="signupSuccess"></div>
+
+            <form class="auth-form" id="signupForm">
+                <div class="form-group">
+                    <label class="form-label">Tên hiển thị</label>
+                    <input type="text" id="name" class="form-input" placeholder="Bạn muốn được gọi là gì?" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Email</label>
+                    <input type="email" id="email" class="form-input" placeholder="Nhập email của bạn" required>
+                </div>
+                <div class="form-group" style="margin-bottom: 20px;">
+                    <label class="form-label">Mật khẩu</label>
+                    <input type="password" id="password" class="form-input" placeholder="Tạo mật khẩu (ít nhất 6 ký tự)" required minlength="6">
+                </div>
+                <button type="submit" class="btn-primary" style="width: 100%; font-size: 1rem; padding: 12px; background: var(--peach); border-color: var(--peach-dark); box-shadow: 2px 2px 0px var(--peach-dark);">Đăng Ký</button>
+            </form>
+
+            <div class="auth-links">
+                Đã có tài khoản? <a href="login.html">Đăng nhập</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase-config.js"></script>
+    <script>
+        document.getElementById('signupForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const name = document.getElementById('name').value;
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            const errorDiv = document.getElementById('signupError');
+            const successDiv = document.getElementById('signupSuccess');
+            const submitBtn = e.target.querySelector('button');
+
+            errorDiv.style.display = 'none';
+            successDiv.style.display = 'none';
+            submitBtn.textContent = 'Đang xử lý...';
+            submitBtn.disabled = true;
+
+            // Mock logic for now if Supabase is not configured
+            if (!window.supabaseClient) {
+                setTimeout(() => {
+                    successDiv.textContent = 'Đăng ký thành công! (Chế độ dùng thử). Đang chuyển hướng...';
+                    successDiv.style.display = 'block';
+                    localStorage.setItem('PeaceFlow_session', 'mock_session');
+                    setTimeout(() => window.location.href = 'dashboard.html', 1500);
+                }, 1000);
+                return;
+            }
+
+            const { data, error } = await AuthModule.signUp(email, password, name);
+
+            if (error) {
+                errorDiv.textContent = error.message;
+                errorDiv.style.display = 'block';
+                submitBtn.textContent = 'Đăng Ký';
+                submitBtn.disabled = false;
+            } else {
+                successDiv.textContent = 'Đăng ký thành công! Vui lòng kiểm tra email để xác nhận tài khoản (nếu có yêu cầu). Đang chuyển hướng...';
+                successDiv.style.display = 'block';
+                setTimeout(() => {
+                    window.location.href = 'dashboard.html';
+                }, 2000);
+            }
+        });
+    </script>
+
+    <script src="js/app.js"></script>
+</body>
+</html>

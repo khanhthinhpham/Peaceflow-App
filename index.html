@@ -1839,10 +1839,10 @@
         <a href="community.html" class="mnp-link">👥 Cộng đồng</a>
         <a href="emergency.html" class="mnp-link" style="color:var(--coral);">🆘 Hỗ trợ khẩn cấp</a>
         <div style="margin-top:16px;display:flex;flex-direction:column;gap:8px;">
-            <a href="onboarding.html"
+            <a href="signup.html"
                 style="display:block;padding:12px;border:2px solid var(--mint-dark);border-radius:var(--radius-full);background:var(--mint);color:var(--text-primary);font-weight:700;font-size:0.85rem;text-align:center;">🌿
-                Bắt đầu miễn phí</a>
-            <a href="onboarding.html"
+                Đăng ký miễn phí</a>
+            <a href="login.html"
                 style="display:block;padding:11px;border:2px solid var(--kraft-light);border-radius:var(--radius-full);color:var(--text-secondary);font-weight:600;font-size:0.82rem;text-align:center;">Đăng
                 nhập</a>
         </div>
@@ -1862,8 +1862,8 @@
             <a href="emergency.html" class="nav-link" style="color:var(--coral);">🆘 Khẩn cấp</a>
         </div>
         <div class="nav-cta">
-            <a href="onboarding.html"><button class="btn-nav-outline">Đăng nhập</button></a>
-            <a href="onboarding.html"><button class="btn-nav-primary">🌿 Bắt đầu miễn phí</button></a>
+            <a href="login.html"><button class="btn-nav-outline">Đăng nhập</button></a>
+            <a href="signup.html"><button class="btn-nav-primary">🌿 Đăng ký miễn phí</button></a>
         </div>
         <button class="mobile-nav-btn" onclick="openMobileNav()">☰</button>
     </nav>
@@ -1889,7 +1889,7 @@
                     đơn độc. 💚"</div>
             </div>
             <div class="hero-actions">
-                <a href="onboarding.html" class="btn-hero-primary">🚀 Bắt đầu miễn phí</a>
+                <a href="signup.html" class="btn-hero-primary">🚀 Đăng ký miễn phí</a>
                 <a href="#how-it-works" class="btn-hero-outline">📖 Tìm hiểu thêm</a>
             </div>
             <div class="hero-stats">
@@ -2252,10 +2252,26 @@
             btn.style.color = "white";
 
             setTimeout(() => {
-                window.location.href = 'dashboard.html';
+                window.location.href = 'signup.html';
             }, 1000);
         }
+
+        // --- 3. SESSION CHECK ---
+        document.addEventListener('DOMContentLoaded', async () => {
+            if (window.supabaseClient) {
+                const { data: { session } } = await window.supabaseClient.auth.getSession();
+                if (session) {
+                    window.location.href = 'dashboard.html';
+                }
+            } else if (localStorage.getItem('PeaceFlow_session') === 'mock_session') {
+                window.location.href = 'dashboard.html';
+            }
+        });
     </script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase-config.js"></script>
+
+    <script src="js/app.js"></script>
 </body>
 
 </html>

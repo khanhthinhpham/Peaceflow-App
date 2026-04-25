@@ -1352,8 +1352,8 @@
 
             <div>
                 <div class="paper-card right-card">
-                    <div class="rc-title">🐱 ZenCat Tip</div>
-                    <div class="tip-box" id="zenCatTip">Thở đúng cách giúp bạn bình tĩnh hơn.</div>
+                    <div class="rc-title">🐱 PeaceCat Tip</div>
+                    <div class="tip-box" id="peaceCatTip">Thở đúng cách giúp bạn bình tĩnh hơn.</div>
                 </div>
             </div>
         </div>
@@ -1398,7 +1398,7 @@
             document.getElementById('arenaTitle').innerText = t.name;
             document.getElementById('techTitle').innerText = t.name;
             document.getElementById('techDesc').innerText = t.desc;
-            document.getElementById('zenCatTip').innerText = t.tip;
+            document.getElementById('peaceCatTip').innerText = t.tip;
             renderDots();
         }
 
@@ -1488,6 +1488,10 @@
 
         window.onload = () => { loadData(); renderTech(); };
     </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase-config.js"></script>
+    <script src="js/app.js"></script>
 </body>
 
 </html>
