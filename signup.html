@@ -1,11 +1,14 @@
 <!DOCTYPE html>
 <html lang="vi">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Đăng Ký — PeaceFlow</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Patrick+Hand&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Patrick+Hand&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
     <style>
         .auth-container {
@@ -16,13 +19,15 @@
             background: linear-gradient(135deg, var(--cream) 0%, var(--peach-light) 100%);
             padding: 20px;
         }
+
         .auth-card {
             width: 100%;
-            max-width: 400px;
+            max-width: 420px;
             padding: 40px 30px;
             text-align: center;
             background: var(--warm-white);
         }
+
         .auth-logo {
             display: inline-flex;
             align-items: center;
@@ -36,74 +41,164 @@
             box-shadow: 3px 3px 0px var(--peach-dark);
             margin-bottom: 20px;
         }
+
         .auth-title {
             font-size: 1.5rem;
             margin-bottom: 8px;
         }
+
         .auth-subtitle {
             color: var(--text-secondary);
             font-size: 0.9rem;
             margin-bottom: 24px;
+            line-height: 1.6;
         }
+
         .auth-form {
             text-align: left;
         }
+
         .auth-links {
             margin-top: 20px;
             font-size: 0.85rem;
             color: var(--text-secondary);
         }
+
         .auth-links a {
             color: var(--peach-dark);
             font-weight: 700;
+            text-decoration: none;
         }
-        #signupError {
+
+        .auth-links a:hover {
+            text-decoration: underline;
+        }
+
+        .auth-message {
             display: none;
-            color: var(--coral-dark);
-            background: var(--coral-light);
-            padding: 10px;
+            padding: 12px 14px;
             border-radius: var(--radius-sm);
-            font-size: 0.85rem;
-            margin-bottom: 15px;
-            border: 1px solid var(--coral);
+            font-size: 0.9rem;
+            margin-bottom: 16px;
+            border: 1px solid transparent;
+            line-height: 1.5;
         }
-        #signupSuccess {
-            display: none;
+
+        .auth-message.error {
+            display: block;
+            color: #8A2F2F;
+            background: #FFE3E3;
+            border-color: #FFB8B8;
+        }
+
+        .auth-message.success {
+            display: block;
             color: var(--mint-dark);
             background: var(--mint-light);
-            padding: 10px;
-            border-radius: var(--radius-sm);
-            font-size: 0.85rem;
-            margin-bottom: 15px;
-            border: 1px solid var(--mint);
+            border-color: var(--mint);
+        }
+
+        .auth-message.info {
+            display: block;
+            color: #6B5B2A;
+            background: #FFF4CC;
+            border-color: #FFE08A;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            margin-bottom: 20px;
+            font-size: 0.88rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        .checkbox-group input {
+            margin-top: 3px;
+            accent-color: var(--peach-dark);
+        }
+
+        .checkbox-group a {
+            color: var(--peach-dark);
+            font-weight: 700;
+            text-decoration: none;
+        }
+
+        .checkbox-group a:hover {
+            text-decoration: underline;
+        }
+
+        .btn-primary[disabled] {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+        .field-hint {
+            font-size: 0.8rem;
+            color: var(--text-light);
+            margin-top: 6px;
         }
     </style>
 </head>
+
 <body>
 
     <div class="auth-container">
         <div class="paper-card auth-card" style="border-color: var(--peach);">
             <div class="auth-logo">🌸</div>
             <h1 class="auth-title">Bắt đầu hành trình</h1>
-            <p class="auth-subtitle">Tạo tài khoản để lưu giữ nhật ký và tiến trình của bạn.</p>
+            <p class="auth-subtitle">
+                Tạo tài khoản để lưu giữ nhật ký, tiến trình hồi phục
+                và trải nghiệm cá nhân hóa cùng PeaceFlow.
+            </p>
 
-            <div id="signupError"></div>
-            <div id="signupSuccess"></div>
+            <div id="signupMessage" class="auth-message"></div>
 
             <form class="auth-form" id="signupForm">
                 <div class="form-group">
-                    <label class="form-label">Tên hiển thị</label>
-                    <input type="text" id="name" class="form-input" placeholder="Bạn muốn được gọi là gì?" required>
+                    <label class="form-label" for="name">Tên hiển thị</label>
+                    <input type="text" id="name" class="form-input" placeholder="Bạn muốn được gọi là gì?" required
+                        maxlength="80" autocomplete="name">
                 </div>
+
                 <div class="form-group">
-                    <label class="form-label">Email</label>
-                    <input type="email" id="email" class="form-input" placeholder="Nhập email của bạn" required>
+                    <label class="form-label" for="email">Email</label>
+                    <input type="email" id="email" class="form-input" placeholder="Nhập email của bạn" required
+                        autocomplete="email">
                 </div>
-                <div class="form-group" style="margin-bottom: 20px;">
-                    <label class="form-label">Mật khẩu</label>
-                    <input type="password" id="password" class="form-input" placeholder="Tạo mật khẩu (ít nhất 6 ký tự)" required minlength="6">
+
+                <div class="form-group">
+                    <label class="form-label" for="password">Mật khẩu</label>
+                    <input type="password" id="password" class="form-input" placeholder="Tạo mật khẩu (ít nhất 8 ký tự)"
+                        required minlength="8" autocomplete="new-password">
+                    <div class="field-hint">
+                        Nên dùng ít nhất 8 ký tự, bao gồm chữ và số để tăng độ an toàn.
+                    </div>
                 </div>
-                <button type="submit" class="btn-primary" style="width: 100%; font-size: 1rem; padding: 12px; background: var(--peach); border-color: var(--peach-dark); box-shadow: 2px 2px 0px var(--peach-dark);">Đăng Ký</button>
+
+                <div class="form-group">
+                    <label class="form-label" for="confirmPassword">Xác nhận mật khẩu</label>
+                    <input type="password" id="confirmPassword" class="form-input" placeholder="Nhập lại mật khẩu"
+                        required minlength="8" autocomplete="new-password">
+                </div>
+
+                <label class="checkbox-group">
+                    <input type="checkbox" id="agreeTerms" required>
+                    <span>
+                        Tôi đồng ý với
+                        <a href="terms.html">Điều khoản sử dụng</a>
+                        và
+                        <a href="privacy.html">Chính sách quyền riêng tư</a>
+                        của PeaceFlow.
+                    </span>
+                </label>
+
+                <button type="submit" id="signupBtn" class="btn-primary"
+                    style="width: 100%; font-size: 1rem; padding: 12px; background: var(--peach); border-color: var(--peach-dark); box-shadow: 2px 2px 0px var(--peach-dark);">
+                    Đăng Ký
+                </button>
             </form>
 
             <div class="auth-links">
@@ -114,50 +209,182 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/supabase-config.js"></script>
+
     <script>
-        document.getElementById('signupForm').addEventListener('submit', async (e) => {
+        const signupForm = document.getElementById('signupForm');
+        const signupBtn = document.getElementById('signupBtn');
+        const signupMessage = document.getElementById('signupMessage');
+
+        const nameInput = document.getElementById('name');
+        const emailInput = document.getElementById('email');
+        const passwordInput = document.getElementById('password');
+        const confirmPasswordInput = document.getElementById('confirmPassword');
+        const agreeTermsInput = document.getElementById('agreeTerms');
+
+        function showMessage(message, type = 'info') {
+            signupMessage.className = 'auth-message ' + type;
+            signupMessage.textContent = message;
+        }
+
+        function clearMessage() {
+            signupMessage.className = 'auth-message';
+            signupMessage.textContent = '';
+        }
+
+        function isValidEmail(email) {
+            return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+        }
+
+        async function redirectIfLoggedIn() {
+            if (!window.supabaseClient) return;
+
+            try {
+                const { data, error } = await window.supabaseClient.auth.getSession();
+                if (error) throw error;
+
+                if (data?.session) {
+                    window.location.href = 'dashboard.html';
+                }
+            } catch (err) {
+                console.error('Không thể kiểm tra session:', err);
+            }
+        }
+
+        redirectIfLoggedIn();
+
+        signupForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            const name = document.getElementById('name').value;
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-            
-            const errorDiv = document.getElementById('signupError');
-            const successDiv = document.getElementById('signupSuccess');
-            const submitBtn = e.target.querySelector('button');
+            clearMessage();
 
-            errorDiv.style.display = 'none';
-            successDiv.style.display = 'none';
-            submitBtn.textContent = 'Đang xử lý...';
-            submitBtn.disabled = true;
+            const fullName = nameInput.value.trim();
+            const email = emailInput.value.trim().toLowerCase();
+            const password = passwordInput.value;
+            const confirmPassword = confirmPasswordInput.value;
+            const agreed = agreeTermsInput.checked;
 
-            // Mock logic for now if Supabase is not configured
             if (!window.supabaseClient) {
-                setTimeout(() => {
-                    successDiv.textContent = 'Đăng ký thành công! (Chế độ dùng thử). Đang chuyển hướng...';
-                    successDiv.style.display = 'block';
-                    localStorage.setItem('PeaceFlow_session', 'mock_session');
-                    setTimeout(() => window.location.href = 'dashboard.html', 1500);
-                }, 1000);
+                showMessage('Chưa khởi tạo được Supabase client. Vui lòng kiểm tra file js/supabase-config.js', 'error');
                 return;
             }
 
-            const { data, error } = await AuthModule.signUp(email, password, name);
+            if (!fullName) {
+                showMessage('Vui lòng nhập tên hiển thị của bạn.', 'error');
+                nameInput.focus();
+                return;
+            }
 
-            if (error) {
-                errorDiv.textContent = error.message;
-                errorDiv.style.display = 'block';
-                submitBtn.textContent = 'Đăng Ký';
-                submitBtn.disabled = false;
-            } else {
-                successDiv.textContent = 'Đăng ký thành công! Vui lòng kiểm tra email để xác nhận tài khoản (nếu có yêu cầu). Đang chuyển hướng...';
-                successDiv.style.display = 'block';
-                setTimeout(() => {
-                    window.location.href = 'dashboard.html';
-                }, 2000);
+            if (fullName.length < 2) {
+                showMessage('Tên hiển thị cần có ít nhất 2 ký tự.', 'error');
+                nameInput.focus();
+                return;
+            }
+
+            if (!email) {
+                showMessage('Vui lòng nhập email.', 'error');
+                emailInput.focus();
+                return;
+            }
+
+            if (!isValidEmail(email)) {
+                showMessage('Định dạng email chưa hợp lệ.', 'error');
+                emailInput.focus();
+                return;
+            }
+
+            if (!password) {
+                showMessage('Vui lòng nhập mật khẩu.', 'error');
+                passwordInput.focus();
+                return;
+            }
+
+            if (password.length < 8) {
+                showMessage('Mật khẩu cần có ít nhất 8 ký tự.', 'error');
+                passwordInput.focus();
+                return;
+            }
+
+            if (password !== confirmPassword) {
+                showMessage('Mật khẩu xác nhận không khớp.', 'error');
+                confirmPasswordInput.focus();
+                return;
+            }
+
+            if (!agreed) {
+                showMessage('Bạn cần đồng ý với điều khoản và chính sách quyền riêng tư để tiếp tục.', 'error');
+                return;
+            }
+
+            signupBtn.disabled = true;
+            signupBtn.textContent = 'Đang tạo tài khoản...';
+
+            try {
+                const { data, error } = await window.supabaseClient.auth.signUp({
+                    email,
+                    password,
+                    options: {
+                        data: {
+                            full_name: fullName,
+                            display_name: fullName
+                        },
+                        emailRedirectTo: window.location.origin + '/login.html'
+                    }
+                });
+
+                if (error) {
+                    throw error;
+                }
+
+                const hasSession = !!data?.session;
+                const hasUser = !!data?.user;
+
+                if (hasUser && !hasSession) {
+                    showMessage(
+                        'Đăng ký thành công! PeaceFlow đã gửi email xác nhận đến hộp thư của bạn. Vui lòng kiểm tra email và xác nhận tài khoản trước khi đăng nhập.',
+                        'success'
+                    );
+                    signupForm.reset();
+                    return;
+                }
+
+                if (hasUser && hasSession) {
+                    showMessage('Đăng ký thành công! Đang chuyển bạn đến trang tổng quan...', 'success');
+                    setTimeout(() => {
+                        window.location.href = 'dashboard.html';
+                    }, 1200);
+                    return;
+                }
+
+                showMessage('Tài khoản đã được tạo. Vui lòng đăng nhập để tiếp tục.', 'success');
+            } catch (error) {
+                console.error('Lỗi đăng ký:', error);
+
+                let friendlyMessage = 'Đăng ký thất bại. Vui lòng thử lại sau.';
+
+                if (error.message) {
+                    const msg = error.message.toLowerCase();
+
+                    if (msg.includes('user already registered')) {
+                        friendlyMessage = 'Email này đã được đăng ký. Vui lòng dùng email khác hoặc đăng nhập.';
+                    } else if (msg.includes('password')) {
+                        friendlyMessage = 'Mật khẩu chưa đáp ứng yêu cầu bảo mật.';
+                    } else if (msg.includes('invalid email')) {
+                        friendlyMessage = 'Email không hợp lệ. Vui lòng kiểm tra lại.';
+                    } else if (msg.includes('signup is disabled')) {
+                        friendlyMessage = 'Chức năng đăng ký hiện đang tạm khóa trên hệ thống.';
+                    } else {
+                        friendlyMessage = error.message;
+                    }
+                }
+
+                showMessage(friendlyMessage, 'error');
+            } finally {
+                signupBtn.disabled = false;
+                signupBtn.textContent = 'Đăng Ký';
             }
         });
     </script>
 
     <script src="js/app.js"></script>
 </body>
+
 </html>

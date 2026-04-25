@@ -103,39 +103,45 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/supabase-config.js"></script>
     <script>
-        document.getElementById('loginForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-            const errorDiv = document.getElementById('loginError');
-            const submitBtn = e.target.querySelector('button');
+      const form = document.getElementById('loginForm');
+      const btn = document.querySelector('button[type="submit"]');
+      const msg = document.getElementById('loginError');
 
-            errorDiv.style.display = 'none';
-            submitBtn.textContent = 'Đang xử lý...';
-            submitBtn.disabled = true;
+      function showMessage(text, type = 'info') {
+        msg.textContent = text;
+        msg.className = 'auth-message ' + type;
+        msg.style.display = text ? 'block' : 'none';
+      }
 
-            // Mock logic for now if Supabase is not configured
-            if (!window.supabaseClient) {
-                setTimeout(() => {
-                    localStorage.setItem('PeaceFlow_session', 'mock_session');
-                    window.location.href = 'dashboard.html';
-                }, 1000);
-                return;
-            }
+      // Nếu đã login thì vào dashboard luôn
+      (async () => {
+        const { data } = await window.supabaseClient.auth.getSession();
+        if (data?.session) window.location.href = 'dashboard.html';
+      })();
 
-            const { data, error } = await AuthModule.signIn(email, password);
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        showMessage('');
 
-            if (error) {
-                errorDiv.textContent = error.message === 'Invalid login credentials' ? 'Email hoặc mật khẩu không đúng.' : 'Đã có lỗi xảy ra. Vui lòng thử lại.';
-                errorDiv.style.display = 'block';
-                submitBtn.textContent = 'Đăng Nhập';
-                submitBtn.disabled = false;
-            } else {
-                window.location.href = 'dashboard.html';
-            }
-        });
+        const email = document.getElementById('email').value.trim();
+        const password = document.getElementById('password').value;
+
+        btn.disabled = true;
+        btn.textContent = 'Đang đăng nhập...';
+
+        try {
+          const { error } = await window.supabaseClient.auth.signInWithPassword({ email, password });
+          if (error) throw error;
+
+          showMessage('Đăng nhập thành công!', 'success');
+          setTimeout(() => window.location.href = 'dashboard.html', 700);
+        } catch (err) {
+          showMessage(err.message || 'Đăng nhập thất bại.', 'error');
+        } finally {
+          btn.disabled = false;
+          btn.textContent = 'Đăng Nhập';
+        }
+      });
     </script>
-
-    <script src="js/app.js"></script>
 </body>
 </html>
