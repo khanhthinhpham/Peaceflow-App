@@ -163,3 +163,7 @@ export const profileManager = {
 
 // Gắn hàm khởi tạo khi trang tải xong
 document.addEventListener('DOMContentLoaded', () => profileManager.init());
+
+// Expose functions to global scope for HTML onclick handlers
+window.saveProfile = () => profileManager.saveProfile();
+window.resetForm = () => profileManager.resetForm();
