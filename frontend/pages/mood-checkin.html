@@ -1886,23 +1886,25 @@
             // Decide Tasks based on score
             let taskHtml = '';
             if (checkinData.score <= 4) {
-                taskHtml += <div class="rt-item" onclick="location.href='task-breathing.html'">
-                                <div class="rt-icon">???</div>
-                                <div class="rt-info">
-                                    <div class="rt-name">Ht th? su 4-4-4</div>
-                                    <div class="rt-meta">Gi?m cang th?ng ngay l?p t?c  3 pht</div>
-                                </div>
-                                <div class="rt-xp">+15 XP</div>
-                            </div>;
+                taskHtml += `
+                    <div class="rt-item" onclick="location.href='task-breathing.html'">
+                        <div class="rt-icon">🫁</div>
+                        <div class="rt-info">
+                            <div class="rt-name">Hít thở sâu 4-4-4</div>
+                            <div class="rt-meta">Giảm căng thẳng ngay lập tức • 3 phút</div>
+                        </div>
+                        <div class="rt-xp">+15 XP</div>
+                    </div>`;
             } else {
-                taskHtml += <div class="rt-item" onclick="location.href='task-detail.html'">
-                                <div class="rt-icon">??</div>
-                                <div class="rt-info">
-                                    <div class="rt-name">Vi?t 3 di?u bi?t on</div>
-                                    <div class="rt-meta">Tang cu?ng c?m xc tch c?c  5 pht</div>
-                                </div>
-                                <div class="rt-xp">+20 XP</div>
-                            </div>;
+                taskHtml += `
+                    <div class="rt-item" onclick="location.href='task-detail.html'">
+                        <div class="rt-icon">📝</div>
+                        <div class="rt-info">
+                            <div class="rt-name">Viết 3 điều biết ơn</div>
+                            <div class="rt-meta">Tăng cường cảm xúc tích cực • 5 phút</div>
+                        </div>
+                        <div class="rt-xp">+20 XP</div>
+                    </div>`;
             }
             document.getElementById('suggestedTasks').innerHTML = taskHtml;
 

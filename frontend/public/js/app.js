@@ -180,26 +180,38 @@ const Store = {
     const userId = session.user.id;
 
     try {
-      // 1. Sync Profile
-      const { data: profile } = await window.supabaseClient.from('profiles').select('*').eq('id', userId).single();
-      if (profile) {
-        // Merge with defaults
+      // 1. Sync Profile & Progress
+      const [userRes, progressRes] = await Promise.all([
+        window.supabaseClient.from('users').select('*').eq('id', userId).single(),
+        window.supabaseClient.from('user_progress').select('*').eq('user_id', userId).single()
+      ]);
+
+      const user = userRes.data;
+      const progress = progressRes.data;
+
+      if (user || progress) {
         const current = this.getUser();
-        const merged = { ...current, ...profile };
-        // Map db fields to local fields if needed (e.g. last_active to lastActive)
-        if (profile.last_active) merged.lastActive = new Date(profile.last_active).toDateString();
+        const merged = { 
+          ...current, 
+          name: user?.display_name || user?.full_name || current.name,
+          avatar: user?.avatar_url || current.avatar,
+          xp: progress?.total_xp || current.xp,
+          level: progress?.current_level || current.level,
+          streak: progress?.current_streak || current.streak
+        };
+        if (progress?.last_activity_date) merged.lastActive = new Date(progress.last_activity_date).toDateString();
         this.set('user_stats', merged);
       }
 
-      // 2. Sync Mood Logs (Last 30 days for local cache)
-      const { data: moods } = await window.supabaseClient.from('mood_logs').select('*').eq('user_id', userId).order('created_at', { ascending: false }).limit(30);
+      // 2. Sync Mood Logs (Last 30 days)
+      const { data: moods } = await window.supabaseClient.from('mood_checkins').select('*').eq('user_id', userId).order('created_at', { ascending: false }).limit(30);
       if (moods && moods.length > 0) {
         const localMoods = moods.map(m => ({
           id: m.id,
-          mood: m.mood,
-          level: m.score,
-          tags: m.tags || [],
-          note: m.note || '',
+          mood: m.dominant_emotion,
+          level: m.mood_score,
+          tags: m.triggers || [],
+          note: m.notes || '',
           date: new Date(m.created_at).toLocaleDateString('vi-VN'),
           timestamp: m.created_at
         }));
@@ -207,7 +219,7 @@ const Store = {
       }
 
       // 3. Sync Journals
-      const { data: journals } = await window.supabaseClient.from('journals').select('*').eq('user_id', userId).order('created_at', { ascending: false }).limit(50);
+      const { data: journals } = await window.supabaseClient.from('journal_entries').select('*').eq('user_id', userId).order('created_at', { ascending: false }).limit(50);
       if (journals && journals.length > 0) {
         const localJournals = journals.map(j => ({
           id: j.id,
@@ -237,26 +249,32 @@ const Store = {
 
     try {
       if (table === 'profiles') {
-        await window.supabaseClient.from('profiles').upsert({
-          id: userId,
-          name: data.name,
-          avatar: data.avatar,
-          level: data.level,
-          xp: data.xp,
-          streak: data.streak,
-          last_active: new Date(data.lastActive).toISOString(),
-          badges: data.badges
-        });
-      } else if (table === 'mood_logs') {
-        await window.supabaseClient.from('mood_logs').insert({
+        // Update user profile in 'users' table
+        await window.supabaseClient.from('users').update({
+          display_name: data.name,
+          avatar_url: data.avatar
+        }).eq('id', userId);
+
+        // Update progress in 'user_progress' table
+        await window.supabaseClient.from('user_progress').upsert({
           user_id: userId,
-          mood: data.mood,
-          score: data.level,
-          tags: data.tags,
-          note: data.note
+          total_xp: data.xp,
+          current_level: data.level,
+          current_streak: data.streak,
+          last_activity_date: new Date(data.lastActive).toISOString()
+        }, { onConflict: 'user_id' });
+
+      } else if (table === 'mood_logs') {
+        await window.supabaseClient.from('mood_checkins').insert({
+          user_id: userId,
+          dominant_emotion: data.mood,
+          mood_score: data.level,
+          triggers: data.tags,
+          notes: data.note,
+          source: 'manual'
         });
       } else if (table === 'journals') {
-        await window.supabaseClient.from('journals').insert({
+        await window.supabaseClient.from('journal_entries').insert({
           user_id: userId,
           content: data.content,
           mood: data.mood,
@@ -265,10 +283,9 @@ const Store = {
           word_count: data.wordCount
         });
       } else if (table === 'user_tasks') {
-        await window.supabaseClient.from('user_tasks').insert({
+        await window.supabaseClient.from('task_completions').insert({
           user_id: userId,
           task_id: data.taskId,
-          category: data.category,
           xp_earned: data.xpAmount
         });
       }
