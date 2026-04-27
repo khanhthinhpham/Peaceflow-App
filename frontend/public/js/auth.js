@@ -27,11 +27,23 @@ export const auth = {
     },
 
     setSession(data) {
-        if (data.access_token) {
-            localStorage.setItem('access_token', data.access_token);
+        // Handle Supabase session object or direct token
+        const accessToken = data.session?.access_token || data.access_token;
+        const user = data.user;
+
+        if (accessToken) {
+            localStorage.setItem('access_token', accessToken);
         }
-        if (data.user) {
-            localStorage.setItem('user', JSON.stringify(data.user));
+        if (user) {
+            // Map Supabase user metadata to our expected format if needed
+            const userToSave = {
+                id: user.id,
+                email: user.email,
+                full_name: user.user_metadata?.full_name || user.full_name,
+                display_name: user.user_metadata?.display_name || user.display_name,
+                avatar_url: user.user_metadata?.avatar_url || user.avatar_url
+            };
+            localStorage.setItem('user', JSON.stringify(userToSave));
         }
     },
 
