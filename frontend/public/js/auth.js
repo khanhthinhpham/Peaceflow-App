@@ -66,7 +66,7 @@ export const auth = {
         await window.supabaseClient.auth.signInWithOAuth({
             provider: 'google',
             options: {
-                redirectTo: window.location.origin + '/dashboard.html'
+                redirectTo: window.location.origin + '/frontend/pages/dashboard.html'
             }
         });
     },
@@ -74,37 +74,83 @@ export const auth = {
     async handleSupabaseRedirect() {
         if (!window.supabaseClient) return;
 
-        // Listen for auth state changes (which fires on redirect from Google)
+        // 1. Check for initial session (e.g. after redirect)
+        const { data: { session } } = await window.supabaseClient.auth.getSession();
+        if (session) {
+            await this.syncWithBackend(session);
+        }
+
+        // 2. Listen for auth state changes
         window.supabaseClient.auth.onAuthStateChange(async (event, session) => {
             if (event === 'SIGNED_IN' && session) {
-                // Check if we already synced this session
-                const lastSynced = localStorage.getItem('last_supabase_session_id');
-                if (lastSynced === session.access_token) return; // Prevent loop
-
-                console.log("Supabase SIGNED_IN event detected. Syncing with Node API...");
-                
-                try {
-                    // Send Supabase token to our Node.js API to get Custom JWT
-                    const data = await apiClient.post('/auth/sync-google', {
-                        supabase_token: session.access_token
-                    });
-
-                    // Save custom JWT and User Profile
-                    this.setSession(data);
-                    localStorage.setItem('last_supabase_session_id', session.access_token);
-                    
-                    // Redirect or reload
-                    if (window.location.pathname.includes('login.html') || window.location.pathname.includes('signup.html')) {
-                        window.location.href = 'dashboard.html';
-                    } else {
-                        // Force a refresh of user info on the current page
-                        window.updateGlobalUI && window.updateGlobalUI();
-                    }
-                } catch (error) {
-                    console.error("Failed to sync Google Auth with Node API:", error);
-                }
+                await this.syncWithBackend(session);
+            } else if (event === 'SIGNED_OUT') {
+                this.clearSession();
             }
         });
+    },
+
+    async syncWithBackend(session) {
+        if (!session) return;
+        
+        const lastSynced = localStorage.getItem('last_supabase_session_id');
+        if (lastSynced === session.access_token) return;
+
+        console.log("Syncing Supabase session with backend...");
+        try {
+            const data = await apiClient.post('/auth/sync-google', {
+                supabase_token: session.access_token
+            });
+
+            this.setSession(data);
+            localStorage.setItem('last_supabase_session_id', session.access_token);
+            
+            // Re-trigger UI update
+            window.updateGlobalUI && window.updateGlobalUI();
+            
+            // Clear hash if still present
+            if (window.location.hash) {
+                window.history.replaceState(null, null, window.location.pathname);
+            }
+        } catch (error) {
+            console.error("Failed to sync with backend:", error);
+        }
+    },
+
+    clearSession() {
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('user');
+        localStorage.removeItem('last_supabase_session_id');
+    },
+
+    /**
+     * Helper for pages to wait until auth is fully initialized/synced
+     */
+    async waitForAuth() {
+        // If already authenticated, return true
+        if (this.isAuthenticated()) return true;
+
+        // If there's a hash with access_token, we are likely in a redirect flow
+        if (window.location.hash.includes('access_token')) {
+            console.log("Auth redirect detected, waiting for sync...");
+            
+            // Wait for up to 5 seconds for access_token to appear in localStorage
+            return new Promise((resolve) => {
+                let attempts = 0;
+                const interval = setInterval(() => {
+                    attempts++;
+                    if (this.isAuthenticated()) {
+                        clearInterval(interval);
+                        resolve(true);
+                    } else if (attempts > 50) { // 5 seconds
+                        clearInterval(interval);
+                        resolve(false);
+                    }
+                }, 100);
+            });
+        }
+
+        return false;
     }
 };
 
@@ -126,6 +172,7 @@ function initAuthAndUI() {
                 document.querySelectorAll('.user-avatar, .user-avatar-mini, .ph-avatar').forEach(el => {
                     el.style.backgroundImage = `url('${user.avatar_url}')`;
                     el.style.backgroundSize = 'cover';
+                    el.style.backgroundPosition = 'center';
                     el.innerText = ''; // Clear fallback emoji
                 });
             }

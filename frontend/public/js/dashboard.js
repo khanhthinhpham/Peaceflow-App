@@ -4,6 +4,9 @@ import { auth } from './auth.js';
 export const dashboard = {
     async init() {
         try {
+            // Chờ Auth đồng bộ nếu đang từ redirect Google về
+            await auth.waitForAuth();
+
             const user = auth.getUser();
             if (user) {
                 this.updateUserInfo(user);
