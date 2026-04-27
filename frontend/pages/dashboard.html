@@ -1,0 +1,1895 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PeaceFlow — Tổng Quan</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Patrick+Hand&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --cream: #FFF8F0;
+            --warm-white: #FFFDF7;
+            --kraft: #D4A574;
+            --kraft-light: #E8CBA7;
+            --kraft-dark: #B8895A;
+            --mint: #A8D5BA;
+            --mint-light: #C5E8D2;
+            --mint-dark: #7BBF95;
+            --peach: #FFCBA4;
+            --peach-light: #FFE0C4;
+            --peach-dark: #E8A876;
+            --sky: #A8D8EA;
+            --sky-light: #C5E8F5;
+            --lavender: #C3AED6;
+            --lavender-light: #DDD1EB;
+            --coral: #FF8B8B;
+            --coral-light: #FFB3B3;
+            --text-primary: #4A3728;
+            --text-secondary: #7A6555;
+            --text-light: #A89585;
+            --shadow-paper: 3px 3px 0px rgba(74, 55, 40, 0.1);
+            --shadow-paper-hover: 5px 5px 0px rgba(74, 55, 40, 0.15);
+            --shadow-soft: 0 4px 15px rgba(74, 55, 40, 0.08);
+            --border-radius: 16px;
+            --border-radius-sm: 10px;
+            --border-radius-lg: 24px;
+            --transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            --sidebar-width: 240px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background-color: var(--cream);
+            color: var(--text-primary);
+            line-height: 1.6;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        .handwritten {
+            font-family: 'Patrick Hand', cursive;
+        }
+
+        .paper-card {
+            background: var(--warm-white);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-paper);
+            border: 2px solid var(--kraft-light);
+            position: relative;
+            transition: var(--transition);
+        }
+
+        .paper-card:hover {
+            box-shadow: var(--shadow-paper-hover);
+            transform: translateY(-2px);
+        }
+
+        /* ===== SIDEBAR ===== */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            width: var(--sidebar-width);
+            background: var(--warm-white);
+            border-right: 2px solid var(--kraft-light);
+            z-index: 200;
+            display: flex;
+            flex-direction: column;
+            padding: 20px 0;
+            box-shadow: 2px 0 10px rgba(74, 55, 40, 0.05);
+        }
+
+        .sidebar-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 0 20px 20px;
+            border-bottom: 2px dashed var(--kraft-light);
+            margin-bottom: 16px;
+            text-decoration: none;
+        }
+
+        .sidebar-logo .logo-icon {
+            width: 38px;
+            height: 38px;
+            background: var(--mint);
+            border-radius: 10px;
+            border: 2px solid var(--mint-dark);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            box-shadow: 2px 2px 0px var(--mint-dark);
+        }
+
+        .sidebar-logo .logo-text {
+            font-size: 1.2rem;
+            font-weight: 800;
+            color: var(--text-primary);
+        }
+
+        .sidebar-logo .logo-text span {
+            color: var(--mint-dark);
+        }
+
+        .sidebar-nav {
+            flex: 1;
+            padding: 0 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            border-radius: var(--border-radius-sm);
+            text-decoration: none;
+            color: var(--text-secondary);
+            font-weight: 600;
+            font-size: 0.88rem;
+            transition: var(--transition);
+            cursor: pointer;
+            border: none;
+            background: none;
+            width: 100%;
+            text-align: left;
+        }
+
+        .nav-item:hover {
+            background: var(--mint-light);
+            color: var(--text-primary);
+        }
+
+        .nav-item.active {
+            background: var(--mint-light);
+            color: var(--text-primary);
+            border: 1.5px solid var(--mint);
+        }
+
+        .nav-item .ni {
+            font-size: 1.1rem;
+            width: 22px;
+            text-align: center;
+        }
+
+        .nav-section-label {
+            font-size: 0.68rem;
+            font-weight: 700;
+            color: var(--text-light);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            padding: 10px 12px 4px;
+        }
+
+        .sidebar-bottom {
+            padding: 12px;
+            border-top: 2px dashed var(--kraft-light);
+            margin-top: auto;
+        }
+
+        .user-card-mini {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            background: var(--cream);
+            border-radius: var(--border-radius-sm);
+            border: 1.5px solid var(--kraft-light);
+        }
+
+        .user-avatar-mini {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--lavender-light);
+            border: 2px solid var(--kraft);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+        }
+
+        .user-info-mini .user-name {
+            font-size: 0.85rem;
+            font-weight: 700;
+        }
+
+        .user-info-mini .user-level {
+            font-size: 0.72rem;
+            color: var(--text-light);
+        }
+
+        .emergency-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 12px;
+            background: rgba(255, 139, 139, 0.1);
+            border: 1.5px solid var(--coral);
+            border-radius: var(--border-radius-sm);
+            color: var(--coral);
+            font-size: 0.78rem;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 8px;
+            transition: var(--transition);
+            text-decoration: none;
+        }
+
+        .emergency-btn:hover {
+            background: rgba(255, 139, 139, 0.2);
+        }
+
+        /* ===== MAIN CONTENT ===== */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            padding: 28px;
+            min-height: 100vh;
+        }
+
+        .page-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .page-title {
+            font-size: 1.5rem;
+            font-weight: 800;
+        }
+
+        .page-subtitle {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-primary {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 10px 20px;
+            border: 2px solid var(--mint-dark);
+            border-radius: 50px;
+            background: var(--mint);
+            color: var(--text-primary);
+            font-family: 'Nunito', sans-serif;
+            font-size: 0.88rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: var(--transition);
+            box-shadow: 2px 2px 0px var(--mint-dark);
+            text-decoration: none;
+        }
+
+        .btn-primary:hover {
+            background: var(--mint-dark);
+            color: white;
+            transform: translate(1px, 1px);
+            box-shadow: 1px 1px 0px var(--mint-dark);
+        }
+
+        .btn-outline {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 9px 18px;
+            border: 2px solid var(--kraft-light);
+            border-radius: 50px;
+            background: transparent;
+            color: var(--text-secondary);
+            font-family: 'Nunito', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .btn-outline:hover {
+            background: var(--kraft-light);
+            color: var(--text-primary);
+        }
+
+        .badge-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 3px 10px;
+            border-radius: 50px;
+            font-size: 0.72rem;
+            font-weight: 700;
+        }
+
+        .badge-mint {
+            background: var(--mint-light);
+            color: var(--mint-dark);
+            border: 1.5px solid var(--mint);
+        }
+
+        .badge-peach {
+            background: var(--peach-light);
+            color: var(--peach-dark);
+            border: 1.5px solid var(--peach);
+        }
+
+        .badge-coral {
+            background: var(--coral-light);
+            color: #c05050;
+            border: 1.5px solid var(--coral);
+        }
+
+        .badge-lavender {
+            background: var(--lavender-light);
+            color: #8a6aaa;
+            border: 1.5px solid var(--lavender);
+        }
+
+        /* ===== GRID LAYOUTS ===== */
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 18px;
+            margin-bottom: 20px;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 18px;
+            margin-bottom: 20px;
+        }
+
+        .grid-main {
+            display: grid;
+            grid-template-columns: 1fr 340px;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .grid-4 {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 14px;
+            margin-bottom: 20px;
+        }
+
+        /* ===== STAT CARDS ===== */
+        .stat-card {
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .stat-card .sc-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            margin-bottom: 4px;
+            border: 2px solid;
+        }
+
+        .stat-card .sc-value {
+            font-size: 1.6rem;
+            font-weight: 800;
+        }
+
+        .stat-card .sc-label {
+            font-size: 0.78rem;
+            color: var(--text-secondary);
+            font-weight: 600;
+        }
+
+        .stat-card .sc-change {
+            font-size: 0.72rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 3px;
+        }
+
+        .sc-up {
+            color: #5aaa70;
+        }
+
+        .sc-down {
+            color: var(--coral);
+        }
+
+        .sc-icon.mint {
+            background: var(--mint-light);
+            border-color: var(--mint);
+        }
+
+        .sc-icon.peach {
+            background: var(--peach-light);
+            border-color: var(--peach);
+        }
+
+        .sc-icon.sky {
+            background: var(--sky-light);
+            border-color: var(--sky);
+        }
+
+        .sc-icon.lavender {
+            background: var(--lavender-light);
+            border-color: var(--lavender);
+        }
+
+        /* ===== MOOD CHART ===== */
+        .chart-card {
+            padding: 22px;
+        }
+
+        .chart-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+
+        .chart-title {
+            font-size: 1rem;
+            font-weight: 700;
+        }
+
+        .chart-tabs {
+            display: flex;
+            gap: 4px;
+        }
+
+        .chart-tab {
+            padding: 5px 12px;
+            border-radius: 50px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            cursor: pointer;
+            border: 1.5px solid var(--kraft-light);
+            background: transparent;
+            color: var(--text-secondary);
+            transition: var(--transition);
+        }
+
+        .chart-tab.active {
+            background: var(--mint-light);
+            border-color: var(--mint-dark);
+            color: var(--text-primary);
+        }
+
+        .mood-chart-area {
+            height: 140px;
+            position: relative;
+            margin-bottom: 8px;
+        }
+
+        .chart-svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        .chart-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.68rem;
+            color: var(--text-light);
+            padding: 0 4px;
+        }
+
+        /* ===== GARDEN SECTION ===== */
+        .garden-card {
+            padding: 22px;
+        }
+
+        .garden-scene {
+            height: 200px;
+            background: linear-gradient(180deg, var(--sky-light) 0%, var(--sky-light) 55%, var(--mint-light) 55%, var(--mint) 100%);
+            border-radius: var(--border-radius-sm);
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 16px;
+            border: 2px solid var(--mint);
+        }
+
+        .garden-sky {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 55%;
+        }
+
+        .garden-ground {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 45%;
+        }
+
+        .g-sun {
+            position: absolute;
+            top: 14px;
+            right: 20px;
+            width: 44px;
+            height: 44px;
+            background: var(--peach);
+            border-radius: 50%;
+            box-shadow: 0 0 20px rgba(255, 203, 164, 0.6);
+            animation: g-float 5s ease-in-out infinite;
+        }
+
+        .g-cloud {
+            position: absolute;
+            background: white;
+            border-radius: 50px;
+            opacity: 0.9;
+        }
+
+        .g-cloud-1 {
+            top: 16px;
+            left: 20px;
+            width: 60px;
+            height: 22px;
+            animation: g-float 7s ease-in-out infinite;
+        }
+
+        .g-cloud-2 {
+            top: 28px;
+            left: 90px;
+            width: 40px;
+            height: 16px;
+            animation: g-float 9s ease-in-out infinite;
+            animation-delay: -3s;
+        }
+
+        .g-rainbow {
+            position: absolute;
+            top: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 50px;
+            border-radius: 50px 50px 0 0;
+            border: 6px solid transparent;
+            border-top: 6px solid rgba(255, 200, 100, 0.4);
+            opacity: 0;
+            transition: opacity 1s;
+        }
+
+        .g-rainbow.show {
+            opacity: 1;
+        }
+
+        .garden-tree {
+            position: absolute;
+            bottom: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .gt-trunk {
+            background: var(--kraft);
+            border-radius: 3px;
+        }
+
+        .gt-top {
+            border-left: solid transparent;
+            border-right: solid transparent;
+            border-bottom: solid;
+        }
+
+        .gt-flower {
+            position: absolute;
+            font-size: 0.8rem;
+            animation: g-float 3s ease-in-out infinite;
+        }
+
+        .garden-tree-1 {
+            left: 10%;
+        }
+
+        .garden-tree-2 {
+            left: 28%;
+        }
+
+        .garden-tree-3 {
+            left: 50%;
+        }
+
+        .garden-tree-4 {
+            right: 22%;
+        }
+
+        .garden-tree-5 {
+            right: 8%;
+        }
+
+        .g-butterfly {
+            position: absolute;
+            font-size: 1rem;
+            animation: g-butterfly 8s ease-in-out infinite;
+        }
+
+        .g-butterfly-1 {
+            top: 60px;
+            left: 40%;
+            animation-delay: -2s;
+        }
+
+        .g-butterfly-2 {
+            top: 80px;
+            right: 30%;
+            animation-delay: -5s;
+        }
+
+        .g-mascot {
+            position: absolute;
+            bottom: 8px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 1.8rem;
+            animation: g-bounce 3s ease-in-out infinite;
+        }
+
+        @keyframes g-float {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-8px);
+            }
+        }
+
+        @keyframes g-bounce {
+
+            0%,
+            100% {
+                transform: translateX(-50%) translateY(0);
+            }
+
+            50% {
+                transform: translateX(-50%) translateY(-5px);
+            }
+        }
+
+        @keyframes g-butterfly {
+            0% {
+                transform: translate(0, 0);
+            }
+
+            25% {
+                transform: translate(20px, -15px);
+            }
+
+            50% {
+                transform: translate(40px, 0);
+            }
+
+            75% {
+                transform: translate(20px, 15px);
+            }
+
+            100% {
+                transform: translate(0, 0);
+            }
+        }
+
+        .garden-legend {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+        }
+
+        .gl-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.78rem;
+            color: var(--text-secondary);
+        }
+
+        .gl-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        /* ===== TASKS SECTION ===== */
+        .task-card {
+            padding: 16px 18px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            cursor: pointer;
+        }
+
+        .task-card:hover {
+            background: var(--cream);
+        }
+
+        .task-icon-box {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            flex-shrink: 0;
+            border: 2px solid;
+        }
+
+        .task-icon-box.emergency {
+            background: #ffe5e5;
+            border-color: var(--coral);
+        }
+
+        .task-icon-box.easy {
+            background: var(--mint-light);
+            border-color: var(--mint);
+        }
+
+        .task-icon-box.medium {
+            background: #fff3d4;
+            border-color: #f0c040;
+        }
+
+        .task-icon-box.hard {
+            background: #ffe8d4;
+            border-color: #e09050;
+        }
+
+        .task-info {
+            flex: 1;
+        }
+
+        .task-name {
+            font-size: 0.9rem;
+            font-weight: 700;
+            margin-bottom: 2px;
+        }
+
+        .task-meta {
+            font-size: 0.72rem;
+            color: var(--text-light);
+            display: flex;
+            gap: 10px;
+        }
+
+        .task-xp {
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: var(--peach-dark);
+            background: var(--peach-light);
+            padding: 3px 8px;
+            border-radius: 50px;
+            border: 1.5px solid var(--peach);
+            white-space: nowrap;
+        }
+
+        .task-divider {
+            height: 1px;
+            background: var(--kraft-light);
+            margin: 0 18px;
+        }
+
+        /* ===== XP & LEVEL ===== */
+        .xp-card {
+            padding: 22px;
+        }
+
+        .xp-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+
+        .xp-level-badge {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .xp-level-circle {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: var(--mint-light);
+            border: 3px solid var(--mint-dark);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            font-weight: 800;
+            color: var(--mint-dark);
+            box-shadow: 3px 3px 0px var(--mint-dark);
+        }
+
+        .xp-level-info .xl-name {
+            font-size: 0.88rem;
+            font-weight: 700;
+        }
+
+        .xp-level-info .xl-range {
+            font-size: 0.72rem;
+            color: var(--text-light);
+        }
+
+        .xp-total {
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: var(--mint-dark);
+        }
+
+        .xp-bar-wrap {
+            background: var(--kraft-light);
+            border-radius: 50px;
+            height: 14px;
+            overflow: hidden;
+            margin-bottom: 6px;
+            border: 1.5px solid var(--kraft);
+        }
+
+        .xp-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--mint-dark), var(--mint));
+            border-radius: 50px;
+            transition: width 1s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            position: relative;
+        }
+
+        .xp-bar-fill::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 8px;
+            right: 8px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.4);
+            border-radius: 50px;
+        }
+
+        .xp-bar-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.68rem;
+            color: var(--text-light);
+        }
+
+        /* ===== STREAK ===== */
+        .streak-card {
+            padding: 20px;
+            text-align: center;
+        }
+
+        .streak-fire {
+            font-size: 2.5rem;
+            animation: g-float 2s ease-in-out infinite;
+        }
+
+        .streak-number {
+            font-size: 2.2rem;
+            font-weight: 800;
+            color: var(--peach-dark);
+            line-height: 1;
+        }
+
+        .streak-label {
+            font-size: 0.78rem;
+            color: var(--text-secondary);
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .streak-days {
+            display: flex;
+            gap: 5px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .streak-day {
+            width: 26px;
+            height: 26px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.65rem;
+            font-weight: 700;
+            border: 1.5px solid;
+        }
+
+        .streak-day.done {
+            background: var(--mint);
+            border-color: var(--mint-dark);
+            color: white;
+        }
+
+        .streak-day.today {
+            background: var(--peach);
+            border-color: var(--peach-dark);
+            color: white;
+        }
+
+        .streak-day.empty {
+            background: var(--cream);
+            border-color: var(--kraft-light);
+            color: var(--text-light);
+        }
+
+        /* ===== BADGES ===== */
+        .badges-card {
+            padding: 20px;
+        }
+
+        .badges-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-top: 12px;
+        }
+
+        .badge-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            padding: 10px 6px;
+            border-radius: var(--border-radius-sm);
+            border: 2px solid var(--kraft-light);
+            background: var(--warm-white);
+            transition: var(--transition);
+            cursor: pointer;
+        }
+
+        .badge-item:hover {
+            border-color: var(--mint-dark);
+            background: var(--mint-light);
+            transform: translateY(-2px);
+        }
+
+        .badge-item.locked {
+            opacity: 0.4;
+            cursor: default;
+        }
+
+        .badge-item.locked:hover {
+            transform: none;
+            border-color: var(--kraft-light);
+            background: var(--warm-white);
+        }
+
+        .badge-emoji {
+            font-size: 1.6rem;
+        }
+
+        .badge-name {
+            font-size: 0.6rem;
+            font-weight: 700;
+            color: var(--text-secondary);
+            text-align: center;
+        }
+
+        /* ===== AI INSIGHT ===== */
+        .insight-card {
+            padding: 20px;
+            background: linear-gradient(135deg, var(--mint-light), var(--sky-light));
+            border-color: var(--mint);
+        }
+
+        .insight-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        .insight-icon {
+            width: 36px;
+            height: 36px;
+            background: var(--mint);
+            border-radius: 10px;
+            border: 2px solid var(--mint-dark);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            box-shadow: 2px 2px 0px var(--mint-dark);
+        }
+
+        .insight-title {
+            font-size: 0.88rem;
+            font-weight: 700;
+        }
+
+        .insight-text {
+            font-size: 0.82rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-bottom: 10px;
+        }
+
+        .insight-tags {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        /* ===== RADAR CHART ===== */
+        .radar-card {
+            padding: 22px;
+        }
+
+        .radar-wrap {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .radar-svg-wrap {
+            flex-shrink: 0;
+        }
+
+        .radar-legend {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .rl-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.75rem;
+        }
+
+        .rl-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .rl-label {
+            color: var(--text-secondary);
+            font-weight: 600;
+        }
+
+        .rl-val {
+            font-weight: 800;
+            margin-left: auto;
+        }
+
+        /* ===== UPCOMING EXPERT ===== */
+        .expert-mini-card {
+            padding: 16px 18px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .expert-avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: var(--lavender-light);
+            border: 2px solid var(--lavender);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            flex-shrink: 0;
+        }
+
+        .expert-info {
+            flex: 1;
+        }
+
+        .expert-name {
+            font-size: 0.88rem;
+            font-weight: 700;
+        }
+
+        .expert-time {
+            font-size: 0.72rem;
+            color: var(--text-light);
+        }
+
+        .expert-type {
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: var(--lavender);
+        }
+
+        /* ===== WEEKLY CHALLENGE ===== */
+        .challenge-card {
+            padding: 20px;
+            background: linear-gradient(135deg, var(--peach-light), var(--lavender-light));
+            border-color: var(--peach);
+        }
+
+        .challenge-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .challenge-title {
+            font-size: 0.92rem;
+            font-weight: 700;
+        }
+
+        .challenge-desc {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-bottom: 10px;
+        }
+
+        .challenge-progress-bar {
+            height: 10px;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 50px;
+            overflow: hidden;
+            margin-bottom: 6px;
+            border: 1.5px solid rgba(255, 255, 255, 0.7);
+        }
+
+        .challenge-progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--peach-dark), var(--coral));
+            border-radius: 50px;
+        }
+
+        .challenge-meta {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.72rem;
+            color: var(--text-secondary);
+        }
+
+        /* ===== SECTION HEADERS ===== */
+        .section-title {
+            font-size: 1rem;
+            font-weight: 800;
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .section-title .st-icon {
+            font-size: 1.1rem;
+        }
+
+        .section-title .st-link {
+            font-size: 0.75rem;
+            color: var(--mint-dark);
+            font-weight: 600;
+            margin-left: auto;
+            text-decoration: none;
+        }
+
+        .section-title .st-link:hover {
+            text-decoration: underline;
+        }
+
+        /* ===== MOOD CHECK-IN PROMPT ===== */
+        .checkin-prompt {
+            padding: 18px 22px;
+            background: linear-gradient(135deg, var(--peach-light), var(--mint-light));
+            border-color: var(--peach);
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .cp-mascot {
+            font-size: 2rem;
+            animation: g-bounce 3s ease-in-out infinite;
+            flex-shrink: 0;
+        }
+
+        .cp-text .cp-title {
+            font-size: 0.95rem;
+            font-weight: 700;
+            margin-bottom: 2px;
+        }
+
+        .cp-text .cp-sub {
+            font-size: 0.78rem;
+            color: var(--text-secondary);
+        }
+
+        .cp-actions {
+            display: flex;
+            gap: 8px;
+            margin-left: auto;
+            flex-shrink: 0;
+        }
+
+        /* ===== EMERGENCY BANNER ===== */
+        .emergency-banner {
+            padding: 12px 18px;
+            background: rgba(255, 139, 139, 0.08);
+            border: 1.5px solid var(--coral);
+            border-radius: var(--border-radius-sm);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .eb-text {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            flex: 1;
+        }
+
+        .eb-btn {
+            padding: 6px 14px;
+            background: var(--coral);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            font-family: 'Nunito', sans-serif;
+            font-size: 0.75rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .eb-btn:hover {
+            background: #e07070;
+        }
+
+        /* ===== MOBILE TOPBAR ===== */
+        .mobile-topbar {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background: var(--warm-white);
+            border-bottom: 2px solid var(--kraft-light);
+            z-index: 300;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 16px;
+        }
+
+        .mobile-menu-btn {
+            background: none;
+            border: none;
+            font-size: 1.4rem;
+            cursor: pointer;
+            color: var(--text-primary);
+        }
+
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(74, 55, 40, 0.3);
+            z-index: 150;
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media(max-width:1100px) {
+            .grid-main {
+                grid-template-columns: 1fr;
+            }
+
+            .grid-3 {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media(max-width:900px) {
+            :root {
+                --sidebar-width: 0px;
+            }
+
+            .sidebar {
+                transform: translateX(-240px);
+                width: 240px;
+                transition: transform 0.3s ease;
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+
+            .sidebar-overlay.open {
+                display: block;
+            }
+
+            .main-content {
+                margin-left: 0;
+                padding: 76px 16px 20px;
+            }
+
+            .mobile-topbar {
+                display: flex;
+            }
+
+            .grid-4 {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media(max-width:600px) {
+
+            .grid-3,
+            .grid-2 {
+                grid-template-columns: 1fr;
+            }
+
+            .grid-4 {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .radar-wrap {
+                flex-direction: column;
+            }
+
+            .cp-actions {
+                display: none;
+            }
+
+            .badges-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../public/js/supabase-config.js"></script>
+    <script>
+      (async () => {
+        const { data } = await window.supabaseClient.auth.getSession();
+        if (!data?.session) {
+          window.location.href = 'login.html';
+          return;
+        }
+      })();
+    </script>
+</head>
+
+<body>
+
+    <!-- Mobile Overlay -->
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+    <!-- Mobile Topbar -->
+    <div class="mobile-topbar">
+        <button class="mobile-menu-btn" onclick="toggleSidebar()">☰</button>
+        <a href="index.html" style="display:flex;align-items:center;gap:8px;text-decoration:none;">
+            <div
+                style="width:32px;height:32px;background:var(--mint);border-radius:8px;border:2px solid var(--mint-dark);display:flex;align-items:center;justify-content:center;font-size:1rem;box-shadow:2px 2px 0px var(--mint-dark);">
+                🌿</div>
+            <span style="font-size:1.1rem;font-weight:800;color:var(--text-primary);">Peace<span
+                    style="color:var(--mint-dark);">Flow</span></span>
+        </a>
+        <div style="display:flex;align-items:center;gap:8px;">
+            <span
+                style="background:var(--peach-light);padding:3px 10px;border-radius:50px;font-size:0.75rem;font-weight:700;color:var(--peach-dark);border:1.5px solid var(--peach);">⭐
+                295 XP</span>
+            <div
+                style="width:34px;height:34px;border-radius:50%;background:var(--lavender-light);border:2px solid var(--kraft);display:flex;align-items:center;justify-content:center;font-size:1rem;">
+                🐱</div>
+        </div>
+    </div>
+
+    <!-- ===== SIDEBAR ===== -->
+    <aside class="sidebar" id="sidebar">
+        <a href="index.html" class="sidebar-logo">
+            <div class="logo-icon">🌿</div>
+            <div class="logo-text">Peace<span>Flow</span></div>
+        </a>
+
+        <nav class="sidebar-nav">
+            <div class="nav-section-label">Chính</div>
+            <a href="dashboard.html" class="nav-item active">
+                <span class="ni">🏡</span> Tổng quan
+            </a>
+            <a href="mood-checkin.html" class="nav-item ">
+                <span class="ni">💭</span> Tâm trạng
+            </a>
+            <a href="tasks.html" class="nav-item ">
+                <span class="ni">🎮</span> Nhiệm vụ
+            </a>
+            <a href="journal.html" class="nav-item ">
+                <span class="ni">📝</span> Nhật ký
+            </a>
+
+            <div class="nav-section-label" style="margin-top:8px;">Kết nối</div>
+            <a href="experts.html" class="nav-item ">
+                <span class="ni">🩺</span> Chuyên gia
+            </a>
+            <a href="community.html" class="nav-item ">
+                <span class="ni">👥</span> Cộng đồng
+            </a>
+
+            <div class="nav-section-label" style="margin-top:8px;">Phân tích</div>
+            <a href="report.html" class="nav-item ">
+                <span class="ni">📊</span> Báo cáo
+            </a>
+            <a href="achievements.html" class="nav-item ">
+                <span class="ni">🏅</span> Thành tích
+            </a>
+
+            <div class="nav-section-label" style="margin-top:8px;">Cài đặt</div>
+            <a href="profile.html" class="nav-item ">
+                <span class="ni">👤</span> Hồ sơ
+            </a>
+            <a href="settings.html" class="nav-item ">
+                <span class="ni">⚙️</span> Cài đặt
+            </a>
+            <a href="#" class="nav-item" onclick="handleLogout()" style="color:var(--coral); margin-top: 10px; border-top: 1px dashed var(--kraft-light); padding-top: 15px;">
+                <span class="ni">🚪</span> Đăng xuất
+            </a>
+        </nav>
+
+        <div class="sidebar-bottom">
+            <div class="user-card-mini">
+                <div class="user-avatar-mini">🐱</div>
+                <div class="user-info-mini">
+                    <div class="user-name">Khách hàng giả lập</div>
+                    <div class="user-level">⭐ 295 XP · Level 2</div>
+                </div>
+            </div>
+            <a href="emergency.html" class="emergency-btn">
+                🆘 Hỗ trợ khẩn cấp
+            </a>
+        </div>
+    </aside>
+
+    <main class="main-content">
+    <div class="page-header">
+            <div>
+                <div class="page-title">🌿 Xin chào, Khách hàng giả lập!</div>
+                <div class="page-subtitle handwritten" style="font-size:1rem;color:var(--mint-dark);">"Hôm nay là một
+                    ngày mới để tiến bộ 🌱"</div>
+            </div>
+            <div class="header-actions">
+                <button class="btn-outline" onclick="location.href='#'">📊 Báo cáo tuần</button>
+                <a href="mood-checkin.html" class="btn-primary">💭 Check-in ngay</a>
+            </div>
+        </div>
+
+        <!-- Mood Check-in Prompt -->
+        <div class="paper-card checkin-prompt">
+            <div class="cp-mascot">🐱</div>
+            <div class="cp-text">
+                <div class="cp-title">Chào buổi sáng! Hôm nay bạn cảm thấy thế nào? ☀️</div>
+                <div class="cp-sub">Chỉ mất 30 giây — check-in để PeaceFlow gợi ý nhiệm vụ phù hợp nhất cho bạn nhé!
+                </div>
+            </div>
+            <div class="cp-actions">
+                <a href="mood-checkin.html" class="btn-primary" style="font-size:0.82rem;padding:9px 16px;">Bắt đầu
+                    →</a>
+            </div>
+        </div>
+
+        <!-- STAT CARDS -->
+        <div class="grid-4">
+            <div class="paper-card stat-card">
+                <div class="sc-icon mint">💭</div>
+                <div class="sc-value" id="stat-mood">--</div>
+                <div class="sc-label">Tâm trạng hôm nay</div>
+                <div class="sc-change sc-up" id="trend-mood" style="color: var(--text-light)">Chưa có dữ liệu</div>
+            </div>
+            <div class="paper-card stat-card">
+                <div class="sc-icon peach">🔥</div>
+                <div class="sc-value" id="stat-streak">0</div>
+                <div class="sc-label">Ngày streak liên tục</div>
+                <div class="sc-change sc-up" id="trend-streak" style="color: var(--text-light)">Bắt đầu ngay hôm nay!</div>
+            </div>
+            <div class="paper-card stat-card">
+                <div class="sc-icon sky">✅</div>
+                <div class="sc-value" id="stat-tasks">0</div>
+                <div class="sc-label">Nhiệm vụ tuần này</div>
+                <div class="sc-change sc-up" id="trend-tasks" style="color: var(--text-light)">Chưa hoàn thành nhiệm vụ nào</div>
+            </div>
+            <div class="paper-card stat-card">
+                <div class="sc-icon lavender">📉</div>
+                <div class="sc-value" id="stat-anxiety">--</div>
+                <div class="sc-label">Mức lo âu (2 tuần)</div>
+                <div class="sc-change sc-up" id="trend-anxiety" style="color: var(--text-light)">Chưa đủ dữ liệu</div>
+            </div>
+        </div>
+
+        <!-- MAIN GRID: Chart + Garden -->
+        <div class="grid-main">
+            <!-- Left Column -->
+            <div>
+                <!-- Mood Chart -->
+                <div class="paper-card chart-card" style="margin-bottom:18px;">
+                    <div class="chart-header">
+                        <div class="chart-title">📈 Biểu đồ tâm trạng</div>
+                        <div class="chart-tabs">
+                            <button class="chart-tab active" onclick="switchTab(this,'7d')">7 ngày</button>
+                            <button class="chart-tab" onclick="switchTab(this,'30d')">30 ngày</button>
+                            <button class="chart-tab" onclick="switchTab(this,'3m')">3 tháng</button>
+                        </div>
+                    </div>
+                    <div class="mood-chart-area">
+                        <svg class="chart-svg" viewBox="0 0 500 140" preserveAspectRatio="none" id="moodChartSvg">
+                            <!-- Grid lines -->
+                            <line x1="0" y1="28" x2="500" y2="28" stroke="#E8CBA7" stroke-width="1"
+                                stroke-dasharray="4,4" />
+                            <line x1="0" y1="70" x2="500" y2="70" stroke="#E8CBA7" stroke-width="1"
+                                stroke-dasharray="4,4" />
+                            <line x1="0" y1="112" x2="500" y2="112" stroke="#E8CBA7" stroke-width="1"
+                                stroke-dasharray="4,4" />
+                            <!-- Y labels -->
+                            <text x="4" y="26" font-size="10" fill="#A89585" font-family="Nunito">10</text>
+                            <text x="4" y="68" font-size="10" fill="#A89585" font-family="Nunito">5</text>
+                            <text x="4" y="110" font-size="10" fill="#A89585" font-family="Nunito">1</text>
+                            <!-- Area fill -->
+                            <defs>
+                                <linearGradient id="moodGrad" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="0%" stop-color="#A8D5BA" stop-opacity="0.4" />
+                                    <stop offset="100%" stop-color="#A8D5BA" stop-opacity="0.05" />
+                                </linearGradient>
+                            </defs>
+                            <path id="moodArea"
+                                d="M30,90 C80,85 130,60 180,55 C230,50 280,75 330,65 C380,55 430,40 470,35 L470,130 L30,130 Z"
+                                fill="url(#moodGrad)" />
+                            <!-- Line -->
+                            <path id="moodLine"
+                                d="M30,90 C80,85 130,60 180,55 C230,50 280,75 330,65 C380,55 430,40 470,35" fill="none"
+                                stroke="#7BBF95" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+                            <!-- Data points -->
+                            <circle cx="30" cy="90" r="5" fill="#7BBF95" stroke="white" stroke-width="2" />
+                            <circle cx="110" cy="72" r="5" fill="#7BBF95" stroke="white" stroke-width="2" />
+                            <circle cx="190" cy="55" r="5" fill="#7BBF95" stroke="white" stroke-width="2" />
+                            <circle cx="270" cy="75" r="5" fill="#7BBF95" stroke="white" stroke-width="2" />
+                            <circle cx="350" cy="60" r="5" fill="#7BBF95" stroke="white" stroke-width="2" />
+                            <circle cx="430" cy="42" r="5" fill="#7BBF95" stroke="white" stroke-width="2" />
+                            <circle cx="470" cy="35" r="6" fill="#FFCBA4" stroke="#E8A876" stroke-width="2" />
+                            <!-- Tooltip for last point -->
+                            <rect x="445" y="14" width="50" height="18" rx="6" fill="#4A3728" opacity="0.85" />
+                            <text x="470" y="26" font-size="10" fill="white" font-family="Nunito" font-weight="700"
+                                text-anchor="middle">6.2 😊</text>
+                        </svg>
+                    </div>
+                    <div class="chart-labels">
+                        <span>T2</span><span>T3</span><span>T4</span><span>T5</span><span>T6</span><span>T7</span><span>CN</span>
+                    </div>
+                </div>
+
+                <!-- AI Insight -->
+                <div class="paper-card insight-card" style="margin-bottom:18px;">
+                    <div class="insight-header">
+                        <div class="insight-icon">🤖</div>
+                        <div class="insight-title">Insight từ PeaceCat AI</div>
+                        <span class="badge-pill badge-mint" style="margin-left:auto;">Mới</span>
+                    </div>
+                    <div class="insight-text">
+                        Trong <strong>7 ngày qua</strong>, tâm trạng của bạn có xu hướng tăng đều — đặc biệt sau khi
+                        hoàn thành bài <strong>thiền buổi sáng</strong>. Mức lo âu giảm <strong>23%</strong> so với 2
+                        tuần trước. Tiếp tục duy trì nhé! 🌱<br><br>
+                        💡 <em>Gợi ý: Thêm bài tập "Đi bộ ngắm cảnh" vào cuối tuần có thể giúp bạn duy trì đà tích cực
+                            này.</em>
+                    </div>
+                    <div class="insight-tags">
+                        <span class="badge-pill badge-mint">🧘 Thiền hiệu quả</span>
+                        <span class="badge-pill badge-peach">😴 Ngủ tốt hơn</span>
+                        <span class="badge-pill badge-lavender">📈 Đang tiến bộ</span>
+                    </div>
+                </div>
+
+                <!-- Radar Chart -->
+                <div class="paper-card radar-card" style="margin-bottom:18px;">
+                    <div class="section-title">
+                        <span class="st-icon">🕸️</span> Sức khỏe tổng thể
+                        <a href="#" class="st-link">Xem chi tiết →</a>
+                    </div>
+                    <div class="radar-wrap">
+                        <div class="radar-svg-wrap">
+                            <svg width="160" height="160" viewBox="0 0 160 160">
+                                <!-- Background hexagon grid -->
+                                <polygon points="80,20 130,47 130,113 80,140 30,113 30,47" fill="none" stroke="#E8CBA7"
+                                    stroke-width="1.5" />
+                                <polygon points="80,40 115,57 115,103 80,120 45,103 45,57" fill="none" stroke="#E8CBA7"
+                                    stroke-width="1" />
+                                <polygon points="80,58 100,68 100,92 80,102 60,92 60,68" fill="none" stroke="#E8CBA7"
+                                    stroke-width="1" />
+                                <!-- Axis lines -->
+                                <line x1="80" y1="20" x2="80" y2="140" stroke="#E8CBA7" stroke-width="1" />
+                                <line x1="30" y1="47" x2="130" y2="113" stroke="#E8CBA7" stroke-width="1" />
+                                <line x1="130" y1="47" x2="30" y2="113" stroke="#E8CBA7" stroke-width="1" />
+                                <!-- Data polygon -->
+                                <polygon points="80,32 122,60 118,100 80,128 42,105 38,58" fill="rgba(168,213,186,0.35)"
+                                    stroke="#7BBF95" stroke-width="2.5" />
+                                <!-- Data points -->
+                                <circle cx="80" cy="32" r="4" fill="#7BBF95" />
+                                <circle cx="122" cy="60" r="4" fill="#7BBF95" />
+                                <circle cx="118" cy="100" r="4" fill="#7BBF95" />
+                                <circle cx="80" cy="128" r="4" fill="#7BBF95" />
+                                <circle cx="42" cy="105" r="4" fill="#7BBF95" />
+                                <circle cx="38" cy="58" r="4" fill="#7BBF95" />
+                                <!-- Labels -->
+                                <text x="80" y="14" text-anchor="middle" font-size="9" fill="#7A6555"
+                                    font-family="Nunito" font-weight="700">Cảm xúc</text>
+                                <text x="138" y="52" text-anchor="start" font-size="9" fill="#7A6555"
+                                    font-family="Nunito" font-weight="700">Xã hội</text>
+                                <text x="138" y="116" text-anchor="start" font-size="9" fill="#7A6555"
+                                    font-family="Nunito" font-weight="700">Thể chất</text>
+                                <text x="80" y="152" text-anchor="middle" font-size="9" fill="#7A6555"
+                                    font-family="Nunito" font-weight="700">Giấc ngủ</text>
+                                <text x="22" y="116" text-anchor="end" font-size="9" fill="#7A6555" font-family="Nunito"
+                                    font-weight="700">Stress</text>
+                                <text x="22" y="52" text-anchor="end" font-size="9" fill="#7A6555" font-family="Nunito"
+                                    font-weight="700">Lo âu</text>
+                            </svg>
+                        </div>
+                        <div class="radar-legend">
+                            <div class="rl-item">
+                                <div class="rl-dot" style="background:#7BBF95"></div><span class="rl-label">Cảm
+                                    xúc</span><span class="rl-val">8.2</span>
+                            </div>
+                            <div class="rl-item">
+                                <div class="rl-dot" style="background:#A8D8EA"></div><span class="rl-label">Xã
+                                    hội</span><span class="rl-val">7.5</span>
+                            </div>
+                            <div class="rl-item">
+                                <div class="rl-dot" style="background:#FFCBA4"></div><span class="rl-label">Thể
+                                    chất</span><span class="rl-val">7.8</span>
+                            </div>
+                            <div class="rl-item">
+                                <div class="rl-dot" style="background:#C3AED6"></div><span class="rl-label">Giấc
+                                    ngủ</span><span class="rl-val">6.9</span>
+                            </div>
+                            <div class="rl-item">
+                                <div class="rl-dot" style="background:#FF8B8B"></div><span
+                                    class="rl-label">Stress</span><span class="rl-val">5.4</span>
+                            </div>
+                            <div class="rl-item">
+                                <div class="rl-dot" style="background:#D4A574"></div><span class="rl-label">Lo
+                                    âu</span><span class="rl-val">4.8</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column -->
+            <div>
+                <!-- Garden -->
+                <div class="paper-card garden-card" style="margin-bottom:18px;">
+                    <div class="section-title">
+                        <span class="st-icon">🌳</span> Khu vườn tâm hồn
+                        <a href="#" class="st-link">Xem đầy đủ →</a>
+                    </div>
+                    <div class="garden-scene">
+                        <div class="garden-sky">
+                            <div class="g-sun"></div>
+                            <div class="g-cloud g-cloud-1"></div>
+                            <div class="g-cloud g-cloud-2"></div>
+                            <div class="g-rainbow show" id="gardenRainbow"></div>
+                            <div class="g-butterfly g-butterfly-1">🦋</div>
+                            <div class="g-butterfly g-butterfly-2">🦋</div>
+                        </div>
+                        <!-- Tree 1: Cảm xúc (healthy) -->
+                        <div class="garden-tree garden-tree-1">
+                            <div class="gt-top"
+                                style="border-left-width:18px;border-right-width:18px;border-bottom-width:32px;border-bottom-color:#7BBF95;">
+                            </div>
+                            <div class="gt-trunk" style="width:8px;height:22px;"></div>
+                            <div class="gt-flower" style="top:-42px;left:8px;">🌸</div>
+                        </div>
+                        <!-- Tree 2: Giấc ngủ (medium) -->
+                        <div class="garden-tree garden-tree-2">
+                            <div class="gt-top"
+                                style="border-left-width:14px;border-right-width:14px;border-bottom-width:26px;border-bottom-color:#A8D5BA;">
+                            </div>
+                            <div class="gt-trunk" style="width:7px;height:18px;"></div>
+                        </div>
+                        <!-- Tree 3: Stress (needs care) -->
+                        <div class="garden-tree garden-tree-3">
+                            <div class="gt-top"
+                                style="border-left-width:20px;border-right-width:20px;border-bottom-width:38px;border-bottom-color:#7BBF95;">
+                            </div>
+                            <div class="gt-trunk" style="width:9px;height:26px;"></div>
+                            <div class="gt-flower" style="top:-50px;left:-8px;">🌼</div>
+                            <div class="gt-flower" style="top:-40px;right:-6px;animation-delay:-1s;">🌺</div>
+                        </div>
+                        <!-- Tree 4: Xã hội -->
+                        <div class="garden-tree garden-tree-4">
+                            <div class="gt-top"
+                                style="border-left-width:15px;border-right-width:15px;border-bottom-width:28px;border-bottom-color:#A8D5BA;">
+                            </div>
+                            <div class="gt-trunk" style="width:7px;height:20px;"></div>
+                        </div>
+                        <!-- Tree 5: Thể chất -->
+                        <div class="garden-tree garden-tree-5">
+                            <div class="gt-top"
+                                style="border-left-width:13px;border-right-width:13px;border-bottom-width:24px;border-bottom-color:#C5E8D2;">
+                            </div>
+                            <div class="gt-trunk" style="width:6px;height:16px;"></div>
+                        </div>
+                        <div class="g-mascot">🐱</div>
+                    </div>
+                    <div class="garden-legend">
+                        <div class="gl-item">
+                            <div class="gl-dot" style="background:#7BBF95"></div>Cảm xúc — Rất tốt 🌸
+                        </div>
+                        <div class="gl-item">
+                            <div class="gl-dot" style="background:#A8D5BA"></div>Giấc ngủ — Tốt 😴
+                        </div>
+                        <div class="gl-item">
+                            <div class="gl-dot" style="background:#7BBF95"></div>Thể chất — Tốt 💪
+                        </div>
+                        <div class="gl-item">
+                            <div class="gl-dot" style="background:#C5E8D2"></div>Xã hội — Cần chú ý 🤝
+                        </div>
+                    </div>
+                </div>
+
+                <!-- XP & Level -->
+                <div class="paper-card xp-card" style="margin-bottom:18px;">
+                    <div class="xp-header">
+                        <div class="xp-level-badge">
+                            <div class="xp-level-circle">2</div>
+                            <div class="xp-level-info">
+                                <div class="xl-name">Người khám phá</div>
+                                <div class="xl-range">100 – 300 XP</div>
+                            </div>
+                        </div>
+                        <div class="xp-total">295 XP</div>
+                    </div>
+                    <div class="xp-bar-wrap">
+                        <div class="xp-bar-fill" style="width:97.5%"></div>
+                    </div>
+                    <div class="xp-bar-labels">
+                        <span>100 XP</span>
+                        <span>Còn 5 XP → Level 3 🎉</span>
+                        <span>300 XP</span>
+                    </div>
+                </div>
+
+                <!-- Streak -->
+                <div class="paper-card streak-card" style="margin-bottom:18px;">
+                    <div class="streak-fire">🔥</div>
+                    <div class="streak-number">7</div>
+                    <div class="streak-label">ngày streak liên tục</div>
+                    <div class="streak-days">
+                        <div class="streak-day done">T2</div>
+                        <div class="streak-day done">T3</div>
+                        <div class="streak-day done">T4</div>
+                        <div class="streak-day done">T5</div>
+                        <div class="streak-day done">T6</div>
+                        <div class="streak-day done">T7</div>
+                        <div class="streak-day today">CN</div>
+                    </div>
+                </div>
+
+                <!-- Weekly Challenge -->
+                <div class="paper-card challenge-card" style="margin-bottom:18px;">
+                    <div class="challenge-header">
+                        <span style="font-size:1.3rem;">🏆</span>
+                        <div class="challenge-title">Thử thách tuần này</div>
+                        <span class="badge-pill badge-peach" style="margin-left:auto;">4 ngày còn lại</span>
+                    </div>
+                    <div class="challenge-desc">🧘 <strong>7 ngày thiền liên tục</strong> — Cùng cộng đồng PeaceFlow
+                        thiền mỗi ngày!</div>
+                    <div class="challenge-progress-bar">
+                        <div class="challenge-progress-fill" style="width:57%"></div>
+                    </div>
+                    <div class="challenge-meta">
+                        <span>4/7 ngày hoàn thành</span>
+                        <span>🌟 +80 XP khi hoàn thành</span>
+                    </div>
+                </div>
+
+                <!-- Upcoming Expert Session -->
+                <div class="paper-card" style="margin-bottom:0;overflow:hidden;">
+                    <div
+                        style="padding:14px 18px 8px;font-size:0.85rem;font-weight:700;border-bottom:1px solid var(--kraft-light);">
+                        🩺 Phiên tư vấn sắp tới</div>
+                    <div class="expert-mini-card">
+                        <div class="expert-avatar">👩‍⚕️</div>
+                        <div class="expert-info">
+                            <div class="expert-name">Bs. Nguyễn Thị An</div>
+                            <div class="expert-type">📹 Video call · 45 phút</div>
+                            <div class="expert-time">⏰ Thứ 4, 15:00 — còn 2 ngày</div>
+                        </div>
+                        <button class="btn-outline" style="font-size:0.72rem;padding:6px 12px;">Xem</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TASKS SECTION -->
+        <div class="grid-2">
+            <!-- Today's Tasks -->
+            <div class="paper-card" style="overflow:hidden;">
+                <div
+                    style="padding:16px 18px;border-bottom:2px solid var(--kraft-light);display:flex;align-items:center;justify-content:space-between;">
+                    <div class="section-title" style="margin-bottom:0;">
+                        <span class="st-icon">🎯</span> Nhiệm vụ hôm nay
+                    </div>
+                    <a href="tasks.html" class="st-link"
+                        style="font-size:0.75rem;color:var(--mint-dark);font-weight:600;text-decoration:none;">Xem tất
+                        cả →</a>
+                </div>
+                <!-- Redirects to task-breathing.html -->
+                <div class="task-card paper-card" style="border:none;border-radius:0;box-shadow:none;cursor:pointer;"
+                    onclick="location.href='task-breathing.html'">
+                    <div class="task-icon-box easy">💨</div>
+                    <div class="task-info">
+                        <div class="task-name">Hít thở sâu 4-4-4</div>
+                        <div class="task-meta"><span>⏱ 2 phút</span><span>🔴 Cấp 0</span></div>
+                    </div>
+                    <span class="task-xp">+10 XP</span>
+                </div>
+                <div class="task-divider"></div>
+                <!-- Redirects to task-detail.html -->
+                <div class="task-card paper-card" style="border:none;border-radius:0;box-shadow:none;cursor:pointer;"
+                    onclick="location.href='task-detail.html?id=1.30'">
+                    <div class="task-icon-box easy">🙏</div>
+                    <div class="task-info">
+                        <div class="task-name">3 điều biết ơn</div>
+                        <div class="task-meta"><span>⏱ 5 phút</span><span>🟢 Cấp 1</span></div>
+                    </div>
+                    <span class="task-xp">+10 XP</span>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Sidebar actions JS -->
+    <script>
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('open');
+            document.getElementById('sidebarOverlay').classList.toggle('open');
+            document.body.style.overflow = document.body.style.overflow === 'hidden' ? '' : 'hidden';
+        }
+        function closeSidebar() {
+            document.getElementById('sidebar').classList.remove('open');
+            document.getElementById('sidebarOverlay').classList.remove('open');
+            document.body.style.overflow = '';
+        }
+    </script>
+
+    <script type="module" src="../public/js/dashboard.js"></script>
+</body>
+
+</html>

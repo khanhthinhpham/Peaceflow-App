@@ -1,0 +1,1790 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PeaceFlow — Nhiệm Vụ</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Patrick+Hand&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --cream: #FFF8F0;
+            --warm-white: #FFFDF7;
+            --kraft: #D4A574;
+            --kraft-light: #E8CBA7;
+            --kraft-dark: #B8895A;
+            --mint: #A8D5BA;
+            --mint-light: #C5E8D2;
+            --mint-dark: #7BBF95;
+            --peach: #FFCBA4;
+            --peach-light: #FFE0C4;
+            --peach-dark: #E8A876;
+            --sky: #A8D8EA;
+            --sky-light: #C5E8F5;
+            --lavender: #C3AED6;
+            --lavender-light: #DDD1EB;
+            --coral: #FF8B8B;
+            --coral-light: #FFB3B3;
+            --yellow: #FFD93D;
+            --yellow-light: #FFF3B0;
+            --orange: #FFB347;
+            --orange-light: #FFE0B2;
+            --blue: #74B9FF;
+            --blue-light: #D6EAFF;
+            --text-primary: #4A3728;
+            --text-secondary: #7A6555;
+            --text-light: #A89585;
+            --shadow-paper: 3px 3px 0px rgba(74, 55, 40, 0.1);
+            --shadow-paper-hover: 5px 5px 0px rgba(74, 55, 40, 0.15);
+            --border-radius: 16px;
+            --border-radius-sm: 10px;
+            --transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            --sidebar-width: 240px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background: var(--cream);
+            color: var(--text-primary);
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        .handwritten {
+            font-family: 'Patrick Hand', cursive;
+        }
+
+        .paper-card {
+            background: var(--warm-white);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-paper);
+            border: 2px solid var(--kraft-light);
+            transition: var(--transition);
+        }
+
+        /* ===== SIDEBAR ===== */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            width: var(--sidebar-width);
+            background: var(--warm-white);
+            border-right: 2px solid var(--kraft-light);
+            z-index: 200;
+            display: flex;
+            flex-direction: column;
+            padding: 20px 0;
+        }
+
+        .sidebar-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 0 20px 20px;
+            border-bottom: 2px dashed var(--kraft-light);
+            margin-bottom: 16px;
+            text-decoration: none;
+        }
+
+        .sidebar-logo .logo-icon {
+            width: 38px;
+            height: 38px;
+            background: var(--mint);
+            border-radius: 10px;
+            border: 2px solid var(--mint-dark);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            box-shadow: 2px 2px 0px var(--mint-dark);
+        }
+
+        .sidebar-logo .logo-text {
+            font-size: 1.2rem;
+            font-weight: 800;
+            color: var(--text-primary);
+        }
+
+        .sidebar-logo .logo-text span {
+            color: var(--mint-dark);
+        }
+
+        .sidebar-nav {
+            flex: 1;
+            padding: 0 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            overflow-y: auto;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            border-radius: var(--border-radius-sm);
+            text-decoration: none;
+            color: var(--text-secondary);
+            font-weight: 600;
+            font-size: 0.88rem;
+            transition: var(--transition);
+        }
+
+        .nav-item:hover {
+            background: var(--mint-light);
+            color: var(--text-primary);
+        }
+
+        .nav-item.active {
+            background: var(--mint-light);
+            color: var(--text-primary);
+            border: 1.5px solid var(--mint);
+        }
+
+        .nav-item .ni {
+            font-size: 1.1rem;
+            width: 22px;
+            text-align: center;
+        }
+
+        .nav-section-label {
+            font-size: 0.68rem;
+            font-weight: 700;
+            color: var(--text-light);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            padding: 10px 12px 4px;
+        }
+
+        .sidebar-bottom {
+            padding: 12px;
+            border-top: 2px dashed var(--kraft-light);
+            margin-top: auto;
+        }
+
+        .user-card-mini {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            background: var(--cream);
+            border-radius: var(--border-radius-sm);
+            border: 1.5px solid var(--kraft-light);
+        }
+
+        .user-avatar-mini {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--lavender-light);
+            border: 2px solid var(--kraft);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+        }
+
+        .user-info-mini .user-name {
+            font-size: 0.85rem;
+            font-weight: 700;
+        }
+
+        .user-info-mini .user-level {
+            font-size: 0.72rem;
+            color: var(--text-light);
+        }
+
+        .emergency-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 12px;
+            background: rgba(255, 139, 139, 0.1);
+            border: 1.5px solid var(--coral);
+            border-radius: var(--border-radius-sm);
+            color: var(--coral);
+            font-size: 0.78rem;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 8px;
+            transition: var(--transition);
+            text-decoration: none;
+        }
+
+        .emergency-btn:hover {
+            background: rgba(255, 139, 139, 0.2);
+        }
+
+        /* ===== MOBILE ===== */
+        .mobile-topbar {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background: var(--warm-white);
+            border-bottom: 2px solid var(--kraft-light);
+            z-index: 300;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 16px;
+        }
+
+        .mobile-menu-btn {
+            background: none;
+            border: none;
+            font-size: 1.4rem;
+            cursor: pointer;
+        }
+
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(74, 55, 40, 0.3);
+            z-index: 150;
+        }
+
+        /* ===== MAIN ===== */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            padding: 28px;
+            min-height: 100vh;
+        }
+
+        .page-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .page-title {
+            font-size: 1.5rem;
+            font-weight: 800;
+        }
+
+        .page-subtitle {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .btn-primary {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 10px 20px;
+            border: 2px solid var(--mint-dark);
+            border-radius: 50px;
+            background: var(--mint);
+            color: var(--text-primary);
+            font-family: 'Nunito', sans-serif;
+            font-size: 0.88rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: var(--transition);
+            box-shadow: 2px 2px 0px var(--mint-dark);
+            text-decoration: none;
+        }
+
+        .btn-primary:hover {
+            background: var(--mint-dark);
+            color: white;
+            transform: translate(1px, 1px);
+            box-shadow: 1px 1px 0px var(--mint-dark);
+        }
+
+        .btn-outline {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 9px 18px;
+            border: 2px solid var(--kraft-light);
+            border-radius: 50px;
+            background: transparent;
+            color: var(--text-secondary);
+            font-family: 'Nunito', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .btn-outline:hover {
+            background: var(--kraft-light);
+            color: var(--text-primary);
+        }
+
+        .badge-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 3px 10px;
+            border-radius: 50px;
+            font-size: 0.72rem;
+            font-weight: 700;
+        }
+
+        .badge-mint {
+            background: var(--mint-light);
+            color: var(--mint-dark);
+            border: 1.5px solid var(--mint);
+        }
+
+        .badge-peach {
+            background: var(--peach-light);
+            color: var(--peach-dark);
+            border: 1.5px solid var(--peach);
+        }
+
+        .badge-coral {
+            background: var(--coral-light);
+            color: #c05050;
+            border: 1.5px solid var(--coral);
+        }
+
+        .badge-yellow {
+            background: var(--yellow-light);
+            color: #b8860b;
+            border: 1.5px solid var(--yellow);
+        }
+
+        .badge-orange {
+            background: var(--orange-light);
+            color: #c06000;
+            border: 1.5px solid var(--orange);
+        }
+
+        .badge-blue {
+            background: var(--blue-light);
+            color: #2060aa;
+            border: 1.5px solid var(--blue);
+        }
+
+        /* ===== XP BAR TOP ===== */
+        .xp-topbar {
+            padding: 14px 20px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            background: linear-gradient(135deg, var(--mint-light), var(--sky-light));
+            border-color: var(--mint);
+        }
+
+        .xp-level-badge {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: var(--mint);
+            border: 3px solid var(--mint-dark);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            font-weight: 800;
+            color: var(--mint-dark);
+            box-shadow: 3px 3px 0px var(--mint-dark);
+            flex-shrink: 0;
+        }
+
+        .xp-info {
+            flex: 1;
+        }
+
+        .xp-info .xi-name {
+            font-size: 0.88rem;
+            font-weight: 700;
+        }
+
+        .xp-info .xi-range {
+            font-size: 0.72rem;
+            color: var(--text-secondary);
+        }
+
+        .xp-bar-wrap {
+            flex: 2;
+            min-width: 0;
+        }
+
+        .xp-bar-bg {
+            height: 10px;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 50px;
+            overflow: hidden;
+            border: 1.5px solid rgba(255, 255, 255, 0.7);
+        }
+
+        .xp-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--mint-dark), var(--mint));
+            border-radius: 50px;
+            transition: width 1s ease;
+        }
+
+        .xp-bar-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.68rem;
+            color: var(--text-secondary);
+            margin-top: 3px;
+        }
+
+        .xp-total {
+            font-size: 1.3rem;
+            font-weight: 800;
+            color: var(--mint-dark);
+            flex-shrink: 0;
+        }
+
+        /* ===== AI SUGGESTION BANNER ===== */
+        .ai-suggestion {
+            padding: 16px 20px;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, var(--peach-light), var(--mint-light));
+            border-color: var(--peach);
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .ai-mascot {
+            font-size: 2rem;
+            animation: bounce-ai 3s ease-in-out infinite;
+            flex-shrink: 0;
+        }
+
+        @keyframes bounce-ai {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-5px);
+            }
+        }
+
+        .ai-text .at-title {
+            font-size: 0.92rem;
+            font-weight: 700;
+            margin-bottom: 3px;
+        }
+
+        .ai-text .at-sub {
+            font-size: 0.78rem;
+            color: var(--text-secondary);
+        }
+
+        .ai-actions {
+            display: flex;
+            gap: 8px;
+            margin-left: auto;
+            flex-shrink: 0;
+        }
+
+        /* ===== FILTER BAR ===== */
+        .filter-bar {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+            align-items: center;
+        }
+
+        .filter-btn {
+            padding: 7px 14px;
+            border: 2px solid var(--kraft-light);
+            border-radius: 50px;
+            background: var(--warm-white);
+            font-family: 'Nunito', sans-serif;
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .filter-btn:hover {
+            background: var(--kraft-light);
+        }
+
+        .filter-btn.active {
+            background: var(--mint-light);
+            border-color: var(--mint-dark);
+            color: var(--text-primary);
+            box-shadow: 2px 2px 0px var(--mint-dark);
+        }
+
+        .filter-btn.emergency-filter.active {
+            background: var(--coral-light);
+            border-color: var(--coral);
+            color: #c05050;
+            box-shadow: 2px 2px 0px var(--coral);
+        }
+
+        .filter-btn.easy-filter.active {
+            background: var(--mint-light);
+            border-color: var(--mint-dark);
+        }
+
+        .filter-btn.medium-filter.active {
+            background: var(--yellow-light);
+            border-color: var(--yellow);
+            color: #b8860b;
+            box-shadow: 2px 2px 0px var(--yellow);
+        }
+
+        .filter-btn.hard-filter.active {
+            background: var(--orange-light);
+            border-color: var(--orange);
+            color: #c06000;
+            box-shadow: 2px 2px 0px var(--orange);
+        }
+
+        .filter-btn.community-filter.active {
+            background: var(--blue-light);
+            border-color: var(--blue);
+            color: #2060aa;
+            box-shadow: 2px 2px 0px var(--blue);
+        }
+
+        .search-input {
+            padding: 8px 14px;
+            border: 2px solid var(--kraft-light);
+            border-radius: 50px;
+            background: var(--warm-white);
+            font-family: 'Nunito', sans-serif;
+            font-size: 0.82rem;
+            color: var(--text-primary);
+            outline: none;
+            transition: var(--transition);
+            min-width: 200px;
+        }
+
+        .search-input:focus {
+            border-color: var(--mint);
+        }
+
+        /* ===== SECTION HEADERS ===== */
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 14px;
+            padding-bottom: 10px;
+            border-bottom: 2px dashed var(--kraft-light);
+        }
+
+        .sh-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            border: 2px solid;
+            flex-shrink: 0;
+        }
+
+        .sh-title {
+            font-size: 1rem;
+            font-weight: 800;
+        }
+
+        .sh-count {
+            font-size: 0.72rem;
+            color: var(--text-light);
+            font-weight: 600;
+        }
+
+        .sh-desc {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            margin-left: auto;
+            max-width: 300px;
+            text-align: right;
+        }
+
+        /* ===== TASK GRID ===== */
+        .task-section {
+            margin-bottom: 32px;
+        }
+
+        .task-grid {
+            display: flex;
+            gap: 16px;
+            overflow-x: auto;
+            scroll-snap-type: x mandatory;
+            padding-bottom: 12px;
+        }
+
+        .task-grid::-webkit-scrollbar {
+            height: 8px;
+        }
+
+        .task-grid::-webkit-scrollbar-thumb {
+            background: var(--kraft-light);
+            border-radius: 4px;
+        }
+
+        /* ===== TASK CARD ===== */
+        .task-card {
+            flex: 0 0 calc(25% - 12px);
+            min-width: 280px;
+            scroll-snap-align: start;
+            padding: 18px;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .task-card:hover {
+            box-shadow: var(--shadow-paper-hover);
+            transform: translateY(-3px);
+        }
+
+        .task-card.completed {
+            opacity: 0.7;
+        }
+
+        .task-card.completed::after {
+            content: '✓';
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            width: 28px;
+            height: 28px;
+            background: var(--mint-dark);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+            font-weight: 800;
+        }
+
+        .task-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            border-radius: var(--border-radius) var(--border-radius) 0 0;
+        }
+
+        .task-card.cat-emergency::before {
+            background: linear-gradient(90deg, var(--coral), #ff6b6b);
+        }
+
+        .task-card.cat-easy::before {
+            background: linear-gradient(90deg, var(--mint), var(--mint-dark));
+        }
+
+        .task-card.cat-medium::before {
+            background: linear-gradient(90deg, var(--yellow), var(--orange));
+        }
+
+        .task-card.cat-hard::before {
+            background: linear-gradient(90deg, var(--orange), #e07030);
+        }
+
+        .task-card.cat-community::before {
+            background: linear-gradient(90deg, var(--blue), var(--lavender));
+        }
+
+        .tc-top {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .tc-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            flex-shrink: 0;
+            border: 2px solid;
+        }
+
+        .tc-icon.emergency {
+            background: var(--coral-light);
+            border-color: var(--coral);
+        }
+
+        .tc-icon.easy {
+            background: var(--mint-light);
+            border-color: var(--mint);
+        }
+
+        .tc-icon.medium {
+            background: var(--yellow-light);
+            border-color: var(--yellow);
+        }
+
+        .tc-icon.hard {
+            background: var(--orange-light);
+            border-color: var(--orange);
+        }
+
+        .tc-icon.community {
+            background: var(--blue-light);
+            border-color: var(--blue);
+        }
+
+        .tc-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .tc-name {
+            font-size: 0.9rem;
+            font-weight: 700;
+            margin-bottom: 3px;
+            line-height: 1.3;
+        }
+
+        .tc-meta {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .tc-meta-item {
+            font-size: 0.68rem;
+            color: var(--text-light);
+            display: flex;
+            align-items: center;
+            gap: 3px;
+        }
+
+        .tc-desc {
+            font-size: 0.78rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
+            margin-bottom: 10px;
+        }
+
+        .tc-bottom {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+        }
+
+        .tc-xp {
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: var(--peach-dark);
+            background: var(--peach-light);
+            padding: 3px 10px;
+            border-radius: 50px;
+            border: 1.5px solid var(--peach);
+        }
+
+        .tc-stats {
+            font-size: 0.68rem;
+            color: var(--text-light);
+        }
+
+        .tc-start-btn {
+            padding: 6px 14px;
+            border: 2px solid var(--mint-dark);
+            border-radius: 50px;
+            background: var(--mint-light);
+            color: var(--mint-dark);
+            font-family: 'Nunito', sans-serif;
+            font-size: 0.75rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .tc-start-btn:hover {
+            background: var(--mint-dark);
+            color: white;
+        }
+
+        .tc-start-btn.emergency {
+            border-color: var(--coral);
+            background: var(--coral-light);
+            color: #c05050;
+        }
+
+        .tc-start-btn.emergency:hover {
+            background: var(--coral);
+            color: white;
+        }
+
+        .tc-locked {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.72rem;
+            color: var(--text-light);
+            font-weight: 600;
+        }
+
+        /* ===== TASK MODAL ===== */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(74, 55, 40, 0.5);
+            z-index: 500;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal-overlay.show {
+            display: flex;
+        }
+
+        .task-modal {
+            background: var(--warm-white);
+            border-radius: 24px;
+            border: 2px solid var(--kraft-light);
+            width: 100%;
+            max-width: 560px;
+            max-height: 90vh;
+            overflow-y: auto;
+            animation: modal-in 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .task-modal::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .task-modal::-webkit-scrollbar-thumb {
+            background: var(--kraft-light);
+        }
+
+        @keyframes modal-in {
+            from {
+                transform: scale(0.85);
+                opacity: 0;
+            }
+
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .tm-header {
+            padding: 24px 24px 16px;
+            position: relative;
+        }
+
+        .tm-close {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--cream);
+            border: 2px solid var(--kraft-light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: var(--transition);
+        }
+
+        .tm-close:hover {
+            background: var(--kraft-light);
+        }
+
+        .tm-icon-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .tm-icon {
+            width: 52px;
+            height: 52px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            border: 2px solid;
+            flex-shrink: 0;
+        }
+
+        .tm-title {
+            font-size: 1.1rem;
+            font-weight: 800;
+        }
+
+        .tm-meta-row {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 10px;
+        }
+
+        .tm-body {
+            padding: 0 24px 20px;
+        }
+
+        .tm-section {
+            margin-bottom: 16px;
+        }
+
+        .tm-section-title {
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .tm-desc {
+            font-size: 0.88rem;
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+
+        .tm-steps {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .tm-step {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 10px 12px;
+            background: var(--cream);
+            border-radius: var(--border-radius-sm);
+            border: 1.5px solid var(--kraft-light);
+        }
+
+        .tm-step-num {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: var(--mint);
+            border: 2px solid var(--mint-dark);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.72rem;
+            font-weight: 800;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .tm-step-text {
+            font-size: 0.82rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        .tm-community-stat {
+            font-size: 0.78rem;
+            color: var(--text-secondary);
+            padding: 10px 14px;
+            background: var(--mint-light);
+            border: 1.5px solid var(--mint);
+            border-radius: var(--border-radius-sm);
+        }
+
+        /* Timer / Active State */
+        .tm-active {
+            padding: 20px 24px;
+            background: linear-gradient(135deg, var(--mint-light), var(--sky-light));
+            border-top: 2px solid var(--mint);
+            display: none;
+        }
+
+        .tm-active.show {
+            display: block;
+        }
+
+        .timer-display {
+            text-align: center;
+            margin-bottom: 16px;
+        }
+
+        .timer-circle {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: var(--warm-white);
+            border: 4px solid var(--mint-dark);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 8px;
+            box-shadow: 4px 4px 0px var(--mint-dark);
+        }
+
+        .timer-num {
+            font-size: 1.6rem;
+            font-weight: 800;
+            color: var(--mint-dark);
+        }
+
+        .timer-label {
+            font-size: 0.6rem;
+            color: var(--text-light);
+        }
+
+        .breathing-anim {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: var(--mint-light);
+            border: 3px solid var(--mint);
+            margin: 0 auto 12px;
+            animation: breathe 4s ease-in-out infinite;
+            display: none;
+        }
+
+        .breathing-anim.show {
+            display: block;
+        }
+
+        @keyframes breathe {
+
+            0%,
+            100% {
+                transform: scale(1);
+                background: var(--mint-light);
+            }
+
+            50% {
+                transform: scale(1.3);
+                background: var(--mint);
+            }
+        }
+
+        .breathing-text {
+            text-align: center;
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--mint-dark);
+            margin-bottom: 12px;
+        }
+
+        .tm-action-row {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        /* Feedback */
+        .tm-feedback {
+            padding: 20px 24px;
+            border-top: 2px solid var(--kraft-light);
+            display: none;
+        }
+
+        .tm-feedback.show {
+            display: block;
+        }
+
+        .tf-title {
+            font-size: 0.9rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+            text-align: center;
+        }
+
+        .tf-emojis {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 14px;
+        }
+
+        .tf-emoji-btn {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            border: 2px solid var(--kraft-light);
+            background: var(--cream);
+            cursor: pointer;
+            font-size: 1.4rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
+        }
+
+        .tf-emoji-btn:hover,
+        .tf-emoji-btn.selected {
+            border-color: var(--mint-dark);
+            background: var(--mint-light);
+            box-shadow: 2px 2px 0px var(--mint-dark);
+            transform: scale(1.1);
+        }
+
+        .xp-reward {
+            text-align: center;
+            padding: 14px;
+            background: var(--peach-light);
+            border: 2px solid var(--peach);
+            border-radius: var(--border-radius-sm);
+            margin-bottom: 12px;
+            animation: xp-pop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        @keyframes xp-pop {
+            from {
+                transform: scale(0.8);
+                opacity: 0;
+            }
+
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .xp-reward .xr-num {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: var(--peach-dark);
+        }
+
+        .xp-reward .xr-label {
+            font-size: 0.78rem;
+            color: var(--text-secondary);
+        }
+
+        /* Confetti */
+        .confetti-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 999;
+        }
+
+        .confetti-piece {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            border-radius: 2px;
+            animation: confetti-fall 2s ease-in forwards;
+        }
+
+        @keyframes confetti-fall {
+            0% {
+                transform: translateY(-20px) rotate(0deg);
+                opacity: 1;
+            }
+
+            100% {
+                transform: translateY(100vh) rotate(720deg);
+                opacity: 0;
+            }
+        }
+
+        /* ===== WEEKLY CHALLENGE ===== */
+        .weekly-challenge {
+            padding: 18px 20px;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, var(--peach-light), var(--lavender-light));
+            border-color: var(--peach);
+        }
+
+        .wc-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+
+        .wc-title {
+            font-size: 0.95rem;
+            font-weight: 700;
+        }
+
+        .wc-desc {
+            font-size: 0.82rem;
+            color: var(--text-secondary);
+            margin-bottom: 10px;
+        }
+
+        .wc-progress-bar {
+            height: 10px;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 50px;
+            overflow: hidden;
+            border: 1.5px solid rgba(255, 255, 255, 0.7);
+            margin-bottom: 6px;
+        }
+
+        .wc-progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--peach-dark), var(--coral));
+            border-radius: 50px;
+        }
+
+        .wc-meta {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.72rem;
+            color: var(--text-secondary);
+        }
+
+        /* ===== EMERGENCY OVERLAY ===== */
+        .emergency-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(74, 55, 40, 0.5);
+            z-index: 1000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .emergency-overlay.show {
+            display: flex;
+        }
+
+        .emergency-popup {
+            background: var(--warm-white);
+            border-radius: 24px;
+            border: 3px solid var(--coral);
+            padding: 32px;
+            max-width: 420px;
+            width: 100%;
+            box-shadow: 6px 6px 0px rgba(255, 139, 139, 0.3);
+            animation: modal-in 0.4s ease;
+        }
+
+        .ep-icon {
+            font-size: 2.5rem;
+            text-align: center;
+            margin-bottom: 8px;
+        }
+
+        .ep-title {
+            font-size: 1.2rem;
+            font-weight: 800;
+            color: var(--coral);
+            text-align: center;
+            margin-bottom: 6px;
+        }
+
+        .ep-text {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-bottom: 16px;
+            text-align: center;
+        }
+
+        .ep-hotline {
+            padding: 14px;
+            background: rgba(255, 139, 139, 0.1);
+            border: 2px solid var(--coral);
+            border-radius: var(--border-radius-sm);
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .ep-hotline .eph-num {
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: var(--coral);
+        }
+
+        .ep-hotline .eph-label {
+            font-size: 0.72rem;
+            color: var(--text-secondary);
+        }
+
+        .ep-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .ep-btn {
+            padding: 12px;
+            border-radius: 50px;
+            font-family: 'Nunito', sans-serif;
+            font-size: 0.88rem;
+            font-weight: 700;
+            cursor: pointer;
+            text-align: center;
+            transition: var(--transition);
+            text-decoration: none;
+            display: block;
+            border: 2px solid;
+        }
+
+        .ep-btn-red {
+            background: var(--coral);
+            color: white;
+            border-color: #c05050;
+        }
+
+        .ep-btn-green {
+            background: var(--mint-light);
+            color: var(--mint-dark);
+            border-color: var(--mint);
+        }
+
+        .ep-btn-ghost {
+            background: transparent;
+            color: var(--text-light);
+            border-color: var(--kraft-light);
+            font-size: 0.8rem;
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media(max-width:900px) {
+            :root {
+                --sidebar-width: 0px;
+            }
+
+            .sidebar {
+                transform: translateX(-240px);
+                width: 240px;
+                transition: transform 0.3s ease;
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+
+            .sidebar-overlay.open {
+                display: block;
+            }
+
+            .main-content {
+                margin-left: 0;
+                padding: 76px 16px 20px;
+            }
+
+            .mobile-topbar {
+                display: flex;
+            }
+
+            .xp-topbar {
+                flex-wrap: wrap;
+            }
+
+            .ai-actions {
+                display: none;
+            }
+        }
+
+        @media(max-width:600px) {
+            .task-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .filter-bar {
+                gap: 6px;
+            }
+
+            .filter-btn {
+                font-size: 0.72rem;
+                padding: 6px 10px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Confetti Container -->
+    <div class="confetti-container" id="confettiContainer"></div>
+
+    <!-- Emergency Overlay -->
+    <div class="emergency-overlay" id="emergencyOverlay">
+        <div class="emergency-popup">
+            <div class="ep-icon">❤️</div>
+            <div class="ep-title">Bạn không đơn độc</div>
+            <p class="ep-text">Nếu bạn đang cảm thấy rất khó khăn, hãy để ai đó giúp bạn ngay bây giờ.</p>
+            <div class="ep-hotline">
+                <div class="eph-num">📞 1800-599-920</div>
+                <div class="eph-label">Đường dây nóng sức khỏe tâm thần — Miễn phí, 24/7</div>
+            </div>
+            <div class="ep-actions">
+                <a href="tel:1800599920" class="ep-btn ep-btn-red">📞 Gọi ngay hotline</a>
+                <a href="experts.html" class="ep-btn ep-btn-green">💬 Kết nối chuyên gia</a>
+                <button class="ep-btn ep-btn-ghost" onclick="closeEmergency()">Tôi ổn, đóng lại</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Task Modal -->
+    <div class="modal-overlay" id="taskModalOverlay" onclick="closeModalIfOutside(event)">
+        <div class="task-modal" id="taskModal">
+            <div class="tm-header">
+                <button class="tm-close" onclick="closeTaskModal()">✕</button>
+                <div class="tm-icon-row">
+                    <div class="tm-icon" id="modalIcon">🧘</div>
+                    <div>
+                        <div class="tm-title" id="modalTitle">Thiền 5 phút</div>
+                        <div style="font-size:0.72rem;color:var(--text-light);margin-top:2px;" id="modalId">ID: 2.3
+                        </div>
+                    </div>
+                </div>
+                <div class="tm-meta-row" id="modalMeta"></div>
+            </div>
+            <div class="tm-body">
+                <div class="tm-section">
+                    <div class="tm-section-title">📝 Mô tả</div>
+                    <div class="tm-desc" id="modalDesc">Ngồi thẳng, tập trung hơi thở, để suy nghĩ đến rồi đi...</div>
+                </div>
+                <div class="tm-section">
+                    <div class="tm-section-title">📋 Các bước thực hiện</div>
+                    <div class="tm-steps" id="modalSteps"></div>
+                </div>
+                <div class="tm-community-stat" id="modalStat">💬 92% người dùng cảm thấy tốt hơn sau bài tập này</div>
+            </div>
+            <div class="tm-active" id="tmActive">
+                <div class="breathing-anim" id="breathingAnim"></div>
+                <div class="breathing-text" id="breathingText"></div>
+                <div class="timer-display">
+                    <div class="timer-circle">
+                        <div class="timer-num" id="timerNum">5:00</div>
+                        <div class="timer-label">còn lại</div>
+                    </div>
+                </div>
+                <div class="tm-action-row">
+                    <button class="btn-outline" onclick="pauseTimer()" id="pauseBtn">⏸ Tạm dừng</button>
+                    <button class="btn-primary" onclick="completeTask()">✓ Hoàn thành</button>
+                </div>
+            </div>
+            <div class="tm-feedback" id="tmFeedback">
+                <div class="xp-reward" id="xpReward">
+                    <div class="xr-num" id="xpRewardNum">+25 XP</div>
+                    <div class="xr-label">Tuyệt vời! Bạn đã hoàn thành nhiệm vụ! 🎉</div>
+                </div>
+                <div class="tf-title">Bạn cảm thấy thế nào sau khi hoàn thành?</div>
+                <div class="tf-emojis">
+                    <button class="tf-emoji-btn" onclick="selectFeedback(this,'😊')">😊</button>
+                    <button class="tf-emoji-btn" onclick="selectFeedback(this,'😌')">😌</button>
+                    <button class="tf-emoji-btn" onclick="selectFeedback(this,'😐')">😐</button>
+                    <button class="tf-emoji-btn" onclick="selectFeedback(this,'😕')">😕</button>
+                    <button class="tf-emoji-btn" onclick="selectFeedback(this,'😢')">😢</button>
+                </div>
+                <div style="display:flex;gap:10px;justify-content:center;">
+                    <a href="tasks.html" class="btn-primary">🎮 Tiếp tục nhiệm vụ</a>
+                    <button class="btn-outline" onclick="closeTaskModal()">Đóng</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar Overlay -->
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+    <!-- Mobile Topbar -->
+    <div class="mobile-topbar">
+        <button class="mobile-menu-btn" onclick="toggleSidebar()">☰</button>
+        <a href="index.html" style="display:flex;align-items:center;gap:8px;text-decoration:none;">
+            <div
+                style="width:32px;height:32px;background:var(--mint);border-radius:8px;border:2px solid var(--mint-dark);display:flex;align-items:center;justify-content:center;font-size:1rem;box-shadow:2px 2px 0px var(--mint-dark);">
+                🌿</div>
+            <span style="font-size:1.1rem;font-weight:800;color:var(--text-primary);">Peace<span
+                    style="color:var(--mint-dark);">Flow</span></span>
+        </a>
+        <span
+            style="background:var(--peach-light);padding:3px 10px;border-radius:50px;font-size:0.75rem;font-weight:700;color:var(--peach-dark);border:1.5px solid var(--peach);">⭐
+            295 XP</span>
+    </div>
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <a href="index.html" class="sidebar-logo">
+            <div class="logo-icon">🌿</div>
+            <div class="logo-text">Peace<span>Flow</span></div>
+        </a>
+
+        <nav class="sidebar-nav">
+            <div class="nav-section-label">Chính</div>
+            <a href="dashboard.html" class="nav-item ">
+                <span class="ni">🏡</span> Tổng quan
+            </a>
+            <a href="mood-checkin.html" class="nav-item ">
+                <span class="ni">💭</span> Tâm trạng
+            </a>
+            <a href="tasks.html" class="nav-item active">
+                <span class="ni">🎮</span> Nhiệm vụ
+            </a>
+            <a href="journal.html" class="nav-item ">
+                <span class="ni">📝</span> Nhật ký
+            </a>
+
+            <div class="nav-section-label" style="margin-top:8px;">Kết nối</div>
+            <a href="experts.html" class="nav-item ">
+                <span class="ni">🩺</span> Chuyên gia
+            </a>
+            <a href="community.html" class="nav-item ">
+                <span class="ni">👥</span> Cộng đồng
+            </a>
+
+            <div class="nav-section-label" style="margin-top:8px;">Phân tích</div>
+            <a href="report.html" class="nav-item ">
+                <span class="ni">📊</span> Báo cáo
+            </a>
+            <a href="achievements.html" class="nav-item ">
+                <span class="ni">🏅</span> Thành tích
+            </a>
+
+            <div class="nav-section-label" style="margin-top:8px;">Cài đặt</div>
+            <a href="profile.html" class="nav-item ">
+                <span class="ni">👤</span> Hồ sơ
+            </a>
+            <a href="settings.html" class="nav-item ">
+                <span class="ni">⚙️</span> Cài đặt
+            </a>
+            <a href="#" class="nav-item" onclick="handleLogout()" style="color:var(--coral); margin-top: 10px; border-top: 1px dashed var(--kraft-light); padding-top: 15px;">
+                <span class="ni">🚪</span> Đăng xuất
+            </a>
+        </nav>
+
+        <div class="sidebar-bottom">
+            <div class="user-card-mini">
+                <div class="user-avatar-mini">🐱</div>
+                <div class="user-info-mini">
+                    <div class="user-name">Khách hàng giả lập</div>
+                    <div class="user-level">⭐ 295 XP · Level 2</div>
+                </div>
+            </div>
+            <a href="emergency.html" class="emergency-btn">
+                🆘 Hỗ trợ khẩn cấp
+            </a>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="page-header">
+            <div>
+                <div class="page-title">🎮 Nhiệm Vụ</div>
+                <div class="page-subtitle">Hoàn thành nhiệm vụ để tích XP và chăm sóc khu vườn tâm hồn 🌱</div>
+            </div>
+            <div style="display:flex;gap:8px;">
+                <a href="mood-checkin.html" class="btn-outline">💭 Check-in tâm trạng</a>
+                <button class="btn-primary" onclick="showEmergency()">🆘 Khẩn cấp</button>
+            </div>
+        </div>
+
+        <!-- XP Bar -->
+        <div class="paper-card xp-topbar">
+            <div class="xp-level-badge">2</div>
+            <div class="xp-info">
+                <div class="xi-name">Người khám phá</div>
+                <div class="xi-range">Level 2 · 100 – 300 XP</div>
+            </div>
+            <div class="xp-bar-wrap">
+                <div class="xp-bar-bg">
+                    <div class="xp-bar-fill" style="width:97.5%"></div>
+                </div>
+                <div class="xp-bar-label"><span>100 XP</span><span>Còn 5 XP → Level 3 🎉</span><span>300 XP</span></div>
+            </div>
+            <div class="xp-total">295 XP</div>
+        </div>
+
+        <!-- AI Suggestion -->
+        <div class="paper-card ai-suggestion">
+            <div class="ai-mascot">🐱</div>
+            <div class="ai-text">
+                <div class="at-title">🤖 PeaceCat gợi ý cho bạn hôm nay</div>
+                <div class="at-sub">Dựa trên tâm trạng 6.2/10 và lịch sử nhiệm vụ — mình nghĩ 3 nhiệm vụ này sẽ phù hợp
+                    với bạn!</div>
+            </div>
+            <div class="ai-actions">
+                <button class="btn-primary" onclick="scrollToSuggested()">Xem gợi ý →</button>
+            </div>
+        </div>
+
+        <!-- Weekly Challenge -->
+        <div class="paper-card weekly-challenge">
+            <div class="wc-header">
+                <span style="font-size:1.3rem;">🏆</span>
+                <div class="wc-title">Thử thách tuần này: 7 ngày thiền liên tục</div>
+                <span class="badge-pill badge-peach" style="margin-left:auto;">4 ngày còn lại</span>
+            </div>
+            <div class="wc-desc">🧘 Cùng cộng đồng PeaceFlow thiền mỗi ngày trong tuần này! Cộng đồng đã thiền được
+                847/1000 phút.</div>
+            <div class="wc-progress-bar">
+                <div class="wc-progress-fill" style="width:84.7%"></div>
+            </div>
+            <div class="wc-meta"><span>4/7 ngày hoàn thành</span><span>🌟 +80 XP khi hoàn thành</span></div>
+        </div>
+
+        <!-- Filter Bar -->
+        <div class="filter-bar">
+            <button class="filter-btn active" onclick="filterTasks('all',this)">🌿 Tất cả</button>
+            <button class="filter-btn emergency-filter" onclick="filterTasks('emergency',this)">🔴 Khẩn cấp</button>
+            <button class="filter-btn easy-filter" onclick="filterTasks('easy',this)">🟢 Dễ</button>
+            <button class="filter-btn medium-filter" onclick="filterTasks('medium',this)">🟡 Trung bình</button>
+            <button class="filter-btn hard-filter" onclick="filterTasks('hard',this)">🟠 Nâng cao</button>
+            <button class="filter-btn" onclick="filterTasks('completed',this)">✅ Đã hoàn thành</button>
+            <input type="text" class="search-input" placeholder="🔍 Tìm nhiệm vụ..." oninput="searchTasks(this.value)">
+        </div>
+
+        <!-- Task Sections -->
+        <div id="taskSections"></div>
+
+    </main>
+
+    <script src="js/tasks-data.js"></script>
+    <script>
+        // ============================================================
+        // DATA & STATE
+        // ============================================================
+
+
+        let currentTasks = TASKS;
+
+        function renderTasks() {
+            const sections = document.getElementById('taskSections');
+            sections.innerHTML = '';
+
+            if (currentTasks.length === 0) {
+                sections.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-secondary);">Không tìm thấy nhiệm vụ nào. 🌿</div>';
+                return;
+            }
+
+            const CATS = [
+                { id: 'emergency', name: '🔴 Khẩn Cấp (Cấp 0)', desc: 'Thực hiện ngay khi hoảng loạn', color: 'emergency' },
+                { id: 'easy', name: '🟢 Dễ (Cấp 1)', desc: 'Xây dựng thói quen nhỏ hàng ngày', color: 'easy' },
+                { id: 'medium', name: '🟡 Trung Bình (Cấp 2)', desc: 'Cần một chút thời gian và không gian tĩnh', color: 'medium' },
+                { id: 'hard', name: '🟠 Khó (Cấp 3)', desc: 'Nhiệm vụ nâng cao đòi hỏi sự kiên trì', color: 'hard' },
+                { id: 'community', name: '🔵 Cộng Đồng (Cấp 4)', desc: 'Kết nối và đóng góp cho cộng đồng', color: 'community' }
+            ];
+
+            let html = '';
+            CATS.forEach(c => {
+                const list = currentTasks.filter(t => t.cat === c.id);
+                if (list.length > 0) {
+                    html += `
+                    <div class="task-section">
+                        <div class="section-header">
+                            <div class="sh-icon ${c.color}">⭐</div>
+                            <div class="sh-title">${c.name}</div>
+                            <div class="sh-count">${list.length} bài tập</div>
+                            <div class="sh-desc">${c.desc}</div>
+                        </div>
+                        <div class="task-grid">
+                `;
+                    list.forEach(t => {
+                        let btnColor = t.cat === 'emergency' ? 'emergency' : '';
+                        let onClick = `location.href='task-detail.html?id=${t.id}'`;
+                        if (t.id === 'E2' || t.id === '2.5') onClick = `location.href='task-breathing.html'`;
+                        if (t.id === '2.3') onClick = `location.href='task-meditation.html'`;
+
+                        html += `
+                        <div class="task-card paper-card cat-${t.cat} ${t.completed ? 'completed' : ''}" onclick="${onClick}">
+                            <div class="tc-top">
+                                <div class="tc-icon ${t.cat}">${t.icon}</div>
+                                <div class="tc-info">
+                                    <div class="tc-name">${t.name}</div>
+                                    <div class="tc-meta">
+                                        <div class="tc-meta-item">⏱ ${t.time}</div>
+                                        ${t.suggested ? `<div class="tc-meta-item" style="color:var(--gold-dark);">⭐ Gợi ý</div>` : ''}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="tc-desc">${t.desc}</div>
+                            <div class="tc-bottom">
+                                <div class="tc-xp">+${t.xp} XP</div>
+                                <button class="tc-start-btn ${btnColor}" onclick="event.stopPropagation();${onClick}">▶ Bắt đầu</button>
+                            </div>
+                        </div>
+                    `;
+                    });
+                    html += `</div></div>`;
+                }
+            });
+            sections.innerHTML = html;
+        }
+
+        function filterTasks(cat, btn) {
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            if (btn) btn.classList.add('active');
+
+            if (cat === 'all') currentTasks = TASKS;
+            else if (cat === 'suggested') currentTasks = TASKS.filter(t => t.suggested);
+            else if (cat === 'completed') currentTasks = TASKS.filter(t => t.completed);
+            else currentTasks = TASKS.filter(t => t.cat === cat);
+
+            renderTasks();
+        }
+
+        function searchTasks(val) {
+            if (!val) {
+                currentTasks = TASKS;
+            } else {
+                const v = val.toLowerCase();
+                currentTasks = TASKS.filter(t => t.name.toLowerCase().includes(v) || t.desc.toLowerCase().includes(v));
+            }
+            renderTasks();
+        }
+
+        window.onload = function() {
+            renderTasks();
+            
+            // Try to load AI suggestions if getAIRecommendations is available
+            if (typeof getAIRecommendations === 'function') {
+                const suggestions = getAIRecommendations();
+                const bannerSub = document.querySelector('.at-sub');
+                if (bannerSub && suggestions.length > 0) {
+                    bannerSub.innerText = `Dựa trên phân tích tâm trạng gần đây của bạn, PeaceCat đã chọn ra ${suggestions.length} nhiệm vụ chữa lành phù hợp nhất lúc này!`;
+                }
+            }
+        };
+
+        function scrollToSuggested() {
+            filterTasks('suggested', null);
+        }
+
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase-config.js"></script>
+    <script src="js/app.js"></script>
+</body>
+
+</html>

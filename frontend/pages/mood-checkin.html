@@ -1,0 +1,1942 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PeaceFlow — Khảo Sát Tâm Trạng</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Patrick+Hand&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --cream: #FFF8F0;
+            --warm-white: #FFFDF7;
+            --kraft: #D4A574;
+            --kraft-light: #E8CBA7;
+            --kraft-dark: #B8895A;
+            --mint: #A8D5BA;
+            --mint-light: #C5E8D2;
+            --mint-dark: #7BBF95;
+            --peach: #FFCBA4;
+            --peach-light: #FFE0C4;
+            --peach-dark: #E8A876;
+            --sky: #A8D8EA;
+            --sky-light: #C5E8F5;
+            --lavender: #C3AED6;
+            --lavender-light: #DDD1EB;
+            --coral: #FF8B8B;
+            --coral-light: #FFB3B3;
+            --text-primary: #4A3728;
+            --text-secondary: #7A6555;
+            --text-light: #A89585;
+            --shadow-paper: 3px 3px 0px rgba(74, 55, 40, 0.1);
+            --shadow-paper-hover: 5px 5px 0px rgba(74, 55, 40, 0.15);
+            --shadow-soft: 0 4px 15px rgba(74, 55, 40, 0.08);
+            --border-radius: 16px;
+            --border-radius-sm: 10px;
+            --border-radius-lg: 24px;
+            --transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            --sidebar-width: 240px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background-color: var(--cream);
+            color: var(--text-primary);
+            line-height: 1.6;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        .handwritten {
+            font-family: 'Patrick Hand', cursive;
+        }
+
+        .paper-card {
+            background: var(--warm-white);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-paper);
+            border: 2px solid var(--kraft-light);
+            position: relative;
+            transition: var(--transition);
+        }
+
+        /* ===== SIDEBAR ===== */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            width: var(--sidebar-width);
+            background: var(--warm-white);
+            border-right: 2px solid var(--kraft-light);
+            z-index: 200;
+            display: flex;
+            flex-direction: column;
+            padding: 20px 0;
+            box-shadow: 2px 0 10px rgba(74, 55, 40, 0.05);
+        }
+
+        .sidebar-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 0 20px 20px;
+            border-bottom: 2px dashed var(--kraft-light);
+            margin-bottom: 16px;
+            text-decoration: none;
+        }
+
+        .sidebar-logo .logo-icon {
+            width: 38px;
+            height: 38px;
+            background: var(--mint);
+            border-radius: 10px;
+            border: 2px solid var(--mint-dark);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            box-shadow: 2px 2px 0px var(--mint-dark);
+        }
+
+        .sidebar-logo .logo-text {
+            font-size: 1.2rem;
+            font-weight: 800;
+            color: var(--text-primary);
+        }
+
+        .sidebar-logo .logo-text span {
+            color: var(--mint-dark);
+        }
+
+        .sidebar-nav {
+            flex: 1;
+            padding: 0 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            border-radius: var(--border-radius-sm);
+            text-decoration: none;
+            color: var(--text-secondary);
+            font-weight: 600;
+            font-size: 0.88rem;
+            transition: var(--transition);
+        }
+
+        .nav-item:hover {
+            background: var(--mint-light);
+            color: var(--text-primary);
+        }
+
+        .nav-item.active {
+            background: var(--mint-light);
+            color: var(--text-primary);
+            border: 1.5px solid var(--mint);
+        }
+
+        .nav-item .ni {
+            font-size: 1.1rem;
+            width: 22px;
+            text-align: center;
+        }
+
+        .nav-section-label {
+            font-size: 0.68rem;
+            font-weight: 700;
+            color: var(--text-light);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            padding: 10px 12px 4px;
+        }
+
+        .sidebar-bottom {
+            padding: 12px;
+            border-top: 2px dashed var(--kraft-light);
+            margin-top: auto;
+        }
+
+        .user-card-mini {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            background: var(--cream);
+            border-radius: var(--border-radius-sm);
+            border: 1.5px solid var(--kraft-light);
+        }
+
+        .user-avatar-mini {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--lavender-light);
+            border: 2px solid var(--kraft);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+        }
+
+        .user-info-mini .user-name {
+            font-size: 0.85rem;
+            font-weight: 700;
+        }
+
+        .user-info-mini .user-level {
+            font-size: 0.72rem;
+            color: var(--text-light);
+        }
+
+        .emergency-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 12px;
+            background: rgba(255, 139, 139, 0.1);
+            border: 1.5px solid var(--coral);
+            border-radius: var(--border-radius-sm);
+            color: var(--coral);
+            font-size: 0.78rem;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 8px;
+            transition: var(--transition);
+            text-decoration: none;
+        }
+
+        .emergency-btn:hover {
+            background: rgba(255, 139, 139, 0.2);
+        }
+
+        /* ===== MOBILE ===== */
+        .mobile-topbar {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background: var(--warm-white);
+            border-bottom: 2px solid var(--kraft-light);
+            z-index: 300;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 16px;
+        }
+
+        .mobile-menu-btn {
+            background: none;
+            border: none;
+            font-size: 1.4rem;
+            cursor: pointer;
+            color: var(--text-primary);
+        }
+
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(74, 55, 40, 0.3);
+            z-index: 150;
+        }
+
+        /* ===== MAIN ===== */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            padding: 28px;
+            min-height: 100vh;
+        }
+
+        .page-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .page-title {
+            font-size: 1.5rem;
+            font-weight: 800;
+        }
+
+        .page-subtitle {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .btn-primary {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 10px 20px;
+            border: 2px solid var(--mint-dark);
+            border-radius: 50px;
+            background: var(--mint);
+            color: var(--text-primary);
+            font-family: 'Nunito', sans-serif;
+            font-size: 0.88rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: var(--transition);
+            box-shadow: 2px 2px 0px var(--mint-dark);
+            text-decoration: none;
+        }
+
+        .btn-primary:hover {
+            background: var(--mint-dark);
+            color: white;
+            transform: translate(1px, 1px);
+            box-shadow: 1px 1px 0px var(--mint-dark);
+        }
+
+        .btn-outline {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 9px 18px;
+            border: 2px solid var(--kraft-light);
+            border-radius: 50px;
+            background: transparent;
+            color: var(--text-secondary);
+            font-family: 'Nunito', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .btn-outline:hover {
+            background: var(--kraft-light);
+            color: var(--text-primary);
+        }
+
+        .badge-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 3px 10px;
+            border-radius: 50px;
+            font-size: 0.72rem;
+            font-weight: 700;
+        }
+
+        .badge-mint {
+            background: var(--mint-light);
+            color: var(--mint-dark);
+            border: 1.5px solid var(--mint);
+        }
+
+        .badge-peach {
+            background: var(--peach-light);
+            color: var(--peach-dark);
+            border: 1.5px solid var(--peach);
+        }
+
+        .badge-lavender {
+            background: var(--lavender-light);
+            color: #8a6aaa;
+            border: 1.5px solid var(--lavender);
+        }
+
+        .badge-coral {
+            background: var(--coral-light);
+            color: #c05050;
+            border: 1.5px solid var(--coral);
+        }
+
+        /* ===== MODE SELECTOR ===== */
+        .mode-selector {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 14px;
+            margin-bottom: 28px;
+        }
+
+        .mode-card {
+            padding: 20px 16px;
+            text-align: center;
+            cursor: pointer;
+            border: 2px solid var(--kraft-light);
+            border-radius: var(--border-radius);
+            background: var(--warm-white);
+            transition: var(--transition);
+            box-shadow: var(--shadow-paper);
+        }
+
+        .mode-card:hover {
+            box-shadow: var(--shadow-paper-hover);
+            transform: translateY(-2px);
+        }
+
+        .mode-card.active {
+            border-color: var(--mint-dark);
+            background: var(--mint-light);
+            box-shadow: 3px 3px 0px var(--mint-dark);
+        }
+
+        .mode-icon {
+            font-size: 2rem;
+            margin-bottom: 8px;
+        }
+
+        .mode-title {
+            font-size: 0.92rem;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .mode-desc {
+            font-size: 0.72rem;
+            color: var(--text-secondary);
+        }
+
+        .mode-time {
+            font-size: 0.68rem;
+            color: var(--text-light);
+            font-weight: 600;
+            margin-top: 4px;
+        }
+
+        /* ===== SECTION PANELS ===== */
+        .panel {
+            display: none;
+        }
+
+        .panel.active {
+            display: block;
+            animation: panel-enter 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        @keyframes panel-enter {
+            from {
+                opacity: 0;
+                transform: translateY(16px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* ===== QUICK CHECK-IN ===== */
+        .checkin-card {
+            padding: 32px 36px;
+            max-width: 680px;
+            margin: 0 auto;
+        }
+
+        .checkin-step {
+            display: none;
+        }
+
+        .checkin-step.active {
+            display: block;
+            animation: panel-enter 0.35s ease;
+        }
+
+        .step-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 24px;
+        }
+
+        .si-dot {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            border: 2px solid var(--kraft-light);
+            background: var(--cream);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.72rem;
+            font-weight: 800;
+            color: var(--text-light);
+            transition: var(--transition);
+        }
+
+        .si-dot.active {
+            background: var(--mint);
+            border-color: var(--mint-dark);
+            color: white;
+            box-shadow: 2px 2px 0px var(--mint-dark);
+        }
+
+        .si-dot.done {
+            background: var(--mint-dark);
+            border-color: var(--mint-dark);
+            color: white;
+        }
+
+        .si-line {
+            flex: 1;
+            height: 2px;
+            background: var(--kraft-light);
+            border-radius: 1px;
+        }
+
+        .si-line.done {
+            background: var(--mint-dark);
+        }
+
+        .checkin-title {
+            font-size: 1.2rem;
+            font-weight: 800;
+            margin-bottom: 6px;
+        }
+
+        .checkin-sub {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-bottom: 22px;
+        }
+
+        .mascot-speech-box {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 14px 16px;
+            background: var(--mint-light);
+            border: 1.5px solid var(--mint);
+            border-radius: var(--border-radius-sm);
+            margin-bottom: 20px;
+        }
+
+        .msb-avatar {
+            font-size: 1.8rem;
+            flex-shrink: 0;
+        }
+
+        .msb-text {
+            font-size: 0.88rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        /* Mood emoji grid */
+        .mood-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .mood-btn {
+            aspect-ratio: 1;
+            border: 2px solid var(--kraft-light);
+            border-radius: var(--border-radius-sm);
+            background: var(--warm-white);
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 3px;
+            transition: var(--transition);
+            box-shadow: var(--shadow-paper);
+            padding: 4px;
+        }
+
+        .mood-btn:hover,
+        .mood-btn.selected {
+            border-color: var(--mint-dark);
+            background: var(--mint-light);
+            box-shadow: 3px 3px 0px var(--mint-dark);
+            transform: translate(-1px, -1px);
+        }
+
+        .mood-emoji {
+            font-size: 1.6rem;
+        }
+
+        .mood-label {
+            font-size: 0.55rem;
+            font-weight: 700;
+            color: var(--text-secondary);
+            text-align: center;
+            line-height: 1.2;
+        }
+
+        /* Slider */
+        .slider-wrap {
+            margin-bottom: 20px;
+        }
+
+        .slider-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.72rem;
+            color: var(--text-light);
+            margin-bottom: 8px;
+        }
+
+        .mood-slider {
+            width: 100%;
+            height: 8px;
+            -webkit-appearance: none;
+            appearance: none;
+            background: linear-gradient(90deg, var(--coral-light), var(--peach), var(--mint));
+            border-radius: 50px;
+            outline: none;
+            cursor: pointer;
+        }
+
+        .mood-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: var(--warm-white);
+            border: 3px solid var(--mint-dark);
+            box-shadow: 2px 2px 0px var(--mint-dark);
+            cursor: pointer;
+        }
+
+        .slider-value-display {
+            text-align: center;
+            margin-top: 10px;
+        }
+
+        .slider-val {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--mint-dark);
+        }
+
+        .slider-val-label {
+            font-size: 0.78rem;
+            color: var(--text-secondary);
+        }
+
+        .slider-tree {
+            font-size: 2rem;
+            transition: var(--transition);
+        }
+
+        /* Tags */
+        .tag-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .tag-btn {
+            padding: 7px 14px;
+            border: 2px solid var(--kraft-light);
+            border-radius: 50px;
+            background: var(--warm-white);
+            cursor: pointer;
+            font-family: 'Nunito', sans-serif;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            transition: var(--transition);
+            box-shadow: var(--shadow-paper);
+        }
+
+        .tag-btn:hover,
+        .tag-btn.selected {
+            background: var(--peach-light);
+            border-color: var(--peach-dark);
+            color: var(--text-primary);
+            box-shadow: 2px 2px 0px var(--peach-dark);
+        }
+
+        /* ===== CHAT PANEL ===== */
+        .chat-layout {
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: 20px;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .chat-card {
+            padding: 0;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            height: 520px;
+        }
+
+        .chat-header {
+            padding: 16px 20px;
+            border-bottom: 2px solid var(--kraft-light);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: var(--mint-light);
+        }
+
+        .chat-mascot-avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: var(--peach-light);
+            border: 2px solid var(--kraft);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+        }
+
+        .chat-mascot-name {
+            font-size: 0.9rem;
+            font-weight: 700;
+        }
+
+        .chat-mascot-status {
+            font-size: 0.72rem;
+            color: var(--mint-dark);
+            font-weight: 600;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .chat-messages::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .chat-messages::-webkit-scrollbar-thumb {
+            background: var(--kraft-light);
+            border-radius: 2px;
+        }
+
+        .msg {
+            max-width: 80%;
+            animation: panel-enter 0.3s ease;
+        }
+
+        .msg-bot {
+            align-self: flex-start;
+        }
+
+        .msg-user {
+            align-self: flex-end;
+        }
+
+        .msg-bubble {
+            padding: 10px 14px;
+            border-radius: 16px;
+            font-size: 0.85rem;
+            line-height: 1.5;
+        }
+
+        .msg-bot .msg-bubble {
+            background: var(--mint-light);
+            border: 1.5px solid var(--mint);
+            border-bottom-left-radius: 4px;
+            color: var(--text-primary);
+        }
+
+        .msg-user .msg-bubble {
+            background: var(--peach-light);
+            border: 1.5px solid var(--peach);
+            border-bottom-right-radius: 4px;
+            color: var(--text-primary);
+        }
+
+        .msg-time {
+            font-size: 0.62rem;
+            color: var(--text-light);
+            margin-top: 3px;
+        }
+
+        .msg-bot .msg-time {
+            text-align: left;
+        }
+
+        .msg-user .msg-time {
+            text-align: right;
+        }
+
+        .typing-indicator {
+            display: flex;
+            gap: 4px;
+            padding: 10px 14px;
+            background: var(--mint-light);
+            border: 1.5px solid var(--mint);
+            border-radius: 16px;
+            border-bottom-left-radius: 4px;
+            width: fit-content;
+        }
+
+        .typing-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--mint-dark);
+            animation: typing 1.2s ease-in-out infinite;
+        }
+
+        .typing-dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes typing {
+
+            0%,
+            60%,
+            100% {
+                transform: translateY(0);
+            }
+
+            30% {
+                transform: translateY(-6px);
+            }
+        }
+
+        .chat-input-area {
+            padding: 12px 16px;
+            border-top: 2px solid var(--kraft-light);
+            display: flex;
+            gap: 8px;
+            align-items: flex-end;
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 10px 14px;
+            border: 2px solid var(--kraft-light);
+            border-radius: var(--border-radius-sm);
+            background: var(--warm-white);
+            font-family: 'Nunito', sans-serif;
+            font-size: 0.88rem;
+            color: var(--text-primary);
+            outline: none;
+            resize: none;
+            max-height: 80px;
+            transition: var(--transition);
+        }
+
+        .chat-input:focus {
+            border-color: var(--mint);
+        }
+
+        .chat-send-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--mint);
+            border: 2px solid var(--mint-dark);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: var(--transition);
+            box-shadow: 2px 2px 0px var(--mint-dark);
+            flex-shrink: 0;
+        }
+
+        .chat-send-btn:hover {
+            background: var(--mint-dark);
+            transform: translate(1px, 1px);
+            box-shadow: 1px 1px 0px var(--mint-dark);
+        }
+
+        .quick-replies {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            padding: 8px 16px 0;
+        }
+
+        .qr-btn {
+            padding: 5px 12px;
+            border: 1.5px solid var(--mint);
+            border-radius: 50px;
+            background: var(--mint-light);
+            color: var(--mint-dark);
+            font-family: 'Nunito', sans-serif;
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .qr-btn:hover {
+            background: var(--mint);
+            color: white;
+        }
+
+        .chat-sidebar-card {
+            padding: 20px;
+        }
+
+        .cs-title {
+            font-size: 0.88rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+
+        .sentiment-bar-wrap {
+            margin-bottom: 14px;
+        }
+
+        .sb-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.75rem;
+            margin-bottom: 4px;
+        }
+
+        .sb-bar {
+            height: 8px;
+            background: var(--kraft-light);
+            border-radius: 50px;
+            overflow: hidden;
+        }
+
+        .sb-fill {
+            height: 100%;
+            border-radius: 50px;
+            transition: width 0.8s ease;
+        }
+
+        .sb-anxiety {
+            background: linear-gradient(90deg, var(--peach), var(--coral));
+        }
+
+        .sb-stress {
+            background: linear-gradient(90deg, var(--sky), var(--lavender));
+        }
+
+        .sb-mood {
+            background: linear-gradient(90deg, var(--mint-light), var(--mint-dark));
+        }
+
+        .keyword-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-top: 8px;
+        }
+
+        .kw-tag {
+            padding: 2px 8px;
+            border-radius: 50px;
+            font-size: 0.68rem;
+            font-weight: 600;
+        }
+
+        /* ===== STANDARDIZED TESTS ===== */
+        .test-selector {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 14px;
+            margin-bottom: 24px;
+        }
+
+        .test-card {
+            padding: 18px;
+            cursor: pointer;
+            border: 2px solid var(--kraft-light);
+            border-radius: var(--border-radius);
+            background: var(--warm-white);
+            transition: var(--transition);
+            box-shadow: var(--shadow-paper);
+        }
+
+        .test-card:hover {
+            box-shadow: var(--shadow-paper-hover);
+            transform: translateY(-2px);
+        }
+
+        .test-card.active-test {
+            border-color: var(--mint-dark);
+            background: var(--mint-light);
+            box-shadow: 3px 3px 0px var(--mint-dark);
+        }
+
+        .tc-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 6px;
+        }
+
+        .tc-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            border: 2px solid;
+        }
+
+        .tc-name {
+            font-size: 0.9rem;
+            font-weight: 700;
+        }
+
+        .tc-desc {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .tc-meta {
+            display: flex;
+            gap: 8px;
+        }
+
+        /* Test question area */
+        .test-area {
+            max-width: 680px;
+            margin: 0 auto;
+        }
+
+        .test-progress-bar {
+            height: 8px;
+            background: var(--kraft-light);
+            border-radius: 50px;
+            overflow: hidden;
+            margin-bottom: 6px;
+            border: 1.5px solid var(--kraft);
+        }
+
+        .test-progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--mint-dark), var(--mint));
+            border-radius: 50px;
+            transition: width 0.4s ease;
+        }
+
+        .test-progress-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.72rem;
+            color: var(--text-light);
+            margin-bottom: 20px;
+        }
+
+        .question-card {
+            padding: 28px 32px;
+            margin-bottom: 16px;
+        }
+
+        .q-number {
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: var(--text-light);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+
+        .q-text {
+            font-size: 1rem;
+            font-weight: 700;
+            line-height: 1.5;
+            margin-bottom: 20px;
+        }
+
+        .likert-scale {
+            display: flex;
+            gap: 8px;
+        }
+
+        .likert-option {
+            flex: 1;
+            padding: 10px 6px;
+            border: 2px solid var(--kraft-light);
+            border-radius: var(--border-radius-sm);
+            background: var(--warm-white);
+            cursor: pointer;
+            text-align: center;
+            transition: var(--transition);
+            box-shadow: var(--shadow-paper);
+        }
+
+        .likert-option:hover,
+        .likert-option.selected {
+            border-color: var(--mint-dark);
+            background: var(--mint-light);
+            box-shadow: 2px 2px 0px var(--mint-dark);
+            transform: translate(-1px, -1px);
+        }
+
+        .lo-emoji {
+            font-size: 1.4rem;
+            margin-bottom: 4px;
+        }
+
+        .lo-label {
+            font-size: 0.65rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+
+        .disclaimer-box {
+            padding: 12px 16px;
+            background: rgba(255, 203, 164, 0.2);
+            border: 1.5px solid var(--peach);
+            border-radius: var(--border-radius-sm);
+            font-size: 0.78rem;
+            color: var(--text-secondary);
+            margin-bottom: 16px;
+        }
+
+        /* ===== RESULT PANEL ===== */
+        .result-panel {
+            display: none;
+            max-width: 680px;
+            margin: 0 auto;
+        }
+
+        .result-panel.show {
+            display: block;
+            animation: panel-enter 0.4s ease;
+        }
+
+        .result-header-card {
+            padding: 28px;
+            text-align: center;
+            background: linear-gradient(135deg, var(--mint-light), var(--sky-light));
+            border-color: var(--mint);
+            margin-bottom: 16px;
+        }
+
+        .result-mascot {
+            font-size: 3rem;
+            margin-bottom: 8px;
+            animation: bounce-r 2s ease-in-out infinite;
+        }
+
+        @keyframes bounce-r {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-8px);
+            }
+        }
+
+        .result-title {
+            font-size: 1.3rem;
+            font-weight: 800;
+            margin-bottom: 6px;
+        }
+
+        .result-subtitle {
+            font-size: 0.88rem;
+            color: var(--text-secondary);
+        }
+
+        .result-scores {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .rs-item {
+            padding: 16px 12px;
+            text-align: center;
+            border-radius: var(--border-radius-sm);
+            border: 2px solid;
+        }
+
+        .rs-item.good {
+            background: var(--mint-light);
+            border-color: var(--mint);
+        }
+
+        .rs-item.medium {
+            background: var(--peach-light);
+            border-color: var(--peach);
+        }
+
+        .rs-item.bad {
+            background: var(--coral-light);
+            border-color: var(--coral);
+        }
+
+        .rs-icon {
+            font-size: 1.4rem;
+            margin-bottom: 4px;
+        }
+
+        .rs-score {
+            font-size: 1.4rem;
+            font-weight: 800;
+        }
+
+        .rs-label {
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            font-weight: 600;
+        }
+
+        .rs-level {
+            font-size: 0.68rem;
+            font-weight: 700;
+            margin-top: 2px;
+        }
+
+        .result-insight {
+            padding: 18px;
+            background: linear-gradient(135deg, var(--peach-light), var(--mint-light));
+            border-color: var(--peach);
+            margin-bottom: 16px;
+        }
+
+        .ri-title {
+            font-size: 0.88rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .ri-text {
+            font-size: 0.82rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        .result-tasks {
+            padding: 20px;
+            margin-bottom: 16px;
+        }
+
+        .rt-title {
+            font-size: 0.88rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+
+        .rt-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 14px;
+            border: 1.5px solid var(--kraft-light);
+            border-radius: var(--border-radius-sm);
+            background: var(--cream);
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .rt-item:hover {
+            background: var(--mint-light);
+            border-color: var(--mint);
+        }
+
+        .rt-icon {
+            font-size: 1.2rem;
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid var(--mint);
+            background: var(--mint-light);
+            flex-shrink: 0;
+        }
+
+        .rt-info {
+            flex: 1;
+        }
+
+        .rt-name {
+            font-size: 0.85rem;
+            font-weight: 700;
+        }
+
+        .rt-meta {
+            font-size: 0.7rem;
+            color: var(--text-light);
+        }
+
+        .rt-xp {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--peach-dark);
+            background: var(--peach-light);
+            padding: 2px 8px;
+            border-radius: 50px;
+            border: 1.5px solid var(--peach);
+        }
+
+        .expert-suggest {
+            padding: 18px;
+            background: rgba(255, 139, 139, 0.06);
+            border: 1.5px solid var(--coral);
+            border-radius: var(--border-radius);
+            margin-bottom: 16px;
+            display: none;
+        }
+
+        .expert-suggest.show {
+            display: block;
+        }
+
+        /* ===== EMERGENCY POPUP ===== */
+        .emergency-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(74, 55, 40, 0.5);
+            z-index: 1000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .emergency-overlay.show {
+            display: flex;
+        }
+
+        .emergency-popup {
+            background: var(--warm-white);
+            border-radius: var(--border-radius-lg);
+            border: 3px solid var(--coral);
+            padding: 32px;
+            max-width: 420px;
+            width: 100%;
+            box-shadow: 6px 6px 0px rgba(255, 139, 139, 0.3);
+            animation: pop-in 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        @keyframes pop-in {
+            from {
+                transform: scale(0.8);
+                opacity: 0;
+            }
+
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .ep-header {
+            text-align: center;
+            margin-bottom: 16px;
+        }
+
+        .ep-icon {
+            font-size: 2.5rem;
+            margin-bottom: 8px;
+        }
+
+        .ep-title {
+            font-size: 1.2rem;
+            font-weight: 800;
+            color: var(--coral);
+        }
+
+        .ep-text {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-bottom: 16px;
+            text-align: center;
+        }
+
+        .ep-hotline {
+            padding: 14px;
+            background: rgba(255, 139, 139, 0.1);
+            border: 2px solid var(--coral);
+            border-radius: var(--border-radius-sm);
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .ep-hotline .eph-num {
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: var(--coral);
+        }
+
+        .ep-hotline .eph-label {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        .ep-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .ep-btn {
+            padding: 12px;
+            border-radius: 50px;
+            font-family: 'Nunito', sans-serif;
+            font-size: 0.88rem;
+            font-weight: 700;
+            cursor: pointer;
+            text-align: center;
+            transition: var(--transition);
+            text-decoration: none;
+            display: block;
+        }
+
+        .ep-btn-primary {
+            background: var(--coral);
+            color: white;
+            border: 2px solid #e07070;
+            box-shadow: 2px 2px 0px #e07070;
+        }
+
+        .ep-btn-secondary {
+            background: var(--mint-light);
+            color: var(--mint-dark);
+            border: 2px solid var(--mint);
+        }
+
+        .ep-btn-close {
+            background: transparent;
+            color: var(--text-light);
+            border: 2px solid var(--kraft-light);
+            font-size: 0.8rem;
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media(max-width:900px) {
+            :root {
+                --sidebar-width: 0px;
+            }
+
+            .sidebar {
+                transform: translateX(-240px);
+                width: 240px;
+                transition: transform 0.3s ease;
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+
+            .sidebar-overlay.open {
+                display: block;
+            }
+
+            .main-content {
+                margin-left: 0;
+                padding: 76px 16px 20px;
+            }
+
+            .mobile-topbar {
+                display: flex;
+            }
+
+            .chat-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .test-selector {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        @media(max-width:600px) {
+            .mode-selector {
+                grid-template-columns: 1fr;
+            }
+
+            .mood-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+
+            .likert-scale {
+                flex-direction: column;
+            }
+
+            .result-scores {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .test-selector {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Emergency Overlay -->
+    <div class="emergency-overlay" id="emergencyOverlay">
+        <div class="emergency-popup">
+            <div class="ep-header">
+                <div class="ep-icon">❤️</div>
+                <div class="ep-title">Bạn không đơn độc</div>
+            </div>
+            <p class="ep-text">Chúng tôi nhận thấy bạn đang trải qua giai đoạn rất khó khăn. Hãy để ai đó giúp bạn ngay
+                bây giờ nhé.</p>
+            <div class="ep-hotline">
+                <div class="eph-num">📞 1800-599-920</div>
+                <div class="eph-label">Đường dây nóng sức khỏe tâm thần — Miễn phí, 24/7</div>
+            </div>
+            <div class="ep-actions">
+                <a href="tel:1800599920" class="ep-btn ep-btn-primary">📞 Gọi ngay</a>
+                <a href="experts.html" class="ep-btn ep-btn-secondary">💬 Chat với chuyên gia</a>
+                <a href="tel:115" class="ep-btn ep-btn-secondary"
+                    style="background:var(--coral-light);color:#c05050;border-color:var(--coral);">🆘 Gọi cấp cứu
+                    115</a>
+                <button class="ep-btn ep-btn-close" onclick="closeEmergency()">Tôi ổn, tiếp tục</button>
+            </div>
+            <p style="text-align:center;font-size:0.72rem;color:var(--text-light);margin-top:10px;font-style:italic;">
+                "Rồi chuyện này sẽ qua. Hãy cho phép ai đó giúp bạn."</p>
+        </div>
+    </div>
+
+    <!-- Sidebar Overlay -->
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+    <!-- Mobile Topbar -->
+    <div class="mobile-topbar">
+        <button class="mobile-menu-btn" onclick="toggleSidebar()">☰</button>
+        <a href="index.html" style="display:flex;align-items:center;gap:8px;text-decoration:none;">
+            <div
+                style="width:32px;height:32px;background:var(--mint);border-radius:8px;border:2px solid var(--mint-dark);display:flex;align-items:center;justify-content:center;font-size:1rem;box-shadow:2px 2px 0px var(--mint-dark);">
+                🌿</div>
+            <span style="font-size:1.1rem;font-weight:800;color:var(--text-primary);">Peace<span
+                    style="color:var(--mint-dark);">Flow</span></span>
+        </a>
+        <div style="display:flex;align-items:center;gap:8px;">
+            <span
+                style="background:var(--peach-light);padding:3px 10px;border-radius:50px;font-size:0.75rem;font-weight:700;color:var(--peach-dark);border:1.5px solid var(--peach);">⭐
+                295 XP</span>
+        </div>
+    </div>
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <a href="index.html" class="sidebar-logo">
+            <div class="logo-icon">🌿</div>
+            <div class="logo-text">Peace<span>Flow</span></div>
+        </a>
+
+        <nav class="sidebar-nav">
+            <div class="nav-section-label">Chính</div>
+            <a href="dashboard.html" class="nav-item ">
+                <span class="ni">🏡</span> Tổng quan
+            </a>
+            <a href="mood-checkin.html" class="nav-item active">
+                <span class="ni">💭</span> Tâm trạng
+            </a>
+            <a href="tasks.html" class="nav-item ">
+                <span class="ni">🎮</span> Nhiệm vụ
+            </a>
+            <a href="journal.html" class="nav-item ">
+                <span class="ni">📝</span> Nhật ký
+            </a>
+
+            <div class="nav-section-label" style="margin-top:8px;">Kết nối</div>
+            <a href="experts.html" class="nav-item ">
+                <span class="ni">🩺</span> Chuyên gia
+            </a>
+            <a href="community.html" class="nav-item ">
+                <span class="ni">👥</span> Cộng đồng
+            </a>
+
+            <div class="nav-section-label" style="margin-top:8px;">Phân tích</div>
+            <a href="report.html" class="nav-item ">
+                <span class="ni">📊</span> Báo cáo
+            </a>
+            <a href="achievements.html" class="nav-item ">
+                <span class="ni">🏅</span> Thành tích
+            </a>
+
+            <div class="nav-section-label" style="margin-top:8px;">Cài đặt</div>
+            <a href="profile.html" class="nav-item ">
+                <span class="ni">👤</span> Hồ sơ
+            </a>
+            <a href="settings.html" class="nav-item ">
+                <span class="ni">⚙️</span> Cài đặt
+            </a>
+            <a href="#" class="nav-item" onclick="handleLogout()" style="color:var(--coral); margin-top: 10px; border-top: 1px dashed var(--kraft-light); padding-top: 15px;">
+                <span class="ni">🚪</span> Đăng xuất
+            </a>
+        </nav>
+
+        <div class="sidebar-bottom">
+            <div class="user-card-mini">
+                <div class="user-avatar-mini">🐱</div>
+                <div class="user-info-mini">
+                    <div class="user-name">Khách hàng giả lập</div>
+                    <div class="user-level">⭐ 295 XP · Level 2</div>
+                </div>
+            </div>
+            <a href="emergency.html" class="emergency-btn">
+                🆘 Hỗ trợ khẩn cấp
+            </a>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="page-header">
+            <div>
+                <div class="page-title">💭 Khảo Sát Tâm Trạng</div>
+                <div class="page-subtitle">Chọn phương thức phù hợp — PeaceCat luôn lắng nghe bạn 🐱</div>
+            </div>
+            <div style="display:flex;gap:8px;align-items:center;">
+                <span class="badge-pill badge-mint">✅ Check-in hôm nay: Chưa</span>
+                <a href="dashboard.html" class="btn-outline">← Dashboard</a>
+            </div>
+        </div>
+
+        <!-- MODE SELECTOR -->
+        <div class="mode-selector">
+            <div class="mode-card active" onclick="switchMode('quick',this)">
+                <div class="mode-icon">⚡</div>
+                <div class="mode-title">Check-in Nhanh</div>
+                <div class="mode-desc">Chọn tâm trạng, mức độ và nguyên nhân</div>
+                <div class="mode-time">⏱ 30 giây</div>
+            </div>
+            <div class="mode-card" onclick="location.href='mood-chat.html'">
+                <div class="mode-icon">🐱</div>
+                <div class="mode-title">Chat với PeaceCat</div>
+                <div class="mode-desc">Trò chuyện tự nhiên, AI phân tích cảm xúc</div>
+                <div class="mode-time">⏱ 3-5 phút</div>
+            </div>
+            <div class="mode-card" onclick="location.href='mood-assessment.html'">
+                <div class="mode-icon">📋</div>
+                <div class="mode-title">Bài Kiểm Tra Chuẩn Hóa</div>
+                <div class="mode-desc">DASS-21, GAD-7, HARS, PHQ-9, PSQI</div>
+                <div class="mode-time">⏱ 5-15 phút</div>
+            </div>
+        </div>
+
+        <!-- ====== PANEL 1: QUICK CHECK-IN ====== -->
+        <div class="panel active" id="panel-quick">
+            <div class="paper-card checkin-card">
+                <!-- Step Indicator -->
+                <div class="step-indicator">
+                    <div class="si-dot active" id="si-1">1</div>
+                    <div class="si-line" id="sl-1"></div>
+                    <div class="si-dot" id="si-2">2</div>
+                    <div class="si-line" id="sl-2"></div>
+                    <div class="si-dot" id="si-3">3</div>
+                    <div class="si-line" id="sl-3"></div>
+                    <div class="si-dot" id="si-4">✓</div>
+                </div>
+
+                <!-- Step 1: Mood Selection -->
+                <div class="checkin-step active" id="qs-1">
+                    <div class="mascot-speech-box">
+                        <span class="msb-avatar">🐱</span>
+                        <div class="msb-text">Chào Khách hàng giả lập! Hôm nay bạn cảm thấy thế nào? Nhấn vào biểu cảm phù hợp
+                            nhất với bạn lúc này nhé 😊</div>
+                    </div>
+                    <div class="checkin-title">Tâm trạng của bạn hôm nay?</div>
+                    <div class="checkin-sub">Chọn biểu cảm gần nhất với cảm giác hiện tại</div>
+                    <div class="mood-grid" id="moodGrid">
+                        <div class="mood-btn" onclick="selectMood(this,9,'Rất vui')"><span
+                                class="mood-emoji">😊</span><span class="mood-label">Rất vui</span></div>
+                        <div class="mood-btn" onclick="selectMood(this,7,'Thoải mái')"><span
+                                class="mood-emoji">😌</span><span class="mood-label">Thoải mái</span></div>
+                        <div class="mood-btn" onclick="selectMood(this,5,'Bình thường')"><span
+                                class="mood-emoji">😐</span><span class="mood-label">Bình thường</span></div>
+                        <div class="mood-btn" onclick="selectMood(this,4,'Hơi căng')"><span
+                                class="mood-emoji">😟</span><span class="mood-label">Hơi căng</span></div>
+                        <div class="mood-btn" onclick="selectMood(this,2,'Rất căng thẳng')"><span
+                                class="mood-emoji">😰</span><span class="mood-label">Rất căng thẳng</span></div>
+                        <div class="mood-btn" onclick="selectMood(this,2,'Buồn bã')"><span
+                                class="mood-emoji">😢</span><span class="mood-label">Buồn bã</span></div>
+                        <div class="mood-btn" onclick="selectMood(this,1,'Tức giận')"><span
+                                class="mood-emoji">😡</span><span class="mood-label">Tức giận</span></div>
+                    </div>
+                    <div style="display:flex;justify-content:flex-end;">
+                        <button class="btn-primary" onclick="goCheckinStep(2)">Tiếp tục →</button>
+                    </div>
+                </div>
+
+                <!-- Step 2: Intensity Slider -->
+                <div class="checkin-step" id="qs-2">
+                    <div class="mascot-speech-box">
+                        <span class="msb-avatar" id="mascotMoodEmoji">🐱</span>
+                        <div class="msb-text" id="mascotMoodText">Mình hiểu rồi. Bạn có thể cho mình biết mức độ cảm xúc
+                            đó mạnh đến đâu không?</div>
+                    </div>
+                    <div class="checkin-title">Mức độ cảm xúc?</div>
+                    <div class="checkin-sub">Kéo thanh trượt để chỉ ra mức độ</div>
+                    <div class="slider-wrap">
+                        <div class="slider-labels"><span>😌 Nhẹ nhàng</span><span>😰 Rất mạnh</span></div>
+                        <input type="range" class="mood-slider" id="intensitySlider" min="1" max="10" value="5"
+                            oninput="updateSlider(this.value)">
+                        <div class="slider-value-display">
+                            <div class="slider-tree" id="sliderTree">🌿</div>
+                            <div class="slider-val" id="sliderVal">5</div>
+                            <div class="slider-val-label" id="sliderValLabel">Mức trung bình</div>
+                        </div>
+                    </div>
+                    <div style="display:flex;justify-content:space-between;align-items:center;">
+                        <button class="btn-outline" onclick="goCheckinStep(1)">← Quay lại</button>
+                        <button class="btn-primary" onclick="goCheckinStep(3)">Tiếp tục →</button>
+                    </div>
+                </div>
+
+                <!-- Step 3: Tags -->
+                <div class="checkin-step" id="qs-3">
+                    <div class="mascot-speech-box">
+                        <span class="msb-avatar">🐱</span>
+                        <div class="msb-text">Cảm ơn bạn đã chia sẻ! Điều gì có thể đang ảnh hưởng đến tâm trạng của
+                            bạn? (Tùy chọn)</div>
+                    </div>
+                    <div class="checkin-title">Nguyên nhân có thể là gì?</div>
+                    <div class="checkin-sub">Chọn một hoặc nhiều — hoặc bỏ qua nếu không rõ</div>
+                    <div class="tag-grid" id="tagGrid">
+                        <div class="tag-btn" onclick="toggleTag(this)">💼 Công việc</div>
+                        <div class="tag-btn" onclick="toggleTag(this)">👨‍👩‍👧 Gia đình</div>
+                        <div class="tag-btn" onclick="toggleTag(this)">💕 Tình cảm</div>
+                        <div class="tag-btn" onclick="toggleTag(this)">💰 Tài chính</div>
+                        <div class="tag-btn" onclick="toggleTag(this)">🏥 Sức khỏe</div>
+                        <div class="tag-btn" onclick="toggleTag(this)">😔 Cô đơn</div>
+                        <div class="tag-btn" onclick="toggleTag(this)">😴 Mất ngủ</div>
+                        <div class="tag-btn" onclick="toggleTag(this)">📱 Mạng xã hội</div>
+                        <div class="tag-btn" onclick="toggleTag(this)">🎓 Học tập</div>
+                        <div class="tag-btn" onclick="toggleTag(this)">❓ Không rõ</div>
+                    </div>
+                    <div style="display:flex;justify-content:space-between;align-items:center;">
+                        <button class="btn-outline" onclick="goCheckinStep(2)">← Quay lại</button>
+                        <button class="btn-primary" onclick="submitCheckin()">Lưu & Xem kết quả ✓</button>
+                    </div>
+                </div>
+
+                <!-- Step 4: Result -->
+                <div class="checkin-step" id="qs-4">
+                    <div style="text-align:center;padding:10px 0 20px;">
+                        <div style="font-size:3rem;margin-bottom:8px;animation:bounce-r 2s ease-in-out infinite;"
+                            id="resultEmoji">🌿</div>
+                        <div style="font-size:1.2rem;font-weight:800;margin-bottom:6px;" id="resultTitle">Đã lưu tâm
+                            trạng!</div>
+                        <div style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:20px;" id="resultMsg">
+                            Cảm ơn bạn đã check-in hôm nay 💚</div>
+                        <div style="display:flex;justify-content:center;gap:8px;margin-bottom:20px;flex-wrap:wrap;">
+                            <span class="badge-pill badge-mint" id="resultMoodBadge">😊 Thoải mái</span>
+                            <span class="badge-pill badge-peach" id="resultScoreBadge">Mức 5/10</span>
+                            <span class="badge-pill"
+                                style="background:var(--sky-light);color:#5090aa;border:1.5px solid var(--sky);">+10 XP
+                                🎉</span>
+                        </div>
+                    </div>
+                    <div class="paper-card"
+                        style="padding:18px;margin-bottom:16px;background:linear-gradient(135deg,var(--peach-light),var(--mint-light));border-color:var(--peach);">
+                        <div
+                            style="font-size:0.8rem;font-weight:700;color:var(--text-light);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">
+                            🎯 Nhiệm vụ được gợi ý cho bạn</div>
+                        <div id="suggestedTasks"></div>
+                    </div>
+                    <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
+                        <a href="tasks.html" class="btn-primary">🎮 Xem tất cả nhiệm vụ</a>
+                        <button class="btn-outline" onclick="resetCheckin()">↩ Check-in lại</button>
+                        <a href="dashboard.html" class="btn-outline">🏡 Dashboard</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        </div> <!-- End panel quick -->
+    </main>
+
+    <script>
+        // QUICK CHECK-IN SCRIPT
+        let checkinData = { score: 5, mood: null, moodLabel: null, tags: new Set() };
+
+        function selectMood(btn, score, label) {
+            document.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('selected'));
+            btn.classList.add('selected');
+
+            // Set base score from emoji selection
+            checkinData.score = score;
+            checkinData.moodLabel = label;
+            checkinData.mood = btn.querySelector('.mood-emoji').innerText;
+
+            // Update UI for next step
+            document.getElementById('mascotMoodEmoji').innerText = checkinData.mood;
+            document.getElementById('mascotMoodText').innerText = `Bạn đang cảm thấy "${label}". Bạn có thể cho mình biết cường độ cảm xúc này thế nào không?`;
+
+            // Adjust slider base value automatically
+            document.getElementById('intensitySlider').value = score;
+            updateSlider(score);
+
+            // Auto go next step after brief delay for UX
+            setTimeout(() => {
+                goCheckinStep(2);
+            }, 400);
+        }
+
+        function updateSlider(val) {
+            checkinData.score = parseInt(val);
+            document.getElementById('sliderVal').innerText = val;
+
+            let label = "Trung bình";
+            if (val <= 3) label = "Rất căng. Cần chăm sóc!";
+            else if (val <= 4) label = "Hơi mệt / Căng nhẹ";
+            else if (val <= 6) label = "Bình thường / Ổn định";
+            else if (val <= 8) label = "Khá tốt / Thoải mái";
+            else label = "Rất tuyệt vời";
+
+            document.getElementById('sliderValLabel').innerText = label;
+
+            // Visual feedback loop
+            const tree = document.getElementById('sliderTree');
+            if (val >= 7) tree.innerText = "🌸";
+            else if (val >= 4) tree.innerText = "🌿";
+            else tree.innerText = "🍂";
+        }
+
+        function toggleTag(el) {
+            el.classList.toggle('selected');
+            const tagStr = el.innerText.trim();
+            if (el.classList.contains('selected')) {
+                checkinData.tags.add(tagStr);
+            } else {
+                checkinData.tags.delete(tagStr);
+            }
+        }
+
+        function goCheckinStep(step) {
+            // Guard clause
+            if (step === 2 && !checkinData.mood) {
+                alert("Bạn vui lòng chọn một tâm trạng trước nhé!");
+                return;
+            }
+
+            // Hide all steps
+            document.querySelectorAll('.checkin-step').forEach(s => s.classList.remove('active'));
+            // Remove active from dots > step
+            document.querySelectorAll('.si-dot').forEach((d, i) => {
+                const s = i + 1;
+                d.classList.remove('active', 'done');
+                if (s < step) d.classList.add('done');
+                else if (s === step) d.classList.add('active');
+            });
+            document.querySelectorAll('.si-line').forEach((l, i) => {
+                const s = i + 2;
+                l.classList.remove('done');
+                if (s <= step) l.classList.add('done');
+            });
+
+            // Show target
+            document.getElementById(`qs-${step}`).classList.add('active');
+        }
+
+        let userStats = { xp: 0, level: 1, name: 'Khách hàng giả lập' };
+
+        function loadData() {
+            try {
+                const stats = localStorage.getItem('PeaceFlow_user_stats');
+                if (stats) {
+                    userStats = JSON.parse(stats);
+                    const threshold = 200;
+                    const level = Math.floor(userStats.xp / threshold) + 1;
+                    document.querySelectorAll('.user-name').forEach(el => el.innerText = userStats.name);
+                    document.querySelectorAll('.user-level').forEach(el => el.innerText = `⭐ ${userStats.xp} XP · Level ${level}`);
+                    const topXp = document.querySelector('.mobile-topbar span[style*="background:var(--peach-light)"]');
+                    if (topXp) topXp.innerText = `⭐ ${userStats.xp} XP`;
+                }
+            } catch (e) { }
+        }
+
+        window.onload = loadData;
+
+        function submitCheckin() {
+            // Prepare Result
+            document.getElementById('resultEmoji').innerText = checkinData.mood || '🌿';
+            document.getElementById('resultMoodBadge').innerText = `${checkinData.mood || ''} ${checkinData.moodLabel || 'Bình thường'}`;
+            document.getElementById('resultScoreBadge').innerText = `Mức ${checkinData.score}/10`;
+
+            // Decide Tasks based on score
+            let taskHtml = '';
+            if (checkinData.score <= 4) {
+                taskHtml += <div class="rt-item" onclick="location.href='task-breathing.html'">
+                                <div class="rt-icon">???</div>
+                                <div class="rt-info">
+                                    <div class="rt-name">Ht th? su 4-4-4</div>
+                                    <div class="rt-meta">Gi?m cang th?ng ngay l?p t?c  3 pht</div>
+                                </div>
+                                <div class="rt-xp">+15 XP</div>
+                            </div>;
+            } else {
+                taskHtml += <div class="rt-item" onclick="location.href='task-detail.html'">
+                                <div class="rt-icon">??</div>
+                                <div class="rt-info">
+                                    <div class="rt-name">Vi?t 3 di?u bi?t on</div>
+                                    <div class="rt-meta">Tang cu?ng c?m xc tch c?c  5 pht</div>
+                                </div>
+                                <div class="rt-xp">+20 XP</div>
+                            </div>;
+            }
+            document.getElementById('suggestedTasks').innerHTML = taskHtml;
+
+            if (window.Store && window.UserModule) {
+                window.Store.addMoodEntry({ mood: checkinData.mood, level: checkinData.score, tags: Array.from(checkinData.tags), note: '' });
+                window.UserModule.addXP(10, 'checkin');
+            } else {
+                let logs = [];
+                try { logs = JSON.parse(localStorage.getItem('PeaceFlow_logs') || "[]"); } catch (e) { }
+                logs.push({ date: new Date().toISOString(), mood: checkinData.mood, score: checkinData.score, tags: Array.from(checkinData.tags), timestamp: Date.now() });
+                localStorage.setItem('PeaceFlow_logs', JSON.stringify(logs));
+                userStats.xp += 10;
+                localStorage.setItem('PeaceFlow_user_stats', JSON.stringify(userStats));
+            }
+            loadData();
+            goCheckinStep(4);
+        }
+
+        function resetCheckin() {
+            checkinData = { score: 5, mood: null, moodLabel: null, tags: new Set() };
+            document.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('selected'));
+            document.querySelectorAll('.tag-btn').forEach(b => b.classList.remove('selected'));
+            updateSlider(5);
+            document.getElementById('intensitySlider').value = 5;
+            goCheckinStep(1);
+        }
+
+        // Dummy for tab safety
+        function switchMode(mode, btn) { }
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../public/js/supabase-config.js"></script>
+    <script src="../public/js/app.js"></script>
+</body>
+
+</html>

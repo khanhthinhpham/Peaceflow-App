@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PeaceFlow — Bài Tập Thiền Interactive</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Patrick+Hand&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --cream: #FFF8F0;
+            --warm-white: #FFFDF7;
+            --kraft: #D4A574;
+            --kraft-light: #E8CBA7;
+            --kraft-dark: #B8895A;
+            --mint: #A8D5BA;
+            --mint-light: #C5E8D2;
+            --mint-dark: #7BBF95;
+            --peach: #FFCBA4;
+            --peach-light: #FFE0C4;
+            --peach-dark: #E8A876;
+            --sky: #A8D8EA;
+            --sky-light: #C5E8F5;
+            --lavender: #C3AED6;
+            --lavender-light: #DDD1EB;
+            --coral: #FF8B8B;
+            --coral-light: #FFB3B3;
+            --indigo: #7B8EC8;
+            --indigo-light: #C5CCE8;
+            --text-primary: #4A3728;
+            --text-secondary: #7A6555;
+            --text-light: #A89585;
+            --shadow-paper: 3px 3px 0px rgba(74, 55, 40, 0.1);
+            --border-radius: 16px;
+            --border_radius_sm: 10px;
+            --transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            --sidebar-width: 240px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background: var(--cream);
+            color: var(--text-primary);
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        .paper-card {
+            background: var(--warm-white);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-paper);
+            border: 2px solid var(--kraft-light);
+            transition: var(--transition);
+        }
+
+        /* SIDEBAR */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            width: var(--sidebar-width);
+            background: var(--warm-white);
+            border-right: 2px solid var(--kraft-light);
+            z-index: 200;
+            display: flex;
+            flex-direction: column;
+            padding: 20px 0;
+        }
+
+        .sidebar-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 0 20px 20px;
+            border-bottom: 2px dashed var(--kraft-light);
+            margin-bottom: 16px;
+            text-decoration: none;
+        }
+
+        .sidebar-logo .logo-icon {
+            width: 38px;
+            height: 38px;
+            background: var(--mint);
+            border-radius: 10px;
+            border: 2px solid var(--mint-dark);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            box-shadow: 2px 2px 0px var(--mint-dark);
+        }
+
+        .sidebar-logo .logo-text {
+            font-size: 1.2rem;
+            font-weight: 800;
+            color: var(--text-primary);
+        }
+
+        .sidebar-logo .logo-text span {
+            color: var(--mint-dark);
+        }
+
+        .sidebar-nav {
+            flex: 1;
+            padding: 0 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            overflow-y: auto;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            border-radius: 10px;
+            text-decoration: none;
+            color: var(--text-secondary);
+            font-weight: 600;
+            font-size: 0.88rem;
+            transition: var(--transition);
+        }
+
+        .nav-item:hover {
+            background: var(--mint-light);
+            color: var(--text-primary);
+        }
+
+        .nav-item.active {
+            background: var(--mint-light);
+            color: var(--text-primary);
+            border: 1.5px solid var(--mint);
+        }
+
+        .nav-item .ni {
+            font-size: 1.1rem;
+            width: 22px;
+            text-align: center;
+        }
+
+        .nav-section-label {
+            font-size: 0.68rem;
+            font-weight: 700;
+            color: var(--text-light);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            padding: 10px 12px 4px;
+        }
+
+        .sidebar-bottom {
+            padding: 12px;
+            border-top: 2px dashed var(--kraft-light);
+            margin-top: auto;
+        }
+
+        .user-card-mini {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            background: var(--cream);
+            border-radius: 10px;
+            border: 1.5px solid var(--kraft-light);
+        }
+
+        .user-avatar-mini {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--lavender-light);
+            border: 2px solid var(--kraft);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+        }
+
+        .user-info-mini .user-name {
+            font-size: 0.85rem;
+            font-weight: 700;
+        }
+
+        .user-info-mini .user-level {
+            font-size: 0.72rem;
+            color: var(--text-light);
+        }
+
+        .emergency-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 12px;
+            background: rgba(255, 139, 139, 0.1);
+            border: 1.5px solid var(--coral);
+            border-radius: 10px;
+            color: var(--coral);
+            font-size: 0.78rem;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 8px;
+            transition: var(--transition);
+            text-decoration: none;
+        }
+
+        /* MOBILE */
+        .mobile-topbar {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background: var(--warm-white);
+            border-bottom: 2px solid var(--kraft-light);
+            z-index: 300;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 16px;
+        }
+
+        .mobile-menu-btn {
+            background: none;
+            border: none;
+            font-size: 1.4rem;
+            cursor: pointer;
+        }
+
+        /* MAIN */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            padding: 28px;
+            min-height: 100vh;
+        }
+
+        .breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 20px;
+            font-size: 0.8rem;
+            color: var(--text-light);
+        }
+
+        .breadcrumb a {
+            color: var(--text-light);
+            text-decoration: none;
+        }
+
+        .breadcrumb span {
+            color: var(--text-secondary);
+            font-weight: 600;
+        }
+
+        .page-layout {
+            max-width: 1100px;
+        }
+
+        /* ARENA */
+        .meditation-arena {
+            padding: 32px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, var(--lavender-light), var(--mint-light), var(--sky-light));
+            border-color: var(--lavender);
+        }
+
+        .ma-title {
+            font-size: 1.1rem;
+            font-weight: 800;
+            margin-bottom: 4px;
+        }
+
+        .ma-subtitle {
+            font-size: 0.82rem;
+            color: var(--text-secondary);
+            margin-bottom: 24px;
+        }
+
+        .visual-container {
+            width: 200px;
+            height: 200px;
+            margin: 0 auto 20px;
+            position: relative;
+        }
+
+        .lotus {
+            position: absolute;
+            inset: 0;
+            background: var(--lavender);
+            border-radius: 50%;
+            opacity: 0.3;
+            animation: pulse 4s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.2);
+            }
+        }
+
+        .timer-display {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--text-primary);
+        }
+
+        .med-controls {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .mc-btn {
+            padding: 10px 20px;
+            border-radius: 50px;
+            border: 2px solid;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .mc-start {
+            background: var(--lavender);
+            color: white;
+            border-color: var(--lavender-dark);
+        }
+
+        /* FEEDBACK */
+        .feedback-card {
+            padding: 24px;
+            display: none;
+            text-align: center;
+        }
+
+        .xp-badge {
+            display: inline-flex;
+            padding: 10px 20px;
+            background: var(--peach-light);
+            border: 2px solid var(--peach);
+            border-radius: 50px;
+            margin: 16px 0;
+            font-weight: 800;
+        }
+
+        @media(max-width:900px) {
+            :root {
+                --sidebar-width: 0px;
+            }
+
+            .main-content {
+                margin-left: 0;
+                padding-top: 76px;
+            }
+
+            .mobile-topbar {
+                display: flex;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="mobile-topbar">
+        <button class="mobile-menu-btn" onclick="document.getElementById('sidebar').classList.toggle('open')">☰</button>
+        <div style="font-weight:800;">PeaceFlow</div>
+        <div style="background:var(--peach-light);padding:3px 10px;border-radius:50px;font-size:0.75rem;font-weight:700;"
+            class="mobile-xp-display">⭐ 0 XP</div>
+    </div>
+
+    <aside class="sidebar" id="sidebar">
+        <a href="index.html" class="sidebar-logo">
+            <div class="logo-icon">🌿</div>
+            <div class="logo-text">Peace<span>Flow</span></div>
+        </a>
+
+        <nav class="sidebar-nav">
+            <div class="nav-section-label">Chính</div>
+            <a href="dashboard.html" class="nav-item ">
+                <span class="ni">🏡</span> Tổng quan
+            </a>
+            <a href="mood-checkin.html" class="nav-item ">
+                <span class="ni">💭</span> Tâm trạng
+            </a>
+            <a href="tasks.html" class="nav-item active">
+                <span class="ni">🎮</span> Nhiệm vụ
+            </a>
+            <a href="journal.html" class="nav-item ">
+                <span class="ni">📝</span> Nhật ký
+            </a>
+
+            <div class="nav-section-label" style="margin-top:8px;">Kết nối</div>
+            <a href="experts.html" class="nav-item ">
+                <span class="ni">🩺</span> Chuyên gia
+            </a>
+            <a href="community.html" class="nav-item ">
+                <span class="ni">👥</span> Cộng đồng
+            </a>
+
+            <div class="nav-section-label" style="margin-top:8px;">Phân tích</div>
+            <a href="report.html" class="nav-item ">
+                <span class="ni">📊</span> Báo cáo
+            </a>
+            <a href="achievements.html" class="nav-item ">
+                <span class="ni">🏅</span> Thành tích
+            </a>
+
+            <div class="nav-section-label" style="margin-top:8px;">Cài đặt</div>
+            <a href="profile.html" class="nav-item ">
+                <span class="ni">👤</span> Hồ sơ
+            </a>
+            <a href="settings.html" class="nav-item ">
+                <span class="ni">⚙️</span> Cài đặt
+            </a>
+            <a href="#" class="nav-item" onclick="handleLogout()" style="color:var(--coral); margin-top: 10px; border-top: 1px dashed var(--kraft-light); padding-top: 15px;">
+                <span class="ni">🚪</span> Đăng xuất
+            </a>
+        </nav>
+
+        <div class="sidebar-bottom">
+            <div class="user-card-mini">
+                <div class="user-avatar-mini">🐱</div>
+                <div class="user-info-mini">
+                    <div class="user-name">Khách hàng giả lập</div>
+                    <div class="user-level">⭐ 295 XP · Level 2</div>
+                </div>
+            </div>
+            <a href="emergency.html" class="emergency-btn">
+                🆘 Hỗ trợ khẩn cấp
+            </a>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <div class="breadcrumb"><a href="dashboard.html">🏡 Tổng quan</a><span>›</span><a href="tasks.html">🎮 Nhiệm
+                vụ</a><span>›</span><span>🧘 Thiền</span></div>
+
+        <div class="page-layout">
+            <div class="paper-card meditation-arena">
+                <div class="ma-title">🧘 Thiền Chánh Niệm</div>
+                <div class="ma-subtitle">Tập trung vào hiện tại</div>
+                <div class="visual-container">
+                    <div class="lotus"></div>
+                    <div class="timer-display" id="timer">05:00</div>
+                </div>
+                <div class="med-controls">
+                    <button class="mc-btn mc-start" onclick="startMeditation()" id="startBtn">▶ Bắt đầu</button>
+                </div>
+            </div>
+
+            <div class="paper-card feedback-card" id="feedback">
+                <h2>Tuyệt vời! 🎉</h2>
+                <div class="xp-badge">+25 XP</div>
+                <br>
+                <a href="tasks.html" class="btn-primary" style="text-decoration:none;">Quay lại nhiệm vụ</a>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        let timeLeft = 300, isRunning = false, interval = null;
+        let userStats = { xp: 0, level: 1, name: 'Khách hàng giả lập' };
+
+        function loadData() {
+            const stats = localStorage.getItem('PeaceFlow_user_stats');
+            if (stats) userStats = JSON.parse(stats);
+            updateUI();
+        }
+
+        function updateUI() {
+            const level = Math.floor(userStats.xp / 200) + 1;
+            document.querySelectorAll('.user-name').forEach(el => el.innerText = userStats.name);
+            document.querySelectorAll('.user-level').forEach(el => el.innerText = `⭐ ${userStats.xp} XP · Level ${level}`);
+            const mobileXp = document.querySelector('.mobile-xp-display');
+            if (mobileXp) mobileXp.innerText = `⭐ ${userStats.xp} XP`;
+        }
+
+        function startMeditation() {
+            if (isRunning) return;
+            isRunning = true;
+            document.getElementById('startBtn').style.display = 'none';
+            interval = setInterval(() => {
+                timeLeft--;
+                let m = Math.floor(timeLeft / 60), s = timeLeft % 60;
+                document.getElementById('timer').innerText = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+                if (timeLeft <= 0) {
+                    clearInterval(interval);
+                    finish();
+                }
+            }, 1000);
+        }
+
+        function finish() {
+            userStats.xp += 25;
+            localStorage.setItem('PeaceFlow_user_stats', JSON.stringify(userStats));
+
+            let done = JSON.parse(localStorage.getItem('PeaceFlow_tasks_completed') || '[]');
+            if (!done.includes('E1')) done.push('E1');
+            localStorage.setItem('PeaceFlow_tasks_completed', JSON.stringify(done));
+
+            document.querySelector('.meditation-arena').style.display = 'none';
+            document.getElementById('feedback').style.display = 'block';
+            updateUI();
+        }
+
+        window.onload = loadData;
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../public/js/supabase-config.js"></script>
+    <script src="../public/js/app.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,2145 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PeaceFlow — Chi Tiết Nhiệm Vụ</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Patrick+Hand&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --cream: #FFF8F0;
+            --warm-white: #FFFDF7;
+            --kraft: #D4A574;
+            --kraft-light: #E8CBA7;
+            --kraft-dark: #B8895A;
+            --mint: #A8D5BA;
+            --mint-light: #C5E8D2;
+            --mint-dark: #7BBF95;
+            --peach: #FFCBA4;
+            --peach-light: #FFE0C4;
+            --peach-dark: #E8A876;
+            --sky: #A8D8EA;
+            --sky-light: #C5E8F5;
+            --lavender: #C3AED6;
+            --lavender-light: #DDD1EB;
+            --coral: #FF8B8B;
+            --coral-light: #FFB3B3;
+            --yellow: #FFD93D;
+            --yellow-light: #FFF3B0;
+            --orange: #FFB347;
+            --orange-light: #FFE0B2;
+            --text-primary: #4A3728;
+            --text-secondary: #7A6555;
+            --text-light: #A89585;
+            --shadow-paper: 3px 3px 0px rgba(74, 55, 40, 0.1);
+            --shadow-paper-hover: 5px 5px 0px rgba(74, 55, 40, 0.15);
+            --border-radius: 16px;
+            --border-radius-sm: 10px;
+            --transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            --sidebar-width: 240px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background: var(--cream);
+            color: var(--text-primary);
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        .handwritten {
+            font-family: 'Patrick Hand', cursive;
+        }
+
+        .paper-card {
+            background: var(--warm-white);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-paper);
+            border: 2px solid var(--kraft-light);
+            transition: var(--transition);
+        }
+
+        /* ===== SIDEBAR ===== */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            width: var(--sidebar-width);
+            background: var(--warm-white);
+            border-right: 2px solid var(--kraft-light);
+            z-index: 200;
+            display: flex;
+            flex-direction: column;
+            padding: 20px 0;
+        }
+
+        .sidebar-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 0 20px 20px;
+            border-bottom: 2px dashed var(--kraft-light);
+            margin-bottom: 16px;
+            text-decoration: none;
+        }
+
+        .sidebar-logo .logo-icon {
+            width: 38px;
+            height: 38px;
+            background: var(--mint);
+            border-radius: 10px;
+            border: 2px solid var(--mint-dark);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            box-shadow: 2px 2px 0px var(--mint-dark);
+        }
+
+        .sidebar-logo .logo-text {
+            font-size: 1.2rem;
+            font-weight: 800;
+            color: var(--text-primary);
+        }
+
+        .sidebar-logo .logo-text span {
+            color: var(--mint-dark);
+        }
+
+        .sidebar-nav {
+            flex: 1;
+            padding: 0 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            overflow-y: auto;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            border-radius: var(--border-radius-sm);
+            text-decoration: none;
+            color: var(--text-secondary);
+            font-weight: 600;
+            font-size: 0.88rem;
+            transition: var(--transition);
+        }
+
+        .nav-item:hover {
+            background: var(--mint-light);
+            color: var(--text-primary);
+        }
+
+        .nav-item.active {
+            background: var(--mint-light);
+            color: var(--text-primary);
+            border: 1.5px solid var(--mint);
+        }
+
+        .nav-item .ni {
+            font-size: 1.1rem;
+            width: 22px;
+            text-align: center;
+        }
+
+        .nav-section-label {
+            font-size: 0.68rem;
+            font-weight: 700;
+            color: var(--text-light);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            padding: 10px 12px 4px;
+        }
+
+        .sidebar-bottom {
+            padding: 12px;
+            border-top: 2px dashed var(--kraft-light);
+            margin-top: auto;
+        }
+
+        .user-card-mini {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            background: var(--cream);
+            border-radius: var(--border-radius-sm);
+            border: 1.5px solid var(--kraft-light);
+        }
+
+        .user-avatar-mini {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--lavender-light);
+            border: 2px solid var(--kraft);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+        }
+
+        .user-info-mini .user-name {
+            font-size: 0.85rem;
+            font-weight: 700;
+        }
+
+        .user-info-mini .user-level {
+            font-size: 0.72rem;
+            color: var(--text-light);
+        }
+
+        .emergency-btn-side {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 12px;
+            background: rgba(255, 139, 139, 0.1);
+            border: 1.5px solid var(--coral);
+            border-radius: var(--border-radius-sm);
+            color: var(--coral);
+            font-size: 0.78rem;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 8px;
+            transition: var(--transition);
+            text-decoration: none;
+        }
+
+        .emergency-btn-side:hover {
+            background: rgba(255, 139, 139, 0.2);
+        }
+
+        /* ===== MOBILE ===== */
+        .mobile-topbar {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background: var(--warm-white);
+            border-bottom: 2px solid var(--kraft-light);
+            z-index: 300;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 16px;
+        }
+
+        .mobile-menu-btn {
+            background: none;
+            border: none;
+            font-size: 1.4rem;
+            cursor: pointer;
+        }
+
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(74, 55, 40, 0.3);
+            z-index: 150;
+        }
+
+        /* ===== MAIN ===== */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            padding: 28px;
+            min-height: 100vh;
+        }
+
+        .btn-primary {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 10px 20px;
+            border: 2px solid var(--mint-dark);
+            border-radius: 50px;
+            background: var(--mint);
+            color: var(--text-primary);
+            font-family: 'Nunito', sans-serif;
+            font-size: 0.88rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: var(--transition);
+            box-shadow: 2px 2px 0px var(--mint-dark);
+            text-decoration: none;
+        }
+
+        .btn-primary:hover {
+            background: var(--mint-dark);
+            color: white;
+            transform: translate(1px, 1px);
+            box-shadow: 1px 1px 0px var(--mint-dark);
+        }
+
+        .btn-outline {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 9px 18px;
+            border: 2px solid var(--kraft-light);
+            border-radius: 50px;
+            background: transparent;
+            color: var(--text-secondary);
+            font-family: 'Nunito', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .btn-outline:hover {
+            background: var(--kraft-light);
+            color: var(--text-primary);
+        }
+
+        .btn-large {
+            padding: 14px 32px;
+            font-size: 1rem;
+            border-radius: 50px;
+        }
+
+        .badge-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 3px 10px;
+            border-radius: 50px;
+            font-size: 0.72rem;
+            font-weight: 700;
+        }
+
+        .badge-mint {
+            background: var(--mint-light);
+            color: var(--mint-dark);
+            border: 1.5px solid var(--mint);
+        }
+
+        .badge-peach {
+            background: var(--peach-light);
+            color: var(--peach-dark);
+            border: 1.5px solid var(--peach);
+        }
+
+        .badge-coral {
+            background: var(--coral-light);
+            color: #c05050;
+            border: 1.5px solid var(--coral);
+        }
+
+        .badge-yellow {
+            background: var(--yellow-light);
+            color: #b8860b;
+            border: 1.5px solid var(--yellow);
+        }
+
+        /* ===== LAYOUT ===== */
+        .detail-layout {
+            display: grid;
+            grid-template-columns: 1fr 340px;
+            gap: 24px;
+            max-width: 1100px;
+        }
+
+        .detail-left {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .detail-right {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        /* ===== BREADCRUMB ===== */
+        .breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 20px;
+            font-size: 0.8rem;
+            color: var(--text-light);
+        }
+
+        .breadcrumb a {
+            color: var(--text-light);
+            text-decoration: none;
+            transition: var(--transition);
+        }
+
+        .breadcrumb a:hover {
+            color: var(--mint-dark);
+        }
+
+        .breadcrumb span {
+            color: var(--text-secondary);
+            font-weight: 600;
+        }
+
+        /* ===== TASK HERO ===== */
+        .task-hero {
+            padding: 28px 32px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .task-hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 6px;
+            border-radius: var(--border-radius) var(--border-radius) 0 0;
+        }
+
+        .task-hero.cat-emergency::before {
+            background: linear-gradient(90deg, var(--coral), #ff6b6b);
+        }
+
+        .task-hero.cat-easy::before {
+            background: linear-gradient(90deg, var(--mint), var(--mint-dark));
+        }
+
+        .task-hero.cat-medium::before {
+            background: linear-gradient(90deg, var(--yellow), var(--orange));
+        }
+
+        .task-hero.cat-hard::before {
+            background: linear-gradient(90deg, var(--orange), #e07030);
+        }
+
+        .task-hero.cat-community::before {
+            background: linear-gradient(90deg, var(--sky), var(--lavender));
+        }
+
+        .th-top {
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .th-icon {
+            width: 64px;
+            height: 64px;
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            flex-shrink: 0;
+            border: 2.5px solid;
+        }
+
+        .th-icon.emergency {
+            background: var(--coral-light);
+            border-color: var(--coral);
+        }
+
+        .th-icon.easy {
+            background: var(--mint-light);
+            border-color: var(--mint);
+        }
+
+        .th-icon.medium {
+            background: var(--yellow-light);
+            border-color: var(--yellow);
+        }
+
+        .th-icon.hard {
+            background: var(--orange-light);
+            border-color: var(--orange);
+        }
+
+        .th-icon.community {
+            background: var(--sky-light);
+            border-color: var(--sky);
+        }
+
+        .th-info {
+            flex: 1;
+        }
+
+        .th-title {
+            font-size: 1.4rem;
+            font-weight: 800;
+            margin-bottom: 6px;
+            line-height: 1.3;
+        }
+
+        .th-meta {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 8px;
+        }
+
+        .th-desc {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+
+        .th-quote {
+            font-family: 'Patrick Hand', cursive;
+            font-size: 1rem;
+            color: var(--mint-dark);
+            font-style: italic;
+            padding: 12px 16px;
+            background: var(--mint-light);
+            border-left: 4px solid var(--mint-dark);
+            border-radius: 0 var(--border-radius-sm) var(--border-radius-sm) 0;
+            margin-top: 12px;
+        }
+
+        .th-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 16px;
+            flex-wrap: wrap;
+        }
+
+        /* ===== PHASE INDICATOR ===== */
+        .phase-indicator {
+            display: flex;
+            gap: 0;
+            margin-bottom: 20px;
+        }
+
+        .phase-item {
+            flex: 1;
+            padding: 10px 8px;
+            text-align: center;
+            border: 2px solid var(--kraft-light);
+            background: var(--cream);
+            cursor: pointer;
+            transition: var(--transition);
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: var(--text-light);
+        }
+
+        .phase-item:first-child {
+            border-radius: var(--border-radius-sm) 0 0 var(--border-radius-sm);
+        }
+
+        .phase-item:last-child {
+            border-radius: 0 var(--border-radius-sm) var(--border-radius-sm) 0;
+        }
+
+        .phase-item.active {
+            background: var(--mint-light);
+            border-color: var(--mint-dark);
+            color: var(--text-primary);
+            font-weight: 700;
+        }
+
+        .phase-item.done {
+            background: var(--mint);
+            border-color: var(--mint-dark);
+            color: white;
+        }
+
+        .phase-num {
+            font-size: 1rem;
+            margin-bottom: 2px;
+        }
+
+        /* ===== PHASE PANELS ===== */
+        .phase-panel {
+            display: none;
+        }
+
+        .phase-panel.active {
+            display: block;
+            animation: fade-up 0.4s ease;
+        }
+
+        @keyframes fade-up {
+            from {
+                opacity: 0;
+                transform: translateY(12px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* ===== STEPS ===== */
+        .steps-card {
+            padding: 24px;
+        }
+
+        .steps-title {
+            font-size: 0.95rem;
+            font-weight: 700;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .step-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .step-item {
+            display: flex;
+            gap: 14px;
+            padding: 14px 16px;
+            border: 1.5px solid var(--kraft-light);
+            border-radius: var(--border-radius-sm);
+            background: var(--cream);
+            transition: var(--transition);
+            cursor: pointer;
+        }
+
+        .step-item:hover {
+            background: var(--mint-light);
+            border-color: var(--mint);
+        }
+
+        .step-item.done {
+            background: var(--mint-light);
+            border-color: var(--mint-dark);
+        }
+
+        .step-num {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: var(--mint);
+            border: 2px solid var(--mint-dark);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.78rem;
+            font-weight: 800;
+            color: white;
+            flex-shrink: 0;
+            transition: var(--transition);
+        }
+
+        .step-item.done .step-num {
+            background: var(--mint-dark);
+        }
+
+        .step-content {
+            flex: 1;
+        }
+
+        .step-text {
+            font-size: 0.88rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        .step-tip {
+            font-size: 0.75rem;
+            color: var(--text-light);
+            margin-top: 4px;
+            font-style: italic;
+        }
+
+        /* ===== TIMER SECTION ===== */
+        .timer-card {
+            padding: 28px;
+            text-align: center;
+        }
+
+        .timer-title {
+            font-size: 0.9rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+
+        /* Breathing animation */
+        .breathing-scene {
+            position: relative;
+            width: 160px;
+            height: 160px;
+            margin: 0 auto 20px;
+        }
+
+        .breath-circle {
+            width: 160px;
+            height: 160px;
+            border-radius: 50%;
+            background: radial-gradient(circle, var(--mint-light), var(--mint));
+            border: 3px solid var(--mint-dark);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.8s ease, background 0.8s ease;
+            box-shadow: 0 0 30px rgba(168, 213, 186, 0.4);
+        }
+
+        .breath-circle.inhale {
+            transform: scale(1.25);
+            background: radial-gradient(circle, var(--mint), var(--mint-dark));
+            box-shadow: 0 0 50px rgba(123, 191, 149, 0.5);
+        }
+
+        .breath-circle.hold {
+            transform: scale(1.25);
+        }
+
+        .breath-circle.exhale {
+            transform: scale(1);
+        }
+
+        .breath-text {
+            font-size: 0.88rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            text-align: center;
+        }
+
+        .breath-count {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: var(--mint-dark);
+        }
+
+        .breath-label {
+            font-size: 0.72rem;
+            color: var(--text-secondary);
+        }
+
+        /* Timer ring */
+        .timer-ring-wrap {
+            position: relative;
+            width: 160px;
+            height: 160px;
+            margin: 0 auto 20px;
+        }
+
+        .timer-ring {
+            transform: rotate(-90deg);
+        }
+
+        .timer-ring-bg {
+            fill: none;
+            stroke: var(--kraft-light);
+            stroke-width: 8;
+        }
+
+        .timer-ring-fill {
+            fill: none;
+            stroke: var(--mint-dark);
+            stroke-width: 8;
+            stroke-linecap: round;
+            transition: stroke-dashoffset 1s linear;
+            stroke-dasharray: 440;
+            stroke-dashoffset: 0;
+        }
+
+        .timer-center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
+
+        .timer-num {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--mint-dark);
+        }
+
+        .timer-label {
+            font-size: 0.68rem;
+            color: var(--text-light);
+        }
+
+        .timer-controls {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 16px;
+        }
+
+        .timer-phase-text {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+            min-height: 24px;
+            font-weight: 600;
+        }
+
+        .round-counter {
+            display: flex;
+            gap: 6px;
+            justify-content: center;
+            margin-bottom: 12px;
+        }
+
+        .round-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--kraft-light);
+            border: 1.5px solid var(--kraft);
+            transition: var(--transition);
+        }
+
+        .round-dot.done {
+            background: var(--mint-dark);
+            border-color: var(--mint-dark);
+        }
+
+        .round-dot.active {
+            background: var(--mint);
+            border-color: var(--mint-dark);
+            box-shadow: 0 0 6px rgba(123, 191, 149, 0.5);
+        }
+
+        /* ===== GROUNDING EXERCISE ===== */
+        .grounding-card {
+            padding: 24px;
+        }
+
+        .grounding-steps {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .gs-item {
+            padding: 14px 16px;
+            border: 2px solid var(--kraft-light);
+            border-radius: var(--border-radius-sm);
+            background: var(--cream);
+            transition: var(--transition);
+        }
+
+        .gs-item.active-step {
+            border-color: var(--mint-dark);
+            background: var(--mint-light);
+        }
+
+        .gs-item.done-step {
+            border-color: var(--mint);
+            background: var(--mint-light);
+            opacity: 0.7;
+        }
+
+        .gs-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 6px;
+        }
+
+        .gs-num {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--mint);
+            border: 2px solid var(--mint-dark);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            font-weight: 800;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .gs-sense {
+            font-size: 0.88rem;
+            font-weight: 700;
+        }
+
+        .gs-desc {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        .gs-input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1.5px solid var(--kraft-light);
+            border-radius: var(--border-radius-sm);
+            background: var(--warm-white);
+            font-family: 'Nunito', sans-serif;
+            font-size: 0.82rem;
+            color: var(--text-primary);
+            outline: none;
+            margin-top: 6px;
+            resize: none;
+        }
+
+        .gs-input:focus {
+            border-color: var(--mint);
+        }
+
+        /* ===== WRITING EXERCISE ===== */
+        .writing-card {
+            padding: 24px;
+        }
+
+        .writing-prompt {
+            padding: 14px 16px;
+            background: var(--peach-light);
+            border: 1.5px solid var(--peach);
+            border-radius: var(--border-radius-sm);
+            margin-bottom: 14px;
+            font-size: 0.88rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        .writing-area {
+            width: 100%;
+            min-height: 150px;
+            padding: 14px 16px;
+            border: 2px solid var(--kraft-light);
+            border-radius: var(--border-radius-sm);
+            background: var(--cream);
+            font-family: 'Patrick Hand', cursive;
+            font-size: 1rem;
+            color: var(--text-primary);
+            outline: none;
+            resize: vertical;
+            transition: var(--transition);
+            line-height: 1.8;
+        }
+
+        .writing-area:focus {
+            border-color: var(--mint);
+            background: var(--warm-white);
+        }
+
+        .writing-meta {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.72rem;
+            color: var(--text-light);
+            margin-top: 6px;
+        }
+
+        /* ===== FEEDBACK PANEL ===== */
+        .feedback-panel {
+            display: none;
+            padding: 28px;
+            text-align: center;
+        }
+
+        .feedback-panel.show {
+            display: block;
+            animation: fade-up 0.5s ease;
+        }
+
+        .fp-mascot {
+            font-size: 3.5rem;
+            margin-bottom: 12px;
+            animation: bounce-fp 2s ease-in-out infinite;
+        }
+
+        @keyframes bounce-fp {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
+        .fp-title {
+            font-size: 1.3rem;
+            font-weight: 800;
+            margin-bottom: 6px;
+        }
+
+        .fp-subtitle {
+            font-size: 0.88rem;
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+        }
+
+        .xp-animation {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 24px;
+            background: var(--peach-light);
+            border: 2px solid var(--peach);
+            border-radius: 50px;
+            margin-bottom: 20px;
+            animation: xp-pop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        @keyframes xp-pop {
+            from {
+                transform: scale(0.5);
+                opacity: 0;
+            }
+
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .xp-num {
+            font-size: 1.6rem;
+            font-weight: 800;
+            color: var(--peach-dark);
+        }
+
+        .xp-label {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .fp-mood-title {
+            font-size: 0.9rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+
+        .fp-emojis {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .fp-emoji-btn {
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            border: 2px solid var(--kraft-light);
+            background: var(--cream);
+            cursor: pointer;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
+        }
+
+        .fp-emoji-btn:hover,
+        .fp-emoji-btn.selected {
+            border-color: var(--mint-dark);
+            background: var(--mint-light);
+            box-shadow: 2px 2px 0px var(--mint-dark);
+            transform: scale(1.15);
+        }
+
+        .fp-note-area {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1.5px solid var(--kraft-light);
+            border-radius: var(--border-radius-sm);
+            background: var(--cream);
+            font-family: 'Nunito', sans-serif;
+            font-size: 0.82rem;
+            color: var(--text-primary);
+            outline: none;
+            resize: none;
+            margin-bottom: 16px;
+            transition: var(--transition);
+        }
+
+        .fp-note-area:focus {
+            border-color: var(--mint);
+        }
+
+        .fp-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        /* ===== RIGHT SIDEBAR ===== */
+        .info-card {
+            padding: 18px;
+        }
+
+        .ic-title {
+            font-size: 0.88rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .ic-stat-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px dashed var(--kraft-light);
+        }
+
+        .ic-stat-row:last-child {
+            border-bottom: none;
+        }
+
+        .ic-stat-label {
+            font-size: 0.78rem;
+            color: var(--text-secondary);
+        }
+
+        .ic-stat-val {
+            font-size: 0.82rem;
+            font-weight: 700;
+        }
+
+        .benefit-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            padding: 8px 0;
+            border-bottom: 1px dashed var(--kraft-light);
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        .benefit-item:last-child {
+            border-bottom: none;
+        }
+
+        .benefit-icon {
+            font-size: 1rem;
+            flex-shrink: 0;
+            margin-top: 1px;
+        }
+
+        .related-task {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            border: 1.5px solid var(--kraft-light);
+            border-radius: var(--border-radius-sm);
+            background: var(--cream);
+            cursor: pointer;
+            transition: var(--transition);
+            margin-bottom: 6px;
+            text-decoration: none;
+        }
+
+        .related-task:hover {
+            background: var(--mint-light);
+            border-color: var(--mint);
+        }
+
+        .rt-icon {
+            width: 34px;
+            height: 34px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            border: 1.5px solid var(--mint);
+            background: var(--mint-light);
+            flex-shrink: 0;
+        }
+
+        .rt-name {
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .rt-meta {
+            font-size: 0.68rem;
+            color: var(--text-light);
+        }
+
+        .community-stat {
+            padding: 14px;
+            background: linear-gradient(135deg, var(--mint-light), var(--sky-light));
+            border: 1.5px solid var(--mint);
+            border-radius: var(--border-radius-sm);
+            text-align: center;
+        }
+
+        .cs-num {
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: var(--mint-dark);
+        }
+
+        .cs-label {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        .cs-bar {
+            height: 6px;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 50px;
+            overflow: hidden;
+            margin: 6px 0;
+        }
+
+        .cs-bar-fill {
+            height: 100%;
+            background: var(--mint-dark);
+            border-radius: 50px;
+        }
+
+        .mascot-tip {
+            padding: 14px 16px;
+            background: var(--peach-light);
+            border: 1.5px solid var(--peach);
+            border-radius: var(--border-radius-sm);
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+        }
+
+        .mt-avatar {
+            font-size: 1.4rem;
+            flex-shrink: 0;
+        }
+
+        .mt-text {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        /* ===== EMERGENCY OVERLAY ===== */
+        .emergency-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(74, 55, 40, 0.5);
+            z-index: 1000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .emergency-overlay.show {
+            display: flex;
+        }
+
+        .emergency-popup {
+            background: var(--warm-white);
+            border-radius: 24px;
+            border: 3px solid var(--coral);
+            padding: 32px;
+            max-width: 420px;
+            width: 100%;
+            box-shadow: 6px 6px 0px rgba(255, 139, 139, 0.3);
+            animation: pop-in 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        @keyframes pop-in {
+            from {
+                transform: scale(0.8);
+                opacity: 0;
+            }
+
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .ep-icon {
+            font-size: 2.5rem;
+            text-align: center;
+            margin-bottom: 8px;
+        }
+
+        .ep-title {
+            font-size: 1.2rem;
+            font-weight: 800;
+            color: var(--coral);
+            text-align: center;
+            margin-bottom: 6px;
+        }
+
+        .ep-text {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-bottom: 16px;
+            text-align: center;
+        }
+
+        .ep-hotline {
+            padding: 14px;
+            background: rgba(255, 139, 139, 0.1);
+            border: 2px solid var(--coral);
+            border-radius: var(--border-radius-sm);
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .ep-hotline .eph-num {
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: var(--coral);
+        }
+
+        .ep-hotline .eph-label {
+            font-size: 0.72rem;
+            color: var(--text-secondary);
+        }
+
+        .ep-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .ep-btn {
+            padding: 12px;
+            border-radius: 50px;
+            font-family: 'Nunito', sans-serif;
+            font-size: 0.88rem;
+            font-weight: 700;
+            cursor: pointer;
+            text-align: center;
+            transition: var(--transition);
+            text-decoration: none;
+            display: block;
+            border: 2px solid;
+        }
+
+        .ep-btn-red {
+            background: var(--coral);
+            color: white;
+            border-color: #c05050;
+        }
+
+        .ep-btn-green {
+            background: var(--mint-light);
+            color: var(--mint-dark);
+            border-color: var(--mint);
+        }
+
+        .ep-btn-ghost {
+            background: transparent;
+            color: var(--text-light);
+            border-color: var(--kraft-light);
+            font-size: 0.8rem;
+        }
+
+        /* Confetti */
+        .confetti-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 999;
+        }
+
+        .confetti-piece {
+            position: absolute;
+            border-radius: 2px;
+            animation: confetti-fall linear forwards;
+        }
+
+        @keyframes confetti-fall {
+            0% {
+                transform: translateY(-20px) rotate(0deg);
+                opacity: 1;
+            }
+
+            100% {
+                transform: translateY(100vh) rotate(720deg);
+                opacity: 0;
+            }
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media(max-width:1100px) {
+            .detail-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .detail-right {
+                display: grid;
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media(max-width:900px) {
+            :root {
+                --sidebar-width: 0px;
+            }
+
+            .sidebar {
+                transform: translateX(-240px);
+                width: 240px;
+                transition: transform 0.3s ease;
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+
+            .sidebar-overlay.open {
+                display: block;
+            }
+
+            .main-content {
+                margin-left: 0;
+                padding: 76px 16px 20px;
+            }
+
+            .mobile-topbar {
+                display: flex;
+            }
+        }
+
+        @media(max-width:600px) {
+            .detail-right {
+                grid-template-columns: 1fr;
+            }
+
+            .th-top {
+                flex-direction: column;
+            }
+
+            .fp-emojis {
+                gap: 8px;
+            }
+
+            .fp-emoji-btn {
+                width: 44px;
+                height: 44px;
+                font-size: 1.3rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Confetti -->
+    <div class="confetti-container" id="confettiContainer"></div>
+
+    <!-- Emergency Overlay -->
+    <div class="emergency-overlay" id="emergencyOverlay">
+        <div class="emergency-popup">
+            <div class="ep-icon">❤️</div>
+            <div class="ep-title">Bạn không đơn độc</div>
+            <p class="ep-text">Nếu bạn đang cảm thấy rất khó khăn, hãy để ai đó giúp bạn ngay bây giờ.</p>
+            <div class="ep-hotline">
+                <div class="eph-num">📞 1800-599-920</div>
+                <div class="eph-label">Đường dây nóng sức khỏe tâm thần — Miễn phí, 24/7</div>
+            </div>
+            <div class="ep-actions">
+                <a href="tel:1800599920" class="ep-btn ep-btn-red">📞 Gọi ngay hotline</a>
+                <a href="experts.html" class="ep-btn ep-btn-green">💬 Kết nối chuyên gia</a>
+                <button class="ep-btn ep-btn-ghost" onclick="closeEmergency()">Tôi ổn, đóng lại</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar Overlay -->
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+    <!-- Mobile Topbar -->
+    <div class="mobile-topbar">
+        <button class="mobile-menu-btn" onclick="toggleSidebar()">☰</button>
+        <a href="index.html" style="display:flex;align-items:center;gap:8px;text-decoration:none;">
+            <div
+                style="width:32px;height:32px;background:var(--mint);border-radius:8px;border:2px solid var(--mint-dark);display:flex;align-items:center;justify-content:center;font-size:1rem;box-shadow:2px 2px 0px var(--mint-dark);">
+                🌿</div>
+            <span style="font-size:1.1rem;font-weight:800;color:var(--text-primary);">Peace<span
+                    style="color:var(--mint-dark);">Flow</span></span>
+        </a>
+        <span
+            style="background:var(--peach-light);padding:3px 10px;border-radius:50px;font-size:0.75rem;font-weight:700;color:var(--peach-dark);border:1.5px solid var(--peach);">⭐
+            295 XP</span>
+    </div>
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <a href="index.html" class="sidebar-logo">
+            <div class="logo-icon">🌿</div>
+            <div class="logo-text">Peace<span>Flow</span></div>
+        </a>
+
+        <nav class="sidebar-nav">
+            <div class="nav-section-label">Chính</div>
+            <a href="dashboard.html" class="nav-item ">
+                <span class="ni">🏡</span> Tổng quan
+            </a>
+            <a href="mood-checkin.html" class="nav-item ">
+                <span class="ni">💭</span> Tâm trạng
+            </a>
+            <a href="tasks.html" class="nav-item active">
+                <span class="ni">🎮</span> Nhiệm vụ
+            </a>
+            <a href="journal.html" class="nav-item ">
+                <span class="ni">📝</span> Nhật ký
+            </a>
+
+            <div class="nav-section-label" style="margin-top:8px;">Kết nối</div>
+            <a href="experts.html" class="nav-item ">
+                <span class="ni">🩺</span> Chuyên gia
+            </a>
+            <a href="community.html" class="nav-item ">
+                <span class="ni">👥</span> Cộng đồng
+            </a>
+
+            <div class="nav-section-label" style="margin-top:8px;">Phân tích</div>
+            <a href="report.html" class="nav-item ">
+                <span class="ni">📊</span> Báo cáo
+            </a>
+            <a href="achievements.html" class="nav-item ">
+                <span class="ni">🏅</span> Thành tích
+            </a>
+
+            <div class="nav-section-label" style="margin-top:8px;">Cài đặt</div>
+            <a href="profile.html" class="nav-item ">
+                <span class="ni">👤</span> Hồ sơ
+            </a>
+            <a href="settings.html" class="nav-item ">
+                <span class="ni">⚙️</span> Cài đặt
+            </a>
+            <a href="#" class="nav-item" onclick="handleLogout()" style="color:var(--coral); margin-top: 10px; border-top: 1px dashed var(--kraft-light); padding-top: 15px;">
+                <span class="ni">🚪</span> Đăng xuất
+            </a>
+        </nav>
+
+        <div class="sidebar-bottom">
+            <div class="user-card-mini">
+                <div class="user-avatar-mini">🐱</div>
+                <div class="user-info-mini">
+                    <div class="user-name">Khách hàng giả lập</div>
+                    <div class="user-level">⭐ 295 XP · Level 2</div>
+                </div>
+            </div>
+            <a href="emergency.html" class="emergency-btn">
+                🆘 Hỗ trợ khẩn cấp
+            </a>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Breadcrumb -->
+        <div class="breadcrumb">
+            <a href="dashboard.html">🏡 Tổng quan</a>
+            <span>›</span>
+            <a href="tasks.html">🎮 Nhiệm vụ</a>
+            <span>›</span>
+            <span id="breadcrumbTitle">Thiền 5-10 phút</span>
+        </div>
+
+        <div class="detail-layout">
+            <!-- LEFT COLUMN -->
+            <div class="detail-left">
+
+                <!-- Task Hero -->
+                <div class="paper-card task-hero cat-medium" id="taskHero">
+                    <div class="th-top">
+                        <div class="th-icon medium" id="taskIcon">🧘</div>
+                        <div class="th-info">
+                            <div class="th-title" id="taskTitle">Thiền 5-10 phút</div>
+                            <div class="th-meta" id="taskMeta">
+                                <span class="badge-pill badge-yellow">🟡 Trung bình</span>
+                                <span class="badge-pill badge-mint">⏱ 5-10 phút</span>
+                                <span class="badge-pill badge-peach">⭐ 25 XP</span>
+                                <span class="badge-pill"
+                                    style="background:var(--sky-light);color:#4a90aa;border:1.5px solid var(--sky);">🧠
+                                    Lo âu · Stress</span>
+                            </div>
+                            <div class="th-desc" id="taskDesc">Ngồi thẳng, tập trung vào hơi thở, để suy nghĩ đến rồi đi
+                                như những đám mây trôi qua. Thiền không phải là không suy nghĩ — mà là không bị cuốn
+                                theo suy nghĩ.</div>
+                            <div class="th-quote handwritten" id="taskQuote">"Tâm trí bình yên không phải là tâm trí
+                                không có sóng gió — mà là tâm trí biết cách đứng vững giữa sóng gió." 🌊</div>
+                        </div>
+                    </div>
+                    <div class="th-actions">
+                        <button class="btn-primary btn-large" onclick="startTask()" id="startBtn">▶ Bắt đầu
+                            ngay</button>
+                        <button class="btn-outline" onclick="toggleFavorite(this)">🤍 Lưu yêu thích</button>
+                        <button class="btn-outline" onclick="shareTask()">📤 Chia sẻ</button>
+                        <button class="btn-outline" style="color:var(--coral);border-color:var(--coral);"
+                            onclick="showEmergency()">🆘 Khẩn cấp</button>
+                    </div>
+                </div>
+
+                <!-- Phase Indicator -->
+                <div class="phase-indicator" id="phaseIndicator">
+                    <div class="phase-item active" id="phase-tab-1" onclick="switchPhase(1)">
+                        <div class="phase-num">📖</div>
+                        <div>Chuẩn bị</div>
+                    </div>
+                    <div class="phase-item" id="phase-tab-2" onclick="switchPhase(2)">
+                        <div class="phase-num">▶</div>
+                        <div>Thực hiện</div>
+                    </div>
+                    <div class="phase-item" id="phase-tab-3" onclick="switchPhase(3)">
+                        <div class="phase-num">✓</div>
+                        <div>Hoàn thành</div>
+                    </div>
+                </div>
+
+                <!-- PHASE 1: PREPARATION -->
+                <div class="phase-panel active" id="phase-1">
+                    <div class="paper-card steps-card">
+                        <div id="prepContainer" style="display:none; margin-bottom: 20px;">
+                            <div class="steps-title">🎒 Chuẩn bị</div>
+                            <ul id="prepList"
+                                style="padding-left: 20px; font-size: 0.9rem; color: var(--text-secondary); line-height: 1.6;">
+                            </ul>
+                        </div>
+                        <div class="steps-title">📋 Hướng dẫn từng bước</div>
+                        <div class="step-list" id="stepList">
+                            <!-- Dynamic Content -->
+                        </div>
+                        <div id="safetyContainer"
+                            style="display:none; margin-top: 20px; padding: 14px; background: rgba(255, 139, 139, 0.1); border: 1.5px solid var(--coral); border-radius: var(--border-radius-sm);">
+                            <div class="steps-title" style="color: var(--coral); margin-bottom: 8px;">⚠️ Lưu ý an toàn
+                            </div>
+                            <ul id="safetyList"
+                                style="padding-left: 20px; font-size: 0.85rem; color: var(--text-secondary); line-height: 1.6;">
+                            </ul>
+                        </div>
+                        <div id="ruleContainer"
+                            style="display:none; margin-top: 20px; padding: 14px; background: var(--mint-light); border: 1.5px solid var(--mint); border-radius: var(--border-radius-sm);">
+                            <div class="steps-title" style="color: var(--mint-dark); margin-bottom: 8px;">🎯 Mục tiêu
+                            </div>
+                            <div id="ruleText"
+                                style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.6;"></div>
+                        </div>
+                        <div style="margin-top:16px;text-align:center;">
+                            <button class="btn-primary" onclick="startTask()">▶ Bắt đầu ngay</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PHASE 2: EXECUTION -->
+                <div class="phase-panel" id="phase-2">
+                    <div class="paper-card timer-card">
+                        <div class="timer-title" id="timerPhaseLabel">🧘 Đang thiền — Tập trung vào hơi thở</div>
+
+                        <!-- Breathing Animation -->
+                        <div class="breathing-scene" id="breathingScene">
+                            <div class="breath-circle" id="breathCircle">
+                                <div>
+                                    <div class="breath-count" id="breathCount">4</div>
+                                    <div class="breath-label" id="breathLabel">Hít vào</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="timer-phase-text" id="timerPhaseText">Hít vào chậm và sâu...</div>
+
+                        <!-- Round counter -->
+                        <div class="round-counter" id="roundCounter">
+                            <div class="round-dot active"></div>
+                            <div class="round-dot"></div>
+                            <div class="round-dot"></div>
+                            <div class="round-dot"></div>
+                            <div class="round-dot"></div>
+                        </div>
+
+                        <!-- Timer Ring -->
+                        <div class="timer-ring-wrap">
+                            <svg class="timer-ring" width="160" height="160" viewBox="0 0 160 160">
+                                <circle class="timer-ring-bg" cx="80" cy="80" r="70" />
+                                <circle class="timer-ring-fill" id="timerRing" cx="80" cy="80" r="70" />
+                            </svg>
+                            <div class="timer-center">
+                                <div class="timer-num" id="timerDisplay">5:00</div>
+                                <div class="timer-label">còn lại</div>
+                            </div>
+                        </div>
+
+                        <div class="timer-controls">
+                            <button class="btn-outline" onclick="pauseTimer()" id="pauseBtn">⏸ Tạm dừng</button>
+                            <button class="btn-primary" onclick="completeTask()">✓ Hoàn thành</button>
+                            <button class="btn-outline" onclick="resetTimer()">↩ Bắt đầu lại</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PHASE 3: FEEDBACK -->
+                <div class="phase-panel" id="phase-3">
+                    <div class="paper-card">
+                        <div class="feedback-panel show" id="feedbackPanel">
+                            <div class="fp-mascot">🐱</div>
+                            <div class="fp-title">Tuyệt vời, Khách hàng giả lập! 🎉</div>
+                            <div class="fp-subtitle">Bạn đã hoàn thành bài thiền hôm nay. Khu vườn tâm hồn của bạn vừa
+                                nở thêm một bông hoa! 🌸</div>
+                            <div class="xp-animation">
+                                <span class="xp-num" id="xpEarned">+25 XP</span>
+                                <span class="xp-label">đã được cộng vào tài khoản!</span>
+                            </div>
+                            <div class="fp-mood-title">Bạn cảm thấy thế nào sau khi thiền?</div>
+                            <div class="fp-emojis">
+                                <button class="fp-emoji-btn" onclick="selectFeedback(this,'😊')">😊</button>
+                                <button class="fp-emoji-btn" onclick="selectFeedback(this,'😌')">😌</button>
+                                <button class="fp-emoji-btn" onclick="selectFeedback(this,'😐')">😐</button>
+                                <button class="fp-emoji-btn" onclick="selectFeedback(this,'😕')">😕</button>
+                                <button class="fp-emoji-btn" onclick="selectFeedback(this,'😢')">😢</button>
+                            </div>
+                            <textarea class="fp-note-area" rows="3"
+                                placeholder="Ghi chú thêm cảm nhận của bạn... (tùy chọn)"></textarea>
+                            <div class="fp-actions">
+                                <a href="tasks.html" class="btn-primary">🎮 Nhiệm vụ tiếp theo</a>
+                                <a href="journal.html" class="btn-outline">📝 Ghi nhật ký</a>
+                                <a href="dashboard.html" class="btn-outline">🏡 Dashboard</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- RIGHT COLUMN -->
+            <div class="detail-right">
+
+                <!-- Stress Facts -->
+                <div class="paper-card" style="padding:16px;">
+                    <div class="mascot-tip">
+                        <span class="mt-avatar">💡</span>
+                        <div class="mt-text" id="stressFactDisplay">Đang tải sự thật về stress...</div>
+                    </div>
+                </div>
+
+                <!-- Task Info -->
+                <div class="paper-card info-card">
+                    <div class="ic-title">📊 Thông tin nhiệm vụ</div>
+                    <div class="ic-stat-row">
+                        <span class="ic-stat-label">Mã nhiệm vụ</span>
+                        <span class="ic-stat-val">2.3</span>
+                    </div>
+                    <div class="ic-stat-row">
+                        <span class="ic-stat-label">Cấp độ</span>
+                        <span class="ic-stat-val">🟡 Trung bình</span>
+                    </div>
+                    <div class="ic-stat-row">
+                        <span class="ic-stat-label">Thời gian</span>
+                        <span class="ic-stat-val">5-10 phút</span>
+                    </div>
+                    <div class="ic-stat-row">
+                        <span class="ic-stat-label">Phần thưởng</span>
+                        <span class="ic-stat-val" style="color:var(--peach-dark);">+25 XP ⭐</span>
+                    </div>
+                    <div class="ic-stat-row">
+                        <span class="ic-stat-label">Tần suất</span>
+                        <span class="ic-stat-val">Hàng ngày</span>
+                    </div>
+                    <div class="ic-stat-row">
+                        <span class="ic-stat-label">Lần cuối</span>
+                        <span class="ic-stat-val">Hôm qua</span>
+                    </div>
+                    <div class="ic-stat-row">
+                        <span class="ic-stat-label">Đã hoàn thành</span>
+                        <span class="ic-stat-val" style="color:var(--mint-dark);">12 lần ✓</span>
+                    </div>
+                </div>
+
+                <!-- Community Stats -->
+                <div class="paper-card info-card">
+                    <div class="ic-title">👥 Cộng đồng</div>
+                    <div class="community-stat">
+                        <div class="cs-num">8,247</div>
+                        <div class="cs-label">người đã hoàn thành bài tập này</div>
+                        <div class="cs-bar">
+                            <div class="cs-bar-fill" style="width:92%"></div>
+                        </div>
+                        <div style="font-size:0.72rem;color:var(--text-secondary);">92% cảm thấy tốt hơn sau khi thiền
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Benefits -->
+                <div class="paper-card info-card">
+                    <div class="ic-title">✨ Lợi ích khoa học</div>
+                    <div id="benefitsList"></div>
+                </div>
+
+                <!-- Related Tasks -->
+                <div class="paper-card info-card">
+                    <div class="ic-title">🔗 Nhiệm vụ cùng cấp độ</div>
+                    <div id="relatedTasks"></div>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <script src="../public/js/tasks-data.js"></script>
+    <script>
+        // ============================================================
+        // STATE
+        // ============================================================
+        let currentPhase = 1;
+        let timerInterval = null;
+        let breathInterval = null;
+        let totalSeconds = 300; // 5 min default
+        let remainingSeconds = 300;
+        let isPaused = false;
+        let isCompleted = false;
+        let breathPhase = 'inhale';
+        let breathCount = 4;
+        let currentRound = 0;
+        let totalRounds = 5;
+        let stepsCompleted = new Set();
+
+        let currentTask = null;
+
+        // Load Task from URL or default
+        function initTask() {
+            // Load user stats for sidebar
+            try {
+                const savedStats = localStorage.getItem('PeaceFlow_user_stats');
+                if (savedStats) {
+                    const stats = JSON.parse(savedStats);
+                    const threshold = 200;
+                    const level = Math.floor(stats.xp / threshold) + 1;
+                    document.querySelectorAll('.user-name').forEach(el => el.innerText = stats.name || 'Khách hàng giả lập');
+                    document.querySelectorAll('.user-level').forEach(el => el.innerText = `⭐ ${stats.xp} XP · Level ${level}`);
+                    const mobileXp = document.querySelector('.mobile-topbar span[style*="background:var(--peach-light)"]');
+                    if (mobileXp) mobileXp.innerText = `⭐ ${stats.xp} XP`;
+                }
+            } catch (e) { console.error(e); }
+
+            const urlParams = new URLSearchParams(window.location.search);
+            let id = urlParams.get('id') || '1.1'; // Default to first easy task
+
+            // Add E2 and 2.3 for backward compatibility if needed, but our TASK_DATA has dynamic IDs.
+            // If the ID is not in TASK_DATA, try to find the first one.
+            if (!TASK_DATA[id]) {
+                id = Object.keys(TASK_DATA)[0];
+            }
+
+            currentTask = TASK_DATA[id];
+            if (!currentTask) return; // Still nil? Something wrong.
+
+            // Update UI
+            document.getElementById('taskIcon').innerText = currentTask.icon || '🌱';
+            document.getElementById('taskIcon').className = `th-icon ${currentTask.cat || 'easy'}`;
+            document.getElementById('taskTitle').innerText = currentTask.name;
+            document.getElementById('breadcrumbTitle').innerText = currentTask.name;
+            document.getElementById('taskDesc').innerText = currentTask.desc;
+            if (currentTask.quote) document.getElementById('taskQuote').innerText = currentTask.quote;
+
+            let tagsHtml = `<span class="badge-pill badge-${currentTask.cat === 'emergency' ? 'coral' : currentTask.cat === 'medium' ? 'yellow' : currentTask.cat === 'hard' ? 'orange' : 'mint'}">${currentTask.catLabel || 'Nhiệm vụ'}</span>`;
+            tagsHtml += `<span class="badge-pill badge-mint">⏱ ${currentTask.time || 'Tùy chọn'}</span>`;
+            tagsHtml += `<span class="badge-pill badge-peach">⭐ ${currentTask.xp || 10} XP</span>`;
+
+            (currentTask.tags || []).forEach(t => {
+                tagsHtml += `<span class="badge-pill" style="background:var(--sky-light);color:#4a90aa;border:1.5px solid var(--sky);margin-left:4px;">${t}</span>`;
+            });
+
+            document.getElementById('taskMeta').innerHTML = tagsHtml;
+            document.getElementById('taskHero').className = `paper-card task-hero cat-${currentTask.cat || 'easy'}`;
+
+            // Settings for timer
+            totalSeconds = currentTask.timerSec || 300;
+            remainingSeconds = totalSeconds;
+            updateTimerDisplay();
+
+            // Render Preparation
+            const prepContainer = document.getElementById('prepContainer');
+            if (currentTask.preparation && currentTask.preparation.length > 0) {
+                document.getElementById('prepList').innerHTML = currentTask.preparation.map(p => `<li>${p}</li>`).join('');
+                prepContainer.style.display = 'block';
+            } else {
+                prepContainer.style.display = 'none';
+            }
+
+            // Render Steps
+            const stepList = document.getElementById('stepList');
+            if (currentTask.steps && currentTask.steps.length > 0) {
+                stepList.innerHTML = currentTask.steps.map((s, i) => `
+                <div class="step-item" onclick="toggleStep(this,${i})">
+                    <div class="step-num">${i + 1}</div>
+                    <div class="step-content">
+                        <div class="step-text">${s}</div>
+                    </div>
+                </div>
+            `).join('');
+            } else {
+                stepList.innerHTML = '';
+            }
+
+            // Render Safety Notes
+            const safetyContainer = document.getElementById('safetyContainer');
+            if (currentTask.safety_notes && currentTask.safety_notes.length > 0) {
+                document.getElementById('safetyList').innerHTML = currentTask.safety_notes.map(s => `<li>${s}</li>`).join('');
+                safetyContainer.style.display = 'block';
+            } else {
+                safetyContainer.style.display = 'none';
+            }
+
+            // Render Objectives / Completion Rules
+            const ruleContainer = document.getElementById('ruleContainer');
+            if (currentTask.objective || currentTask.completion_rule) {
+                document.getElementById('ruleText').innerText = currentTask.completion_rule || currentTask.objective;
+                ruleContainer.style.display = 'block';
+            } else {
+                ruleContainer.style.display = 'none';
+            }
+
+            // Render Benefits
+            const benefitsList = document.getElementById('benefitsList');
+            if (currentTask.benefits && currentTask.benefits.length > 0) {
+                benefitsList.innerHTML = currentTask.benefits.map(b => `
+                <div class="benefit-item">
+                    <span class="benefit-icon">💡</span>
+                    <span>${b}</span>
+                </div>
+            `).join('');
+            } else {
+                benefitsList.innerHTML = `<div class="benefit-item"><span>Các lợi ích khoa học đã được chứng minh trong thực tế.</span></div>`;
+            }
+
+            // Render Related Tasks
+            const relatedTasksDiv = document.getElementById('relatedTasks');
+            const tasksArr = Object.values(TASK_DATA).filter(t => t.cat === currentTask.cat && t.id !== currentTask.id);
+            const shuffled = tasksArr.sort(() => 0.5 - Math.random());
+            const selected = shuffled.slice(0, 4);
+
+            if (selected.length > 0) {
+                relatedTasksDiv.innerHTML = selected.map(t => `
+                <a href="task-detail.html?id=${t.id}" class="related-task">
+                    <div class="rt-icon">${t.icon || '🌱'}</div>
+                    <div>
+                        <div class="rt-name">${t.name}</div>
+                        <div class="rt-meta">${t.catLabel} · +${t.xp} XP</div>
+                    </div>
+                </a>
+            `).join('');
+            } else {
+                relatedTasksDiv.innerHTML = `<div style="font-size:0.8rem;color:var(--text-secondary);padding:10px;">Chưa có nhiệm vụ liên quan.</div>`;
+            }
+
+            // Render random stress fact
+            if (typeof STRESS_FACTS !== 'undefined' && STRESS_FACTS.length > 0) {
+                const randomFact = STRESS_FACTS[Math.floor(Math.random() * STRESS_FACTS.length)];
+                document.getElementById('stressFactDisplay').innerText = randomFact;
+            } else {
+                document.getElementById('stressFactDisplay').innerText = "Bạn không hề đơn độc. Stress là một phần của cuộc sống, và khả năng phục hồi cũng vậy.";
+            }
+        }
+
+        function toggleStep(el, index) {
+            el.classList.toggle('done');
+            if (el.classList.contains('done')) {
+                stepsCompleted.add(index);
+            } else {
+                stepsCompleted.delete(index);
+            }
+
+            // If all steps done and task has no timer, maybe let them complete?
+            if (currentTask.steps && stepsCompleted.size === currentTask.steps.length && totalSeconds === 0) {
+                completeTask();
+            }
+        }
+
+        function switchPhase(n) {
+            if (n === 2 && currentPhase === 1) {
+                // Check if we should move to execution
+                startTask();
+                return;
+            }
+
+            document.querySelectorAll('.phase-item').forEach((el, i) => {
+                el.className = 'phase-item';
+                if (i + 1 === n) el.classList.add('active');
+                else if (i + 1 < n) el.classList.add('done');
+            });
+
+            document.querySelectorAll('.phase-panel').forEach(el => el.classList.remove('active'));
+            document.getElementById('phase-' + n).classList.add('active');
+
+            currentPhase = n;
+
+            if (n === 3) {
+                clearInterval(timerInterval);
+                document.getElementById('xpEarned').innerText = `+${currentTask.xp || 10} XP`;
+            }
+        }
+
+        function startTask() {
+            switchPhase(2);
+
+            if (totalSeconds > 0) {
+                startTimer();
+            } else {
+                // If no timer, just wait for step completion
+                document.getElementById('timerPhaseLabel').innerText = `🧘 Đang thực hiện — ${currentTask.name}`;
+                document.getElementById('timerPhaseText').innerText = "Thực hiện theo các bước ở phần chuẩn bị. Nhấn Hoàn thành khi xong.";
+                document.querySelector('.timer-ring-wrap').style.display = 'none';
+            }
+        }
+
+        function startTimer() {
+            isPaused = false;
+            clearInterval(timerInterval);
+
+            // Update labels based on task
+            document.getElementById('timerPhaseLabel').innerText = `🧘 Đang thực hiện — ${currentTask.name}`;
+            document.getElementById('timerPhaseText').innerText = "Bắt đầu tập trung...";
+            document.querySelector('.timer-ring-wrap').style.display = 'block';
+
+            timerInterval = setInterval(() => {
+                if (!isPaused) {
+                    remainingSeconds--;
+                    updateTimerDisplay();
+
+                    if (remainingSeconds <= 0) {
+                        clearInterval(timerInterval);
+                        completeTask();
+                    }
+                }
+            }, 1000);
+        }
+
+        function pauseTimer() {
+            isPaused = !isPaused;
+            document.getElementById('pauseBtn').innerText = isPaused ? "▶ Tiếp tục" : "⏸ Tạm dừng";
+            document.getElementById('timerPhaseText').innerText = isPaused ? "Đã tạm dừng" : "Tiếp tục...";
+        }
+
+        function resetTimer() {
+            isPaused = true;
+            remainingSeconds = totalSeconds;
+            updateTimerDisplay();
+            document.getElementById('pauseBtn').innerText = "▶ Tiếp tục";
+            document.getElementById('timerPhaseText').innerText = "Sẵn sàng...";
+        }
+
+        function updateTimerDisplay() {
+            const m = Math.floor(remainingSeconds / 60);
+            const s = remainingSeconds % 60;
+            document.getElementById('timerDisplay').innerText = `${m}:${s < 10 ? '0' : ''}${s}`;
+
+            // Ring
+            const ring = document.getElementById('timerRing');
+            const dashoffset = 440 - (440 * (remainingSeconds / totalSeconds));
+            ring.style.strokeDashoffset = dashoffset;
+        }
+
+        function completeTask() {
+            if (isCompleted) return;
+            isCompleted = true;
+            clearInterval(timerInterval);
+
+            // Add XP to localStorage
+            try {
+                const savedStats = localStorage.getItem('PeaceFlow_user_stats');
+                if (savedStats) {
+                    const stats = JSON.parse(savedStats);
+                    stats.xp += (currentTask.xp || 10);
+                    localStorage.setItem('PeaceFlow_user_stats', JSON.stringify(stats));
+                }
+
+                // Log completed task
+                const comps = JSON.parse(localStorage.getItem('PeaceFlow_tasks_completed') || '[]');
+                comps.push({
+                    id: currentTask.id,
+                    date: new Date().toISOString()
+                });
+                localStorage.setItem('PeaceFlow_tasks_completed', JSON.stringify(comps));
+            } catch (e) { }
+
+            switchPhase(3);
+            fireConfetti();
+        }
+
+        function fireConfetti() {
+            const colors = ['#A8D5BA', '#FFD93D', '#FF8B8B', '#A8D8EA', '#C3AED6'];
+            const container = document.getElementById('confettiContainer');
+            for (let i = 0; i < 100; i++) {
+                const conf = document.createElement('div');
+                conf.className = 'confetti-piece';
+                conf.style.left = Math.random() * 100 + 'vw';
+                conf.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                conf.style.width = (Math.random() * 8 + 5) + 'px';
+                conf.style.height = (Math.random() * 12 + 8) + 'px';
+                conf.style.animationDuration = (Math.random() * 3 + 2) + 's';
+                conf.style.animationDelay = (Math.random() * 0.5) + 's';
+                container.appendChild(conf);
+            }
+            setTimeout(() => container.innerHTML = '', 5000);
+        }
+
+        function selectFeedback(btn, emoji) {
+            document.querySelectorAll('.fp-emoji-btn').forEach(b => b.classList.remove('selected'));
+            btn.classList.add('selected');
+        }
+
+        function toggleFavorite(btn) {
+            if (btn.innerText.includes('Lưu')) {
+                btn.innerText = '❤️ Đã yêu thích';
+                btn.style.color = 'var(--coral)';
+                btn.style.borderColor = 'var(--coral)';
+            } else {
+                btn.innerText = '🤍 Lưu yêu thích';
+                btn.style.color = '';
+                btn.style.borderColor = '';
+            }
+        }
+
+        function shareTask() {
+            alert("Đã sao chép liên kết nhiệm vụ này vào clipboard!");
+        }
+
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('open');
+            document.getElementById('sidebarOverlay').classList.toggle('open');
+        }
+
+        function closeSidebar() {
+            document.getElementById('sidebar').classList.remove('open');
+            document.getElementById('sidebarOverlay').classList.remove('open');
+        }
+
+        function showEmergency() { document.getElementById('emergencyOverlay').classList.add('show'); }
+        function closeEmergency() { document.getElementById('emergencyOverlay').classList.remove('show'); }
+
+        // Init
+        window.onload = initTask;
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../public/js/supabase-config.js"></script>
+    <script src="../public/js/app.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,1827 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PeaceFlow — Báo Cáo Sức Khỏe</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Patrick+Hand&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --cream: #FFF8F0;
+            --warm-white: #FFFDF7;
+            --kraft: #D4A574;
+            --kraft-light: #E8CBA7;
+            --kraft-dark: #B8895A;
+            --mint: #A8D5BA;
+            --mint-light: #C5E8D2;
+            --mint-dark: #7BBF95;
+            --peach: #FFCBA4;
+            --peach-light: #FFE0C4;
+            --peach-dark: #E8A876;
+            --sky: #A8D8EA;
+            --sky-light: #C5E8F5;
+            --lavender: #C3AED6;
+            --lavender-light: #DDD1EB;
+            --coral: #FF8B8B;
+            --coral-light: #FFB3B3;
+            --gold: #FFD93D;
+            --gold-light: #FFF3B0;
+            --rose: #F4A0B0;
+            --rose-light: #FDDDE6;
+            --text-primary: #4A3728;
+            --text-secondary: #7A6555;
+            --text-light: #A89585;
+            --shadow-paper: 3px 3px 0px rgba(74, 55, 40, 0.1);
+            --shadow-paper-hover: 5px 5px 0px rgba(74, 55, 40, 0.15);
+            --border-radius: 16px;
+            --border-radius-sm: 10px;
+            --transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            --sidebar-width: 240px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background: var(--cream);
+            color: var(--text-primary);
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        .paper-card {
+            background: var(--warm-white);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-paper);
+            border: 2px solid var(--kraft-light);
+            transition: var(--transition);
+        }
+
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            width: var(--sidebar-width);
+            background: var(--warm-white);
+            border-right: 2px solid var(--kraft-light);
+            z-index: 200;
+            display: flex;
+            flex-direction: column;
+            padding: 20px 0;
+        }
+
+        .sidebar-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 0 20px 20px;
+            border-bottom: 2px dashed var(--kraft-light);
+            margin-bottom: 16px;
+            text-decoration: none;
+        }
+
+        .sidebar-logo .logo-icon {
+            width: 38px;
+            height: 38px;
+            background: var(--mint);
+            border-radius: 10px;
+            border: 2px solid var(--mint-dark);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            box-shadow: 2px 2px 0px var(--mint-dark);
+        }
+
+        .sidebar-logo .logo-text {
+            font-size: 1.2rem;
+            font-weight: 800;
+            color: var(--text-primary);
+        }
+
+        .sidebar-logo .logo-text span {
+            color: var(--mint-dark);
+        }
+
+        .sidebar-nav {
+            flex: 1;
+            padding: 0 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            overflow-y: auto;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            border-radius: var(--border-radius-sm);
+            text-decoration: none;
+            color: var(--text-secondary);
+            font-weight: 600;
+            font-size: 0.88rem;
+            transition: var(--transition);
+        }
+
+        .nav-item:hover {
+            background: var(--mint-light);
+            color: var(--text-primary);
+        }
+
+        .nav-item.active {
+            background: var(--mint-light);
+            color: var(--text-primary);
+            border: 1.5px solid var(--mint);
+        }
+
+        .nav-item .ni {
+            font-size: 1.1rem;
+            width: 22px;
+            text-align: center;
+        }
+
+        .nav-section-label {
+            font-size: 0.68rem;
+            font-weight: 700;
+            color: var(--text-light);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            padding: 10px 12px 4px;
+        }
+
+        .sidebar-bottom {
+            padding: 12px;
+            border-top: 2px dashed var(--kraft-light);
+            margin-top: auto;
+        }
+
+        .user-card-mini {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            background: var(--cream);
+            border-radius: var(--border-radius-sm);
+            border: 1.5px solid var(--kraft-light);
+        }
+
+        .user-avatar-mini {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--lavender-light);
+            border: 2px solid var(--kraft);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+        }
+
+        .user-info-mini .user-name {
+            font-size: 0.85rem;
+            font-weight: 700;
+        }
+
+        .user-info-mini .user-level {
+            font-size: 0.72rem;
+            color: var(--text-light);
+        }
+
+        .emergency-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 12px;
+            background: rgba(255, 139, 139, 0.1);
+            border: 1.5px solid var(--coral);
+            border-radius: var(--border-radius-sm);
+            color: var(--coral);
+            font-size: 0.78rem;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 8px;
+            transition: var(--transition);
+            text-decoration: none;
+        }
+
+        .emergency-btn:hover {
+            background: rgba(255, 139, 139, 0.2);
+        }
+
+        .mobile-topbar {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background: var(--warm-white);
+            border-bottom: 2px solid var(--kraft-light);
+            z-index: 300;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 16px;
+        }
+
+        .mobile-menu-btn {
+            background: none;
+            border: none;
+            font-size: 1.4rem;
+            cursor: pointer;
+        }
+
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(74, 55, 40, 0.3);
+            z-index: 150;
+        }
+
+        .main-content {
+            margin-left: var(--sidebar-width);
+            padding: 28px;
+            min-height: 100vh;
+        }
+
+        .btn-primary {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 10px 20px;
+            border: 2px solid var(--mint-dark);
+            border-radius: 50px;
+            background: var(--mint);
+            color: var(--text-primary);
+            font-family: 'Nunito', sans-serif;
+            font-size: 0.88rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: var(--transition);
+            box-shadow: 2px 2px 0px var(--mint-dark);
+            text-decoration: none;
+        }
+
+        .btn-primary:hover {
+            background: var(--mint-dark);
+            color: white;
+            transform: translate(1px, 1px);
+            box-shadow: 1px 1px 0px var(--mint-dark);
+        }
+
+        .btn-outline {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 9px 18px;
+            border: 2px solid var(--kraft-light);
+            border-radius: 50px;
+            background: transparent;
+            color: var(--text-secondary);
+            font-family: 'Nunito', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .btn-outline:hover {
+            background: var(--kraft-light);
+            color: var(--text-primary);
+        }
+
+        .breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 20px;
+            font-size: 0.8rem;
+            color: var(--text-light);
+        }
+
+        .breadcrumb a {
+            color: var(--text-light);
+            text-decoration: none;
+        }
+
+        .breadcrumb a:hover {
+            color: var(--mint-dark);
+        }
+
+        .breadcrumb span {
+            color: var(--text-secondary);
+            font-weight: 600;
+        }
+
+        .page-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .page-title {
+            font-size: 1.5rem;
+            font-weight: 800;
+        }
+
+        .page-subtitle {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .period-selector {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .period-btn {
+            padding: 8px 18px;
+            border: 2px solid var(--kraft-light);
+            border-radius: 50px;
+            font-family: 'Nunito', sans-serif;
+            font-size: 0.82rem;
+            font-weight: 600;
+            cursor: pointer;
+            background: var(--warm-white);
+            color: var(--text-secondary);
+            transition: var(--transition);
+        }
+
+        .period-btn:hover {
+            background: var(--mint-light);
+            border-color: var(--mint);
+        }
+
+        .period-btn.active {
+            background: var(--mint-light);
+            border-color: var(--mint-dark);
+            color: var(--text-primary);
+        }
+
+        .period-nav {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-left: auto;
+        }
+
+        .pn-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: 2px solid var(--kraft-light);
+            background: var(--warm-white);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+            transition: var(--transition);
+        }
+
+        .pn-btn:hover {
+            background: var(--mint-light);
+            border-color: var(--mint);
+        }
+
+        .pn-label {
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            min-width: 140px;
+            text-align: center;
+        }
+
+        .report-layout {
+            display: grid;
+            grid-template-columns: 1fr 280px;
+            gap: 20px;
+            max-width: 1100px;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .summary-card {
+            padding: 16px 14px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .sc-deco {
+            position: absolute;
+            right: -5px;
+            bottom: -8px;
+            font-size: 2.5rem;
+            opacity: 0.07;
+        }
+
+        .sc-icon {
+            font-size: 1.4rem;
+            margin-bottom: 6px;
+        }
+
+        .sc-num {
+            font-size: 1.5rem;
+            font-weight: 800;
+            margin-bottom: 2px;
+        }
+
+        .sc-label {
+            font-size: 0.65rem;
+            color: var(--text-secondary);
+        }
+
+        .sc-change {
+            font-size: 0.65rem;
+            font-weight: 700;
+            margin-top: 3px;
+        }
+
+        .sc-change.up {
+            color: #4caf50;
+        }
+
+        .sc-change.down {
+            color: var(--coral);
+        }
+
+        .sc-change.neutral {
+            color: var(--text-light);
+        }
+
+        .chart-card {
+            padding: 20px;
+            margin-bottom: 16px;
+        }
+
+        .cc-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 14px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .cc-title {
+            font-size: 0.92rem;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .cc-legend {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .cl-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 0.65rem;
+            color: var(--text-secondary);
+        }
+
+        .cl-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+
+        .chart-wrap {
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        .mood-svg {
+            width: 100%;
+            min-width: 300px;
+        }
+
+        .radar-wrap {
+            display: flex;
+            justify-content: center;
+            padding: 10px 0;
+        }
+
+        .radar-svg {
+            width: 220px;
+            height: 220px;
+        }
+
+        .task-breakdown {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .tb-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .tbi-label {
+            font-size: 0.78rem;
+            font-weight: 600;
+            width: 120px;
+            flex-shrink: 0;
+        }
+
+        .tbi-bar-wrap {
+            flex: 1;
+            height: 10px;
+            background: var(--cream);
+            border-radius: 50px;
+            overflow: hidden;
+            border: 1.5px solid var(--kraft-light);
+        }
+
+        .tbi-bar {
+            height: 100%;
+            border-radius: 50px;
+            transition: width 1s ease;
+        }
+
+        .tbi-count {
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: var(--text-secondary);
+            width: 30px;
+            text-align: right;
+            flex-shrink: 0;
+        }
+
+        .insight-card {
+            padding: 18px;
+            margin-bottom: 16px;
+            background: linear-gradient(135deg, var(--lavender-light), var(--sky-light));
+            border-color: var(--lavender);
+        }
+
+        .ic-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .ic-mascot {
+            font-size: 1.5rem;
+            animation: bounce-m 3s ease-in-out infinite;
+        }
+
+        @keyframes bounce-m {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-5px);
+            }
+        }
+
+        .ic-title {
+            font-size: 0.88rem;
+            font-weight: 700;
+        }
+
+        .ic-subtitle {
+            font-size: 0.72rem;
+            color: var(--text-secondary);
+        }
+
+        .insight-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .insight-item {
+            padding: 10px 12px;
+            background: rgba(255, 255, 255, 0.6);
+            border-radius: var(--border-radius-sm);
+            border: 1.5px solid rgba(255, 255, 255, 0.8);
+        }
+
+        .ii-type {
+            font-size: 0.62rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 3px;
+        }
+
+        .ii-type.positive {
+            color: var(--mint-dark);
+        }
+
+        .ii-type.warning {
+            color: var(--peach-dark);
+        }
+
+        .ii-type.tip {
+            color: #4a90aa;
+        }
+
+        .ii-text {
+            font-size: 0.78rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        .heatmap-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 3px;
+        }
+
+        .hm-day-h {
+            font-size: 0.58rem;
+            font-weight: 700;
+            color: var(--text-light);
+            text-align: center;
+            padding: 2px 0;
+        }
+
+        .hm-cell {
+            width: 100%;
+            aspect-ratio: 1;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: var(--transition);
+            position: relative;
+        }
+
+        .hm-cell:hover::after {
+            content: attr(data-label);
+            position: absolute;
+            top: -28px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.6rem;
+            background: var(--text-primary);
+            color: white;
+            padding: 2px 6px;
+            border-radius: 4px;
+            white-space: nowrap;
+            z-index: 10;
+        }
+
+        .hm-cell.level-5 {
+            background: var(--mint-dark);
+        }
+
+        .hm-cell.level-4 {
+            background: var(--mint);
+        }
+
+        .hm-cell.level-3 {
+            background: var(--mint-light);
+        }
+
+        .hm-cell.level-2 {
+            background: var(--peach-light);
+        }
+
+        .hm-cell.level-1 {
+            background: var(--coral-light);
+        }
+
+        .hm-cell.empty {
+            background: var(--cream);
+        }
+
+        .assessment-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 12px;
+            border-radius: var(--border-radius-sm);
+            border: 1.5px solid var(--kraft-light);
+            background: var(--cream);
+            margin-bottom: 8px;
+            transition: var(--transition);
+        }
+
+        .assessment-item:hover {
+            background: var(--mint-light);
+            border-color: var(--mint);
+        }
+
+        .ai-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: var(--border-radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+
+        .ai-info {
+            flex: 1;
+        }
+
+        .ai-name {
+            font-size: 0.82rem;
+            font-weight: 700;
+        }
+
+        .ai-date {
+            font-size: 0.65rem;
+            color: var(--text-light);
+        }
+
+        .ai-score {
+            text-align: right;
+        }
+
+        .ai-score-num {
+            font-size: 0.88rem;
+            font-weight: 800;
+        }
+
+        .ai-score-label {
+            font-size: 0.6rem;
+            color: var(--text-secondary);
+        }
+
+        .score-low {
+            color: var(--mint-dark);
+        }
+
+        .score-mid {
+            color: var(--peach-dark);
+        }
+
+        .score-high {
+            color: var(--coral);
+        }
+
+        .right-card {
+            padding: 14px;
+            margin-bottom: 14px;
+        }
+
+        .rc-title {
+            font-size: 0.85rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .export-card {
+            padding: 16px;
+            margin-bottom: 14px;
+            background: linear-gradient(135deg, var(--mint-light), var(--sky-light));
+            border-color: var(--mint);
+        }
+
+        .export-icon {
+            font-size: 1.5rem;
+            margin-bottom: 6px;
+        }
+
+        .export-title {
+            font-size: 0.88rem;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .export-desc {
+            font-size: 0.72rem;
+            color: var(--text-secondary);
+            margin-bottom: 10px;
+            line-height: 1.5;
+        }
+
+        .export-btns {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .export-btn {
+            padding: 8px 14px;
+            border-radius: 50px;
+            font-family: 'Nunito', sans-serif;
+            font-size: 0.75rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: var(--transition);
+            text-align: center;
+            border: 2px solid;
+        }
+
+        .eb-pdf {
+            background: var(--coral-light);
+            color: #c05050;
+            border-color: var(--coral);
+        }
+
+        .eb-pdf:hover {
+            background: var(--coral);
+            color: white;
+        }
+
+        .eb-json {
+            background: var(--sky-light);
+            color: #4a90aa;
+            border-color: var(--sky);
+        }
+
+        .eb-json:hover {
+            background: var(--sky);
+            color: white;
+        }
+
+        .eb-share {
+            background: var(--lavender-light);
+            color: #8a6aaa;
+            border-color: var(--lavender);
+        }
+
+        .eb-share:hover {
+            background: var(--lavender);
+            color: white;
+        }
+
+        .quick-link {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 10px;
+            border: 1.5px solid var(--kraft-light);
+            border-radius: var(--border-radius-sm);
+            background: var(--cream);
+            cursor: pointer;
+            transition: var(--transition);
+            text-decoration: none;
+            margin-bottom: 6px;
+        }
+
+        .quick-link:hover {
+            background: var(--mint-light);
+            border-color: var(--mint);
+        }
+
+        .ql-icon {
+            font-size: 1rem;
+        }
+
+        .ql-text {
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .ql-arrow {
+            margin-left: auto;
+            font-size: 0.7rem;
+            color: var(--text-light);
+        }
+
+        .disclaimer-card {
+            padding: 12px 14px;
+            background: rgba(255, 139, 139, 0.05);
+            border: 1.5px solid rgba(255, 139, 139, 0.3);
+            border-radius: var(--border-radius-sm);
+            font-size: 0.68rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        .emergency-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(74, 55, 40, 0.5);
+            z-index: 1000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .emergency-overlay.show {
+            display: flex;
+        }
+
+        .emergency-popup {
+            background: var(--warm-white);
+            border-radius: 24px;
+            border: 3px solid var(--coral);
+            padding: 32px;
+            max-width: 420px;
+            width: 100%;
+            box-shadow: 6px 6px 0px rgba(255, 139, 139, 0.3);
+            animation: pop-in 0.4s ease;
+        }
+
+        @keyframes pop-in {
+            from {
+                transform: scale(0.8);
+                opacity: 0;
+            }
+
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .ep-icon {
+            font-size: 2.5rem;
+            text-align: center;
+            margin-bottom: 8px;
+        }
+
+        .ep-title {
+            font-size: 1.2rem;
+            font-weight: 800;
+            color: var(--coral);
+            text-align: center;
+            margin-bottom: 6px;
+        }
+
+        .ep-text {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-bottom: 16px;
+            text-align: center;
+        }
+
+        .ep-hotline {
+            padding: 14px;
+            background: rgba(255, 139, 139, 0.1);
+            border: 2px solid var(--coral);
+            border-radius: var(--border-radius-sm);
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .ep-hotline .eph-num {
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: var(--coral);
+        }
+
+        .ep-hotline .eph-label {
+            font-size: 0.72rem;
+            color: var(--text-secondary);
+        }
+
+        .ep-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .ep-btn {
+            padding: 12px;
+            border-radius: 50px;
+            font-family: 'Nunito', sans-serif;
+            font-size: 0.88rem;
+            font-weight: 700;
+            cursor: pointer;
+            text-align: center;
+            transition: var(--transition);
+            text-decoration: none;
+            display: block;
+            border: 2px solid;
+        }
+
+        .ep-btn-red {
+            background: var(--coral);
+            color: white;
+            border-color: #c05050;
+        }
+
+        .ep-btn-green {
+            background: var(--mint-light);
+            color: var(--mint-dark);
+            border-color: var(--mint);
+        }
+
+        .ep-btn-ghost {
+            background: transparent;
+            color: var(--text-light);
+            border-color: var(--kraft-light);
+            font-size: 0.8rem;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: var(--warm-white);
+            border: 2px solid var(--mint-dark);
+            border-radius: 50px;
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.88rem;
+            font-weight: 700;
+            box-shadow: 3px 3px 0px var(--mint-dark);
+            z-index: 800;
+            transform: translateY(80px);
+            opacity: 0;
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        @media(max-width:900px) {
+            :root {
+                --sidebar-width: 0px;
+            }
+
+            .sidebar {
+                transform: translateX(-240px);
+                width: 240px;
+                transition: transform 0.3s ease;
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+
+            .sidebar-overlay.open {
+                display: block;
+            }
+
+            .main-content {
+                margin-left: 0;
+                padding: 76px 16px 20px;
+            }
+
+            .mobile-topbar {
+                display: flex;
+            }
+
+            .report-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .summary-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media(max-width:600px) {
+            .summary-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .period-nav {
+                margin-left: 0;
+                width: 100%;
+                justify-content: center;
+            }
+
+            #radarTaskGrid {
+                grid-template-columns: 1fr !important;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="toast" id="toast">📄 <span id="toastText">Đang xuất báo cáo...</span></div>
+
+    <div class="emergency-overlay" id="emergencyOverlay">
+        <div class="emergency-popup">
+            <div class="ep-icon">❤️</div>
+            <div class="ep-title">Bạn không đơn độc</div>
+            <p class="ep-text">Nếu bạn đang cảm thấy rất khó khăn, hãy để ai đó giúp bạn ngay bây giờ.</p>
+            <div class="ep-hotline">
+                <div class="eph-num">📞 1800-599-920</div>
+                <div class="eph-label">Đường dây nóng sức khỏe tâm thần — Miễn phí, 24/7</div>
+            </div>
+            <div class="ep-actions">
+                <a href="tel:1800599920" class="ep-btn ep-btn-red">📞 Gọi ngay hotline</a>
+                <a href="experts.html" class="ep-btn ep-btn-green">💬 Kết nối chuyên gia</a>
+                <button class="ep-btn ep-btn-ghost" onclick="closeEmergency()">Tôi ổn, đóng lại</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+    <div class="mobile-topbar">
+        <button class="mobile-menu-btn" onclick="toggleSidebar()">☰</button>
+        <a href="index.html" style="display:flex;align-items:center;gap:8px;text-decoration:none;">
+            <div
+                style="width:32px;height:32px;background:var(--mint);border-radius:8px;border:2px solid var(--mint-dark);display:flex;align-items:center;justify-content:center;font-size:1rem;box-shadow:2px 2px 0px var(--mint-dark);">
+                🌿</div>
+            <span style="font-size:1.1rem;font-weight:800;color:var(--text-primary);">Peace<span
+                    style="color:var(--mint-dark);">Flow</span></span>
+        </a>
+        <span
+            style="background:var(--peach-light);padding:3px 10px;border-radius:50px;font-size:0.75rem;font-weight:700;color:var(--peach-dark);border:1.5px solid var(--peach);">⭐
+            295 XP</span>
+    </div>
+
+    <aside class="sidebar" id="sidebar">
+        <a href="index.html" class="sidebar-logo">
+            <div class="logo-icon">🌿</div>
+            <div class="logo-text">Peace<span>Flow</span></div>
+        </a>
+
+        <nav class="sidebar-nav">
+            <div class="nav-section-label">Chính</div>
+            <a href="dashboard.html" class="nav-item ">
+                <span class="ni">🏡</span> Tổng quan
+            </a>
+            <a href="mood-checkin.html" class="nav-item ">
+                <span class="ni">💭</span> Tâm trạng
+            </a>
+            <a href="tasks.html" class="nav-item ">
+                <span class="ni">🎮</span> Nhiệm vụ
+            </a>
+            <a href="journal.html" class="nav-item ">
+                <span class="ni">📝</span> Nhật ký
+            </a>
+
+            <div class="nav-section-label" style="margin-top:8px;">Kết nối</div>
+            <a href="experts.html" class="nav-item ">
+                <span class="ni">🩺</span> Chuyên gia
+            </a>
+            <a href="community.html" class="nav-item ">
+                <span class="ni">👥</span> Cộng đồng
+            </a>
+
+            <div class="nav-section-label" style="margin-top:8px;">Phân tích</div>
+            <a href="report.html" class="nav-item active">
+                <span class="ni">📊</span> Báo cáo
+            </a>
+            <a href="achievements.html" class="nav-item ">
+                <span class="ni">🏅</span> Thành tích
+            </a>
+
+            <div class="nav-section-label" style="margin-top:8px;">Cài đặt</div>
+            <a href="profile.html" class="nav-item ">
+                <span class="ni">👤</span> Hồ sơ
+            </a>
+            <a href="settings.html" class="nav-item ">
+                <span class="ni">⚙️</span> Cài đặt
+            </a>
+            <a href="#" class="nav-item" onclick="handleLogout()" style="color:var(--coral); margin-top: 10px; border-top: 1px dashed var(--kraft-light); padding-top: 15px;">
+                <span class="ni">🚪</span> Đăng xuất
+            </a>
+        </nav>
+
+        <div class="sidebar-bottom">
+            <div class="user-card-mini">
+                <div class="user-avatar-mini">🐱</div>
+                <div class="user-info-mini">
+                    <div class="user-name">Khách hàng giả lập</div>
+                    <div class="user-level">⭐ 295 XP · Level 2</div>
+                </div>
+            </div>
+            <a href="emergency.html" class="emergency-btn">
+                🆘 Hỗ trợ khẩn cấp
+            </a>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <div class="breadcrumb">
+            <a href="dashboard.html">🏡 Tổng quan</a><span>›</span>
+            <span>📊 Báo cáo sức khỏe</span>
+        </div>
+
+        <div class="page-header">
+            <div>
+                <div class="page-title">📊 Báo Cáo Sức Khỏe</div>
+                <div class="page-subtitle">Nhìn lại hành trình — hiểu bản thân sâu hơn mỗi ngày 🌱</div>
+            </div>
+            <button class="btn-primary" onclick="exportPDF()">📄 Xuất PDF</button>
+        </div>
+
+        <div class="period-selector">
+            <button class="period-btn active" id="btn-week" onclick="switchPeriod('week',this)">📅 Tuần này</button>
+            <button class="period-btn" id="btn-month" onclick="switchPeriod('month',this)">📆 Tháng này</button>
+            <button class="period-btn" id="btn-3month" onclick="switchPeriod('3month',this)">📈 3 Tháng</button>
+            <div class="period-nav">
+                <button class="pn-btn" onclick="navPeriod(-1)">‹</button>
+                <div class="pn-label" id="periodLabel">Tuần này</div>
+                <button class="pn-btn" onclick="navPeriod(1)">›</button>
+            </div>
+        </div>
+
+        <div class="summary-grid" id="summaryGrid"></div>
+
+        <div class="report-layout">
+            <div>
+                <div class="paper-card chart-card">
+                    <div class="cc-header">
+                        <div class="cc-title">💭 Biểu đồ tâm trạng</div>
+                        <div class="cc-legend">
+                            <div class="cl-item">
+                                <div class="cl-dot" style="background:var(--mint-dark)"></div>Tâm trạng
+                            </div>
+                            <div class="cl-item">
+                                <div class="cl-dot" style="background:var(--peach-dark)"></div>Lo âu
+                            </div>
+                            <div class="cl-item">
+                                <div class="cl-dot" style="background:var(--lavender)"></div>Stress
+                            </div>
+                        </div>
+                    </div>
+                    <div class="chart-wrap">
+                        <svg class="mood-svg" viewBox="0 0 600 180" id="moodChart"></svg>
+                    </div>
+                    <div style="display:flex;gap:4px;margin-top:8px;" id="chartDayLabels"></div>
+                </div>
+
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;" id="radarTaskGrid">
+                    <div class="paper-card chart-card" style="margin-bottom:0;">
+                        <div class="cc-title" style="margin-bottom:10px;">🎯 Radar sức khỏe tổng thể</div>
+                        <div class="radar-wrap">
+                            <svg class="radar-svg" viewBox="0 0 220 220" id="radarChart"></svg>
+                        </div>
+                        <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;justify-content:center;"
+                            id="radarLegend"></div>
+                    </div>
+                    <div class="paper-card chart-card" style="margin-bottom:0;">
+                        <div class="cc-title" style="margin-bottom:12px;">✅ Nhiệm vụ theo loại</div>
+                        <div class="task-breakdown" id="taskBreakdown"></div>
+                    </div>
+                </div>
+
+                <div class="paper-card insight-card">
+                    <div class="ic-header">
+                        <span class="ic-mascot">🐱</span>
+                        <div>
+                            <div class="ic-title">PeaceCat phân tích hành trình của bạn</div>
+                            <div class="ic-subtitle">Dựa trên dữ liệu tâm trạng, nhiệm vụ và nhật ký</div>
+                        </div>
+                    </div>
+                    <div class="insight-list" id="insightList"></div>
+                </div>
+
+                <div class="paper-card chart-card">
+                    <div class="cc-header">
+                        <div class="cc-title">🗓️ Bản đồ tâm trạng tháng</div>
+                        <div style="display:flex;gap:4px;align-items:center;">
+                            <span style="font-size:0.65rem;color:var(--text-light);">Thấp</span>
+                            <div style="width:10px;height:10px;border-radius:2px;background:var(--coral-light);"></div>
+                            <div style="width:10px;height:10px;border-radius:2px;background:var(--peach-light);"></div>
+                            <div style="width:10px;height:10px;border-radius:2px;background:var(--mint-light);"></div>
+                            <div style="width:10px;height:10px;border-radius:2px;background:var(--mint);"></div>
+                            <div style="width:10px;height:10px;border-radius:2px;background:var(--mint-dark);"></div>
+                            <span style="font-size:0.65rem;color:var(--text-light);">Cao</span>
+                        </div>
+                    </div>
+                    <div class="heatmap-grid" id="heatmapGrid"></div>
+                </div>
+
+                <div class="paper-card chart-card">
+                    <div class="cc-title" style="margin-bottom:12px;">📋 Lịch sử bài kiểm tra tâm lý</div>
+                    <div id="assessmentHistory"></div>
+                    <div
+                        style="font-size:0.7rem;color:var(--text-light);margin-top:8px;padding:8px 10px;background:var(--cream);border-radius:var(--border-radius-sm);line-height:1.5;">
+                        ⚠️ Đây là công cụ sàng lọc, không phải chẩn đoán y khoa. Nếu điểm số cao, hãy tham khảo ý kiến
+                        chuyên gia.
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <div class="paper-card export-card">
+                    <div class="export-icon">📄</div>
+                    <div class="export-title">Xuất báo cáo</div>
+                    <div class="export-desc">Chia sẻ với chuyên gia hoặc lưu lại hành trình của bạn</div>
+                    <div class="export-btns">
+                        <button class="export-btn eb-pdf" onclick="exportPDF()">📄 Xuất PDF báo cáo</button>
+                        <button class="export-btn eb-json" onclick="exportJSON()">📦 Xuất dữ liệu JSON</button>
+                        <button class="export-btn eb-share" onclick="shareReport()">🔗 Chia sẻ với chuyên gia</button>
+                    </div>
+                </div>
+
+                <div class="paper-card right-card">
+                    <div class="rc-title">📌 Tóm tắt kỳ này</div>
+                    <div id="periodSummary" style="display:flex;flex-direction:column;gap:6px;"></div>
+                </div>
+
+                <div class="paper-card right-card">
+                    <div class="rc-title">📊 So sánh kỳ trước</div>
+                    <div id="comparisonList" style="display:flex;flex-direction:column;gap:6px;"></div>
+                </div>
+
+                <div class="paper-card right-card">
+                    <div class="rc-title">🔗 Hành động tiếp theo</div>
+                    <a href="mood-checkin.html" class="quick-link"><span class="ql-icon">💭</span><span
+                            class="ql-text">Check-in tâm trạng</span><span class="ql-arrow">›</span></a>
+                    <a href="tasks.html" class="quick-link"><span class="ql-icon">🎮</span><span class="ql-text">Làm
+                            nhiệm vụ hôm nay</span><span class="ql-arrow">›</span></a>
+                    <a href="experts.html" class="quick-link"><span class="ql-icon">🩺</span><span class="ql-text">Tư
+                            vấn chuyên gia</span><span class="ql-arrow">›</span></a>
+                    <a href="mood-assessment.html" class="quick-link"><span class="ql-icon">📋</span><span
+                            class="ql-text">Làm bài kiểm tra</span><span class="ql-arrow">›</span></a>
+                </div>
+
+                <div class="disclaimer-card">
+                    ⚠️ <strong>Lưu ý:</strong> Báo cáo này chỉ mang tính tham khảo, không phải chẩn đoán y khoa. Nếu bạn
+                    lo ngại về sức khỏe tâm thần, hãy liên hệ chuyên gia hoặc gọi <strong>1800-599-920</strong>.
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        let currentPeriod = 'week';
+        let currentOffset = 0;
+
+        const WEEK_DATA = {
+            labels: ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'],
+            mood: [6, 7, 5, 8, 7, 9, 8],
+            anxiety: [4, 3, 5, 3, 4, 2, 2],
+            stress: [5, 4, 6, 3, 4, 2, 3],
+            tasks: [2, 3, 1, 4, 2, 3, 2],
+        };
+
+        const MONTH_DATA = {
+            labels: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21', '22', '23', '24', '25', '26', '27', '28', '29', '30'],
+            mood: [5, 6, 7, 6, 8, 7, 6, 7, 8, 9, 7, 8, 6, 5, 7, 8, 7, 9, 8, 7, 6, 8, 7, 8, 9, 8, 7, 8, 9, 8],
+            anxiety: [5, 4, 4, 5, 3, 4, 5, 4, 3, 2, 4, 3, 5, 6, 4, 3, 4, 2, 3, 4, 5, 3, 4, 3, 2, 3, 4, 3, 2, 3],
+            stress: [6, 5, 4, 5, 4, 5, 6, 5, 4, 3, 5, 4, 6, 7, 5, 4, 5, 3, 4, 5, 6, 4, 5, 4, 3, 4, 5, 4, 3, 4],
+            tasks: [1, 2, 3, 2, 3, 2, 1, 3, 2, 4, 2, 3, 1, 0, 2, 3, 2, 4, 3, 2, 1, 3, 2, 3, 4, 3, 2, 3, 4, 3],
+        };
+
+        const THREE_MONTH_DATA = {
+            labels: ['Th1', 'Th2', 'Th3', 'Th4', 'Th5', 'Th6', 'Th7', 'Th8', 'Th9', 'Th10', 'Th11', 'Th12'],
+            mood: [5, 6, 5, 7, 6, 7, 8, 7, 8, 9, 8, 8],
+            anxiety: [6, 5, 5, 4, 4, 3, 3, 4, 3, 2, 3, 2],
+            stress: [7, 6, 6, 5, 5, 4, 4, 5, 4, 3, 4, 3],
+            tasks: [8, 10, 9, 12, 11, 13, 15, 14, 16, 18, 17, 19],
+        };
+
+        const RADAR_DATA = {
+            week: { labels: ['Lo âu', 'Trầm cảm', 'Stress', 'Giấc ngủ', 'Thể chất', 'Xã hội'], values: [72, 80, 68, 75, 65, 70] },
+            month: { labels: ['Lo âu', 'Trầm cảm', 'Stress', 'Giấc ngủ', 'Thể chất', 'Xã hội'], values: [68, 75, 65, 70, 60, 72] },
+            '3month': { labels: ['Lo âu', 'Trầm cảm', 'Stress', 'Giấc ngủ', 'Thể chất', 'Xã hội'], values: [62, 70, 60, 76, 68, 74] },
+        };
+
+        const TASK_BREAKDOWN_MAP = {
+            week: [
+                { label: '🟢 Dễ', count: 8, color: 'var(--mint-dark)', max: 20 },
+                { label: '🟡 Trung bình', count: 6, color: 'var(--peach-dark)', max: 20 },
+                { label: '🟠 Khó', count: 2, color: 'var(--coral)', max: 20 },
+                { label: '🔵 Cộng đồng', count: 1, color: 'var(--lavender)', max: 20 },
+            ],
+            month: [
+                { label: '🟢 Dễ', count: 28, color: 'var(--mint-dark)', max: 40 },
+                { label: '🟡 Trung bình', count: 14, color: 'var(--peach-dark)', max: 40 },
+                { label: '🟠 Khó', count: 4, color: 'var(--coral)', max: 40 },
+                { label: '🔵 Cộng đồng', count: 1, color: 'var(--lavender)', max: 40 },
+            ],
+            '3month': [
+                { label: '🟢 Dễ', count: 72, color: 'var(--mint-dark)', max: 100 },
+                { label: '🟡 Trung bình', count: 34, color: 'var(--peach-dark)', max: 100 },
+                { label: '🟠 Khó', count: 11, color: 'var(--coral)', max: 100 },
+                { label: '🔵 Cộng đồng', count: 4, color: 'var(--lavender)', max: 100 },
+            ]
+        };
+
+        const INSIGHTS = [
+            { type: 'positive', text: 'Tâm trạng của bạn đã cải thiện 23% so với tuần trước! Bài tập thiền buổi sáng có vẻ đang phát huy tác dụng rất tốt 🧘' },
+            { type: 'positive', text: 'Bạn đã hoàn thành 47 nhiệm vụ trong tháng này — nhiều hơn 35% so với tháng trước. Đây là kỷ lục cá nhân!' },
+            { type: 'warning', text: 'Mức lo âu của bạn có xu hướng tăng vào thứ Tư và thứ Năm. Có thể liên quan đến áp lực giữa tuần — hãy thử bài thở buổi trưa nhé.' },
+            { type: 'tip', text: 'PeaceCat gợi ý: Thêm 1 bài tập thở vào buổi chiều (khoảng 15-16h) có thể giúp giảm stress cuối ngày hiệu quả hơn.' },
+            { type: 'positive', text: 'Chất lượng giấc ngủ của bạn đã tăng từ 6.2 → 7.8/10 trong 2 tuần qua. Việc tạo môi trường ngủ lý tưởng đã có hiệu quả!' },
+        ];
+
+        const ASSESSMENTS = [
+            { name: 'DASS-21', icon: '📊', bg: 'var(--lavender-light)', date: '28/05/2025', score: 12, max: 63, level: 'Nhẹ', levelClass: 'score-low' },
+            { name: 'GAD-7', icon: '😰', bg: 'var(--peach-light)', date: '01/06/2025', score: 8, max: 21, level: 'Trung bình', levelClass: 'score-mid' },
+            { name: 'PHQ-9', icon: '🌧️', bg: 'var(--sky-light)', date: '14/05/2025', score: 5, max: 27, level: 'Nhẹ', levelClass: 'score-low' },
+            { name: 'PSQI', icon: '😴', bg: 'var(--mint-light)', date: '01/06/2025', score: 6, max: 21, level: 'Tốt', levelClass: 'score-low' },
+        ];
+
+        const SUMMARY_CARDS = {
+            week: [
+                { icon: '😊', num: '7.4', label: 'Tâm trạng TB', change: '+0.8 so tuần trước', dir: 'up', color: 'var(--mint-dark)', deco: '🌿' },
+                { icon: '✅', num: '17', label: 'Nhiệm vụ hoàn thành', change: '+5 so tuần trước', dir: 'up', color: 'var(--mint-dark)', deco: '🎮' },
+                { icon: '😰', num: '3.1', label: 'Lo âu TB', change: '-0.6 so tuần trước', dir: 'up', color: 'var(--mint-dark)', deco: '💨' },
+                { icon: '🔥', num: '7', label: 'Streak ngày', change: 'Kỷ lục: 14 ngày', dir: 'neutral', color: 'var(--peach-dark)', deco: '⭐' },
+            ],
+            month: [
+                { icon: '😊', num: '7.1', label: 'Tâm trạng TB', change: '+0.5 so tháng trước', dir: 'up', color: 'var(--mint-dark)', deco: '🌿' },
+                { icon: '✅', num: '47', label: 'Nhiệm vụ hoàn thành', change: '+12 so tháng trước', dir: 'up', color: 'var(--mint-dark)', deco: '🎮' },
+                { icon: '📝', num: '23', label: 'Bài nhật ký', change: '+8 so tháng trước', dir: 'up', color: 'var(--lavender)', deco: '📖' },
+                { icon: '⭐', num: '295', label: 'XP tích lũy', change: '+145 trong tháng', dir: 'up', color: 'var(--gold)', deco: '🏆' },
+            ],
+            '3month': [
+                { icon: '😊', num: '7.0', label: 'Tâm trạng TB', change: '+0.9 so quý trước', dir: 'up', color: 'var(--mint-dark)', deco: '🌿' },
+                { icon: '✅', num: '121', label: 'Nhiệm vụ hoàn thành', change: '+31 so quý trước', dir: 'up', color: 'var(--mint-dark)', deco: '🎮' },
+                { icon: '📝', num: '58', label: 'Bài nhật ký', change: '+17 so quý trước', dir: 'up', color: 'var(--lavender)', deco: '📖' },
+                { icon: '⭐', num: '620', label: 'XP tích lũy', change: '+320 trong 3 tháng', dir: 'up', color: 'var(--gold)', deco: '🏆' },
+            ]
+        };
+
+        function getCurrentData() {
+            if (currentPeriod === 'month') return MONTH_DATA;
+            if (currentPeriod === '3month') return THREE_MONTH_DATA;
+            return WEEK_DATA;
+        }
+
+        function init() {
+            renderAll();
+        }
+
+        function renderAll() {
+            renderSummaryCards();
+            renderMoodChart();
+            renderRadarChart();
+            renderTaskBreakdown();
+            renderInsights();
+            renderHeatmap();
+            renderAssessments();
+            renderPeriodSummary();
+            renderComparison();
+            updatePeriodLabel();
+        }
+
+        function renderSummaryCards() {
+            const data = SUMMARY_CARDS[currentPeriod] || SUMMARY_CARDS.week;
+            const g = document.getElementById('summaryGrid');
+            g.innerHTML = data.map(c => `
+            <div class="paper-card summary-card">
+                <div class="sc-deco">${c.deco}</div>
+                <div class="sc-icon">${c.icon}</div>
+                <div class="sc-num" style="color:${c.color}">${c.num}</div>
+                <div class="sc-label">${c.label}</div>
+                <div class="sc-change ${c.dir}">${c.dir === 'up' ? '↑' : c.dir === 'down' ? '↓' : '—'} ${c.change}</div>
+            </div>
+        `).join('');
+        }
+
+        function renderMoodChart() {
+            const data = getCurrentData();
+            const svg = document.getElementById('moodChart');
+            const labels = document.getElementById('chartDayLabels');
+            const W = 600, H = 180, padL = 30, padR = 10, padT = 15, padB = 20;
+            const chartW = W - padL - padR, chartH = H - padT - padB;
+            const n = data.labels.length;
+            const xStep = n > 1 ? chartW / (n - 1) : chartW;
+
+            function pathD(arr) {
+                return arr.map((v, i) => {
+                    const x = padL + i * xStep;
+                    const y = padT + chartH - (v / 10) * chartH;
+                    return (i === 0 ? 'M' : 'L') + `${x} ${y}`;
+                }).join(' ');
+            }
+
+            let gridLines = '';
+            for (let i = 0; i <= 5; i++) {
+                const y = padT + (chartH / 5) * i;
+                gridLines += `<line x1="${padL}" y1="${y}" x2="${W - padR}" y2="${y}" stroke="#E8CBA7" stroke-width="1" stroke-dasharray="4,4"/>`;
+                gridLines += `<text x="${padL - 4}" y="${y + 4}" font-size="9" fill="#A89585" text-anchor="end">${10 - i * 2}</text>`;
+            }
+
+            const moodPath = pathD(data.mood);
+            const anxPath = pathD(data.anxiety);
+            const stressPath = pathD(data.stress);
+            const moodArea = data.mood.map((v, i) => {
+                const x = padL + i * xStep;
+                const y = padT + chartH - (v / 10) * chartH;
+                return (i === 0 ? 'M' : 'L') + `${x} ${y}`;
+            }).join(' ') + ` L${padL + (n - 1) * xStep} ${padT + chartH} L${padL} ${padT + chartH} Z`;
+
+            svg.innerHTML = `
+            <defs>
+                <linearGradient id="moodGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#7BBF95" stop-opacity="0.3"/>
+                    <stop offset="100%" stop-color="#7BBF95" stop-opacity="0.02"/>
+                </linearGradient>
+            </defs>
+            ${gridLines}
+            <path d="${moodArea}" fill="url(#moodGrad)"/>
+            <path d="${moodPath}" fill="none" stroke="#7BBF95" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+            <path d="${anxPath}" fill="none" stroke="#E8A876" stroke-width="1.5" stroke-dasharray="5,3" stroke-linejoin="round" stroke-linecap="round"/>
+            <path d="${stressPath}" fill="none" stroke="#C3AED6" stroke-width="1.5" stroke-dasharray="3,3" stroke-linejoin="round" stroke-linecap="round"/>
+            ${data.mood.map((v, i) => {
+                const x = padL + i * xStep;
+                const y = padT + chartH - (v / 10) * chartH;
+                return `<circle cx="${x}" cy="${y}" r="3.5" fill="#7BBF95" stroke="white" stroke-width="1.5"/>`;
+            }).join('')}
+        `;
+
+            labels.innerHTML = data.labels.map((l) => `
+            <div style="flex:1;text-align:center;font-size:0.62rem;color:var(--text-light);font-weight:600;">${l}</div>
+        `).join('');
+        }
+
+        function renderRadarChart() {
+            const d = RADAR_DATA[currentPeriod] || RADAR_DATA.week;
+            const svg = document.getElementById('radarChart');
+            const legend = document.getElementById('radarLegend');
+            const cx = 110, cy = 110, r = 80;
+            const n = d.labels.length;
+            const colors = ['#FF8B8B', '#C3AED6', '#FFCBA4', '#A8D5BA', '#A8D8EA', '#FFD93D'];
+
+            function polar(angle, radius) {
+                const a = (angle - 90) * Math.PI / 180;
+                return { x: cx + radius * Math.cos(a), y: cy + radius * Math.sin(a) };
+            }
+
+            let grid = '';
+            for (let level = 1; level <= 5; level++) {
+                const pts = Array.from({ length: n }, (_, i) => {
+                    const p = polar(i * (360 / n), r * (level / 5));
+                    return `${p.x},${p.y}`;
+                }).join(' ');
+                grid += `<polygon points="${pts}" fill="none" stroke="#E8CBA7" stroke-width="${level === 5 ? 1.5 : 0.8}"/>`;
+            }
+
+            let axes = '';
+            d.labels.forEach((_, i) => {
+                const p = polar(i * (360 / n), r);
+                axes += `<line x1="${cx}" y1="${cy}" x2="${p.x}" y2="${p.y}" stroke="#E8CBA7" stroke-width="1"/>`;
+            });
+
+            const dataPts = d.values.map((v, i) => {
+                const p = polar(i * (360 / n), r * (v / 100));
+                return `${p.x},${p.y}`;
+            }).join(' ');
+
+            let labelsSVG = '';
+            d.labels.forEach((lbl, i) => {
+                const p = polar(i * (360 / n), r + 18);
+                labelsSVG += `<text x="${p.x}" y="${p.y}" font-size="9" fill="#7A6555" text-anchor="middle" dominant-baseline="middle" font-family="Nunito" font-weight="700">${lbl}</text>`;
+            });
+
+            let dots = '';
+            d.values.forEach((v, i) => {
+                const p = polar(i * (360 / n), r * (v / 100));
+                dots += `<circle cx="${p.x}" cy="${p.y}" r="3" fill="${colors[i]}" stroke="white" stroke-width="1.5"/>`;
+            });
+
+            svg.innerHTML = `
+            ${grid}
+            ${axes}
+            <polygon points="${dataPts}" fill="rgba(168,213,186,0.25)" stroke="#7BBF95" stroke-width="2"/>
+            ${labelsSVG}
+            ${dots}
+        `;
+
+            legend.innerHTML = d.labels.map((l, i) => `
+            <div style="display:flex;align-items:center;gap:3px;font-size:0.6rem;color:var(--text-secondary);">
+                <div style="width:8px;height:8px;border-radius:50%;background:${colors[i]};"></div>
+                <span>${l}: ${d.values[i]}%</span>
+            </div>
+        `).join('');
+        }
+
+        function renderTaskBreakdown() {
+            const el = document.getElementById('taskBreakdown');
+            const data = TASK_BREAKDOWN_MAP[currentPeriod] || TASK_BREAKDOWN_MAP.week;
+            el.innerHTML = data.map(t => `
+            <div class="tb-item">
+                <div class="tbi-label">${t.label}</div>
+                <div class="tbi-bar-wrap">
+                    <div class="tbi-bar" style="width:${Math.max(4, (t.count / t.max) * 100)}%;background:${t.color};"></div>
+                </div>
+                <div class="tbi-count">${t.count}</div>
+            </div>
+        `).join('');
+        }
+
+        function renderInsights() {
+            const el = document.getElementById('insightList');
+            el.innerHTML = INSIGHTS.map(ins => `
+            <div class="insight-item">
+                <div class="ii-type ${ins.type}">${ins.type === 'positive' ? '✅ Tích cực' : ins.type === 'warning' ? '⚠️ Lưu ý' : '💡 Gợi ý'}</div>
+                <div class="ii-text">${ins.text}</div>
+            </div>
+        `).join('');
+        }
+
+        function renderHeatmap() {
+            const el = document.getElementById('heatmapGrid');
+            const days = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
+            const headers = days.map(d => `<div class="hm-day-h">${d}</div>`).join('');
+
+            const monthLevels = [0, 3, 4, 5, 4, 3, 5, 4, 3, 2, 4, 5, 4, 3, 2, 4, 5, 4, 5, 4, 3, 4, 5, 4, 3, 4, 5, 4, 5, 4, 3, 0, 0, 0, 0];
+            const weekLevels = [0, 0, 0, 0, 0, 0, 0, 4, 3, 5, 4, 5, 4, 3];
+            const quarterLevels = [
+                0, 0, 0, 0, 0, 0, 0,
+                3, 4, 4, 5, 3, 4, 5,
+                4, 5, 3, 4, 4, 5, 4,
+                3, 2, 4, 5, 4, 3, 4,
+                5, 4, 3, 4, 5, 4, 5,
+                4, 3, 4, 5, 4, 3, 4
+            ];
+
+            const levels = currentPeriod === 'month' ? monthLevels : (currentPeriod === '3month' ? quarterLevels : weekLevels);
+            const levelClass = ['empty', 'level-1', 'level-2', 'level-3', 'level-4', 'level-5'];
+            const moodLabels = ['', 'Rất thấp', 'Thấp', 'Trung bình', 'Tốt', 'Rất tốt'];
+
+            const cells = levels.map((l, i) => `
+            <div class="hm-cell ${levelClass[l]}" data-label="${l > 0 ? `Ô ${i}: ${moodLabels[l]}` : 'Không có dữ liệu'}"></div>
+        `).join('');
+
+            el.innerHTML = headers + cells;
+        }
+
+        function renderAssessments() {
+            const el = document.getElementById('assessmentHistory');
+            let data = ASSESSMENTS;
+            if (currentPeriod === '3month') {
+                data = [
+                    ...ASSESSMENTS,
+                    { name: 'HARS', icon: '🧠', bg: 'var(--rose-light)', date: '10/04/2025', score: 15, max: 56, level: 'Trung bình', levelClass: 'score-mid' },
+                ];
+            }
+            el.innerHTML = data.map(a => `
+            <div class="assessment-item">
+                <div class="ai-icon" style="background:${a.bg};">${a.icon}</div>
+                <div class="ai-info">
+                    <div class="ai-name">${a.name}</div>
+                    <div class="ai-date">📅 ${a.date}</div>
+                </div>
+                <div class="ai-score">
+                    <div class="ai-score-num ${a.levelClass}">${a.score}/${a.max}</div>
+                    <div class="ai-score-label ${a.levelClass}">${a.level}</div>
+                </div>
+            </div>
+        `).join('');
+        }
+
+        function renderPeriodSummary() {
+            const el = document.getElementById('periodSummary');
+            const map = {
+                week: [
+                    { icon: '😊', label: 'Ngày tâm trạng tốt', value: '5/7' },
+                    { icon: '✅', label: 'Nhiệm vụ hoàn thành', value: '17' },
+                    { icon: '📝', label: 'Bài nhật ký', value: '4' },
+                    { icon: '🧘', label: 'Phút thiền', value: '45 phút' },
+                ],
+                month: [
+                    { icon: '😊', label: 'Ngày tâm trạng tốt', value: '21/30' },
+                    { icon: '✅', label: 'Nhiệm vụ hoàn thành', value: '47' },
+                    { icon: '📝', label: 'Bài nhật ký', value: '23' },
+                    { icon: '🧘', label: 'Phút thiền', value: '210 phút' },
+                ],
+                '3month': [
+                    { icon: '😊', label: 'Ngày tâm trạng tốt', value: '62/90' },
+                    { icon: '✅', label: 'Nhiệm vụ hoàn thành', value: '121' },
+                    { icon: '📝', label: 'Bài nhật ký', value: '58' },
+                    { icon: '🧘', label: 'Phút thiền', value: '640 phút' },
+                ]
+            };
+            el.innerHTML = map[currentPeriod].map(i => `
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:var(--cream);border:1.5px solid var(--kraft-light);border-radius:var(--border-radius-sm);">
+                <span style="font-size:0.75rem;font-weight:700;">${i.icon} ${i.label}</span>
+                <span style="font-size:0.75rem;color:var(--mint-dark);font-weight:800;">${i.value}</span>
+            </div>
+        `).join('');
+        }
+
+        function renderComparison() {
+            const el = document.getElementById('comparisonList');
+            const map = {
+                week: [
+                    { label: 'Tâm trạng', change: '+0.8', color: 'var(--mint-dark)' },
+                    { label: 'Lo âu', change: '-0.6', color: 'var(--mint-dark)' },
+                    { label: 'Nhiệm vụ', change: '+5', color: 'var(--mint-dark)' },
+                ],
+                month: [
+                    { label: 'Tâm trạng', change: '+0.5', color: 'var(--mint-dark)' },
+                    { label: 'Nhật ký', change: '+8', color: 'var(--lavender)' },
+                    { label: 'XP', change: '+145', color: 'var(--gold)' },
+                ],
+                '3month': [
+                    { label: 'Tâm trạng', change: '+0.9', color: 'var(--mint-dark)' },
+                    { label: 'Nhiệm vụ', change: '+31', color: 'var(--mint-dark)' },
+                    { label: 'XP', change: '+320', color: 'var(--gold)' },
+                ]
+            };
+            el.innerHTML = map[currentPeriod].map(i => `
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:var(--cream);border:1.5px solid var(--kraft-light);border-radius:var(--border-radius-sm);">
+                <span style="font-size:0.74rem;color:var(--text-secondary);">${i.label}</span>
+                <span style="font-size:0.74rem;font-weight:800;color:${i.color};">${i.change}</span>
+            </div>
+        `).join('');
+        }
+
+        function updatePeriodLabel() {
+            const el = document.getElementById('periodLabel');
+            if (currentPeriod === 'month') el.textContent = 'Tháng này';
+            else if (currentPeriod === '3month') el.textContent = '3 tháng gần đây';
+            else el.textContent = 'Tuần này';
+        }
+
+        function switchPeriod(period, btn) {
+            currentPeriod = period;
+            document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
+            if (btn) btn.classList.add('active');
+            renderAll();
+        }
+
+        function navPeriod(direction) {
+            currentOffset += direction;
+            showToast(direction < 0 ? '← Xem kỳ trước' : '→ Xem kỳ tiếp theo');
+        }
+
+        function exportPDF() {
+            showToast('📄 Đang chuẩn bị xuất PDF...');
+            setTimeout(() => window.print(), 500);
+        }
+
+        function exportJSON() {
+            const data = {
+                period: currentPeriod,
+                summary: SUMMARY_CARDS[currentPeriod],
+                chart: getCurrentData(),
+                radar: RADAR_DATA[currentPeriod],
+                tasks: TASK_BREAKDOWN_MAP[currentPeriod],
+                assessments: ASSESSMENTS
+            };
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'PeaceFlow-report.json';
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast('📦 Đã xuất JSON');
+        }
+
+        function shareReport() {
+            showToast('🔗 Báo cáo đã sẵn sàng để chia sẻ với chuyên gia');
+        }
+
+        function showEmergency() {
+            document.getElementById('emergencyOverlay').classList.add('show');
+        }
+
+        function closeEmergency() {
+            document.getElementById('emergencyOverlay').classList.remove('show');
+        }
+
+        function showToast(msg) {
+            const el = document.getElementById('toast');
+            const text = document.getElementById('toastText');
+            text.textContent = msg;
+            el.classList.add('show');
+            clearTimeout(window.__toastTimer);
+            window.__toastTimer = setTimeout(() => el.classList.remove('show'), 2500);
+        }
+
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('open');
+            document.getElementById('sidebarOverlay').classList.toggle('open');
+        }
+
+        function closeSidebar() {
+            document.getElementById('sidebar').classList.remove('open');
+            document.getElementById('sidebarOverlay').classList.remove('open');
+        }
+
+        window.onload = init;
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../public/js/supabase-config.js"></script>
+    <script src="../public/js/app.js"></script>
+</body>
+
+</html>

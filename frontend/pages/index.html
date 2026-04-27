@@ -1,0 +1,2268 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+        content="PeaceFlow — Đồng hành vượt qua stress. Nền tảng chăm sóc sức khỏe tâm thần với AI, nhiệm vụ game hóa và kết nối chuyên gia.">
+    <title>PeaceFlow — Đồng Hành Vượt Qua Stress 🌿</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Patrick+Hand&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --cream: #FFF8F0;
+            --warm-white: #FFFDF7;
+            --kraft: #D4A574;
+            --kraft-light: #E8CBA7;
+            --kraft-dark: #B8895A;
+            --mint: #A8D5BA;
+            --mint-light: #C5E8D2;
+            --mint-dark: #7BBF95;
+            --peach: #FFCBA4;
+            --peach-light: #FFE0C4;
+            --peach-dark: #E8A876;
+            --sky: #A8D8EA;
+            --sky-light: #C5E8F5;
+            --lavender: #C3AED6;
+            --lavender-light: #DDD1EB;
+            --coral: #FF8B8B;
+            --coral-light: #FFB3B3;
+            --gold: #FFD93D;
+            --gold-light: #FFF3B0;
+            --text-primary: #4A3728;
+            --text-secondary: #7A6555;
+            --text-light: #A89585;
+            --shadow-paper: 3px 3px 0px rgba(74, 55, 40, 0.10);
+            --shadow-paper-lg: 6px 6px 0px rgba(74, 55, 40, 0.12);
+            --radius-sm: 10px;
+            --radius-md: 16px;
+            --radius-lg: 20px;
+            --radius-xl: 24px;
+            --radius-full: 9999px;
+            --transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background: var(--cream);
+            color: var(--text-primary);
+            overflow-x: hidden;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        /* ===== NAVBAR ===== */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            background: rgba(255, 253, 247, 0.92);
+            backdrop-filter: blur(12px);
+            border-bottom: 2px solid var(--kraft-light);
+            padding: 0 5%;
+            height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: var(--transition);
+        }
+
+        .nav-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .nav-logo .logo-icon {
+            width: 36px;
+            height: 36px;
+            background: var(--mint);
+            border-radius: var(--radius-sm);
+            border: 2px solid var(--mint-dark);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            box-shadow: 2px 2px 0px var(--mint-dark);
+        }
+
+        .nav-logo .logo-text {
+            font-size: 1.2rem;
+            font-weight: 800;
+        }
+
+        .nav-logo .logo-text span {
+            color: var(--mint-dark);
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+        }
+
+        .nav-link {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            transition: var(--transition);
+        }
+
+        .nav-link:hover {
+            color: var(--mint-dark);
+        }
+
+        .nav-cta {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .btn-nav-outline {
+            padding: 8px 18px;
+            border: 2px solid var(--kraft-light);
+            border-radius: var(--radius-full);
+            font-family: 'Nunito', sans-serif;
+            font-size: 0.82rem;
+            font-weight: 700;
+            cursor: pointer;
+            background: transparent;
+            color: var(--text-secondary);
+            transition: var(--transition);
+        }
+
+        .btn-nav-outline:hover {
+            background: var(--kraft-light);
+        }
+
+        .btn-nav-primary {
+            padding: 8px 20px;
+            border: 2px solid var(--mint-dark);
+            border-radius: var(--radius-full);
+            font-family: 'Nunito', sans-serif;
+            font-size: 0.82rem;
+            font-weight: 700;
+            cursor: pointer;
+            background: var(--mint);
+            color: var(--text-primary);
+            transition: var(--transition);
+            box-shadow: 2px 2px 0px var(--mint-dark);
+        }
+
+        .btn-nav-primary:hover {
+            background: var(--mint-dark);
+            color: white;
+            transform: translate(1px, 1px);
+            box-shadow: 1px 1px 0px var(--mint-dark);
+        }
+
+        .mobile-nav-btn {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 1.4rem;
+            cursor: pointer;
+        }
+
+        /* ===== HERO ===== */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            padding: 80px 5% 60px;
+            position: relative;
+            overflow: hidden;
+            background: linear-gradient(160deg, var(--cream) 0%, var(--mint-light) 50%, var(--peach-light) 100%);
+        }
+
+        .hero-bg-deco {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .hbd-circle {
+            position: absolute;
+            border-radius: 50%;
+            opacity: 0.12;
+        }
+
+        .hbd-1 {
+            width: 500px;
+            height: 500px;
+            background: var(--mint);
+            top: -150px;
+            right: -100px;
+            animation: float-slow 8s ease-in-out infinite;
+        }
+
+        .hbd-2 {
+            width: 300px;
+            height: 300px;
+            background: var(--peach);
+            bottom: -80px;
+            left: -60px;
+            animation: float-slow 10s ease-in-out infinite reverse;
+        }
+
+        .hbd-3 {
+            width: 200px;
+            height: 200px;
+            background: var(--lavender);
+            top: 40%;
+            left: 40%;
+            animation: float-slow 7s ease-in-out infinite 2s;
+        }
+
+        @keyframes float-slow {
+
+            0%,
+            100% {
+                transform: translateY(0) scale(1);
+            }
+
+            50% {
+                transform: translateY(-20px) scale(1.03);
+            }
+        }
+
+        .hero-content {
+            max-width: 580px;
+            z-index: 2;
+            animation: fade-up 0.8s ease;
+        }
+
+        @keyframes fade-up {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 16px;
+            background: var(--gold-light);
+            border: 1.5px solid var(--gold);
+            border-radius: var(--radius-full);
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: #7a5a00;
+            margin-bottom: 16px;
+            animation: bounce-gentle 3s ease-in-out infinite;
+        }
+
+        @keyframes bounce-gentle {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-4px);
+            }
+        }
+
+        .hero-title {
+            font-size: clamp(2rem, 5vw, 3rem);
+            font-weight: 900;
+            line-height: 1.15;
+            margin-bottom: 16px;
+        }
+
+        .hero-title .ht-accent {
+            color: var(--mint-dark);
+            position: relative;
+        }
+
+        .hero-title .ht-accent::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--mint-dark);
+            border-radius: 2px;
+            opacity: 0.5;
+        }
+
+        .hero-subtitle {
+            font-family: 'Patrick Hand', cursive;
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+            line-height: 1.7;
+            margin-bottom: 24px;
+            max-width: 480px;
+        }
+
+        .hero-message {
+            padding: 14px 18px;
+            background: rgba(255, 255, 255, 0.7);
+            border: 1.5px solid var(--kraft-light);
+            border-radius: var(--radius-md);
+            font-family: 'Patrick Hand', cursive;
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-bottom: 28px;
+            position: relative;
+        }
+
+        .hero-message::before {
+            content: '🐱';
+            position: absolute;
+            top: -14px;
+            left: 16px;
+            font-size: 1.2rem;
+        }
+
+        .hero-message-text {
+            transition: opacity 0.4s ease;
+        }
+
+        .hero-actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 28px;
+        }
+
+        .btn-hero-primary {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 14px 28px;
+            border: 2px solid var(--mint-dark);
+            border-radius: var(--radius-full);
+            background: var(--mint-dark);
+            color: white;
+            font-family: 'Nunito', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 800;
+            cursor: pointer;
+            transition: var(--transition);
+            box-shadow: 3px 3px 0px rgba(74, 55, 40, 0.2);
+            text-decoration: none;
+        }
+
+        .btn-hero-primary:hover {
+            background: var(--text-primary);
+            border-color: var(--text-primary);
+            transform: translate(1px, 1px);
+            box-shadow: 2px 2px 0px rgba(74, 55, 40, 0.2);
+        }
+
+        .btn-hero-outline {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 13px 24px;
+            border: 2px solid var(--kraft-light);
+            border-radius: var(--radius-full);
+            background: rgba(255, 255, 255, 0.7);
+            color: var(--text-secondary);
+            font-family: 'Nunito', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: var(--transition);
+            text-decoration: none;
+        }
+
+        .btn-hero-outline:hover {
+            background: white;
+            border-color: var(--kraft);
+        }
+
+        .hero-stats {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .hs-item {
+            text-align: center;
+        }
+
+        .hs-num {
+            font-size: 1.3rem;
+            font-weight: 800;
+            color: var(--mint-dark);
+        }
+
+        .hs-label {
+            font-size: 0.65rem;
+            color: var(--text-light);
+        }
+
+        .hero-visual {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2;
+            min-height: 400px;
+            position: relative;
+        }
+
+        .hero-phone-mockup {
+            width: 260px;
+            background: var(--warm-white);
+            border-radius: 32px;
+            border: 3px solid var(--kraft-light);
+            box-shadow: var(--shadow-paper-lg);
+            padding: 20px;
+            animation: float-phone 5s ease-in-out infinite;
+        }
+
+        @keyframes float-phone {
+
+            0%,
+            100% {
+                transform: translateY(0) rotate(-2deg);
+            }
+
+            50% {
+                transform: translateY(-12px) rotate(1deg);
+            }
+        }
+
+        .hpm-bar {
+            width: 60px;
+            height: 5px;
+            background: var(--kraft-light);
+            border-radius: 3px;
+            margin: 0 auto 16px;
+        }
+
+        .hpm-mood {
+            text-align: center;
+            padding: 14px;
+            background: var(--mint-light);
+            border-radius: var(--radius-md);
+            border: 1.5px solid var(--mint);
+            margin-bottom: 10px;
+        }
+
+        .hpm-mood-emoji {
+            font-size: 2rem;
+            margin-bottom: 4px;
+        }
+
+        .hpm-mood-text {
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: var(--mint-dark);
+        }
+
+        .hpm-task {
+            padding: 10px 12px;
+            background: var(--peach-light);
+            border-radius: var(--radius-sm);
+            border: 1.5px solid var(--peach);
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .hpm-task-icon {
+            font-size: 1rem;
+        }
+
+        .hpm-task-text {
+            font-size: 0.7rem;
+            font-weight: 600;
+            flex: 1;
+        }
+
+        .hpm-task-xp {
+            font-size: 0.62rem;
+            font-weight: 700;
+            color: var(--peach-dark);
+        }
+
+        .hpm-xp {
+            padding: 8px 12px;
+            background: var(--gold-light);
+            border-radius: var(--radius-sm);
+            border: 1.5px solid var(--gold);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .hpm-xp-text {
+            font-size: 0.68rem;
+            font-weight: 700;
+            color: #7a5a00;
+        }
+
+        .hpm-xp-bar {
+            flex: 1;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 3px;
+            margin: 0 8px;
+            overflow: hidden;
+        }
+
+        .hpm-xp-fill {
+            height: 100%;
+            width: 65%;
+            background: var(--gold);
+            border-radius: 3px;
+            animation: xp-grow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes xp-grow {
+            from {
+                width: 60%;
+            }
+
+            to {
+                width: 75%;
+            }
+        }
+
+        /* Floating badges */
+        .float-badge {
+            position: absolute;
+            background: var(--warm-white);
+            border: 2px solid var(--kraft-light);
+            border-radius: var(--radius-md);
+            padding: 8px 12px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            box-shadow: var(--shadow-paper);
+            font-size: 0.72rem;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .fb-1 {
+            top: 10%;
+            left: -10px;
+            animation: float-badge1 6s ease-in-out infinite;
+        }
+
+        .fb-2 {
+            bottom: 20%;
+            right: -10px;
+            animation: float-badge2 7s ease-in-out infinite 1s;
+        }
+
+        .fb-3 {
+            top: 55%;
+            left: -20px;
+            animation: float-badge1 8s ease-in-out infinite 2s;
+        }
+
+        @keyframes float-badge1 {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-8px);
+            }
+        }
+
+        @keyframes float-badge2 {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(8px);
+            }
+        }
+
+        /* ===== SECTION COMMON ===== */
+        section {
+            padding: 80px 5%;
+        }
+
+        .section-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 14px;
+            background: var(--mint-light);
+            border: 1.5px solid var(--mint);
+            border-radius: var(--radius-full);
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: var(--mint-dark);
+            margin-bottom: 12px;
+        }
+
+        .section-title {
+            font-size: clamp(1.5rem, 3.5vw, 2.2rem);
+            font-weight: 800;
+            margin-bottom: 10px;
+            line-height: 1.25;
+        }
+
+        .section-subtitle {
+            font-family: 'Patrick Hand', cursive;
+            font-size: 1rem;
+            color: var(--text-secondary);
+            line-height: 1.7;
+            max-width: 560px;
+        }
+
+        /* ===== HOW IT WORKS ===== */
+        .how-section {
+            background: var(--warm-white);
+        }
+
+        .steps-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-top: 48px;
+        }
+
+        .step-card {
+            padding: 24px 18px;
+            text-align: center;
+            background: var(--cream);
+            border-radius: var(--radius-lg);
+            border: 2px solid var(--kraft-light);
+            box-shadow: var(--shadow-paper);
+            transition: var(--transition);
+            position: relative;
+        }
+
+        .step-card:hover {
+            box-shadow: var(--shadow-paper-lg);
+            transform: translateY(-4px);
+        }
+
+        .step-num {
+            position: absolute;
+            top: -14px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 28px;
+            height: 28px;
+            background: var(--mint-dark);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.78rem;
+            font-weight: 800;
+            color: white;
+            border: 2px solid white;
+        }
+
+        .step-icon {
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .step-title {
+            font-size: 0.88rem;
+            font-weight: 800;
+            margin-bottom: 6px;
+        }
+
+        .step-desc {
+            font-size: 0.72rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        .step-arrow {
+            display: none;
+        }
+
+        /* ===== FEATURES ===== */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-top: 48px;
+        }
+
+        .feature-card {
+            padding: 24px;
+            background: var(--warm-white);
+            border-radius: var(--radius-lg);
+            border: 2px solid var(--kraft-light);
+            box-shadow: var(--shadow-paper);
+            transition: var(--transition);
+            cursor: pointer;
+        }
+
+        .feature-card:hover {
+            box-shadow: var(--shadow-paper-lg);
+            transform: translateY(-3px);
+        }
+
+        .fc-icon-wrap {
+            width: 52px;
+            height: 52px;
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-bottom: 14px;
+            border: 2px solid;
+        }
+
+        .fc-title {
+            font-size: 0.92rem;
+            font-weight: 800;
+            margin-bottom: 6px;
+        }
+
+        .fc-desc {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        .fc-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            margin-top: 10px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: var(--mint-dark);
+        }
+
+        /* ===== MOOD DEMO ===== */
+        .mood-demo-section {
+            background: linear-gradient(135deg, var(--mint-light), var(--sky-light));
+        }
+
+        .mood-demo-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 48px;
+            align-items: center;
+            margin-top: 48px;
+        }
+
+        .mood-demo-card {
+            background: var(--warm-white);
+            border-radius: var(--radius-xl);
+            border: 2px solid var(--mint);
+            padding: 28px;
+            box-shadow: var(--shadow-paper-lg);
+        }
+
+        .mdc-title {
+            font-size: 0.88rem;
+            font-weight: 800;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .mood-emoji-row {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+        }
+
+        .demo-mood-btn {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            border: 2px solid var(--kraft-light);
+            background: var(--cream);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .demo-mood-btn:hover,
+        .demo-mood-btn.active {
+            border-color: var(--mint-dark);
+            background: var(--mint-light);
+            transform: scale(1.15);
+        }
+
+        .demo-slider-wrap {
+            margin-bottom: 14px;
+        }
+
+        .demo-slider-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.68rem;
+            color: var(--text-light);
+            margin-bottom: 6px;
+        }
+
+        .demo-slider {
+            width: 100%;
+            -webkit-appearance: none;
+            appearance: none;
+            height: 8px;
+            border-radius: var(--radius-full);
+            background: linear-gradient(90deg, var(--coral-light), var(--peach), var(--gold), var(--mint), var(--mint-dark));
+            outline: none;
+            cursor: pointer;
+        }
+
+        .demo-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: white;
+            border: 3px solid var(--mint-dark);
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+        }
+
+        .demo-tags {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-bottom: 14px;
+        }
+
+        .demo-tag {
+            padding: 5px 12px;
+            border: 1.5px solid var(--kraft-light);
+            border-radius: var(--radius-full);
+            font-size: 0.68rem;
+            font-weight: 600;
+            cursor: pointer;
+            background: var(--cream);
+            transition: var(--transition);
+        }
+
+        .demo-tag:hover,
+        .demo-tag.active {
+            background: var(--mint-light);
+            border-color: var(--mint-dark);
+        }
+
+        .demo-save-btn {
+            width: 100%;
+            padding: 11px;
+            border: 2px solid var(--mint-dark);
+            border-radius: var(--radius-full);
+            background: var(--mint-dark);
+            color: white;
+            font-family: 'Nunito', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .demo-save-btn:hover {
+            background: var(--text-primary);
+        }
+
+        .mood-demo-info {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .mdi-item {
+            display: flex;
+            gap: 14px;
+            align-items: flex-start;
+            padding: 16px;
+            background: rgba(255, 255, 255, 0.7);
+            border-radius: var(--radius-md);
+            border: 1.5px solid rgba(255, 255, 255, 0.9);
+        }
+
+        .mdi-icon {
+            font-size: 1.5rem;
+            flex-shrink: 0;
+        }
+
+        .mdi-title {
+            font-size: 0.85rem;
+            font-weight: 700;
+            margin-bottom: 3px;
+        }
+
+        .mdi-desc {
+            font-size: 0.72rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        /* ===== TASKS PREVIEW ===== */
+        .tasks-preview-section {
+            background: var(--cream);
+        }
+
+        .tasks-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 28px;
+            flex-wrap: wrap;
+        }
+
+        .tt-btn {
+            padding: 8px 18px;
+            border: 2px solid var(--kraft-light);
+            border-radius: var(--radius-full);
+            font-family: 'Nunito', sans-serif;
+            font-size: 0.78rem;
+            font-weight: 700;
+            cursor: pointer;
+            background: var(--warm-white);
+            color: var(--text-secondary);
+            transition: var(--transition);
+        }
+
+        .tt-btn:hover {
+            background: var(--mint-light);
+            border-color: var(--mint);
+        }
+
+        .tt-btn.active {
+            background: var(--mint-light);
+            border-color: var(--mint-dark);
+            color: var(--text-primary);
+        }
+
+        .tasks-preview-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+        }
+
+        .tp-card {
+            padding: 18px;
+            background: var(--warm-white);
+            border-radius: var(--radius-md);
+            border: 2px solid var(--kraft-light);
+            box-shadow: var(--shadow-paper);
+            transition: var(--transition);
+            cursor: pointer;
+        }
+
+        .tp-card:hover {
+            box-shadow: var(--shadow-paper-lg);
+            transform: translateY(-2px);
+        }
+
+        .tp-icon {
+            font-size: 1.6rem;
+            margin-bottom: 8px;
+        }
+
+        .tp-title {
+            font-size: 0.85rem;
+            font-weight: 800;
+            margin-bottom: 4px;
+        }
+
+        .tp-desc {
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            line-height: 1.4;
+            margin-bottom: 8px;
+        }
+
+        .tp-meta {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .tp-xp {
+            font-size: 0.62rem;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: var(--radius-full);
+            background: var(--gold-light);
+            color: #7a5a00;
+            border: 1px solid var(--gold);
+        }
+
+        .tp-time {
+            font-size: 0.62rem;
+            color: var(--text-light);
+        }
+
+        .tp-diff {
+            font-size: 0.62rem;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: var(--radius-full);
+        }
+
+        .diff-easy {
+            background: var(--mint-light);
+            color: var(--mint-dark);
+            border: 1px solid var(--mint);
+        }
+
+        .diff-medium {
+            background: var(--gold-light);
+            color: #7a5a00;
+            border: 1px solid var(--gold);
+        }
+
+        .diff-hard {
+            background: var(--peach-light);
+            color: var(--peach-dark);
+            border: 1px solid var(--peach);
+        }
+
+        .diff-emergency {
+            background: var(--coral-light);
+            color: #c05050;
+            border: 1px solid var(--coral);
+        }
+
+        /* ===== EXPERTS PREVIEW ===== */
+        .experts-section {
+            background: var(--warm-white);
+        }
+
+        .experts-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-top: 48px;
+        }
+
+        .expert-preview-card {
+            padding: 20px;
+            background: var(--cream);
+            border-radius: var(--radius-lg);
+            border: 2px solid var(--kraft-light);
+            box-shadow: var(--shadow-paper);
+            transition: var(--transition);
+        }
+
+        .expert-preview-card:hover {
+            box-shadow: var(--shadow-paper-lg);
+            transform: translateY(-3px);
+        }
+
+        .epc-avatar {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            border: 3px solid var(--kraft-light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+        }
+
+        .epc-name {
+            font-size: 0.88rem;
+            font-weight: 800;
+            margin-bottom: 2px;
+        }
+
+        .epc-cred {
+            font-size: 0.68rem;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+        }
+
+        .epc-specs {
+            display: flex;
+            gap: 4px;
+            flex-wrap: wrap;
+            margin-bottom: 10px;
+        }
+
+        .epc-spec {
+            font-size: 0.6rem;
+            padding: 2px 8px;
+            border-radius: var(--radius-full);
+            background: var(--lavender-light);
+            color: #8a6aaa;
+            border: 1px solid var(--lavender);
+        }
+
+        .epc-rating {
+            font-size: 0.72rem;
+            color: #7a5a00;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .epc-btn {
+            width: 100%;
+            padding: 8px;
+            border: 1.5px solid var(--mint-dark);
+            border-radius: var(--radius-full);
+            background: var(--mint-light);
+            color: var(--mint-dark);
+            font-family: 'Nunito', sans-serif;
+            font-size: 0.75rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .epc-btn:hover {
+            background: var(--mint-dark);
+            color: white;
+        }
+
+        /* ===== TESTIMONIALS ===== */
+        .testimonials-section {
+            background: linear-gradient(135deg, var(--lavender-light), var(--peach-light));
+        }
+
+        .testimonials-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-top: 48px;
+        }
+
+        .testimonial-card {
+            padding: 22px;
+            background: rgba(255, 255, 255, 0.7);
+            border-radius: var(--radius-lg);
+            border: 1.5px solid rgba(255, 255, 255, 0.9);
+            box-shadow: var(--shadow-paper);
+            transition: var(--transition);
+        }
+
+        .testimonial-card:hover {
+            transform: translateY(-3px);
+        }
+
+        .tc-quote {
+            font-family: 'Patrick Hand', cursive;
+            font-size: 0.92rem;
+            color: var(--text-secondary);
+            line-height: 1.7;
+            margin-bottom: 14px;
+            font-style: italic;
+        }
+
+        .tc-quote::before {
+            content: '"';
+            font-size: 1.5rem;
+            color: var(--mint-dark);
+            line-height: 0;
+            vertical-align: -0.4em;
+            margin-right: 2px;
+        }
+
+        .tc-author {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .tc-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--mint-light);
+            border: 2px solid var(--mint);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+        }
+
+        .tc-name {
+            font-size: 0.78rem;
+            font-weight: 700;
+        }
+
+        .tc-role {
+            font-size: 0.62rem;
+            color: var(--text-light);
+        }
+
+        .tc-stars {
+            font-size: 0.7rem;
+            color: var(--gold-dark);
+            margin-left: auto;
+        }
+
+        /* ===== SAFETY SECTION ===== */
+        .safety-section {
+            background: var(--cream);
+        }
+
+        .safety-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 48px;
+            align-items: center;
+            margin-top: 48px;
+        }
+
+        .safety-card {
+            padding: 28px;
+            background: linear-gradient(135deg, rgba(255, 139, 139, 0.06), rgba(255, 203, 164, 0.08));
+            border: 2px solid rgba(255, 139, 139, 0.2);
+            border-radius: var(--radius-xl);
+        }
+
+        .sc-hotline {
+            padding: 18px;
+            background: var(--warm-white);
+            border: 2px solid var(--coral);
+            border-radius: var(--radius-md);
+            text-align: center;
+            margin-bottom: 14px;
+        }
+
+        .sc-hotline-num {
+            font-size: 1.6rem;
+            font-weight: 800;
+            color: var(--coral);
+        }
+
+        .sc-hotline-label {
+            font-size: 0.72rem;
+            color: var(--text-secondary);
+        }
+
+        .safety-features {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .sf-item {
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+            padding: 12px 14px;
+            background: rgba(255, 255, 255, 0.6);
+            border-radius: var(--radius-sm);
+            border: 1.5px solid rgba(255, 255, 255, 0.8);
+        }
+
+        .sf-icon {
+            font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+
+        .sf-title {
+            font-size: 0.82rem;
+            font-weight: 700;
+            margin-bottom: 2px;
+        }
+
+        .sf-desc {
+            font-size: 0.68rem;
+            color: var(--text-secondary);
+            line-height: 1.4;
+        }
+
+        /* ===== GAMIFICATION SECTION ===== */
+        .gamification-section {
+            background: var(--warm-white);
+        }
+
+        .badges-showcase {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 28px;
+            justify-content: center;
+        }
+
+        .badge-showcase-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            padding: 14px 10px;
+            background: var(--cream);
+            border-radius: var(--radius-md);
+            border: 2px solid var(--kraft-light);
+            min-width: 80px;
+            transition: var(--transition);
+        }
+
+        .badge-showcase-item:hover {
+            border-color: var(--gold);
+            background: var(--gold-light);
+            transform: translateY(-3px);
+        }
+
+        .bsi-icon {
+            font-size: 1.8rem;
+        }
+
+        .bsi-name {
+            font-size: 0.6rem;
+            font-weight: 700;
+            text-align: center;
+            color: var(--text-secondary);
+        }
+
+        .levels-preview {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+            margin-top: 28px;
+        }
+
+        .lp-item {
+            padding: 12px 8px;
+            text-align: center;
+            background: var(--cream);
+            border-radius: var(--radius-sm);
+            border: 1.5px solid var(--kraft-light);
+            transition: var(--transition);
+        }
+
+        .lp-item:hover {
+            border-color: var(--mint);
+            background: var(--mint-light);
+        }
+
+        .lp-item.current {
+            border-color: var(--mint-dark);
+            background: var(--mint-light);
+        }
+
+        .lp-num {
+            font-size: 1.2rem;
+            font-weight: 800;
+            color: var(--mint-dark);
+        }
+
+        .lp-title {
+            font-size: 0.6rem;
+            font-weight: 700;
+            color: var(--text-secondary);
+        }
+
+        .lp-xp {
+            font-size: 0.55rem;
+            color: var(--text-light);
+        }
+
+        /* ===== CTA SECTION ===== */
+        .cta-section {
+            background: linear-gradient(135deg, var(--mint-dark), var(--sky-dark));
+            padding: 80px 5%;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cta-section::before {
+            content: '🌿';
+            position: absolute;
+            font-size: 10rem;
+            opacity: 0.06;
+            top: -20px;
+            left: -20px;
+        }
+
+        .cta-section::after {
+            content: '🌸';
+            position: absolute;
+            font-size: 10rem;
+            opacity: 0.06;
+            bottom: -20px;
+            right: -20px;
+        }
+
+        .cta-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 14px;
+            background: rgba(255, 255, 255, 0.2);
+            border: 1.5px solid rgba(255, 255, 255, 0.4);
+            border-radius: var(--radius-full);
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 16px;
+        }
+
+        .cta-title {
+            font-size: clamp(1.6rem, 4vw, 2.4rem);
+            font-weight: 900;
+            color: white;
+            margin-bottom: 12px;
+            line-height: 1.2;
+        }
+
+        .cta-subtitle {
+            font-family: 'Patrick Hand', cursive;
+            font-size: 1.05rem;
+            color: rgba(255, 255, 255, 0.85);
+            margin-bottom: 32px;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+            line-height: 1.7;
+        }
+
+        .cta-actions {
+            display: flex;
+            gap: 14px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 28px;
+        }
+
+        .btn-cta-white {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 14px 28px;
+            border: 2px solid white;
+            border-radius: var(--radius-full);
+            background: white;
+            color: var(--mint-dark);
+            font-family: 'Nunito', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 800;
+            cursor: pointer;
+            transition: var(--transition);
+            box-shadow: 3px 3px 0px rgba(0, 0, 0, 0.1);
+            text-decoration: none;
+        }
+
+        .btn-cta-white:hover {
+            background: var(--cream);
+            transform: translate(1px, 1px);
+        }
+
+        .btn-cta-outline {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 13px 24px;
+            border: 2px solid rgba(255, 255, 255, 0.6);
+            border-radius: var(--radius-full);
+            background: transparent;
+            color: white;
+            font-family: 'Nunito', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: var(--transition);
+            text-decoration: none;
+        }
+
+        .btn-cta-outline:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .cta-note {
+            font-size: 0.72rem;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        /* ===== FOOTER ===== */
+        footer {
+            background: var(--text-primary);
+            color: rgba(255, 255, 255, 0.85);
+            padding: 48px 5% 24px;
+        }
+
+        .footer-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
+            gap: 32px;
+            margin-bottom: 32px;
+        }
+
+        .footer-brand .fb-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .fb-logo-icon {
+            width: 36px;
+            height: 36px;
+            background: var(--mint-dark);
+            border-radius: var(--radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+        }
+
+        .fb-logo-text {
+            font-size: 1.1rem;
+            font-weight: 800;
+            color: white;
+        }
+
+        .fb-logo-text span {
+            color: var(--mint);
+        }
+
+        .footer-brand p {
+            font-size: 0.78rem;
+            line-height: 1.6;
+            color: rgba(255, 255, 255, 0.6);
+            max-width: 240px;
+        }
+
+        .footer-col-title {
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .footer-link {
+            display: block;
+            font-size: 0.75rem;
+            color: rgba(255, 255, 255, 0.6);
+            margin-bottom: 6px;
+            transition: var(--transition);
+        }
+
+        .footer-link:hover {
+            color: var(--mint);
+        }
+
+        .footer-hotline {
+            padding: 12px 14px;
+            background: rgba(255, 139, 139, 0.15);
+            border: 1.5px solid rgba(255, 139, 139, 0.3);
+            border-radius: var(--radius-sm);
+            margin-top: 8px;
+        }
+
+        .fh-num {
+            font-size: 1rem;
+            font-weight: 800;
+            color: var(--coral-light);
+        }
+
+        .fh-label {
+            font-size: 0.62rem;
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .footer-bottom {
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding-top: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .fb-copy {
+            font-size: 0.72rem;
+            color: rgba(255, 255, 255, 0.4);
+        }
+
+        .fb-disclaimer {
+            font-size: 0.65rem;
+            color: rgba(255, 255, 255, 0.3);
+            max-width: 500px;
+            line-height: 1.5;
+            text-align: right;
+        }
+
+        /* ===== MOBILE NAV OVERLAY ===== */
+        .mobile-nav-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(74, 55, 40, 0.5);
+            z-index: 90;
+            display: none;
+        }
+
+        .mobile-nav-overlay.open {
+            display: block;
+        }
+
+        .mobile-nav-panel {
+            position: fixed;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            width: 260px;
+            background: var(--warm-white);
+            z-index: 95;
+            padding: 24px;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+            overflow-y: auto;
+        }
+
+        .mobile-nav-panel.open {
+            transform: translateX(0);
+        }
+
+        .mnp-close {
+            float: right;
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+
+        .mnp-link {
+            display: block;
+            padding: 12px 0;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            border-bottom: 1px dashed var(--kraft-light);
+            transition: var(--transition);
+        }
+
+        .mnp-link:hover {
+            color: var(--mint-dark);
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: var(--warm-white);
+            border: 2px solid var(--mint-dark);
+            border-radius: var(--radius-full);
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.88rem;
+            font-weight: 700;
+            box-shadow: 3px 3px 0px var(--mint-dark);
+            z-index: 800;
+            transform: translateY(80px);
+            opacity: 0;
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media(max-width:1024px) {
+            .features-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .experts-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .testimonials-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .footer-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        @media(max-width:768px) {
+
+            .nav-links,
+            .nav-cta {
+                display: none;
+            }
+
+            .mobile-nav-btn {
+                display: block;
+            }
+
+            .hero {
+                flex-direction: column;
+                padding: 100px 5% 60px;
+                text-align: center;
+            }
+
+            .hero-content {
+                max-width: 100%;
+            }
+
+            .hero-subtitle,
+            .hero-message {
+                margin-left: auto;
+                margin-right: auto;
+            }
+
+            .hero-actions {
+                justify-content: center;
+            }
+
+            .hero-stats {
+                justify-content: center;
+            }
+
+            .hero-visual {
+                width: 100%;
+                margin-top: 32px;
+            }
+
+            .steps-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .mood-demo-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .tasks-preview-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .experts-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .testimonials-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .safety-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .levels-preview {
+                grid-template-columns: repeat(3, 1fr);
+            }
+
+            .footer-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .fb-disclaimer {
+                text-align: left;
+            }
+        }
+
+        @media(max-width:480px) {
+            .steps-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .tasks-preview-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .levels-preview {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .footer-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Toast -->
+    <div class="toast" id="toast">✅ <span id="toastText">Chào mừng bạn!</span></div>
+
+    <!-- Mobile Nav Overlay -->
+    <div class="mobile-nav-overlay" id="mobileNavOverlay" onclick="closeMobileNav()"></div>
+    <div class="mobile-nav-panel" id="mobileNavPanel">
+        <button class="mnp-close" onclick="closeMobileNav()">✕</button>
+        <a href="onboarding.html" class="mnp-link">🚀 Bắt đầu hành trình</a>
+        <a href="dashboard.html" class="mnp-link">🏡 Dashboard</a>
+        <a href="mood-checkin.html" class="mnp-link">💭 Check-in tâm trạng</a>
+        <a href="tasks.html" class="mnp-link">🎮 Nhiệm vụ</a>
+        <a href="experts.html" class="mnp-link">🩺 Chuyên gia</a>
+        <a href="journal.html" class="mnp-link">📝 Nhật ký</a>
+        <a href="community.html" class="mnp-link">👥 Cộng đồng</a>
+        <a href="emergency.html" class="mnp-link" style="color:var(--coral);">🆘 Hỗ trợ khẩn cấp</a>
+        <div style="margin-top:16px;display:flex;flex-direction:column;gap:8px;">
+            <a href="signup.html"
+                style="display:block;padding:12px;border:2px solid var(--mint-dark);border-radius:var(--radius-full);background:var(--mint);color:var(--text-primary);font-weight:700;font-size:0.85rem;text-align:center;">🌿
+                Đăng ký miễn phí</a>
+            <a href="login.html"
+                style="display:block;padding:11px;border:2px solid var(--kraft-light);border-radius:var(--radius-full);color:var(--text-secondary);font-weight:600;font-size:0.82rem;text-align:center;">Đăng
+                nhập</a>
+        </div>
+    </div>
+
+    <!-- NAVBAR -->
+    <nav class="navbar" id="navbar">
+        <a href="index.html" class="nav-logo">
+            <div class="logo-icon">🌿</div>
+            <div class="logo-text">Peace<span>Flow</span></div>
+        </a>
+        <div class="nav-links">
+            <a href="#features" class="nav-link">Tính năng</a>
+            <a href="#how-it-works" class="nav-link">Cách hoạt động</a>
+            <a href="experts.html" class="nav-link">Chuyên gia</a>
+            <a href="community.html" class="nav-link">Cộng đồng</a>
+            <a href="emergency.html" class="nav-link" style="color:var(--coral);">🆘 Khẩn cấp</a>
+        </div>
+        <div class="nav-cta">
+            <a href="login.html"><button class="btn-nav-outline">Đăng nhập</button></a>
+            <a href="signup.html"><button class="btn-nav-primary">🌿 Đăng ký miễn phí</button></a>
+        </div>
+        <button class="mobile-nav-btn" onclick="openMobileNav()">☰</button>
+    </nav>
+
+    <!-- HERO -->
+    <section class="hero" id="hero">
+        <div class="hero-bg-deco">
+            <div class="hbd-circle hbd-1"></div>
+            <div class="hbd-circle hbd-2"></div>
+            <div class="hbd-circle hbd-3"></div>
+        </div>
+        <div class="hero-content">
+            <div class="hero-badge">🌟 Nền tảng sức khỏe tâm thần #1 Việt Nam</div>
+            <h1 class="hero-title">
+                Đồng hành<br>
+                <span class="ht-accent">vượt qua stress</span><br>
+                mỗi ngày 🌿
+            </h1>
+            <p class="hero-subtitle">Theo dõi tâm trạng, hoàn thành nhiệm vụ chữa lành và kết nối với chuyên gia tâm lý
+                — tất cả trong một nền tảng ấm áp, thủ công.</p>
+            <div class="hero-message">
+                <div class="hero-message-text" id="heroMessage">"Ai cũng gặp stress ở một mức độ nào đó. Bạn không hề
+                    đơn độc. 💚"</div>
+            </div>
+            <div class="hero-actions">
+                <a href="signup.html" class="btn-hero-primary">🚀 Đăng ký miễn phí</a>
+                <a href="#how-it-works" class="btn-hero-outline">📖 Tìm hiểu thêm</a>
+            </div>
+            <div class="hero-stats">
+                <div class="hs-item">
+                    <div class="hs-num">10K+</div>
+                    <div class="hs-label">Người dùng</div>
+                </div>
+                <div class="hs-item">
+                    <div class="hs-num">30+</div>
+                    <div class="hs-label">Chuyên gia</div>
+                </div>
+                <div class="hs-item">
+                    <div class="hs-num">95%</div>
+                    <div class="hs-label">Hài lòng</div>
+                </div>
+                <div class="hs-item">
+                    <div class="hs-num">4.9⭐</div>
+                    <div class="hs-label">Đánh giá</div>
+                </div>
+            </div>
+        </div>
+        <div class="hero-visual">
+            <div class="float-badge fb-1">🔥 7 ngày streak!</div>
+            <div class="float-badge fb-2">🏅 Huy hiệu mới: Thiền Sư</div>
+            <div class="float-badge fb-3">+25 XP ⭐</div>
+            <div class="hero-phone-mockup">
+                <div class="hpm-bar"></div>
+                <div class="hpm-mood">
+                    <div class="hpm-mood-emoji">😊</div>
+                    <div class="hpm-mood-text">Tâm trạng hôm nay: Tốt</div>
+                </div>
+                <div class="hpm-task">
+                    <div class="hpm-task-icon">🧘</div>
+                    <div class="hpm-task-text">Thiền 5 phút</div>
+                    <div class="hpm-task-xp">+25 XP</div>
+                </div>
+                <div class="hpm-task">
+                    <div class="hpm-task-icon">💨</div>
+                    <div class="hpm-task-text">Thở vuông 5 vòng</div>
+                    <div class="hpm-task-xp">+20 XP</div>
+                </div>
+                <div class="hpm-xp">
+                    <div class="hpm-xp-text">⭐ 295 XP · Level 2</div>
+                    <div class="hpm-xp-bar">
+                        <div class="hpm-xp-fill"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- HOW IT WORKS -->
+    <section class="how-section" id="how-it-works">
+        <div style="text-align:center;">
+            <div class="section-badge">🗺️ Cách hoạt động</div>
+            <h2 class="section-title">Hành trình tự chữa lành<br>chỉ trong 4 bước 🌱</h2>
+            <p class="section-subtitle" style="margin:0 auto;">Đơn giản, không áp lực — mỗi bước nhỏ đều có ý nghĩa.</p>
+        </div>
+        <div class="steps-grid">
+            <div class="step-card">
+                <div class="step-num">1</div>
+                <span class="step-icon">📝</span>
+                <div class="step-title">Đăng ký & thiết lập</div>
+                <div class="step-desc">Tạo hồ sơ trong 2 phút. Chọn avatar Paper Flow dễ thương và chia sẻ điều bạn cần
+                    hỗ trợ.</div>
+            </div>
+            <div class="step-card">
+                <div class="step-num">2</div>
+                <span class="step-icon">💭</span>
+                <div class="step-title">Check-in tâm trạng</div>
+                <div class="step-desc">Mỗi ngày check-in 30 giây. AI phân tích và hiểu bạn đang cảm thấy thế nào.</div>
+            </div>
+            <div class="step-card">
+                <div class="step-num">3</div>
+                <span class="step-icon">🎮</span>
+                <div class="step-title">Hoàn thành nhiệm vụ</div>
+                <div class="step-desc">AI gợi ý nhiệm vụ phù hợp. Thiền, thở, viết nhật ký — mỗi bước đều nhận XP.</div>
+            </div>
+            <div class="step-card">
+                <div class="step-num">4</div>
+                <span class="step-icon">🌱</span>
+                <div class="step-title">Phát triển mỗi ngày</div>
+                <div class="step-desc">Theo dõi tiến trình, nhận huy hiệu và kết nối chuyên gia khi cần hỗ trợ sâu hơn.
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FEATURES -->
+    <section id="features" style="background:var(--cream);padding:80px 5%;">
+        <div style="text-align:center;margin-bottom:48px;">
+            <div class="section-badge">✨ Tính năng</div>
+            <h2 class="section-title">Mọi thứ bạn cần<br>để chăm sóc tâm hồn 💚</h2>
+        </div>
+        <div class="features-grid">
+            <div class="feature-card" onclick="location.href='mood-checkin.html'">
+                <div class="fc-icon-wrap" style="background:var(--mint-light);border-color:var(--mint);">💭</div>
+                <div class="fc-title">Check-in tâm trạng AI</div>
+                <div class="fc-desc">PeaceCat AI lắng nghe và phân tích tâm trạng của bạn qua emoji, slider và trò
+                    chuyện
+                    tự nhiên. Phát hiện dấu hiệu cảnh báo sớm.</div>
+                <a href="mood-checkin.html" class="fc-link">Thử ngay →</a>
+            </div>
+            <div class="feature-card" onclick="location.href='tasks.html'">
+                <div class="fc-icon-wrap" style="background:var(--peach-light);border-color:var(--peach);">🎮</div>
+                <div class="fc-title">Nhiệm vụ game hóa</div>
+                <div class="fc-desc">80+ nhiệm vụ từ dễ đến khó. Thiền, thở, nhật ký, kết nối xã hội — mỗi hoàn thành
+                    nhận XP và huy hiệu.</div>
+                <a href="tasks.html" class="fc-link">Xem nhiệm vụ →</a>
+            </div>
+            <div class="feature-card" onclick="location.href='experts.html'">
+                <div class="fc-icon-wrap" style="background:var(--lavender-light);border-color:var(--lavender);">🩺
+                </div>
+                <div class="fc-title">Kết nối chuyên gia</div>
+                <div class="fc-desc">30+ chuyên gia tâm lý được chứng nhận. Chat, gọi thoại hoặc video call — đặt lịch
+                    trong 2 phút.</div>
+                <a href="experts.html" class="fc-link">Tìm chuyên gia →</a>
+            </div>
+            <div class="feature-card" onclick="location.href='mood-assessment.html'">
+                <div class="fc-icon-wrap" style="background:var(--sky-light);border-color:var(--sky);">📊</div>
+                <div class="fc-title">Bài kiểm tra chuẩn hóa</div>
+                <div class="fc-desc">DASS-21, GAD-7, PHQ-9, PSQI — các thang đo tâm lý lâm sàng được trình bày thân
+                    thiện, không gây áp lực.</div>
+                <a href="mood-assessment.html" class="fc-link">Làm bài kiểm tra →</a>
+            </div>
+            <div class="feature-card" onclick="location.href='journal.html'">
+                <div class="fc-icon-wrap" style="background:var(--gold-light);border-color:var(--gold);">📝</div>
+                <div class="fc-title">Nhật ký cảm xúc</div>
+                <div class="fc-desc">Không gian riêng tư, mã hóa AES-256. AI phân tích cảm xúc và đưa ra gợi ý nhẹ nhàng
+                    sau mỗi bài viết.</div>
+                <a href="journal.html" class="fc-link">Viết nhật ký →</a>
+            </div>
+            <div class="feature-card" onclick="location.href='emergency.html'">
+                <div class="fc-icon-wrap" style="background:var(--coral-light);border-color:var(--coral);">🆘</div>
+                <div class="fc-title">Hỗ trợ khẩn cấp 24/7</div>
+                <div class="fc-desc">Phát hiện từ khóa nguy hiểm tự động. Bài tập ổn định tức thì, hotline miễn phí và
+                    kết nối chuyên gia ngay lập tức.</div>
+                <a href="emergency.html" class="fc-link" style="color:var(--coral);">Tìm hiểu →</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- MOOD DEMO -->
+    <section class="mood-demo-section" id="mood-demo">
+        <div style="text-align:center;margin-bottom:0;">
+            <div class="section-badge">💭 Demo tương tác</div>
+            <h2 class="section-title">Thử check-in tâm trạng<br>ngay bây giờ 🐱</h2>
+        </div>
+        <div class="mood-demo-layout">
+            <div class="mood-demo-card">
+                <div class="mdc-title">🐱 PeaceCat hỏi: Hôm nay bạn thế nào?</div>
+                <div class="mood-emoji-row" id="demoMoodRow">
+                    <button class="demo-mood-btn" onclick="selectDemoMood(this,'😊')">😊</button>
+                    <button class="demo-mood-btn" onclick="selectDemoMood(this,'😌')">😌</button>
+                    <button class="demo-mood-btn" onclick="selectDemoMood(this,'😐')">😐</button>
+                    <button class="demo-mood-btn" onclick="selectDemoMood(this,'😟')">😟</button>
+                    <button class="demo-mood-btn" onclick="selectDemoMood(this,'😰')">😰</button>
+                    <button class="demo-mood-btn" onclick="selectDemoMood(this,'😢')">😢</button>
+                </div>
+                <div class="demo-slider-wrap">
+                    <div class="demo-slider-label"><span>😔 Rất thấp</span><span>😊 Rất cao</span></div>
+                    <input type="range" class="demo-slider" min="1" max="10" value="6" id="demoSlider"
+                        oninput="updateDemoSlider(this)">
+                    <div style="text-align:center;font-size:0.78rem;font-weight:700;color:var(--mint-dark);margin-top:4px;"
+                        id="demoSliderVal">Mức độ: 6/10</div>
+                </div>
+                <div style="font-size:0.72rem;font-weight:700;color:var(--text-secondary);margin-bottom:6px;">🏷️ Nguyên
+                    nhân (tùy chọn):</div>
+                <div class="demo-tags">
+                    <span class="demo-tag" onclick="toggleDemoTag(this)">💼 Công việc</span>
+                    <span class="demo-tag" onclick="toggleDemoTag(this)">👨‍👩‍👧 Gia đình</span>
+                    <span class="demo-tag" onclick="toggleDemoTag(this)">💰 Tài chính</span>
+                    <span class="demo-tag" onclick="toggleDemoTag(this)">😴 Mất ngủ</span>
+                    <span class="demo-tag" onclick="toggleDemoTag(this)">💔 Tình cảm</span>
+                    <span class="demo-tag" onclick="toggleDemoTag(this)">❓ Không rõ</span>
+                </div>
+                <button class="demo-save-btn" onclick="saveDemoMood()">✅ Lưu tâm trạng & nhận gợi ý</button>
+            </div>
+            <div class="mood-demo-info">
+                <div class="mdi-item">
+                    <div class="mdi-icon">🤖</div>
+                    <div>
+                        <div class="mdi-title">AI phân tích realtime</div>
+                        <div class="mdi-desc">PeaceCat phân tích tâm trạng và gợi ý nhiệm vụ phù hợp nhất với trạng thái
+                            hiện tại của bạn.</div>
+                    </div>
+                </div>
+                <div class="mdi-item">
+                    <div class="mdi-icon">📈</div>
+                    <div>
+                        <div class="mdi-title">Theo dõi tiến triển</div>
+                        <div class="mdi-desc">Tâm trạng của bạn được lưu lại thành biểu đồ để nhìn lại hành trình tự
+                            chữa
+                            lành.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== FOOTER ===== -->
+    <footer>
+        <div class="footer-grid">
+            <div class="footer-brand">
+                <div class="fb-logo">
+                    <div class="fb-logo-icon">🌿</div>
+                    <div class="fb-logo-text">Peace<span>Flow</span></div>
+                </div>
+                <p>Nền tảng hỗ trợ sức khỏe tinh thần, giúp bạn vượt qua căng thẳng, tìm lại sự bình yên mỗi ngày bằng
+                    các nhiệm vụ game hóa thú vị.</p>
+                <div class="footer-hotline">
+                    <div class="fh-num">📞 1800-599-920</div>
+                    <div class="fh-label">Đường dây nóng hỗ trợ tâm lý 24/7</div>
+                </div>
+            </div>
+            <div>
+                <div class="footer-col-title">Về PeaceFlow</div>
+                <a href="#" class="footer-link">Câu chuyện của chúng tôi</a>
+                <a href="#" class="footer-link">Đội ngũ chuyên gia</a>
+                <a href="#" class="footer-link">Nghiên cứu khoa học</a>
+                <a href="#" class="footer-link">Báo chí nói về chúng tôi</a>
+            </div>
+            <div>
+                <div class="footer-col-title">Tính năng chính</div>
+                <a href="tasks.html" class="footer-link">Nhiệm vụ chữa lành</a>
+                <a href="mood-checkin.html" class="footer-link">Kiểm tra tâm trạng</a>
+                <a href="community.html" class="footer-link">Cộng đồng PeaceFlow</a>
+                <a href="experts.html" class="footer-link">Kết nối chuyên gia</a>
+            </div>
+            <div>
+                <div class="footer-col-title">Hỗ trợ</div>
+                <a href="emergency.html" class="footer-link">Trung tâm khẩn cấp</a>
+                <a href="#" class="footer-link">Câu hỏi thường gặp</a>
+                <a href="#" class="footer-link">Chính sách bảo mật</a>
+                <a href="#" class="footer-link">Điều khoản sử dụng</a>
+            </div>
+        </div>
+        <div
+            style="border-top:1px solid rgba(255,255,255,0.1);padding-top:24px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;">
+            <div style="font-size:0.75rem;color:rgba(255,255,255,0.5);">© 2026 PeaceFlow. Mọi quyền được bảo lưu.</div>
+            <div style="font-size:0.85rem;color:rgba(255,255,255,0.5);display:flex;gap:16px;">
+                <span style="cursor:pointer;" title="Facebook">FB</span>
+                <span style="cursor:pointer;" title="Instagram">IG</span>
+                <span style="cursor:pointer;" title="TikTok">TT</span>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // --- 1. SLOGAN RANDOMIZER ---
+        const SLOGANS = [
+            "Ai cũng gặp stress ở một mức độ nào đó. Bạn không hề đơn độc.",
+            "Dù cảm xúc có nặng nề đến đâu, vẫn luôn có cơ hội phục hồi.",
+            "Rồi chuyện này sẽ qua, hãy bình tâm.",
+            "AI chỉ hỗ trợ, không thay thế sự kết nối giữa người với người.",
+            "Hạnh phúc do chính bạn tạo ra, hãy sống có trách nhiệm với đời mình.",
+            "Sự hồi phục cần sự kiên nhẫn, kiên trì và từ từ.",
+            "Đừng đè nén, hãy giải phóng cảm xúc qua hoạt động tích cực.",
+            "Mọi cảm xúc mãnh liệt đều là trải nghiệm quý giá.",
+            "Bạn không đơn độc, hãy mở lòng để thấy nhẹ nhõm hơn.",
+            "Sức khỏe hài hòa giữa thể chất và tinh thần là chìa khóa của hạnh phúc.",
+            "Chỉ có bạn mới là người thực sự giúp được chính mình.",
+            "Góc tối trong ta cần được hiểu rõ, thay vì chôn giấu.",
+            "Hầu hết những điều bạn lo sợ sẽ không bao giờ xảy ra.",
+            "Hãy tử tế với bản thân - bạn là món quà của thế giới này.",
+            "Bảo vệ sự chú ý, ưu tiên Sức khỏe, Công việc và Gia đình.",
+            "Tình yêu gia đình là một phần cuộc đời, đừng để nó chi phối tất cả.",
+            "Hãy tha thứ và yêu bản thân mình nhiều hơn.",
+            "Nghiện ngập là dấu hiệu cơ thể cần được khỏa lấp, chữa lành.",
+            "Sống với cảm xúc thực là quyền tự do lớn nhất của bạn.",
+            "Đổ mồ hôi bằng vận động là cách tuyệt vời để vượt qua stress.",
+            "Khoái lạc là hệ quả của hạnh phúc, không phải nguyên nhân.",
+            "Sự không hoàn hảo chính là nét hoàn hảo nhất của cuộc sống.",
+            "Giảm kỳ vọng là một cách thông minh để giảm stress.",
+            "Mọi thứ không tệ như ta nghĩ, con người có sức bật đáng kinh ngạc.",
+            "Liệu việc này có đáng để căng thẳng không? Nếu không, bỏ qua.",
+            "Stress ở mức vừa phải giúp bạn tập trung và mạnh mẽ hơn.",
+            "Vượt qua stress sẽ tạo ra 'kháng sinh tự nhiên' cho tinh thần bạn."
+        ];
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const heroMsg = document.getElementById('heroMessage');
+            if (heroMsg) {
+                const randomQuote = SLOGANS[Math.floor(Math.random() * SLOGANS.length)];
+                heroMsg.innerText = '"' + randomQuote + '"';
+            }
+        });
+
+        // --- 2. MOOD DEMO SCRIPT ---
+        let selectedMood = null;
+        let selectedScore = 6;
+        let selectedTags = new Set();
+
+        function selectDemoMood(btn, moodStr) {
+            document.querySelectorAll('.demo-mood-btn').forEach(b => b.classList.remove('selected'));
+            btn.classList.add('selected');
+
+            // For CSS glow effect
+            btn.style.boxShadow = "0 0 10px rgba(0,0,0,0.2)";
+            setTimeout(() => btn.style.boxShadow = "", 500);
+
+            selectedMood = moodStr;
+        }
+
+        function updateDemoSlider(el) {
+            selectedScore = parseInt(el.value);
+            document.getElementById('demoSliderVal').innerText = `Mức độ: ${selectedScore}/10`;
+
+            // Adjust emoji size dynamically based on intensity
+            const scale = 1 + (selectedScore / 20);
+            const activeBtn = document.querySelector('.demo-mood-btn.selected');
+            if (activeBtn) {
+                activeBtn.style.transform = `scale(${scale})`;
+            }
+        }
+
+        function toggleDemoTag(el) {
+            el.classList.toggle('active');
+            let tagName = el.innerText.replace(/[^\p{L}\p{M}\s0-9]/gu, '').trim(); // Remove emoji
+            if (tagName === "Không rõ") tagName = "Khong_ro";
+
+            // Simple visual active state (assume active class has CSS)
+            if (el.classList.contains('active')) {
+                el.style.background = 'var(--mint-dark)';
+                el.style.color = 'white';
+                selectedTags.add(tagName);
+            } else {
+                el.style.background = '';
+                el.style.color = '';
+                selectedTags.delete(tagName);
+            }
+        }
+
+        function saveDemoMood() {
+            if (!selectedMood) {
+                alert("Vui lòng chọn một biểu tượng cảm xúc để cho PeaceCat biết bạn đang cảm thấy thế nào nhé! 🐱");
+                return;
+            }
+
+            const entry = {
+                date: new Date().toISOString(),
+                mood: selectedMood,
+                score: selectedScore,
+                tags: Array.from(selectedTags),
+                createdAt: Date.now()
+            };
+
+            let logs = [];
+            try {
+                logs = JSON.parse(localStorage.getItem('PeaceFlow_logs') || "[]");
+            } catch (e) { }
+
+            logs.push(entry);
+            localStorage.setItem('PeaceFlow_logs', JSON.stringify(logs));
+
+            // Feedback to user
+            const btn = document.querySelector('.demo-save-btn');
+            btn.innerHTML = "✅ Đã lưu! Đang chuyển đến vườn tâm hồn...";
+            btn.style.background = "var(--mint-dark)";
+            btn.style.color = "white";
+
+            setTimeout(() => {
+                window.location.href = 'signup.html';
+            }, 1000);
+        }
+
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../public/js/supabase-config.js"></script>
+
+    <script src="../public/js/app.js"></script>
+</body>
+
+</html>

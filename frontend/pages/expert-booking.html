@@ -1,0 +1,1983 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PeaceFlow — Đặt Lịch Tư Vấn Chuyên Gia</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Patrick+Hand&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --cream: #FFF8F0;
+            --warm-white: #FFFDF7;
+            --kraft: #D4A574;
+            --kraft-light: #E8CBA7;
+            --kraft-dark: #B8895A;
+            --mint: #A8D5BA;
+            --mint-light: #C5E8D2;
+            --mint-dark: #7BBF95;
+            --peach: #FFCBA4;
+            --peach-light: #FFE0C4;
+            --peach-dark: #E8A876;
+            --sky: #A8D8EA;
+            --sky-light: #C5E8F5;
+            --lavender: #C3AED6;
+            --lavender-light: #DDD1EB;
+            --coral: #FF8B8B;
+            --coral-light: #FFB3B3;
+            --gold: #FFD93D;
+            --gold-light: #FFF3B0;
+            --green: #4CAF50;
+            --green-light: #E8F5E9;
+            --text-primary: #4A3728;
+            --text-secondary: #7A6555;
+            --text-light: #A89585;
+            --shadow-paper: 3px 3px 0px rgba(74, 55, 40, 0.1);
+            --shadow-paper-hover: 5px 5px 0px rgba(74, 55, 40, 0.15);
+            --border-radius: 16px;
+            --border-radius-sm: 10px;
+            --transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            --sidebar-width: 240px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background: var(--cream);
+            color: var(--text-primary);
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        .paper-card {
+            background: var(--warm-white);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-paper);
+            border: 2px solid var(--kraft-light);
+            transition: var(--transition);
+        }
+
+        /* ===== SIDEBAR ===== */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            width: var(--sidebar-width);
+            background: var(--warm-white);
+            border-right: 2px solid var(--kraft-light);
+            z-index: 200;
+            display: flex;
+            flex-direction: column;
+            padding: 20px 0;
+        }
+
+        .sidebar-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 0 20px 20px;
+            border-bottom: 2px dashed var(--kraft-light);
+            margin-bottom: 16px;
+            text-decoration: none;
+        }
+
+        .sidebar-logo .logo-icon {
+            width: 38px;
+            height: 38px;
+            background: var(--mint);
+            border-radius: 10px;
+            border: 2px solid var(--mint-dark);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            box-shadow: 2px 2px 0px var(--mint-dark);
+        }
+
+        .sidebar-logo .logo-text {
+            font-size: 1.2rem;
+            font-weight: 800;
+            color: var(--text-primary);
+        }
+
+        .sidebar-logo .logo-text span {
+            color: var(--mint-dark);
+        }
+
+        .sidebar-nav {
+            flex: 1;
+            padding: 0 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            overflow-y: auto;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            border-radius: var(--border-radius-sm);
+            text-decoration: none;
+            color: var(--text-secondary);
+            font-weight: 600;
+            font-size: 0.88rem;
+            transition: var(--transition);
+        }
+
+        .nav-item:hover {
+            background: var(--mint-light);
+            color: var(--text-primary);
+        }
+
+        .nav-item.active {
+            background: var(--mint-light);
+            color: var(--text-primary);
+            border: 1.5px solid var(--mint);
+        }
+
+        .nav-item .ni {
+            font-size: 1.1rem;
+            width: 22px;
+            text-align: center;
+        }
+
+        .nav-section-label {
+            font-size: 0.68rem;
+            font-weight: 700;
+            color: var(--text-light);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            padding: 10px 12px 4px;
+        }
+
+        .sidebar-bottom {
+            padding: 12px;
+            border-top: 2px dashed var(--kraft-light);
+            margin-top: auto;
+        }
+
+        .user-card-mini {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            background: var(--cream);
+            border-radius: var(--border-radius-sm);
+            border: 1.5px solid var(--kraft-light);
+        }
+
+        .user-avatar-mini {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--lavender-light);
+            border: 2px solid var(--kraft);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+        }
+
+        .user-info-mini .user-name {
+            font-size: 0.85rem;
+            font-weight: 700;
+        }
+
+        .user-info-mini .user-level {
+            font-size: 0.72rem;
+            color: var(--text-light);
+        }
+
+        .emergency-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 12px;
+            background: rgba(255, 139, 139, 0.1);
+            border: 1.5px solid var(--coral);
+            border-radius: var(--border-radius-sm);
+            color: var(--coral);
+            font-size: 0.78rem;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 8px;
+            transition: var(--transition);
+            text-decoration: none;
+        }
+
+        .emergency-btn:hover {
+            background: rgba(255, 139, 139, 0.2);
+        }
+
+        /* ===== MOBILE ===== */
+        .mobile-topbar {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background: var(--warm-white);
+            border-bottom: 2px solid var(--kraft-light);
+            z-index: 300;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 16px;
+        }
+
+        .mobile-menu-btn {
+            background: none;
+            border: none;
+            font-size: 1.4rem;
+            cursor: pointer;
+        }
+
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(74, 55, 40, 0.3);
+            z-index: 150;
+        }
+
+        /* ===== MAIN ===== */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            padding: 28px;
+            min-height: 100vh;
+        }
+
+        .btn-primary {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 10px 20px;
+            border: 2px solid var(--mint-dark);
+            border-radius: 50px;
+            background: var(--mint);
+            color: var(--text-primary);
+            font-family: 'Nunito', sans-serif;
+            font-size: 0.88rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: var(--transition);
+            box-shadow: 2px 2px 0px var(--mint-dark);
+            text-decoration: none;
+        }
+
+        .btn-primary:hover {
+            background: var(--mint-dark);
+            color: white;
+            transform: translate(1px, 1px);
+            box-shadow: 1px 1px 0px var(--mint-dark);
+        }
+
+        .btn-outline {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 9px 18px;
+            border: 2px solid var(--kraft-light);
+            border-radius: 50px;
+            background: transparent;
+            color: var(--text-secondary);
+            font-family: 'Nunito', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .btn-outline:hover {
+            background: var(--kraft-light);
+            color: var(--text-primary);
+        }
+
+        .btn-large {
+            padding: 14px 32px;
+            font-size: 1rem;
+        }
+
+        /* ===== BREADCRUMB ===== */
+        .breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 20px;
+            font-size: 0.8rem;
+            color: var(--text-light);
+        }
+
+        .breadcrumb a {
+            color: var(--text-light);
+            text-decoration: none;
+        }
+
+        .breadcrumb a:hover {
+            color: var(--mint-dark);
+        }
+
+        .breadcrumb span {
+            color: var(--text-secondary);
+            font-weight: 600;
+        }
+
+        /* ===== LAYOUT ===== */
+        .booking-layout {
+            display: grid;
+            grid-template-columns: 1fr 320px;
+            gap: 24px;
+            max-width: 1100px;
+        }
+
+        /* ===== PROGRESS STEPPER ===== */
+        .stepper {
+            display: flex;
+            align-items: center;
+            margin-bottom: 28px;
+            gap: 0;
+        }
+
+        .step-item {
+            display: flex;
+            align-items: center;
+            flex: 1;
+        }
+
+        .step-circle {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: 2px solid var(--kraft-light);
+            background: var(--cream);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.85rem;
+            font-weight: 800;
+            color: var(--text-light);
+            flex-shrink: 0;
+            transition: var(--transition);
+            position: relative;
+            z-index: 1;
+        }
+
+        .step-circle.active {
+            background: var(--mint);
+            border-color: var(--mint-dark);
+            color: var(--text-primary);
+            box-shadow: 2px 2px 0px var(--mint-dark);
+        }
+
+        .step-circle.done {
+            background: var(--mint-dark);
+            border-color: var(--mint-dark);
+            color: white;
+        }
+
+        .step-label {
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: var(--text-light);
+            margin-left: 6px;
+            white-space: nowrap;
+        }
+
+        .step-label.active {
+            color: var(--text-primary);
+            font-weight: 700;
+        }
+
+        .step-label.done {
+            color: var(--mint-dark);
+        }
+
+        .step-line {
+            flex: 1;
+            height: 2px;
+            background: var(--kraft-light);
+            margin: 0 4px;
+            transition: var(--transition);
+        }
+
+        .step-line.done {
+            background: var(--mint-dark);
+        }
+
+        /* ===== EXPERT MINI CARD ===== */
+        .expert-mini-card {
+            padding: 16px 20px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            background: linear-gradient(135deg, var(--lavender-light), var(--mint-light));
+            border-color: var(--lavender);
+        }
+
+        .emc-avatar {
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            border: 3px solid white;
+            background: var(--lavender-light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            flex-shrink: 0;
+            box-shadow: 2px 2px 0px var(--kraft-light);
+        }
+
+        .emc-info {
+            flex: 1;
+        }
+
+        .emc-name {
+            font-size: 1rem;
+            font-weight: 800;
+            margin-bottom: 2px;
+        }
+
+        .emc-degree {
+            font-size: 0.72rem;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+        }
+
+        .emc-meta {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .emc-meta-item {
+            font-size: 0.72rem;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 3px;
+        }
+
+        .emc-status {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: var(--green);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--green);
+        }
+
+        .emc-change {
+            font-size: 0.75rem;
+            color: var(--mint-dark);
+            cursor: pointer;
+            font-weight: 600;
+            text-decoration: underline;
+        }
+
+        /* ===== STEP PANELS ===== */
+        .step-panel {
+            display: none;
+            animation: fade-up 0.4s ease;
+        }
+
+        .step-panel.active {
+            display: block;
+        }
+
+        @keyframes fade-up {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .panel-title {
+            font-size: 1rem;
+            font-weight: 800;
+            margin-bottom: 4px;
+        }
+
+        .panel-subtitle {
+            font-size: 0.82rem;
+            color: var(--text-secondary);
+            margin-bottom: 18px;
+        }
+
+        /* ===== SESSION TYPE CARDS ===== */
+        .session-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .session-card {
+            padding: 16px;
+            border: 2px solid var(--kraft-light);
+            border-radius: var(--border-radius-sm);
+            cursor: pointer;
+            transition: var(--transition);
+            background: var(--cream);
+            position: relative;
+        }
+
+        .session-card:hover {
+            border-color: var(--mint);
+            background: var(--mint-light);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-paper-hover);
+        }
+
+        .session-card.selected {
+            border-color: var(--mint-dark);
+            background: var(--mint-light);
+            box-shadow: 3px 3px 0px var(--mint-dark);
+        }
+
+        .session-card.selected::after {
+            content: '✓';
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 22px;
+            height: 22px;
+            background: var(--mint-dark);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 800;
+        }
+
+        .sc-icon {
+            font-size: 1.8rem;
+            margin-bottom: 8px;
+        }
+
+        .sc-name {
+            font-size: 0.9rem;
+            font-weight: 800;
+            margin-bottom: 3px;
+        }
+
+        .sc-desc {
+            font-size: 0.72rem;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+            line-height: 1.4;
+        }
+
+        .sc-price {
+            font-size: 1rem;
+            font-weight: 800;
+            color: var(--text-primary);
+        }
+
+        .sc-duration {
+            font-size: 0.68rem;
+            color: var(--text-light);
+        }
+
+        .sc-features {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            margin-top: 8px;
+        }
+
+        .sc-feature {
+            font-size: 0.68rem;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .sc-badge {
+            position: absolute;
+            top: -8px;
+            left: 12px;
+            background: var(--gold);
+            color: #7a5a00;
+            font-size: 0.62rem;
+            font-weight: 800;
+            padding: 2px 8px;
+            border-radius: 50px;
+            border: 1.5px solid #c8a000;
+        }
+
+        /* ===== CALENDAR ===== */
+        .calendar-card {
+            padding: 20px;
+            margin-bottom: 16px;
+        }
+
+        .cal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 14px;
+        }
+
+        .cal-nav-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: 2px solid var(--kraft-light);
+            background: var(--cream);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+            transition: var(--transition);
+        }
+
+        .cal-nav-btn:hover {
+            background: var(--mint-light);
+            border-color: var(--mint);
+        }
+
+        .cal-month {
+            font-size: 0.95rem;
+            font-weight: 800;
+        }
+
+        .cal-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 4px;
+        }
+
+        .cal-day-header {
+            font-size: 0.65rem;
+            font-weight: 700;
+            color: var(--text-light);
+            text-align: center;
+            padding: 4px 0;
+        }
+
+        .cal-day {
+            width: 100%;
+            aspect-ratio: 1;
+            border-radius: var(--border-radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.78rem;
+            cursor: pointer;
+            transition: var(--transition);
+            border: 1.5px solid transparent;
+            font-weight: 600;
+        }
+
+        .cal-day:hover:not(.disabled):not(.empty) {
+            background: var(--mint-light);
+            border-color: var(--mint);
+        }
+
+        .cal-day.today {
+            border-color: var(--mint);
+            font-weight: 800;
+        }
+
+        .cal-day.selected {
+            background: var(--mint-dark);
+            color: white;
+            border-color: var(--mint-dark);
+            box-shadow: 2px 2px 0px rgba(74, 55, 40, 0.15);
+        }
+
+        .cal-day.disabled {
+            color: var(--text-light);
+            cursor: default;
+            opacity: 0.5;
+        }
+
+        .cal-day.empty {
+            cursor: default;
+        }
+
+        .cal-day.has-slots::after {
+            content: '';
+            display: block;
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            background: var(--mint-dark);
+            position: absolute;
+            bottom: 3px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .cal-day {
+            position: relative;
+        }
+
+        /* ===== TIME SLOTS ===== */
+        .time-section {
+            padding: 18px;
+            margin-bottom: 16px;
+        }
+
+        .ts-title {
+            font-size: 0.88rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .time-period {
+            margin-bottom: 12px;
+        }
+
+        .tp-label {
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: var(--text-light);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 6px;
+        }
+
+        .time-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 6px;
+        }
+
+        .time-slot {
+            padding: 8px 6px;
+            text-align: center;
+            border: 1.5px solid var(--kraft-light);
+            border-radius: var(--border-radius-sm);
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            background: var(--cream);
+        }
+
+        .time-slot:hover:not(.unavailable) {
+            border-color: var(--mint);
+            background: var(--mint-light);
+        }
+
+        .time-slot.selected {
+            background: var(--mint-dark);
+            color: white;
+            border-color: var(--mint-dark);
+        }
+
+        .time-slot.unavailable {
+            color: var(--text-light);
+            cursor: default;
+            text-decoration: line-through;
+            opacity: 0.5;
+        }
+
+        /* ===== PROBLEM FORM ===== */
+        .problem-card {
+            padding: 20px;
+            margin-bottom: 16px;
+        }
+
+        .pc-title {
+            font-size: 0.88rem;
+            font-weight: 700;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .pc-subtitle {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+        }
+
+        .topic-chips {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-bottom: 12px;
+        }
+
+        .topic-chip {
+            padding: 5px 12px;
+            border: 1.5px solid var(--kraft-light);
+            border-radius: 50px;
+            font-size: 0.72rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            background: var(--cream);
+        }
+
+        .topic-chip:hover {
+            background: var(--mint-light);
+            border-color: var(--mint);
+        }
+
+        .topic-chip.selected {
+            background: var(--mint-light);
+            border-color: var(--mint-dark);
+            color: var(--text-primary);
+        }
+
+        .problem-textarea {
+            width: 100%;
+            padding: 12px 14px;
+            border: 2px solid var(--kraft-light);
+            border-radius: var(--border-radius-sm);
+            background: var(--cream);
+            font-family: 'Patrick Hand', cursive;
+            font-size: 0.9rem;
+            color: var(--text-primary);
+            outline: none;
+            resize: none;
+            transition: var(--transition);
+            line-height: 1.7;
+            min-height: 120px;
+        }
+
+        .problem-textarea:focus {
+            border-color: var(--mint);
+            background: var(--warm-white);
+        }
+
+        .char-count {
+            font-size: 0.68rem;
+            color: var(--text-light);
+            text-align: right;
+            margin-top: 4px;
+        }
+
+        /* ===== DATA SHARING ===== */
+        .data-share-card {
+            padding: 18px;
+            margin-bottom: 16px;
+            background: linear-gradient(135deg, var(--sky-light), var(--mint-light));
+            border-color: var(--sky);
+        }
+
+        .ds-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .ds-title {
+            font-size: 0.88rem;
+            font-weight: 700;
+        }
+
+        .ds-subtitle {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+        }
+
+        .ds-toggles {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .ds-toggle-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 12px;
+            background: rgba(255, 255, 255, 0.6);
+            border-radius: var(--border-radius-sm);
+            border: 1.5px solid rgba(255, 255, 255, 0.8);
+        }
+
+        .dti-left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .dti-icon {
+            font-size: 1rem;
+        }
+
+        .dti-text {
+            font-size: 0.78rem;
+            font-weight: 600;
+        }
+
+        .dti-sub {
+            font-size: 0.65rem;
+            color: var(--text-secondary);
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 40px;
+            height: 22px;
+            flex-shrink: 0;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            inset: 0;
+            background: var(--kraft-light);
+            border-radius: 50px;
+            transition: var(--transition);
+        }
+
+        .toggle-slider:before {
+            content: '';
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            left: 3px;
+            bottom: 3px;
+            background: white;
+            border-radius: 50%;
+            transition: var(--transition);
+        }
+
+        input:checked+.toggle-slider {
+            background: var(--mint-dark);
+        }
+
+        input:checked+.toggle-slider:before {
+            transform: translateX(18px);
+        }
+
+        /* ===== PAYMENT ===== */
+        .payment-card {
+            padding: 20px;
+            margin-bottom: 16px;
+        }
+
+        .pay-title {
+            font-size: 0.88rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .payment-methods {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 14px;
+        }
+
+        .pay-method {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 14px;
+            border: 2px solid var(--kraft-light);
+            border-radius: var(--border-radius-sm);
+            cursor: pointer;
+            transition: var(--transition);
+            background: var(--cream);
+        }
+
+        .pay-method:hover {
+            border-color: var(--mint);
+            background: var(--mint-light);
+        }
+
+        .pay-method.selected {
+            border-color: var(--mint-dark);
+            background: var(--mint-light);
+        }
+
+        .pay-method input[type=radio] {
+            accent-color: var(--mint-dark);
+        }
+
+        .pm-icon {
+            font-size: 1.2rem;
+        }
+
+        .pm-name {
+            font-size: 0.85rem;
+            font-weight: 700;
+            flex: 1;
+        }
+
+        .pm-desc {
+            font-size: 0.68rem;
+            color: var(--text-light);
+        }
+
+        .promo-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        .promo-input {
+            flex: 1;
+            padding: 9px 14px;
+            border: 2px solid var(--kraft-light);
+            border-radius: 50px;
+            background: var(--cream);
+            font-family: 'Nunito', sans-serif;
+            font-size: 0.82rem;
+            outline: none;
+            transition: var(--transition);
+        }
+
+        .promo-input:focus {
+            border-color: var(--mint);
+        }
+
+        .promo-btn {
+            padding: 9px 16px;
+            border: 2px solid var(--mint-dark);
+            border-radius: 50px;
+            background: var(--mint-light);
+            color: var(--mint-dark);
+            font-family: 'Nunito', sans-serif;
+            font-size: 0.78rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .promo-btn:hover {
+            background: var(--mint-dark);
+            color: white;
+        }
+
+        /* ===== CONFIRMATION ===== */
+        .confirm-card {
+            padding: 20px;
+            margin-bottom: 16px;
+        }
+
+        .confirm-title {
+            font-size: 0.88rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .confirm-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px dashed var(--kraft-light);
+            font-size: 0.82rem;
+        }
+
+        .confirm-row:last-child {
+            border-bottom: none;
+            padding-top: 10px;
+            font-weight: 800;
+            font-size: 0.92rem;
+        }
+
+        .cr-label {
+            color: var(--text-secondary);
+        }
+
+        .cr-value {
+            font-weight: 700;
+            text-align: right;
+        }
+
+        .cr-value.price {
+            color: var(--mint-dark);
+        }
+
+        .cr-value.discount {
+            color: var(--coral);
+        }
+
+        .confirm-note {
+            padding: 10px 12px;
+            background: var(--peach-light);
+            border: 1.5px solid var(--peach);
+            border-radius: var(--border-radius-sm);
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
+            margin-top: 10px;
+        }
+
+        .terms-check {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            margin-top: 12px;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        .terms-check input {
+            margin-top: 2px;
+            accent-color: var(--mint-dark);
+        }
+
+        .terms-check a {
+            color: var(--mint-dark);
+        }
+
+        /* ===== SUCCESS ===== */
+        .success-panel {
+            display: none;
+            text-align: center;
+            padding: 32px 20px;
+        }
+
+        .success-panel.show {
+            display: block;
+            animation: fade-up 0.5s ease;
+        }
+
+        .sp-confetti {
+            font-size: 3rem;
+            margin-bottom: 12px;
+            animation: bounce-s 1.5s ease-in-out infinite;
+        }
+
+        @keyframes bounce-s {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-12px);
+            }
+        }
+
+        .sp-title {
+            font-size: 1.3rem;
+            font-weight: 800;
+            margin-bottom: 6px;
+        }
+
+        .sp-sub {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+
+        .booking-confirm-card {
+            padding: 16px;
+            background: var(--mint-light);
+            border: 2px solid var(--mint);
+            border-radius: var(--border-radius-sm);
+            margin-bottom: 16px;
+            text-align: left;
+        }
+
+        .bcc-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 5px 0;
+            font-size: 0.82rem;
+            color: var(--text-secondary);
+        }
+
+        .bcc-row strong {
+            color: var(--text-primary);
+        }
+
+        .sp-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        /* ===== RIGHT SIDEBAR ===== */
+        .booking-summary-card {
+            padding: 18px;
+            margin-bottom: 14px;
+            position: sticky;
+            top: 20px;
+        }
+
+        .bsc-title {
+            font-size: 0.88rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .bsc-expert {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            background: var(--cream);
+            border-radius: var(--border-radius-sm);
+            border: 1.5px solid var(--kraft-light);
+            margin-bottom: 12px;
+        }
+
+        .bsc-avatar {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            background: var(--lavender-light);
+            border: 2px solid var(--kraft);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+        }
+
+        .bsc-name {
+            font-size: 0.82rem;
+            font-weight: 700;
+        }
+
+        .bsc-degree {
+            font-size: 0.65rem;
+            color: var(--text-light);
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 0;
+            border-bottom: 1px dashed var(--kraft-light);
+            font-size: 0.78rem;
+        }
+
+        .summary-row:last-child {
+            border-bottom: none;
+        }
+
+        .sr-label {
+            color: var(--text-secondary);
+        }
+
+        .sr-value {
+            font-weight: 700;
+        }
+
+        .sr-value.empty {
+            color: var(--text-light);
+            font-weight: 400;
+            font-style: italic;
+        }
+
+        .total-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 12px;
+            background: var(--mint-light);
+            border: 1.5px solid var(--mint);
+            border-radius: var(--border-radius-sm);
+            margin-top: 8px;
+            font-size: 0.88rem;
+            font-weight: 800;
+        }
+
+        .total-price {
+            color: var(--mint-dark);
+        }
+
+        .trust-badges {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-top: 12px;
+        }
+
+        .trust-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.72rem;
+            color: var(--text-secondary);
+        }
+
+        .right-tip {
+            padding: 12px 14px;
+            background: var(--lavender-light);
+            border: 1.5px solid var(--lavender);
+            border-radius: var(--border-radius-sm);
+            display: flex;
+            gap: 8px;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        .cancel-policy {
+            padding: 12px 14px;
+            background: var(--peach-light);
+            border: 1.5px solid var(--peach);
+            border-radius: var(--border-radius-sm);
+            font-size: 0.72rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        /* ===== NAVIGATION BUTTONS ===== */
+        .step-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 0;
+            margin-top: 8px;
+            border-top: 2px dashed var(--kraft-light);
+        }
+
+        /* ===== EMERGENCY ===== */
+        .emergency-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(74, 55, 40, 0.5);
+            z-index: 1000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .emergency-overlay.show {
+            display: flex;
+        }
+
+        .emergency-popup {
+            background: var(--warm-white);
+            border-radius: 24px;
+            border: 3px solid var(--coral);
+            padding: 32px;
+            max-width: 420px;
+            width: 100%;
+            box-shadow: 6px 6px 0px rgba(255, 139, 139, 0.3);
+            animation: pop-in 0.4s ease;
+        }
+
+        @keyframes pop-in {
+            from {
+                transform: scale(0.8);
+                opacity: 0;
+            }
+
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .ep-icon {
+            font-size: 2.5rem;
+            text-align: center;
+            margin-bottom: 8px;
+        }
+
+        .ep-title {
+            font-size: 1.2rem;
+            font-weight: 800;
+            color: var(--coral);
+            text-align: center;
+            margin-bottom: 6px;
+        }
+
+        .ep-text {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-bottom: 16px;
+            text-align: center;
+        }
+
+        .ep-hotline {
+            padding: 14px;
+            background: rgba(255, 139, 139, 0.1);
+            border: 2px solid var(--coral);
+            border-radius: var(--border-radius-sm);
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .ep-hotline .eph-num {
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: var(--coral);
+        }
+
+        .ep-hotline .eph-label {
+            font-size: 0.72rem;
+            color: var(--text-secondary);
+        }
+
+        .ep-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .ep-btn {
+            padding: 12px;
+            border-radius: 50px;
+            font-family: 'Nunito', sans-serif;
+            font-size: 0.88rem;
+            font-weight: 700;
+            cursor: pointer;
+            text-align: center;
+            transition: var(--transition);
+            text-decoration: none;
+            display: block;
+            border: 2px solid;
+        }
+
+        .ep-btn-red {
+            background: var(--coral);
+            color: white;
+            border-color: #c05050;
+        }
+
+        .ep-btn-green {
+            background: var(--mint-light);
+            color: var(--mint-dark);
+            border-color: var(--mint);
+        }
+
+        .ep-btn-ghost {
+            background: transparent;
+            color: var(--text-light);
+            border-color: var(--kraft-light);
+            font-size: 0.8rem;
+        }
+
+        /* Confetti */
+        .confetti-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 999;
+        }
+
+        .confetti-piece {
+            position: absolute;
+            border-radius: 2px;
+            animation: cffall linear forwards;
+        }
+
+        @keyframes cffall {
+            0% {
+                transform: translateY(-20px) rotate(0deg);
+                opacity: 1;
+            }
+
+            100% {
+                transform: translateY(100vh) rotate(720deg);
+                opacity: 0;
+            }
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media(max-width:900px) {
+            :root {
+                --sidebar-width: 0px;
+            }
+
+            .sidebar {
+                transform: translateX(-240px);
+                width: 240px;
+                transition: transform 0.3s ease;
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+
+            .sidebar-overlay.open {
+                display: block;
+            }
+
+            .main-content {
+                margin-left: 0;
+                padding: 76px 16px 20px;
+            }
+
+            .mobile-topbar {
+                display: flex;
+            }
+
+            .booking-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .booking-summary-card {
+                position: static;
+            }
+
+            .session-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        @media(max-width:600px) {
+            .session-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .time-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+
+            .stepper {
+                overflow-x: auto;
+                padding-bottom: 4px;
+            }
+
+            .step-label {
+                display: none;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="confetti-container" id="confettiContainer"></div>
+
+    <!-- Emergency Overlay -->
+    <div class="emergency-overlay" id="emergencyOverlay">
+        <div class="emergency-popup">
+            <div class="ep-icon">❤️</div>
+            <div class="ep-title">Bạn không đơn độc</div>
+            <p class="ep-text">Nếu bạn đang cảm thấy rất khó khăn, hãy để ai đó giúp bạn ngay bây giờ.</p>
+            <div class="ep-hotline">
+                <div class="eph-num">📞 1800-599-920</div>
+                <div class="eph-label">Đường dây nóng sức khỏe tâm thần — Miễn phí, 24/7</div>
+            </div>
+            <div class="ep-actions">
+                <a href="tel:1800599920" class="ep-btn ep-btn-red">📞 Gọi ngay hotline</a>
+                <a href="experts.html" class="ep-btn ep-btn-green">💬 Kết nối chuyên gia</a>
+                <button class="ep-btn ep-btn-ghost" onclick="closeEmergency()">Tôi ổn, đóng lại</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+    <div class="mobile-topbar">
+        <button class="mobile-menu-btn" onclick="toggleSidebar()">☰</button>
+        <a href="index.html" style="display:flex;align-items:center;gap:8px;text-decoration:none;">
+            <div
+                style="width:32px;height:32px;background:var(--mint);border-radius:8px;border:2px solid var(--mint-dark);display:flex;align-items:center;justify-content:center;font-size:1rem;box-shadow:2px 2px 0px var(--mint-dark);">
+                🌿</div>
+            <span style="font-size:1.1rem;font-weight:800;color:var(--text-primary);">Peace<span
+                    style="color:var(--mint-dark);">Flow</span></span>
+        </a>
+        <span
+            style="background:var(--peach-light);padding:3px 10px;border-radius:50px;font-size:0.75rem;font-weight:700;color:var(--peach-dark);border:1.5px solid var(--peach);">⭐
+            295 XP</span>
+    </div>
+
+    <aside class="sidebar" id="sidebar">
+        <a href="index.html" class="sidebar-logo">
+            <div class="logo-icon">🌿</div>
+            <div class="logo-text">Peace<span>Flow</span></div>
+        </a>
+
+        <nav class="sidebar-nav">
+            <div class="nav-section-label">Chính</div>
+            <a href="dashboard.html" class="nav-item ">
+                <span class="ni">🏡</span> Tổng quan
+            </a>
+            <a href="mood-checkin.html" class="nav-item ">
+                <span class="ni">💭</span> Tâm trạng
+            </a>
+            <a href="tasks.html" class="nav-item ">
+                <span class="ni">🎮</span> Nhiệm vụ
+            </a>
+            <a href="journal.html" class="nav-item ">
+                <span class="ni">📝</span> Nhật ký
+            </a>
+
+            <div class="nav-section-label" style="margin-top:8px;">Kết nối</div>
+            <a href="experts.html" class="nav-item ">
+                <span class="ni">🩺</span> Chuyên gia
+            </a>
+            <a href="community.html" class="nav-item ">
+                <span class="ni">👥</span> Cộng đồng
+            </a>
+
+            <div class="nav-section-label" style="margin-top:8px;">Phân tích</div>
+            <a href="report.html" class="nav-item ">
+                <span class="ni">📊</span> Báo cáo
+            </a>
+            <a href="achievements.html" class="nav-item ">
+                <span class="ni">🏅</span> Thành tích
+            </a>
+
+            <div class="nav-section-label" style="margin-top:8px;">Cài đặt</div>
+            <a href="profile.html" class="nav-item ">
+                <span class="ni">👤</span> Hồ sơ
+            </a>
+            <a href="settings.html" class="nav-item ">
+                <span class="ni">⚙️</span> Cài đặt
+            </a>
+            <a href="#" class="nav-item" onclick="handleLogout()" style="color:var(--coral); margin-top: 10px; border-top: 1px dashed var(--kraft-light); padding-top: 15px;">
+                <span class="ni">🚪</span> Đăng xuất
+            </a>
+        </nav>
+
+        <div class="sidebar-bottom">
+            <div class="user-card-mini">
+                <div class="user-avatar-mini">🐱</div>
+                <div class="user-info-mini">
+                    <div class="user-name">Khách hàng giả lập</div>
+                    <div class="user-level">⭐ 295 XP · Level 2</div>
+                </div>
+            </div>
+            <a href="emergency.html" class="emergency-btn">
+                🆘 Hỗ trợ khẩn cấp
+            </a>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <div class="breadcrumb">
+            <a href="dashboard.html">🏡 Tổng quan</a><span>›</span>
+            <a href="experts.html">🩺 Chuyên gia</a><span>›</span>
+            <span>📅 Đặt lịch tư vấn</span>
+        </div>
+
+        <!-- Stepper -->
+        <div class="stepper" id="stepper">
+            <div class="step-item">
+                <div class="step-circle active" id="sc1">1</div>
+                <div class="step-label active" id="sl1">Hình thức</div>
+            </div>
+            <div class="step-line" id="line1"></div>
+            <div class="step-item">
+                <div class="step-circle" id="sc2">2</div>
+                <div class="step-label" id="sl2">Lịch hẹn</div>
+            </div>
+            <div class="step-line" id="line2"></div>
+            <div class="step-item">
+                <div class="step-circle" id="sc3">3</div>
+                <div class="step-label" id="sl3">Mô tả</div>
+            </div>
+            <div class="step-line" id="line3"></div>
+            <div class="step-item">
+                <div class="step-circle" id="sc4">4</div>
+                <div class="step-label" id="sl4">Thanh toán</div>
+            </div>
+            <div class="step-line" id="line4"></div>
+            <div class="step-item">
+                <div class="step-circle" id="sc5">5</div>
+                <div class="step-label" id="sl5">Xác nhận</div>
+            </div>
+        </div>
+
+        <div class="booking-layout">
+            <!-- LEFT: Main Content -->
+            <div>
+                <!-- Expert Mini Card -->
+                <div class="paper-card expert-mini-card">
+                    <div class="emc-avatar">👩‍⚕️</div>
+                    <div class="emc-info">
+                        <div class="emc-name">ThS. Nguyễn Thị Lan Anh</div>
+                        <div class="emc-degree">Thạc sĩ Tâm lý lâm sàng · ĐH Y Hà Nội · 8 năm kinh nghiệm</div>
+                        <div class="emc-meta">
+                            <div class="emc-meta-item">⭐ 4.9/5 (248 phiên)</div>
+                            <div class="emc-meta-item">📍 Hà Nội</div>
+                            <div class="emc-status">
+                                <div class="status-dot"></div>Đang trực tuyến
+                            </div>
+                        </div>
+                    </div>
+                    <a href="experts.html" class="emc-change">Đổi chuyên gia</a>
+                </div>
+
+                <!-- STEP 1: Session Type -->
+                <div class="step-panel active" id="panel-1">
+                    <div class="panel-title">💬 Chọn hình thức tư vấn</div>
+                    <div class="panel-subtitle">Chọn hình thức phù hợp với nhu cầu và điều kiện của bạn</div>
+                    <div class="session-grid">
+                        <div class="session-card" onclick="selectSession(this,'chat','Chat text','200.000đ','30 phút')">
+                            <div class="sc-icon">💬</div>
+                            <div class="sc-name">Chat Text</div>
+                            <div class="sc-desc">Nhắn tin realtime với chuyên gia qua nền tảng bảo mật</div>
+                            <div class="sc-price">200.000đ</div>
+                            <div class="sc-duration">30 phút · Linh hoạt thời gian</div>
+                            <div class="sc-features">
+                                <div class="sc-feature">✓ Lưu lịch sử trò chuyện</div>
+                                <div class="sc-feature">✓ Chia sẻ file & hình ảnh</div>
+                                <div class="sc-feature">✓ Phù hợp người hướng nội</div>
+                            </div>
+                        </div>
+                        <div class="session-card"
+                            onclick="selectSession(this,'voice','Gọi thoại','350.000đ','45 phút')">
+                            <div class="sc-icon">📞</div>
+                            <div class="sc-name">Gọi Thoại</div>
+                            <div class="sc-desc">Cuộc gọi thoại riêng tư, không cần bật camera</div>
+                            <div class="sc-price">350.000đ</div>
+                            <div class="sc-duration">45 phút · Thoải mái hơn</div>
+                            <div class="sc-features">
+                                <div class="sc-feature">✓ Không cần chuẩn bị ngoại hình</div>
+                                <div class="sc-feature">✓ Ghi âm (với sự đồng ý)</div>
+                                <div class="sc-feature">✓ Chất lượng âm thanh HD</div>
+                            </div>
+                        </div>
+                        <div class="session-card"
+                            onclick="selectSession(this,'video','Video Call','500.000đ','60 phút')">
+                            <div class="sc-badge">⭐ Phổ biến nhất</div>
+                            <div class="sc-icon">📹</div>
+                            <div class="sc-name">Video Call</div>
+                            <div class="sc-desc">Tư vấn trực tiếp qua video, gần giống gặp mặt thật</div>
+                            <div class="sc-price">500.000đ</div>
+                            <div class="sc-duration">60 phút · Hiệu quả nhất</div>
+                            <div class="sc-features">
+                                <div class="sc-feature">✓ Tương tác phi ngôn ngữ</div>
+                                <div class="sc-feature">✓ Chia sẻ màn hình</div>
+                                <div class="sc-feature">✓ Ghi hình (với sự đồng ý)</div>
+                            </div>
+                        </div>
+                        <div class="session-card"
+                            onclick="selectSession(this,'inperson','Gặp trực tiếp','700.000đ','60 phút')">
+                            <div class="sc-icon">🏥</div>
+                            <div class="sc-name">Gặp Trực Tiếp</div>
+                            <div class="sc-desc">Đặt lịch tại phòng khám tâm lý tại Hà Nội</div>
+                            <div class="sc-price">700.000đ</div>
+                            <div class="sc-duration">60 phút · Tại phòng khám</div>
+                            <div class="sc-features">
+                                <div class="sc-feature">✓ Môi trường chuyên nghiệp</div>
+                                <div class="sc-feature">✓ Bảo mật tuyệt đối</div>
+                                <div class="sc-feature">✓ Phù hợp trường hợp nặng</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="step-nav">
+                        <a href="experts.html" class="btn-outline">← Quay lại</a>
+                        <button class="btn-primary btn-large" onclick="goStep(2)">Tiếp theo: Chọn lịch hẹn →</button>
+                    </div>
+                </div>
+
+                <!-- STEP 2: Calendar & Time -->
+                <div class="step-panel" id="panel-2">
+                    <div class="panel-title">📅 Chọn ngày & giờ</div>
+                    <div class="panel-subtitle">Chọn thời gian phù hợp — lịch trống của chuyên gia được cập nhật
+                        realtime</div>
+                    <div class="paper-card calendar-card">
+                        <div class="cal-header">
+                            <button class="cal-nav-btn" onclick="changeMonth(-1)">‹</button>
+                            <div class="cal-month" id="calMonthLabel">Tháng 6, 2025</div>
+                            <button class="cal-nav-btn" onclick="changeMonth(1)">›</button>
+                        </div>
+                        <div class="cal-grid" id="calendarGrid"></div>
+                        <div style="display:flex;gap:12px;margin-top:10px;font-size:0.68rem;color:var(--text-light);">
+                            <span style="display:flex;align-items:center;gap:4px;"><span
+                                    style="width:10px;height:10px;border-radius:50%;background:var(--mint-dark);display:inline-block;"></span>Có
+                                lịch trống</span>
+                            <span style="display:flex;align-items:center;gap:4px;"><span
+                                    style="width:10px;height:10px;border-radius:50%;background:var(--mint-dark);display:inline-block;opacity:0.3;"></span>Hôm
+                                nay</span>
+                        </div>
+                    </div>
+                    <div class="paper-card time-section" id="timeSection">
+                        <div class="ts-title">⏰ Chọn giờ — <span id="selectedDateLabel"
+                                style="color:var(--mint-dark);font-weight:600;">Chọn ngày trước</span></div>
+                        <div id="timeSlotsContainer">
+                            <div style="text-align:center;padding:20px;color:var(--text-light);font-size:0.82rem;">👆
+                                Hãy chọn ngày trước để xem các khung giờ trống</div>
+                        </div>
+                    </div>
+                    <div class="step-nav">
+                        <button class="btn-outline" onclick="goStep(1)">← Quay lại</button>
+                        <button class="btn-primary btn-large" onclick="goStep(3)">Tiếp theo: Mô tả vấn đề →</button>
+                    </div>
+                </div>
+
+                <!-- STEP 3: Problem Description -->
+                <div class="step-panel" id="panel-3">
+                    <div class="panel-title">📝 Mô tả vấn đề & Chia sẻ dữ liệu</div>
+                    <div class="panel-subtitle">Thông tin này giúp chuyên gia chuẩn bị tốt hơn cho buổi tư vấn của bạn
+                    </div>
+                    <div class="paper-card problem-card">
+                        <div class="pc-title">🏷️ Chủ đề chính bạn muốn trao đổi</div>
+                        <div class="pc-subtitle">Chọn một hoặc nhiều chủ đề (tùy chọn)</div>
+                        <div class="topic-chips">
+                            <div class="topic-chip" onclick="toggleTopic(this)">😰 Lo âu</div>
+                            <div class="topic-chip" onclick="toggleTopic(this)">🌧️ Trầm cảm</div>
+                            <div class="topic-chip" onclick="toggleTopic(this)">💼 Stress công việc</div>
+                            <div class="topic-chip" onclick="toggleTopic(this)">😴 Mất ngủ</div>
+                            <div class="topic-chip" onclick="toggleTopic(this)">💑 Mối quan hệ</div>
+                            <div class="topic-chip" onclick="toggleTopic(this)">🛡️ Trauma</div>
+                            <div class="topic-chip" onclick="toggleTopic(this)">🎯 Phát triển bản thân</div>
+                            <div class="topic-chip" onclick="toggleTopic(this)">👨‍👩‍👧 Gia đình</div>
+                            <div class="topic-chip" onclick="toggleTopic(this)">💰 Tài chính</div>
+                            <div class="topic-chip" onclick="toggleTopic(this)">🤔 Khác</div>
+                        </div>
+                        <div class="pc-title" style="margin-top:14px;">✍️ Mô tả ngắn gọn (tùy chọn)</div>
+                        <div class="pc-subtitle">Chia sẻ những gì bạn đang trải qua để chuyên gia có thể hỗ trợ tốt hơn
+                        </div>
+                        <textarea class="problem-textarea" id="problemText" rows="5" maxlength="500"
+                            oninput="updateCharCount(this)"
+                            placeholder="Ví dụ: Tôi đang gặp khó khăn với lo âu công việc và mất ngủ trong 2 tuần gần đây. Tôi thường xuyên lo lắng về deadline và cảm thấy kiệt sức..."></textarea>
+                        <div class="char-count"><span id="charCount">0</span>/500 ký tự</div>
+                    </div>
+                    <div class="data-share-card paper-card">
+                        <div class="ds-header">
+                            <span style="font-size:1.2rem;">🔒</span>
+                            <div>
+                                <div class="ds-title">Chia sẻ dữ liệu với chuyên gia (tùy chọn)</div>
+                            </div>
+                        </div>
+                        <div class="ds-subtitle">Cho phép chuyên gia xem dữ liệu của bạn để hiểu tình trạng nhanh hơn.
+                            Bạn có thể tắt bất kỳ lúc nào.</div>
+                        <div class="ds-toggles">
+                            <div class="ds-toggle-item">
+                                <div class="dti-left">
+                                    <span class="dti-icon">📊</span>
+                                    <div>
+                                        <div class="dti-text">Kết quả khảo sát tâm lý</div>
+                                        <div class="dti-sub">DASS-21, GAD-7 trong 30 ngày qua</div>
+                                    </div>
+                                </div>
+                                <label class="toggle-switch"><input type="checkbox" checked><span
+                                        class="toggle-slider"></span></label>
+                            </div>
+                            <div class="ds-toggle-item">
+                                <div class="dti-left">
+                                    <span class="dti-icon">💭</span>
+                                    <div>
+                                        <div class="dti-text">Biểu đồ tâm trạng</div>
+                                        <div class="dti-sub">Lịch sử check-in tâm trạng 2 tuần</div>
+                                    </div>
+                                </div>
+                                <label class="toggle-switch"><input type="checkbox" checked><span
+                                        class="toggle-slider"></span></label>
+                            </div>
+                            <div class="ds-toggle-item">
+                                <div class="dti-left">
+                                    <span class="dti-icon">🎮</span>
+                                    <div>
+                                        <div class="dti-text">Lịch sử nhiệm vụ</div>
+                                        <div class="dti-sub">Các bài tập đã thực hiện và hiệu quả</div>
+                                    </div>
+                                </div>
+                                <label class="toggle-switch"><input type="checkbox"><span
+                                        class="toggle-slider"></span></label>
+                            </div>
+                            <div class="ds-toggle-item">
+                                <div class="dti-left">
+                                    <span class="dti-icon">📝</span>
+                                    <div>
+                                        <div class="dti-text">Nhật ký cảm xúc</div>
+                                        <div class="dti-sub">Các bài viết nhật ký (đã ẩn danh)</div>
+                                    </div>
+                                </div>
+                                <label class="toggle-switch"><input type="checkbox"><span
+                                        class="toggle-slider"></span></label>
+                            </div>
+                        </div>
+                        <div style="font-size:0.7rem;color:var(--text-light);margin-top:8px;">🔒 Tất cả dữ liệu được mã
+                            hóa AES-256. Chuyên gia chỉ xem được trong phiên tư vấn.</div>
+                    </div>
+                    <div class="step-nav">
+                        <button class="btn-outline" onclick="goStep(2)">← Quay lại</button>
+                        <button class="btn-primary btn-large" onclick="goStep(4)">Tiếp theo: Thanh toán →</button>
+                    </div>
+                </div>
+
+                <!-- STEP 4: Payment -->
+                <div class="step-panel" id="panel-4">
+                    <div class="panel-title">💳 Phương thức thanh toán</div>
+                    <div class="panel-subtitle">Chọn phương thức thanh toán an toàn và tiện lợi nhất</div>
+                    <div class="paper-card payment-card">
+                        <div class="pay-title">💳 Chọn phương thức</div>
+                        <div class="payment-methods">
+                            <label class="pay-method selected" onclick="selectPayment(this)">
+                                <input type="radio" name="payment" value="momo" checked>
+                                <span class="pm-icon">💜</span>
+                                <div>
+                                    <div class="pm-name">Ví MoMo</div>
+                                    <div class="pm-desc">Thanh toán nhanh qua ví điện tử MoMo</div>
+                                </div>
+                            </label>
+                            <label class="pay-method" onclick="selectPayment(this)">
+                                <input type="radio" name="payment" value="zalopay">
+                                <span class="pm-icon">🔵</span>
+                                <div>
+                                    <div class="pm-name">ZaloPay</div>
+                                    <div class="pm-desc">Thanh toán qua ví ZaloPay</div>
+                                </div>
+                            </label>
+                            <label class="pay-method" onclick="selectPayment(this)">
+                                <input type="radio" name="payment" value="banking">
+                                <span class="pm-icon">🏦</span>
+                                <div>
+                                    <div class="pm-name">Chuyển khoản ngân hàng</div>
+                                    <div class="pm-desc">Internet Banking / QR Code</div>
+                                </div>
+                            </label>
+                            <label class="pay-method" onclick="selectPayment(this)">
+                                <input type="radio" name="payment" value="card">
+                                <span class="pm-icon">💳</span>
+                                <div>
+                                    <div class="pm-name">Thẻ Visa / Mastercard</div>
+                                    <div class="pm-desc">Thanh toán quốc tế an toàn</div>
+                                </div>
+                            </label>
+                        </div>
+                        <div class="pay-title" style="margin-top:4px;">🎁 Mã khuyến mãi</div>
+                        <div class="promo-row">
+                            <input type="text" class="promo-input" id="promoInput" placeholder="Nhập mã giảm giá..."
+                                oninput="this.value=this.value.toUpperCase()">
+                            <button class="promo-btn" onclick="applyPromo()

@@ -1,0 +1,1789 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PeaceFlow — Hỗ Trợ Khẩn Cấp</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Patrick+Hand&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --cream: #FFF8F0;
+            --warm-white: #FFFDF7;
+            --kraft: #D4A574;
+            --kraft-light: #E8CBA7;
+            --kraft-dark: #B8895A;
+            --mint: #A8D5BA;
+            --mint-light: #C5E8D2;
+            --mint-dark: #7BBF95;
+            --peach: #FFCBA4;
+            --peach-light: #FFE0C4;
+            --peach-dark: #E8A876;
+            --sky: #A8D8EA;
+            --sky-light: #C5E8F5;
+            --lavender: #C3AED6;
+            --lavender-light: #DDD1EB;
+            --coral: #FF8B8B;
+            --coral-light: #FFB3B3;
+            --gold: #FFD93D;
+            --gold-light: #FFF3B0;
+            --rose: #F4A0B0;
+            --rose-light: #FDDDE6;
+            --text-primary: #4A3728;
+            --text-secondary: #7A6555;
+            --text-light: #A89585;
+            --shadow-paper: 3px 3px 0px rgba(74, 55, 40, 0.1);
+            --shadow-paper-hover: 5px 5px 0px rgba(74, 55, 40, 0.15);
+            --border-radius: 16px;
+            --border-radius-sm: 10px;
+            --transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            --sidebar-width: 240px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background: var(--cream);
+            color: var(--text-primary);
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        .paper-card {
+            background: var(--warm-white);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-paper);
+            border: 2px solid var(--kraft-light);
+            transition: var(--transition);
+        }
+
+        /* ===== SIDEBAR ===== */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            width: var(--sidebar-width);
+            background: var(--warm-white);
+            border-right: 2px solid var(--kraft-light);
+            z-index: 200;
+            display: flex;
+            flex-direction: column;
+            padding: 20px 0;
+        }
+
+        .sidebar-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 0 20px 20px;
+            border-bottom: 2px dashed var(--kraft-light);
+            margin-bottom: 16px;
+            text-decoration: none;
+        }
+
+        .sidebar-logo .logo-icon {
+            width: 38px;
+            height: 38px;
+            background: var(--mint);
+            border-radius: 10px;
+            border: 2px solid var(--mint-dark);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            box-shadow: 2px 2px 0px var(--mint-dark);
+        }
+
+        .sidebar-logo .logo-text {
+            font-size: 1.2rem;
+            font-weight: 800;
+            color: var(--text-primary);
+        }
+
+        .sidebar-logo .logo-text span {
+            color: var(--mint-dark);
+        }
+
+        .sidebar-nav {
+            flex: 1;
+            padding: 0 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            overflow-y: auto;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            border-radius: var(--border-radius-sm);
+            text-decoration: none;
+            color: var(--text-secondary);
+            font-weight: 600;
+            font-size: 0.88rem;
+            transition: var(--transition);
+        }
+
+        .nav-item:hover {
+            background: var(--mint-light);
+            color: var(--text-primary);
+        }
+
+        .nav-item.active {
+            background: rgba(255, 139, 139, 0.1);
+            color: var(--coral);
+            border: 1.5px solid var(--coral);
+        }
+
+        .nav-item .ni {
+            font-size: 1.1rem;
+            width: 22px;
+            text-align: center;
+        }
+
+        .nav-section-label {
+            font-size: 0.68rem;
+            font-weight: 700;
+            color: var(--text-light);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            padding: 10px 12px 4px;
+        }
+
+        .sidebar-bottom {
+            padding: 12px;
+            border-top: 2px dashed var(--kraft-light);
+            margin-top: auto;
+        }
+
+        .user-card-mini {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            background: var(--cream);
+            border-radius: var(--border-radius-sm);
+            border: 1.5px solid var(--kraft-light);
+        }
+
+        .user-avatar-mini {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--lavender-light);
+            border: 2px solid var(--kraft);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+        }
+
+        .user-info-mini .user-name {
+            font-size: 0.85rem;
+            font-weight: 700;
+        }
+
+        .user-info-mini .user-level {
+            font-size: 0.72rem;
+            color: var(--text-light);
+        }
+
+        .emergency-sidebar-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px;
+            background: var(--coral);
+            border: none;
+            border-radius: var(--border-radius-sm);
+            color: white;
+            font-size: 0.82rem;
+            font-weight: 800;
+            cursor: pointer;
+            margin-top: 8px;
+            transition: var(--transition);
+            text-decoration: none;
+            justify-content: center;
+            box-shadow: 2px 2px 0px #c05050;
+        }
+
+        .emergency-sidebar-btn:hover {
+            background: #c05050;
+            transform: translate(1px, 1px);
+            box-shadow: 1px 1px 0px #c05050;
+        }
+
+        /* ===== MOBILE ===== */
+        .mobile-topbar {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background: var(--warm-white);
+            border-bottom: 2px solid var(--kraft-light);
+            z-index: 300;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 16px;
+        }
+
+        .mobile-menu-btn {
+            background: none;
+            border: none;
+            font-size: 1.4rem;
+            cursor: pointer;
+        }
+
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(74, 55, 40, 0.3);
+            z-index: 150;
+        }
+
+        /* ===== MAIN ===== */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            padding: 28px;
+            min-height: 100vh;
+        }
+
+        /* ===== BREADCRUMB ===== */
+        .breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 20px;
+            font-size: 0.8rem;
+            color: var(--text-light);
+        }
+
+        .breadcrumb a {
+            color: var(--text-light);
+            text-decoration: none;
+        }
+
+        .breadcrumb a:hover {
+            color: var(--mint-dark);
+        }
+
+        .breadcrumb span {
+            color: var(--text-secondary);
+            font-weight: 600;
+        }
+
+        /* ===== HERO SECTION ===== */
+        .hero-section {
+            padding: 32px;
+            margin-bottom: 24px;
+            background: linear-gradient(135deg, rgba(255, 139, 139, 0.08), rgba(255, 203, 164, 0.1), rgba(168, 213, 186, 0.1));
+            border: 2px solid rgba(255, 139, 139, 0.2);
+            border-radius: 24px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hs-deco1 {
+            position: absolute;
+            left: -10px;
+            top: -10px;
+            font-size: 6rem;
+            opacity: 0.04;
+        }
+
+        .hs-deco2 {
+            position: absolute;
+            right: -10px;
+            bottom: -10px;
+            font-size: 6rem;
+            opacity: 0.04;
+        }
+
+        .hs-heart {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            animation: heartbeat 2s ease-in-out infinite;
+        }
+
+        @keyframes heartbeat {
+
+            0%,
+            100% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.15);
+            }
+        }
+
+        .hs-title {
+            font-size: 1.6rem;
+            font-weight: 800;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+        }
+
+        .hs-title span {
+            color: var(--coral);
+        }
+
+        .hs-subtitle {
+            font-family: 'Patrick Hand', cursive;
+            font-size: 1rem;
+            color: var(--text-secondary);
+            line-height: 1.7;
+            max-width: 520px;
+            margin: 0 auto 16px;
+        }
+
+        .hs-reassure {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 18px;
+            background: var(--mint-light);
+            border: 1.5px solid var(--mint-dark);
+            border-radius: 50px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: var(--mint-dark);
+        }
+
+        /* ===== HOTLINE CARDS ===== */
+        .hotline-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 14px;
+            margin-bottom: 24px;
+        }
+
+        .hotline-card {
+            padding: 20px 16px;
+            text-align: center;
+            cursor: pointer;
+            text-decoration: none;
+            display: block;
+        }
+
+        .hotline-card:hover {
+            box-shadow: var(--shadow-paper-hover);
+            transform: translateY(-3px);
+        }
+
+        .hc-icon {
+            font-size: 2rem;
+            margin-bottom: 8px;
+        }
+
+        .hc-num {
+            font-size: 1.3rem;
+            font-weight: 800;
+            margin-bottom: 4px;
+        }
+
+        .hc-label {
+            font-size: 0.75rem;
+            font-weight: 700;
+            margin-bottom: 3px;
+        }
+
+        .hc-desc {
+            font-size: 0.65rem;
+            color: var(--text-secondary);
+        }
+
+        .hc-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 50px;
+            font-size: 0.6rem;
+            font-weight: 700;
+            margin-top: 4px;
+        }
+
+        .hc-main {
+            border-color: var(--coral);
+            background: linear-gradient(135deg, rgba(255, 139, 139, 0.08), var(--warm-white));
+        }
+
+        .hc-main .hc-num {
+            color: var(--coral);
+        }
+
+        .hc-main .hc-badge {
+            background: var(--coral-light);
+            color: #c05050;
+            border: 1px solid var(--coral);
+        }
+
+        .hc-expert {
+            border-color: var(--lavender);
+            background: linear-gradient(135deg, rgba(195, 174, 214, 0.08), var(--warm-white));
+        }
+
+        .hc-expert .hc-num {
+            color: #8a6aaa;
+        }
+
+        .hc-expert .hc-badge {
+            background: var(--lavender-light);
+            color: #8a6aaa;
+            border: 1px solid var(--lavender);
+        }
+
+        .hc-rescue {
+            border-color: var(--sky);
+            background: linear-gradient(135deg, rgba(168, 216, 234, 0.08), var(--warm-white));
+        }
+
+        .hc-rescue .hc-num {
+            color: #4a90aa;
+        }
+
+        .hc-rescue .hc-badge {
+            background: var(--sky-light);
+            color: #4a90aa;
+            border: 1px solid var(--sky);
+        }
+
+        /* ===== LAYOUT ===== */
+        .emergency-layout {
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: 20px;
+            max-width: 1100px;
+        }
+
+        /* ===== IMMEDIATE TASKS ===== */
+        .section-title {
+            font-size: 1rem;
+            font-weight: 800;
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .task-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .etask-card {
+            padding: 18px 16px;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            transition: var(--transition);
+        }
+
+        .etask-card:hover {
+            box-shadow: var(--shadow-paper-hover);
+            transform: translateY(-2px);
+        }
+
+        .etask-card.active-task {
+            border-color: var(--mint-dark);
+            background: var(--mint-light);
+        }
+
+        .etc-icon {
+            font-size: 1.6rem;
+            margin-bottom: 8px;
+        }
+
+        .etc-title {
+            font-size: 0.88rem;
+            font-weight: 800;
+            margin-bottom: 4px;
+        }
+
+        .etc-desc {
+            font-size: 0.72rem;
+            color: var(--text-secondary);
+            line-height: 1.4;
+            margin-bottom: 8px;
+        }
+
+        .etc-meta {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .etc-time {
+            font-size: 0.62rem;
+            color: var(--text-light);
+            display: flex;
+            align-items: center;
+            gap: 3px;
+        }
+
+        .etc-btn {
+            padding: 6px 14px;
+            border: 1.5px solid var(--mint-dark);
+            border-radius: 50px;
+            background: var(--mint-light);
+            color: var(--mint-dark);
+            font-family: 'Nunito', sans-serif;
+            font-size: 0.72rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .etc-btn:hover {
+            background: var(--mint-dark);
+            color: white;
+        }
+
+        /* ===== BREATHING EXERCISE ===== */
+        .breathing-card {
+            padding: 24px;
+            margin-bottom: 20px;
+            text-align: center;
+            background: linear-gradient(135deg, var(--mint-light), var(--sky-light));
+            border-color: var(--mint);
+        }
+
+        .bc-title {
+            font-size: 0.95rem;
+            font-weight: 800;
+            margin-bottom: 6px;
+        }
+
+        .bc-desc {
+            font-size: 0.78rem;
+            color: var(--text-secondary);
+            margin-bottom: 16px;
+        }
+
+        .breath-circle {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: var(--mint-dark);
+            margin: 0 auto 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.88rem;
+            font-weight: 700;
+            color: white;
+            cursor: pointer;
+            transition: all 4s ease;
+            box-shadow: 0 0 0 0 rgba(123, 191, 149, 0.4);
+            position: relative;
+        }
+
+        .breath-circle.inhale {
+            transform: scale(1.4);
+            box-shadow: 0 0 0 20px rgba(123, 191, 149, 0.15);
+        }
+
+        .breath-circle.hold {
+            transform: scale(1.4);
+        }
+
+        .breath-circle.exhale {
+            transform: scale(1);
+            box-shadow: 0 0 0 0 rgba(123, 191, 149, 0);
+        }
+
+        .breath-label {
+            font-size: 0.82rem;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+            min-height: 20px;
+        }
+
+        .breath-progress {
+            display: flex;
+            gap: 6px;
+            justify-content: center;
+            margin-bottom: 12px;
+        }
+
+        .bp-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--kraft-light);
+            transition: var(--transition);
+        }
+
+        .bp-dot.active {
+            background: var(--mint-dark);
+        }
+
+        .breath-controls {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+        }
+
+        .bc-ctrl-btn {
+            padding: 8px 20px;
+            border-radius: 50px;
+            font-family: 'Nunito', sans-serif;
+            font-size: 0.78rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: var(--transition);
+            border: 2px solid;
+        }
+
+        .bc-start {
+            background: var(--mint-dark);
+            color: white;
+            border-color: var(--mint-dark);
+        }
+
+        .bc-start:hover {
+            background: var(--mint);
+            color: var(--text-primary);
+        }
+
+        .bc-stop {
+            background: transparent;
+            color: var(--text-secondary);
+            border-color: var(--kraft-light);
+        }
+
+        .bc-stop:hover {
+            background: var(--kraft-light);
+        }
+
+        /* ===== GROUNDING EXERCISE ===== */
+        .grounding-card {
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .grounding-steps {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .gs-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 10px 12px;
+            border-radius: var(--border-radius-sm);
+            border: 1.5px solid var(--kraft-light);
+            background: var(--cream);
+            transition: var(--transition);
+            cursor: pointer;
+        }
+
+        .gs-item:hover {
+            border-color: var(--mint);
+            background: var(--mint-light);
+        }
+
+        .gs-item.done {
+            border-color: var(--mint-dark);
+            background: var(--mint-light);
+        }
+
+        .gs-num {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: var(--mint-light);
+            border: 2px solid var(--mint);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.82rem;
+            font-weight: 800;
+            flex-shrink: 0;
+            color: var(--mint-dark);
+        }
+
+        .gs-item.done .gs-num {
+            background: var(--mint-dark);
+            color: white;
+            border-color: var(--mint-dark);
+        }
+
+        .gs-content {
+            flex: 1;
+        }
+
+        .gs-title {
+            font-size: 0.82rem;
+            font-weight: 700;
+            margin-bottom: 2px;
+        }
+
+        .gs-desc {
+            font-size: 0.68rem;
+            color: var(--text-secondary);
+        }
+
+        .gs-check {
+            font-size: 1rem;
+            margin-left: auto;
+            opacity: 0;
+            transition: var(--transition);
+        }
+
+        .gs-item.done .gs-check {
+            opacity: 1;
+        }
+
+        /* ===== AFFIRMATIONS ===== */
+        .affirmation-card {
+            padding: 20px;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, var(--lavender-light), var(--rose-light));
+            border-color: var(--lavender);
+        }
+
+        .ac-title {
+            font-size: 0.88rem;
+            font-weight: 800;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .affirmation-text {
+            font-family: 'Patrick Hand', cursive;
+            font-size: 1.1rem;
+            color: var(--text-primary);
+            text-align: center;
+            padding: 16px;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: var(--border-radius-sm);
+            line-height: 1.7;
+            margin-bottom: 10px;
+            min-height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .affirmation-text:hover {
+            background: rgba(255, 255, 255, 0.8);
+        }
+
+        .ac-hint {
+            font-size: 0.68rem;
+            color: var(--text-light);
+            text-align: center;
+        }
+
+        /* ===== RIGHT SIDEBAR ===== */
+        .right-card {
+            padding: 14px;
+            margin-bottom: 14px;
+        }
+
+        .rc-title {
+            font-size: 0.85rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .expert-quick {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .eq-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            background: var(--cream);
+            border-radius: var(--border-radius-sm);
+            border: 1.5px solid var(--kraft-light);
+            transition: var(--transition);
+        }
+
+        .eq-item:hover {
+            background: var(--lavender-light);
+            border-color: var(--lavender);
+        }
+
+        .eq-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--lavender-light);
+            border: 2px solid var(--lavender);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+
+        .eq-info {
+            flex: 1;
+        }
+
+        .eq-name {
+            font-size: 0.78rem;
+            font-weight: 700;
+        }
+
+        .eq-status {
+            font-size: 0.62rem;
+            color: var(--mint-dark);
+            font-weight: 600;
+        }
+
+        .eq-btn {
+            padding: 5px 10px;
+            border: 1.5px solid var(--lavender);
+            border-radius: 50px;
+            background: var(--lavender-light);
+            color: #8a6aaa;
+            font-family: 'Nunito', sans-serif;
+            font-size: 0.65rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .eq-btn:hover {
+            background: var(--lavender);
+            color: white;
+        }
+
+        .safe-plan-card {
+            padding: 14px;
+            margin-bottom: 14px;
+            background: linear-gradient(135deg, var(--mint-light), var(--sky-light));
+            border-color: var(--mint);
+        }
+
+        .sp-step {
+            display: flex;
+            gap: 8px;
+            padding: 6px 0;
+            border-bottom: 1px dashed rgba(123, 191, 149, 0.3);
+        }
+
+        .sp-step:last-child {
+            border-bottom: none;
+        }
+
+        .sp-num {
+            font-size: 0.72rem;
+            font-weight: 800;
+            color: var(--mint-dark);
+            width: 18px;
+            flex-shrink: 0;
+        }
+
+        .sp-text {
+            font-size: 0.72rem;
+            color: var(--text-secondary);
+            line-height: 1.4;
+        }
+
+        .message-card {
+            padding: 16px;
+            background: linear-gradient(135deg, var(--peach-light), var(--gold-light));
+            border-color: var(--peach);
+        }
+
+        .mc-mascot {
+            font-size: 1.5rem;
+            margin-bottom: 6px;
+        }
+
+        .mc-text {
+            font-family: 'Patrick Hand', cursive;
+            font-size: 0.88rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        .resource-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 10px;
+            border: 1.5px solid var(--kraft-light);
+            border-radius: var(--border-radius-sm);
+            background: var(--cream);
+            cursor: pointer;
+            transition: var(--transition);
+            text-decoration: none;
+            margin-bottom: 6px;
+        }
+
+        .resource-item:hover {
+            background: var(--mint-light);
+            border-color: var(--mint);
+        }
+
+        .ri-icon {
+            font-size: 1rem;
+        }
+
+        .ri-text {
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .ri-arrow {
+            margin-left: auto;
+            font-size: 0.7rem;
+            color: var(--text-light);
+        }
+
+        /* ===== TASK DETAIL MODAL ===== */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(74, 55, 40, 0.5);
+            z-index: 500;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal-overlay.show {
+            display: flex;
+        }
+
+        .task-modal {
+            background: var(--warm-white);
+            border-radius: 24px;
+            border: 2px solid var(--kraft-light);
+            width: 100%;
+            max-width: 480px;
+            padding: 28px;
+            animation: pop-in 0.4s ease;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        @keyframes pop-in {
+            from {
+                transform: scale(0.8);
+                opacity: 0;
+            }
+
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .tm-close {
+            float: right;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: var(--cream);
+            border: 1.5px solid var(--kraft-light);
+            cursor: pointer;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
+        }
+
+        .tm-close:hover {
+            background: var(--kraft-light);
+        }
+
+        .tm-icon {
+            font-size: 2.5rem;
+            text-align: center;
+            margin: 10px 0;
+        }
+
+        .tm-title {
+            font-size: 1.1rem;
+            font-weight: 800;
+            text-align: center;
+            margin-bottom: 6px;
+        }
+
+        .tm-desc {
+            font-size: 0.82rem;
+            color: var(--text-secondary);
+            text-align: center;
+            line-height: 1.6;
+            margin-bottom: 14px;
+        }
+
+        .tm-steps {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .tm-step {
+            display: flex;
+            gap: 10px;
+            padding: 10px 12px;
+            background: var(--cream);
+            border-radius: var(--border-radius-sm);
+            border: 1.5px solid var(--kraft-light);
+        }
+
+        .tm-step-num {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: var(--mint-light);
+            border: 1.5px solid var(--mint);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.72rem;
+            font-weight: 800;
+            color: var(--mint-dark);
+            flex-shrink: 0;
+        }
+
+        .tm-step-text {
+            font-size: 0.78rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        .tm-timer {
+            text-align: center;
+            padding: 14px;
+            background: var(--mint-light);
+            border: 1.5px solid var(--mint);
+            border-radius: var(--border-radius-sm);
+            margin-bottom: 12px;
+        }
+
+        .tm-timer-num {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--mint-dark);
+        }
+
+        .tm-timer-label {
+            font-size: 0.72rem;
+            color: var(--text-secondary);
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: var(--warm-white);
+            border: 2px solid var(--mint-dark);
+            border-radius: 50px;
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.88rem;
+            font-weight: 700;
+            box-shadow: 3px 3px 0px var(--mint-dark);
+            z-index: 800;
+            transform: translateY(80px);
+            opacity: 0;
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media(max-width:900px) {
+            :root {
+                --sidebar-width: 0px;
+            }
+
+            .sidebar {
+                transform: translateX(-240px);
+                width: 240px;
+                transition: transform 0.3s ease;
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+
+            .sidebar-overlay.open {
+                display: block;
+            }
+
+            .main-content {
+                margin-left: 0;
+                padding: 76px 16px 20px;
+            }
+
+            .mobile-topbar {
+                display: flex;
+            }
+
+            .emergency-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .hotline-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .task-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media(max-width:600px) {
+            .hotline-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .task-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Toast -->
+    <div class="toast" id="toast">✅ <span id="toastText">Bài tập hoàn thành!</span></div>
+
+    <!-- Task Detail Modal -->
+    <div class="modal-overlay" id="taskModalOverlay" onclick="closeTaskModal(event)">
+        <div class="task-modal" id="taskModal">
+            <button class="tm-close" onclick="closeTaskModalDirect()">✕</button>
+            <div class="tm-icon" id="tmIcon">🧘</div>
+            <div class="tm-title" id="tmTitle">Tên bài tập</div>
+            <div class="tm-desc" id="tmDesc">Mô tả bài tập</div>
+            <div class="tm-steps" id="tmSteps"></div>
+            <div class="tm-timer" id="tmTimer" style="display:none;">
+                <div class="tm-timer-num" id="tmTimerNum">5:00</div>
+                <div class="tm-timer-label">Thời gian còn lại</div>
+            </div>
+            <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
+                <button
+                    style="padding:10px 24px;border:2px solid var(--mint-dark);border-radius:50px;background:var(--mint);color:var(--text-primary);font-family:'Nunito',sans-serif;font-size:0.85rem;font-weight:700;cursor:pointer;"
+                    id="tmStartBtn" onclick="startModalTimer()">▶ Bắt đầu</button>
+                <button
+                    style="padding:10px 20px;border:2px solid var(--kraft-light);border-radius:50px;background:transparent;color:var(--text-secondary);font-family:'Nunito',sans-serif;font-size:0.82rem;font-weight:600;cursor:pointer;"
+                    onclick="closeTaskModalDirect()">Đóng</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+    <div class="mobile-topbar">
+        <button class="mobile-menu-btn" onclick="toggleSidebar()">☰</button>
+        <a href="index.html" style="display:flex;align-items:center;gap:8px;text-decoration:none;">
+            <div
+                style="width:32px;height:32px;background:var(--mint);border-radius:8px;border:2px solid var(--mint-dark);display:flex;align-items:center;justify-content:center;font-size:1rem;box-shadow:2px 2px 0px var(--mint-dark);">
+                🌿</div>
+            <span style="font-size:1.1rem;font-weight:800;color:var(--text-primary);">Peace<span
+                    style="color:var(--mint-dark);">Flow</span></span>
+        </a>
+        <a href="tel:1800599920"
+            style="background:var(--coral);padding:6px 12px;border-radius:50px;font-size:0.75rem;font-weight:800;color:white;text-decoration:none;">📞
+            Gọi ngay</a>
+    </div>
+
+    <aside class="sidebar" id="sidebar">
+        <a href="index.html" class="sidebar-logo">
+            <div class="logo-icon">🌿</div>
+            <div class="logo-text">Peace<span>Flow</span></div>
+        </a>
+
+        <nav class="sidebar-nav">
+            <div class="nav-section-label">Chính</div>
+            <a href="dashboard.html" class="nav-item ">
+                <span class="ni">🏡</span> Tổng quan
+            </a>
+            <a href="mood-checkin.html" class="nav-item ">
+                <span class="ni">💭</span> Tâm trạng
+            </a>
+            <a href="tasks.html" class="nav-item ">
+                <span class="ni">🎮</span> Nhiệm vụ
+            </a>
+            <a href="journal.html" class="nav-item ">
+                <span class="ni">📝</span> Nhật ký
+            </a>
+
+            <div class="nav-section-label" style="margin-top:8px;">Kết nối</div>
+            <a href="experts.html" class="nav-item ">
+                <span class="ni">🩺</span> Chuyên gia
+            </a>
+            <a href="community.html" class="nav-item ">
+                <span class="ni">👥</span> Cộng đồng
+            </a>
+
+            <div class="nav-section-label" style="margin-top:8px;">Phân tích</div>
+            <a href="report.html" class="nav-item ">
+                <span class="ni">📊</span> Báo cáo
+            </a>
+            <a href="achievements.html" class="nav-item ">
+                <span class="ni">🏅</span> Thành tích
+            </a>
+
+            <div class="nav-section-label" style="margin-top:8px;">Cài đặt</div>
+            <a href="profile.html" class="nav-item ">
+                <span class="ni">👤</span> Hồ sơ
+            </a>
+            <a href="settings.html" class="nav-item ">
+                <span class="ni">⚙️</span> Cài đặt
+            </a>
+            <a href="#" class="nav-item" onclick="handleLogout()" style="color:var(--coral); margin-top: 10px; border-top: 1px dashed var(--kraft-light); padding-top: 15px;">
+                <span class="ni">🚪</span> Đăng xuất
+            </a>
+        </nav>
+
+        <div class="sidebar-bottom">
+            <div class="user-card-mini">
+                <div class="user-avatar-mini">🐱</div>
+                <div class="user-info-mini">
+                    <div class="user-name">Khách hàng giả lập</div>
+                    <div class="user-level">⭐ 295 XP · Level 2</div>
+                </div>
+            </div>
+            <a href="emergency.html" class="emergency-btn">
+                🆘 Hỗ trợ khẩn cấp
+            </a>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <div class="breadcrumb">
+            <a href="dashboard.html">🏡 Tổng quan</a><span>›</span>
+            <span>🆘 Hỗ trợ khẩn cấp</span>
+        </div>
+
+        <!-- Hero -->
+        <div class="hero-section">
+            <div class="hs-deco1">❤️</div>
+            <div class="hs-deco2">🌿</div>
+            <div class="hs-heart">❤️</div>
+            <div class="hs-title">Bạn <span>không đơn độc</span></div>
+            <div class="hs-subtitle">Dù bạn đang cảm thấy thế nào lúc này — chúng tôi ở đây bên bạn. Hãy thở chậm lại và
+                chọn một hành động nhỏ bên dưới. Rồi chuyện này sẽ qua. 🌱</div>
+            <div class="hs-reassure">💚 Bạn đã dũng cảm khi tìm kiếm sự giúp đỡ</div>
+        </div>
+
+        <!-- Hotlines -->
+        <div class="section-title">📞 Liên hệ ngay — Miễn phí, 24/7</div>
+        <div class="hotline-grid">
+            <a href="tel:1800599920" class="paper-card hotline-card hc-main">
+                <div class="hc-icon">📞</div>
+                <div class="hc-num">1800-599-920</div>
+                <div class="hc-label">Đường dây nóng sức khỏe tâm thần</div>
+                <div class="hc-desc">Chuyên gia lắng nghe 24/7</div>
+                <div class="hc-badge">Miễn phí · Bảo mật</div>
+            </a>
+            <a href="experts.html" class="paper-card hotline-card hc-expert">
+                <div class="hc-icon">🩺</div>
+                <div class="hc-num">Chat ngay</div>
+                <div class="hc-label">Kết nối chuyên gia tâm lý</div>
+                <div class="hc-desc">Đặt lịch hoặc chat ngay</div>
+                <div class="hc-badge">Có chuyên gia online</div>
+            </a>
+            <a href="tel:115" class="paper-card hotline-card hc-rescue">
+                <div class="hc-icon">🚑</div>
+                <div class="hc-num">115</div>
+                <div class="hc-label">Cấp cứu y tế khẩn cấp</div>
+                <div class="hc-desc">Khi cần hỗ trợ y tế ngay lập tức</div>
+                <div class="hc-badge">Khẩn cấp</div>
+            </a>
+        </div>
+
+        <div class="emergency-layout">
+            <!-- LEFT -->
+            <div>
+                <!-- Breathing Exercise -->
+                <div class="paper-card breathing-card">
+                    <div class="bc-title">💨 Hít thở để ổn định ngay — Thở vuông 4-4-4</div>
+                    <div class="bc-desc">Kỹ thuật này giúp hệ thần kinh bình tĩnh trong vòng 2 phút</div>
+                    <div class="breath-circle" id="breathCircle" onclick="startBreathing()">
+                        <span id="breathText">Bắt đầu</span>
+                    </div>
+                    <div class="breath-label" id="breathLabel">Nhấn vào vòng tròn để bắt đầu</div>
+                    <div class="breath-progress" id="breathProgress">
+                        <div class="bp-dot"></div>
+                        <div class="bp-dot"></div>
+                        <div class="bp-dot"></div>
+                        <div class="bp-dot"></div>
+                        <div class="bp-dot"></div>
+                    </div>
+                    <div class="breath-controls">
+                        <button class="bc-ctrl-btn bc-start" id="breathStartBtn" onclick="startBreathing()">▶ Bắt đầu
+                            thở</button>
+                        <button class="bc-ctrl-btn bc-stop" id="breathStopBtn" onclick="stopBreathing()"
+                            style="display:none;">⏹ Dừng</button>
+                    </div>
+                </div>
+
+                <!-- Immediate Tasks -->
+                <div class="section-title">⚡ Bài tập ổn định tức thì</div>
+                <div class="task-grid" id="emergencyTaskGrid"></div>
+
+                <!-- 5-4-3-2-1 Grounding -->
+                <div class="paper-card grounding-card">
+                    <div class="section-title" style="margin-bottom:10px;">🌍 Bài tập 5-4-3-2-1 Grounding</div>
+                    <div style="font-size:0.78rem;color:var(--text-secondary);margin-bottom:12px;line-height:1.5;">Kéo
+                        tâm trí trở về hiện tại — nhấn vào từng bước khi hoàn thành:</div>
+                    <div class="grounding-steps" id="groundingSteps"></div>
+                    <div style="margin-top:10px;text-align:center;">
+                        <button
+                            style="padding:8px 20px;border:2px solid var(--mint-dark);border-radius:50px;background:var(--mint-light);color:var(--mint-dark);font-family:'Nunito',sans-serif;font-size:0.78rem;font-weight:700;cursor:pointer;"
+                            onclick="resetGrounding()">🔄 Làm lại từ đầu</button>
+                    </div>
+                </div>
+
+                <!-- Affirmations -->
+                <div class="paper-card affirmation-card">
+                    <div class="ac-title">💬 Lời khẳng định tích cực</div>
+                    <div class="affirmation-text" id="affirmationText" onclick="nextAffirmation()">
+                        "Tôi đủ mạnh để vượt qua khoảnh khắc này."
+                    </div>
+                    <div class="ac-hint">👆 Nhấn để xem lời khẳng định tiếp theo</div>
+                </div>
+
+                <!-- Disclaimer -->
+                <div
+                    style="padding:14px 16px;background:rgba(255,139,139,0.05);border:1.5px solid rgba(255,139,139,0.2);border-radius:var(--border-radius-sm);font-size:0.72rem;color:var(--text-secondary);line-height:1.6;margin-bottom:16px;">
+                    ⚠️ <strong>Lưu ý quan trọng:</strong> Ứng dụng này cung cấp công cụ hỗ trợ sức khỏe tinh thần, KHÔNG
+                    phải dịch vụ y tế hoặc chẩn đoán lâm sàng. Nếu bạn đang trong tình trạng khẩn cấp hoặc có ý định tự
+                    hại, hãy gọi ngay <strong>1800-599-920</strong> hoặc <strong>115</strong>.
+                </div>
+            </div>
+
+            <!-- RIGHT -->
+            <div>
+                <!-- Expert Quick Connect -->
+                <div class="paper-card right-card">
+                    <div class="rc-title">🩺 Chuyên gia đang online</div>
+                    <div class="expert-quick" id="expertQuick"></div>
+                    <a href="experts.html"
+                        style="display:block;margin-top:8px;padding:9px;border:1.5px solid var(--lavender);border-radius:50px;text-align:center;font-size:0.78rem;font-weight:700;color:#8a6aaa;text-decoration:none;transition:var(--transition);background:var(--lavender-light);">Xem
+                        tất cả chuyên gia →</a>
+                </div>
+
+                <!-- Safe Plan -->
+                <div class="paper-card safe-plan-card">
+                    <div class="rc-title">📋 Kế hoạch an toàn cá nhân</div>
+                    <div style="font-size:0.72rem;color:var(--text-secondary);margin-bottom:10px;line-height:1.5;">Khi
+                        cảm thấy không ổn, hãy làm theo thứ tự:</div>
+                    <div class="sp-step">
+                        <div class="sp-num">1</div>
+                        <div class="sp-text">Hít thở sâu 5 lần chậm rãi</div>
+                    </div>
+                    <div class="sp-step">
+                        <div class="sp-num">2</div>
+                        <div class="sp-text">Gọi cho người thân hoặc bạn bè tin tưởng</div>
+                    </div>
+                    <div class="sp-step">
+                        <div class="sp-num">3</div>
+                        <div class="sp-text">Gọi đường dây nóng 1800-599-920</div>
+                    </div>
+                    <div class="sp-step">
+                        <div class="sp-num">4</div>
+                        <div class="sp-text">Chat với PeaceCat hoặc chuyên gia</div>
+                    </div>
+                    <div class="sp-step">
+                        <div class="sp-num">5</div>
+                        <div class="sp-text">Đến cơ sở y tế gần nhất nếu cần</div>
+                    </div>
+                    <button
+                        style="width:100%;margin-top:10px;padding:8px;border:1.5px solid var(--mint-dark);border-radius:50px;background:var(--mint-dark);color:white;font-family:'Nunito',sans-serif;font-size:0.75rem;font-weight:700;cursor:pointer;"
+                        onclick="editSafePlan()">✏️ Tùy chỉnh kế hoạch của tôi</button>
+                </div>
+
+                <!-- PeaceCat Message -->
+                <div class="paper-card message-card">
+                    <div class="mc-mascot">🐱</div>
+                    <div class="mc-text" id="PeaceCatMessage">"Mình ở đây bên bạn. Hãy thở chậm lại — bạn đang làm rất
+                        tốt
+                        khi tìm kiếm sự giúp đỡ. Từng bước nhỏ thôi nhé. 💚"</div>
+                </div>
+
+                <!-- Resources -->
+                <div class="paper-card right-card">
+                    <div class="rc-title">📚 Tài nguyên hỗ trợ</div>
+                    <a href="mood-chat.html" class="resource-item"><span class="ri-icon">💬</span><span
+                            class="ri-text">Chat với PeaceCat AI</span><span class="ri-arrow">›</span></a>
+                    <a href="tasks.html" class="resource-item"><span class="ri-icon">🎮</span><span
+                            class="ri-text">Nhiệm vụ khẩn cấp</span><span class="ri-arrow">›</span></a>
+                    <a href="journal.html" class="resource-item"><span class="ri-icon">📝</span><span
+                            class="ri-text">Viết nhật ký cảm xúc</span><span class="ri-arrow">›</span></a>
+                    <a href="community.html" class="resource-item"><span class="ri-icon">👥</span><span
+                            class="ri-text">Chia sẻ với cộng đồng</span><span class="ri-arrow">›</span></a>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // ============================================================
+        // DATA
+        // ============================================================
+        const EMERGENCY_TASKS = [
+            { icon: '🌊', title: 'Tách biệt môi trường', desc: 'Tìm một không gian yên tĩnh, ngồi xuống và đặt tay lên ngực.', time: '2-5 phút', steps: ['Rời khỏi không gian ồn ào', 'Tìm chỗ ngồi yên tĩnh', 'Đặt tay lên ngực, cảm nhận nhịp tim', 'Nhắm mắt và thở chậm 5 lần', 'Mở mắt, nhìn xung quanh'] },
+            { icon: '🛑', title: 'Stop-Drop-Breathe', desc: 'Dừng mọi suy nghĩ tiêu cực và tập trung vào hơi thở ngay lập tức.', time: '1-2 phút', steps: ['STOP — Dừng lại hoàn toàn', 'DROP — Buông bỏ mọi suy nghĩ', 'BREATHE — Hít thở sâu 3 lần', 'Thay thế bằng: "Tôi an toàn. Tôi ổn."'] },
+            { icon: '💧', title: 'Rửa mặt nước lạnh', desc: 'Nước lạnh kích hoạt phản xạ làm chậm nhịp tim, giảm lo âu ngay.', time: '1 phút', steps: ['Đến bồn rửa mặt', 'Mở nước lạnh', 'Rửa mặt 3-5 lần', 'Cảm nhận cảm giác mát lạnh', 'Nhìn vào gương và thở chậm'] },
+            { icon: '☕', title: 'Cầm cốc nước ấm', desc: 'Nhiệt ấm giúp hệ thần kinh bình tĩnh và kéo tâm trí về hiện tại.', time: '3 phút', steps: ['Pha một cốc nước ấm hoặc trà', 'Cầm cốc bằng cả hai tay', 'Cảm nhận hơi ấm truyền qua lòng bàn tay', 'Hít thở mùi thơm nếu có', 'Uống từng ngụm chậm rãi'] },
+            { icon: '🤲', title: 'Tha thứ cho bản thân', desc: 'Viết ra điều bạn đang tự trách và buông bỏ nó.', time: '3-5 phút', steps: ['Lấy giấy bút hoặc mở nhật ký', 'Viết: "Tôi đang tự trách mình vì..."', 'Viết tiếp: "Nhưng tôi tha thứ cho bản thân vì..."', 'Đọc to lên 3 lần', 'Xé tờ giấy đó đi (tượng trưng buông bỏ)'] },
+            { icon: '🎵', title: 'Khóc nếu cần', desc: 'Khóc là cơ chế tự nhiên giải phóng căng thẳng — hãy cho phép bản thân.', time: 'Không giới hạn', steps: ['Tìm không gian riêng tư', 'Bật nhạc nhẹ nhàng nếu muốn', 'Cho phép bản thân khóc tự nhiên', 'Không phán xét cảm xúc của mình', 'Sau đó uống nước và nghỉ ngơi'] },
+        ];
+
+        const GROUNDING_STEPS = [
+            { num: '5', title: '5 thứ bạn NHÌN thấy', desc: 'Nhìn xung quanh và đặt tên 5 vật thể bạn thấy ngay lúc này' },
+            { num: '4', title: '4 thứ bạn CÓ THỂ CHẠM', desc: 'Chạm vào 4 bề mặt khác nhau — bàn, ghế, quần áo, tường...' },
+            { num: '3', title: '3 âm thanh bạn NGHE', desc: 'Lắng nghe và nhận ra 3 âm thanh đang xảy ra xung quanh bạn' },
+            { num: '2', title: '2 mùi bạn NGỬI được', desc: 'Ngửi không khí, quần áo, hoặc bất cứ thứ gì gần bạn' },
+            { num: '1', title: '1 thứ bạn NẾM được', desc: 'Uống một ngụm nước hoặc cảm nhận vị trong miệng' },
+        ];
+
+        const AFFIRMATIONS = [
+            "Mọi cảm xúc của tôi hiện tại đều hợp lệ và đáng được tôn trọng.",
+            "Tôi cho phép bản thân mình được nghỉ ngơi mà không cảm thấy tội lỗi.",
+            "Tôi buông bỏ những điều nằm ngoài tầm kiểm soát của mình.",
+            "Điều này rồi cũng sẽ qua.",
+            "Tôi không nhất thiết phải giải quyết mọi thứ ngay trong lúc này.",
+            "Tôi chấp nhận rằng mình không hoàn hảo, và điều đó hoàn toàn ổn.",
+            "Tôi hít vào sự bình tĩnh và thở ra những căng thẳng.",
+            "Tôi đủ mạnh mẽ để vượt qua khoảnh khắc khó khăn này.",
+            "Tôi đã từng vượt qua nhiều thử thách, và lần này tôi cũng sẽ làm được.",
+            "Áp lực hiện tại là để tôi trưởng thành, không phải để quật ngã tôi.",
+            "Tôi có khả năng tìm ra giải pháp cho mọi vấn đề tôi đối mặt.",
+            "Sự lo lắng không làm thay đổi tương lai, nhưng sự bình tĩnh sẽ giúp tôi xử lý nó.",
+            "Tôi tin tưởng vào khả năng xoay sở và khả năng phục hồi của bản thân.",
+            "Tôi là người làm chủ tâm trí mình, không phải là nô lệ của nỗi sợ.",
+            "Ngay lúc này, tôi đang an toàn.",
+            "Tôi chọn tập trung vào từng bước nhỏ trước mắt thay vì lo lắng cho cả hành trình.",
+            "Tôi làm chủ hơi thở của mình, và hơi thở sẽ dẫn lối tôi về sự bình yên.",
+            "Quá khứ đã qua, tương lai chưa tới, tôi chỉ sống cho hiện tại này.",
+            "Mỗi nhịp thở giúp tôi cảm thấy vững chãi và kết nối với mặt đất hơn.",
+            "Thế giới vẫn đang vận hành, và tôi có quyền sống chậm lại một chút.",
+            "Tôi chọn tin tưởng vào bản thân mình."
+        ];
+
+        const EXPERTS_ONLINE = [
+            { name: 'ThS. Lan Anh', avatar: '👩‍⚕️', online: true },
+            { name: 'BS. Minh Tâm', avatar: '🧑‍⚕️', online: true },
+            { name: 'ThS. Hoài Phương', avatar: '👩', online: false },
+        ];
+
+        const PeaceCAT_MESSAGES = [
+            '"Mình ở đây bên bạn. Hãy thở chậm lại — bạn đang làm rất tốt khi tìm kiếm sự giúp đỡ. Từng bước nhỏ thôi nhé. 💚"',
+            '"Bạn không cần mạnh mẽ một mình. Chỉ cần đi từng bước nhỏ trong lúc này thôi. 🌿"',
+            '"Khoảnh khắc khó khăn này không kéo dài mãi. Mình sẽ ở đây cùng bạn. 🐱"',
+            '"Bạn xứng đáng được an toàn, được lắng nghe và được yêu thương. ✨"'
+        ];
+
+        let affirmationIndex = Math.floor(Math.random() * AFFIRMATIONS.length);
+        let breathInterval = null;
+        let breathPhase = 0;
+        let breathCycle = 0;
+        let modalTimerInterval = null;
+        let modalTimerSeconds = 0;
+        let groundingDone = new Set();
+
+        // ============================================================
+        // RENDER
+        // ============================================================
+        function init() {
+            renderEmergencyTasks();
+            renderGrounding();
+            renderExperts();
+            rotatePeaceCatMessage();
+            document.getElementById('affirmationText').textContent = `"${AFFIRMATIONS[affirmationIndex]}"`;
+        }
+
+        function renderEmergencyTasks() {
+            const el = document.getElementById('emergencyTaskGrid');
+            el.innerHTML = EMERGENCY_TASKS.map((t, i) => `
+            <div class="paper-card etask-card" onclick="openTaskModal(${i})">
+                <div class="etc-icon">${t.icon}</div>
+                <div class="etc-title">${t.title}</div>
+                <div class="etc-desc">${t.desc}</div>
+                <div class="etc-meta">
+                    <div class="etc-time">⏱ ${t.time}</div>
+                </div>
+                <button class="etc-btn" onclick="event.stopPropagation();openTaskModal(${i})">▶ Bắt đầu</button>
+            </div>
+        `).join('');
+        }
+
+        function renderGrounding() {
+            const el = document.getElementById('groundingSteps');
+            el.innerHTML = GROUNDING_STEPS.map((s, i) => `
+            <div class="gs-item ${groundingDone.has(i) ? 'done' : ''}" onclick="toggleGrounding(${i})">
+                <div class="gs-num">${s.num}</div>
+                <div class="gs-content">
+                    <div class="gs-title">${s.title}</div>
+                    <div class="gs-desc">${s.desc}</div>
+                </div>
+                <div class="gs-check">✅</div>
+            </div>
+        `).join('');
+        }
+
+        function renderExperts() {
+            const el = document.getElementById('expertQuick');
+            el.innerHTML = EXPERTS_ONLINE.map(e => `
+            <div class="eq-item">
+                <div class="eq-avatar">${e.avatar}</div>
+                <div class="eq-info">
+                    <div class="eq-name">${e.name}</div>
+                    <div class="eq-status">${e.online ? '🟢 Đang online' : '⚫ Offline'}</div>
+                </div>
+                <button class="eq-btn" onclick="connectExpert('${e.name}')">${e.online ? 'Chat ngay' : 'Đặt lịch'}</button>
+            </div>
+        `).join('');
+        }
+
+        function rotatePeaceCatMessage() {
+            const el = document.getElementById('PeaceCatMessage');
+            let idx = 0;
+            el.textContent = PeaceCAT_MESSAGES[0];
+            setInterval(() => {
+                idx = (idx + 1) % PeaceCAT_MESSAGES.length;
+                el.style.opacity = '0';
+                setTimeout(() => {
+                    el.textContent = PeaceCAT_MESSAGES[idx];
+                    el.style.opacity = '1';
+                }, 400);
+            }, 6000);
+        }
+
+        // ============================================================
+        // BREATHING
+        // ============================================================
+        const BREATH_PHASES = [
+            { label: 'Hít vào... (4 giây)', class: 'inhale', text: 'Hít vào', duration: 4000 },
+            { label: 'Giữ hơi... (4 giây)', class: 'hold', text: 'Giữ', duration: 4000 },
+            { label: 'Thở ra... (4 giây)', class: 'exhale', text: 'Thở ra', duration: 4000 },
+            { label: 'Nghỉ... (2 giây)', class: '', text: 'Nghỉ', duration: 2000 },
+        ];
+
+        function startBreathing() {
+            if (breathInterval) return;
+            document.getElementById('breathStartBtn').style.display = 'none';
+            document.getElementById('breathStopBtn').style.display = 'inline-flex';
+            breathPhase = 0;
+            breathCycle = 0;
+            runBreathPhase();
+        }
+
+        function runBreathPhase() {
+            const phase = BREATH_PHASES[breathPhase];
+            const circle = document.getElementById('breathCircle');
+            const label = document.getElementById('breathLabel');
+            const textEl = document.getElementById('breathText');
+            circle.className = 'breath-circle ' + phase.class;
+            label.textContent = phase.label;
+            textEl.textContent = phase.text;
+            updateBreathDots();
+            breathInterval = setTimeout(() => {
+                breathInterval = null;
+                breathPhase = (breathPhase + 1) % BREATH_PHASES.length;
+                if (breathPhase === 0) {
+                    breathCycle++;
+                    if (breathCycle >= 5) {
+                        stopBreathing(true);
+                        return;
+                    }
+                }
+                runBreathPhase();
+            }, phase.duration);
+        }
+
+        function stopBreathing(completed = false) {
+            if (breathInterval) { clearTimeout(breathInterval); breathInterval = null; }
+            const circle = document.getElementById('breathCircle');
+            circle.className = 'breath-circle';
+            document.getElementById('breathText').textContent = 'Bắt đầu';
+            document.getElementById('breathLabel').textContent = completed ? '🎉 Tuyệt vời! Bạn đã hoàn thành 5 vòng thở!' : 'Nhấn vào vòng tròn để bắt đầu';
+            document.getElementById('breathStartBtn').style.display = 'inline-flex';
+            document.getElementById('breathStopBtn').style.display = 'none';
+            if (completed) showToast('🌬️ Hoàn thành bài thở! Bạn cảm thấy tốt hơn chưa?');
+        }
+
+        function updateBreathDots() {
+            const dots = document.querySelectorAll('.bp-dot');
+            dots.forEach((d, i) => d.classList.toggle('active', i < breathCycle + 1));
+        }
+
+        // ============================================================
+        // GROUNDING
+        // ============================================================
+        function toggleGrounding(idx) {
+            if (groundingDone.has(idx)) groundingDone.delete(idx);
+            else groundingDone.add(idx);
+            renderGrounding();
+            if (groundingDone.size === GROUNDING_STEPS.length) {
+                showToast('🌍 Tuyệt vời! Bạn đã hoàn thành bài tập Grounding 5-4-3-2-1!');
+            }
+        }
+
+        function resetGrounding() {
+            groundingDone.clear();
+            renderGrounding();
+        }
+
+        // ============================================================
+        // AFFIRMATIONS
+        // ============================================================
+        function nextAffirmation() {
+            affirmationIndex = (affirmationIndex + 1) % AFFIRMATIONS.length;
+            const el = document.getElementById('affirmationText');
+            el.style.opacity = '0';
+            setTimeout(() => {
+                el.textContent = `"${AFFIRMATIONS[affirmationIndex]}"`;
+                el.style.opacity = '1';
+            }, 200);
+        }
+
+        // ============================================================
+        // TASK MODAL
+        // ============================================================
+        function openTaskModal(idx) {
+            const t = EMERGENCY_TASKS[idx];
+            document.getElementById('tmIcon').innerText = t.icon;
+            document.getElementById('tmTitle').innerText = t.title;
+            document.getElementById('tmDesc').innerText = t.desc;
+            const stepsEl = document.getElementById('tmSteps');
+            stepsEl.innerHTML = t.steps.map((s, i) => `
+            <div class="tm-step">
+                <div class="tm-step-num">${i + 1}</div>
+                <div class="tm-step-text">${s}</div>
+            </div>
+        `).join('');
+
+            const timerEl = document.getElementById('tmTimer');
+            if (t.time && t.time.includes('phút')) {
+                timerEl.style.display = 'block';
+                modalTimerSeconds = parseInt(t.time) * 60 || 120;
+                updateModalTimerDisplay();
+            } else {
+                timerEl.style.display = 'none';
+            }
+
+            ModalModule.open('taskModalOverlay');
+        }
+
+        function closeTaskModal(event) {
+            if (event.target.id === 'taskModalOverlay') closeTaskModalDirect();
+        }
+
+        function closeTaskModalDirect() {
+            ModalModule.close('taskModalOverlay');
+            stopModalTimer();
+        }
+
+        function startModalTimer() {
+            if (modalTimerInterval) return;
+            document.getElementById('tmStartBtn').style.display = 'none';
+            modalTimerInterval = setInterval(() => {
+                modalTimerSeconds--;
+                updateModalTimerDisplay();
+                if (modalTimerSeconds <= 0) {
+                    stopModalTimer();
+                    showToast('✨ Bài tập kết thúc! Bạn làm tốt lắm.');
+                }
+            }, 1000);
+        }
+
+        function stopModalTimer() {
+            if (modalTimerInterval) {
+                clearInterval(modalTimerInterval);
+                modalTimerInterval = null;
+            }
+            document.getElementById('tmStartBtn').style.display = 'inline-flex';
+        }
+
+        function updateModalTimerDisplay() {
+            const m = Math.floor(modalTimerSeconds / 60).toString().padStart(2, '0');
+            const s = (modalTimerSeconds % 60).toString().padStart(2, '0');
+            document.getElementById('tmTimerNum').innerText = `${m}:${s}`;
+        }
+
+        // ============================================================
+        // UTILITIES
+        // ============================================================
+        function showToast(msg) {
+            const el = document.getElementById('toast');
+            const text = document.getElementById('toastText');
+            if (!el || !text) return;
+            text.innerText = msg;
+            el.className = 'toast show';
+            setTimeout(() => el.classList.remove('show'), 3000);
+        }
+
+        function connectExpert(name) {
+            showToast('🚀 Đang kết nối với ' + name + '...');
+            setTimeout(() => { window.location.href = 'experts.html'; }, 1500);
+        }
+
+        function editSafePlan() {
+            showToast('📝 Tính năng tùy chỉnh kế hoạch sẽ sớm ra mắt!');
+        }
+
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('open');
+            document.getElementById('sidebarOverlay').classList.toggle('open');
+        }
+
+        function closeSidebar() {
+            document.getElementById('sidebar').classList.remove('open');
+            document.getElementById('sidebarOverlay').classList.remove('open');
+        }
+
+        const ModalModule = {
+            open(id) { document.getElementById(id).classList.add('show'); },
+            close(id) { document.getElementById(id).classList.remove('show'); }
+        };
+
+        window.onload = init;
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../public/js/supabase-config.js"></script>
+    <script src="../public/js/app.js"></script>
+</body>
+
+</html>

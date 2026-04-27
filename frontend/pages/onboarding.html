@@ -1,0 +1,1769 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PeaceFlow — Bắt Đầu Hành Trình</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Patrick+Hand&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --cream: #FFF8F0;
+            --warm-white: #FFFDF7;
+            --kraft: #D4A574;
+            --kraft-light: #E8CBA7;
+            --kraft-dark: #B8895A;
+            --mint: #A8D5BA;
+            --mint-light: #C5E8D2;
+            --mint-dark: #7BBF95;
+            --peach: #FFCBA4;
+            --peach-light: #FFE0C4;
+            --peach-dark: #E8A876;
+            --sky: #A8D8EA;
+            --sky-light: #C5E8F5;
+            --lavender: #C3AED6;
+            --lavender-light: #DDD1EB;
+            --coral: #FF8B8B;
+            --coral-light: #FFB3B3;
+            --text-primary: #4A3728;
+            --text-secondary: #7A6555;
+            --text-light: #A89585;
+            --shadow-paper: 3px 3px 0px rgba(74, 55, 40, 0.1);
+            --shadow-paper-hover: 5px 5px 0px rgba(74, 55, 40, 0.15);
+            --shadow-soft: 0 4px 15px rgba(74, 55, 40, 0.08);
+            --border-radius: 16px;
+            --border-radius-sm: 10px;
+            --border-radius-lg: 24px;
+            --transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background-color: var(--cream);
+            color: var(--text-primary);
+            line-height: 1.6;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        .handwritten {
+            font-family: 'Patrick Hand', cursive;
+        }
+
+        .paper-card {
+            background: var(--warm-white);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-paper);
+            border: 2px solid var(--kraft-light);
+            position: relative;
+            transition: var(--transition);
+        }
+
+        /* ===== PROGRESS BAR ===== */
+        .progress-bar-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 6px;
+            background: var(--kraft-light);
+            z-index: 300;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--mint-dark), var(--mint));
+            border-radius: 0 3px 3px 0;
+            transition: width 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        /* ===== LOGO ===== */
+        .onboarding-logo {
+            position: fixed;
+            top: 16px;
+            left: 24px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+            z-index: 300;
+        }
+
+        .onboarding-logo .logo-icon {
+            width: 36px;
+            height: 36px;
+            background: var(--mint);
+            border-radius: 10px;
+            border: 2px solid var(--mint-dark);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            box-shadow: 2px 2px 0px var(--mint-dark);
+        }
+
+        .onboarding-logo .logo-text {
+            font-size: 1.2rem;
+            font-weight: 800;
+            color: var(--text-primary);
+        }
+
+        .onboarding-logo .logo-text span {
+            color: var(--mint-dark);
+        }
+
+        /* ===== STEP DOTS ===== */
+        .step-dots {
+            position: fixed;
+            top: 20px;
+            right: 24px;
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            z-index: 300;
+        }
+
+        .step-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--kraft-light);
+            border: 2px solid var(--kraft);
+            transition: var(--transition);
+            cursor: pointer;
+        }
+
+        .step-dot.active {
+            background: var(--mint-dark);
+            border-color: var(--mint-dark);
+            transform: scale(1.3);
+        }
+
+        .step-dot.done {
+            background: var(--mint);
+            border-color: var(--mint-dark);
+        }
+
+        /* ===== BG DECORATIONS ===== */
+        .bg-deco {
+            position: fixed;
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0.1;
+            font-size: 3rem;
+            animation: float-deco 8s ease-in-out infinite;
+        }
+
+        .bg-deco-1 {
+            top: 8%;
+            left: 5%;
+        }
+
+        .bg-deco-2 {
+            top: 15%;
+            right: 8%;
+            animation-delay: -2s;
+            font-size: 2rem;
+        }
+
+        .bg-deco-3 {
+            bottom: 20%;
+            left: 8%;
+            animation-delay: -4s;
+            font-size: 2.5rem;
+        }
+
+        .bg-deco-4 {
+            bottom: 10%;
+            right: 5%;
+            animation-delay: -6s;
+        }
+
+        .bg-deco-5 {
+            top: 45%;
+            left: 2%;
+            animation-delay: -1s;
+            font-size: 1.5rem;
+        }
+
+        .bg-deco-6 {
+            top: 40%;
+            right: 3%;
+            animation-delay: -3s;
+            font-size: 1.5rem;
+        }
+
+        @keyframes float-deco {
+
+            0%,
+            100% {
+                transform: translateY(0) rotate(0deg);
+            }
+
+            50% {
+                transform: translateY(-20px) rotate(5deg);
+            }
+        }
+
+        /* ===== WRAPPER ===== */
+        .onboarding-wrapper {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 80px 24px 40px;
+            position: relative;
+        }
+
+        /* ===== STEP SCREENS ===== */
+        .step-screen {
+            display: none;
+            width: 100%;
+            max-width: 600px;
+            position: relative;
+            z-index: 1;
+            animation: step-enter 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        .step-screen.active {
+            display: block;
+        }
+
+        @keyframes step-enter {
+            from {
+                opacity: 0;
+                transform: translateY(24px) scale(0.97);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        /* ===== BUTTONS ===== */
+        .btn-next {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 13px 28px;
+            border: 2px solid var(--mint-dark);
+            border-radius: 50px;
+            background: var(--mint);
+            color: var(--text-primary);
+            font-family: 'Nunito', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: var(--transition);
+            box-shadow: 3px 3px 0px var(--mint-dark);
+            text-decoration: none;
+        }
+
+        .btn-next:hover {
+            background: var(--mint-dark);
+            color: white;
+            box-shadow: 1px 1px 0px var(--mint-dark);
+            transform: translate(2px, 2px);
+        }
+
+        .btn-back {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 10px 20px;
+            border: 2px solid var(--kraft-light);
+            border-radius: 50px;
+            background: transparent;
+            color: var(--text-secondary);
+            font-family: 'Nunito', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .btn-back:hover {
+            background: var(--kraft-light);
+            color: var(--text-primary);
+        }
+
+        .btn-skip {
+            padding: 10px 20px;
+            border: none;
+            background: none;
+            color: var(--text-light);
+            font-family: 'Nunito', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            text-decoration: underline;
+        }
+
+        .btn-skip:hover {
+            color: var(--text-secondary);
+        }
+
+        .step-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 24px;
+            gap: 12px;
+        }
+
+        .step-nav.center {
+            justify-content: center;
+        }
+
+        /* ===== FORM ===== */
+        .form-input {
+            padding: 12px 16px;
+            border: 2px solid var(--kraft-light);
+            border-radius: var(--border-radius-sm);
+            background: var(--warm-white);
+            font-family: 'Nunito', sans-serif;
+            font-size: 0.95rem;
+            color: var(--text-primary);
+            transition: var(--transition);
+            outline: none;
+            width: 100%;
+        }
+
+        .form-input:focus {
+            border-color: var(--mint);
+            box-shadow: 0 0 0 3px rgba(168, 213, 186, 0.2);
+        }
+
+        .form-input::placeholder {
+            color: var(--text-light);
+        }
+
+        /* ===== STEP TITLES ===== */
+        .step-title {
+            font-size: 1.5rem;
+            font-weight: 800;
+            margin-bottom: 8px;
+        }
+
+        .step-subtitle {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-bottom: 24px;
+        }
+
+        /* ===== NOTE BOXES ===== */
+        .note-box {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            padding: 12px 16px;
+            border-radius: var(--border-radius-sm);
+            font-size: 0.82rem;
+            color: var(--text-secondary);
+            margin-top: 10px;
+        }
+
+        .note-box.sky {
+            background: var(--sky-light);
+            border: 1.5px solid var(--sky);
+        }
+
+        .note-box.mint {
+            background: var(--mint-light);
+            border: 1.5px solid var(--mint);
+        }
+
+        /* ============================================
+           STEP 0 — WELCOME SCREEN
+           ============================================ */
+        .welcome-card {
+            padding: 48px 40px;
+            text-align: center;
+        }
+
+        .welcome-scene {
+            width: 200px;
+            height: 160px;
+            margin: 0 auto 28px;
+            position: relative;
+            background: var(--sky-light);
+            border-radius: 16px;
+            overflow: hidden;
+        }
+
+        .w-sun {
+            position: absolute;
+            top: 12px;
+            right: 18px;
+            width: 38px;
+            height: 38px;
+            background: var(--peach);
+            border-radius: 50%;
+            box-shadow: 0 0 18px rgba(255, 203, 164, 0.5);
+            animation: float-s 4s ease-in-out infinite;
+        }
+
+        .w-cloud {
+            position: absolute;
+            background: white;
+            border-radius: 50px;
+            box-shadow: 1px 1px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .w-cloud-1 {
+            top: 22px;
+            left: 12px;
+            width: 52px;
+            height: 20px;
+            animation: float-s 6s ease-in-out infinite;
+        }
+
+        .w-cloud-2 {
+            top: 38px;
+            right: 48px;
+            width: 38px;
+            height: 15px;
+            animation: float-s 7s ease-in-out infinite;
+            animation-delay: -2s;
+        }
+
+        .w-mountain-back {
+            position: absolute;
+            bottom: 24px;
+            left: 8%;
+            width: 84%;
+            height: 80px;
+            background: var(--mint-light);
+            clip-path: polygon(0% 100%, 20% 30%, 50% 65%, 80% 20%, 100% 100%);
+            opacity: 0.8;
+        }
+
+        .w-mountain-front {
+            position: absolute;
+            bottom: 24px;
+            left: 4%;
+            width: 92%;
+            height: 60px;
+            background: var(--mint);
+            clip-path: polygon(0% 100%, 25% 40%, 55% 72%, 80% 22%, 100% 100%);
+        }
+
+        .w-ground {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 26px;
+            background: var(--mint-dark);
+        }
+
+        .w-mascot {
+            position: absolute;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            animation: mascot-b 3s ease-in-out infinite;
+        }
+
+        .w-mascot-body {
+            width: 42px;
+            height: 50px;
+            background: var(--peach-light);
+            border: 2px solid var(--kraft);
+            border-radius: 21px 21px 13px 13px;
+            position: relative;
+        }
+
+        .w-mascot-ears {
+            position: absolute;
+            top: -9px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 36px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .w-mascot-ear {
+            width: 9px;
+            height: 12px;
+            background: var(--peach);
+            border: 1.5px solid var(--kraft);
+            border-radius: 50% 50% 0 0;
+        }
+
+        .w-mascot-eyes {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 11px;
+        }
+
+        .w-mascot-eye {
+            width: 5px;
+            height: 5px;
+            background: var(--text-primary);
+            border-radius: 50%;
+            animation: blink-e 4s ease-in-out infinite;
+        }
+
+        .w-mascot-mouth {
+            width: 10px;
+            height: 5px;
+            border-bottom: 2px solid var(--text-primary);
+            border-radius: 0 0 50% 50%;
+            margin: 3px auto 0;
+        }
+
+        @keyframes float-s {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-8px);
+            }
+        }
+
+        @keyframes mascot-b {
+
+            0%,
+            100% {
+                transform: translateX(-50%) translateY(0);
+            }
+
+            50% {
+                transform: translateX(-50%) translateY(-5px);
+            }
+        }
+
+        @keyframes blink-e {
+
+            0%,
+            45%,
+            55%,
+            100% {
+                transform: scaleY(1);
+            }
+
+            50% {
+                transform: scaleY(0.1);
+            }
+        }
+
+        .welcome-quote {
+            font-size: 1rem;
+            color: var(--mint-dark);
+            margin-bottom: 10px;
+            font-style: italic;
+        }
+
+        .welcome-title {
+            font-size: 1.55rem;
+            font-weight: 800;
+            line-height: 1.3;
+            margin-bottom: 12px;
+        }
+
+        .welcome-title .hl {
+            color: var(--mint-dark);
+            position: relative;
+        }
+
+        .welcome-title .hl::after {
+            content: '';
+            position: absolute;
+            bottom: 1px;
+            left: 0;
+            right: 0;
+            height: 6px;
+            background: var(--mint-light);
+            z-index: -1;
+            border-radius: 3px;
+        }
+
+        .welcome-sub {
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+            margin-bottom: 28px;
+            line-height: 1.7;
+        }
+
+        /* ============================================
+           STEP 1 — AUTH
+           ============================================ */
+        .auth-card {
+            padding: 40px 36px;
+        }
+
+        .auth-options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 18px;
+        }
+
+        .auth-btn {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 20px;
+            border: 2px solid var(--kraft-light);
+            border-radius: var(--border-radius-sm);
+            background: var(--warm-white);
+            cursor: pointer;
+            font-family: 'Nunito', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            transition: var(--transition);
+            box-shadow: var(--shadow-paper);
+        }
+
+        .auth-btn:hover {
+            background: var(--cream);
+            box-shadow: var(--shadow-paper-hover);
+            transform: translateY(-1px);
+        }
+
+        .auth-btn .auth-icon {
+            font-size: 1.3rem;
+        }
+
+        .auth-btn .auth-label {
+            flex: 1;
+            text-align: left;
+        }
+
+        .auth-btn .auth-arrow {
+            color: var(--text-light);
+            font-size: 1.2rem;
+        }
+
+        .auth-divider {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 14px 0;
+            color: var(--text-light);
+            font-size: 0.85rem;
+        }
+
+        .auth-divider::before,
+        .auth-divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--kraft-light);
+        }
+
+        .auth-form {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        /* ============================================
+           STEP 2 — PROFILING
+           ============================================ */
+        .profile-card {
+            padding: 40px 36px;
+        }
+
+        .q-label {
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 14px;
+            color: var(--text-primary);
+        }
+
+        .q-label .qi {
+            font-size: 1.1rem;
+            margin-right: 5px;
+        }
+
+        .q-block {
+            margin-bottom: 22px;
+        }
+
+        .age-options {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+
+        .option-chip {
+            padding: 11px 14px;
+            border: 2px solid var(--kraft-light);
+            border-radius: var(--border-radius-sm);
+            background: var(--warm-white);
+            cursor: pointer;
+            font-family: 'Nunito', sans-serif;
+            font-size: 0.88rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-align: center;
+            transition: var(--transition);
+            box-shadow: var(--shadow-paper);
+        }
+
+        .option-chip:hover,
+        .option-chip.selected {
+            background: var(--mint-light);
+            border-color: var(--mint-dark);
+            color: var(--text-primary);
+            box-shadow: 2px 2px 0px var(--mint-dark);
+            transform: translate(-1px, -1px);
+        }
+
+        .avatar-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+        }
+
+        .avatar-option {
+            aspect-ratio: 1;
+            border: 2.5px solid var(--kraft-light);
+            border-radius: var(--border-radius-sm);
+            background: var(--warm-white);
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 3px;
+            transition: var(--transition);
+            box-shadow: var(--shadow-paper);
+            padding: 6px;
+        }
+
+        .avatar-option:hover,
+        .avatar-option.selected {
+            border-color: var(--mint-dark);
+            background: var(--mint-light);
+            box-shadow: 3px 3px 0px var(--mint-dark);
+            transform: translate(-1px, -1px);
+        }
+
+        .avatar-option .av-emoji {
+            font-size: 1.8rem;
+        }
+
+        .avatar-option .av-name {
+            font-size: 0.6rem;
+            font-weight: 700;
+            color: var(--text-light);
+        }
+
+        .reason-options {
+            display: flex;
+            flex-direction: column;
+            gap: 9px;
+        }
+
+        .reason-option {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 13px 15px;
+            border: 2px solid var(--kraft-light);
+            border-radius: var(--border-radius-sm);
+            background: var(--warm-white);
+            cursor: pointer;
+            transition: var(--transition);
+            box-shadow: var(--shadow-paper);
+        }
+
+        .reason-option:hover,
+        .reason-option.selected {
+            background: var(--peach-light);
+            border-color: var(--peach-dark);
+            box-shadow: 2px 2px 0px var(--peach-dark);
+            transform: translate(-1px, -1px);
+        }
+
+        .reason-option .ri {
+            font-size: 1.3rem;
+        }
+
+        .reason-option .rt {
+            font-size: 0.88rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        /* ============================================
+           STEP 3 — MINDSET FLIP CARDS
+           ============================================ */
+        .mindset-card {
+            padding: 40px 36px;
+        }
+
+        .mindset-intro {
+            font-size: 0.88rem;
+            color: var(--text-secondary);
+            margin-bottom: 18px;
+            line-height: 1.6;
+        }
+
+        .mindset-progress {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-bottom: 18px;
+        }
+
+        .mindset-progress-bar {
+            flex: 1;
+            height: 6px;
+            background: var(--kraft-light);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .mindset-progress-fill {
+            height: 100%;
+            background: var(--mint-dark);
+            border-radius: 3px;
+            transition: width 0.4s ease;
+        }
+
+        .flip-cards-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .flip-card {
+            border: 2px solid var(--kraft-light);
+            border-radius: var(--border-radius);
+            background: var(--warm-white);
+            cursor: pointer;
+            transition: var(--transition);
+            box-shadow: var(--shadow-paper);
+            overflow: hidden;
+        }
+
+        .flip-card:hover {
+            box-shadow: var(--shadow-paper-hover);
+            transform: translateY(-1px);
+        }
+
+        .flip-card.flipped {
+            border-color: var(--mint-dark);
+            background: var(--mint-light);
+        }
+
+        .flip-card-front {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 15px 18px;
+        }
+
+        .fci {
+            font-size: 1.5rem;
+            flex-shrink: 0;
+        }
+
+        .fct {
+            font-size: 0.88rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            flex: 1;
+        }
+
+        .flip-card.flipped .fct {
+            color: var(--mint-dark);
+        }
+
+        .fca {
+            font-size: 1rem;
+            color: var(--text-light);
+            transition: var(--transition);
+        }
+
+        .flip-card.flipped .fca {
+            display: none;
+        }
+
+        .fcc {
+            display: none;
+            font-size: 1rem;
+        }
+
+        .flip-card.flipped .fcc {
+            display: inline;
+        }
+
+        .flip-card-back {
+            display: none;
+            padding: 0 18px 14px 46px;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        .flip-card.flipped .flip-card-back {
+            display: block;
+        }
+
+        /* ============================================
+           STEP 4 — DEVICE CONNECT
+           ============================================ */
+        .device-card {
+            padding: 40px 36px;
+        }
+
+        .optional-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: var(--lavender-light);
+            color: var(--lavender);
+            padding: 3px 10px;
+            border-radius: 50px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            border: 1.5px solid var(--lavender);
+            margin-bottom: 14px;
+        }
+
+        .data-collected {
+            padding: 12px 15px;
+            background: var(--sky-light);
+            border: 1.5px solid var(--sky);
+            border-radius: var(--border-radius-sm);
+            font-size: 0.82rem;
+            color: var(--text-secondary);
+            margin-bottom: 16px;
+        }
+
+        .data-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 8px;
+        }
+
+        .data-tag {
+            padding: 3px 10px;
+            background: var(--sky);
+            border-radius: 50px;
+            font-size: 0.73rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .device-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .device-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 16px;
+            border: 2px solid var(--kraft-light);
+            border-radius: var(--border-radius-sm);
+            background: var(--warm-white);
+            transition: var(--transition);
+            box-shadow: var(--shadow-paper);
+        }
+
+        .device-item:hover {
+            box-shadow: var(--shadow-paper-hover);
+            transform: translateY(-1px);
+        }
+
+        .di-icon {
+            font-size: 1.7rem;
+        }
+
+        .di-info {
+            flex: 1;
+        }
+
+        .di-name {
+            font-size: 0.92rem;
+            font-weight: 700;
+        }
+
+        .di-desc {
+            font-size: 0.75rem;
+            color: var(--text-light);
+        }
+
+        .di-btn {
+            padding: 7px 14px;
+            border: 2px solid var(--mint-dark);
+            border-radius: 50px;
+            background: var(--mint-light);
+            color: var(--mint-dark);
+            font-family: 'Nunito', sans-serif;
+            font-size: 0.78rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .di-btn:hover,
+        .di-btn.connected {
+            background: var(--mint-dark);
+            color: white;
+            border-color: var(--mint-dark);
+        }
+
+        /* ============================================
+           STEP 5 — COMPLETE
+           ============================================ */
+        .complete-card {
+            padding: 48px 40px;
+            text-align: center;
+        }
+
+        .complete-anim {
+            width: 110px;
+            height: 110px;
+            margin: 0 auto 24px;
+            position: relative;
+        }
+
+        .complete-circle {
+            width: 110px;
+            height: 110px;
+            border-radius: 50%;
+            background: var(--mint-light);
+            border: 3px solid var(--mint-dark);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.8rem;
+            box-shadow: 4px 4px 0px var(--mint-dark);
+            animation: pop-in 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        @keyframes pop-in {
+            from {
+                transform: scale(0) rotate(-20deg);
+                opacity: 0;
+            }
+
+            to {
+                transform: scale(1) rotate(0deg);
+                opacity: 1;
+            }
+        }
+
+        .confetti-wrap {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .cp {
+            position: absolute;
+            width: 9px;
+            height: 9px;
+            border-radius: 2px;
+            animation: cf 2s ease-in forwards;
+        }
+
+        @keyframes cf {
+            0% {
+                transform: translateY(-10px) rotate(0deg);
+                opacity: 1;
+            }
+
+            100% {
+                transform: translateY(130px) rotate(720deg);
+                opacity: 0;
+            }
+        }
+
+        .complete-title {
+            font-size: 1.55rem;
+            font-weight: 800;
+            margin-bottom: 10px;
+        }
+
+        .complete-title .cn {
+            color: var(--mint-dark);
+        }
+
+        .complete-desc {
+            font-size: 0.92rem;
+            color: var(--text-secondary);
+            margin-bottom: 24px;
+            line-height: 1.7;
+        }
+
+        .complete-summary {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 22px;
+        }
+
+        .cs-item {
+            padding: 14px 10px;
+            background: var(--warm-white);
+            border: 2px solid var(--kraft-light);
+            border-radius: var(--border-radius-sm);
+            text-align: center;
+            box-shadow: var(--shadow-paper);
+        }
+
+        .cs-item .csi {
+            font-size: 1.4rem;
+            margin-bottom: 3px;
+        }
+
+        .cs-item .csl {
+            font-size: 0.7rem;
+            color: var(--text-light);
+            font-weight: 600;
+        }
+
+        .cs-item .csv {
+            font-size: 0.88rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .first-task {
+            padding: 15px 18px;
+            background: linear-gradient(135deg, var(--peach-light), var(--mint-light));
+            border: 2px solid var(--kraft-light);
+            border-radius: var(--border-radius);
+            margin-bottom: 22px;
+            text-align: left;
+            box-shadow: var(--shadow-paper);
+        }
+
+        .first-task .ft-label {
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: var(--text-light);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 5px;
+        }
+
+        .first-task .ft-name {
+            font-size: 0.98rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 3px;
+        }
+
+        .first-task .ft-meta {
+            font-size: 0.78rem;
+            color: var(--text-secondary);
+        }
+
+        /* ============================================
+           RESPONSIVE
+           ============================================ */
+        @media(max-width:640px) {
+
+            .welcome-card,
+            .auth-card,
+            .profile-card,
+            .mindset-card,
+            .device-card,
+            .complete-card {
+                padding: 28px 20px;
+            }
+
+            .welcome-title {
+                font-size: 1.3rem;
+            }
+
+            .avatar-grid {
+                gap: 8px;
+            }
+
+            .complete-summary {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        @media(max-width:400px) {
+            .avatar-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Progress Bar -->
+    <div class="progress-bar-container">
+        <div class="progress-bar-fill" id="progressBar" style="width:0%"></div>
+    </div>
+
+    <!-- Logo -->
+    <a href="index.html" class="onboarding-logo">
+        <div class="logo-icon">🌿</div>
+        <div class="logo-text">Peace<span>Flow</span></div>
+    </a>
+
+    <!-- Step Dots -->
+    <div class="step-dots" id="stepDots">
+        <div class="step-dot active" onclick="goToStep(0)" title="Chào mừng"></div>
+        <div class="step-dot" onclick="goToStep(1)" title="Đăng ký"></div>
+        <div class="step-dot" onclick="goToStep(2)" title="Hồ sơ"></div>
+        <div class="step-dot" onclick="goToStep(3)" title="Cam kết"></div>
+        <div class="step-dot" onclick="goToStep(4)" title="Thiết bị"></div>
+        <div class="step-dot" onclick="goToStep(5)" title="Hoàn tất"></div>
+    </div>
+
+    <!-- BG Decorations -->
+    <div class="bg-deco bg-deco-1">🌿</div>
+    <div class="bg-deco bg-deco-2">🦋</div>
+    <div class="bg-deco bg-deco-3">🌸</div>
+    <div class="bg-deco bg-deco-4">⭐</div>
+    <div class="bg-deco bg-deco-5">🍃</div>
+    <div class="bg-deco bg-deco-6">🌼</div>
+
+    <div class="onboarding-wrapper">
+
+        <!-- ====== STEP 0 — WELCOME ====== -->
+        <div class="step-screen active" id="step-0">
+            <div class="paper-card welcome-card">
+                <div class="welcome-scene">
+                    <div class="w-sun"></div>
+                    <div class="w-cloud w-cloud-1"></div>
+                    <div class="w-cloud w-cloud-2"></div>
+                    <div class="w-mountain-back"></div>
+                    <div class="w-mountain-front"></div>
+                    <div class="w-ground"></div>
+                    <div class="w-mascot">
+                        <div class="w-mascot-body">
+                            <div class="w-mascot-ears">
+                                <div class="w-mascot-ear"></div>
+                                <div class="w-mascot-ear"></div>
+                            </div>
+                            <div class="w-mascot-eyes">
+                                <div class="w-mascot-eye"></div>
+                                <div class="w-mascot-eye"></div>
+                            </div>
+                            <div class="w-mascot-mouth"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <p class="handwritten welcome-quote" id="welcomeQuote">
+                    "Ai cũng gặp stress ở một mức độ nào đó. Bạn không hề đơn độc."
+                </p>
+                <h1 class="welcome-title">
+                    Bạn <span class="hl">không hề đơn độc</span><br>trên hành trình này 🌿
+                </h1>
+                <p class="welcome-sub">
+                    PeaceFlow đồng hành cùng bạn — nhẹ nhàng, không phán xét, từng bước một.<br>
+                    Chỉ mất <strong>2 phút</strong> để bắt đầu.
+                </p>
+                <div style="display:flex;justify-content:center;gap:16px;flex-wrap:wrap;margin-bottom:16px;">
+                    <div style="text-align:center;">
+                        <div style="font-size:1.4rem;font-weight:800;color:var(--mint-dark);">10K+</div>
+                        <div style="font-size:0.75rem;color:var(--text-light);font-weight:600;">Người dùng</div>
+                    </div>
+                    <div style="text-align:center;">
+                        <div style="font-size:1.4rem;font-weight:800;color:var(--mint-dark);">50+</div>
+                        <div style="font-size:0.75rem;color:var(--text-light);font-weight:600;">Bài tập</div>
+                    </div>
+                    <div style="text-align:center;">
+                        <div style="font-size:1.4rem;font-weight:800;color:var(--mint-dark);">30+</div>
+                        <div style="font-size:0.75rem;color:var(--text-light);font-weight:600;">Chuyên gia</div>
+                    </div>
+                </div>
+                <div class="step-nav center">
+                    <button class="btn-next" style="font-size:1.05rem;padding:15px 36px;" onclick="nextStep()">
+                        🚀 Bắt đầu hành trình
+                    </button>
+                </div>
+                <p style="text-align:center;margin-top:14px;font-size:0.8rem;color:var(--text-light);">
+                    Đã có tài khoản? <a href="dashboard.html" style="color:var(--mint-dark);font-weight:700;">Đăng
+                        nhập</a>
+                </p>
+            </div>
+        </div>
+
+        <!-- ====== STEP 1 — AUTH ====== -->
+        <div class="step-screen" id="step-1">
+            <div class="paper-card auth-card">
+                <p style="font-size:1.8rem;margin-bottom:8px;">👋</p>
+                <h2 class="step-title">Tạo tài khoản của bạn</h2>
+                <p class="step-subtitle">Chọn cách đăng ký phù hợp — nhanh chóng và bảo mật</p>
+
+                <div class="auth-options">
+                    <button class="auth-btn" onclick="selectAuth('google')">
+                        <span class="auth-icon">🔵</span>
+                        <span class="auth-label">Tiếp tục với Google</span>
+                        <span class="auth-arrow">›</span>
+                    </button>
+                    <button class="auth-btn" onclick="selectAuth('apple')">
+                        <span class="auth-icon">🍎</span>
+                        <span class="auth-label">Tiếp tục với Apple</span>
+                        <span class="auth-arrow">›</span>
+                    </button>
+                </div>
+
+                <div class="auth-divider">hoặc đăng ký bằng email</div>
+
+                <div class="auth-form">
+                    <input type="email" class="form-input" placeholder="✉️  Email của bạn" id="emailInput">
+                    <input type="password" class="form-input" placeholder="🔒  Mật khẩu (tối thiểu 8 ký tự)"
+                        id="passwordInput">
+                    <button class="btn-next" style="width:100%;justify-content:center;" onclick="nextStep()">
+                        Tạo tài khoản →
+                    </button>
+                </div>
+
+                <div class="note-box sky">
+                    <span>🕵️</span>
+                    <span><strong>Muốn thử trước?</strong> Bạn có thể dùng thử ẩn danh — dữ liệu lưu trên thiết bị, đăng
+                        ký sau.</span>
+                </div>
+                <button class="btn-skip" onclick="nextStep()"
+                    style="display:block;text-align:center;margin-top:6px;width:100%;">
+                    Dùng thử ẩn danh →
+                </button>
+                <div class="note-box mint">
+                    <span>🔐</span>
+                    <span>Dữ liệu được <strong>mã hóa AES-256</strong>. Chỉ bạn mới có quyền truy cập. Chúng tôi không
+                        bao giờ bán dữ liệu cho bên thứ 3.</span>
+                </div>
+
+                <div class="step-nav" style="margin-top:18px;">
+                    <button class="btn-back" onclick="prevStep()">← Quay lại</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ====== STEP 2 — SOFT PROFILING ====== -->
+        <div class="step-screen" id="step-2">
+            <div class="paper-card profile-card">
+                <p style="font-size:1.8rem;margin-bottom:8px;">😊</p>
+                <h2 class="step-title">Mình nên gọi bạn là gì?</h2>
+                <p class="step-subtitle">Chỉ vài câu hỏi nhỏ để mình hiểu bạn hơn nhé!</p>
+
+                <div class="q-block">
+                    <div class="q-label"><span class="qi">🐱</span>Tên hoặc biệt danh của bạn?</div>
+                    <input type="text" class="form-input" placeholder="Ví dụ: Minh, Hana, PeaceUser..." id="nameInput">
+                </div>
+
+                <div class="q-block">
+                    <div class="q-label"><span class="qi">🎂</span>Bạn thuộc nhóm tuổi nào?</div>
+                    <div class="age-options" id="ageOptions">
+                        <div class="option-chip" onclick="selectOption(this,'age')">16 – 24 tuổi</div>
+                        <div class="option-chip" onclick="selectOption(this,'age')">25 – 34 tuổi</div>
+                        <div class="option-chip" onclick="selectOption(this,'age')">35 – 44 tuổi</div>
+                        <div class="option-chip" onclick="selectOption(this,'age')">45 tuổi trở lên</div>
+                    </div>
+                </div>
+
+                <div class="q-block">
+                    <div class="q-label"><span class="qi">🎨</span>Chọn avatar Paper Flow của bạn</div>
+                    <div class="avatar-grid" id="avatarGrid">
+                        <div class="avatar-option" onclick="selectAvatar(this)"><span class="av-emoji">🐱</span><span
+                                class="av-name">PeaceCat</span></div>
+                        <div class="avatar-option" onclick="selectAvatar(this)"><span class="av-emoji">🐻</span><span
+                                class="av-name">CalmBear</span></div>
+                        <div class="avatar-option" onclick="selectAvatar(this)"><span class="av-emoji">🦊</span><span
+                                class="av-name">WiseFox</span></div>
+                        <div class="avatar-option" onclick="selectAvatar(this)"><span class="av-emoji">🐰</span><span
+                                class="av-name">HopBun</span></div>
+                        <div class="avatar-option" onclick="selectAvatar(this)"><span class="av-emoji">🦉</span><span
+                                class="av-name">PeaceOwl</span></div>
+                        <div class="avatar-option" onclick="selectAvatar(this)"><span class="av-emoji">🐼</span><span
+                                class="av-name">PeacePanda</span></div>
+                        <div class="avatar-option" onclick="selectAvatar(this)"><span class="av-emoji">🦋</span><span
+                                class="av-name">FreeSpirit</span></div>
+                        <div class="avatar-option" onclick="selectAvatar(this)"><span class="av-emoji">🌱</span><span
+                                class="av-name">GrowSeed</span></div>
+                    </div>
+                </div>
+
+                <div class="q-block">
+                    <div class="q-label"><span class="qi">💭</span>Điều gì đưa bạn đến đây hôm nay?</div>
+                    <div class="reason-options" id="reasonOptions">
+                        <div class="reason-option" onclick="selectReason(this)"><span class="ri">😰</span><span
+                                class="rt">Tôi đang cảm thấy căng thẳng</span></div>
+                        <div class="reason-option" onclick="selectReason(this)"><span class="ri">🔍</span><span
+                                class="rt">Tôi muốn hiểu bản thân hơn</span></div>
+                        <div class="reason-option" onclick="selectReason(this)"><span class="ri">✨</span><span
+                                class="rt">Tôi tò mò muốn thử</span></div>
+                        <div class="reason-option" onclick="selectReason(this)"><span class="ri">👥</span><span
+                                class="rt">Ai đó giới thiệu cho tôi</span></div>
+                    </div>
+                </div>
+
+                <div class="step-nav">
+                    <button class="btn-back" onclick="prevStep()">← Quay lại</button>
+                    <button class="btn-next" onclick="nextStep()">Tiếp tục →</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ====== STEP 3 — MINDSET AGREEMENT ====== -->
+        <div class="step-screen" id="step-3">
+            <div class="paper-card mindset-card">
+                <p style="font-size:1.8rem;margin-bottom:8px;">🤝</p>
+                <h2 class="step-title">Cùng đồng hành đúng cách</h2>
+                <p class="mindset-intro">
+                    Trước khi bắt đầu, hãy cùng mình đọc qua 4 nguyên tắc nhỏ nhé.
+                    <strong>Nhấn vào từng thẻ</strong> để lật và đọc thêm — như lật trang nhật ký vậy 📖
+                </p>
+
+                <div class="mindset-progress">
+                    <span id="mindsetCount">0/4 thẻ đã đọc</span>
+                    <div class="mindset-progress-bar">
+                        <div class="mindset-progress-fill" id="mindsetFill" style="width:0%"></div>
+                    </div>
+                </div>
+
+                <div class="flip-cards-container">
+                    <div class="flip-card" onclick="flipCard(this)">
+                        <div class="flip-card-front">
+                            <span class="fci">🤖</span>
+                            <span class="fct">AI chỉ hỗ trợ, không thay thế con người</span>
+                            <span class="fcc">✅</span>
+                            <span class="fca">›</span>
+                        </div>
+                        <div class="flip-card-back">
+                            PeaceFlow là người bạn đồng hành ảo — không phải bác sĩ, không chẩn đoán bệnh, không kê đơn
+                            thuốc. Khi cần hỗ trợ chuyên sâu, hãy kết nối với chuyên gia thật sự nhé.
+                        </div>
+                    </div>
+                    <div class="flip-card" onclick="flipCard(this)">
+                        <div class="flip-card-front">
+                            <span class="fci">💧</span>
+                            <span class="fct">Đừng đè nén cảm xúc — hãy giải phóng nó</span>
+                            <span class="fcc">✅</span>
+                            <span class="fca">›</span>
+                        </div>
+                        <div class="flip-card-back">
+                            Mọi cảm xúc đều có giá trị — kể cả buồn, tức giận hay sợ hãi. Thay vì đè nén, hãy nhận ra và
+                            giải phóng chúng qua các hành động tích cực. Cảm xúc không phải kẻ thù.
+                        </div>
+                    </div>
+                    <div class="flip-card" onclick="flipCard(this)">
+                        <div class="flip-card-front">
+                            <span class="fci">🌱</span>
+                            <span class="fct">Chỉ có bản thân mới giúp được chính mình</span>
+                            <span class="fcc">✅</span>
+                            <span class="fca">›</span>
+                        </div>
+                        <div class="flip-card-back">
+                            PeaceFlow tạo ra môi trường và công cụ, nhưng sức mạnh thật sự đến từ chính bạn. Mỗi bước
+                            nhỏ bạn thực hiện đều là chiến thắng của riêng bạn. Chúng mình chỉ ở đây để cổ vũ thôi! 🎉
+                        </div>
+                    </div>
+                    <div class="flip-card" onclick="flipCard(this)">
+                        <div class="flip-card-front">
+                            <span class="fci">🐢</span>
+                            <span class="fct">Kiên nhẫn — từ từ và nhẫn nại</span>
+                            <span class="fcc">✅</span>
+                            <span class="fca">›</span>
+                        </div>
+                        <div class="flip-card-back">
+                            Thay đổi không xảy ra trong một đêm. Không sao nếu có ngày bạn không hoàn thành nhiệm vụ —
+                            chúng mình không phạt, chỉ thưởng thôi. Hãy đi theo nhịp của chính bạn. 🌿
+                        </div>
+                    </div>
+                </div>
+
+                <div class="step-nav">
+                    <button class="btn-back" onclick="prevStep()">← Quay lại</button>
+                    <button class="btn-next" onclick="nextStep()">Tôi đồng ý ✓</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ====== STEP 4 — DEVICE CONNECT ====== -->
+        <div class="step-screen" id="step-4">
+            <div class="paper-card device-card">
+                <p style="font-size:1.8rem;margin-bottom:4px;">⌚</p>
+                <div class="optional-badge">✨ Tùy chọn</div>
+                <h2 class="step-title">Kết nối thiết bị thông minh</h2>
+                <p class="step-subtitle">Đồng bộ đồng hồ để PeaceFlow hiểu bạn chính xác hơn. Hoàn toàn có thể bỏ qua!
+                </p>
+
+                <div class="data-collected">
+                    <strong>📊 Dữ liệu sẽ thu thập:</strong>
+                    <div class="data-tags">
+                        <span class="data-tag">💓 Nhịp tim</span>
+                        <span class="data-tag">🧠 HRV</span>
+                        <span class="data-tag">😴 Giấc ngủ</span>
+                        <span class="data-tag">👟 Số bước</span>
+                        <span class="data-tag">🌡️ Nhiệt độ da</span>
+                    </div>
+                </div>
+
+                <div class="device-list">
+                    <div class="device-item">
+                        <span class="di-icon">⌚</span>
+                        <div class="di-info">
+                            <div class="di-name">Apple Watch</div>
+                            <div class="di-desc">Yêu cầu iOS 14+ và Apple Health</div>
+                        </div>
+                        <button class="di-btn" onclick="connectDevice(this)">Kết nối</button>
+                    </div>
+                    <div class="device-item">
+                        <span class="di-icon">🟢</span>
+                        <div class="di-info">
+                            <div class="di-name">Garmin</div>
+                            <div class="di-desc">Kết nối qua Garmin Connect API</div>
+                        </div>
+                        <button class="di-btn" onclick="connectDevice(this)">Kết nối</button>
+                    </div>
+                    <div class="device-item">
+                        <span class="di-icon">🔵</span>
+                        <div class="di-info">
+                            <div class="di-name">Fitbit</div>
+                            <div class="di-desc">Kết nối qua Fitbit Web API</div>
+                        </div>
+                        <button class="di-btn" onclick="connectDevice(this)">Kết nối</button>
+                    </div>
+                    <div class="device-item">
+                        <span class="di-icon">🟡</span>
+                        <div class="di-info">
+                            <div class="di-name">Google Fit / Samsung Health</div>
+                            <div class="di-desc">Đồng bộ dữ liệu sức khỏe Android</div>
+                        </div>
+                        <button class="di-btn" onclick="connectDevice(this)">Kết nối</button>
+                    </div>
+                </div>
+
+                <div class="step-nav">
+                    <button class="btn-back" onclick="prevStep()">← Quay lại</button>
+                    <div style="display:flex;gap:10px;align-items:center;">
+                        <button class="btn-skip" onclick="nextStep()">Bỏ qua</button>
+                        <button class="btn-next" onclick="nextStep()">Tiếp tục →</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ====== STEP 5 — COMPLETE ====== -->
+        <div class="step-screen" id="step-5">
+            <div class="paper-card complete-card">
+                <div class="complete-anim">
+                    <div class="confetti-wrap" id="confettiWrap"></div>
+                    <div class="complete-circle">🌿</div>
+                </div>
+
+                <h2 class="complete-title">
+                    Chào mừng, <span class="cn" id="displayName">bạn ơi</span>! 🎉
+                </h2>
+                <p class="complete-desc">
+                    Hành trình của bạn chính thức bắt đầu rồi!<br>
+                    PeaceFlow sẽ luôn ở đây, đồng hành cùng bạn từng ngày. 💚
+                </p>
+
+                <div class="complete-summary">
+                    <div class="cs-item">
+                        <div class="csi">⭐</div>
+                        <div class="csl">XP Khởi đầu</div>
+                        <div class="csv">+50 XP</div>
+                    </div>
+                    <div class="cs-item">
+                        <div class="csi">🌱</div>
+                        <div class="csl">Huy hiệu</div>
+                        <div class="csv">Mầm non</div>
+                    </div>
+                    <div class="cs-item">
+                        <div class="csi">📋</div>
+                        <div class="csl">Nhiệm vụ</div>
+                        <div class="csv">Sẵn sàng</div>
+                    </div>
+                </div>
+
+                <div class="first-task">
+                    <div class="ft-label">🎯 Nhiệm vụ đầu tiên cho bạn</div>
+                    <div class="ft-name">💨 Hít thở sâu — Bài tập 4-4-4</div>
+                    <div class="ft-meta">⏱ 2 phút &nbsp;|&nbsp; ⭐ 10 XP &nbsp;|&nbsp; 🟢 Cấp 0 — Khẩn cấp</div>
+                </div>
+
+                <div
+                    style="padding:12px 16px;background:var(--coral-light);border:1.5px solid var(--coral);border-radius:var(--border-radius-sm);font-size:0.8rem;color:var(--text-secondary);margin-bottom:20px;">
+                    ⚠️ <strong>Lưu ý:</strong> Ứng dụng này là công cụ hỗ trợ, <strong>không thay thế chẩn đoán y
+                        khoa</strong>. Nếu bạn đang trong tình trạng khẩn cấp: <strong>📞 1800-599-920</strong> (Miễn
+                    phí, 24/7)
+                </div>
+
+                <div class="step-nav center" style="flex-direction:column;gap:12px;">
+                    <a href="mood-checkin.html" class="btn-next" style="font-size:1rem;padding:14px 32px;">
+                        🌿 Bắt đầu check-in tâm trạng
+                    </a>
+                    <a href="dashboard.html"
+                        style="font-size:0.85rem;color:var(--text-light);text-decoration:underline;">
+                        Đến Dashboard trước →
+                    </a>
+                </div>
+            </div>
+        </div>
+
+    </div><!-- end onboarding-wrapper -->
+
+    <script>
+        // ============================================
+        // STATE
+        // ============================================
+        let currentStep = 0;
+        const totalSteps = 6;
+        const QUOTES = [
+            '"Ai cũng gặp stress ở một mức độ nào đó. Bạn không hề đơn độc."',
+            '"Rồi chuyện này sẽ qua. Hãy bình tâm."',
+            '"Hạnh phúc của bạn được tạo ra bởi chính bạn."',
+            '"Mỗi ngày là một cơ hội mới để bắt đầu lại."',
+            '"Chúng ta cần sự kiên nhẫn, từ từ và nhẫn nại."'
+        ];
+
+        // ============================================
+        // INIT
+        // ============================================
+        document.addEventListener('DOMContentLoaded', function () {
+            const q = QUOTES[Math.floor(Math.random() * QUOTES.length)];
+            document.getElementById('welcomeQuote').textContent = q;
+            updateProgress();
+        });
+
+        // ============================================
+        // NAVIGATION
+        // ============================================
+        function nextStep() {
+            if (currentStep < totalSteps - 1) goToStep(currentStep + 1);
+        }
+        function prevStep() {
+            if (currentStep > 0) goToStep(currentStep - 1);
+        }
+        function goToStep(n) {
+            if (n < 0 || n >= totalSteps) return;
+            document.getElementById('step-' + currentStep).classList.remove('active');
+            currentStep = n;
+            document.getElementById('step-' + currentStep).classList.add('active');
+            updateProgress();
+            updateDots();
+            if (currentStep === 5) {
+                setTimeout(spawnConfetti, 300);
+                updateCompleteName();
+            }
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+        function updateProgress() {
+            const pct = (currentStep / (totalSteps - 1)) * 100;
+            document.getElementById('progressBar').style.width = pct + '%';
+        }
+        function updateDots() {
+            document.querySelectorAll('.step-dot').forEach((d, i) => {
+                d.classList.remove('active', 'done');
+                if (i === currentStep) d.classList.add('active');
+                else if (i < currentStep) d.classList.add('done');
+            });
+        }
+
+        // ============================================
+        // AUTH
+        // ============================================
+        function selectAuth(provider) {
+            // In real app: redirect to OAuth provider
+            nextStep();
+        }
+
+        // ============================================
+        // PROFILING
+        // ============================================
+        function selectOption(el, group) {
+            document.querySelectorAll('#ageOptions .option-chip').forEach(c => c.classList.remove('selected'));
+            el.classList.add('selected');
+        }
+        function selectAvatar(el) {
+            document.querySelectorAll('#avatarGrid .avatar-option').forEach(a => a.classList.remove('selected'));
+            el.classList.add('selected');
+        }
+        function selectReason(el) {
+            document.querySelectorAll('#reasonOptions .reason-option').forEach(r => r.classList.remove('selected'));
+            el.classList.add('selected');
+        }
+
+        // ============================================
+        // MINDSET FLIP CARDS
+        // ============================================
+        function flipCard(el) {
+            el.classList.toggle('flipped');
+            const flippedCount = document.querySelectorAll('.flip-card.flipped').length;
+            document.getElementById('mindsetCount').textContent = flippedCount + '/4 thẻ đã đọc';
+            document.getElementById('mindsetFill').style.width = (flippedCount / 4 * 100) + '%';
+        }
+
+        // ============================================
+        // DEVICE CONNECT
+        // ============================================
+        function connectDevice(btn) {
+            btn.innerHTML = '✓ Đã kết nối';
+            btn.classList.add('connected');
+            btn.disabled = true;
+        }
+
+        // ============================================
+        // COMPLETE SCREEN
+        // ============================================
+        function updateCompleteName() {
+            const nameEl = document.getElementById('nameInput');
+            const nameVal = nameEl ? nameEl.value.trim() : '';
+            document.getElementById('displayName').textContent = nameVal || 'bạn ơi';
+        }
+
+        function spawnConfetti() {
+            const wrap = document.getElementById('confettiWrap');
+            if (!wrap) return;
+            wrap.innerHTML = '';
+            const colors = ['#A8D5BA', '#FFCBA4', '#A8D8EA', '#C3AED6', '#FF8B8B', '#D4A574', '#C5E8D2'];
+            for (let i = 0; i < 20; i++) {
+                const cp = document.createElement('div');
+                cp.className = 'cp';
+                cp.style.left = Math.random() * 100 + '%';
+                cp.style.top = Math.random() * 20 + '%';
+                cp.style.background = colors[Math.floor(Math.random() * colors.length)];
+                cp.style.animationDelay = (Math.random() * 1) + 's';
+                cp.style.animationDuration = (1.5 + Math.random()) + 's';
+                cp.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+                wrap.appendChild(cp);
+            }
+        }
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../public/js/supabase-config.js"></script>
+    <script src="../public/js/app.js"></script>
+</body>
+
+</html>

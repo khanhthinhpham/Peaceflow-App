@@ -1,0 +1,1864 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PeaceFlow — Chat với PeaceCat AI</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Patrick+Hand&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --cream: #FFF8F0;
+            --warm-white: #FFFDF7;
+            --kraft: #D4A574;
+            --kraft-light: #E8CBA7;
+            --kraft-dark: #B8895A;
+            --mint: #A8D5BA;
+            --mint-light: #C5E8D2;
+            --mint-dark: #7BBF95;
+            --peach: #FFCBA4;
+            --peach-light: #FFE0C4;
+            --peach-dark: #E8A876;
+            --sky: #A8D8EA;
+            --sky-light: #C5E8F5;
+            --lavender: #C3AED6;
+            --lavender-light: #DDD1EB;
+            --coral: #FF8B8B;
+            --coral-light: #FFB3B3;
+            --text-primary: #4A3728;
+            --text-secondary: #7A6555;
+            --text-light: #A89585;
+            --shadow-paper: 3px 3px 0px rgba(74, 55, 40, 0.1);
+            --shadow-paper-hover: 5px 5px 0px rgba(74, 55, 40, 0.15);
+            --border-radius: 16px;
+            --border-radius-sm: 10px;
+            --transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            --sidebar-width: 240px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background: var(--cream);
+            color: var(--text-primary);
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        .handwritten {
+            font-family: 'Patrick Hand', cursive;
+        }
+
+        .paper-card {
+            background: var(--warm-white);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-paper);
+            border: 2px solid var(--kraft-light);
+            transition: var(--transition);
+        }
+
+        /* ===== SIDEBAR ===== */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            width: var(--sidebar-width);
+            background: var(--warm-white);
+            border-right: 2px solid var(--kraft-light);
+            z-index: 200;
+            display: flex;
+            flex-direction: column;
+            padding: 20px 0;
+        }
+
+        .sidebar-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 0 20px 20px;
+            border-bottom: 2px dashed var(--kraft-light);
+            margin-bottom: 16px;
+            text-decoration: none;
+        }
+
+        .sidebar-logo .logo-icon {
+            width: 38px;
+            height: 38px;
+            background: var(--mint);
+            border-radius: 10px;
+            border: 2px solid var(--mint-dark);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            box-shadow: 2px 2px 0px var(--mint-dark);
+        }
+
+        .sidebar-logo .logo-text {
+            font-size: 1.2rem;
+            font-weight: 800;
+            color: var(--text-primary);
+        }
+
+        .sidebar-logo .logo-text span {
+            color: var(--mint-dark);
+        }
+
+        .sidebar-nav {
+            flex: 1;
+            padding: 0 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            border-radius: var(--border-radius-sm);
+            text-decoration: none;
+            color: var(--text-secondary);
+            font-weight: 600;
+            font-size: 0.88rem;
+            transition: var(--transition);
+        }
+
+        .nav-item:hover {
+            background: var(--mint-light);
+            color: var(--text-primary);
+        }
+
+        .nav-item.active {
+            background: var(--mint-light);
+            color: var(--text-primary);
+            border: 1.5px solid var(--mint);
+        }
+
+        .nav-item .ni {
+            font-size: 1.1rem;
+            width: 22px;
+            text-align: center;
+        }
+
+        .nav-section-label {
+            font-size: 0.68rem;
+            font-weight: 700;
+            color: var(--text-light);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            padding: 10px 12px 4px;
+        }
+
+        .sidebar-bottom {
+            padding: 12px;
+            border-top: 2px dashed var(--kraft-light);
+            margin-top: auto;
+        }
+
+        .user-card-mini {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            background: var(--cream);
+            border-radius: var(--border-radius-sm);
+            border: 1.5px solid var(--kraft-light);
+        }
+
+        .user-avatar-mini {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--lavender-light);
+            border: 2px solid var(--kraft);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+        }
+
+        .user-info-mini .user-name {
+            font-size: 0.85rem;
+            font-weight: 700;
+        }
+
+        .user-info-mini .user-level {
+            font-size: 0.72rem;
+            color: var(--text-light);
+        }
+
+        .emergency-btn-side {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 12px;
+            background: rgba(255, 139, 139, 0.1);
+            border: 1.5px solid var(--coral);
+            border-radius: var(--border-radius-sm);
+            color: var(--coral);
+            font-size: 0.78rem;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 8px;
+            transition: var(--transition);
+            text-decoration: none;
+        }
+
+        .emergency-btn-side:hover {
+            background: rgba(255, 139, 139, 0.2);
+        }
+
+        /* ===== MOBILE ===== */
+        .mobile-topbar {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background: var(--warm-white);
+            border-bottom: 2px solid var(--kraft-light);
+            z-index: 300;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 16px;
+        }
+
+        .mobile-menu-btn {
+            background: none;
+            border: none;
+            font-size: 1.4rem;
+            cursor: pointer;
+        }
+
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(74, 55, 40, 0.3);
+            z-index: 150;
+        }
+
+        /* ===== MAIN LAYOUT ===== */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .chat-topbar {
+            padding: 14px 24px;
+            background: var(--warm-white);
+            border-bottom: 2px solid var(--kraft-light);
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            flex-shrink: 0;
+        }
+
+        .ct-back {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 7px 14px;
+            border: 2px solid var(--kraft-light);
+            border-radius: 50px;
+            background: transparent;
+            color: var(--text-secondary);
+            font-family: 'Nunito', sans-serif;
+            font-size: 0.82rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            text-decoration: none;
+        }
+
+        .ct-back:hover {
+            background: var(--kraft-light);
+        }
+
+        .ct-mascot {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: var(--peach-light);
+            border: 2.5px solid var(--kraft);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+            flex-shrink: 0;
+            animation: mascot-pulse 3s ease-in-out infinite;
+        }
+
+        @keyframes mascot-pulse {
+
+            0%,
+            100% {
+                box-shadow: 0 0 0 0 rgba(168, 213, 186, 0.4);
+            }
+
+            50% {
+                box-shadow: 0 0 0 8px rgba(168, 213, 186, 0);
+            }
+        }
+
+        .ct-info {
+            flex: 1;
+        }
+
+        .ct-name {
+            font-size: 1rem;
+            font-weight: 800;
+        }
+
+        .ct-status {
+            font-size: 0.72rem;
+            color: var(--mint-dark);
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .status-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--mint-dark);
+            animation: blink-s 2s ease-in-out infinite;
+        }
+
+        @keyframes blink-s {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.3;
+            }
+        }
+
+        .ct-actions {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .ct-action-btn {
+            padding: 7px 14px;
+            border: 2px solid var(--kraft-light);
+            border-radius: 50px;
+            background: transparent;
+            color: var(--text-secondary);
+            font-family: 'Nunito', sans-serif;
+            font-size: 0.78rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .ct-action-btn:hover {
+            background: var(--kraft-light);
+        }
+
+        .ct-action-btn.danger {
+            border-color: var(--coral);
+            color: var(--coral);
+        }
+
+        .ct-action-btn.danger:hover {
+            background: var(--coral-light);
+        }
+
+        .badge-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 3px 10px;
+            border-radius: 50px;
+            font-size: 0.72rem;
+            font-weight: 700;
+        }
+
+        .badge-mint {
+            background: var(--mint-light);
+            color: var(--mint-dark);
+            border: 1.5px solid var(--mint);
+        }
+
+        .badge-peach {
+            background: var(--peach-light);
+            color: var(--peach-dark);
+            border: 1.5px solid var(--peach);
+        }
+
+        .badge-coral {
+            background: var(--coral-light);
+            color: #c05050;
+            border: 1.5px solid var(--coral);
+        }
+
+        /* ===== CHAT BODY ===== */
+        .chat-body {
+            flex: 1;
+            display: grid;
+            grid-template-columns: 1fr 320px;
+            overflow: hidden;
+        }
+
+        .chat-main {
+            display: flex;
+            flex-direction: column;
+            border-right: 2px solid var(--kraft-light);
+            overflow: hidden;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .chat-messages::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .chat-messages::-webkit-scrollbar-thumb {
+            background: var(--kraft-light);
+            border-radius: 2px;
+        }
+
+        /* Messages */
+        .msg {
+            display: flex;
+            gap: 10px;
+            max-width: 75%;
+            animation: msg-in 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        @keyframes msg-in {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .msg-bot {
+            align-self: flex-start;
+            flex-direction: row;
+        }
+
+        .msg-user {
+            align-self: flex-end;
+            flex-direction: row-reverse;
+        }
+
+        .msg-avatar {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            flex-shrink: 0;
+            border: 2px solid;
+        }
+
+        .msg-bot .msg-avatar {
+            background: var(--peach-light);
+            border-color: var(--kraft);
+        }
+
+        .msg-user .msg-avatar {
+            background: var(--lavender-light);
+            border-color: var(--lavender);
+        }
+
+        .msg-content {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+
+        .msg-user .msg-content {
+            align-items: flex-end;
+        }
+
+        .msg-bubble {
+            padding: 11px 15px;
+            border-radius: 16px;
+            font-size: 0.88rem;
+            line-height: 1.6;
+        }
+
+        .msg-bot .msg-bubble {
+            background: var(--mint-light);
+            border: 1.5px solid var(--mint);
+            border-bottom-left-radius: 4px;
+            color: var(--text-primary);
+        }
+
+        .msg-user .msg-bubble {
+            background: var(--peach-light);
+            border: 1.5px solid var(--peach);
+            border-bottom-right-radius: 4px;
+            color: var(--text-primary);
+        }
+
+        .msg-time {
+            font-size: 0.62rem;
+            color: var(--text-light);
+        }
+
+        .msg-sentiment {
+            display: flex;
+            gap: 5px;
+            margin-top: 3px;
+        }
+
+        .sent-tag {
+            padding: 2px 7px;
+            border-radius: 50px;
+            font-size: 0.62rem;
+            font-weight: 700;
+        }
+
+        .sent-neg {
+            background: var(--coral-light);
+            color: #c05050;
+        }
+
+        .sent-pos {
+            background: var(--mint-light);
+            color: var(--mint-dark);
+        }
+
+        .sent-neu {
+            background: var(--sky-light);
+            color: #5090aa;
+        }
+
+        /* Typing indicator */
+        .typing-wrap {
+            display: flex;
+            gap: 10px;
+            align-items: flex-end;
+            align-self: flex-start;
+        }
+
+        .typing-bubble {
+            padding: 12px 16px;
+            background: var(--mint-light);
+            border: 1.5px solid var(--mint);
+            border-radius: 16px;
+            border-bottom-left-radius: 4px;
+            display: flex;
+            gap: 5px;
+            align-items: center;
+        }
+
+        .td {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--mint-dark);
+            animation: td-anim 1.2s ease-in-out infinite;
+        }
+
+        .td:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .td:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes td-anim {
+
+            0%,
+            60%,
+            100% {
+                transform: translateY(0);
+            }
+
+            30% {
+                transform: translateY(-7px);
+            }
+        }
+
+        /* Quick replies */
+        .quick-replies-area {
+            padding: 8px 24px 0;
+            display: flex;
+            gap: 7px;
+            flex-wrap: wrap;
+        }
+
+        .qr-btn {
+            padding: 6px 13px;
+            border: 1.5px solid var(--mint);
+            border-radius: 50px;
+            background: var(--mint-light);
+            color: var(--mint-dark);
+            font-family: 'Nunito', sans-serif;
+            font-size: 0.78rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .qr-btn:hover {
+            background: var(--mint);
+            color: white;
+        }
+
+        /* Input area */
+        .chat-input-area {
+            padding: 14px 20px;
+            border-top: 2px solid var(--kraft-light);
+            background: var(--warm-white);
+            display: flex;
+            gap: 10px;
+            align-items: flex-end;
+            flex-shrink: 0;
+        }
+
+        .input-wrap {
+            flex: 1;
+            position: relative;
+        }
+
+        .chat-input {
+            width: 100%;
+            padding: 11px 44px 11px 14px;
+            border: 2px solid var(--kraft-light);
+            border-radius: var(--border-radius-sm);
+            background: var(--cream);
+            font-family: 'Nunito', sans-serif;
+            font-size: 0.88rem;
+            color: var(--text-primary);
+            outline: none;
+            resize: none;
+            max-height: 100px;
+            transition: var(--transition);
+            line-height: 1.5;
+        }
+
+        .chat-input:focus {
+            border-color: var(--mint);
+            background: var(--warm-white);
+        }
+
+        .char-count {
+            position: absolute;
+            bottom: 8px;
+            right: 10px;
+            font-size: 0.62rem;
+            color: var(--text-light);
+        }
+
+        .send-btn {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: var(--mint);
+            border: 2px solid var(--mint-dark);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 1.1rem;
+            transition: var(--transition);
+            box-shadow: 2px 2px 0px var(--mint-dark);
+            flex-shrink: 0;
+        }
+
+        .send-btn:hover {
+            background: var(--mint-dark);
+            transform: translate(1px, 1px);
+            box-shadow: 1px 1px 0px var(--mint-dark);
+        }
+
+        .voice-btn {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: var(--peach-light);
+            border: 2px solid var(--peach);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: var(--transition);
+            flex-shrink: 0;
+        }
+
+        .voice-btn:hover {
+            background: var(--peach);
+        }
+
+        .voice-btn.recording {
+            background: var(--coral);
+            border-color: #c05050;
+            animation: record-pulse 1s ease-in-out infinite;
+        }
+
+        @keyframes record-pulse {
+
+            0%,
+            100% {
+                box-shadow: 0 0 0 0 rgba(255, 139, 139, 0.4);
+            }
+
+            50% {
+                box-shadow: 0 0 0 8px rgba(255, 139, 139, 0);
+            }
+        }
+
+        /* ===== RIGHT SIDEBAR ===== */
+        .chat-sidebar {
+            overflow-y: auto;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            background: var(--cream);
+        }
+
+        .chat-sidebar::-webkit-scrollbar {
+            width: 3px;
+        }
+
+        .chat-sidebar::-webkit-scrollbar-thumb {
+            background: var(--kraft-light);
+        }
+
+        .cs-card {
+            padding: 16px;
+        }
+
+        .cs-title {
+            font-size: 0.85rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* Sentiment bars */
+        .sent-bar-wrap {
+            margin-bottom: 10px;
+        }
+
+        .sb-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 4px;
+        }
+
+        .sb-label {
+            font-size: 0.72rem;
+            color: var(--text-secondary);
+            font-weight: 600;
+        }
+
+        .sb-val {
+            font-size: 0.72rem;
+            font-weight: 800;
+        }
+
+        .sb-bar {
+            height: 8px;
+            background: var(--kraft-light);
+            border-radius: 50px;
+            overflow: hidden;
+        }
+
+        .sb-fill {
+            height: 100%;
+            border-radius: 50px;
+            transition: width 0.8s ease;
+        }
+
+        .sb-anxiety {
+            background: linear-gradient(90deg, var(--peach), var(--coral));
+        }
+
+        .sb-stress {
+            background: linear-gradient(90deg, var(--sky), var(--lavender));
+        }
+
+        .sb-mood {
+            background: linear-gradient(90deg, var(--mint-light), var(--mint-dark));
+        }
+
+        .sb-depression {
+            background: linear-gradient(90deg, var(--lavender-light), #8a6aaa);
+        }
+
+        /* Keywords */
+        .kw-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+
+        .kw-tag {
+            padding: 2px 8px;
+            border-radius: 50px;
+            font-size: 0.65rem;
+            font-weight: 700;
+            border: 1.5px solid;
+        }
+
+        .kw-neg {
+            background: var(--coral-light);
+            color: #c05050;
+            border-color: var(--coral);
+        }
+
+        .kw-pos {
+            background: var(--mint-light);
+            color: var(--mint-dark);
+            border-color: var(--mint);
+        }
+
+        .kw-neutral {
+            background: var(--sky-light);
+            color: #5090aa;
+            border-color: var(--sky);
+        }
+
+        .kw-warning {
+            background: #fff3cd;
+            color: #856404;
+            border-color: #ffc107;
+        }
+
+        /* Mood portrait */
+        .portrait-card {
+            padding: 16px;
+            background: linear-gradient(135deg, var(--mint-light), var(--sky-light));
+            border-color: var(--mint);
+        }
+
+        .portrait-title {
+            font-size: 0.85rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .portrait-bars {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .pb-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .pb-label {
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            width: 70px;
+            flex-shrink: 0;
+        }
+
+        .pb-bar {
+            flex: 1;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 50px;
+            overflow: hidden;
+        }
+
+        .pb-fill {
+            height: 100%;
+            border-radius: 50px;
+            transition: width 1s ease;
+        }
+
+        /* Suggested tasks */
+        .task-suggest {
+            padding: 10px 12px;
+            border: 1.5px solid var(--kraft-light);
+            border-radius: var(--border-radius-sm);
+            background: var(--warm-white);
+            cursor: pointer;
+            transition: var(--transition);
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .task-suggest:hover {
+            background: var(--mint-light);
+            border-color: var(--mint);
+        }
+
+        .ts-icon {
+            font-size: 1.1rem;
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            background: var(--mint-light);
+            border: 1.5px solid var(--mint);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .ts-info {
+            flex: 1;
+        }
+
+        .ts-name {
+            font-size: 0.78rem;
+            font-weight: 700;
+        }
+
+        .ts-meta {
+            font-size: 0.65rem;
+            color: var(--text-light);
+        }
+
+        .ts-xp {
+            font-size: 0.68rem;
+            font-weight: 700;
+            color: var(--peach-dark);
+            background: var(--peach-light);
+            padding: 2px 6px;
+            border-radius: 50px;
+            border: 1.5px solid var(--peach);
+        }
+
+        /* Session summary */
+        .summary-card {
+            padding: 16px;
+            display: none;
+        }
+
+        .summary-card.show {
+            display: block;
+            animation: msg-in 0.4s ease;
+        }
+
+        .summary-title {
+            font-size: 0.88rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .summary-score-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        .ssg-item {
+            padding: 10px;
+            text-align: center;
+            border-radius: var(--border-radius-sm);
+            border: 2px solid;
+        }
+
+        .ssg-item.good {
+            background: var(--mint-light);
+            border-color: var(--mint);
+        }
+
+        .ssg-item.medium {
+            background: var(--peach-light);
+            border-color: var(--peach);
+        }
+
+        .ssg-item.bad {
+            background: var(--coral-light);
+            border-color: var(--coral);
+        }
+
+        .ssg-val {
+            font-size: 1.3rem;
+            font-weight: 800;
+        }
+
+        .ssg-label {
+            font-size: 0.65rem;
+            color: var(--text-secondary);
+            font-weight: 600;
+        }
+
+        /* ===== EMERGENCY OVERLAY ===== */
+        .emergency-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(74, 55, 40, 0.6);
+            z-index: 1000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .emergency-overlay.show {
+            display: flex;
+        }
+
+        .emergency-popup {
+            background: var(--warm-white);
+            border-radius: 24px;
+            border: 3px solid var(--coral);
+            padding: 32px;
+            max-width: 420px;
+            width: 100%;
+            box-shadow: 6px 6px 0px rgba(255, 139, 139, 0.3);
+            animation: pop-in 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        @keyframes pop-in {
+            from {
+                transform: scale(0.8);
+                opacity: 0;
+            }
+
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .ep-icon {
+            font-size: 2.5rem;
+            text-align: center;
+            margin-bottom: 8px;
+        }
+
+        .ep-title {
+            font-size: 1.2rem;
+            font-weight: 800;
+            color: var(--coral);
+            text-align: center;
+            margin-bottom: 6px;
+        }
+
+        .ep-text {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-bottom: 16px;
+            text-align: center;
+        }
+
+        .ep-hotline {
+            padding: 14px;
+            background: rgba(255, 139, 139, 0.1);
+            border: 2px solid var(--coral);
+            border-radius: var(--border-radius-sm);
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .ep-hotline .eph-num {
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: var(--coral);
+        }
+
+        .ep-hotline .eph-label {
+            font-size: 0.72rem;
+            color: var(--text-secondary);
+        }
+
+        .ep-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .ep-btn {
+            padding: 12px;
+            border-radius: 50px;
+            font-family: 'Nunito', sans-serif;
+            font-size: 0.88rem;
+            font-weight: 700;
+            cursor: pointer;
+            text-align: center;
+            transition: var(--transition);
+            text-decoration: none;
+            display: block;
+            border: 2px solid;
+        }
+
+        .ep-btn-red {
+            background: var(--coral);
+            color: white;
+            border-color: #c05050;
+        }
+
+        .ep-btn-green {
+            background: var(--mint-light);
+            color: var(--mint-dark);
+            border-color: var(--mint);
+        }
+
+        .ep-btn-ghost {
+            background: transparent;
+            color: var(--text-light);
+            border-color: var(--kraft-light);
+            font-size: 0.8rem;
+        }
+
+        /* ===== RESULT PANEL ===== */
+        .result-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(74, 55, 40, 0.5);
+            z-index: 900;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .result-overlay.show {
+            display: flex;
+        }
+
+        .result-popup {
+            background: var(--warm-white);
+            border-radius: 24px;
+            border: 2px solid var(--kraft-light);
+            padding: 0;
+            max-width: 560px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            animation: pop-in 0.4s ease;
+        }
+
+        .result-popup::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .result-popup::-webkit-scrollbar-thumb {
+            background: var(--kraft-light);
+        }
+
+        .rp-header {
+            padding: 28px 28px 20px;
+            background: linear-gradient(135deg, var(--mint-light), var(--sky-light));
+            border-radius: 22px 22px 0 0;
+            text-align: center;
+        }
+
+        .rp-mascot {
+            font-size: 3rem;
+            margin-bottom: 8px;
+            animation: mascot-pulse 2s ease-in-out infinite;
+        }
+
+        .rp-title {
+            font-size: 1.3rem;
+            font-weight: 800;
+            margin-bottom: 4px;
+        }
+
+        .rp-subtitle {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .rp-body {
+            padding: 20px 28px;
+        }
+
+        .rp-section-title {
+            font-size: 0.88rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .rp-scores {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        .rps-item {
+            padding: 14px 10px;
+            text-align: center;
+            border-radius: var(--border-radius-sm);
+            border: 2px solid;
+        }
+
+        .rps-item.good {
+            background: var(--mint-light);
+            border-color: var(--mint);
+        }
+
+        .rps-item.medium {
+            background: var(--peach-light);
+            border-color: var(--peach);
+        }
+
+        .rps-item.bad {
+            background: var(--coral-light);
+            border-color: var(--coral);
+        }
+
+        .rps-icon {
+            font-size: 1.3rem;
+            margin-bottom: 3px;
+        }
+
+        .rps-score {
+            font-size: 1.3rem;
+            font-weight: 800;
+        }
+
+        .rps-label {
+            font-size: 0.68rem;
+            color: var(--text-secondary);
+            font-weight: 600;
+        }
+
+        .rps-level {
+            font-size: 0.65rem;
+            font-weight: 700;
+            margin-top: 2px;
+        }
+
+        .rp-insight {
+            padding: 14px 16px;
+            background: linear-gradient(135deg, var(--peach-light), var(--mint-light));
+            border: 1.5px solid var(--peach);
+            border-radius: var(--border-radius-sm);
+            margin-bottom: 14px;
+        }
+
+        .rp-insight-text {
+            font-size: 0.82rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        .rp-tasks {
+            margin-bottom: 14px;
+        }
+
+        .rp-task-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            border: 1.5px solid var(--kraft-light);
+            border-radius: var(--border-radius-sm);
+            background: var(--cream);
+            margin-bottom: 6px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .rp-task-item:hover {
+            background: var(--mint-light);
+            border-color: var(--mint);
+        }
+
+        .rp-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn-primary {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 10px 20px;
+            border: 2px solid var(--mint-dark);
+            border-radius: 50px;
+            background: var(--mint);
+            color: var(--text-primary);
+            font-family: 'Nunito', sans-serif;
+            font-size: 0.88rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: var(--transition);
+            box-shadow: 2px 2px 0px var(--mint-dark);
+            text-decoration: none;
+        }
+
+        .btn-primary:hover {
+            background: var(--mint-dark);
+            color: white;
+            transform: translate(1px, 1px);
+            box-shadow: 1px 1px 0px var(--mint-dark);
+        }
+
+        .btn-outline {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 9px 18px;
+            border: 2px solid var(--kraft-light);
+            border-radius: 50px;
+            background: transparent;
+            color: var(--text-secondary);
+            font-family: 'Nunito', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .btn-outline:hover {
+            background: var(--kraft-light);
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media(max-width:900px) {
+            :root {
+                --sidebar-width: 0px;
+            }
+
+            .sidebar {
+                transform: translateX(-240px);
+                width: 240px;
+                transition: transform 0.3s ease;
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+
+            .sidebar-overlay.open {
+                display: block;
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
+
+            .mobile-topbar {
+                display: flex;
+            }
+
+            .chat-body {
+                grid-template-columns: 1fr;
+            }
+
+            .chat-sidebar {
+                display: none;
+            }
+
+            .chat-topbar {
+                padding: 10px 14px;
+                margin-top: 60px;
+            }
+        }
+
+        @media(max-width:600px) {
+            .ct-actions {
+                display: none;
+            }
+
+            .chat-messages {
+                padding: 14px;
+            }
+
+            .msg {
+                max-width: 88%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Emergency Overlay -->
+    <div class="emergency-overlay" id="emergencyOverlay">
+        <div class="emergency-popup">
+            <div class="ep-icon">❤️</div>
+            <div class="ep-title">Bạn không đơn độc</div>
+            <p class="ep-text">Chúng tôi nhận thấy bạn đang trải qua giai đoạn rất khó khăn. Hãy để ai đó giúp bạn ngay
+                bây giờ nhé.</p>
+            <div class="ep-hotline">
+                <div class="eph-num">📞 1800-599-920</div>
+                <div class="eph-label">Đường dây nóng sức khỏe tâm thần — Miễn phí, 24/7</div>
+            </div>
+            <div class="ep-actions">
+                <a href="tel:1800599920" class="ep-btn ep-btn-red">📞 Gọi ngay hotline</a>
+                <a href="experts.html" class="ep-btn ep-btn-green">💬 Chat với chuyên gia thật</a>
+                <a href="tel:115" class="ep-btn ep-btn-green"
+                    style="background:var(--coral-light);color:#c05050;border-color:var(--coral);">🆘 Gọi cấp cứu
+                    115</a>
+                <button class="ep-btn ep-btn-ghost" onclick="closeEmergency()">Tôi ổn, tiếp tục trò chuyện</button>
+            </div>
+            <p style="text-align:center;font-size:0.72rem;color:var(--text-light);margin-top:10px;font-style:italic;">
+                "Rồi chuyện này sẽ qua. Hãy cho phép ai đó giúp bạn." 🌿</p>
+        </div>
+    </div>
+
+    <!-- Result Overlay -->
+    <div class="result-overlay" id="resultOverlay">
+        <div class="result-popup">
+            <div class="rp-header">
+                <div class="rp-mascot">🐱</div>
+                <div class="rp-title">Bức tranh tâm trạng của bạn 🎨</div>
+                <div class="rp-subtitle">Dựa trên cuộc trò chuyện vừa rồi — PeaceCat đã phân tích xong!</div>
+            </div>
+            <div class="rp-body">
+                <div class="rp-section-title">📊 Chỉ số tâm lý ước tính</div>
+                <div class="rp-scores" id="rpScores"></div>
+                <div class="rp-insight paper-card" style="margin-bottom:14px;">
+                    <div class="rp-section-title">🤖 Nhận xét từ PeaceCat AI</div>
+                    <div class="rp-insight-text" id="rpInsight">Đang phân tích...</div>
+                </div>
+                <div class="rp-tasks">
+                    <div class="rp-section-title">🎯 Nhiệm vụ được gợi ý</div>
+                    <div id="rpTasks"></div>
+                </div>
+                <div
+                    style="padding:10px 12px;background:rgba(255,203,164,0.2);border:1.5px solid var(--peach);border-radius:var(--border-radius-sm);font-size:0.75rem;color:var(--text-secondary);margin-bottom:14px;">
+                    ⚠️ Đây là phân tích tham khảo, <strong>không phải chẩn đoán y khoa</strong>. Nếu bạn lo lắng, hãy
+                    tham khảo chuyên gia.
+                </div>
+                <div class="rp-actions">
+                    <a href="tasks.html" class="btn-primary">🎮 Bắt đầu nhiệm vụ</a>
+                    <button class="btn-outline" onclick="closeResult()">💬 Chat tiếp</button>
+                    <a href="dashboard.html" class="btn-outline">🏡 Dashboard</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar Overlay -->
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+    <!-- Mobile Topbar -->
+    <div class="mobile-topbar">
+        <button class="mobile-menu-btn" onclick="toggleSidebar()">☰</button>
+        <a href="index.html" style="display:flex;align-items:center;gap:8px;text-decoration:none;">
+            <div
+                style="width:32px;height:32px;background:var(--mint);border-radius:8px;border:2px solid var(--mint-dark);display:flex;align-items:center;justify-content:center;font-size:1rem;box-shadow:2px 2px 0px var(--mint-dark);">
+                🌿</div>
+            <span style="font-size:1.1rem;font-weight:800;color:var(--text-primary);">Peace<span
+                    style="color:var(--mint-dark);">Flow</span></span>
+        </a>
+        <span
+            style="background:var(--peach-light);padding:3px 10px;border-radius:50px;font-size:0.75rem;font-weight:700;color:var(--peach-dark);border:1.5px solid var(--peach);">⭐
+            295 XP</span>
+    </div>
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <a href="index.html" class="sidebar-logo">
+            <div class="logo-icon">🌿</div>
+            <div class="logo-text">Peace<span>Flow</span></div>
+        </a>
+
+        <nav class="sidebar-nav">
+            <div class="nav-section-label">Chính</div>
+            <a href="dashboard.html" class="nav-item ">
+                <span class="ni">🏡</span> Tổng quan
+            </a>
+            <a href="mood-checkin.html" class="nav-item ">
+                <span class="ni">💭</span> Tâm trạng
+            </a>
+            <a href="tasks.html" class="nav-item ">
+                <span class="ni">🎮</span> Nhiệm vụ
+            </a>
+            <a href="journal.html" class="nav-item ">
+                <span class="ni">📝</span> Nhật ký
+            </a>
+
+            <div class="nav-section-label" style="margin-top:8px;">Kết nối</div>
+            <a href="experts.html" class="nav-item ">
+                <span class="ni">🩺</span> Chuyên gia
+            </a>
+            <a href="community.html" class="nav-item ">
+                <span class="ni">👥</span> Cộng đồng
+            </a>
+
+            <div class="nav-section-label" style="margin-top:8px;">Phân tích</div>
+            <a href="report.html" class="nav-item ">
+                <span class="ni">📊</span> Báo cáo
+            </a>
+            <a href="achievements.html" class="nav-item ">
+                <span class="ni">🏅</span> Thành tích
+            </a>
+
+            <div class="nav-section-label" style="margin-top:8px;">Cài đặt</div>
+            <a href="profile.html" class="nav-item ">
+                <span class="ni">👤</span> Hồ sơ
+            </a>
+            <a href="settings.html" class="nav-item ">
+                <span class="ni">⚙️</span> Cài đặt
+            </a>
+            <a href="#" class="nav-item" onclick="handleLogout()" style="color:var(--coral); margin-top: 10px; border-top: 1px dashed var(--kraft-light); padding-top: 15px;">
+                <span class="ni">🚪</span> Đăng xuất
+            </a>
+        </nav>
+
+        <div class="sidebar-bottom">
+            <div class="user-card-mini">
+                <div class="user-avatar-mini">🐱</div>
+                <div class="user-info-mini">
+                    <div class="user-name">Khách hàng giả lập</div>
+                    <div class="user-level">⭐ 295 XP · Level 2</div>
+                </div>
+            </div>
+            <a href="emergency.html" class="emergency-btn">
+                🆘 Hỗ trợ khẩn cấp
+            </a>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Chat Topbar -->
+        <div class="chat-topbar">
+            <a href="mood-checkin.html" class="ct-back">← Quay lại</a>
+            <div class="ct-mascot" id="topbarMascot">🐱</div>
+            <div class="ct-info">
+                <div class="ct-name">PeaceCat AI</div>
+                <div class="ct-status">
+                    <span class="status-dot"></span>
+                    <span id="statusText">Đang lắng nghe bạn...</span>
+                </div>
+            </div>
+            <div class="ct-actions">
+                <span class="badge-pill badge-mint" id="msgCountBadge">0 tin nhắn</span>
+                <button class="ct-action-btn" onclick="showResult()">📊 Xem kết quả</button>
+                <button class="ct-action-btn" onclick="clearChat()">🗑️ Xóa chat</button>
+                <button class="ct-action-btn danger" onclick="showEmergency()">🆘 Khẩn cấp</button>
+            </div>
+        </div>
+
+        <!-- Chat Body -->
+        <div class="chat-body">
+            <!-- Left: Messages -->
+            <div class="chat-main">
+                <div class="chat-messages" id="chatMessages">
+                    <!-- Initial bot message -->
+                    <div class="msg msg-bot">
+                        <div class="msg-avatar">🐱</div>
+                        <div class="msg-content">
+                            <div class="msg-bubble">
+                                Chào Khách hàng giả lập! 🌿 Mình là PeaceCat — người bạn đồng hành ảo của bạn.<br><br>
+                                Đây là không gian an toàn và riêng tư hoàn toàn. Bạn có thể chia sẻ bất cứ điều gì đang
+                                trong lòng — mình luôn lắng nghe mà không phán xét nhé! 😊<br><br>
+                                <strong>Hôm nay bạn cảm thấy thế nào?</strong>
+                            </div>
+                            <div class="msg-time">Vừa xong</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Replies -->
+                <div class="quick-replies-area" id="quickRepliesArea">
+                    <button class="qr-btn" onclick="sendQuickReply(this)">😊 Mình ổn, cảm ơn!</button>
+                    <button class="qr-btn" onclick="sendQuickReply(this)">😰 Khá căng thẳng</button>
+                    <button class="qr-btn" onclick="sendQuickReply(this)">😢 Buồn và mệt mỏi</button>
+                    <button class="qr-btn" onclick="sendQuickReply(this)">😡 Tức giận lắm</button>
+                    <button class="qr-btn" onclick="sendQuickReply(this)">😴 Kiệt sức rồi</button>
+                </div>
+
+                <!-- Input Area -->
+                <div class="chat-input-area">
+                    <button class="voice-btn" id="voiceBtn" onclick="toggleVoice()"
+                        title="Nhập bằng giọng nói">🎤</button>
+                    <div class="input-wrap">
+                        <textarea class="chat-input" id="chatInput"
+                            placeholder="Chia sẻ với PeaceCat... (Enter để gửi, Shift+Enter xuống dòng)" rows="1"
+                            onkeydown="handleKey(event)" oninput="handleInput(this)"></textarea>
+                        <span class="char-count" id="charCount">0/500</span>
+                    </div>
+                    <button class="send-btn" onclick="sendMessage()" title="Gửi">➤</button>
+                </div>
+            </div>
+
+            <!-- Right: Analysis Sidebar -->
+            <div class="chat-sidebar" id="chatSidebar">
+
+                <!-- Realtime Analysis -->
+                <div class="paper-card cs-card">
+                    <div class="cs-title">📊 Phân tích realtime</div>
+                    <div style="font-size:0.7rem;color:var(--text-light);margin-bottom:10px;">AI đang phân tích từng tin
+                        nhắn của bạn</div>
+
+                    <div class="sent-bar-wrap">
+                        <div class="sb-row"><span class="sb-label">😰 Lo âu</span><span class="sb-val" id="anxietyVal"
+                                style="color:var(--coral);">--</span></div>
+                        <div class="sb-bar">
+                            <div class="sb-fill sb-anxiety" id="anxietyBar" style="width:0%"></div>
+                        </div>
+                    </div>
+                    <div class="sent-bar-wrap">
+                        <div class="sb-row"><span class="sb-label">🌀 Stress</span><span class="sb-val" id="stressVal"
+                                style="color:#8a6aaa;">--</span></div>
+                        <div class="sb-bar">
+                            <div class="sb-fill sb-stress" id="stressBar" style="width:0%"></div>
+                        </div>
+                    </div>
+                    <div class="sent-bar-wrap">
+                        <div class="sb-row"><span class="sb-label">💚 Tâm trạng</span><span class="sb-val" id="moodVal"
+                                style="color:var(--mint-dark);">--</span></div>
+                        <div class="sb-bar">
+                            <div class="sb-fill sb-mood" id="moodBar" style="width:0%"></div>
+                        </div>
+                    </div>
+                    <div class="sent-bar-wrap">
+                        <div class="sb-row"><span class="sb-label">🌧️ Trầm cảm</span><span class="sb-val"
+                                id="depressionVal" style="color:#8a6aaa;">--</span></div>
+                        <div class="sb-bar">
+                            <div class="sb-fill sb-depression" id="depressionBar" style="width:0%"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Keywords -->
+                <div class="paper-card cs-card">
+                    <div class="cs-title">🏷️ Từ khóa phát hiện</div>
+                    <div class="kw-grid" id="kwGrid">
+                        <span style="font-size:0.72rem;color:var(--text-light);font-style:italic;">Chưa có dữ
+                            liệu</span>
+                    </div>
+                </div>
+
+                <!-- Mood Portrait -->
+                <div class="paper-card portrait-card">
+                    <div class="portrait-title">🎨 Bức tranh tâm trạng</div>
+                    <div class="portrait-bars">
+                        <div class="pb-item"><span class="pb-label">Cảm xúc</span>
+                            <div class="pb-bar">
+                                <div class="pb-fill" id="pb-emotion" style="width:0%;background:var(--mint-dark);">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="pb-item"><span class="pb-label">Thể chất</span>
+                            <div class="pb-bar">
+                                <div class="pb-fill" id="pb-physical" style="width:0%;background:var(--sky);"></div>
+                            </div>
+                        </div>
+                        <div class="pb-item"><span class="pb-label">Xã hội</span>
+                            <div class="pb-bar">
+                                <div class="pb-fill" id="pb-social" style="width:0%;background:var(--lavender);"></div>
+                            </div>
+                        </div>
+                        <div class="pb-item"><span class="pb-label">Nhận thức</span>
+                            <div class="pb-bar">
+                                <div class="pb-fill" id="pb-cognitive" style="width:0%;background:var(--peach-dark);">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div style="margin-top:10px;">
+                        <button class="btn-primary"
+                            style="width:100%;justify-content:center;font-size:0.8rem;padding:9px 16px;"
+                            onclick="showResult()">
+                            📋 Xem báo cáo đầy đủ
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Suggested Tasks -->
+                <div class="paper-card cs-card">
+                    <div class="cs-title">🎯 Gợi ý nhiệm vụ</div>
+                    <div id="sidebarTasks">
+                        <div style="font-size:0.75rem;color:var(--text-light);font-style:italic;">Nhiệm vụ sẽ được gợi ý
+                            sau khi bạn chia sẻ thêm...</div>
+                    </div>
+                </div>
+
+                <!-- Safety Note -->
+                <div class="paper-card cs-card" style="background:rgba(255,139,139,0.05);border-color:var(--coral);">
+                    <div class="cs-title" style="color:var(--coral);">⚠️ Lưu ý an toàn</div>
+                    <div style="font-size:0.75rem;color:var(--text-secondary);line-height:1.6;margin-bottom:8px;">
+                        PeaceCat AI là bạn đồng hành, <strong>không phải bác sĩ</strong>. Nếu bạn cần hỗ trợ khẩn cấp:
+                    </div>
+                    <button onclick="showEmergency()" class="emergency-btn-side"
+                        style="width:100%;justify-content:center;">🆘 Hỗ trợ khẩn cấp ngay</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // ============================================================
+        // STATE
+        // ============================================================
+        let msgCount = 0;
+        let userMsgCount = 0;
+        let analysisData = { anxiety: 0, stress: 0, mood: 50, depression: 0 };
+        let keywords = [];
+        let isTyping = false;
+        let isRecording = false;
+        let conversationContext = [];
+
+        // Warning keywords (Module 6)
+        const DANGER_KEYWORDS = ['tự tử', 'muốn chết', 'không muốn sống', 'tự hại', 'cắt tay', 'kết thúc tất cả', 'tuyệt vọng hoàn toàn', 'không còn lý do'];
+        const NEGATIVE_KW = ['căng thẳng', 'lo lắng', 'mệt mỏi', 'buồn', 'tức giận', 'kiệt sức', 'áp lực', 'mất ngủ', 'chán nản', 'sợ hãi', 'cô đơn', 'thất bại', 'khóc', 'đau', 'bế tắc', 'không ngủ được', 'deadline', 'sếp', 'công việc'];
+        const POSITIVE_KW = ['vui', 'hạnh phúc', 'tốt', 'ổn', 'bình tĩnh', 'thư giãn', 'hy vọng', 'cảm ơn', 'biết ơn', 'yêu', 'tự hào', 'tiến bộ'];
+
+        // AI Response flows
+        const AI_FLOWS = {
+            stressed: [
+                "Mình nghe thấy bạn đang chịu nhiều áp lực. Bạn có thể kể thêm không — áp lực đó đến từ đâu chủ yếu? 💭",
+                "Nghe có vẻ thật sự nặng nề. Khi cảm thấy như vậy, bạn thường làm gì để giải tỏa không?",
+                "Mình hiểu rồi. Bạn đã trải qua điều này bao lâu rồi? Gần đây có điều gì thay đổi không?",
+                "Cảm ơn bạn đã chia sẻ. Trong những lúc như thế này, điều gì giúp bạn cảm thấy tốt hơn một chút?"
+            ],
+            sad: [
+                "Mình rất tiếc khi nghe bạn đang buồn. Bạn có muốn kể cho mình nghe không — điều gì đang xảy ra vậy? 🤍",
+                "Cảm giác buồn đó có từ khi nào? Có chuyện gì cụ thể xảy ra không?",
+                "Mình hiểu. Đôi khi nỗi buồn đến mà không cần lý do rõ ràng — điều đó hoàn toàn bình thường. Bạn có ai để nói chuyện không?",
+                "Bạn đang rất dũng cảm khi chia sẻ điều này. Hãy cho mình biết — bạn cần gì lúc này nhất?"
+            ],
+            tired: [
+                "Sự mệt mỏi đó là thể chất hay tinh thần — hay cả hai? 😴",
+                "Bạn đã ngủ đủ giấc chưa? Gần đây giấc ngủ của bạn thế nào?",
+                "Kiệt sức thật sự rất khó chịu. Bạn có thể nhớ lần cuối cùng bạn cảm thấy thực sự nghỉ ngơi là khi nào không?",
+                "Mình hiểu. Đôi khi cơ thể và tâm trí cần được nạp lại năng lượng. Bạn có thể dành 5 phút cho bản thân không?"
+            ],
+            angry: [
+                "Sự tức giận đó đến từ đâu? Có chuyện gì xảy ra không? 🔥",
+                "Cảm xúc tức giận là hoàn toàn bình thường. Điều gì đang làm bạn khó chịu nhất lúc này?",
+                "Mình nghe bạn. Khi tức giận như vậy, bạn thường xử lý thế nào?",
+                "Cảm ơn bạn đã chia sẻ. Bạn có muốn thử một bài tập thở ngắn để giảm bớt cảm giác đó không?"
+            ],
+            good: [
+                "Thật tuyệt khi nghe bạn ổn! 🌟 Hôm nay có điều gì đặc biệt khiến bạn cảm thấy tốt không?",
+                "Mình vui vì bạn ổn! Bạn đã làm gì để duy trì trạng thái tốt này?",
+                "Tuyệt vời! Hãy ghi nhớ cảm giác này nhé. Có điều gì bạn muốn chia sẻ thêm không?",
+                "Nghe thật dễ chịu! Bạn có muốn thử một nhiệm vụ nhỏ để tích thêm XP hôm nay không? 🌱"
+            ],
+            default: [
+                "Mình hiểu. Bạn có thể kể thêm về cảm giác đó không? 💭",
+                "Cảm ơn bạn đã chia sẻ. Điều đó ảnh hưởng đến cuộc sống hàng ngày của bạn như thế nào?",
+                "Mình đang lắng nghe. Bạn cảm thấy điều này thường xuyên không?",
+                "Bạn đang rất dũng cảm khi chia sẻ. Có điều gì khác bạn muốn nói không?"
+            ]
+        };
+
+        let flowCounters = { stressed: 0, sad: 0, tired: 0, angry: 0, good: 0, default: 0 };
+
+        // ============================================================
+        // UTILS
+        // ============================================================
+        function getTime() {
+            const now = new Date();
+            return now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
+        }
+        function scrollToBottom() {
+            const msgs = document.getElementById('chatMessages');
+            setTimeout(() => msgs.scrollTop = msgs.scrollHeight, 100);
+        }
+        function updateMsgCount() {
+            document.getElementById('msgCountBadge').textContent = msgCount + ' tin nhắn';
+        }
+
+        // ============================================================
+        // KEYWORD & SENTIMENT ANALYSIS (simulated NLP)
+        // ============================================================
+        function analyzeText(text) {
+            const lower = text.toLowerCase();
+
+            // Check danger keywords
+            for (const kw of DANGER_KEYWORDS) {
+                if (lower.includes(kw)) {
+                    setTimeout(() => showEmergency(), 500);
+                    return 'danger';
+                }
+            }
+
+            // Detect mood
+            let mood = 'default';
+            if (lower.includes('căng thẳng') || lower.includes('áp lực') || lower.includes('lo') || lower.includes('deadline')) mood = 'stressed';
+            else if (lower.includes('buồn') || lower.includes('khóc') || lower.includes('cô đơn') || lower.includes('thất bại')) mood = 'sad';
+            else if (lower.includes('mệt') || lower.includes('kiệt sức') || lower.includes('không ngủ') || lower.includes('mất ngủ')) mood = 'tired';
+            else if (lower.includes('tức') || lower.includes('giận') || lower.includes('bực') || lower.includes('khó chịu')) mood = 'angry';
+            else if (lower.includes('ổn') || lower.includes('vui') || lower.includes('tốt') || lower.includes('hạnh phúc')) mood = 'good';
+
+            // Update sentiment scores
+            let anxietyDelta = 0, stressDelta = 0, moodDelta = 0, depressionDelta = 0;
+            NEGATIVE_KW.forEach(kw => { if (lower.includes(kw)) { anxietyDelta += 8; stressDelta += 6; moodDelta -= 5; depressionDelta += 4; } });
+            POSITIVE_KW.forEach(kw => { if (lower.includes(kw)) { moodDelta += 8; anxietyDelta -= 5; stressDelta -= 4; depressionDelta -= 3; } });
+
+            analysisData.anxiety = Math.min(95, Math.max(5, analysisData.anxiety + anxietyDelta));
+            analysisData.stress = Math.min(95, Math.max(5, analysisData.stress + stressDelta));
+            analysisData.mood = Math.min(95, Math.max(5, analysisData.mood + moodDelta));
+            analysisData.depression = Math.min(95, Math.max(5, analysisData.depression + depressionDelta));
+
+            // Extract keywords
+            [...NEGATIVE_KW, ...POSITIVE_KW].forEach(kw => {
+                if (lower.includes(kw) && !keywords.includes(kw)) keywords.push(kw);
+            });
+
+            updateAnalysisUI();
+            updateKeywords();
+            updatePortrait();
+            updateSuggestedTasks(mood);
+
+            return mood;
+        }
+
+        function updateAnalysisUI() {
+            const a = analysisData;
+            document.getElementById('anxietyBar').style.width = a.anxiety + '%';
+            document.getElementById('stressBar').style.width = a.stress + '%';
+            document.getElementById('moodBar').style.width = a.mood + '%';
+            document.getElementById('depressionBar').style.width = a.depression + '%';
+            document.getElementById('anxietyVal').textContent = Math.round(a.anxiety) + '%';
+            document.getElementById('stressVal').textContent = Math.round(a.stress) + '%';
+            document.getElementById('moodVal').textContent = Math.round(a.mood) + '%';
+            document.getElementById('depressionVal').textContent = Math.round(a.depression) + '%';
+        }
+
+        function updateKeywords() {
+            const grid = document.getElementById('kwGrid');
+            if (keywords.length === 0) return;
+            grid.innerHTML = '';
+            keywords.slice(-10).forEach(kw => {
+                const isPos = POSITIVE_KW.includes(kw);
