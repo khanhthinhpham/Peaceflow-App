@@ -1669,17 +1669,18 @@
 
     </main>
 
-    <script src="js/tasks-data.js"></script>
+    <script src="../public/js/tasks-data.js"></script>
     <script>
         // ============================================================
         // DATA & STATE
         // ============================================================
 
 
-        let currentTasks = TASKS;
+        let currentTasks = typeof TASKS !== 'undefined' ? TASKS : [];
 
         function renderTasks() {
             const sections = document.getElementById('taskSections');
+            if (!sections) return;
             sections.innerHTML = '';
 
             if (currentTasks.length === 0) {
@@ -1745,20 +1746,23 @@
             document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
             if (btn) btn.classList.add('active');
 
-            if (cat === 'all') currentTasks = TASKS;
-            else if (cat === 'suggested') currentTasks = TASKS.filter(t => t.suggested);
-            else if (cat === 'completed') currentTasks = TASKS.filter(t => t.completed);
-            else currentTasks = TASKS.filter(t => t.cat === cat);
+            const allTasks = typeof TASKS !== 'undefined' ? TASKS : [];
+
+            if (cat === 'all') currentTasks = allTasks;
+            else if (cat === 'suggested') currentTasks = allTasks.filter(t => t.suggested);
+            else if (cat === 'completed') currentTasks = allTasks.filter(t => t.completed);
+            else currentTasks = allTasks.filter(t => t.cat === cat);
 
             renderTasks();
         }
 
         function searchTasks(val) {
+            const allTasks = typeof TASKS !== 'undefined' ? TASKS : [];
             if (!val) {
-                currentTasks = TASKS;
+                currentTasks = allTasks;
             } else {
                 const v = val.toLowerCase();
-                currentTasks = TASKS.filter(t => t.name.toLowerCase().includes(v) || t.desc.toLowerCase().includes(v));
+                currentTasks = allTasks.filter(t => t.name.toLowerCase().includes(v) || t.desc.toLowerCase().includes(v));
             }
             renderTasks();
         }
@@ -1783,8 +1787,8 @@
     </script>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="js/supabase-config.js"></script>
-    <script src="js/app.js"></script>
+    <script src="../public/js/supabase-config.js"></script>
+    <script src="../public/js/app.js"></script>
 </body>
 
 </html>
