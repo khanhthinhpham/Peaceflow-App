@@ -1457,7 +1457,7 @@
             <div class="user-card-mini">
                 <div class="user-avatar-mini">🐱</div>
                 <div class="user-info-mini">
-                    <div class="user-name">Khách hàng giả lập</div>
+                    <div class="user-name" data-user-field="display_name">Khách hàng giả lập</div>
                     <div class="user-level">⭐ 295 XP · Level 2</div>
                 </div>
             </div>
@@ -1470,7 +1470,7 @@
     <main class="main-content">
     <div class="page-header">
             <div>
-                <div class="page-title">🌿 Xin chào, Khách hàng giả lập!</div>
+                <div class="page-title" data-user-field="display_name" data-user-template="🌿 Xin chào, {display_name}!">🌿 Xin chào, Khách hàng giả lập!</div>
                 <div class="page-subtitle handwritten" style="font-size:1rem;color:var(--mint-dark);">"Hôm nay là một
                     ngày mới để tiến bộ 🌱"</div>
             </div>
@@ -1880,6 +1880,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="../public/js/supabase-config.js"></script>
+    <script src="../public/js/user-sync.js"></script>
     <script type="module" src="../public/js/dashboard.js"></script>
 </body>
 

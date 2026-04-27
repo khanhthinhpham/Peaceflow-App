@@ -1598,7 +1598,7 @@
             <div class="user-card-mini">
                 <div class="user-avatar-mini">🐱</div>
                 <div class="user-info-mini">
-                    <div class="user-name">Khách hàng giả lập</div>
+                    <div class="user-name" data-user-field="display_name">Khách hàng giả lập</div>
                     <div class="user-level">⭐ 295 XP · Level 2</div>
                 </div>
             </div>
@@ -1661,7 +1661,7 @@
                 <div class="checkin-step active" id="qs-1">
                     <div class="mascot-speech-box">
                         <span class="msb-avatar">🐱</span>
-                        <div class="msb-text">Chào Khách hàng giả lập! Hôm nay bạn cảm thấy thế nào? Nhấn vào biểu cảm phù hợp
+                        <div class="msb-text" data-user-field="display_name" data-user-template="Chào {display_name}! Hôm nay bạn cảm thấy thế nào? Nhấn vào biểu cảm phù hợp">Chào Khách hàng giả lập! Hôm nay bạn cảm thấy thế nào? Nhấn vào biểu cảm phù hợp
                             nhất với bạn lúc này nhé 😊</div>
                     </div>
                     <div class="checkin-title">Tâm trạng của bạn hôm nay?</div>
@@ -1938,6 +1938,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="../public/js/supabase-config.js"></script>
+    <script src="../public/js/user-sync.js"></script>
     <script src="../public/js/app.js"></script>
 </body>
 

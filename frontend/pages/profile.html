@@ -1534,7 +1534,7 @@
             <div class="user-card-mini">
                 <div class="user-avatar-mini">🐱</div>
                 <div class="user-info-mini">
-                    <div class="user-name">Khách hàng giả lập</div>
+                    <div class="user-name" data-user-field="display_name">Khách hàng giả lập</div>
                     <div class="user-level">⭐ 295 XP · Level 2</div>
                 </div>
             </div>
@@ -1559,7 +1559,7 @@
                     <div class="ph-avatar-edit">✏️</div>
                 </div>
                 <div class="ph-info">
-                    <div class="ph-name">Khách hàng giả lập</div>
+                    <div class="ph-name" data-user-field="display_name">Khách hàng giả lập</div>
                     <div class="ph-tagline">"Hôm nay là một ngày mới để tiến bộ 🌱"</div>
                     <div class="ph-meta">
                         <div class="ph-meta-item">📅 Tham gia: 01/05/2025</div>
@@ -1599,7 +1599,7 @@
                         <div class="form-row">
                             <div class="form-group">
                                 <label class="form-label">Tên hiển thị *</label>
-                                <input type="text" class="form-input" value="Khách hàng giả lập" id="displayName">
+                                <input type="text" class="form-input" value="Khách hàng giả lập" id="displayName" data-user-field="display_name">
                             </div>
                             <div class="form-group">
                                 <label class="form-label">Biệt danh (tùy chọn)</label>
@@ -1901,6 +1901,7 @@
             </div>
         </div>
     </main>
+    <script src="../public/js/user-sync.js"></script>
     <script type="module" src="../public/js/profile.js"></script>
     <script src="../public/js/app.js"></script>
 </body>

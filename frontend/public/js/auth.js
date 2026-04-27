@@ -163,18 +163,23 @@ function initAuthAndUI() {
     
     // Global UI updater helper
     window.updateGlobalUI = () => {
-        const user = auth.getUser();
-        if (user) {
-            const name = user.display_name || user.full_name || "Người dùng";
-            document.querySelectorAll('.user-name, .ph-name').forEach(el => el.innerText = name);
-            
-            if (user.avatar_url) {
-                document.querySelectorAll('.user-avatar, .user-avatar-mini, .ph-avatar').forEach(el => {
-                    el.style.backgroundImage = `url('${user.avatar_url}')`;
-                    el.style.backgroundSize = 'cover';
-                    el.style.backgroundPosition = 'center';
-                    el.innerText = ''; // Clear fallback emoji
-                });
+        if (window.UserSync) {
+            window.UserSync.sync();
+        } else {
+            // Fallback for when UserSync is not loaded
+            const user = auth.getUser();
+            if (user) {
+                const name = user.display_name || user.full_name || "Người dùng";
+                document.querySelectorAll('.user-name, .ph-name').forEach(el => el.innerText = name);
+                
+                if (user.avatar_url) {
+                    document.querySelectorAll('.user-avatar, .user-avatar-mini, .ph-avatar').forEach(el => {
+                        el.style.backgroundImage = `url('${user.avatar_url}')`;
+                        el.style.backgroundSize = 'cover';
+                        el.style.backgroundPosition = 'center';
+                        el.innerText = ''; // Clear fallback emoji
+                    });
+                }
             }
         }
     };

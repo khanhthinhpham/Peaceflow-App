@@ -1545,7 +1545,7 @@
             <div class="user-card-mini">
                 <div class="user-avatar-mini">🐱</div>
                 <div class="user-info-mini">
-                    <div class="user-name">Khách hàng giả lập</div>
+                    <div class="user-name" data-user-field="display_name">Khách hàng giả lập</div>
                     <div class="user-level">⭐ 295 XP · Level 2</div>
                 </div>
             </div>
@@ -1586,7 +1586,7 @@
                         <div class="msg-avatar">🐱</div>
                         <div class="msg-content">
                             <div class="msg-bubble">
-                                Chào Khách hàng giả lập! 🌿 Mình là PeaceCat — người bạn đồng hành ảo của bạn.<br><br>
+                                Chào <span data-user-field="display_name">Khách hàng giả lập</span>! 🌿 Mình là PeaceCat — người bạn đồng hành ảo của bạn.<br><br>
                                 Đây là không gian an toàn và riêng tư hoàn toàn. Bạn có thể chia sẻ bất cứ điều gì đang
                                 trong lòng — mình luôn lắng nghe mà không phán xét nhé! 😊<br><br>
                                 <strong>Hôm nay bạn cảm thấy thế nào?</strong>
@@ -1862,3 +1862,67 @@
             grid.innerHTML = '';
             keywords.slice(-10).forEach(kw => {
                 const isPos = POSITIVE_KW.includes(kw);
+                const tag = document.createElement('div');
+                tag.className = `kw-tag ${isPos ? 'pos' : 'neg'}`;
+                tag.style.cssText = `
+                    padding: 4px 10px;
+                    background: ${isPos ? 'var(--mint-light)' : 'var(--coral-light)'};
+                    color: ${isPos ? 'var(--mint-dark)' : 'var(--coral)'};
+                    border-radius: 20px;
+                    font-size: 0.7rem;
+                    border: 1px solid ${isPos ? 'var(--mint)' : 'var(--coral)'};
+                `;
+                tag.textContent = kw;
+                grid.appendChild(tag);
+            });
+        }
+
+        function updatePortrait() {
+            const mascot = document.getElementById('mascotPortrait');
+            if (!mascot) return;
+            const mood = analysisData.mood;
+            if (mood > 80) mascot.textContent = '😺';
+            else if (mood > 60) mascot.textContent = '😸';
+            else if (mood > 40) mascot.textContent = '🐱';
+            else if (mood > 20) mascot.textContent = '😿';
+            else mascot.textContent = '🙀';
+        }
+
+        function updateSuggestedTasks(mood) {
+            const container = document.getElementById('sidebarTasks');
+            if (!container) return;
+            const tasks = {
+                stressed: [{id: '1.1', title: 'Thở 4-4-4-4'}, {id: 'E1', title: 'Grounding 5-4-3-2-1'}],
+                sad: [{id: '2.4', title: 'Viết lòng biết ơn'}, {id: '1.2', title: 'Đi dạo nhẹ nhàng'}],
+                tired: [{id: '1.1', title: 'Thở thư giãn'}, {id: '2.3', title: 'Thiền ngủ ngon'}],
+                angry: [{id: '1.1', title: 'Thở hạ hỏa'}, {id: 'E2', title: 'Giải phóng cảm xúc'}],
+                good: [{id: '3.1', title: 'Chia sẻ niềm vui'}, {id: '3.3', title: 'Học kỹ năng mới'}],
+                default: [{id: '1.1', title: 'Thở 4 nhịp'}, {id: '2.4', title: 'Viết nhật ký'}]
+            };
+            const suggested = tasks[mood] || tasks.default;
+            container.innerHTML = suggested.map(t => `
+                <div class="suggested-task" style="padding:8px;background:var(--warm-white);border:1px solid var(--kraft-light);border-radius:8px;margin-bottom:8px;font-size:0.8rem;cursor:pointer;" onclick="location.href='task-detail.html?id=${t.id}'">
+                    ${t.title}
+                </div>
+            `).join('');
+        }
+
+        function showResult() {
+            window.location.href = 'report.html';
+        }
+
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('open');
+            document.getElementById('sidebarOverlay').classList.toggle('open');
+        }
+        function closeSidebar() {
+            document.getElementById('sidebar').classList.remove('open');
+            document.getElementById('sidebarOverlay').classList.remove('open');
+        }
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../public/js/supabase-config.js"></script>
+    <script src="../public/js/user-sync.js"></script>
+    <script src="../public/js/app.js"></script>
+</body>
+</html>
