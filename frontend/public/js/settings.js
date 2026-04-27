@@ -1,4 +1,4 @@
-�import { apiClient } from './api-client.js';
+import { apiClient } from './api-client.js';
 import { auth } from './auth.js';
 
 export const settings = {
@@ -48,9 +48,9 @@ export const settings = {
 
         try {
             await apiClient.put('/profile', payload);
-            alert('Cài �ặt �ã �ược lưu thành công!');
+            alert('Cài đặt đã được lưu thành công!');
         } catch (error) {
-            alert('L�i khi lưu cài �ặt: ' + error.message);
+            alert('Lỗi khi lưu cài đặt: ' + error.message);
         }
     }
 };
