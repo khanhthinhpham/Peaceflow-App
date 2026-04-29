@@ -1540,7 +1540,7 @@
         <div style="display:flex;align-items:center;gap:8px;">
             <span
                 style="background:var(--peach-light);padding:3px 10px;border-radius:50px;font-size:0.75rem;font-weight:700;color:var(--peach-dark);border:1.5px solid var(--peach);">⭐
-                295 XP</span>
+                0 XP</span>
         </div>
     </div>
 
@@ -1598,8 +1598,8 @@
             <div class="user-card-mini">
                 <div class="user-avatar-mini">🐱</div>
                 <div class="user-info-mini">
-                    <div class="user-name" data-user-field="display_name">Khách hàng giả lập</div>
-                    <div class="user-level">⭐ 295 XP · Level 2</div>
+                    <div class="user-name" data-user-field="display_name">Người dùng</div>
+                    <div class="user-level">⭐ 0 XP · Level 1</div>
                 </div>
             </div>
             <a href="emergency.html" class="emergency-btn">
@@ -1661,7 +1661,7 @@
                 <div class="checkin-step active" id="qs-1">
                     <div class="mascot-speech-box">
                         <span class="msb-avatar">🐱</span>
-                        <div class="msb-text" data-user-field="display_name" data-user-template="Chào {display_name}! Hôm nay bạn cảm thấy thế nào? Nhấn vào biểu cảm phù hợp">Chào Khách hàng giả lập! Hôm nay bạn cảm thấy thế nào? Nhấn vào biểu cảm phù hợp
+                        <div class="msb-text" data-user-field="display_name" data-user-template="Chào {display_name}! Hôm nay bạn cảm thấy thế nào? Nhấn vào biểu cảm phù hợp">Chào Người dùng! Hôm nay bạn cảm thấy thế nào? Nhấn vào biểu cảm phù hợp
                             nhất với bạn lúc này nhé 😊</div>
                     </div>
                     <div class="checkin-title">Tâm trạng của bạn hôm nay?</div>
@@ -1858,7 +1858,7 @@
             document.getElementById(`qs-${step}`).classList.add('active');
         }
 
-        let userStats = { xp: 0, level: 1, name: 'Khách hàng giả lập' };
+        let userStats = { xp: 0, level: 1, name: 'Người dùng' };
 
         function loadData() {
             try {
@@ -1908,14 +1908,14 @@
             }
             document.getElementById('suggestedTasks').innerHTML = taskHtml;
 
+            // Lưu tâm trạng lên server hoặc localStorage (Tự động xử lý trong mood-api.js)
+            saveMoodWithFallback(checkinData);
+
             if (window.Store && window.UserModule) {
                 window.Store.addMoodEntry({ mood: checkinData.mood, level: checkinData.score, tags: Array.from(checkinData.tags), note: '' });
                 window.UserModule.addXP(10, 'checkin');
             } else {
-                let logs = [];
-                try { logs = JSON.parse(localStorage.getItem('PeaceFlow_logs') || "[]"); } catch (e) { }
-                logs.push({ date: new Date().toISOString(), mood: checkinData.mood, score: checkinData.score, tags: Array.from(checkinData.tags), timestamp: Date.now() });
-                localStorage.setItem('PeaceFlow_logs', JSON.stringify(logs));
+                // XP fallback if UserModule is not available
                 userStats.xp += 10;
                 localStorage.setItem('PeaceFlow_user_stats', JSON.stringify(userStats));
             }
@@ -1940,6 +1940,8 @@
     <script src="../public/js/supabase-config.js"></script>
     <script src="../public/js/user-sync.js"></script>
     <script src="../public/js/app.js"></script>
+    <script type="module" src="../public/js/mood-api.js"></script>
+    <script src="../public/js/global-sync.js"></script>
 </body>
 
 </html>

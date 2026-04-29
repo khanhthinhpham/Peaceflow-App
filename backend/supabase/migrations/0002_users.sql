@@ -1,8 +1,7 @@
-create table if not exists users (
-  id uuid primary key default gen_random_uuid(),
+create table if not exists public.users (
+  id uuid primary key references auth.users(id) on delete cascade,
   email varchar(255) unique not null,
   phone varchar(30),
-  password_hash text not null,
   full_name varchar(255) not null,
   display_name varchar(255),
   avatar_url text,
@@ -11,6 +10,7 @@ create table if not exists users (
   city varchar(100),
   country varchar(100) default 'Vietnam',
   status user_status not null default 'active',
+  role varchar(50) not null default 'user',
   email_verified boolean not null default false,
   consent_privacy boolean not null default false,
   consent_terms boolean not null default false,
@@ -20,13 +20,13 @@ create table if not exists users (
   updated_at timestamptz not null default now()
 );
 
-create table if not exists refresh_tokens (
+create table if not exists public.refresh_tokens (
   id uuid primary key default gen_random_uuid(),
-  user_id uuid not null references users(id) on delete cascade,
+  user_id uuid not null references public.users(id) on delete cascade,
   token_hash text not null,
   expires_at timestamptz not null,
   revoked_at timestamptz,
-  device_info jsonb default '{}'::jsonb,
+  device_info jsonb not null default '{}'::jsonb,
   ip_address inet,
   created_at timestamptz not null default now()
 );

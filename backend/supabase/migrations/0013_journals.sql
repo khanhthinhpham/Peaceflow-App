@@ -1,12 +1,17 @@
-create table if not exists user_journals (
-  id uuid primary key default gen_random_uuid(),
-  user_id uuid not null references users(id) on delete cascade,
-  content text not null,
-  mood varchar(50),
-  tags jsonb default '[]'::jsonb,
-  is_private boolean default true,
-  created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now()
-);
+alter table public.journal_entries
+  add column if not exists crisis_flags jsonb not null default '[]'::jsonb;
 
-create index if not exists idx_journals_user_id on user_journals(user_id);
+alter table public.journal_entries
+  add column if not exists deleted_at timestamptz;
+
+alter table public.journal_entries
+  add column if not exists source varchar(50) default 'manual';
+
+create index if not exists idx_journal_entries_user_created
+  on public.journal_entries(user_id, created_at desc);
+
+create index if not exists idx_journal_entries_tags_gin
+  on public.journal_entries using gin (tags);
+
+create index if not exists idx_journal_entries_crisis_flags_gin
+  on public.journal_entries using gin (crisis_flags);

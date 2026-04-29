@@ -1727,7 +1727,7 @@ Ví dụ: Tôi đang gặp khó khăn với lo âu công việc và mất ngủ 
         </a>
         <span
             style="background:var(--peach-light);padding:3px 10px;border-radius:50px;font-size:0.75rem;font-weight:700;color:var(--peach-dark);border:1.5px solid var(--peach);">⭐
-            295 XP</span>
+            0 XP</span>
     </div>
 
     <!-- Sidebar -->
@@ -1784,8 +1784,8 @@ Ví dụ: Tôi đang gặp khó khăn với lo âu công việc và mất ngủ 
             <div class="user-card-mini">
                 <div class="user-avatar-mini">🐱</div>
                 <div class="user-info-mini">
-                    <div class="user-name" data-user-field="display_name">Khách hàng giả lập</div>
-                    <div class="user-level">⭐ 295 XP · Level 2</div>
+                    <div class="user-name" data-user-field="display_name">Người dùng</div>
+                    <div class="user-level">⭐ 0 XP · Level 1</div>
                 </div>
             </div>
             <a href="emergency.html" class="emergency-btn">
@@ -2168,7 +2168,7 @@ Ví dụ: Tôi đang gặp khó khăn với lo âu công việc và mất ngủ 
                     const level = Math.floor(stats.xp / threshold) + 1;
 
                     // Update Sidebar
-                    document.querySelectorAll('.user-name').forEach(el => el.innerText = stats.name || 'Khách hàng giả lập');
+                    document.querySelectorAll('.user-name').forEach(el => el.innerText = stats.name || 'Người dùng');
                     document.querySelectorAll('.user-level').forEach(el => el.innerText = `⭐ ${stats.xp} XP · Level ${level}`);
 
                     // Update Mobile Topbar XP
@@ -2204,6 +2204,7 @@ Ví dụ: Tôi đang gặp khó khăn với lo âu công việc và mất ngủ 
     <script src="../public/js/supabase-config.js"></script>
     <script src="../public/js/user-sync.js"></script>
     <script src="../public/js/app.js"></script>
+    <script src="../public/js/global-sync.js"></script>
 </body>
 
 </html>

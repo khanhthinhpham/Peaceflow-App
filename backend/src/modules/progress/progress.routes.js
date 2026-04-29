@@ -1,20 +1,13 @@
 import { Router } from 'express';
 import { requireAuth } from '../../common/middleware/auth.middleware.js';
-import { db } from '../../config/db.js';
+import * as progressController from './progress.controller.js';
 
 const router = Router();
 
-// GET /api/v1/progress
-router.get('/progress', requireAuth, async (req, res) => {
-  const result = await db.query(
-    `select * from user_progress where user_id = $1 limit 1`,
-    [req.user.sub]
-  );
+// GET /api/v1/progress — Tiến trình cá nhân
+router.get('/progress', requireAuth, progressController.getProgress);
 
-  return res.json({
-    success: true,
-    data: result.rows[0] || { xp: 0, level: 1, streak: 0 }
-  });
-});
+// GET /api/v1/progress/leaderboard — Bảng xếp hạng
+router.get('/progress/leaderboard', requireAuth, progressController.getLeaderboard);
 
 export default router;

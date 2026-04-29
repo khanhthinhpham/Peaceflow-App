@@ -53,6 +53,7 @@ export class RiskEngineService {
       const snapshot = await this._saveRiskSnapshot(userId, stressIndex, A, Sleep, riskLevel, factors, primaryTrigger);
 
       return {
+        id: snapshot?.id || null,
         stress_index: Math.round(stressIndex),
         risk_level: riskLevel,
         primary_trigger: primaryTrigger,

@@ -1282,8 +1282,8 @@
             <div class="user-card-mini">
                 <div class="user-avatar-mini">🐱</div>
                 <div class="user-info-mini">
-                    <div class="user-name">Khách hàng giả lập</div>
-                    <div class="user-level">⭐ 295 XP · Level 2</div>
+                    <div class="user-name" data-user-field="display_name">Người dùng</div>
+                    <div class="user-level">⭐ 0 XP · Level 1</div>
                 </div>
             </div>
             <a href="emergency.html" class="emergency-btn">
@@ -1400,7 +1400,7 @@
 
         let currentKey = 'box', isRunning = false, isPaused = false, currentRound = 0, currentPhaseIdx = 0, currentCount = 0, sessionTime = 0;
         let mainInterval = null, sessionInterval = null;
-        let userStats = { xp: 0, level: 1, name: 'Khách hàng giả lập' };
+        let userStats = { xp: 0, level: 1, name: 'Người dùng' };
 
         function loadData() {
             const stats = localStorage.getItem('PeaceFlow_user_stats');
@@ -1523,6 +1523,8 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="../public/js/supabase-config.js"></script>
     <script src="../public/js/app.js"></script>
+    <script src="../public/js/user-sync.js"></script>
+    <script src="../public/js/global-sync.js"></script>
 </body>
 
 </html>

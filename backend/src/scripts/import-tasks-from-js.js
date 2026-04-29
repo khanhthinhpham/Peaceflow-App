@@ -3,7 +3,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const tasksFilePath = path.resolve(__dirname, '../../../frontend/legacy/tasks-data.js');
+const tasksFilePath = path.resolve(__dirname, '../../../frontend/public/js/tasks-data.js');
 const envPath = path.resolve(process.cwd(), '.env');
 
 // Manual env loading to avoid ESM issues with dotenv in this environment

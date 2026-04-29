@@ -1529,7 +1529,7 @@
         </a>
         <span
             style="background:var(--peach-light);padding:3px 10px;border-radius:50px;font-size:0.75rem;font-weight:700;color:var(--peach-dark);border:1.5px solid var(--peach);">⭐
-            295 XP</span>
+            0 XP</span>
     </div>
 
     <!-- Sidebar -->
@@ -1586,8 +1586,8 @@
             <div class="user-card-mini">
                 <div class="user-avatar-mini">🐱</div>
                 <div class="user-info-mini">
-                    <div class="user-name" data-user-field="display_name">Khách hàng giả lập</div>
-                    <div class="user-level">⭐ 295 XP · Level 2</div>
+                    <div class="user-name" data-user-field="display_name">Người dùng</div>
+                    <div class="user-level">⭐ 0 XP · Level 1</div>
                 </div>
             </div>
             <a href="emergency.html" class="emergency-btn">
@@ -1614,15 +1614,15 @@
             <div class="xp-level-badge">2</div>
             <div class="xp-info">
                 <div class="xi-name">Người khám phá</div>
-                <div class="xi-range">Level 2 · 100 – 300 XP</div>
+                <div class="xi-range">Level 1 · 0 – 100 XP</div>
             </div>
             <div class="xp-bar-wrap">
                 <div class="xp-bar-bg">
                     <div class="xp-bar-fill" style="width:97.5%"></div>
                 </div>
-                <div class="xp-bar-label"><span>100 XP</span><span>Còn 5 XP → Level 3 🎉</span><span>300 XP</span></div>
+                <div class="xp-bar-label"><span>100 XP</span><span>Hãy hoàn thành nhiệm vụ để nhận XP! 🎉</span><span>300 XP</span></div>
             </div>
-            <div class="xp-total">295 XP</div>
+            <div class="xp-total">0 XP</div>
         </div>
 
         <!-- AI Suggestion -->
@@ -1669,127 +1669,31 @@
 
     </main>
 
-    <script src="../public/js/tasks-data.js"></script>
-    <script>
-        // ============================================================
-        // DATA & STATE
-        // ============================================================
-
-
-        let currentTasks = typeof TASKS !== 'undefined' ? TASKS : [];
-
-        function renderTasks() {
-            const sections = document.getElementById('taskSections');
-            if (!sections) return;
-            sections.innerHTML = '';
-
-            if (currentTasks.length === 0) {
-                sections.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-secondary);">Không tìm thấy nhiệm vụ nào. 🌿</div>';
-                return;
-            }
-
-            const CATS = [
-                { id: 'emergency', name: '🔴 Khẩn Cấp (Cấp 0)', desc: 'Thực hiện ngay khi hoảng loạn', color: 'emergency' },
-                { id: 'easy', name: '🟢 Dễ (Cấp 1)', desc: 'Xây dựng thói quen nhỏ hàng ngày', color: 'easy' },
-                { id: 'medium', name: '🟡 Trung Bình (Cấp 2)', desc: 'Cần một chút thời gian và không gian tĩnh', color: 'medium' },
-                { id: 'hard', name: '🟠 Khó (Cấp 3)', desc: 'Nhiệm vụ nâng cao đòi hỏi sự kiên trì', color: 'hard' },
-                { id: 'community', name: '🔵 Cộng Đồng (Cấp 4)', desc: 'Kết nối và đóng góp cho cộng đồng', color: 'community' }
-            ];
-
-            let html = '';
-            CATS.forEach(c => {
-                const list = currentTasks.filter(t => t.cat === c.id);
-                if (list.length > 0) {
-                    html += `
-                    <div class="task-section">
-                        <div class="section-header">
-                            <div class="sh-icon ${c.color}">⭐</div>
-                            <div class="sh-title">${c.name}</div>
-                            <div class="sh-count">${list.length} bài tập</div>
-                            <div class="sh-desc">${c.desc}</div>
-                        </div>
-                        <div class="task-grid">
-                `;
-                    list.forEach(t => {
-                        let btnColor = t.cat === 'emergency' ? 'emergency' : '';
-                        let onClick = `location.href='task-detail.html?id=${t.id}'`;
-                        if (t.id === 'E2' || t.id === '2.5') onClick = `location.href='task-breathing.html'`;
-                        if (t.id === '2.3') onClick = `location.href='task-meditation.html'`;
-
-                        html += `
-                        <div class="task-card paper-card cat-${t.cat} ${t.completed ? 'completed' : ''}" onclick="${onClick}">
-                            <div class="tc-top">
-                                <div class="tc-icon ${t.cat}">${t.icon}</div>
-                                <div class="tc-info">
-                                    <div class="tc-name">${t.name}</div>
-                                    <div class="tc-meta">
-                                        <div class="tc-meta-item">⏱ ${t.time}</div>
-                                        ${t.suggested ? `<div class="tc-meta-item" style="color:var(--gold-dark);">⭐ Gợi ý</div>` : ''}
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="tc-desc">${t.desc}</div>
-                            <div class="tc-bottom">
-                                <div class="tc-xp">+${t.xp} XP</div>
-                                <button class="tc-start-btn ${btnColor}" onclick="event.stopPropagation();${onClick}">▶ Bắt đầu</button>
-                            </div>
-                        </div>
-                    `;
-                    });
-                    html += `</div></div>`;
-                }
-            });
-            sections.innerHTML = html;
-        }
-
-        function filterTasks(cat, btn) {
-            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-            if (btn) btn.classList.add('active');
-
-            const allTasks = typeof TASKS !== 'undefined' ? TASKS : [];
-
-            if (cat === 'all') currentTasks = allTasks;
-            else if (cat === 'suggested') currentTasks = allTasks.filter(t => t.suggested);
-            else if (cat === 'completed') currentTasks = allTasks.filter(t => t.completed);
-            else currentTasks = allTasks.filter(t => t.cat === cat);
-
-            renderTasks();
-        }
-
-        function searchTasks(val) {
-            const allTasks = typeof TASKS !== 'undefined' ? TASKS : [];
-            if (!val) {
-                currentTasks = allTasks;
-            } else {
-                const v = val.toLowerCase();
-                currentTasks = allTasks.filter(t => t.name.toLowerCase().includes(v) || t.desc.toLowerCase().includes(v));
-            }
-            renderTasks();
-        }
-
-        window.onload = function() {
-            renderTasks();
-            
-            // Try to load AI suggestions if getAIRecommendations is available
-            if (typeof getAIRecommendations === 'function') {
-                const suggestions = getAIRecommendations();
-                const bannerSub = document.querySelector('.at-sub');
-                if (bannerSub && suggestions.length > 0) {
-                    bannerSub.innerText = `Dựa trên phân tích tâm trạng gần đây của bạn, PeaceCat đã chọn ra ${suggestions.length} nhiệm vụ chữa lành phù hợp nhất lúc này!`;
-                }
-            }
-        };
-
-        function scrollToSuggested() {
-            filterTasks('suggested', null);
-        }
-
-    </script>
-
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="../public/js/supabase-config.js"></script>
     <script src="../public/js/user-sync.js"></script>
-    <script src="../public/js/app.js"></script>
+    <script type="module">
+        import { tasks } from '../public/js/tasks.js';
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            tasks.init();
+            
+            // Re-bind global functions for HTML onclick handlers
+            window.filterTasks = (cat, btn) => tasks.filterTasks(cat, btn);
+            window.searchTasks = (val) => tasks.searchTasks(val);
+            window.scrollToSuggested = () => tasks.scrollToSuggested();
+            window.toggleSidebar = () => {
+                document.getElementById('sidebar').classList.toggle('open');
+                document.getElementById('sidebarOverlay').classList.toggle('open');
+            };
+            window.closeSidebar = () => {
+                document.getElementById('sidebar').classList.remove('open');
+                document.getElementById('sidebarOverlay').classList.remove('open');
+            };
+            window.showEmergency = () => document.getElementById('emergencyOverlay').classList.add('show');
+            window.closeEmergency = () => document.getElementById('emergencyOverlay').classList.remove('show');
+        });
+    </script>
+    <script src="../public/js/global-sync.js"></script>
 </body>
-
 </html>

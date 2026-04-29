@@ -1394,9 +1394,9 @@
                     style="color:var(--mint-dark);">Flow</span></span>
         </a>
         <div style="display:flex;align-items:center;gap:8px;">
-            <span
+            <span id="mobile-xp-badge"
                 style="background:var(--peach-light);padding:3px 10px;border-radius:50px;font-size:0.75rem;font-weight:700;color:var(--peach-dark);border:1.5px solid var(--peach);">⭐
-                295 XP</span>
+                0 XP</span>
             <div
                 style="width:34px;height:34px;border-radius:50%;background:var(--lavender-light);border:2px solid var(--kraft);display:flex;align-items:center;justify-content:center;font-size:1rem;">
                 🐱</div>
@@ -1457,8 +1457,8 @@
             <div class="user-card-mini">
                 <div class="user-avatar-mini">🐱</div>
                 <div class="user-info-mini">
-                    <div class="user-name" data-user-field="display_name">Khách hàng giả lập</div>
-                    <div class="user-level">⭐ 295 XP · Level 2</div>
+                    <div class="user-name" data-user-field="display_name">Người dùng</div>
+                    <div class="user-level">⭐ 0 XP · Level 1</div>
                 </div>
             </div>
             <a href="emergency.html" class="emergency-btn">
@@ -1470,7 +1470,7 @@
     <main class="main-content">
     <div class="page-header">
             <div>
-                <div class="page-title" data-user-field="display_name" data-user-template="🌿 Xin chào, {display_name}!">🌿 Xin chào, Khách hàng giả lập!</div>
+                <div class="page-title" data-user-field="display_name" data-user-template="🌿 Xin chào, {display_name}!">🌿 Xin chào, Người dùng!</div>
                 <div class="page-subtitle handwritten" style="font-size:1rem;color:var(--mint-dark);">"Hôm nay là một
                     ngày mới để tiến bộ 🌱"</div>
             </div>
@@ -1624,15 +1624,15 @@
                                 <line x1="30" y1="47" x2="130" y2="113" stroke="#E8CBA7" stroke-width="1" />
                                 <line x1="130" y1="47" x2="30" y2="113" stroke="#E8CBA7" stroke-width="1" />
                                 <!-- Data polygon -->
-                                <polygon points="80,32 122,60 118,100 80,128 42,105 38,58" fill="rgba(168,213,186,0.35)"
+                                <polygon id="radar-polygon" points="80,80 80,80 80,80 80,80 80,80 80,80" fill="rgba(168,213,186,0.35)"
                                     stroke="#7BBF95" stroke-width="2.5" />
                                 <!-- Data points -->
-                                <circle cx="80" cy="32" r="4" fill="#7BBF95" />
-                                <circle cx="122" cy="60" r="4" fill="#7BBF95" />
-                                <circle cx="118" cy="100" r="4" fill="#7BBF95" />
-                                <circle cx="80" cy="128" r="4" fill="#7BBF95" />
-                                <circle cx="42" cy="105" r="4" fill="#7BBF95" />
-                                <circle cx="38" cy="58" r="4" fill="#7BBF95" />
+                                <circle id="radar-dot-0" cx="80" cy="80" r="4" fill="#7BBF95" />
+                                <circle id="radar-dot-1" cx="80" cy="80" r="4" fill="#7BBF95" />
+                                <circle id="radar-dot-2" cx="80" cy="80" r="4" fill="#7BBF95" />
+                                <circle id="radar-dot-3" cx="80" cy="80" r="4" fill="#7BBF95" />
+                                <circle id="radar-dot-4" cx="80" cy="80" r="4" fill="#7BBF95" />
+                                <circle id="radar-dot-5" cx="80" cy="80" r="4" fill="#7BBF95" />
                                 <!-- Labels -->
                                 <text x="80" y="14" text-anchor="middle" font-size="9" fill="#7A6555"
                                     font-family="Nunito" font-weight="700">Cảm xúc</text>
@@ -1651,27 +1651,27 @@
                         <div class="radar-legend">
                             <div class="rl-item">
                                 <div class="rl-dot" style="background:#7BBF95"></div><span class="rl-label">Cảm
-                                    xúc</span><span class="rl-val">8.2</span>
+                                    xúc</span><span class="rl-val" id="radar-val-0">--</span>
                             </div>
                             <div class="rl-item">
                                 <div class="rl-dot" style="background:#A8D8EA"></div><span class="rl-label">Xã
-                                    hội</span><span class="rl-val">7.5</span>
+                                    hội</span><span class="rl-val" id="radar-val-1">--</span>
                             </div>
                             <div class="rl-item">
                                 <div class="rl-dot" style="background:#FFCBA4"></div><span class="rl-label">Thể
-                                    chất</span><span class="rl-val">7.8</span>
+                                    chất</span><span class="rl-val" id="radar-val-2">--</span>
                             </div>
                             <div class="rl-item">
                                 <div class="rl-dot" style="background:#C3AED6"></div><span class="rl-label">Giấc
-                                    ngủ</span><span class="rl-val">6.9</span>
+                                    ngủ</span><span class="rl-val" id="radar-val-3">--</span>
                             </div>
                             <div class="rl-item">
                                 <div class="rl-dot" style="background:#FF8B8B"></div><span
-                                    class="rl-label">Stress</span><span class="rl-val">5.4</span>
+                                    class="rl-label">Stress</span><span class="rl-val" id="radar-val-4">--</span>
                             </div>
                             <div class="rl-item">
                                 <div class="rl-dot" style="background:#D4A574"></div><span class="rl-label">Lo
-                                    âu</span><span class="rl-val">4.8</span>
+                                    âu</span><span class="rl-val" id="radar-val-5">--</span>
                             </div>
                         </div>
                     </div>
@@ -1755,37 +1755,37 @@
                 <div class="paper-card xp-card" style="margin-bottom:18px;">
                     <div class="xp-header">
                         <div class="xp-level-badge">
-                            <div class="xp-level-circle">2</div>
+                            <div class="xp-level-circle" id="xp-level-circle">1</div>
                             <div class="xp-level-info">
-                                <div class="xl-name">Người khám phá</div>
-                                <div class="xl-range">100 – 300 XP</div>
+                                <div class="xl-name" id="xp-level-name">Người mới bắt đầu</div>
+                                <div class="xl-range" id="xp-level-range">0 – 100 XP</div>
                             </div>
                         </div>
-                        <div class="xp-total">295 XP</div>
+                        <div class="xp-total" id="xp-total">0 XP</div>
                     </div>
                     <div class="xp-bar-wrap">
-                        <div class="xp-bar-fill" style="width:97.5%"></div>
+                        <div class="xp-bar-fill" id="xp-bar-fill" style="width:0%"></div>
                     </div>
                     <div class="xp-bar-labels">
-                        <span>100 XP</span>
-                        <span>Còn 5 XP → Level 3 🎉</span>
-                        <span>300 XP</span>
+                        <span id="xp-bar-left">0 XP</span>
+                        <span id="xp-bar-remaining">Hãy hoàn thành nhiệm vụ để nhận XP!</span>
+                        <span id="xp-bar-right">100 XP</span>
                     </div>
                 </div>
 
                 <!-- Streak -->
                 <div class="paper-card streak-card" style="margin-bottom:18px;">
                     <div class="streak-fire">🔥</div>
-                    <div class="streak-number">7</div>
+                    <div class="streak-number" id="streak-number">0</div>
                     <div class="streak-label">ngày streak liên tục</div>
-                    <div class="streak-days">
-                        <div class="streak-day done">T2</div>
-                        <div class="streak-day done">T3</div>
-                        <div class="streak-day done">T4</div>
-                        <div class="streak-day done">T5</div>
-                        <div class="streak-day done">T6</div>
-                        <div class="streak-day done">T7</div>
-                        <div class="streak-day today">CN</div>
+                    <div class="streak-days" id="streak-days-grid">
+                        <div class="streak-day empty">T2</div>
+                        <div class="streak-day empty">T3</div>
+                        <div class="streak-day empty">T4</div>
+                        <div class="streak-day empty">T5</div>
+                        <div class="streak-day empty">T6</div>
+                        <div class="streak-day empty">T7</div>
+                        <div class="streak-day empty">CN</div>
                     </div>
                 </div>
 
@@ -1882,6 +1882,7 @@
     <script src="../public/js/supabase-config.js"></script>
     <script src="../public/js/user-sync.js"></script>
     <script type="module" src="../public/js/dashboard.js"></script>
+    <script src="../public/js/global-sync.js"></script>
 </body>
 
 </html>

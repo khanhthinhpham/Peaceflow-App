@@ -25,6 +25,7 @@ export async function requireAuth(req, res, next) {
 
     req.user = {
       id: user.id,
+      sub: user.id,  // backward compat — some routes use req.user.sub
       email: user.email,
       ...user.user_metadata
     };

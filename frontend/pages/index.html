@@ -1934,7 +1934,7 @@
                     <div class="hpm-task-xp">+20 XP</div>
                 </div>
                 <div class="hpm-xp">
-                    <div class="hpm-xp-text">⭐ 295 XP · Level 2</div>
+                    <div class="hpm-xp-text">⭐ 0 XP · Level 1</div>
                     <div class="hpm-xp-bar">
                         <div class="hpm-xp-fill"></div>
                     </div>
@@ -2186,8 +2186,8 @@
         let selectedTags = new Set();
 
         function selectDemoMood(btn, moodStr) {
-            document.querySelectorAll('.demo-mood-btn').forEach(b => b.classList.remove('selected'));
-            btn.classList.add('selected');
+            document.querySelectorAll('.demo-mood-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
 
             // For CSS glow effect
             btn.style.boxShadow = "0 0 10px rgba(0,0,0,0.2)";
@@ -2202,7 +2202,7 @@
 
             // Adjust emoji size dynamically based on intensity
             const scale = 1 + (selectedScore / 20);
-            const activeBtn = document.querySelector('.demo-mood-btn.selected');
+            const activeBtn = document.querySelector('.demo-mood-btn.active');
             if (activeBtn) {
                 activeBtn.style.transform = `scale(${scale})`;
             }
@@ -2210,17 +2210,12 @@
 
         function toggleDemoTag(el) {
             el.classList.toggle('active');
-            let tagName = el.innerText.replace(/[^\p{L}\p{M}\s0-9]/gu, '').trim(); // Remove emoji
+            let tagName = el.innerText.replace(/[^\p{L}\p{M}\s0-9]/gu, '').trim();
             if (tagName === "Không rõ") tagName = "Khong_ro";
 
-            // Simple visual active state (assume active class has CSS)
             if (el.classList.contains('active')) {
-                el.style.background = 'var(--mint-dark)';
-                el.style.color = 'white';
                 selectedTags.add(tagName);
             } else {
-                el.style.background = '';
-                el.style.color = '';
                 selectedTags.delete(tagName);
             }
         }
@@ -2263,6 +2258,7 @@
     <script src="../public/js/supabase-config.js"></script>
 
     <script src="../public/js/app.js"></script>
+    <script src="../public/js/global-sync.js"></script>
 </body>
 
 </html>

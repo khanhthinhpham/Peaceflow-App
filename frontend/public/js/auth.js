@@ -52,6 +52,20 @@ export const auth = {
         return user ? JSON.parse(user) : null;
     },
 
+    /**
+     * Cập nhật partial fields vào localStorage user
+     * Dùng sau khi user sửa profile để các trang khác lấy đúng tên mới
+     */
+    updateUser(updates) {
+        const current = this.getUser();
+        if (!current) return;
+        const merged = { ...current, ...updates };
+        localStorage.setItem('user', JSON.stringify(merged));
+        // Trigger UI sync
+        window.dispatchEvent(new Event('user-profile-updated'));
+        window.updateGlobalUI && window.updateGlobalUI();
+    },
+
     isAuthenticated() {
         return !!localStorage.getItem('access_token');
     },

@@ -25,10 +25,17 @@ app.get('/health', (req, res) => {
 app.use(env.apiPrefix, routes);
 
 app.use((err, req, res, next) => {
-  console.error(err);
-  return res.status(500).json({
+  const status = err.status || 500;
+  const message = status < 500 ? err.message : 'Internal server error';
+
+  if (status >= 500) {
+    console.error(`[ERROR] ${req.method} ${req.originalUrl}:`, err);
+  }
+
+  return res.status(status).json({
     success: false,
-    message: 'Internal server error'
+    message,
+    ...(env.nodeEnv === 'development' && status >= 500 && { stack: err.stack })
   });
 });
 

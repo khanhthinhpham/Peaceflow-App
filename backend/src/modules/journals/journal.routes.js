@@ -1,28 +1,22 @@
 import { Router } from 'express';
 import { requireAuth } from '../../common/middleware/auth.middleware.js';
-import { db } from '../../config/db.js';
+import * as journalController from './journal.controller.js';
 
 const router = Router();
 
-// GET /api/v1/journal
-router.get('/journal', requireAuth, async (req, res) => {
-  const result = await db.query(
-    `select * from user_journals where user_id = $1 order by created_at desc`,
-    [req.user.sub]
-  );
-  return res.json({ success: true, data: result.rows });
-});
+// GET /api/v1/journal — Danh sách nhật ký
+router.get('/journal', requireAuth, journalController.getEntries);
 
-// POST /api/v1/journal
-router.post('/journal', requireAuth, async (req, res) => {
-  const { content, mood, tags } = req.body;
-  const result = await db.query(
-    `insert into user_journals (user_id, content, mood, tags)
-     values ($1, $2, $3, $4)
-     returning *`,
-    [req.user.sub, content, mood, JSON.stringify(tags || [])]
-  );
-  return res.json({ success: true, data: result.rows[0] });
-});
+// GET /api/v1/journal/:id — Chi tiết nhật ký
+router.get('/journal/:id', requireAuth, journalController.getEntryById);
+
+// POST /api/v1/journal — Tạo nhật ký mới
+router.post('/journal', requireAuth, journalController.createEntry);
+
+// PUT /api/v1/journal/:id — Cập nhật nhật ký
+router.put('/journal/:id', requireAuth, journalController.updateEntry);
+
+// DELETE /api/v1/journal/:id — Xóa nhật ký
+router.delete('/journal/:id', requireAuth, journalController.deleteEntry);
 
 export default router;

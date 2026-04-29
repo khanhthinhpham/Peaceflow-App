@@ -1,37 +1,65 @@
--- Trigger to automatically create a record in public.users when a user signs up via Supabase Auth (e.g. Google OAuth)
-
-CREATE OR REPLACE FUNCTION public.handle_new_user()
-RETURNS trigger
-LANGUAGE plpgsql
-SECURITY DEFINER SET search_path = public
-AS $$
-BEGIN
-  INSERT INTO public.users (id, email, full_name, display_name, avatar_url, password_hash)
-  VALUES (
-    NEW.id,
-    NEW.email,
-    COALESCE(NEW.raw_user_meta_data->>'full_name', NEW.raw_user_meta_data->>'name', 'Người dùng mới'),
-    COALESCE(NEW.raw_user_meta_data->>'name', NEW.raw_user_meta_data->>'full_name', 'Người dùng mới'),
-    NEW.raw_user_meta_data->>'avatar_url',
-    -- Default empty hash for OAuth users since they don't have a password
-    '$2a$10$XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX'
+create or replace function public.handle_new_user()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  insert into public.users (
+    id,
+    email,
+    full_name,
+    display_name,
+    avatar_url,
+    email_verified,
+    consent_privacy,
+    consent_terms,
+    consent_sensitive_data
   )
-  ON CONFLICT (email) DO UPDATE
-  SET 
-    full_name = EXCLUDED.full_name,
-    display_name = EXCLUDED.display_name,
-    avatar_url = EXCLUDED.avatar_url;
+  values (
+    new.id,
+    new.email,
+    coalesce(
+      new.raw_user_meta_data->>'full_name',
+      new.raw_user_meta_data->>'name',
+      split_part(new.email, '@', 1),
+      'Người dùng mới'
+    ),
+    coalesce(
+      new.raw_user_meta_data->>'display_name',
+      new.raw_user_meta_data->>'name',
+      new.raw_user_meta_data->>'full_name',
+      split_part(new.email, '@', 1)
+    ),
+    new.raw_user_meta_data->>'avatar_url',
+    coalesce(new.email_confirmed_at is not null, false),
+    coalesce((new.raw_user_meta_data->>'consent_privacy')::boolean, false),
+    coalesce((new.raw_user_meta_data->>'consent_terms')::boolean, false),
+    coalesce((new.raw_user_meta_data->>'consent_sensitive_data')::boolean, false)
+  )
+  on conflict (id) do update
+  set
+    email = excluded.email,
+    full_name = excluded.full_name,
+    display_name = excluded.display_name,
+    avatar_url = excluded.avatar_url,
+    email_verified = excluded.email_verified,
+    updated_at = now();
 
-  -- Create default profile and progress
-  INSERT INTO public.user_profiles (user_id) VALUES (NEW.id) ON CONFLICT DO NOTHING;
-  INSERT INTO public.user_progress (user_id) VALUES (NEW.id) ON CONFLICT DO NOTHING;
-  
-  RETURN NEW;
-END;
+  insert into public.user_profiles (user_id)
+  values (new.id)
+  on conflict (user_id) do nothing;
+
+  insert into public.user_progress (user_id)
+  values (new.id)
+  on conflict (user_id) do nothing;
+
+  return new;
+end;
 $$;
 
-DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+drop trigger if exists on_auth_user_created on auth.users;
 
-CREATE TRIGGER on_auth_user_created
-  AFTER INSERT ON auth.users
-  FOR EACH ROW EXECUTE PROCEDURE public.handle_new_user();
+create trigger on_auth_user_created
+after insert on auth.users
+for each row execute procedure public.handle_new_user();

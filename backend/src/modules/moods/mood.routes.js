@@ -1,73 +1,19 @@
 import { Router } from 'express';
 import { requireAuth } from '../../common/middleware/auth.middleware.js';
-import { db } from '../../config/db.js';
+import * as moodController from './mood.controller.js';
 
 const router = Router();
 
-router.post('/moods', requireAuth, async (req, res) => {
-  const {
-    mood_score,
-    anxiety_score,
-    stress_score,
-    energy_score,
-    sleep_quality_score,
-    dominant_emotion,
-    triggers,
-    notes
-  } = req.body;
+// POST /api/v1/moods — Tạo mood check-in
+router.post('/moods', requireAuth, moodController.createCheckin);
 
-  const result = await db.query(
-    `insert into mood_checkins
-      (user_id, mood_score, anxiety_score, stress_score, energy_score, sleep_quality_score, dominant_emotion, triggers, notes)
-     values ($1,$2,$3,$4,$5,$6,$7,$8,$9)
-     returning *`,
-    [
-      req.user.sub,
-      mood_score,
-      anxiety_score,
-      stress_score,
-      energy_score,
-      sleep_quality_score,
-      dominant_emotion || null,
-      JSON.stringify(triggers || []),
-      notes || null
-    ]
-  );
+// GET /api/v1/moods — Danh sách mood check-ins
+router.get('/moods', requireAuth, moodController.getCheckins);
 
-  return res.status(201).json({
-    success: true,
-    data: result.rows[0]
-  });
-});
+// GET /api/v1/moods/latest — Check-in gần nhất
+router.get('/moods/latest', requireAuth, moodController.getLatestCheckin);
 
-router.get('/moods', requireAuth, async (req, res) => {
-  const result = await db.query(
-    `select * from mood_checkins
-     where user_id = $1
-     order by created_at desc
-     limit 100`,
-    [req.user.sub]
-  );
-
-  return res.json({
-    success: true,
-    data: result.rows
-  });
-});
-
-router.get('/moods/latest', requireAuth, async (req, res) => {
-  const result = await db.query(
-    `select * from mood_checkins
-     where user_id = $1
-     order by created_at desc
-     limit 1`,
-    [req.user.sub]
-  );
-
-  return res.json({
-    success: true,
-    data: result.rows[0] || null
-  });
-});
+// DELETE /api/v1/moods/:id — Xóa check-in
+router.delete('/moods/:id', requireAuth, moodController.deleteCheckin);
 
 export default router;
