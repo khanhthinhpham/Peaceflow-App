@@ -119,18 +119,25 @@ export const profileManager = {
             this.fillFormAndUI();
 
             // BƯỚC 4: SYNC TÊN MỚI VÀO LOCALSTORAGE → CÁC TRANG KHÁC SẼ LẤY ĐÚNG
-            const userStr = localStorage.getItem('user');
-            if (userStr) {
-                try {
-                    const user = JSON.parse(userStr);
-                    user.display_name = newData.displayName || user.display_name;
-                    user.full_name = newData.displayName || user.full_name;
-                    localStorage.setItem('user', JSON.stringify(user));
-                    // Trigger UserSync để cập nhật sidebar + header ngay lập tức
-                    window.dispatchEvent(new Event('user-profile-updated'));
-                    if (window.updateGlobalUI) window.updateGlobalUI();
-                } catch (e) { /* ignore parse errors */ }
-            }
+            let userStr = localStorage.getItem('user');
+            let user = userStr ? JSON.parse(userStr) : {};
+            try {
+                user.display_name = newData.displayName || user.display_name;
+                user.full_name = newData.displayName || user.full_name;
+                localStorage.setItem('user', JSON.stringify(user));
+                
+                // Đồng bộ sang PeaceFlow_user_stats để app.js không bị lỗi nhịp
+                const statsStr = localStorage.getItem('PeaceFlow_user_stats');
+                if (statsStr) {
+                    const stats = JSON.parse(statsStr);
+                    stats.name = user.display_name;
+                    localStorage.setItem('PeaceFlow_user_stats', JSON.stringify(stats));
+                }
+                
+                // Trigger UserSync để cập nhật sidebar + header ngay lập tức
+                window.dispatchEvent(new Event('user-profile-updated'));
+                if (window.updateGlobalUI) window.updateGlobalUI();
+            } catch (e) { console.error('Lỗi sync user', e); }
             
             // Hiển thị thông báo thành công
             this.showToast('✅ Đã lưu thay đổi thành công!', 'success');

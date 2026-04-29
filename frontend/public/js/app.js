@@ -191,18 +191,22 @@ const Store = {
 
       if (user || progress) {
         const current = this.getUser();
-        // Ưu tiên tên từ localStorage.user (được profile.js cập nhật) > Supabase > fallback
-        const authUser = localStorage.getItem('user');
-        let preferredName = current.name;
-        if (authUser) {
-          try {
-            const parsed = JSON.parse(authUser);
-            preferredName = parsed.display_name || parsed.full_name || preferredName;
-          } catch(e) {}
+        // Dữ liệu từ database (user) luôn là nguồn chuẩn xác nhất!
+        const finalName = user?.display_name || user?.full_name || current.name;
+        
+        // Cập nhật lại localStorage.user để đồng bộ cho global-sync.js và user-sync.js
+        const authUserStr = localStorage.getItem('user');
+        let authUser = authUserStr ? JSON.parse(authUserStr) : {};
+        if (user) {
+            authUser.display_name = user.display_name || authUser.display_name;
+            authUser.full_name = user.full_name || authUser.full_name;
+            if (user.avatar_url) authUser.avatar_url = user.avatar_url;
+            localStorage.setItem('user', JSON.stringify(authUser));
         }
+
         const merged = { 
           ...current, 
-          name: preferredName || user?.display_name || user?.full_name || current.name,
+          name: finalName,
           avatar: user?.avatar_url || current.avatar,
           xp: progress?.total_xp || current.xp,
           level: progress?.current_level || current.level,
