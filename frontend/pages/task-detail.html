@@ -1083,7 +1083,7 @@
         </div>
     </div>
 
-    <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+            <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
 
     <div class="mobile-topbar">
         <button class="mobile-menu-btn" onclick="toggleSidebar()">☰</button>
@@ -1099,32 +1099,64 @@
             <div class="logo-icon">🌿</div>
             <div class="logo-text">Peace<span>Flow</span></div>
         </a>
+
         <nav class="sidebar-nav">
             <div class="nav-section-label">Chính</div>
-            <a href="dashboard.html" class="nav-item">🏡 Tổng quan</a>
-            <a href="mood-checkin.html" class="nav-item">💭 Tâm trạng</a>
-            <a href="mood-assessment.html" class="nav-item ">📋 Bài kiểm tra</a>
-            <a href="tasks.html" class="nav-item active">🎮 Nhiệm vụ</a>
-            <a href="journal.html" class="nav-item">📝 Nhật ký</a>
+            <a href="dashboard.html" class="nav-item">
+                <span class="ni">🏡</span> Tổng quan
+            </a>
+            <a href="mood-checkin.html" class="nav-item">
+                <span class="ni">💭</span> Tâm trạng
+            </a>
+            <a href="mood-assessment.html" class="nav-item">
+                <span class="ni">📋</span> Bài kiểm tra
+            </a>
+            <a href="tasks.html" class="nav-item active">
+                <span class="ni">🎮</span> Nhiệm vụ
+            </a>
+            <a href="journal.html" class="nav-item">
+                <span class="ni">📝</span> Nhật ký
+            </a>
+
             <div class="nav-section-label" style="margin-top:8px;">Kết nối</div>
-            <a href="experts.html" class="nav-item">🩺 Chuyên gia</a>
-            <a href="community.html" class="nav-item">👥 Cộng đồng</a>
+            <a href="experts.html" class="nav-item">
+                <span class="ni">🩺</span> Chuyên gia
+            </a>
+            <a href="community.html" class="nav-item">
+                <span class="ni">👥</span> Cộng đồng
+            </a>
+
             <div class="nav-section-label" style="margin-top:8px;">Phân tích</div>
-            <a href="report.html" class="nav-item">📊 Báo cáo</a>
-            <a href="achievements.html" class="nav-item">🏅 Thành tích</a>
+            <a href="report.html" class="nav-item">
+                <span class="ni">📊</span> Báo cáo
+            </a>
+            <a href="achievements.html" class="nav-item">
+                <span class="ni">🏅</span> Thành tích
+            </a>
+
             <div class="nav-section-label" style="margin-top:8px;">Cài đặt</div>
-            <a href="profile.html" class="nav-item">👤 Hồ sơ</a>
-            <a href="settings.html" class="nav-item">⚙️ Cài đặt</a>
+            <a href="profile.html" class="nav-item">
+                <span class="ni">👤</span> Hồ sơ
+            </a>
+            <a href="settings.html" class="nav-item">
+                <span class="ni">⚙️</span> Cài đặt
+            </a>
+            <a href="#" class="nav-item" onclick="handleLogout()" style="color:var(--coral); margin-top: 10px; border-top: 1px dashed var(--kraft-light); padding-top: 15px;">
+                <span class="ni">🚪</span> Đăng xuất
+            </a>
         </nav>
+
         <div class="sidebar-bottom">
             <div class="user-card-mini">
                 <div class="user-avatar-mini" data-user-field="avatar">🐱</div>
                 <div class="user-info-mini">
                     <div class="user-name" data-user-field="display_name">Người dùng</div>
-                    <div class="user-level">⭐ <span data-user-field="xp">0</span> XP</div>
+                    <div class="user-level" data-user-field="level_progress">⭐ <span data-user-field="xp">0</span> XP · Level <span data-user-field="level">1</span></div>
                 </div>
             </div>
-            <a href="#" class="emergency-btn" onclick="showEmergency()">🆘 Hỗ trợ khẩn cấp</a>
+            <a href="emergency.html" class="emergency-btn">
+                🆘 Hỗ trợ khẩn cấp
+            </a>
         </div>
     </aside>
 
