@@ -29,6 +29,16 @@ const GlobalSync = {
 
         // Re-sync khi profile được cập nhật
         window.addEventListener('user-profile-updated', () => this.syncFromLocalStorage());
+
+        // Re-sync sau khi app.js's Store.syncFromRemote() hoàn tất
+        window.addEventListener('dataSynced', () => {
+            setTimeout(() => this.syncFromLocalStorage(), 100);
+        });
+
+        // ★ Delayed re-sync: chạy lại sau 500ms để ghi đè mọi inline scripts
+        setTimeout(() => this.syncFromLocalStorage(), 500);
+        // Và lần nữa sau 1.5s (phòng trường hợp Supabase auth chậm)
+        setTimeout(() => this.syncFromLocalStorage(), 1500);
     },
 
     // ─── SYNC TỪ LOCALSTORAGE (nhanh, không cần chờ API) ───
@@ -57,6 +67,18 @@ const GlobalSync = {
                     el.innerText = user.full_name || name;
                 });
 
+                // ★ ĐỒNG BỘ NGƯỢC: Cập nhật PeaceFlow_user_stats.name để app.js lấy đúng
+                const statsStr = localStorage.getItem('PeaceFlow_user_stats');
+                if (statsStr) {
+                    try {
+                        const stats = JSON.parse(statsStr);
+                        if (stats.name !== name) {
+                            stats.name = name;
+                            localStorage.setItem('PeaceFlow_user_stats', JSON.stringify(stats));
+                        }
+                    } catch(e) {}
+                }
+
                 // Cập nhật avatar
                 if (user.avatar_url) {
                     document.querySelectorAll('.user-avatar, .user-avatar-mini, .ph-avatar, [data-user-field="avatar_url"]').forEach(el => {
@@ -73,14 +95,26 @@ const GlobalSync = {
             } catch (e) { /* ignore parse errors */ }
         }
 
-        // 2. Sync XP & Level từ cache
+        // 2. Sync XP & Level từ cache (thử nhiều nguồn)
+        let xp = 0;
         const progressStr = localStorage.getItem('peaceflow_progress');
         if (progressStr) {
             try {
                 const progress = JSON.parse(progressStr);
-                this.renderXpEverywhere(progress.total_xp || progress.xp || 0);
-            } catch (e) { /* ignore */ }
+                xp = progress.total_xp || progress.xp || 0;
+            } catch (e) {}
         }
+        // Fallback: đọc từ PeaceFlow_user_stats nếu peaceflow_progress chưa có
+        if (xp === 0) {
+            const statsStr = localStorage.getItem('PeaceFlow_user_stats');
+            if (statsStr) {
+                try {
+                    const stats = JSON.parse(statsStr);
+                    xp = stats.xp || 0;
+                } catch(e) {}
+            }
+        }
+        this.renderXpEverywhere(xp);
     },
 
     // ─── FETCH TỪ API VÀ SYNC (chính xác, cần backend chạy) ───

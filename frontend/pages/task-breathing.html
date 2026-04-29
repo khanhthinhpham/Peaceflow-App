@@ -1410,7 +1410,7 @@
 
         function updateSidebar() {
             const level = Math.floor(userStats.xp / 200) + 1;
-            document.querySelectorAll('.user-name').forEach(el => el.innerText = userStats.name);
+            // Tên được global-sync.js xử lý tự động
             document.querySelectorAll('.user-level').forEach(el => el.innerText = `⭐ ${userStats.xp} XP · Level ${level}`);
             const mobileXp = document.querySelector('.mobile-xp-display');
             if (mobileXp) mobileXp.innerText = `⭐ ${userStats.xp} XP`;

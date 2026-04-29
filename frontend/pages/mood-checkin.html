@@ -1867,7 +1867,7 @@
                     userStats = JSON.parse(stats);
                     const threshold = 200;
                     const level = Math.floor(userStats.xp / threshold) + 1;
-                    document.querySelectorAll('.user-name').forEach(el => el.innerText = userStats.name);
+                    // Tên được global-sync.js xử lý tự động
                     document.querySelectorAll('.user-level').forEach(el => el.innerText = `⭐ ${userStats.xp} XP · Level ${level}`);
                     const topXp = document.querySelector('.mobile-topbar span[style*="background:var(--peach-light)"]');
                     if (topXp) topXp.innerText = `⭐ ${userStats.xp} XP`;

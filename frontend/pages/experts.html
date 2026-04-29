@@ -2168,7 +2168,7 @@ Ví dụ: Tôi đang gặp khó khăn với lo âu công việc và mất ngủ 
                     const level = Math.floor(stats.xp / threshold) + 1;
 
                     // Update Sidebar
-                    document.querySelectorAll('.user-name').forEach(el => el.innerText = stats.name || 'Người dùng');
+                    // Tên được global-sync.js xử lý tự động
                     document.querySelectorAll('.user-level').forEach(el => el.innerText = `⭐ ${stats.xp} XP · Level ${level}`);
 
                     // Update Mobile Topbar XP

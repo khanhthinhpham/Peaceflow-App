@@ -191,9 +191,18 @@ const Store = {
 
       if (user || progress) {
         const current = this.getUser();
+        // Ưu tiên tên từ localStorage.user (được profile.js cập nhật) > Supabase > fallback
+        const authUser = localStorage.getItem('user');
+        let preferredName = current.name;
+        if (authUser) {
+          try {
+            const parsed = JSON.parse(authUser);
+            preferredName = parsed.display_name || parsed.full_name || preferredName;
+          } catch(e) {}
+        }
         const merged = { 
           ...current, 
-          name: user?.display_name || user?.full_name || current.name,
+          name: preferredName || user?.display_name || user?.full_name || current.name,
           avatar: user?.avatar_url || current.avatar,
           xp: progress?.total_xp || current.xp,
           level: progress?.current_level || current.level,
