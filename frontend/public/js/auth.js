@@ -23,6 +23,7 @@ export const auth = {
     logout() {
         localStorage.removeItem('access_token');
         localStorage.removeItem('user');
+        localStorage.removeItem('currentUser');
         window.location.href = '/pages/login.html';
     },
 
@@ -44,11 +45,13 @@ export const auth = {
                 avatar_url: user.user_metadata?.avatar_url || user.avatar_url
             };
             localStorage.setItem('user', JSON.stringify(userToSave));
+            localStorage.setItem('currentUser', JSON.stringify(userToSave));
+            window.currentUser = userToSave;
         }
     },
 
     getUser() {
-        const user = localStorage.getItem('user');
+        const user = localStorage.getItem('currentUser') || localStorage.getItem('user');
         return user ? JSON.parse(user) : null;
     },
 
@@ -61,7 +64,10 @@ export const auth = {
         if (!current) return;
         const merged = { ...current, ...updates };
         localStorage.setItem('user', JSON.stringify(merged));
+        localStorage.setItem('currentUser', JSON.stringify(merged));
+        window.currentUser = merged;
         // Trigger UI sync
+        window.dispatchEvent(new CustomEvent('user-updated', { detail: merged }));
         window.dispatchEvent(new Event('user-profile-updated'));
         window.updateGlobalUI && window.updateGlobalUI();
     },
@@ -134,7 +140,9 @@ export const auth = {
     clearSession() {
         localStorage.removeItem('access_token');
         localStorage.removeItem('user');
+        localStorage.removeItem('currentUser');
         localStorage.removeItem('last_supabase_session_id');
+        window.currentUser = null;
     },
 
     /**

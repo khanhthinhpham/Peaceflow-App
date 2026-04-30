@@ -9,6 +9,7 @@ const UserSync = {
         
         // Listen for user profile updates
         window.addEventListener('user-profile-updated', () => this.sync());
+        window.addEventListener('user-updated', () => this.sync());
         
         // Use a MutationObserver to handle dynamically added content (e.g. from AJAX/React/Vue)
         this.observe();
@@ -34,7 +35,7 @@ const UserSync = {
     },
 
     getUser() {
-        const userStr = localStorage.getItem('user');
+        const userStr = localStorage.getItem('currentUser') || localStorage.getItem('user');
         if (!userStr) return null;
         try {
             return JSON.parse(userStr);

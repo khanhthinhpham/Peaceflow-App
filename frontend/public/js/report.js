@@ -387,4 +387,9 @@ const reportPage = {
 
 document.addEventListener('DOMContentLoaded', () => {
     reportPage.init();
+    
+    // Refresh data when user profile is updated
+    window.addEventListener('user-updated', () => {
+        reportPage.loadAll();
+    });
 });

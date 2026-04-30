@@ -81,4 +81,9 @@ const achievementsPage = {
 
 document.addEventListener('DOMContentLoaded', () => {
     achievementsPage.init();
+
+    // Refresh data when user profile is updated
+    window.addEventListener('user-updated', () => {
+        achievementsPage.init();
+    });
 });

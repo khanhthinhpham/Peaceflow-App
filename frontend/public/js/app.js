@@ -195,13 +195,17 @@ const Store = {
         const finalName = user?.display_name || user?.full_name || current.name;
         
         // Cập nhật lại localStorage.user để đồng bộ cho global-sync.js và user-sync.js
-        const authUserStr = localStorage.getItem('user');
+        const authUserStr = localStorage.getItem('currentUser') || localStorage.getItem('user');
         let authUser = authUserStr ? JSON.parse(authUserStr) : {};
         if (user) {
             authUser.display_name = user.display_name || authUser.display_name;
             authUser.full_name = user.full_name || authUser.full_name;
             if (user.avatar_url) authUser.avatar_url = user.avatar_url;
+            
             localStorage.setItem('user', JSON.stringify(authUser));
+            localStorage.setItem('currentUser', JSON.stringify(authUser));
+            window.currentUser = authUser;
+            window.dispatchEvent(new CustomEvent('user-updated', { detail: authUser }));
         }
 
         const merged = { 

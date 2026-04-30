@@ -30,6 +30,13 @@ export const profileManager = {
                 bio: profileRes.onboarding_answers?.bio || '',
                 ageGroup: profileRes.onboarding_answers?.ageGroup || ''
             };
+
+            // Cập nhật global state ngay từ lúc load
+            if (userRes) {
+                localStorage.setItem('currentUser', JSON.stringify(userRes));
+                localStorage.setItem('user', JSON.stringify(userRes));
+                window.currentUser = userRes;
+            }
             console.log("✅ Tải từ API thành công");
         } catch (error) {
             console.warn("⚠️ API lỗi hoặc chưa đăng nhập. Đang dùng LocalStorage dự phòng...");
@@ -110,35 +117,35 @@ export const profileManager = {
                     apiClient.put('/me', userPayload),
                     apiClient.put('/profile', profilePayload)
                 ]);
+
+                // SAU KHI LƯU THÀNH CÔNG: Gọi lại /me để lấy dữ liệu chuẩn nhất từ DB
+                const currentUser = await apiClient.get('/me');
+                
+                if (currentUser) {
+                    // Cập nhật global state & localStorage theo chuẩn mới
+                    localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                    localStorage.setItem('user', JSON.stringify(currentUser)); // Backward compatibility
+                    window.currentUser = currentUser;
+
+                    // Đồng bộ sang PeaceFlow_user_stats để app.js không bị lỗi nhịp
+                    const statsStr = localStorage.getItem('PeaceFlow_user_stats');
+                    if (statsStr) {
+                        const stats = JSON.parse(statsStr);
+                        stats.name = currentUser.display_name || currentUser.full_name;
+                        localStorage.setItem('PeaceFlow_user_stats', JSON.stringify(stats));
+                    }
+
+                    // Dispatch event để Navbar/Sidebar và các trang khác cập nhật ngay lập tức
+                    window.dispatchEvent(new CustomEvent('user-updated', { detail: currentUser }));
+                }
+
             } catch (apiError) {
-                console.warn("⚠️ API không phản hồi, đã lưu offline vào LocalStorage.");
-                // Bỏ qua lỗi API để người dùng vẫn thấy giao diện hoạt động
+                console.warn("⚠️ API không phản hồi, đã lưu offline vào LocalStorage.", apiError);
             }
 
             // BƯỚC 3: CẬP NHẬT LẠI DOM TRỰC TIẾP (KHÔNG CẦN F5)
             this.fillFormAndUI();
 
-            // BƯỚC 4: SYNC TÊN MỚI VÀO LOCALSTORAGE → CÁC TRANG KHÁC SẼ LẤY ĐÚNG
-            let userStr = localStorage.getItem('user');
-            let user = userStr ? JSON.parse(userStr) : {};
-            try {
-                user.display_name = newData.displayName || user.display_name;
-                user.full_name = newData.displayName || user.full_name;
-                localStorage.setItem('user', JSON.stringify(user));
-                
-                // Đồng bộ sang PeaceFlow_user_stats để app.js không bị lỗi nhịp
-                const statsStr = localStorage.getItem('PeaceFlow_user_stats');
-                if (statsStr) {
-                    const stats = JSON.parse(statsStr);
-                    stats.name = user.display_name;
-                    localStorage.setItem('PeaceFlow_user_stats', JSON.stringify(stats));
-                }
-                
-                // Trigger UserSync để cập nhật sidebar + header ngay lập tức
-                window.dispatchEvent(new Event('user-profile-updated'));
-                if (window.updateGlobalUI) window.updateGlobalUI();
-            } catch (e) { console.error('Lỗi sync user', e); }
-            
             // Hiển thị thông báo thành công
             this.showToast('✅ Đã lưu thay đổi thành công!', 'success');
 

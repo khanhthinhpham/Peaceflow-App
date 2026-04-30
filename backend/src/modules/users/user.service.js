@@ -1,19 +1,20 @@
 import * as userRepository from './user.repository.js';
 
-/**
- * Lấy thông tin user hiện tại
- */
 export async function getCurrentUser(userId) {
-  return userRepository.findById(userId);
+  const user = await userRepository.findCurrentUserById(userId);
+  return user;
 }
 
-/**
- * Cập nhật thông tin user
- */
-export async function updateCurrentUser(userId, data) {
-  const updated = await userRepository.update(userId, data);
-  if (!updated) {
-    throw Object.assign(new Error('User not found'), { status: 404 });
-  }
+export async function updateCurrentUser(userId, payload) {
+  const data = {
+    full_name: payload.full_name?.trim() || null,
+    display_name: payload.display_name?.trim() || null,
+    avatar_url: payload.avatar_url?.trim() || null,
+    phone: payload.phone?.trim() || null,
+    city: payload.city?.trim() || null,
+    country: payload.country?.trim() || null
+  };
+
+  const updated = await userRepository.updateCurrentUser(userId, data);
   return updated;
 }
