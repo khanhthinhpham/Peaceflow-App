@@ -29,6 +29,12 @@ const GlobalSync = {
 
         // Re-sync khi profile được cập nhật
         window.addEventListener('user-profile-updated', () => this.syncFromLocalStorage());
+        window.addEventListener('user-updated', (e) => {
+            if (e.detail) {
+                window.currentUser = e.detail;
+            }
+            this.syncFromLocalStorage();
+        });
 
         // Re-sync sau khi app.js's Store.syncFromRemote() hoàn tất
         window.addEventListener('dataSynced', () => {
@@ -44,10 +50,11 @@ const GlobalSync = {
     // ─── SYNC TỪ LOCALSTORAGE (nhanh, không cần chờ API) ───
     syncFromLocalStorage() {
         // 1. Sync tên người dùng
-        const userStr = localStorage.getItem('user');
+        const userStr = localStorage.getItem('currentUser') || localStorage.getItem('user');
         if (userStr) {
             try {
                 const user = JSON.parse(userStr);
+                if (!window.currentUser) window.currentUser = user;
                 const name = user.display_name || user.full_name || 'Người dùng';
                 
                 // Cập nhật TẤT CẢ phần tử hiển thị tên
