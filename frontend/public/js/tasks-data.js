@@ -1,5 +1,5 @@
 // Auto-generated Tasks Data
-const TASKS = [
+export const TASKS = [
     {
         "id": "E1",
         "cat": "emergency",

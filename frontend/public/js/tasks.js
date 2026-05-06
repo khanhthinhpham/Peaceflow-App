@@ -1,20 +1,67 @@
 import { apiClient } from './api-client.js';
+import { TASKS } from './tasks-data.js';
 
 export const tasks = {
     allTasks: [],
     currentTasks: [],
     recommendedTaskIds: [],
 
+    normalizeTask(t) {
+        // If it's already in the backend format, return as is
+        if (t.title && t.category) return t;
+
+        // Otherwise, map from static TASKS format
+        let durationMinutes = 5;
+        if (t.timerSec) {
+            durationMinutes = Math.ceil(t.timerSec / 60);
+        } else if (t.timer) {
+            durationMinutes = Math.ceil(t.timer / 60);
+        } else if (t.time) {
+            const minMatch = t.time.match(/(\d+)/);
+            if (minMatch) durationMinutes = parseInt(minMatch[1], 10);
+        }
+
+        return {
+            ...t,
+            title: t.title || t.name || 'Nhiệm vụ không tên',
+            category: t.category || t.cat || 'easy',
+            difficulty: t.difficulty || t.cat || 'easy',
+            duration_minutes: t.duration_minutes || durationMinutes,
+            xp_reward: t.xp_reward || t.xp || 0,
+            description: t.description || t.desc || ''
+        };
+    },
+
     async init() {
         try {
-            const [tasksData, recommendedData] = await Promise.all([
-                this.fetchAllTasks(),
-                this.fetchRecommendedTasks()
-            ]);
+            let fetchedTasks = [];
+            let recommendedIds = [];
+
+            try {
+                const [tasksData, recommendedData] = await Promise.all([
+                    this.fetchAllTasks(),
+                    this.fetchRecommendedTasks()
+                ]);
+                fetchedTasks = tasksData || [];
+                
+                // Safe extraction of recommended IDs
+                const recArray = Array.isArray(recommendedData) ? recommendedData : [];
+                recommendedIds = recArray.map(t => t.id);
+            } catch (apiError) {
+                console.warn('API call failed, will use static fallback.', apiError);
+            }
             
-            this.allTasks = tasksData || [];
+            // Fallback to static data if API returns nothing or fails
+            if (!fetchedTasks || !Array.isArray(fetchedTasks) || fetchedTasks.length === 0) {
+                console.log('API returned no tasks, using static fallback.');
+                fetchedTasks = TASKS.map(t => this.normalizeTask(t));
+            } else {
+                fetchedTasks = fetchedTasks.map(t => this.normalizeTask(t));
+            }
+
+            this.allTasks = fetchedTasks;
             this.currentTasks = [...this.allTasks];
-            this.recommendedTaskIds = (recommendedData || []).map(t => t.id);
+            this.recommendedTaskIds = recommendedIds;
 
             // Mark recommended tasks
             this.allTasks.forEach(t => {
@@ -24,7 +71,11 @@ export const tasks = {
             this.renderTaskGrid();
         } catch (error) {
             console.error('Tasks init error:', error);
-            this.renderEmptyState('Có lỗi xảy ra khi tải nhiệm vụ.');
+            // Fallback to static data on error too
+            console.log('Error fetching tasks, using static fallback.');
+            this.allTasks = TASKS.map(t => this.normalizeTask(t));
+            this.currentTasks = [...this.allTasks];
+            this.renderTaskGrid();
         }
     },
 

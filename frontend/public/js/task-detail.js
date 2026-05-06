@@ -1,4 +1,5 @@
 import { apiClient } from './api-client.js';
+import { TASKS } from './tasks-data.js';
 
 let currentPhase = 1;
 let timerInterval = null;
@@ -8,6 +9,32 @@ let isPaused = false;
 let isCompleted = false;
 let stepsCompleted = new Set();
 let currentTask = null;
+
+function normalizeTask(t) {
+    if (t.title && t.category) return t;
+    let durationMinutes = 5;
+    if (t.timerSec) durationMinutes = Math.ceil(t.timerSec / 60);
+    else if (t.timer) durationMinutes = Math.ceil(t.timer / 60);
+    else if (t.time) {
+        const minMatch = t.time.match(/(\d+)/);
+        if (minMatch) durationMinutes = parseInt(minMatch[1], 10);
+    }
+    return {
+        ...t,
+        title: t.title || t.name || 'Nhiệm vụ',
+        category: t.category || t.cat || 'easy',
+        difficulty: t.difficulty || t.cat || 'easy',
+        duration_minutes: t.duration_minutes || durationMinutes,
+        xp_reward: t.xp_reward || t.xp || 10,
+        description: t.description || t.desc || '',
+        metadata: t.metadata || {
+            icon: t.icon,
+            quote: t.quote,
+            preparation: t.preparation,
+            catLabel: t.catLabel
+        }
+    };
+}
 
 export async function initTask() {
     const urlParams = new URLSearchParams(window.location.search);
@@ -19,7 +46,13 @@ export async function initTask() {
     }
 
     try {
-        const allTasks = await apiClient.get('/tasks') || [];
+        let allTasks = await apiClient.get('/tasks').catch(() => []);
+        if (!allTasks || allTasks.length === 0) {
+            allTasks = TASKS.map(t => normalizeTask(t));
+        } else {
+            allTasks = allTasks.map(t => normalizeTask(t));
+        }
+
         currentTask = allTasks.find(t => t.id === id || t.code === id);
 
         if (!currentTask) {
