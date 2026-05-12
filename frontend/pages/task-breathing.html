@@ -4,6 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="../public/favicon.jpg" type="image/svg+xml">
     <title>PeaceFlow — Bài Tập Thở Interactive</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Patrick+Hand&display=swap"
@@ -1214,83 +1215,10 @@
         </div>
     </div>
 
-    <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
-    <div class="mobile-topbar">
-        <button class="mobile-menu-btn" onclick="toggleSidebar()">☰</button>
-        <a href="index.html" style="display:flex;align-items:center;gap:8px;text-decoration:none;">
-            <div
-                style="width:32px;height:32px;background:var(--mint);border-radius:8px;border:2px solid var(--mint-dark);display:flex;align-items:center;justify-content:center;font-size:1rem;box-shadow:2px 2px 0px var(--mint-dark);">
-                🌿</div>
-            <span style="font-size:1.1rem;font-weight:800;color:var(--text-primary);">Peace<span
-                    style="color:var(--mint-dark);">Flow</span></span>
-        </a>
-        <span
-            style="background:var(--peach-light);padding:3px 10px;border-radius:50px;font-size:0.75rem;font-weight:700;color:var(--peach-dark);border:1.5px solid var(--peach);"
-            class="mobile-xp-display">⭐ 0 XP</span>
-    </div>
-
-    <aside class="sidebar" id="sidebar">
-        <a href="index.html" class="sidebar-logo">
-            <div class="logo-icon">🌿</div>
-            <div class="logo-text">Peace<span>Flow</span></div>
-        </a>
-
-        <nav class="sidebar-nav">
-            <div class="nav-section-label">Chính</div>
-            <a href="dashboard.html" class="nav-item ">
-                <span class="ni">🏡</span> Tổng quan
-            </a>
-            <a href="mood-checkin.html" class="nav-item ">
-                <span class="ni">💭</span> Tâm trạng
-            </a>
-            <a href="tasks.html" class="nav-item active">
-                <span class="ni">🎮</span> Nhiệm vụ
-            </a>
-            <a href="journal.html" class="nav-item ">
-                <span class="ni">📝</span> Nhật ký
-            </a>
-
-            <div class="nav-section-label" style="margin-top:8px;">Kết nối</div>
-            <a href="experts.html" class="nav-item ">
-                <span class="ni">🩺</span> Chuyên gia
-            </a>
-            <a href="community.html" class="nav-item ">
-                <span class="ni">👥</span> Cộng đồng
-            </a>
-
-            <div class="nav-section-label" style="margin-top:8px;">Phân tích</div>
-            <a href="report.html" class="nav-item ">
-                <span class="ni">📊</span> Báo cáo
-            </a>
-            <a href="achievements.html" class="nav-item ">
-                <span class="ni">🏅</span> Thành tích
-            </a>
-
-            <div class="nav-section-label" style="margin-top:8px;">Cài đặt</div>
-            <a href="profile.html" class="nav-item ">
-                <span class="ni">👤</span> Hồ sơ
-            </a>
-            <a href="settings.html" class="nav-item ">
-                <span class="ni">⚙️</span> Cài đặt
-            </a>
-            <a href="#" class="nav-item" onclick="handleLogout()" style="color:var(--coral); margin-top: 10px; border-top: 1px dashed var(--kraft-light); padding-top: 15px;">
-                <span class="ni">🚪</span> Đăng xuất
-            </a>
-        </nav>
-
-        <div class="sidebar-bottom">
-            <div class="user-card-mini">
-                <div class="user-avatar-mini">🐱</div>
-                <div class="user-info-mini">
-                    <div class="user-name">Khách hàng giả lập</div>
-                    <div class="user-level">⭐ 295 XP · Level 2</div>
-                </div>
-            </div>
-            <a href="emergency.html" class="emergency-btn">
-                🆘 Hỗ trợ khẩn cấp
-            </a>
-        </div>
-    </aside>
+    <!-- Shared Sidebar -->
+    <div id="sharedSidebarOverlayMount"></div>
+    <div id="sharedMobileTopbarMount"></div>
+    <div id="sharedSidebarMount"></div>
 
     <main class="main-content">
         <div class="breadcrumb">
@@ -1390,7 +1318,7 @@
         </div>
     </main>
 
-    <script>
+    <script type="application/json" data-legacy="task-breathing-static-disabled">
         const TECHNIQUES = {
             box: { name: '📦 Thở Vuông', dur: 4, rounds: 5, xp: 20, desc: 'Thở vuông là kỹ thuật điều hòa hơi thở theo chu kỳ 4 giây đều nhau.', tip: 'Box Breathing là kỹ thuật của Navy SEAL! 🌊', phases: [{ n: 'Hít vào', d: 4, c: 'inhale' }, { n: 'Giữ', d: 4, c: 'hold' }, { n: 'Thở ra', d: 4, c: 'exhale' }, { n: 'Nghỉ', d: 4, c: 'pause' }] },
             '478': { name: '🌙 Thở 4-7-8', dur: 19, rounds: 4, xp: 20, desc: 'Giúp thư giãn sâu và hỗ trợ giấc ngủ.', tip: '4-7-8 là thuốc ngủ tự nhiên! 🌙', phases: [{ n: 'Hít vào', d: 4, c: 'inhale' }, { n: 'Giữ', d: 7, c: 'hold' }, { n: 'Thở ra', d: 8, c: 'exhale' }] },
@@ -1519,10 +1447,248 @@
 
         window.onload = () => { loadData(); renderTech(); };
     </script>
+    <script type="module">
+        import { apiClient } from '../public/js/api-client.js';
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="../public/js/supabase-config.js"></script>
+        const TECHNIQUES = {
+            box: { name: '📦 Thở Vuông', dur: 4, rounds: 5, xp: 20, desc: 'Thở vuông là kỹ thuật điều hòa hơi thở theo chu kỳ 4 giây đều nhau.', tip: 'Box Breathing là kỹ thuật của Navy SEAL! 🌊', phases: [{ n: 'Hít vào', d: 4, c: 'inhale' }, { n: 'Giữ', d: 4, c: 'hold' }, { n: 'Thở ra', d: 4, c: 'exhale' }, { n: 'Nghỉ', d: 4, c: 'pause' }] },
+            '478': { name: '🌙 Thở 4-7-8', dur: 19, rounds: 4, xp: 20, desc: 'Giúp thư giãn sâu và hỗ trợ giấc ngủ.', tip: '4-7-8 là thuốc ngủ tự nhiên! 🌙', phases: [{ n: 'Hít vào', d: 4, c: 'inhale' }, { n: 'Giữ', d: 7, c: 'hold' }, { n: 'Thở ra', d: 8, c: 'exhale' }] },
+            coherent: { name: '💚 Coherent', dur: 10, rounds: 6, xp: 25, desc: 'Tối ưu hóa HRV và nhịp tim.', tip: 'Giúp đồng bộ hóa tâm trí và cơ thể. 💚', phases: [{ n: 'Hít vào', d: 5, c: 'inhale' }, { n: 'Thở ra', d: 5, c: 'exhale' }] },
+            diaphragm: { name: '🌬️ Thở Bụng', dur: 12, rounds: 6, xp: 15, desc: 'Cách thở tự nhiên và hiệu quả nhất.', tip: 'Hãy cảm nhận bụng phồng lên khi hít vào. 🌬️', phases: [{ n: 'Hít vào', d: 4, c: 'inhale' }, { n: 'Giữ', d: 2, c: 'hold' }, { n: 'Thở ra', d: 6, c: 'exhale' }] }
+        };
+
+        const state = {
+            currentKey: 'box',
+            isRunning: false,
+            isPaused: false,
+            currentRound: 0,
+            currentPhaseIdx: 0,
+            currentCount: 0,
+            sessionTime: 0,
+            mainInterval: null,
+            sessionInterval: null,
+            task: null,
+            user: null,
+            progress: null
+        };
+
+        function parseMeta(task) {
+            if (!task?.metadata) return {};
+            if (typeof task.metadata === 'string') {
+                try { return JSON.parse(task.metadata); } catch { return {}; }
+            }
+            return task.metadata;
+        }
+
+        function updateSidebar() {
+            const xp = state.progress?.xp ?? state.progress?.total_xp ?? 0;
+            const level = state.progress?.level ?? state.progress?.current_level ?? 1;
+            const name = state.user?.display_name || state.user?.full_name || 'Bạn';
+            document.querySelectorAll('.user-name').forEach((el) => el.innerText = name);
+            document.querySelectorAll('.user-level').forEach((el) => el.innerText = `⭐ ${xp} XP · Level ${level}`);
+            const mobileXp = document.querySelector('.mobile-xp-display');
+            if (mobileXp) mobileXp.innerText = `⭐ ${xp} XP`;
+        }
+
+        function selectTechnique(key, el) {
+            if (state.isRunning) resetBreathing();
+            state.currentKey = key;
+            document.querySelectorAll('.tech-tab').forEach((tab) => tab.classList.remove('active'));
+            el?.classList.add('active');
+            renderTech();
+        }
+
+        function renderTech() {
+            const t = TECHNIQUES[state.currentKey];
+            document.getElementById('arenaTitle').innerText = t.name;
+            document.getElementById('techTitle').innerText = t.name;
+            document.getElementById('techDesc').innerText = t.desc;
+            document.getElementById('peaceCatTip').innerText = t.tip;
+            renderDots();
+        }
+
+        function renderDots() {
+            const dots = document.getElementById('roundDots');
+            dots.innerHTML = '';
+            for (let index = 0; index < TECHNIQUES[state.currentKey].rounds; index += 1) {
+                const dot = document.createElement('div');
+                dot.className = 'rd' + (index < state.currentRound ? ' done' : (index === state.currentRound && state.isRunning ? ' active' : ''));
+                dots.appendChild(dot);
+            }
+        }
+
+        function updateStats() {
+            const minutes = Math.floor(state.sessionTime / 60);
+            const seconds = state.sessionTime % 60;
+            document.getElementById('statTime').innerText = `${minutes}:${String(seconds).padStart(2, '0')}`;
+            document.getElementById('statRounds').innerText = state.currentRound;
+        }
+
+        function nextPhase() {
+            const phase = TECHNIQUES[state.currentKey].phases[state.currentPhaseIdx];
+            document.getElementById('breathPhaseText').innerText = phase.n;
+            document.getElementById('breathInner').className = `breath-inner ${phase.c}`;
+            state.currentCount = phase.d;
+            document.getElementById('breathCountNum').innerText = state.currentCount;
+
+            state.mainInterval = setInterval(() => {
+                state.currentCount -= 1;
+                document.getElementById('breathCountNum').innerText = state.currentCount;
+                if (state.currentCount > 0) return;
+
+                clearInterval(state.mainInterval);
+                state.mainInterval = null;
+                state.currentPhaseIdx += 1;
+
+                if (state.currentPhaseIdx >= TECHNIQUES[state.currentKey].phases.length) {
+                    state.currentPhaseIdx = 0;
+                    state.currentRound += 1;
+                    renderDots();
+                    if (state.currentRound >= TECHNIQUES[state.currentKey].rounds) {
+                        finish();
+                        return;
+                    }
+                }
+
+                nextPhase();
+            }, 1000);
+        }
+
+        async function startBreathing() {
+            if (state.isRunning && !state.isPaused) return;
+
+            if (state.task && !state.task.in_progress && !state.task.completed) {
+                try {
+                    await apiClient.post(`/tasks/${state.task.id}/start`, {});
+                    state.task.in_progress = true;
+                } catch (error) {
+                    console.error('Failed to start breathing task:', error);
+                }
+            }
+
+            state.isRunning = true;
+            state.isPaused = false;
+            document.getElementById('startBtn').style.display = 'none';
+            document.getElementById('pauseBtn').style.display = 'inline-block';
+            document.getElementById('pauseBtn').innerText = '⏸ Tạm dừng';
+            document.getElementById('pauseBtn').onclick = pauseBreathing;
+            document.getElementById('resetBtn').style.display = 'inline-block';
+
+            if (state.mainInterval) return;
+
+            state.currentRound = 0;
+            state.currentPhaseIdx = 0;
+            state.sessionTime = 0;
+            renderDots();
+            nextPhase();
+            state.sessionInterval = setInterval(() => {
+                state.sessionTime += 1;
+                updateStats();
+            }, 1000);
+        }
+
+        function pauseBreathing() {
+            state.isPaused = true;
+            clearInterval(state.mainInterval);
+            state.mainInterval = null;
+            clearInterval(state.sessionInterval);
+            state.sessionInterval = null;
+            document.getElementById('pauseBtn').innerText = '▶ Tiếp tục';
+            document.getElementById('pauseBtn').onclick = startBreathing;
+        }
+
+        function resetBreathing() {
+            clearInterval(state.mainInterval);
+            clearInterval(state.sessionInterval);
+            state.mainInterval = null;
+            state.sessionInterval = null;
+            state.isRunning = false;
+            state.isPaused = false;
+            state.currentRound = 0;
+            state.currentPhaseIdx = 0;
+            state.sessionTime = 0;
+            document.getElementById('startBtn').style.display = 'inline-block';
+            document.getElementById('pauseBtn').style.display = 'none';
+            document.getElementById('resetBtn').style.display = 'none';
+            updateStats();
+            renderDots();
+        }
+
+        async function finish() {
+            resetBreathing();
+
+            let xp = TECHNIQUES[state.currentKey].xp;
+            try {
+                if (state.task) {
+                    const result = await apiClient.post(`/tasks/${state.task.id}/complete`, {
+                        self_rating_before: null,
+                        self_rating_after: null,
+                        notes: `Breathing technique: ${state.currentKey}`
+                    });
+                    xp = result?.xp_earned ?? xp;
+                    state.task.completed = true;
+                    state.task.in_progress = false;
+                    if (result?.progress) {
+                        state.progress = {
+                            ...state.progress,
+                            ...result.progress,
+                            xp: result.progress.total_xp,
+                            level: result.progress.current_level
+                        };
+                    }
+                    localStorage.setItem('peaceflow_dashboard_refresh', '1');
+                    window.dispatchEvent(new Event('peaceflow-dashboard-refresh'));
+                    updateSidebar();
+                }
+            } catch (error) {
+                console.error('Failed to complete breathing task:', error);
+            }
+
+            document.getElementById('xpEarned').innerText = `+${xp} XP`;
+            document.getElementById('feedbackCard').style.display = 'block';
+        }
+
+        function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
+        function closeSidebar() { document.getElementById('sidebar').classList.remove('open'); }
+        function showEmergency() { document.getElementById('emergencyOverlay').classList.add('show'); }
+        function closeEmergency() { document.getElementById('emergencyOverlay').classList.remove('show'); }
+
+        async function loadData() {
+            try {
+                const [tasks, dashboard] = await Promise.all([
+                    apiClient.get('/tasks'),
+                    apiClient.get('/dashboard')
+                ]);
+                state.user = dashboard?.user || null;
+                state.progress = dashboard?.progress || null;
+                state.task = (Array.isArray(tasks) ? tasks : []).find((task) => {
+                    const meta = parseMeta(task);
+                    return meta.legacy_code === 'E2' || task.code === 'E2_DEEP_BREATHING';
+                }) || null;
+            } catch (error) {
+                console.error('Failed to load breathing page data:', error);
+            }
+
+            updateSidebar();
+        }
+
+        window.selectTechnique = selectTechnique;
+        window.startBreathing = startBreathing;
+        window.pauseBreathing = pauseBreathing;
+        window.resetBreathing = resetBreathing;
+        window.toggleSidebar = toggleSidebar;
+        window.closeSidebar = closeSidebar;
+        window.showEmergency = showEmergency;
+        window.closeEmergency = closeEmergency;
+
+        window.addEventListener('load', async () => {
+            await loadData();
+            renderTech();
+        });
+    </script>
+    <script src="../public/components/sidebar.js"></script>
     <script src="../public/js/app.js"></script>
 </body>
 
 </html>
+

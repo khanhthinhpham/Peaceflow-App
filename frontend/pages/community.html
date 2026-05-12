@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PeaceFlow — Cộng Đồng</title>
+    <link rel="icon" href="../public/favicon.jpg" type="image/svg+xml">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Patrick+Hand&display=swap"
         rel="stylesheet">
@@ -1583,83 +1584,10 @@
         </div>
     </div>
 
-    <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
-    <div class="mobile-topbar">
-        <button class="mobile-menu-btn" onclick="toggleSidebar()">☰</button>
-        <a href="index.html" style="display:flex;align-items:center;gap:8px;text-decoration:none;">
-            <div
-                style="width:32px;height:32px;background:var(--mint);border-radius:8px;border:2px solid var(--mint-dark);display:flex;align-items:center;justify-content:center;font-size:1rem;box-shadow:2px 2px 0px var(--mint-dark);">
-                🌿</div>
-            <span style="font-size:1.1rem;font-weight:800;color:var(--text-primary);">Peace<span
-                    style="color:var(--mint-dark);">Flow</span></span>
-        </a>
-        <span
-            style="background:var(--peach-light);padding:3px 10px;border-radius:50px;font-size:0.75rem;font-weight:700;color:var(--peach-dark);border:1.5px solid var(--peach);">⭐
-            295 XP</span>
-    </div>
-
-    <aside class="sidebar" id="sidebar">
-        <a href="index.html" class="sidebar-logo">
-            <div class="logo-icon">🌿</div>
-            <div class="logo-text">Peace<span>Flow</span></div>
-        </a>
-
-        <nav class="sidebar-nav">
-            <div class="nav-section-label">Chính</div>
-            <a href="dashboard.html" class="nav-item ">
-                <span class="ni">🏡</span> Tổng quan
-            </a>
-            <a href="mood-checkin.html" class="nav-item ">
-                <span class="ni">💭</span> Tâm trạng
-            </a>
-            <a href="tasks.html" class="nav-item ">
-                <span class="ni">🎮</span> Nhiệm vụ
-            </a>
-            <a href="journal.html" class="nav-item ">
-                <span class="ni">📝</span> Nhật ký
-            </a>
-
-            <div class="nav-section-label" style="margin-top:8px;">Kết nối</div>
-            <a href="experts.html" class="nav-item ">
-                <span class="ni">🩺</span> Chuyên gia
-            </a>
-            <a href="community.html" class="nav-item active">
-                <span class="ni">👥</span> Cộng đồng
-            </a>
-
-            <div class="nav-section-label" style="margin-top:8px;">Phân tích</div>
-            <a href="report.html" class="nav-item ">
-                <span class="ni">📊</span> Báo cáo
-            </a>
-            <a href="achievements.html" class="nav-item ">
-                <span class="ni">🏅</span> Thành tích
-            </a>
-
-            <div class="nav-section-label" style="margin-top:8px;">Cài đặt</div>
-            <a href="profile.html" class="nav-item ">
-                <span class="ni">👤</span> Hồ sơ
-            </a>
-            <a href="settings.html" class="nav-item ">
-                <span class="ni">⚙️</span> Cài đặt
-            </a>
-            <a href="#" class="nav-item" onclick="handleLogout()" style="color:var(--coral); margin-top: 10px; border-top: 1px dashed var(--kraft-light); padding-top: 15px;">
-                <span class="ni">🚪</span> Đăng xuất
-            </a>
-        </nav>
-
-        <div class="sidebar-bottom">
-            <div class="user-card-mini">
-                <div class="user-avatar-mini">🐱</div>
-                <div class="user-info-mini">
-                    <div class="user-name" data-user-field="display_name">Khách hàng giả lập</div>
-                    <div class="user-level">⭐ 295 XP · Level 2</div>
-                </div>
-            </div>
-            <a href="emergency.html" class="emergency-btn">
-                🆘 Hỗ trợ khẩn cấp
-            </a>
-        </div>
-    </aside>
+    <!-- Shared Sidebar -->
+    <div id="sharedSidebarOverlayMount"></div>
+    <div id="sharedMobileTopbarMount"></div>
+    <div id="sharedSidebarMount"></div>
 
     <main class="main-content">
         <div class="breadcrumb">
@@ -1680,19 +1608,19 @@
         <!-- Community Stats -->
         <div class="comm-stats">
             <div class="paper-card cs-item">
-                <div class="cs-num">10,248</div>
+                <div class="cs-num" id="communityStatMembers">10,248</div>
                 <div class="cs-label">Thành viên</div>
             </div>
             <div class="paper-card cs-item">
-                <div class="cs-num">3,891</div>
+                <div class="cs-num" id="communityStatPosts">3,891</div>
                 <div class="cs-label">Bài chia sẻ</div>
             </div>
             <div class="paper-card cs-item">
-                <div class="cs-num">47,620</div>
+                <div class="cs-num" id="communityStatReactions">47,620</div>
                 <div class="cs-label">Lượt reaction ❤️</div>
             </div>
             <div class="paper-card cs-item">
-                <div class="cs-num">98%</div>
+                <div class="cs-num" id="communityStatPositive">98%</div>
                 <div class="cs-label">Tích cực</div>
             </div>
         </div>
@@ -1706,19 +1634,19 @@
                 </div>
                 <button class="cb-join-btn" id="joinChallengeBtn" onclick="joinChallenge()">Tham gia ngay</button>
             </div>
-            <div class="cb-title">🧘 Cùng nhau thiền 1,000 phút trong tuần này!</div>
-            <div class="cb-desc">Mỗi phút thiền của bạn đóng góp vào mục tiêu chung. Cộng đồng đang cùng nhau hướng tới
+            <div class="cb-title" id="communityChallengeTitle">🧘 Cùng nhau thiền 1,000 phút trong tuần này!</div>
+            <div class="cb-desc" id="communityChallengeDesc">Mỗi phút thiền của bạn đóng góp vào mục tiêu chung. Cộng đồng đang cùng nhau hướng tới
                 1,000 phút — bạn có muốn tham gia không?</div>
             <div class="cb-progress-wrap">
-                <div class="cb-progress-label">
+                <div class="cb-progress-label" id="communityChallengeLabel">
                     <span>⏱ 742 / 1,000 phút</span>
                     <span>74.2% hoàn thành</span>
                 </div>
                 <div class="cb-progress-bar">
-                    <div class="cb-progress-fill" style="width:74.2%"></div>
+                    <div class="cb-progress-fill" id="communityChallengeFill" style="width:74.2%"></div>
                 </div>
             </div>
-            <div class="cb-stats">
+            <div class="cb-stats" id="communityChallengeStats">
                 <div class="cb-stat">👥 <strong>1,247</strong> người tham gia</div>
                 <div class="cb-stat">⏰ Còn <strong>4 ngày</strong></div>
                 <div class="cb-stat">🏆 Phần thưởng: <strong>+100 XP</strong> + Huy hiệu đặc biệt</div>
@@ -1885,6 +1813,7 @@
                 showComments: false, collapsed: false
             },
             {
+                id: 2, anon: false, avatar: '🐱', name: 'Người dùng', level: 'Level --',
                 id: 2, anon: false, avatar: '🐱', name: 'Khách hàng giả lập', level: 'Level 2',
                 time: '1 giờ trước', tag: 'milestone', tagLabel: '🏆 Cột mốc', tagClass: 'pt-milestone',
                 content: '🎉 Mình vừa hoàn thành 7 ngày streak liên tục! Từ người không thể ngồi yên 5 phút, giờ mình đã thiền được 10 phút mỗi sáng.\n\nBí quyết của mình: Đừng cố gắng "thiền hoàn hảo". Chỉ cần ngồi xuống và thở. Phần còn lại tự đến 🌿',
@@ -1925,10 +1854,10 @@
     function showEmergency() { document.getElementById('emergencyOverlay').classList.add('show'); }
     function closeEmergency() { document.getElementById('emergencyOverlay').classList.remove('show'); }
     </script>
-
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="../public/js/supabase-config.js"></script>
+    <script src="../public/components/sidebar.js"></script>
     <script src="../public/js/user-sync.js"></script>
     <script src="../public/js/app.js"></script>
+    <script type="module" src="../public/js/community.js"></script>
 </body>
 </html>
+

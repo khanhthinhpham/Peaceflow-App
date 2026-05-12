@@ -4,6 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="../public/favicon.jpg">
     <title>PeaceFlow — Chat với PeaceCat AI</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Patrick+Hand&display=swap"
@@ -1474,86 +1475,11 @@
     </div>
 
     <!-- Sidebar Overlay -->
-    <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
 
-    <!-- Mobile Topbar -->
-    <div class="mobile-topbar">
-        <button class="mobile-menu-btn" onclick="toggleSidebar()">☰</button>
-        <a href="index.html" style="display:flex;align-items:center;gap:8px;text-decoration:none;">
-            <div
-                style="width:32px;height:32px;background:var(--mint);border-radius:8px;border:2px solid var(--mint-dark);display:flex;align-items:center;justify-content:center;font-size:1rem;box-shadow:2px 2px 0px var(--mint-dark);">
-                🌿</div>
-            <span style="font-size:1.1rem;font-weight:800;color:var(--text-primary);">Peace<span
-                    style="color:var(--mint-dark);">Flow</span></span>
-        </a>
-        <span
-            style="background:var(--peach-light);padding:3px 10px;border-radius:50px;font-size:0.75rem;font-weight:700;color:var(--peach-dark);border:1.5px solid var(--peach);">⭐
-            295 XP</span>
-    </div>
-
-    <!-- Sidebar -->
-    <aside class="sidebar" id="sidebar">
-        <a href="index.html" class="sidebar-logo">
-            <div class="logo-icon">🌿</div>
-            <div class="logo-text">Peace<span>Flow</span></div>
-        </a>
-
-        <nav class="sidebar-nav">
-            <div class="nav-section-label">Chính</div>
-            <a href="dashboard.html" class="nav-item ">
-                <span class="ni">🏡</span> Tổng quan
-            </a>
-            <a href="mood-checkin.html" class="nav-item ">
-                <span class="ni">💭</span> Tâm trạng
-            </a>
-            <a href="tasks.html" class="nav-item ">
-                <span class="ni">🎮</span> Nhiệm vụ
-            </a>
-            <a href="journal.html" class="nav-item ">
-                <span class="ni">📝</span> Nhật ký
-            </a>
-
-            <div class="nav-section-label" style="margin-top:8px;">Kết nối</div>
-            <a href="experts.html" class="nav-item ">
-                <span class="ni">🩺</span> Chuyên gia
-            </a>
-            <a href="community.html" class="nav-item ">
-                <span class="ni">👥</span> Cộng đồng
-            </a>
-
-            <div class="nav-section-label" style="margin-top:8px;">Phân tích</div>
-            <a href="report.html" class="nav-item ">
-                <span class="ni">📊</span> Báo cáo
-            </a>
-            <a href="achievements.html" class="nav-item ">
-                <span class="ni">🏅</span> Thành tích
-            </a>
-
-            <div class="nav-section-label" style="margin-top:8px;">Cài đặt</div>
-            <a href="profile.html" class="nav-item ">
-                <span class="ni">👤</span> Hồ sơ
-            </a>
-            <a href="settings.html" class="nav-item ">
-                <span class="ni">⚙️</span> Cài đặt
-            </a>
-            <a href="#" class="nav-item" onclick="handleLogout()" style="color:var(--coral); margin-top: 10px; border-top: 1px dashed var(--kraft-light); padding-top: 15px;">
-                <span class="ni">🚪</span> Đăng xuất
-            </a>
-        </nav>
-
-        <div class="sidebar-bottom">
-            <div class="user-card-mini">
-                <div class="user-avatar-mini">🐱</div>
-                <div class="user-info-mini">
-                    <div class="user-name" data-user-field="display_name">Khách hàng giả lập</div>
-                    <div class="user-level">⭐ 295 XP · Level 2</div>
-                </div>
-            </div>
-            <a href="emergency.html" class="emergency-btn">
-                🆘 Hỗ trợ khẩn cấp
-            </a>
-        </div>
-    </aside>
+    <!-- Shared Sidebar -->
+    <div id="sharedSidebarOverlayMount"></div>
+    <div id="sharedMobileTopbarMount"></div>
+    <div id="sharedSidebarMount"></div>
 
     <!-- Main Content -->
     <main class="main-content">
@@ -1920,9 +1846,673 @@
             document.getElementById('sidebarOverlay').classList.remove('open');
         }
     </script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="../public/js/supabase-config.js"></script>
+    <script type="module">
+        import { apiClient } from '../public/js/api-client.js';
+        import { auth } from '../public/js/auth.js';
+
+        const STORAGE_KEY = 'peaceflow_mood_chat_state_v1';
+        const MAX_MESSAGE_LENGTH = 500;
+        const MAX_CONVERSATION_ITEMS = 20;
+
+        const chatState = {
+            dashboard: null,
+            report: null,
+            tasks: [],
+            conversation: [],
+            isTyping: false,
+            isRecording: false,
+            analysis: {
+                anxiety: 0,
+                stress: 0,
+                mood: 50,
+                depression: 0,
+                emotion: 50,
+                physical: 50,
+                social: 50,
+                cognitive: 50
+            },
+            keywords: [],
+            flowCounters: {
+                stressed: 0,
+                sad: 0,
+                tired: 0,
+                angry: 0,
+                good: 0,
+                default: 0
+            }
+        };
+
+        const DANGER_KEYWORDS = ['tự tử', 'muốn chết', 'không muốn sống', 'tự hại', 'cắt tay', 'kết thúc tất cả', 'tuyệt vọng hoàn toàn', 'không còn lý do'];
+        const NEGATIVE_KW = ['căng thẳng', 'lo lắng', 'mệt mỏi', 'buồn', 'tức giận', 'kiệt sức', 'áp lực', 'mất ngủ', 'chán nản', 'sợ hãi', 'cô đơn', 'thất bại', 'khóc', 'đau', 'bế tắc', 'không ngủ được', 'deadline', 'sếp', 'công việc'];
+        const POSITIVE_KW = ['vui', 'hạnh phúc', 'tốt', 'ổn', 'bình tĩnh', 'thư giãn', 'hy vọng', 'cảm ơn', 'biết ơn', 'yêu', 'tự hào', 'tiến bộ'];
+
+        const AI_FLOWS = {
+            stressed: [
+                'Mình thấy bạn đang mang khá nhiều áp lực. Điều gì đang đè nặng nhất lúc này?',
+                'Áp lực đó đến chủ yếu từ công việc, các mối quan hệ hay từ chính kỳ vọng của bạn?',
+                'Nếu phải chọn một việc để tháo gỡ trước, bạn muốn bắt đầu từ đâu?'
+            ],
+            sad: [
+                'Mình nghe ra cảm giác buồn ở đây. Điều gì khiến hôm nay trở nên nặng nề nhất với bạn?',
+                'Cảm giác này đã kéo dài bao lâu rồi?',
+                'Lúc buồn như vậy, bạn thường cần được ở một mình hay cần một người lắng nghe?'
+            ],
+            tired: [
+                'Nghe như bạn đang khá cạn năng lượng. Đây là mệt về cơ thể, đầu óc hay cả hai?',
+                'Giấc ngủ của bạn gần đây có ổn không?',
+                'Nếu chỉ dành 5 phút cho bản thân ngay bây giờ, điều gì là nhẹ nhàng nhất với bạn?'
+            ],
+            angry: [
+                'Mình cảm nhận được sự bức bối. Chuyện gì vừa khiến bạn khó chịu nhất?',
+                'Cơn giận này đang hướng vào một người, một tình huống hay chính bản thân bạn?',
+                'Mình có thể cùng bạn làm chậm nhịp lại trước khi phản ứng tiếp.'
+            ],
+            good: [
+                'Mừng vì bạn đang ổn hơn. Điều gì đã giúp hôm nay dễ thở hơn?',
+                'Bạn muốn giữ nhịp tích cực này bằng một việc nhỏ nào tiếp theo không?',
+                'Đây là lúc tốt để ghi nhận điều đang làm bạn tiến bộ.'
+            ],
+            default: [
+                'Mình đang lắng nghe. Bạn muốn kể thêm một chút không?',
+                'Điều này ảnh hưởng đến bạn rõ nhất ở thời điểm nào trong ngày?',
+                'Nếu phải đặt tên cho cảm giác hiện tại, bạn sẽ gọi nó là gì?'
+            ]
+        };
+
+        function escapeHtml(value) {
+            return String(value ?? '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        function getTimeLabel() {
+            const now = new Date();
+            return `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+        }
+
+        function clamp(value, min, max) {
+            return Math.max(min, Math.min(max, value));
+        }
+
+        function average(values) {
+            const numeric = values
+                .map((value) => Number(value))
+                .filter((value) => Number.isFinite(value));
+            if (!numeric.length) return null;
+            return numeric.reduce((sum, value) => sum + value, 0) / numeric.length;
+        }
+
+        function pickLatest(array) {
+            return Array.isArray(array) && array.length ? array[0] : null;
+        }
+
+        function scoreToPercent(value) {
+            return value === null || value === undefined ? null : clamp(Math.round(Number(value) * 10), 0, 100);
+        }
+
+        function getUserName() {
+            const user = chatState.report?.user || chatState.dashboard?.user || auth.getUser() || {};
+            return user.display_name || user.full_name || 'bạn';
+        }
+
+        function getQuickReplies() {
+            return [
+                'Mình khá căng thẳng',
+                'Hôm nay mình thấy buồn',
+                'Mình đang rất mệt',
+                'Mình hơi tức giận',
+                'Hôm nay mình ổn hơn'
+            ];
+        }
+
+        function getLatestPhqAssessment() {
+            return (chatState.report?.assessments || []).find((item) => String(item.code || '').toLowerCase().includes('phq')) || null;
+        }
+
+        function buildBaseAnalysis() {
+            const latestMood = chatState.dashboard?.latest_mood || chatState.report?.latest_mood || null;
+            const moodHistory = Array.isArray(chatState.report?.mood_history) ? chatState.report.mood_history : [];
+            const journalHistory = Array.isArray(chatState.report?.journal_history) ? chatState.report.journal_history : [];
+
+            const moodAvg = latestMood?.mood_score ?? average(moodHistory.map((item) => item.mood_score)) ?? 5;
+            const anxietyAvg = latestMood?.anxiety_score ?? average(moodHistory.map((item) => item.anxiety_score)) ?? 4;
+            const stressAvg = latestMood?.stress_score ?? average(moodHistory.map((item) => item.stress_score)) ?? 4;
+            const energyAvg = latestMood?.energy_score ?? average(moodHistory.map((item) => item.energy_score)) ?? 5;
+            const sleepAvg = latestMood?.sleep_quality_score ?? average(moodHistory.map((item) => item.sleep_quality_score)) ?? 5;
+            const sentimentAvg = average(journalHistory.slice(0, 5).map((item) => item.sentiment_score));
+            const phq = getLatestPhqAssessment();
+
+            const moodPercent = scoreToPercent(moodAvg) ?? 50;
+            const anxietyPercent = scoreToPercent(anxietyAvg) ?? 40;
+            const stressPercent = scoreToPercent(stressAvg) ?? 40;
+            const physicalPercent = scoreToPercent(average([energyAvg, sleepAvg])) ?? 50;
+            const socialPercent = clamp(Math.round(((chatState.dashboard?.summary?.badges_count || 0) * 8) + ((chatState.dashboard?.progress?.weekly_tasks_completed || 0) * 5)), 20, 100);
+            const cognitivePercent = clamp(Math.round(100 - ((anxietyPercent + stressPercent) / 2)), 10, 100);
+            const depressionPercent = phq?.total_score
+                ? clamp(Math.round((Number(phq.total_score) / 27) * 100), 0, 100)
+                : clamp(Math.round(100 - moodPercent + (stressPercent * 0.15)), 5, 95);
+
+            const sentimentBonus = sentimentAvg === null || !Number.isFinite(sentimentAvg)
+                ? 0
+                : clamp(Math.round((Number(sentimentAvg) - 0.5) * 30), -12, 12);
+
+            return {
+                anxiety: clamp(anxietyPercent, 5, 95),
+                stress: clamp(stressPercent, 5, 95),
+                mood: clamp(moodPercent + sentimentBonus, 5, 95),
+                depression: clamp(depressionPercent, 5, 95),
+                emotion: clamp(moodPercent, 5, 95),
+                physical: clamp(physicalPercent, 5, 95),
+                social: clamp(socialPercent, 5, 95),
+                cognitive: clamp(cognitivePercent, 5, 95)
+            };
+        }
+
+        function collectRealKeywords() {
+            const tags = new Set();
+            const primaryTrigger = chatState.dashboard?.summary?.primary_trigger || chatState.report?.summary?.primary_trigger;
+            if (primaryTrigger) tags.add(primaryTrigger);
+
+            (chatState.report?.journal_history || []).slice(0, 8).forEach((entry) => {
+                (Array.isArray(entry.tags) ? entry.tags : []).forEach((tag) => {
+                    if (tag) tags.add(String(tag).trim());
+                });
+            });
+
+            const latestMood = chatState.dashboard?.latest_mood || chatState.report?.latest_mood;
+            if (latestMood?.stress_score >= 7) tags.add('stress cao');
+            if (latestMood?.anxiety_score >= 7) tags.add('lo âu cao');
+            if (latestMood?.mood_score <= 4) tags.add('mood thấp');
+
+            return Array.from(tags).slice(0, 10);
+        }
+
+        function saveConversation() {
+            sessionStorage.setItem(STORAGE_KEY, JSON.stringify({
+                conversation: chatState.conversation.slice(-MAX_CONVERSATION_ITEMS),
+                analysis: chatState.analysis,
+                keywords: chatState.keywords
+            }));
+        }
+
+        function loadConversation() {
+            try {
+                const raw = sessionStorage.getItem(STORAGE_KEY);
+                if (!raw) return false;
+                const parsed = JSON.parse(raw);
+                chatState.conversation = Array.isArray(parsed.conversation) ? parsed.conversation : [];
+                chatState.analysis = parsed.analysis && typeof parsed.analysis === 'object'
+                    ? { ...chatState.analysis, ...parsed.analysis }
+                    : chatState.analysis;
+                chatState.keywords = Array.isArray(parsed.keywords) ? parsed.keywords : [];
+                return chatState.conversation.length > 0;
+            } catch (error) {
+                console.error('Failed to restore mood chat state:', error);
+                return false;
+            }
+        }
+
+        function renderHeader() {
+            const displayName = getUserName();
+            const progress = chatState.dashboard?.progress || chatState.report?.progress || {};
+            const xp = progress.xp ?? progress.total_xp ?? 0;
+            const level = progress.level ?? progress.current_level ?? 1;
+            const mobileXp = document.querySelector('.mobile-topbar span[style*="background:var(--peach-light)"]');
+
+            document.querySelectorAll('[data-user-field="display_name"], .user-name').forEach((element) => {
+                element.textContent = displayName;
+            });
+            document.querySelectorAll('.user-level').forEach((element) => {
+                element.textContent = `⭐ ${xp} XP · Level ${level}`;
+            });
+            if (mobileXp) {
+                mobileXp.textContent = `⭐ ${xp} XP`;
+            }
+        }
+
+        function setStatus(text) {
+            const element = document.getElementById('statusText');
+            if (element) element.textContent = text;
+        }
+
+        function updateMessageCount() {
+            const badge = document.getElementById('msgCountBadge');
+            if (!badge) return;
+            const userMessages = chatState.conversation.filter((item) => item.role === 'user').length;
+            badge.textContent = `${userMessages} tin nhắn`;
+        }
+
+        function renderConversation() {
+            const container = document.getElementById('chatMessages');
+            if (!container) return;
+
+            container.innerHTML = chatState.conversation.map((item) => `
+                <div class="msg ${item.role === 'user' ? 'msg-user' : 'msg-bot'}">
+                    ${item.role === 'user' ? '' : '<div class="msg-avatar">🐱</div>'}
+                    <div class="msg-content">
+                        <div class="msg-bubble">${item.html}</div>
+                        <div class="msg-time">${escapeHtml(item.time || getTimeLabel())}</div>
+                    </div>
+                </div>
+            `).join('');
+
+            updateMessageCount();
+            scrollToBottom();
+        }
+
+        function scrollToBottom() {
+            const container = document.getElementById('chatMessages');
+            if (!container) return;
+            setTimeout(() => {
+                container.scrollTop = container.scrollHeight;
+            }, 50);
+        }
+
+        function renderQuickReplies() {
+            const container = document.getElementById('quickRepliesArea');
+            if (!container) return;
+            container.innerHTML = getQuickReplies().map((text) => `
+                <button class="qr-btn" onclick="sendQuickReply('${escapeHtml(text)}')">${escapeHtml(text)}</button>
+            `).join('');
+        }
+
+        function renderKeywords() {
+            const grid = document.getElementById('kwGrid');
+            if (!grid) return;
+
+            if (!chatState.keywords.length) {
+                grid.innerHTML = '<span style="font-size:0.72rem;color:var(--text-light);font-style:italic;">Chưa có dữ liệu</span>';
+                return;
+            }
+
+            grid.innerHTML = chatState.keywords.slice(0, 10).map((keyword) => {
+                const isPositive = POSITIVE_KW.includes(String(keyword).toLowerCase());
+                return `
+                    <div class="kw-tag ${isPositive ? 'pos' : 'neg'}" style="padding:4px 10px;background:${isPositive ? 'var(--mint-light)' : 'var(--coral-light)'};color:${isPositive ? 'var(--mint-dark)' : 'var(--coral)'};border-radius:20px;font-size:0.7rem;border:1px solid ${isPositive ? 'var(--mint)' : 'var(--coral)'};">
+                        ${escapeHtml(keyword)}
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderAnalysis() {
+            const { anxiety, stress, mood, depression, emotion, physical, social, cognitive } = chatState.analysis;
+
+            const pairs = [
+                ['anxietyBar', 'anxietyVal', anxiety],
+                ['stressBar', 'stressVal', stress],
+                ['moodBar', 'moodVal', mood],
+                ['depressionBar', 'depressionVal', depression]
+            ];
+
+            pairs.forEach(([barId, labelId, value]) => {
+                const bar = document.getElementById(barId);
+                const label = document.getElementById(labelId);
+                if (bar) bar.style.width = `${value}%`;
+                if (label) label.textContent = `${Math.round(value)}%`;
+            });
+
+            const portraitPairs = [
+                ['pb-emotion', emotion],
+                ['pb-physical', physical],
+                ['pb-social', social],
+                ['pb-cognitive', cognitive]
+            ];
+
+            portraitPairs.forEach(([id, value]) => {
+                const element = document.getElementById(id);
+                if (element) element.style.width = `${value}%`;
+            });
+
+            const mascot = document.getElementById('topbarMascot');
+            const face = mood >= 75 ? '😸' : mood >= 55 ? '🐱' : mood >= 35 ? '😿' : '🙀';
+            if (mascot) mascot.textContent = face;
+        }
+
+        function renderSuggestedTasks() {
+            const container = document.getElementById('sidebarTasks');
+            if (!container) return;
+
+            const tasks = (chatState.dashboard?.tasks || chatState.tasks || []).slice(0, 4);
+            if (!tasks.length) {
+                container.innerHTML = '<div style="font-size:0.75rem;color:var(--text-light);font-style:italic;">Chưa có gợi ý từ hệ thống.</div>';
+                return;
+            }
+
+            container.innerHTML = tasks.map((task) => `
+                <div class="suggested-task" style="padding:8px;background:var(--warm-white);border:1px solid var(--kraft-light);border-radius:8px;margin-bottom:8px;font-size:0.8rem;cursor:pointer;" onclick="location.href='task-detail.html?id=${encodeURIComponent(task.id)}'">
+                    <div style="font-weight:700;margin-bottom:2px;">${escapeHtml(task.title || 'Nhiệm vụ')}</div>
+                    <div style="font-size:0.68rem;color:var(--text-light);">${escapeHtml(task.category || 'task')} · ${escapeHtml(task.difficulty || 'easy')}</div>
+                </div>
+            `).join('');
+        }
+
+        function buildWelcomeMessage() {
+            const latestMood = chatState.dashboard?.latest_mood || chatState.report?.latest_mood;
+            const insight = chatState.dashboard?.insight;
+            const moodSentence = latestMood?.mood_score !== null && latestMood?.mood_score !== undefined
+                ? `Mood gần nhất của bạn là <strong>${latestMood.mood_score}/10</strong>.`
+                : 'Mình chưa thấy check-in mood gần đây của bạn.';
+
+            const insightSentence = insight?.headline
+                ? `<br><br><strong>Tín hiệu gần đây:</strong> ${escapeHtml(insight.headline)}`
+                : '';
+
+            return `Chào <span data-user-field="display_name">${escapeHtml(getUserName())}</span>! 🌿 Mình là PeaceCat.<br><br>${moodSentence}${insightSentence}<br><br>Đây vẫn là không gian riêng tư để bạn nói ra điều đang diễn ra. <strong>Hôm nay bạn thấy thế nào?</strong>`;
+        }
+
+        function buildConversationSummary() {
+            const recentUserMessages = chatState.conversation
+                .filter((item) => item.role === 'user')
+                .slice(-3)
+                .map((item) => item.text)
+                .filter(Boolean);
+            return recentUserMessages.join(' | ');
+        }
+
+        function addMessage(role, text, options = {}) {
+            chatState.conversation.push({
+                role,
+                text,
+                html: options.html || escapeHtml(text).replace(/\n/g, '<br>'),
+                time: options.time || getTimeLabel()
+            });
+
+            chatState.conversation = chatState.conversation.slice(-MAX_CONVERSATION_ITEMS);
+            renderConversation();
+            saveConversation();
+        }
+
+        function showTyping() {
+            if (chatState.isTyping) return;
+            chatState.isTyping = true;
+            setStatus('PeaceCat đang phản hồi...');
+
+            const container = document.getElementById('chatMessages');
+            if (!container) return;
+            const typing = document.createElement('div');
+            typing.className = 'msg msg-bot';
+            typing.id = 'typingMessage';
+            typing.innerHTML = `
+                <div class="msg-avatar">🐱</div>
+                <div class="msg-content">
+                    <div class="typing-wrap">
+                        <div class="typing-bubble"><span></span><span></span><span></span></div>
+                    </div>
+                </div>
+            `;
+            container.appendChild(typing);
+            scrollToBottom();
+        }
+
+        function hideTyping() {
+            chatState.isTyping = false;
+            const typing = document.getElementById('typingMessage');
+            if (typing) typing.remove();
+            setStatus('Đang lắng nghe bạn...');
+        }
+
+        function detectMoodType(text) {
+            const lower = String(text || '').toLowerCase();
+            if (DANGER_KEYWORDS.some((keyword) => lower.includes(keyword))) return 'danger';
+            if (lower.includes('căng thẳng') || lower.includes('áp lực') || lower.includes('deadline') || lower.includes('lo')) return 'stressed';
+            if (lower.includes('buồn') || lower.includes('khóc') || lower.includes('cô đơn') || lower.includes('thất bại')) return 'sad';
+            if (lower.includes('mệt') || lower.includes('kiệt sức') || lower.includes('mất ngủ') || lower.includes('không ngủ')) return 'tired';
+            if (lower.includes('tức') || lower.includes('giận') || lower.includes('bực')) return 'angry';
+            if (lower.includes('ổn') || lower.includes('vui') || lower.includes('tốt') || lower.includes('hạnh phúc')) return 'good';
+            return 'default';
+        }
+
+        function updateAnalysisFromUserText(text) {
+            const lower = String(text || '').toLowerCase();
+            const negativeHits = NEGATIVE_KW.filter((keyword) => lower.includes(keyword)).length;
+            const positiveHits = POSITIVE_KW.filter((keyword) => lower.includes(keyword)).length;
+
+            chatState.analysis.anxiety = clamp(chatState.analysis.anxiety + (negativeHits * 5) - (positiveHits * 3), 5, 95);
+            chatState.analysis.stress = clamp(chatState.analysis.stress + (negativeHits * 4) - (positiveHits * 2), 5, 95);
+            chatState.analysis.mood = clamp(chatState.analysis.mood - (negativeHits * 3) + (positiveHits * 4), 5, 95);
+            chatState.analysis.depression = clamp(chatState.analysis.depression + (negativeHits * 2) - (positiveHits * 2), 5, 95);
+            chatState.analysis.emotion = chatState.analysis.mood;
+            chatState.analysis.cognitive = clamp(100 - Math.round((chatState.analysis.anxiety + chatState.analysis.stress) / 2), 5, 95);
+
+            [...NEGATIVE_KW, ...POSITIVE_KW].forEach((keyword) => {
+                if (lower.includes(keyword) && !chatState.keywords.includes(keyword)) {
+                    chatState.keywords.unshift(keyword);
+                }
+            });
+
+            chatState.keywords = chatState.keywords.slice(0, 10);
+            renderAnalysis();
+            renderKeywords();
+        }
+
+        function buildBotReply(userText, moodType) {
+            const riskLevel = chatState.dashboard?.summary?.risk_level || chatState.report?.summary?.risk_level || 'low';
+            const suggestedTask = (chatState.dashboard?.tasks || [])[0];
+            const flow = AI_FLOWS[moodType] || AI_FLOWS.default;
+            const index = chatState.flowCounters[moodType] || 0;
+            chatState.flowCounters[moodType] = index + 1;
+
+            let reply = flow[index % flow.length];
+
+            if (moodType === 'danger') {
+                reply = 'Mình thấy nội dung này có tín hiệu nguy cấp. Mình muốn ưu tiên an toàn cho bạn ngay lúc này. Hãy mở hỗ trợ khẩn cấp hoặc liên hệ một người tin cậy ở gần bạn ngay bây giờ.';
+            } else if (riskLevel === 'high' || riskLevel === 'critical') {
+                reply += ' Mình cũng thấy dữ liệu gần đây của bạn đang ở vùng cần theo dõi kỹ hơn.';
+            }
+
+            if (suggestedTask && moodType !== 'good' && moodType !== 'danger') {
+                reply += ` Nếu muốn, sau đó bạn có thể thử nhiệm vụ "${suggestedTask.title}".`;
+            }
+
+            if (userText.length > 180) {
+                reply += ' Cảm ơn bạn đã kể khá rõ. Mình đang theo kịp và có thể đi cùng bạn từng ý một.';
+            }
+
+            return reply;
+        }
+
+        function resetChat(withWelcome = true) {
+            chatState.conversation = [];
+            if (withWelcome) {
+                addMessage('bot', '', { html: buildWelcomeMessage(), time: 'Vừa xong' });
+            }
+            renderQuickReplies();
+            updateMessageCount();
+            saveConversation();
+        }
+
+        function handleInputResize(textarea) {
+            const input = textarea || document.getElementById('chatInput');
+            const counter = document.getElementById('charCount');
+            if (!input || !counter) return;
+
+            const value = String(input.value || '').slice(0, MAX_MESSAGE_LENGTH);
+            if (value !== input.value) input.value = value;
+            input.style.height = 'auto';
+            input.style.height = `${Math.min(input.scrollHeight, 180)}px`;
+            counter.textContent = `${value.length}/${MAX_MESSAGE_LENGTH}`;
+        }
+
+        async function initializePage() {
+            const authenticated = await auth.waitForAuth();
+            if (!authenticated) {
+                window.location.replace('login.html');
+                return;
+            }
+
+            const [dashboard, report, tasks] = await Promise.all([
+                apiClient.get('/dashboard'),
+                apiClient.get('/reports/detail'),
+                apiClient.get('/tasks/recommended').catch(() => [])
+            ]);
+
+            chatState.dashboard = dashboard;
+            chatState.report = report;
+            chatState.tasks = Array.isArray(tasks) ? tasks : [];
+            chatState.analysis = buildBaseAnalysis();
+            chatState.keywords = collectRealKeywords();
+
+            renderHeader();
+            renderAnalysis();
+            renderKeywords();
+            renderSuggestedTasks();
+            renderQuickReplies();
+
+            const hasStoredConversation = loadConversation();
+            if (hasStoredConversation) {
+                renderConversation();
+                renderAnalysis();
+                renderKeywords();
+                updateMessageCount();
+            } else {
+                resetChat(true);
+            }
+
+            handleInputResize(document.getElementById('chatInput'));
+        }
+
+        window.handleInput = function handleInput(textarea) {
+            handleInputResize(textarea);
+        };
+
+        window.handleKey = function handleKey(event) {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                window.sendMessage();
+            }
+        };
+
+        window.sendQuickReply = function sendQuickReply(text) {
+            const input = document.getElementById('chatInput');
+            if (!input) return;
+            input.value = String(text || '').replace(/^['"]|['"]$/g, '');
+            handleInputResize(input);
+            window.sendMessage();
+        };
+
+        window.sendMessage = function sendMessage() {
+            const input = document.getElementById('chatInput');
+            if (!input) return;
+
+            const text = String(input.value || '').trim();
+            if (!text || chatState.isTyping) return;
+
+            input.value = '';
+            handleInputResize(input);
+
+            addMessage('user', text);
+            updateAnalysisFromUserText(text);
+
+            const moodType = detectMoodType(text);
+            if (moodType === 'danger') {
+                setTimeout(() => {
+                    window.showEmergency();
+                }, 250);
+            }
+
+            showTyping();
+            const reply = buildBotReply(text, moodType);
+            setTimeout(() => {
+                hideTyping();
+                addMessage('bot', reply);
+            }, 700);
+        };
+
+        window.clearChat = function clearChat() {
+            sessionStorage.removeItem(STORAGE_KEY);
+            chatState.analysis = buildBaseAnalysis();
+            chatState.keywords = collectRealKeywords();
+            renderAnalysis();
+            renderKeywords();
+            resetChat(true);
+        };
+
+        window.toggleVoice = function toggleVoice() {
+            const voiceButton = document.getElementById('voiceBtn');
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+            if (!SpeechRecognition) {
+                alert('Trình duyệt này chưa hỗ trợ nhập giọng nói.');
+                return;
+            }
+
+            if (chatState.isRecording) {
+                if (window.__peaceflowRecognition) {
+                    window.__peaceflowRecognition.stop();
+                }
+                return;
+            }
+
+            const recognition = new SpeechRecognition();
+            window.__peaceflowRecognition = recognition;
+            recognition.lang = 'vi-VN';
+            recognition.interimResults = false;
+            recognition.maxAlternatives = 1;
+
+            recognition.onstart = () => {
+                chatState.isRecording = true;
+                if (voiceButton) voiceButton.classList.add('recording');
+                setStatus('Đang nghe giọng nói...');
+            };
+
+            recognition.onresult = (event) => {
+                const transcript = event.results?.[0]?.[0]?.transcript || '';
+                const input = document.getElementById('chatInput');
+                if (!input) return;
+                input.value = transcript;
+                handleInputResize(input);
+            };
+
+            recognition.onerror = () => {
+                setStatus('Đang lắng nghe bạn...');
+            };
+
+            recognition.onend = () => {
+                chatState.isRecording = false;
+                if (voiceButton) voiceButton.classList.remove('recording');
+                setStatus('Đang lắng nghe bạn...');
+            };
+
+            recognition.start();
+        };
+
+        window.showResult = function showResult() {
+            window.location.href = 'report.html';
+        };
+
+        window.toggleSidebar = function toggleSidebar() {
+            document.getElementById('sidebar')?.classList.toggle('open');
+            document.getElementById('sidebarOverlay')?.classList.toggle('open');
+        };
+
+        window.closeSidebar = function closeSidebar() {
+            document.getElementById('sidebar')?.classList.remove('open');
+            document.getElementById('sidebarOverlay')?.classList.remove('open');
+        };
+
+        window.showEmergency = function showEmergency() {
+            window.location.href = 'emergency.html';
+        };
+
+        window.addEventListener('load', () => {
+            initializePage().catch((error) => {
+                console.error('Failed to initialize mood chat page:', error);
+                setStatus('Không tải được dữ liệu thật');
+                resetChat(true);
+                const tasks = document.getElementById('sidebarTasks');
+                if (tasks) {
+                    tasks.innerHTML = '<div style="font-size:0.75rem;color:var(--coral);">Không tải được gợi ý từ API.</div>';
+                }
+            });
+        });
+    </script>
+    <script src="../public/components/sidebar.js"></script>
     <script src="../public/js/user-sync.js"></script>
     <script src="../public/js/app.js"></script>
 </body>
 </html>
+

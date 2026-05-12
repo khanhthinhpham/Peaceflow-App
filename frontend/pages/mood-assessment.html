@@ -4,6 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="../public/favicon.jpg" type="image/svg+xml">
     <title>PeaceFlow — Bài Kiểm Tra Tâm Lý Chuẩn Hóa</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Patrick+Hand&display=swap"
@@ -1309,86 +1310,11 @@
     </div>
 
     <!-- Sidebar Overlay -->
-    <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
 
-    <!-- Mobile Topbar -->
-    <div class="mobile-topbar">
-        <button class="mobile-menu-btn" onclick="toggleSidebar()">☰</button>
-        <a href="index.html" style="display:flex;align-items:center;gap:8px;text-decoration:none;">
-            <div
-                style="width:32px;height:32px;background:var(--mint);border-radius:8px;border:2px solid var(--mint-dark);display:flex;align-items:center;justify-content:center;font-size:1rem;box-shadow:2px 2px 0px var(--mint-dark);">
-                🌿</div>
-            <span style="font-size:1.1rem;font-weight:800;color:var(--text-primary);">Peace<span
-                    style="color:var(--mint-dark);">Flow</span></span>
-        </a>
-        <span
-            style="background:var(--peach-light);padding:3px 10px;border-radius:50px;font-size:0.75rem;font-weight:700;color:var(--peach-dark);border:1.5px solid var(--peach);">⭐
-            295 XP</span>
-    </div>
-
-    <!-- Sidebar -->
-    <aside class="sidebar" id="sidebar">
-        <a href="index.html" class="sidebar-logo">
-            <div class="logo-icon">🌿</div>
-            <div class="logo-text">Peace<span>Flow</span></div>
-        </a>
-
-        <nav class="sidebar-nav">
-            <div class="nav-section-label">Chính</div>
-            <a href="dashboard.html" class="nav-item ">
-                <span class="ni">🏡</span> Tổng quan
-            </a>
-            <a href="mood-checkin.html" class="nav-item ">
-                <span class="ni">💭</span> Tâm trạng
-            </a>
-            <a href="tasks.html" class="nav-item ">
-                <span class="ni">🎮</span> Nhiệm vụ
-            </a>
-            <a href="journal.html" class="nav-item ">
-                <span class="ni">📝</span> Nhật ký
-            </a>
-
-            <div class="nav-section-label" style="margin-top:8px;">Kết nối</div>
-            <a href="experts.html" class="nav-item ">
-                <span class="ni">🩺</span> Chuyên gia
-            </a>
-            <a href="community.html" class="nav-item ">
-                <span class="ni">👥</span> Cộng đồng
-            </a>
-
-            <div class="nav-section-label" style="margin-top:8px;">Phân tích</div>
-            <a href="report.html" class="nav-item ">
-                <span class="ni">📊</span> Báo cáo
-            </a>
-            <a href="achievements.html" class="nav-item ">
-                <span class="ni">🏅</span> Thành tích
-            </a>
-
-            <div class="nav-section-label" style="margin-top:8px;">Cài đặt</div>
-            <a href="profile.html" class="nav-item ">
-                <span class="ni">👤</span> Hồ sơ
-            </a>
-            <a href="settings.html" class="nav-item ">
-                <span class="ni">⚙️</span> Cài đặt
-            </a>
-            <a href="#" class="nav-item" onclick="handleLogout()" style="color:var(--coral); margin-top: 10px; border-top: 1px dashed var(--kraft-light); padding-top: 15px;">
-                <span class="ni">🚪</span> Đăng xuất
-            </a>
-        </nav>
-
-        <div class="sidebar-bottom">
-            <div class="user-card-mini">
-                <div class="user-avatar-mini">🐱</div>
-                <div class="user-info-mini">
-                    <div class="user-name">Khách hàng giả lập</div>
-                    <div class="user-level">⭐ 295 XP · Level 2</div>
-                </div>
-            </div>
-            <a href="emergency.html" class="emergency-btn">
-                🆘 Hỗ trợ khẩn cấp
-            </a>
-        </div>
-    </aside>
+    <!-- Shared Sidebar -->
+    <div id="sharedSidebarOverlayMount"></div>
+    <div id="sharedMobileTopbarMount"></div>
+    <div id="sharedSidebarMount"></div>
 
     <!-- Main Content -->
     <main class="main-content">
@@ -1415,7 +1341,7 @@
                     dịch vụ y tế chuyên nghiệp.</div>
             </div>
 
-            <div class="test-grid">
+            <div class="test-grid" id="assessmentTestGrid">
                 <!-- DASS-21 -->
                 <div class="test-select-card dass" onclick="startTest('dass21')">
                     <div class="tsc-recommended"><span class="badge-pill badge-peach">⭐ Phổ biến nhất</span></div>
@@ -1503,7 +1429,7 @@
             <!-- History -->
             <div class="history-section">
                 <div class="history-title">📅 Lịch sử kiểm tra gần đây</div>
-                <div class="history-grid">
+                <div class="history-grid" id="assessmentHistoryGrid">
                     <div class="paper-card history-card" onclick="startTest('dass21')">
                         <div class="hc-test">DASS-21</div>
                         <div class="hc-date">14 ngày trước — 12/06/2025</div>
@@ -1824,6 +1750,8 @@
             }
         };
 
+        window.TESTS = TESTS;
+
         // ============================================================
         // STATE & LOGIC
         // ============================================================
@@ -2087,6 +2015,46 @@
                 </div>
             `;
             }
+
+            const overallSeverity = keys
+                .map(key => {
+                    const s = subScores[key];
+                    const levelConfig = s.config.levels.find(l => s.score <= l.max) || s.config.levels[s.config.levels.length - 1];
+                    return {
+                        key,
+                        score: s.score,
+                        label: levelConfig.label,
+                        className: levelConfig.class
+                    };
+                })
+                .sort((left, right) => getSeverityRank(right.className) - getSeverityRank(left.className))[0];
+
+            window.onAssessmentFinished?.({
+                testId: currentTestId,
+                testName: testData.name,
+                rawAnswers: answers.map((score, index) => ({
+                    question: index + 1,
+                    score
+                })),
+                totalScore: subScores.total
+                    ? subScores.total.score
+                    : keys.reduce((sum, key) => sum + (subScores[key]?.score || 0), 0),
+                severity: overallSeverity?.label || null,
+                dimensionScores: Object.fromEntries(keys.map(key => {
+                    const s = subScores[key];
+                    const levelConfig = s.config.levels.find(l => s.score <= l.max) || s.config.levels[s.config.levels.length - 1];
+                    return [key, {
+                        score: s.score,
+                        severity: levelConfig.label,
+                        className: levelConfig.class
+                    }];
+                })),
+                interpretedResult: {
+                    is_warning: isWarning,
+                    summary_html: analysisStr,
+                    dominant_dimension: overallSeverity?.key || null
+                }
+            });
         }
 
         function retakeTest() {
@@ -2112,11 +2080,316 @@
             document.getElementById('sidebarOverlay').classList.remove('open');
         }
 
-    </script>
+        function getSeverityRank(className) {
+            if (className === 'level-4') return 4;
+            if (className === 'level-3') return 3;
+            if (className === 'level-2') return 2;
+            if (className === 'level-1') return 1;
+            return 0;
+        }
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="../public/js/supabase-config.js"></script>
+    </script>
+    <script type="module">
+        import { apiClient } from '../public/js/api-client.js';
+
+        const ASSESSMENT_META = {
+            dass21: {
+                apiCode: 'DASS21',
+                name: 'DASS-21',
+                fullname: 'Depression Anxiety Stress Scales',
+                icon: '📊',
+                cardClass: 'dass',
+                iconStyle: 'background:var(--peach-light);border-color:var(--peach);',
+                desc: 'Đánh giá đồng thời 3 chiều: Trầm cảm, Lo âu và Căng thẳng.',
+                badges: [
+                    { className: 'badge-peach', label: '21 câu hỏi' },
+                    { className: 'badge-mint', label: '~8 phút' },
+                    { style: 'background:var(--sky-light);color:#4a90aa;border:1.5px solid var(--sky);', label: '2 tuần/lần' }
+                ]
+            },
+            gad7: {
+                apiCode: 'GAD7',
+                name: 'GAD-7',
+                fullname: 'Generalized Anxiety Disorder 7-item',
+                icon: '😰',
+                cardClass: 'gad',
+                iconStyle: 'background:var(--sky-light);border-color:var(--sky);',
+                desc: 'Đánh giá mức độ lo âu tổng quát với thang đo ngắn, dễ lặp lại hàng tuần.',
+                badges: [
+                    { className: 'badge-sky', label: '7 câu hỏi' },
+                    { className: 'badge-mint', label: '~3 phút' },
+                    { className: 'badge-mint', label: 'Hàng tuần' }
+                ]
+            },
+            hars: {
+                apiCode: 'HARS',
+                name: 'HARS',
+                fullname: 'Hamilton Anxiety Rating Scale',
+                icon: '🧠',
+                cardClass: 'hars',
+                iconStyle: 'background:var(--lavender-light);border-color:var(--lavender);',
+                desc: 'Đánh giá lo âu theo cả triệu chứng tâm lý lẫn thể chất.',
+                badges: [
+                    { className: 'badge-lavender', label: '14 câu hỏi' },
+                    { className: 'badge-mint', label: '~6 phút' },
+                    { style: 'background:var(--lavender-light);color:#8a6aaa;border:1.5px solid var(--lavender);', label: 'Khi cần sâu' }
+                ]
+            },
+            phq9: {
+                apiCode: 'PHQ9',
+                name: 'PHQ-9',
+                fullname: 'Patient Health Questionnaire-9',
+                icon: '🌧️',
+                cardClass: 'phq',
+                iconStyle: 'background:var(--mint-light);border-color:var(--mint);',
+                desc: 'Sàng lọc và đánh giá mức độ trầm cảm theo thang đo tiêu chuẩn.',
+                badges: [
+                    { className: 'badge-mint', label: '9 câu hỏi' },
+                    { className: 'badge-mint', label: '~4 phút' },
+                    { className: 'badge-peach', label: '2 tuần/lần' }
+                ]
+            },
+            psqi: {
+                apiCode: 'PSQI',
+                name: 'PSQI',
+                fullname: 'Pittsburgh Sleep Quality Index',
+                icon: '😴',
+                cardClass: 'psqi',
+                iconStyle: 'background:var(--peach-light);border-color:var(--kraft);',
+                desc: 'Đánh giá chất lượng giấc ngủ trong tháng gần nhất.',
+                badges: [
+                    { className: 'badge-peach', label: '10 câu hỏi' },
+                    { className: 'badge-mint', label: '~5 phút' },
+                    { style: 'background:var(--kraft-light);color:var(--kraft-dark);border:1.5px solid var(--kraft);', label: 'Hàng tháng' }
+                ]
+            }
+        };
+
+        const state = {
+            assessments: [],
+            history: []
+        };
+
+        const refs = {
+            testGrid: document.getElementById('assessmentTestGrid'),
+            historyGrid: document.getElementById('assessmentHistoryGrid'),
+            resultSubtitle: document.getElementById('resultSubtitle'),
+            resultTasks: document.getElementById('resultTasks')
+        };
+
+        function escapeHtml(value) {
+            return String(value ?? '')
+                .replaceAll('&', '&amp;')
+                .replaceAll('<', '&lt;')
+                .replaceAll('>', '&gt;')
+                .replaceAll('"', '&quot;')
+                .replaceAll("'", '&#39;');
+        }
+
+        function formatDate(value) {
+            if (!value) return 'Chưa làm lần nào';
+            return new Intl.DateTimeFormat('vi-VN', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                timeZone: 'Asia/Bangkok'
+            }).format(new Date(value));
+        }
+
+        function formatRelativeDate(value) {
+            if (!value) return 'Chưa có dữ liệu';
+
+            const target = new Date(value);
+            const now = new Date();
+            const diffDays = Math.floor((now - target) / (24 * 60 * 60 * 1000));
+
+            if (diffDays <= 0) return `Hôm nay — ${formatDate(value)}`;
+            if (diffDays === 1) return `1 ngày trước — ${formatDate(value)}`;
+            return `${diffDays} ngày trước — ${formatDate(value)}`;
+        }
+
+        function getAssessmentKeyByCode(code) {
+            return Object.keys(ASSESSMENT_META).find((key) => ASSESSMENT_META[key].apiCode === code) || null;
+        }
+
+        function getSeverityBadgeStyle(severity) {
+            const value = String(severity || '').toLowerCase();
+            if (value.includes('nghiêm') || value.includes('severe') || value.includes('nặng')) {
+                return 'background:var(--coral-light);color:#c05050;';
+            }
+            if (value.includes('vừa') || value.includes('moderate') || value.includes('poor')) {
+                return 'background:var(--peach-light);color:var(--peach-dark);';
+            }
+            return 'background:var(--mint-light);color:var(--mint-dark);';
+        }
+
+        function renderTestGrid() {
+            if (!refs.testGrid) return;
+
+            refs.testGrid.innerHTML = Object.entries(ASSESSMENT_META).map(([key, meta]) => {
+                const apiRow = state.assessments.find((item) => item.code === meta.apiCode);
+                const latestLabel = apiRow?.latest_taken_at
+                    ? formatRelativeDate(apiRow.latest_taken_at)
+                    : 'Chưa làm lần nào';
+                const scorePill = apiRow?.latest_total_score !== null && apiRow?.latest_total_score !== undefined
+                    ? `<span class="badge-pill badge-mint">Điểm gần nhất: ${apiRow.latest_total_score}</span>`
+                    : '';
+
+                return `
+                    <div class="test-select-card ${meta.cardClass}" onclick="startTest('${key}')">
+                        <div class="tsc-icon" style="${meta.iconStyle}">${meta.icon}</div>
+                        <div class="tsc-name">${escapeHtml(meta.name)}</div>
+                        <div class="tsc-fullname">${escapeHtml(meta.fullname)}</div>
+                        <div class="tsc-desc">${escapeHtml(meta.desc)}</div>
+                        <div class="tsc-meta">
+                            ${meta.badges.map((badge) => `
+                                <span class="badge-pill ${badge.className || ''}" ${badge.style ? `style="${badge.style}"` : ''}>${escapeHtml(badge.label)}</span>
+                            `).join('')}
+                            ${scorePill}
+                        </div>
+                        <div class="tsc-last">🕐 Lần cuối: ${escapeHtml(latestLabel)}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderHistory() {
+            if (!refs.historyGrid) return;
+
+            if (!state.history.length) {
+                refs.historyGrid.innerHTML = `
+                    <div class="paper-card" style="padding:18px;color:var(--text-secondary);line-height:1.6;">
+                        Chưa có kết quả assessment nào được lưu trong hồ sơ của bạn.
+                    </div>
+                `;
+                return;
+            }
+
+            refs.historyGrid.innerHTML = state.history.map((item) => {
+                const key = getAssessmentKeyByCode(item.code);
+                const meta = key ? ASSESSMENT_META[key] : null;
+                const dimensions = item.dimension_scores && typeof item.dimension_scores === 'object'
+                    ? Object.entries(item.dimension_scores)
+                    : [];
+                const dimensionPills = dimensions.length
+                    ? dimensions.slice(0, 3).map(([dimension, data]) => `
+                        <span class="hc-score-item" style="${getSeverityBadgeStyle(data?.severity)}">
+                            ${escapeHtml(dimension)}: ${escapeHtml(data?.score ?? '--')}
+                        </span>
+                    `).join('')
+                    : `
+                        <span class="hc-score-item" style="${getSeverityBadgeStyle(item.severity)}">
+                            ${escapeHtml(item.severity || 'Đã hoàn thành')} • ${escapeHtml(item.total_score)}
+                        </span>
+                    `;
+
+                return `
+                    <div class="paper-card history-card" onclick="startTest('${key || 'dass21'}')">
+                        <div class="hc-test">${escapeHtml(meta?.name || item.code)}</div>
+                        <div class="hc-date">${escapeHtml(formatRelativeDate(item.created_at))}</div>
+                        <div class="hc-scores">
+                            ${dimensionPills}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function syncPrevScores() {
+            if (!window.TESTS) return;
+
+            Object.entries(ASSESSMENT_META).forEach(([key, meta]) => {
+                const latest = state.assessments.find((item) => item.code === meta.apiCode);
+                if (!latest) return;
+
+                const dimensions = latest.latest_dimension_scores;
+                if (dimensions && typeof dimensions === 'object' && Object.keys(dimensions).length) {
+                    window.TESTS[key].prevScores = Object.fromEntries(
+                        Object.entries(dimensions).map(([dimension, value]) => [dimension, Number(value?.score ?? value ?? 0)])
+                    );
+                } else if (latest.latest_total_score !== null && latest.latest_total_score !== undefined) {
+                    const firstSubscale = window.TESTS[key]?.subscales?.[0];
+                    window.TESTS[key].prevScores = firstSubscale
+                        ? { [firstSubscale]: Number(latest.latest_total_score) }
+                        : null;
+                } else {
+                    window.TESTS[key].prevScores = null;
+                }
+            });
+        }
+
+        async function loadAssessmentData() {
+            const [assessments, history] = await Promise.all([
+                apiClient.get('/assessments'),
+                apiClient.get('/assessments/history?limit=6')
+            ]);
+
+            state.assessments = Array.isArray(assessments) ? assessments : [];
+            state.history = Array.isArray(history) ? history : [];
+            syncPrevScores();
+            renderTestGrid();
+            renderHistory();
+        }
+
+        async function renderRecommendedTasks() {
+            if (!refs.resultTasks) return;
+
+            try {
+                const tasks = await apiClient.get('/tasks/recommended');
+                if (!Array.isArray(tasks) || !tasks.length) return;
+
+                refs.resultTasks.innerHTML = tasks.slice(0, 2).map((task) => `
+                    <div class="rt-item" onclick="location.href='task-detail.html?id=${encodeURIComponent(task.id)}'">
+                        <div class="rt-icon-box">${escapeHtml(task.icon || '🧩')}</div>
+                        <div class="rt-info">
+                            <div class="rt-name">${escapeHtml(task.title || 'Nhiệm vụ phù hợp')}</div>
+                            <div class="rt-meta">${escapeHtml(task.reason || task.category || 'Gợi ý từ hồ sơ hiện tại')}</div>
+                        </div>
+                        <div class="rt-xp">+${escapeHtml(task.xp_reward ?? task.xp ?? 0)} XP</div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Assessment recommended tasks load failed:', error);
+            }
+        }
+
+        window.onAssessmentFinished = async (payload) => {
+            const meta = ASSESSMENT_META[payload.testId];
+            if (!meta) return;
+
+            try {
+                await apiClient.post(`/assessments/${meta.apiCode}/submit`, {
+                    raw_answers: payload.rawAnswers,
+                    total_score: payload.totalScore,
+                    severity: payload.severity,
+                    dimension_scores: payload.dimensionScores,
+                    interpreted_result: payload.interpretedResult
+                });
+
+                if (refs.resultSubtitle) {
+                    refs.resultSubtitle.textContent = `${refs.resultSubtitle.textContent} • Đã lưu vào hồ sơ`;
+                }
+
+                await Promise.all([
+                    loadAssessmentData(),
+                    renderRecommendedTasks()
+                ]);
+            } catch (error) {
+                console.error('Assessment submit failed:', error);
+                if (refs.resultSubtitle) {
+                    refs.resultSubtitle.textContent = `${refs.resultSubtitle.textContent} • Chưa lưu được vào hồ sơ`;
+                }
+            }
+        };
+
+        loadAssessmentData().catch((error) => {
+            console.error('Assessment page init failed:', error);
+            renderHistory();
+        });
+    </script>
+    <script src="../public/components/sidebar.js"></script>
     <script src="../public/js/app.js"></script>
 </body>
 
 </html>
+

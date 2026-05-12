@@ -4,6 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="../public/favicon.jpg" type="image/svg+xml">
     <title>PeaceFlow — Cài Đặt</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Patrick+Hand&display=swap"
@@ -1213,19 +1214,9 @@
             }
         }
     </style>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="../public/js/supabase-config.js"></script>
+    <script src="../public/components/sidebar.js"></script>
     <script src="../public/js/user-sync.js"></script>
     <script src="../public/js/app.js"></script>
-    <script>
-      (async () => {
-        const { data } = await window.supabaseClient.auth.getSession();
-        if (!data?.session) {
-          window.location.href = 'login.html';
-          return;
-        }
-      })();
-    </script>
 </head>
 
 <body>
@@ -1263,83 +1254,10 @@
         </div>
     </div>
 
-    <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
-    <div class="mobile-topbar">
-        <button class="mobile-menu-btn" onclick="toggleSidebar()">☰</button>
-        <a href="index.html" style="display:flex;align-items:center;gap:8px;text-decoration:none;">
-            <div
-                style="width:32px;height:32px;background:var(--mint);border-radius:8px;border:2px solid var(--mint-dark);display:flex;align-items:center;justify-content:center;font-size:1rem;box-shadow:2px 2px 0px var(--mint-dark);">
-                🌿</div>
-            <span style="font-size:1.1rem;font-weight:800;color:var(--text-primary);">Peace<span
-                    style="color:var(--mint-dark);">Flow</span></span>
-        </a>
-        <span
-            style="background:var(--peach-light);padding:3px 10px;border-radius:50px;font-size:0.75rem;font-weight:700;color:var(--peach-dark);border:1.5px solid var(--peach);">⭐
-            295 XP</span>
-    </div>
-
-    <aside class="sidebar" id="sidebar">
-        <a href="index.html" class="sidebar-logo">
-            <div class="logo-icon">🌿</div>
-            <div class="logo-text">Peace<span>Flow</span></div>
-        </a>
-
-        <nav class="sidebar-nav">
-            <div class="nav-section-label">Chính</div>
-            <a href="dashboard.html" class="nav-item ">
-                <span class="ni">🏡</span> Tổng quan
-            </a>
-            <a href="mood-checkin.html" class="nav-item ">
-                <span class="ni">💭</span> Tâm trạng
-            </a>
-            <a href="tasks.html" class="nav-item ">
-                <span class="ni">🎮</span> Nhiệm vụ
-            </a>
-            <a href="journal.html" class="nav-item ">
-                <span class="ni">📝</span> Nhật ký
-            </a>
-
-            <div class="nav-section-label" style="margin-top:8px;">Kết nối</div>
-            <a href="experts.html" class="nav-item ">
-                <span class="ni">🩺</span> Chuyên gia
-            </a>
-            <a href="community.html" class="nav-item ">
-                <span class="ni">👥</span> Cộng đồng
-            </a>
-
-            <div class="nav-section-label" style="margin-top:8px;">Phân tích</div>
-            <a href="report.html" class="nav-item ">
-                <span class="ni">📊</span> Báo cáo
-            </a>
-            <a href="achievements.html" class="nav-item ">
-                <span class="ni">🏅</span> Thành tích
-            </a>
-
-            <div class="nav-section-label" style="margin-top:8px;">Cài đặt</div>
-            <a href="profile.html" class="nav-item ">
-                <span class="ni">👤</span> Hồ sơ
-            </a>
-            <a href="settings.html" class="nav-item active">
-                <span class="ni">⚙️</span> Cài đặt
-            </a>
-            <a href="#" class="nav-item" onclick="handleLogout()" style="color:var(--coral); margin-top: 10px; border-top: 1px dashed var(--kraft-light); padding-top: 15px;">
-                <span class="ni">🚪</span> Đăng xuất
-            </a>
-        </nav>
-
-        <div class="sidebar-bottom">
-            <div class="user-card-mini">
-                <div class="user-avatar-mini">🐱</div>
-                <div class="user-info-mini">
-                    <div class="user-name" data-user-field="display_name">Khách hàng giả lập</div>
-                    <div class="user-level">⭐ 295 XP · Level 2</div>
-                </div>
-            </div>
-            <a href="emergency.html" class="emergency-btn">
-                🆘 Hỗ trợ khẩn cấp
-            </a>
-        </div>
-    </aside>
+    <!-- Shared Sidebar -->
+    <div id="sharedSidebarOverlayMount"></div>
+    <div id="sharedMobileTopbarMount"></div>
+    <div id="sharedSidebarMount"></div>
 
     <main class="main-content">
         <div class="breadcrumb">
@@ -1428,35 +1346,35 @@
                                     <div class="tr-title">🌅 Nhắc check-in buổi sáng</div>
                                     <div class="tr-desc">Nhắc nhở check-in tâm trạng khi bắt đầu ngày mới</div>
                                 </div>
-                                <label class="toggle-switch"><input type="checkbox" checked><span
+                                <label class="toggle-switch"><input type="checkbox" checked id="notif-morning"><span
                                         class="toggle-slider"></span></label>
                             </div>
                             <div class="time-row">
                                 <div class="tr-left">
                                     <div class="tr-title">⏰ Giờ nhắc buổi sáng</div>
                                 </div>
-                                <input type="time" class="time-input" value="08:00">
+                                <input type="time" class="time-input" value="08:00" id="notif-morning-time">
                             </div>
                             <div class="toggle-row">
                                 <div class="tr-left">
                                     <div class="tr-title">🌙 Nhắc check-in buổi tối</div>
                                     <div class="tr-desc">Nhắc nhở check-in tâm trạng trước khi ngủ</div>
                                 </div>
-                                <label class="toggle-switch"><input type="checkbox" checked><span
+                                <label class="toggle-switch"><input type="checkbox" checked id="notif-evening"><span
                                         class="toggle-slider"></span></label>
                             </div>
                             <div class="time-row">
                                 <div class="tr-left">
                                     <div class="tr-title">⏰ Giờ nhắc buổi tối</div>
                                 </div>
-                                <input type="time" class="time-input" value="21:30">
+                                <input type="time" class="time-input" value="21:30" id="notif-evening-time">
                             </div>
                             <div class="toggle-row">
                                 <div class="tr-left">
                                     <div class="tr-title">🎮 Nhắc nhiệm vụ hàng ngày</div>
                                     <div class="tr-desc">Gợi ý nhiệm vụ phù hợp với tâm trạng hiện tại</div>
                                 </div>
-                                <label class="toggle-switch"><input type="checkbox" checked><span
+                                <label class="toggle-switch"><input type="checkbox" checked id="notif-tasks"><span
                                         class="toggle-slider"></span></label>
                             </div>
                             <div class="toggle-row">
@@ -1464,7 +1382,7 @@
                                     <div class="tr-title">🔥 Nhắc giữ streak</div>
                                     <div class="tr-desc">Thông báo khi bạn sắp mất chuỗi hoạt động liên tục</div>
                                 </div>
-                                <label class="toggle-switch"><input type="checkbox" checked><span
+                                <label class="toggle-switch"><input type="checkbox" checked id="notif-streak"><span
                                         class="toggle-slider"></span></label>
                             </div>
                             <div class="toggle-row">
@@ -1472,7 +1390,7 @@
                                     <div class="tr-title">🏅 Thông báo thành tích</div>
                                     <div class="tr-desc">Khi bạn đạt huy hiệu mới hoặc lên cấp độ</div>
                                 </div>
-                                <label class="toggle-switch"><input type="checkbox" checked><span
+                                <label class="toggle-switch"><input type="checkbox" checked id="notif-achievements"><span
                                         class="toggle-slider"></span></label>
                             </div>
                             <div class="toggle-row">
@@ -1480,7 +1398,7 @@
                                     <div class="tr-title">💡 Insight hàng tuần</div>
                                     <div class="tr-desc">Phân tích tâm trạng và gợi ý cải thiện mỗi tuần</div>
                                 </div>
-                                <label class="toggle-switch"><input type="checkbox" checked><span
+                                <label class="toggle-switch"><input type="checkbox" checked id="notif-insights"><span
                                         class="toggle-slider"></span></label>
                             </div>
                             <div class="toggle-row">
@@ -1488,7 +1406,7 @@
                                     <div class="tr-title">🩺 Cập nhật từ chuyên gia</div>
                                     <div class="tr-desc">Khi chuyên gia gửi nhiệm vụ hoặc tin nhắn mới</div>
                                 </div>
-                                <label class="toggle-switch"><input type="checkbox" checked><span
+                                <label class="toggle-switch"><input type="checkbox" checked id="notif-expert"><span
                                         class="toggle-slider"></span></label>
                             </div>
                             <div class="toggle-row">
@@ -1496,7 +1414,7 @@
                                     <div class="tr-title">👥 Hoạt động cộng đồng</div>
                                     <div class="tr-desc">Khi có người phản hồi bài viết của bạn</div>
                                 </div>
-                                <label class="toggle-switch"><input type="checkbox"><span
+                                <label class="toggle-switch"><input type="checkbox" id="notif-community"><span
                                         class="toggle-slider"></span></label>
                             </div>
                         </div>
@@ -1523,32 +1441,32 @@
                             <div class="sr-desc">Chọn giao diện phù hợp với tâm trạng của bạn</div>
                         </div>
                         <div class="theme-grid">
-                            <div class="theme-option selected" onclick="selectTheme(this,'paper')">
+                            <div class="theme-option selected" data-theme="paper" onclick="selectTheme(this,'paper')">
                                 <div class="to-preview" style="background:linear-gradient(135deg,#FFF8F0,#A8D5BA);">
                                 </div>
                                 <div class="to-name">🌿 Paper Flow</div>
                             </div>
-                            <div class="theme-option" onclick="selectTheme(this,'ocean')">
+                            <div class="theme-option" data-theme="ocean" onclick="selectTheme(this,'ocean')">
                                 <div class="to-preview" style="background:linear-gradient(135deg,#E8F4FD,#74B9FF);">
                                 </div>
                                 <div class="to-name">🌊 Đại Dương</div>
                             </div>
-                            <div class="theme-option" onclick="selectTheme(this,'sunset')">
+                            <div class="theme-option" data-theme="sunset" onclick="selectTheme(this,'sunset')">
                                 <div class="to-preview" style="background:linear-gradient(135deg,#FFF3E0,#FF8B8B);">
                                 </div>
                                 <div class="to-name">🌅 Hoàng Hôn</div>
                             </div>
-                            <div class="theme-option" onclick="selectTheme(this,'forest')">
+                            <div class="theme-option" data-theme="forest" onclick="selectTheme(this,'forest')">
                                 <div class="to-preview" style="background:linear-gradient(135deg,#E8F5E9,#2E7D32);">
                                 </div>
                                 <div class="to-name">🌲 Rừng Xanh</div>
                             </div>
-                            <div class="theme-option" onclick="selectTheme(this,'lavender')">
+                            <div class="theme-option" data-theme="lavender" onclick="selectTheme(this,'lavender')">
                                 <div class="to-preview" style="background:linear-gradient(135deg,#F3E5F5,#9C27B0);">
                                 </div>
                                 <div class="to-name">💜 Oải Hương</div>
                             </div>
-                            <div class="theme-option" onclick="selectTheme(this,'dark')" style="opacity:0.5;">
+                            <div class="theme-option" data-theme="dark" onclick="selectTheme(this,'dark')" style="opacity:0.5;">
                                 <div class="to-preview" style="background:linear-gradient(135deg,#263238,#546E7A);">
                                 </div>
                                 <div class="to-name">🌙 Tối (Sắp ra)</div>
@@ -1559,11 +1477,11 @@
                                 <div class="sr-title">🔤 Cỡ chữ</div>
                             </div>
                             <div class="font-size-row">
-                                <button class="fs-btn" onclick="selectFontSize(this,'small')"
+                                <button class="fs-btn" data-font-size="small" onclick="selectFontSize(this,'small')"
                                     style="font-size:0.72rem;">Nhỏ</button>
-                                <button class="fs-btn selected" onclick="selectFontSize(this,'medium')"
+                                <button class="fs-btn selected" data-font-size="medium" onclick="selectFontSize(this,'medium')"
                                     style="font-size:0.85rem;">Vừa</button>
-                                <button class="fs-btn" onclick="selectFontSize(this,'large')"
+                                <button class="fs-btn" data-font-size="large" onclick="selectFontSize(this,'large')"
                                     style="font-size:1rem;">Lớn</button>
                             </div>
                         </div>
@@ -1573,7 +1491,7 @@
                                     <div class="tr-title">✨ Hiệu ứng animation</div>
                                     <div class="tr-desc">Bật/tắt các hiệu ứng chuyển động trong ứng dụng</div>
                                 </div>
-                                <label class="toggle-switch"><input type="checkbox" checked><span
+                                <label class="toggle-switch"><input type="checkbox" checked id="appearance-animations"><span
                                         class="toggle-slider"></span></label>
                             </div>
                             <div class="toggle-row">
@@ -1581,7 +1499,7 @@
                                     <div class="tr-title">🎵 Âm thanh nền</div>
                                     <div class="tr-desc">Nhạc thiền và âm thanh tự nhiên trong bài tập</div>
                                 </div>
-                                <label class="toggle-switch"><input type="checkbox" checked><span
+                                <label class="toggle-switch"><input type="checkbox" checked id="appearance-sounds"><span
                                         class="toggle-slider"></span></label>
                             </div>
                             <div class="toggle-row">
@@ -1589,14 +1507,14 @@
                                     <div class="tr-title">📳 Rung phản hồi</div>
                                     <div class="tr-desc">Rung nhẹ khi hoàn thành nhiệm vụ hoặc đạt thành tích</div>
                                 </div>
-                                <label class="toggle-switch"><input type="checkbox" checked><span
+                                <label class="toggle-switch"><input type="checkbox" checked id="appearance-haptics"><span
                                         class="toggle-slider"></span></label>
                             </div>
                             <div class="select-row">
                                 <div class="sr-left">
                                     <div class="sr-title">🌐 Ngôn ngữ</div>
                                 </div>
-                                <select class="form-select">
+                                <select class="form-select" id="appearance-language">
                                     <option selected>🇻🇳 Tiếng Việt</option>
                                     <option>🇬🇧 English</option>
                                 </select>
@@ -1623,7 +1541,7 @@
                                 <div class="sr-title">📋 Phương thức check-in mặc định</div>
                                 <div class="sr-desc">Cách bạn muốn check-in tâm trạng chủ yếu</div>
                             </div>
-                            <select class="form-select">
+                            <select class="form-select" id="checkin-default-mode">
                                 <option selected>😊 Chọn emoji nhanh</option>
                                 <option>💬 Chat với PeaceCat</option>
                                 <option>📊 Bài kiểm tra chuẩn hóa</option>
@@ -1634,7 +1552,7 @@
                                 <div class="tr-title">📝 Ghi chú sau check-in</div>
                                 <div class="tr-desc">Hiển thị ô ghi chú ngắn sau mỗi lần check-in</div>
                             </div>
-                            <label class="toggle-switch"><input type="checkbox" checked><span
+                            <label class="toggle-switch"><input type="checkbox" checked id="checkin-notes"><span
                                     class="toggle-slider"></span></label>
                         </div>
                         <div class="toggle-row">
@@ -1643,7 +1561,7 @@
                                 <div class="tr-desc">Hiển thị các tag gợi ý (Công việc, Gia đình, ...) sau check-in
                                 </div>
                             </div>
-                            <label class="toggle-switch"><input type="checkbox" checked><span
+                            <label class="toggle-switch"><input type="checkbox" checked id="checkin-tags"><span
                                     class="toggle-slider"></span></label>
                         </div>
                         <div class="toggle-row">
@@ -1651,14 +1569,14 @@
                                 <div class="tr-title">📊 Nhắc kiểm tra DASS-21 định kỳ</div>
                                 <div class="tr-desc">Gợi ý làm bài kiểm tra chuẩn hóa mỗi 2 tuần</div>
                             </div>
-                            <label class="toggle-switch"><input type="checkbox" checked><span
+                            <label class="toggle-switch"><input type="checkbox" checked id="checkin-assessment-reminder"><span
                                     class="toggle-slider"></span></label>
                         </div>
                         <div class="select-row">
                             <div class="sr-left">
                                 <div class="sr-title">📅 Tần suất nhắc kiểm tra</div>
                             </div>
-                            <select class="form-select">
+                            <select class="form-select" id="checkin-reminder-frequency">
                                 <option>Hàng tuần</option>
                                 <option selected>2 tuần/lần</option>
                                 <option>Hàng tháng</option>
@@ -1671,7 +1589,7 @@
                                 <div class="tr-desc">Cho phép AI phân tích giọng nói để hiểu tâm trạng chính xác hơn
                                 </div>
                             </div>
-                            <label class="toggle-switch"><input type="checkbox"><span
+                            <label class="toggle-switch"><input type="checkbox" id="checkin-voice-optin"><span
                                     class="toggle-slider"></span></label>
                         </div>
                         <div class="toggle-row">
@@ -1679,7 +1597,7 @@
                                 <div class="tr-title">📸 Selfie check-in (opt-in)</div>
                                 <div class="tr-desc">Phân tích biểu cảm khuôn mặt để hỗ trợ đánh giá tâm trạng</div>
                             </div>
-                            <label class="toggle-switch"><input type="checkbox"><span
+                            <label class="toggle-switch"><input type="checkbox" id="checkin-selfie-optin"><span
                                     class="toggle-slider"></span></label>
                         </div>
                         <div
@@ -1708,7 +1626,7 @@
                                 <div class="sr-title">💬 Phong cách giao tiếp</div>
                                 <div class="sr-desc">Cách PeaceCat nói chuyện với bạn</div>
                             </div>
-                            <select class="form-select">
+                            <select class="form-select" id="ai-style">
                                 <option selected>😊 Thân thiện, vui vẻ</option>
                                 <option>🧘 Bình tĩnh, sâu lắng</option>
                                 <option>💪 Khích lệ, năng động</option>
@@ -1720,7 +1638,7 @@
                                 <div class="tr-title">🎯 Gợi ý nhiệm vụ thông minh</div>
                                 <div class="tr-desc">PeaceCat tự động gợi ý nhiệm vụ dựa trên tâm trạng và lịch sử</div>
                             </div>
-                            <label class="toggle-switch"><input type="checkbox" checked><span
+                            <label class="toggle-switch"><input type="checkbox" checked id="ai-task-suggestions"><span
                                     class="toggle-slider"></span></label>
                         </div>
                         <div class="toggle-row">
@@ -1728,7 +1646,7 @@
                                 <div class="tr-title">💡 Insight tự động</div>
                                 <div class="tr-desc">PeaceCat phân tích và đưa ra nhận xét về hành trình của bạn</div>
                             </div>
-                            <label class="toggle-switch"><input type="checkbox" checked><span
+                            <label class="toggle-switch"><input type="checkbox" checked id="ai-insights"><span
                                     class="toggle-slider"></span></label>
                         </div>
                         <div class="toggle-row">
@@ -1745,7 +1663,7 @@
                                 <div class="tr-title">📊 Phân tích nhật ký</div>
                                 <div class="tr-desc">AI đọc và phân tích cảm xúc trong nhật ký của bạn</div>
                             </div>
-                            <label class="toggle-switch"><input type="checkbox" checked><span
+                            <label class="toggle-switch"><input type="checkbox" checked id="ai-journal-analysis"><span
                                     class="toggle-slider"></span></label>
                         </div>
                         <div class="toggle-row">
@@ -1753,7 +1671,7 @@
                                 <div class="tr-title">🐱 Hiển thị mascot PeaceCat</div>
                                 <div class="tr-desc">Hiện mascot mèo origami trong giao diện</div>
                             </div>
-                            <label class="toggle-switch"><input type="checkbox" checked><span
+                            <label class="toggle-switch"><input type="checkbox" checked id="ai-mascot"><span
                                     class="toggle-slider"></span></label>
                         </div>
                         <div
@@ -1774,20 +1692,154 @@
                             <div class="sc-icon" style="background:var(--sky-light);">📱</div>
                             <div>
                                 <div class="sc-title">Thiết bị kết nối</div>
-                                <div class="sc-subtitle">Quản lý đồng hồ thông minh và thiết bị theo dõi sức khỏe</div>
+                                <div class="sc-subtitle">Phiên hiện tại và trạng thái tích hợp thiết bị thật</div>
                             </div>
                         </div>
-                        <div id="deviceList">
-                            <div class="device-card">
-                                <div class="dc-icon">⌚</div>
-                                <div class="dc-info">
-                                    <div class="dc-name">Apple Watch Series 9</div>
-                                    <div class="dc-meta">Đồng bộ lần cuối: 5 phút trước · Nhịp tim, HRV, Giấc ngủ</div>
-                                </div>
-                                <div class="dc-status on">Đã kết nối</div>
-                                <button class="dc-btn disconnect" onclick="disconnectDevice(this,'Apple Watch')">Ngắt
-                                    kết nối</button>
+                        <div id="deviceList"></div>
+                        <div
+                            style="margin-top:10px;padding:10px 12px;background:var(--sky-light);border:1.5px solid var(--sky);border-radius:var(--border-radius-sm);font-size:0.72rem;color:var(--text-secondary);line-height:1.5;">
+                            PeaceFlow hiện chưa có backend đồng bộ Apple Watch/Fitbit thật. Trang này chỉ hiển thị phiên
+                            đăng nhập hiện tại và trạng thái tích hợp một cách trung thực.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PRIVACY -->
+                <div class="settings-section" id="section-privacy">
+                    <div class="paper-card section-card">
+                        <div class="sc-header">
+                            <div class="sc-icon" style="background:var(--mint-light);">🔒</div>
+                            <div>
+                                <div class="sc-title">Quyền riêng tư</div>
+                                <div class="sc-subtitle">Kiểm soát cách dữ liệu của bạn được dùng trong sản phẩm</div>
                             </div>
-                            <div class="device-card">
-                                <div class="dc-icon">📱</div>
-                                <div class="dc
+                        </div>
+                        <div class="toggle-row">
+                            <div class="tr-left">
+                                <div class="tr-title">📤 Chia sẻ dữ liệu để cá nhân hóa</div>
+                                <div class="tr-desc">Cho phép hệ thống dùng mood, journal và task để đưa gợi ý tốt hơn</div>
+                            </div>
+                            <label class="toggle-switch"><input type="checkbox" id="privacy-share-data"><span
+                                        class="toggle-slider"></span></label>
+                        </div>
+                        <div class="toggle-row">
+                            <div class="tr-left">
+                                <div class="tr-title">📈 Phân tích ẩn danh</div>
+                                <div class="tr-desc">Gửi thống kê ẩn danh để cải thiện sản phẩm, không kèm nội dung riêng tư</div>
+                            </div>
+                            <label class="toggle-switch"><input type="checkbox" id="privacy-anon-analytics"><span
+                                        class="toggle-slider"></span></label>
+                        </div>
+                        <div class="select-row">
+                            <div class="sr-left">
+                                <div class="sr-title">👁️ Hiển thị hồ sơ</div>
+                                <div class="sr-desc">Mức hiển thị hồ sơ của bạn trên các tính năng cộng đồng</div>
+                            </div>
+                            <select class="form-select" id="privacy-profile-visibility">
+                                <option value="private">Chỉ mình tôi</option>
+                                <option value="friends">Chỉ kết nối tin cậy</option>
+                                <option value="community">Cộng đồng PeaceFlow</option>
+                            </select>
+                        </div>
+                        <div style="display:flex;justify-content:flex-end;margin-top:14px;">
+                            <button class="btn-primary" onclick="saveSection('privacy')">💾 Lưu quyền riêng tư</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECURITY -->
+                <div class="settings-section" id="section-security">
+                    <div class="paper-card section-card">
+                        <div class="sc-header">
+                            <div class="sc-icon" style="background:var(--peach-light);">🛡️</div>
+                            <div>
+                                <div class="sc-title">Bảo mật</div>
+                                <div class="sc-subtitle">Quản lý phiên hiện tại và cơ chế xác thực</div>
+                            </div>
+                        </div>
+                        <div id="securitySessionCard"
+                            style="padding:14px 16px;background:var(--cream);border:1.5px solid var(--kraft-light);border-radius:var(--border-radius-sm);margin-bottom:12px;font-size:0.82rem;color:var(--text-secondary);line-height:1.6;">
+                        </div>
+                        <div class="toggle-row">
+                            <div class="tr-left">
+                                <div class="tr-title">🔄 Tự làm mới phiên đăng nhập</div>
+                                <div class="tr-desc">Access token ngắn hạn sẽ được refresh tự động khi còn refresh token hợp lệ</div>
+                            </div>
+                            <label class="toggle-switch"><input type="checkbox" checked disabled><span
+                                        class="toggle-slider"></span></label>
+                        </div>
+                        <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:14px;flex-wrap:wrap;">
+                            <button class="btn-outline" onclick="saveSection('security')">Kiểm tra phiên</button>
+                            <button class="btn-primary" onclick="handleLogout()">🚪 Đăng xuất khỏi thiết bị này</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- DATA -->
+                <div class="settings-section" id="section-data">
+                    <div class="paper-card section-card">
+                        <div class="sc-header">
+                            <div class="sc-icon" style="background:var(--lavender-light);">📦</div>
+                            <div>
+                                <div class="sc-title">Dữ liệu</div>
+                                <div class="sc-subtitle">Xuất dữ liệu thật từ tài khoản và quản lý cache cục bộ</div>
+                            </div>
+                        </div>
+                        <div
+                            style="padding:14px 16px;background:var(--warm-white);border:1.5px dashed var(--kraft-light);border-radius:var(--border-radius-sm);font-size:0.8rem;color:var(--text-secondary);line-height:1.6;">
+                            Xuất JSON sẽ gom dữ liệu thật từ hồ sơ, tiến trình, badge và báo cáo chi tiết. Các thiết lập
+                            giao diện vẫn nằm cục bộ trên trình duyệt này.
+                        </div>
+                        <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:14px;flex-wrap:wrap;">
+                            <button class="btn-outline" onclick="resetData()">🧹 Xóa cài đặt cục bộ</button>
+                            <button class="btn-primary" onclick="exportData('json')">📥 Xuất JSON</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ABOUT -->
+                <div class="settings-section" id="section-about">
+                    <div class="paper-card section-card">
+                        <div class="sc-header">
+                            <div class="sc-icon" style="background:var(--gold-light);">ℹ️</div>
+                            <div>
+                                <div class="sc-title">Về PeaceFlow</div>
+                                <div class="sc-subtitle">Trạng thái ứng dụng và môi trường đang chạy</div>
+                            </div>
+                        </div>
+                        <div id="aboutAppMeta"
+                            style="padding:14px 16px;background:var(--cream);border:1.5px solid var(--kraft-light);border-radius:var(--border-radius-sm);font-size:0.82rem;color:var(--text-secondary);line-height:1.7;">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- DANGER -->
+                <div class="settings-section" id="section-danger">
+                    <div class="paper-card section-card">
+                        <div class="sc-header">
+                            <div class="sc-icon" style="background:rgba(255,139,139,0.16);">⚠️</div>
+                            <div>
+                                <div class="sc-title">Vùng nguy hiểm</div>
+                                <div class="sc-subtitle">Các thao tác nhạy cảm. Chỉ chạy khi bạn thực sự cần.</div>
+                            </div>
+                        </div>
+                        <div
+                            style="padding:14px 16px;background:rgba(255,139,139,0.08);border:1.5px solid var(--coral-light);border-radius:var(--border-radius-sm);font-size:0.8rem;color:var(--text-secondary);line-height:1.6;">
+                            Backend hiện chưa có endpoint xóa tài khoản. Trang này chỉ cho phép xóa cài đặt local và đăng xuất,
+                            không giả lập việc xóa dữ liệu trên server.
+                        </div>
+                        <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:14px;flex-wrap:wrap;">
+                            <button class="btn-outline" onclick="resetData()">🔄 Xóa cache local</button>
+                            <button class="btn-danger" onclick="deleteAccount()">🗑️ Yêu cầu xóa tài khoản</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script type="module" src="../public/js/settings.js"></script>
+</body>
+
+</html>
+

@@ -29,6 +29,22 @@
 
 'use strict';
 
+const SERVER_MANAGED_PAGES = new Set([
+  'dashboard.html',
+  'journal.html',
+  'mood-checkin.html',
+  'profile.html',
+  'settings.html',
+]);
+
+function getCurrentPage() {
+  return window.location.pathname.split('/').pop() || 'index.html';
+}
+
+function isServerManagedPage(page = getCurrentPage()) {
+  return SERVER_MANAGED_PAGES.has(page);
+}
+
 /* ============================================================
    01. APP CONFIGURATION & CONSTANTS
 ============================================================ */
@@ -134,6 +150,7 @@ const Store = {
   },
 
   saveUser(userData) {
+    if (isServerManagedPage()) return true;
     this.set('user_stats', userData);
     this.syncToRemote('profiles', userData);
   },
@@ -143,6 +160,7 @@ const Store = {
   },
 
   addMoodEntry(entry) {
+    if (isServerManagedPage()) return;
     const history = this.getMoodHistory();
     const newEntry = { ...entry, id: Date.now(), timestamp: new Date().toISOString() };
     history.unshift(newEntry);
@@ -170,128 +188,13 @@ const Store = {
 
   saveSettings(settings) {
     this.set('settings', settings);
-  },
-
-  // --- SUPABASE SYNC ---
+  },  // --- REMOTE SYNC ---
   async syncFromRemote() {
-    if (!window.supabaseClient) return;
-    const { data: { session } } = await window.supabaseClient.auth.getSession();
-    if (!session) return;
-    const userId = session.user.id;
-
-    try {
-      // 1. Sync Profile & Progress
-      const [userRes, progressRes] = await Promise.all([
-        window.supabaseClient.from('users').select('*').eq('id', userId).single(),
-        window.supabaseClient.from('user_progress').select('*').eq('user_id', userId).single()
-      ]);
-
-      const user = userRes.data;
-      const progress = progressRes.data;
-
-      if (user || progress) {
-        const current = this.getUser();
-        const merged = { 
-          ...current, 
-          name: user?.display_name || user?.full_name || current.name,
-          avatar: user?.avatar_url || current.avatar,
-          xp: progress?.total_xp || current.xp,
-          level: progress?.current_level || current.level,
-          streak: progress?.current_streak || current.streak
-        };
-        if (progress?.last_activity_date) merged.lastActive = new Date(progress.last_activity_date).toDateString();
-        this.set('user_stats', merged);
-      }
-
-      // 2. Sync Mood Logs (Last 30 days)
-      const { data: moods } = await window.supabaseClient.from('mood_checkins').select('*').eq('user_id', userId).order('created_at', { ascending: false }).limit(30);
-      if (moods && moods.length > 0) {
-        const localMoods = moods.map(m => ({
-          id: m.id,
-          mood: m.dominant_emotion,
-          level: m.mood_score,
-          tags: m.triggers || [],
-          note: m.notes || '',
-          date: new Date(m.created_at).toLocaleDateString('vi-VN'),
-          timestamp: m.created_at
-        }));
-        this.set('logs', localMoods);
-      }
-
-      // 3. Sync Journals
-      const { data: journals } = await window.supabaseClient.from('journal_entries').select('*').eq('user_id', userId).order('created_at', { ascending: false }).limit(50);
-      if (journals && journals.length > 0) {
-        const localJournals = journals.map(j => ({
-          id: j.id,
-          content: j.content,
-          mood: j.mood,
-          tags: j.tags || [],
-          sentiment: j.sentiment,
-          wordCount: j.word_count,
-          date: new Date(j.created_at).toLocaleDateString('vi-VN'),
-          timestamp: j.created_at
-        }));
-        this.set('journal_entries', localJournals);
-      }
-      
-      console.log('✅ Synced data from Supabase');
-      window.dispatchEvent(new Event('dataSynced'));
-    } catch (err) {
-      console.error('Lỗi đồng bộ dữ liệu:', err);
-    }
+    return;
   },
 
   async syncToRemote(table, data) {
-    if (!window.supabaseClient) return;
-    const { data: { session } } = await window.supabaseClient.auth.getSession();
-    if (!session) return;
-    const userId = session.user.id;
-
-    try {
-      if (table === 'profiles') {
-        // Update user profile in 'users' table
-        await window.supabaseClient.from('users').update({
-          display_name: data.name,
-          avatar_url: data.avatar
-        }).eq('id', userId);
-
-        // Update progress in 'user_progress' table
-        await window.supabaseClient.from('user_progress').upsert({
-          user_id: userId,
-          total_xp: data.xp,
-          current_level: data.level,
-          current_streak: data.streak,
-          last_activity_date: new Date(data.lastActive).toISOString()
-        }, { onConflict: 'user_id' });
-
-      } else if (table === 'mood_logs') {
-        await window.supabaseClient.from('mood_checkins').insert({
-          user_id: userId,
-          dominant_emotion: data.mood,
-          mood_score: data.level,
-          triggers: data.tags,
-          notes: data.note,
-          source: 'manual'
-        });
-      } else if (table === 'journals') {
-        await window.supabaseClient.from('journal_entries').insert({
-          user_id: userId,
-          content: data.content,
-          mood: data.mood,
-          tags: data.tags,
-          sentiment: data.sentiment,
-          word_count: data.wordCount
-        });
-      } else if (table === 'user_tasks') {
-        await window.supabaseClient.from('task_completions').insert({
-          user_id: userId,
-          task_id: data.taskId,
-          xp_earned: data.xpAmount
-        });
-      }
-    } catch (err) {
-      console.error(`Lỗi lưu lên ${table}:`, err);
-    }
+    return;
   }
 };
 
@@ -302,6 +205,7 @@ const UserModule = {
   current: null,
 
   init() {
+    if (isServerManagedPage()) return;
     this.current = Store.getUser();
     this.updateStreak();
     this.renderUserInfo();
@@ -338,6 +242,9 @@ const UserModule = {
   },
 
   addXP(amount, reason = '') {
+    if (isServerManagedPage()) {
+      return 0;
+    }
     const user = Store.getUser();
     const oldLevel = this.getLevelInfo(user.xp).level;
     user.xp += amount;
@@ -1404,7 +1311,17 @@ const App = {
   },
 
   async _boot() {
-    // Sync data from Supabase if logged in
+    const page = getCurrentPage();
+
+    // Pages that already have dedicated backend-driven scripts should not
+    // run the legacy local-state bootstrap from this shared file.
+    if (isServerManagedPage(page)) {
+      NavModule.init();
+      EmergencyModule.init();
+      return;
+    }
+
+    // Sync data from backend if a remote sync layer is available.
     await Store.syncFromRemote();
 
     // Core modules
@@ -1413,7 +1330,6 @@ const App = {
     EmergencyModule.init();
 
     // Page-specific initialization
-    const page = window.location.pathname.split('/').pop() || 'index.html';
     this._initPage(page);
 
     // Animate cards on load
@@ -1571,3 +1487,9 @@ window.Store           = Store;
 window.UserModule      = UserModule;
 window.NavModule       = NavModule;
 window.Toast           = Toast;
+window.handleLogout    = function handleLogout() {
+  localStorage.removeItem('access_token');
+  localStorage.removeItem('refresh_token');
+  localStorage.removeItem('user');
+  window.location.href = 'login.html';
+};

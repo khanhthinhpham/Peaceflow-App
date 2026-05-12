@@ -2,6 +2,11 @@ import { apiClient } from './api-client.js';
 
 export const journalManager = {
     async init() {
+        const hasLegacyJournalUi = document.getElementById('journalForm') || document.getElementById('journalEntries');
+        if (!hasLegacyJournalUi) {
+            return;
+        }
+
         this.setupListeners();
         await this.loadEntries();
     },

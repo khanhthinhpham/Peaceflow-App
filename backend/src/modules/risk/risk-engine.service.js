@@ -53,6 +53,8 @@ export class RiskEngineService {
       const snapshot = await this._saveRiskSnapshot(userId, stressIndex, A, Sleep, riskLevel, factors, primaryTrigger);
 
       return {
+        id: snapshot.id,
+        snapshot_id: snapshot.id,
         stress_index: Math.round(stressIndex),
         risk_level: riskLevel,
         primary_trigger: primaryTrigger,
@@ -189,12 +191,12 @@ export class RiskEngineService {
   static async _getTaskStatsLast7Days(userId) {
     const result = await db.query(
       `SELECT 
-        COUNT(*) FILTER (WHERE status != 'pending') as assigned,
+        COUNT(*) as assigned,
         COUNT(*) FILTER (WHERE status = 'completed') as completed,
         COUNT(*) FILTER (WHERE status = 'skipped') as skipped,
         COUNT(*) FILTER (WHERE status = 'expired') as expired
       FROM user_task_assignments 
-      WHERE user_id = $1 AND created_at > NOW() - INTERVAL '7 days'`,
+      WHERE user_id = $1 AND assigned_at > NOW() - INTERVAL '7 days'`,
       [userId]
     );
     const row = result.rows[0];

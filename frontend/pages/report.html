@@ -4,6 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="../public/favicon.jpg" type="image/svg+xml">
     <title>PeaceFlow — Báo Cáo Sức Khỏe</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Patrick+Hand&display=swap"
@@ -521,6 +522,8 @@
         .mood-svg {
             width: 100%;
             min-width: 300px;
+            height: 180px;
+            display: block;
         }
 
         .radar-wrap {
@@ -532,6 +535,32 @@
         .radar-svg {
             width: 220px;
             height: 220px;
+            display: block;
+        }
+
+        @media print {
+            body {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+
+            .chart-wrap {
+                overflow: visible;
+            }
+
+            .mood-svg {
+                width: 600px !important;
+                height: 180px !important;
+            }
+
+            .radar-svg {
+                width: 220px !important;
+                height: 220px !important;
+            }
+
+            svg {
+                overflow: visible !important;
+            }
         }
 
         .task-breakdown {
@@ -1141,83 +1170,10 @@
         </div>
     </div>
 
-    <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
-    <div class="mobile-topbar">
-        <button class="mobile-menu-btn" onclick="toggleSidebar()">☰</button>
-        <a href="index.html" style="display:flex;align-items:center;gap:8px;text-decoration:none;">
-            <div
-                style="width:32px;height:32px;background:var(--mint);border-radius:8px;border:2px solid var(--mint-dark);display:flex;align-items:center;justify-content:center;font-size:1rem;box-shadow:2px 2px 0px var(--mint-dark);">
-                🌿</div>
-            <span style="font-size:1.1rem;font-weight:800;color:var(--text-primary);">Peace<span
-                    style="color:var(--mint-dark);">Flow</span></span>
-        </a>
-        <span
-            style="background:var(--peach-light);padding:3px 10px;border-radius:50px;font-size:0.75rem;font-weight:700;color:var(--peach-dark);border:1.5px solid var(--peach);">⭐
-            295 XP</span>
-    </div>
-
-    <aside class="sidebar" id="sidebar">
-        <a href="index.html" class="sidebar-logo">
-            <div class="logo-icon">🌿</div>
-            <div class="logo-text">Peace<span>Flow</span></div>
-        </a>
-
-        <nav class="sidebar-nav">
-            <div class="nav-section-label">Chính</div>
-            <a href="dashboard.html" class="nav-item ">
-                <span class="ni">🏡</span> Tổng quan
-            </a>
-            <a href="mood-checkin.html" class="nav-item ">
-                <span class="ni">💭</span> Tâm trạng
-            </a>
-            <a href="tasks.html" class="nav-item ">
-                <span class="ni">🎮</span> Nhiệm vụ
-            </a>
-            <a href="journal.html" class="nav-item ">
-                <span class="ni">📝</span> Nhật ký
-            </a>
-
-            <div class="nav-section-label" style="margin-top:8px;">Kết nối</div>
-            <a href="experts.html" class="nav-item ">
-                <span class="ni">🩺</span> Chuyên gia
-            </a>
-            <a href="community.html" class="nav-item ">
-                <span class="ni">👥</span> Cộng đồng
-            </a>
-
-            <div class="nav-section-label" style="margin-top:8px;">Phân tích</div>
-            <a href="report.html" class="nav-item active">
-                <span class="ni">📊</span> Báo cáo
-            </a>
-            <a href="achievements.html" class="nav-item ">
-                <span class="ni">🏅</span> Thành tích
-            </a>
-
-            <div class="nav-section-label" style="margin-top:8px;">Cài đặt</div>
-            <a href="profile.html" class="nav-item ">
-                <span class="ni">👤</span> Hồ sơ
-            </a>
-            <a href="settings.html" class="nav-item ">
-                <span class="ni">⚙️</span> Cài đặt
-            </a>
-            <a href="#" class="nav-item" onclick="handleLogout()" style="color:var(--coral); margin-top: 10px; border-top: 1px dashed var(--kraft-light); padding-top: 15px;">
-                <span class="ni">🚪</span> Đăng xuất
-            </a>
-        </nav>
-
-        <div class="sidebar-bottom">
-            <div class="user-card-mini">
-                <div class="user-avatar-mini">🐱</div>
-                <div class="user-info-mini">
-                    <div class="user-name" data-user-field="display_name">Khách hàng giả lập</div>
-                    <div class="user-level">⭐ 295 XP · Level 2</div>
-                </div>
-            </div>
-            <a href="emergency.html" class="emergency-btn">
-                🆘 Hỗ trợ khẩn cấp
-            </a>
-        </div>
-    </aside>
+    <!-- Shared Sidebar -->
+    <div id="sharedSidebarOverlayMount"></div>
+    <div id="sharedMobileTopbarMount"></div>
+    <div id="sharedSidebarMount"></div>
 
     <main class="main-content">
         <div class="breadcrumb">
@@ -1264,7 +1220,7 @@
                         </div>
                     </div>
                     <div class="chart-wrap">
-                        <svg class="mood-svg" viewBox="0 0 600 180" id="moodChart"></svg>
+                        <svg class="mood-svg" viewBox="0 0 600 180" width="600" height="180" id="moodChart"></svg>
                     </div>
                     <div style="display:flex;gap:4px;margin-top:8px;" id="chartDayLabels"></div>
                 </div>
@@ -1273,7 +1229,7 @@
                     <div class="paper-card chart-card" style="margin-bottom:0;">
                         <div class="cc-title" style="margin-bottom:10px;">🎯 Radar sức khỏe tổng thể</div>
                         <div class="radar-wrap">
-                            <svg class="radar-svg" viewBox="0 0 220 220" id="radarChart"></svg>
+                            <svg class="radar-svg" viewBox="0 0 220 220" width="220" height="220" id="radarChart"></svg>
                         </div>
                         <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;justify-content:center;"
                             id="radarLegend"></div>
@@ -1445,7 +1401,7 @@
                 { icon: '😊', num: '7.1', label: 'Tâm trạng TB', change: '+0.5 so tháng trước', dir: 'up', color: 'var(--mint-dark)', deco: '🌿' },
                 { icon: '✅', num: '47', label: 'Nhiệm vụ hoàn thành', change: '+12 so tháng trước', dir: 'up', color: 'var(--mint-dark)', deco: '🎮' },
                 { icon: '📝', num: '23', label: 'Bài nhật ký', change: '+8 so tháng trước', dir: 'up', color: 'var(--lavender)', deco: '📖' },
-                { icon: '⭐', num: '295', label: 'XP tích lũy', change: '+145 trong tháng', dir: 'up', color: 'var(--gold)', deco: '🏆' },
+                { icon: '⭐', num: '', label: 'XP tích lũy', change: '+145 trong tháng', dir: 'up', color: 'var(--gold)', deco: '🏆' },
             ],
             '3month': [
                 { icon: '😊', num: '7.0', label: 'Tâm trạng TB', change: '+0.9 so quý trước', dir: 'up', color: 'var(--mint-dark)', deco: '🌿' },
@@ -1816,13 +1772,903 @@
             document.getElementById('sidebarOverlay').classList.remove('open');
         }
 
-        window.onload = init;
+        // Legacy static init disabled. Dynamic module below owns report rendering.
     </script>
+    <script type="module">
+        import { apiClient } from '../public/js/api-client.js';
+        import { auth } from '../public/js/auth.js';
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="../public/js/supabase-config.js"></script>
+        const REPORT_PERIODS = {
+            week: { days: 7, bucket: 1, maxOffset: 11, label: '7 ngày gần đây' },
+            month: { days: 30, bucket: 5, maxOffset: 2, label: '30 ngày gần đây' },
+            '3month': { days: 90, bucket: 15, maxOffset: 0, label: '90 ngày gần đây' }
+        };
+
+        const reportState = {
+            data: null,
+            currentPeriod: 'week',
+            currentOffset: 0
+        };
+
+        function normalizeReportPayload(payload) {
+            const raw = payload?.raw && typeof payload.raw === 'object' ? payload.raw : payload;
+            const precomputedReport = payload?.report && typeof payload.report === 'object' ? payload.report : null;
+
+            return {
+                ...(raw && typeof raw === 'object' ? raw : {}),
+                __precomputedReport: precomputedReport
+            };
+        }
+
+        function getPrecomputedPeriodData(periodKey, offset = 0) {
+            const precomputed = reportState.data?.__precomputedReport;
+            if (!precomputed || offset !== 0) return null;
+
+            const normalizedPrecomputedKey = precomputed.periodKey === '3month' ? '3month' : precomputed.periodKey === 'month' ? 'month' : 'week';
+            if (normalizedPrecomputedKey !== periodKey) return null;
+
+            return {
+                periodKey,
+                label: precomputed.label || REPORT_PERIODS[periodKey]?.label || '',
+                dateLabel: precomputed.dateLabel || '',
+                startDate: precomputed.startDate ? new Date(precomputed.startDate) : null,
+                endDate: precomputed.endDate ? new Date(precomputed.endDate) : null,
+                currentMood: Array.isArray(precomputed.currentMood) ? precomputed.currentMood : [],
+                currentJournals: Array.isArray(precomputed.currentJournals) ? precomputed.currentJournals : [],
+                currentTasks: Array.isArray(precomputed.currentTasks) ? precomputed.currentTasks : [],
+                chartPoints: Array.isArray(precomputed.chartPoints) ? precomputed.chartPoints : [],
+                heatmap: Array.isArray(precomputed.heatmap) ? precomputed.heatmap : [],
+                metrics: precomputed.metrics || {},
+                breakdown: Array.isArray(precomputed.breakdown) ? precomputed.breakdown : [],
+                radar: Array.isArray(precomputed.radar) ? precomputed.radar : [],
+                riskLevel: precomputed.riskLevel || reportState.data?.summary?.risk_level || 'low'
+            };
+        }
+
+        function escapeHtml(value) {
+            return String(value ?? '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        function startOfDay(date) {
+            return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+        }
+
+        function addDays(date, days) {
+            const next = new Date(date);
+            next.setDate(next.getDate() + days);
+            return next;
+        }
+
+        function toIsoDate(value) {
+            if (typeof value === 'string' && value.length >= 10) return value.slice(0, 10);
+            return new Date(value).toISOString().slice(0, 10);
+        }
+
+        function average(values) {
+            const numbers = values.filter((value) => value !== null && value !== undefined && !Number.isNaN(Number(value))).map(Number);
+            if (!numbers.length) return null;
+            return Math.round((numbers.reduce((sum, value) => sum + value, 0) / numbers.length) * 10) / 10;
+        }
+
+        function sum(values) {
+            return values.reduce((total, value) => total + Number(value || 0), 0);
+        }
+
+        function formatCompactDate(value) {
+            return new Intl.DateTimeFormat('vi-VN', {
+                day: '2-digit',
+                month: '2-digit',
+                timeZone: 'Asia/Bangkok'
+            }).format(value);
+        }
+
+        function formatPeriodLabel(startDate, endDate) {
+            return `${formatCompactDate(startDate)} – ${formatCompactDate(endDate)}`;
+        }
+
+        function formatChartLabel(date, totalDays) {
+            const target = new Date(date);
+            if (totalDays <= 7) {
+                const weekdayLabels = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
+                return weekdayLabels[target.getDay()];
+            }
+            return formatCompactDate(target);
+        }
+
+        function formatRangeLabel(startIso, endIso) {
+            const start = new Date(`${startIso}T00:00:00`);
+            const end = new Date(`${endIso}T00:00:00`);
+            const startLabel = formatCompactDate(start);
+            const endLabel = formatCompactDate(end);
+            return startLabel === endLabel ? startLabel : `${startLabel}-${endLabel}`;
+        }
+
+        function normalizeNumber(value, fallback = 0) {
+            const parsed = Number(value);
+            return Number.isFinite(parsed) ? parsed : fallback;
+        }
+
+        function updateUserHeader() {
+            const user = reportState.data?.user || auth.getUser() || {};
+            const progress = reportState.data?.progress || {};
+            const displayName = user.display_name || user.full_name || 'Bạn';
+            const xp = progress.xp ?? progress.total_xp ?? 0;
+            const level = progress.level ?? progress.current_level ?? 1;
+            const mobileXp = document.querySelector('.mobile-topbar span[style*="background:var(--peach-light)"]');
+
+            document.querySelectorAll('.user-name').forEach((element) => {
+                element.innerText = displayName;
+            });
+            document.querySelectorAll('.user-level').forEach((element) => {
+                element.innerText = `⭐ ${xp} XP · Level ${level}`;
+            });
+            if (mobileXp) {
+                mobileXp.innerText = `⭐ ${xp} XP`;
+            }
+
+            const subtitle = document.querySelector('.page-subtitle');
+            if (subtitle) {
+                subtitle.innerText = 'Báo cáo được dựng từ mood, journal, task completion và assessment trong DB 90 ngày gần đây.';
+            }
+        }
+
+        function buildDaySeries(days, offset) {
+            const endDate = addDays(startOfDay(new Date()), -(offset * days));
+            const startDate = addDays(endDate, -(days - 1));
+            const previousEnd = addDays(startDate, -1);
+            const previousStart = addDays(previousEnd, -(days - 1));
+
+            return { startDate, endDate, previousStart, previousEnd };
+        }
+
+        function dateWithin(dateValue, startDate, endDate) {
+            const value = startOfDay(new Date(dateValue)).getTime();
+            return value >= startDate.getTime() && value <= endDate.getTime();
+        }
+
+        function getPeriodData(periodKey, offset = 0) {
+            const precomputed = getPrecomputedPeriodData(periodKey, offset);
+            if (precomputed) {
+                return precomputed;
+            }
+
+            const config = REPORT_PERIODS[periodKey];
+            const { startDate, endDate, previousStart, previousEnd } = buildDaySeries(config.days, offset);
+            const moodHistory = reportState.data?.mood_history || [];
+            const journalHistory = reportState.data?.journal_history || [];
+            const taskHistory = reportState.data?.task_history || [];
+
+            const currentMood = moodHistory.filter((entry) => dateWithin(entry.day, startDate, endDate));
+            const previousMood = moodHistory.filter((entry) => dateWithin(entry.day, previousStart, previousEnd));
+            const currentJournals = journalHistory.filter((entry) => dateWithin(entry.created_at, startDate, endDate));
+            const previousJournals = journalHistory.filter((entry) => dateWithin(entry.created_at, previousStart, previousEnd));
+            const currentTasks = taskHistory.filter((entry) => dateWithin(entry.created_at, startDate, endDate));
+            const previousTasks = taskHistory.filter((entry) => dateWithin(entry.created_at, previousStart, previousEnd));
+
+            const currentMoodAverage = average(currentMood.map((entry) => entry.mood_score));
+            const previousMoodAverage = average(previousMood.map((entry) => entry.mood_score));
+            const currentAnxietyAverage = average(currentMood.map((entry) => entry.anxiety_score));
+            const previousAnxietyAverage = average(previousMood.map((entry) => entry.anxiety_score));
+            const currentStressAverage = average(currentMood.map((entry) => entry.stress_score));
+            const currentEnergyAverage = average(currentMood.map((entry) => entry.energy_score));
+            const currentSleepAverage = average(currentMood.map((entry) => entry.sleep_quality_score));
+            const journalWords = sum(currentJournals.map((entry) => String(entry.content || '').trim().split(/\s+/).filter(Boolean).length));
+            const previousJournalWords = sum(previousJournals.map((entry) => String(entry.content || '').trim().split(/\s+/).filter(Boolean).length));
+            const xpEarned = sum(currentTasks.map((entry) => entry.xp_earned)) + (currentJournals.length * 15);
+            const previousXpEarned = sum(previousTasks.map((entry) => entry.xp_earned)) + (previousJournals.length * 15);
+            const practiceMinutes = sum(currentTasks.map((entry) => entry.duration_actual || entry.duration_minutes || 0));
+            const previousPracticeMinutes = sum(previousTasks.map((entry) => entry.duration_actual || entry.duration_minutes || 0));
+
+            const moodMap = new Map(currentMood.map((entry) => [toIsoDate(entry.day), entry]));
+            const points = [];
+            for (let index = 0; index < config.days; index += 1) {
+                const date = addDays(startDate, index);
+                const key = toIsoDate(date);
+                const row = moodMap.get(key);
+                points.push({
+                    date: key,
+                    label: formatChartLabel(date, config.days),
+                    mood: row?.mood_score ?? null,
+                    anxiety: row?.anxiety_score ?? null,
+                    stress: row?.stress_score ?? null
+                });
+            }
+
+            const chartPoints = [];
+            for (let index = 0; index < points.length; index += config.bucket) {
+                const bucket = points.slice(index, index + config.bucket);
+                chartPoints.push({
+                    date: bucket[bucket.length - 1]?.date || bucket[0]?.date,
+                    label: config.bucket === 1
+                        ? bucket[0]?.label
+                        : formatRangeLabel(bucket[0]?.date, bucket[bucket.length - 1]?.date),
+                    mood: average(bucket.map((point) => point.mood)),
+                    anxiety: average(bucket.map((point) => point.anxiety)),
+                    stress: average(bucket.map((point) => point.stress))
+                });
+            }
+
+            const breakdownBase = {
+                emergency: 0,
+                easy: 0,
+                medium: 0,
+                hard: 0
+            };
+
+            currentTasks.forEach((task) => {
+                if (task.category === 'emergency') {
+                    breakdownBase.emergency += 1;
+                    return;
+                }
+                if (task.difficulty === 'medium') breakdownBase.medium += 1;
+                else if (task.difficulty === 'hard') breakdownBase.hard += 1;
+                else breakdownBase.easy += 1;
+            });
+
+            const positiveDays = currentMood.filter((entry) => Number(entry.mood_score || 0) >= 7).length;
+            const riskLevel = reportState.data?.summary?.risk_level || 'low';
+            const consistencyScore = Math.min(10, Math.round(((currentTasks.length / Math.max(1, config.days)) * 10) * 10) / 10);
+            const radar = [
+                { label: 'Cảm xúc', value: currentMoodAverage, color: '#7BBF95' },
+                { label: 'Bình tĩnh', value: currentStressAverage === null ? null : Math.max(0, 10 - currentStressAverage), color: '#FF8B8B' },
+                { label: 'Độ an tâm', value: currentAnxietyAverage === null ? null : Math.max(0, 10 - currentAnxietyAverage), color: '#D4A574' },
+                { label: 'Năng lượng', value: currentEnergyAverage, color: '#A8D8EA' },
+                { label: 'Giấc ngủ', value: currentSleepAverage, color: '#C3AED6' },
+                { label: 'Nhịp độ', value: consistencyScore, color: '#FFCBA4' }
+            ];
+
+            return {
+                periodKey,
+                label: config.label,
+                dateLabel: formatPeriodLabel(startDate, endDate),
+                startDate,
+                endDate,
+                currentMood,
+                currentJournals,
+                currentTasks,
+                chartPoints,
+                heatmap: points,
+                metrics: {
+                    averageMood: currentMoodAverage,
+                    previousAverageMood: previousMoodAverage,
+                    averageAnxiety: currentAnxietyAverage,
+                    previousAverageAnxiety: previousAnxietyAverage,
+                    averageStress: currentStressAverage,
+                    completedTasks: currentTasks.length,
+                    previousCompletedTasks: previousTasks.length,
+                    journalEntries: currentJournals.length,
+                    previousJournalEntries: previousJournals.length,
+                    journalWords,
+                    previousJournalWords,
+                    xpEarned,
+                    previousXpEarned,
+                    positiveDays,
+                    practiceMinutes,
+                    previousPracticeMinutes,
+                    streak: reportState.data?.progress?.current_streak ?? reportState.data?.progress?.streak ?? 0
+                },
+                breakdown: [
+                    { key: 'emergency', label: '🔴 Khẩn cấp', count: breakdownBase.emergency, color: 'var(--coral)' },
+                    { key: 'easy', label: '🟢 Dễ', count: breakdownBase.easy, color: 'var(--mint-dark)' },
+                    { key: 'medium', label: '🟡 Trung bình', count: breakdownBase.medium, color: 'var(--peach-dark)' },
+                    { key: 'hard', label: '🟠 Nâng cao', count: breakdownBase.hard, color: 'var(--lavender)' }
+                ],
+                radar,
+                riskLevel
+            };
+        }
+
+        function getCurrentPeriodData() {
+            return getPeriodData(reportState.currentPeriod, reportState.currentOffset);
+        }
+
+        function formatDelta(current, previous, suffix = '') {
+            if (current === null || current === undefined) return 'Chưa đủ dữ liệu';
+            if (previous === null || previous === undefined) return 'Chưa có kỳ trước để so sánh';
+            const delta = Math.round((Number(current) - Number(previous)) * 10) / 10;
+            if (delta === 0) return `Không đổi${suffix}`;
+            return `${delta > 0 ? '+' : ''}${delta}${suffix}`;
+        }
+
+        function getChangeClass(delta) {
+            if (delta > 0) return 'up';
+            if (delta < 0) return 'down';
+            return 'neutral';
+        }
+
+        function renderSummaryCards(periodData) {
+            const { metrics } = periodData;
+            const cards = [
+                {
+                    icon: '😊',
+                    deco: '🌿',
+                    label: 'Tâm trạng TB',
+                    value: metrics.averageMood === null ? '--' : metrics.averageMood,
+                    delta: metrics.averageMood === null || metrics.previousAverageMood === null ? null : (metrics.averageMood - metrics.previousAverageMood),
+                    change: formatDelta(metrics.averageMood, metrics.previousAverageMood, ' so với kỳ trước'),
+                    color: 'var(--mint-dark)'
+                },
+                {
+                    icon: '✅',
+                    deco: '🎮',
+                    label: 'Nhiệm vụ hoàn thành',
+                    value: metrics.completedTasks,
+                    delta: metrics.completedTasks - metrics.previousCompletedTasks,
+                    change: formatDelta(metrics.completedTasks, metrics.previousCompletedTasks, ' task'),
+                    color: 'var(--mint-dark)'
+                },
+                {
+                    icon: '📝',
+                    deco: '📚',
+                    label: 'Bài nhật ký',
+                    value: metrics.journalEntries,
+                    delta: metrics.journalEntries - metrics.previousJournalEntries,
+                    change: formatDelta(metrics.journalEntries, metrics.previousJournalEntries, ' bài'),
+                    color: 'var(--lavender)'
+                },
+                {
+                    icon: '⭐',
+                    deco: '🏆',
+                    label: 'XP trong kỳ',
+                    value: metrics.xpEarned,
+                    delta: metrics.xpEarned - metrics.previousXpEarned,
+                    change: formatDelta(metrics.xpEarned, metrics.previousXpEarned, ' XP'),
+                    color: 'var(--gold)'
+                }
+            ];
+
+            document.getElementById('summaryGrid').innerHTML = cards.map((card) => `
+                <div class="paper-card summary-card">
+                    <div class="sc-deco">${card.deco}</div>
+                    <div class="sc-icon">${card.icon}</div>
+                    <div class="sc-num" style="color:${card.color}">${card.value}</div>
+                    <div class="sc-label">${escapeHtml(card.label)}</div>
+                    <div class="sc-change ${getChangeClass(card.delta || 0)}">${escapeHtml(card.change)}</div>
+                </div>
+            `).join('');
+        }
+
+        function buildLinePath(series, width, height, padLeft, padRight, padTop, padBottom, key) {
+            const chartWidth = width - padLeft - padRight;
+            const chartHeight = height - padTop - padBottom;
+            const step = series.length > 1 ? chartWidth / (series.length - 1) : chartWidth;
+            const plotted = series.map((point, index) => {
+                const value = point[key] === null || point[key] === undefined ? null : Number(point[key]);
+                const x = padLeft + (step * index);
+                const y = value === null ? null : padTop + chartHeight - ((value / 10) * chartHeight);
+                return { x, y, value, label: point.label };
+            });
+            const filled = plotted.map((point, index) => {
+                if (point.y !== null) return point;
+                const prev = [...plotted].slice(0, index).reverse().find((item) => item.y !== null);
+                const next = plotted.slice(index + 1).find((item) => item.y !== null);
+                return { ...point, y: prev?.y ?? next?.y ?? (padTop + chartHeight) };
+            });
+            return { plotted, filled, path: filled.map((point, index) => `${index === 0 ? 'M' : 'L'}${point.x} ${point.y}`).join(' ') };
+        }
+
+        function renderMoodChart(periodData) {
+            const svg = document.getElementById('moodChart');
+            const labels = document.getElementById('chartDayLabels');
+            const series = Array.isArray(periodData?.chartPoints) ? periodData.chartPoints : [];
+            const width = 600;
+            const height = 180;
+            const padLeft = 30;
+            const padRight = 10;
+            const padTop = 15;
+            const padBottom = 20;
+
+            if (!svg || !labels) return;
+
+            svg.setAttribute('width', String(width));
+            svg.setAttribute('height', String(height));
+            svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+
+            if (!series.length) {
+                svg.innerHTML = `
+                    <text x="300" y="90" font-size="13" fill="#A89585" text-anchor="middle" font-family="Nunito">
+                        Chua co du lieu tam trang de ve bieu do
+                    </text>
+                `;
+                labels.innerHTML = '<div style="font-size:0.72rem;color:var(--text-light);">Chưa có dữ liệu mood.</div>';
+                return;
+            }
+
+            const moodSeries = buildLinePath(series, width, height, padLeft, padRight, padTop, padBottom, 'mood');
+            const anxietySeries = buildLinePath(series, width, height, padLeft, padRight, padTop, padBottom, 'anxiety');
+            const stressSeries = buildLinePath(series, width, height, padLeft, padRight, padTop, padBottom, 'stress');
+            const chartHeight = height - padTop - padBottom;
+            const lastValidMood = moodSeries.plotted.filter((point) => point.value !== null).slice(-1)[0];
+            let gridLines = '';
+
+            for (let index = 0; index <= 5; index += 1) {
+                const y = padTop + (chartHeight / 5) * index;
+                gridLines += `<line x1="${padLeft}" y1="${y}" x2="${width - padRight}" y2="${y}" stroke="#E8CBA7" stroke-width="1" stroke-dasharray="4,4"></line>`;
+                gridLines += `<text x="${padLeft - 4}" y="${y + 4}" font-size="9" fill="#A89585" text-anchor="end">${10 - (index * 2)}</text>`;
+            }
+
+            const areaPoints = `${moodSeries.filled.map((point) => `${point.x},${point.y}`).join(' ')} ${width - padRight},${padTop + chartHeight} ${padLeft},${padTop + chartHeight}`;
+
+            svg.innerHTML = `
+                <defs>
+                    <linearGradient id="reportMoodGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stop-color="#7BBF95" stop-opacity="0.35"></stop>
+                        <stop offset="100%" stop-color="#7BBF95" stop-opacity="0.03"></stop>
+                    </linearGradient>
+                </defs>
+                ${gridLines}
+                <polygon points="${areaPoints}" fill="url(#reportMoodGradient)"></polygon>
+                <path d="${moodSeries.path}" fill="none" stroke="#7BBF95" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"></path>
+                <path d="${anxietySeries.path}" fill="none" stroke="#E8A876" stroke-width="1.5" stroke-dasharray="5,3" stroke-linejoin="round" stroke-linecap="round"></path>
+                <path d="${stressSeries.path}" fill="none" stroke="#C3AED6" stroke-width="1.5" stroke-dasharray="3,3" stroke-linejoin="round" stroke-linecap="round"></path>
+                ${moodSeries.plotted.map((point) => point.value === null ? '' : `<circle cx="${point.x}" cy="${point.y}" r="3.5" fill="#7BBF95" stroke="white" stroke-width="1.5"></circle>`).join('')}
+                ${lastValidMood ? `<circle cx="${lastValidMood.x}" cy="${lastValidMood.y}" r="4.5" fill="#FFCBA4" stroke="#E8A876" stroke-width="1.5"></circle>` : ''}
+            `;
+
+            labels.innerHTML = series.map((point) => `
+                <div style="flex:1;text-align:center;font-size:0.62rem;color:var(--text-light);font-weight:600;">${escapeHtml(point.label || '--')}</div>
+            `).join('');
+        }
+
+        function renderRadarChart(periodData) {
+            const svg = document.getElementById('radarChart');
+            const legend = document.getElementById('radarLegend');
+            if (!svg || !legend) return;
+
+            svg.setAttribute('width', '220');
+            svg.setAttribute('height', '220');
+            svg.setAttribute('viewBox', '0 0 220 220');
+
+            const radarSource = Array.isArray(periodData?.radar) ? periodData.radar : [];
+            const data = radarSource.map((item) => ({
+                ...item,
+                percent: item.value === null || item.value === undefined ? 20 : Math.max(10, Math.min(100, Number(item.value) * 10))
+            }));
+
+            if (!data.length) {
+                svg.innerHTML = `
+                    <text x="110" y="110" font-size="12" fill="#A89585" text-anchor="middle" font-family="Nunito">
+                        Chua co du lieu radar
+                    </text>
+                `;
+                legend.innerHTML = '<div style="font-size:0.7rem;color:var(--text-light);">Chưa có dữ liệu sức khỏe tổng thể.</div>';
+                return;
+            }
+
+            const cx = 110;
+            const cy = 110;
+            const r = 80;
+            const n = data.length;
+
+            function polar(angle, radius) {
+                const a = (angle - 90) * Math.PI / 180;
+                return { x: cx + radius * Math.cos(a), y: cy + radius * Math.sin(a) };
+            }
+
+            let grid = '';
+            for (let level = 1; level <= 5; level += 1) {
+                const points = Array.from({ length: n }, (_, index) => {
+                    const point = polar(index * (360 / n), r * (level / 5));
+                    return `${point.x},${point.y}`;
+                }).join(' ');
+                grid += `<polygon points="${points}" fill="none" stroke="#E8CBA7" stroke-width="${level === 5 ? 1.5 : 0.8}"></polygon>`;
+            }
+
+            const axes = data.map((_, index) => {
+                const point = polar(index * (360 / n), r);
+                return `<line x1="${cx}" y1="${cy}" x2="${point.x}" y2="${point.y}" stroke="#E8CBA7" stroke-width="1"></line>`;
+            }).join('');
+
+            const polygonPoints = data.map((item, index) => {
+                const point = polar(index * (360 / n), r * (item.percent / 100));
+                return `${point.x},${point.y}`;
+            }).join(' ');
+
+            const labelsSvg = data.map((item, index) => {
+                const point = polar(index * (360 / n), r + 20);
+                return `<text x="${point.x}" y="${point.y}" font-size="9" fill="#7A6555" text-anchor="middle" dominant-baseline="middle" font-family="Nunito" font-weight="700">${escapeHtml(item.label)}</text>`;
+            }).join('');
+
+            svg.innerHTML = `
+                ${grid}
+                ${axes}
+                <polygon points="${polygonPoints}" fill="rgba(168,213,186,0.25)" stroke="#7BBF95" stroke-width="2"></polygon>
+                ${labelsSvg}
+                ${data.map((item, index) => {
+                    const point = polar(index * (360 / n), r * (item.percent / 100));
+                    return `<circle cx="${point.x}" cy="${point.y}" r="3" fill="${item.color}" stroke="white" stroke-width="1.5"></circle>`;
+                }).join('')}
+            `;
+
+            legend.innerHTML = data.map((item) => `
+                <div style="display:flex;align-items:center;gap:3px;font-size:0.6rem;color:var(--text-secondary);">
+                    <div style="width:8px;height:8px;border-radius:50%;background:${item.color};"></div>
+                    <span>${escapeHtml(item.label)}: ${item.value === null ? '--' : item.value}/10</span>
+                </div>
+            `).join('');
+        }
+
+        function renderTaskBreakdown(periodData) {
+            const el = document.getElementById('taskBreakdown');
+            if (!el) return;
+
+            const max = Math.max(1, ...periodData.breakdown.map((item) => item.count));
+            el.innerHTML = periodData.breakdown.map((item) => `
+                <div class="tb-item">
+                    <div class="tbi-label">${escapeHtml(item.label)}</div>
+                    <div class="tbi-bar-wrap">
+                        <div class="tbi-bar" style="width:${Math.max(4, (item.count / max) * 100)}%;background:${item.color};"></div>
+                    </div>
+                    <div class="tbi-count">${item.count}</div>
+                </div>
+            `).join('');
+        }
+
+        function buildInsights(periodData) {
+            const insights = [];
+            const { metrics, riskLevel } = periodData;
+            const moodDelta = metrics.averageMood === null || metrics.previousAverageMood === null
+                ? null
+                : Math.round((metrics.averageMood - metrics.previousAverageMood) * 10) / 10;
+            const anxietyDelta = metrics.averageAnxiety === null || metrics.previousAverageAnxiety === null
+                ? null
+                : Math.round((metrics.averageAnxiety - metrics.previousAverageAnxiety) * 10) / 10;
+            const topTask = [...periodData.currentTasks].sort((a, b) => (b.xp_earned || 0) - (a.xp_earned || 0))[0];
+            const positiveJournalRate = periodData.currentJournals.length
+                ? Math.round((periodData.currentJournals.filter((entry) => Number(entry.sentiment_score || 0) > 0.5).length / periodData.currentJournals.length) * 100)
+                : 0;
+
+            if (moodDelta !== null) {
+                insights.push({
+                    type: moodDelta >= 0 ? 'positive' : 'warning',
+                    text: moodDelta >= 0
+                        ? `Tâm trạng trung bình đang nhích lên ${moodDelta} điểm so với kỳ trước.`
+                        : `Tâm trạng trung bình đang giảm ${Math.abs(moodDelta)} điểm so với kỳ trước.`
+                });
+            }
+
+            insights.push({
+                type: ['high', 'critical'].includes(riskLevel) ? 'warning' : 'tip',
+                text: ['high', 'critical'].includes(riskLevel)
+                    ? 'Chỉ số rủi ro hiện đang cao. Nên ưu tiên các task ngắn, điều hòa nhịp thở và cân nhắc kết nối chuyên gia.'
+                    : 'Mức rủi ro hiện tại đang trong vùng có thể theo dõi. Duy trì check-in và nhiệm vụ đều đặn sẽ giúp dữ liệu ổn định hơn.'
+            });
+
+            if (anxietyDelta !== null) {
+                insights.push({
+                    type: anxietyDelta <= 0 ? 'positive' : 'warning',
+                    text: anxietyDelta <= 0
+                        ? `Lo âu trung bình đã giảm ${Math.abs(anxietyDelta)} điểm trong kỳ này.`
+                        : `Lo âu trung bình tăng ${anxietyDelta} điểm trong kỳ này, nên chú ý các ngày giữa tuần hoặc sau các đợt áp lực.`
+                });
+            }
+
+            if (topTask?.title) {
+                insights.push({
+                    type: 'tip',
+                    text: `Nhiệm vụ mang lại nhịp hoạt động rõ nhất trong kỳ này là "${topTask.title}". Bạn có thể dùng nó như anchor khi tâm trạng xuống.`
+                });
+            }
+
+            if (periodData.currentJournals.length) {
+                insights.push({
+                    type: positiveJournalRate >= 50 ? 'positive' : 'tip',
+                    text: `Khoảng ${positiveJournalRate}% bài journal trong kỳ mang sắc thái tích cực. Việc viết đều đang giúp bạn quan sát cảm xúc rõ hơn.`
+                });
+            }
+
+            return insights.slice(0, 5);
+        }
+
+        function renderInsights(periodData) {
+            const el = document.getElementById('insightList');
+            if (!el) return;
+
+            const insights = buildInsights(periodData);
+            el.innerHTML = insights.map((insight) => `
+                <div class="insight-item">
+                    <div class="ii-type ${insight.type}">${insight.type === 'positive' ? '✅ Tích cực' : insight.type === 'warning' ? '⚠️ Lưu ý' : '💡 Gợi ý'}</div>
+                    <div class="ii-text">${escapeHtml(insight.text)}</div>
+                </div>
+            `).join('');
+        }
+
+        function moodLevel(value) {
+            if (value === null || value === undefined) return 0;
+            if (value >= 8) return 5;
+            if (value >= 6) return 4;
+            if (value >= 4.5) return 3;
+            if (value >= 3) return 2;
+            return 1;
+        }
+
+        function renderHeatmap(periodData) {
+            const el = document.getElementById('heatmapGrid');
+            if (!el) return;
+
+            const days = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
+            const headers = days.map((day) => `<div class="hm-day-h">${day}</div>`).join('');
+            const firstDayOffset = periodData.heatmap.length ? new Date(`${periodData.heatmap[0].date}T00:00:00`).getDay() : 0;
+            const leading = Array.from({ length: firstDayOffset }, () => '<div class="hm-cell empty"></div>').join('');
+            const cells = periodData.heatmap.map((day) => {
+                const level = moodLevel(day.mood);
+                const label = day.mood === null || day.mood === undefined
+                    ? `${day.date}: Không có dữ liệu`
+                    : `${day.date}: mood ${day.mood}/10`;
+                const levelClass = level === 0 ? 'empty' : `level-${level}`;
+                return `<div class="hm-cell ${levelClass}" data-label="${escapeHtml(label)}"></div>`;
+            }).join('');
+
+            el.innerHTML = headers + leading + cells;
+        }
+
+        function severityLabel(value) {
+            if (!value) return 'Chưa phân loại';
+            const labelMap = {
+                minimal: 'Rất thấp',
+                mild: 'Nhẹ',
+                moderate: 'Trung bình',
+                moderately_severe: 'Khá cao',
+                severe: 'Cao',
+                good: 'Tốt'
+            };
+            return labelMap[String(value).toLowerCase()] || value;
+        }
+
+        function severityClass(value) {
+            const lowered = String(value || '').toLowerCase();
+            if (['severe', 'moderately_severe', 'high'].includes(lowered)) return 'score-high';
+            if (['moderate', 'medium'].includes(lowered)) return 'score-mid';
+            return 'score-low';
+        }
+
+        function assessmentIcon(code) {
+            const normalized = String(code || '').toLowerCase();
+            if (normalized.includes('gad')) return '😰';
+            if (normalized.includes('phq')) return '🌧️';
+            if (normalized.includes('dass')) return '📊';
+            if (normalized.includes('psqi')) return '😴';
+            return '🧠';
+        }
+
+        function assessmentBg(code) {
+            const normalized = String(code || '').toLowerCase();
+            if (normalized.includes('gad')) return 'var(--peach-light)';
+            if (normalized.includes('phq')) return 'var(--sky-light)';
+            if (normalized.includes('dass')) return 'var(--lavender-light)';
+            if (normalized.includes('psqi')) return 'var(--mint-light)';
+            return 'var(--rose-light)';
+        }
+
+        function renderAssessments() {
+            const el = document.getElementById('assessmentHistory');
+            if (!el) return;
+
+            const assessments = reportState.data?.assessments || [];
+            if (!assessments.length) {
+                el.innerHTML = `
+                    <div style="padding:12px 0;color:var(--text-secondary);font-size:0.8rem;">
+                        Chưa có kết quả assessment nào được lưu trong DB.
+                    </div>
+                `;
+                return;
+            }
+
+            el.innerHTML = assessments.map((item) => `
+                <div class="assessment-item">
+                    <div class="ai-icon" style="background:${assessmentBg(item.code)};">${assessmentIcon(item.code)}</div>
+                    <div class="ai-info">
+                        <div class="ai-name">${escapeHtml(item.name || item.code)}</div>
+                        <div class="ai-date">📅 ${escapeHtml(new Date(item.created_at).toLocaleDateString('vi-VN'))}</div>
+                    </div>
+                    <div class="ai-score">
+                        <div class="ai-score-num ${severityClass(item.severity)}">${item.total_score ?? '--'}</div>
+                        <div class="ai-score-label ${severityClass(item.severity)}">${escapeHtml(severityLabel(item.severity))}</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderPeriodSummary(periodData) {
+            const el = document.getElementById('periodSummary');
+            if (!el) return;
+
+            const { metrics } = periodData;
+            const items = [
+                { icon: '😊', label: 'Ngày tâm trạng tốt', value: `${metrics.positiveDays}/${REPORT_PERIODS[periodData.periodKey].days}` },
+                { icon: '✅', label: 'Nhiệm vụ hoàn thành', value: metrics.completedTasks },
+                { icon: '📝', label: 'Bài nhật ký', value: metrics.journalEntries },
+                { icon: '🧘', label: 'Phút thực hành', value: `${metrics.practiceMinutes} phút` }
+            ];
+
+            el.innerHTML = items.map((item) => `
+                <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:var(--cream);border:1.5px solid var(--kraft-light);border-radius:var(--border-radius-sm);">
+                    <span style="font-size:0.75rem;font-weight:700;">${item.icon} ${escapeHtml(item.label)}</span>
+                    <span style="font-size:0.75rem;color:var(--mint-dark);font-weight:800;">${escapeHtml(item.value)}</span>
+                </div>
+            `).join('');
+        }
+
+        function renderComparison(periodData) {
+            const el = document.getElementById('comparisonList');
+            if (!el) return;
+
+            const { metrics } = periodData;
+            const rows = [
+                {
+                    label: 'Tâm trạng',
+                    value: formatDelta(metrics.averageMood, metrics.previousAverageMood),
+                    color: (metrics.averageMood ?? 0) >= (metrics.previousAverageMood ?? 0) ? 'var(--mint-dark)' : 'var(--coral)'
+                },
+                {
+                    label: 'Lo âu',
+                    value: formatDelta(metrics.averageAnxiety, metrics.previousAverageAnxiety),
+                    color: (metrics.averageAnxiety ?? 0) <= (metrics.previousAverageAnxiety ?? 0) ? 'var(--mint-dark)' : 'var(--coral)'
+                },
+                {
+                    label: 'Nhiệm vụ',
+                    value: formatDelta(metrics.completedTasks, metrics.previousCompletedTasks),
+                    color: metrics.completedTasks >= metrics.previousCompletedTasks ? 'var(--mint-dark)' : 'var(--coral)'
+                },
+                {
+                    label: 'XP',
+                    value: formatDelta(metrics.xpEarned, metrics.previousXpEarned),
+                    color: metrics.xpEarned >= metrics.previousXpEarned ? 'var(--gold)' : 'var(--text-light)'
+                }
+            ];
+
+            el.innerHTML = rows.map((row) => `
+                <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:var(--cream);border:1.5px solid var(--kraft-light);border-radius:var(--border-radius-sm);">
+                    <span style="font-size:0.74rem;color:var(--text-secondary);">${escapeHtml(row.label)}</span>
+                    <span style="font-size:0.74rem;font-weight:800;color:${row.color};">${escapeHtml(row.value)}</span>
+                </div>
+            `).join('');
+        }
+
+        function updatePeriodLabel(periodData) {
+            const el = document.getElementById('periodLabel');
+            if (!el) return;
+            el.textContent = reportState.currentOffset === 0
+                ? periodData.dateLabel
+                : `${periodData.dateLabel} (${reportState.currentOffset} kỳ trước)`;
+        }
+
+        function renderAll() {
+            if (!reportState.data) return;
+            updateUserHeader();
+
+            try {
+                const periodData = getCurrentPeriodData();
+                renderSummaryCards(periodData);
+                renderMoodChart(periodData);
+                renderRadarChart(periodData);
+                renderTaskBreakdown(periodData);
+                renderInsights(periodData);
+                renderHeatmap(periodData);
+                renderAssessments();
+                renderPeriodSummary(periodData);
+                renderComparison(periodData);
+                updatePeriodLabel(periodData);
+            } catch (error) {
+                console.error('Report render failed:', error);
+                showToast('Không render được biểu đồ báo cáo');
+            }
+        }
+
+        function setPeriodButtons() {
+            document.querySelectorAll('.period-btn').forEach((button) => button.classList.remove('active'));
+            const target = document.getElementById(`btn-${reportState.currentPeriod}`);
+            if (target) target.classList.add('active');
+        }
+
+        function showToast(message) {
+            const el = document.getElementById('toast');
+            const text = document.getElementById('toastText');
+            if (!el || !text) return;
+            text.textContent = message;
+            el.classList.add('show');
+            clearTimeout(window.__reportToastTimer);
+            window.__reportToastTimer = setTimeout(() => el.classList.remove('show'), 2500);
+        }
+
+        function switchPeriod(period, btn) {
+            reportState.currentPeriod = period;
+            reportState.currentOffset = 0;
+            setPeriodButtons();
+            if (btn) btn.classList.add('active');
+            renderAll();
+        }
+
+        function navPeriod(direction) {
+            const maxOffset = REPORT_PERIODS[reportState.currentPeriod]?.maxOffset ?? 0;
+            const nextOffset = reportState.currentOffset + (direction > 0 ? -1 : 1);
+
+            if (nextOffset < 0) {
+                showToast('Bạn đang ở kỳ mới nhất');
+                return;
+            }
+            if (nextOffset > maxOffset) {
+                showToast('Không còn dữ liệu xa hơn trong khoảng 90 ngày');
+                return;
+            }
+
+            reportState.currentOffset = nextOffset;
+            renderAll();
+        }
+
+        function exportPDF() {
+            showToast('Đang chuẩn bị xuất PDF...');
+            renderAll();
+            setTimeout(() => window.print(), 300);
+        }
+
+        function exportJSON() {
+            const payload = {
+                generated_at: new Date().toISOString(),
+                period: reportState.currentPeriod,
+                offset: reportState.currentOffset,
+                report: getCurrentPeriodData(),
+                raw: reportState.data
+            };
+            const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `peaceflow-report-${reportState.currentPeriod}.json`;
+            link.click();
+            URL.revokeObjectURL(url);
+            showToast('Đã xuất JSON');
+        }
+
+        async function shareReport() {
+            const periodData = getCurrentPeriodData();
+            const summary = `Mood TB ${periodData.metrics.averageMood ?? '--'}/10, ${periodData.metrics.completedTasks} nhiệm vụ, ${periodData.metrics.journalEntries} bài journal`;
+            if (navigator.share) {
+                try {
+                    await navigator.share({
+                        title: 'PeaceFlow Report',
+                        text: `${periodData.dateLabel}: ${summary}`
+                    });
+                    showToast('Đã mở chia sẻ báo cáo');
+                    return;
+                } catch (error) {
+                    console.error('Share cancelled or failed:', error);
+                }
+            }
+            showToast('Báo cáo đã sẵn sàng để chia sẻ với chuyên gia');
+        }
+
+        async function initReportPage() {
+            try {
+                await auth.waitForAuth();
+                const payload = await apiClient.get('/reports/detail');
+                reportState.data = normalizeReportPayload(payload);
+                setPeriodButtons();
+                renderAll();
+            } catch (error) {
+                console.error('Failed to load report detail:', error);
+                showToast('Không tải được báo cáo từ API');
+            }
+        }
+
+        window.switchPeriod = switchPeriod;
+        window.navPeriod = navPeriod;
+        window.exportPDF = exportPDF;
+        window.exportJSON = exportJSON;
+        window.shareReport = shareReport;
+        window.showToast = showToast;
+
+        window.addEventListener('load', initReportPage);
+    </script>
+    <script src="../public/components/sidebar.js"></script>
     <script src="../public/js/user-sync.js"></script>
     <script src="../public/js/app.js"></script>
 </body>
 
 </html>
+

@@ -1,11 +1,17 @@
 import { apiClient } from './api-client.js';
 
 export const auth = {
-    async signup(email, password, fullName) {
+    _authCheckPromise: null,
+
+    async signup(email, password, fullName, consents = {}) {
         const data = await apiClient.post('/auth/register', {
-            email,
+            email: String(email || '').trim().toLowerCase(),
             password,
-            full_name: fullName
+            full_name: fullName,
+            display_name: fullName,
+            consent_privacy: consents.consent_privacy ?? true,
+            consent_terms: consents.consent_terms ?? true,
+            consent_sensitive_data: consents.consent_sensitive_data ?? false
         });
         this.setSession(data);
         return data;
@@ -13,38 +19,26 @@ export const auth = {
 
     async login(email, password) {
         const data = await apiClient.post('/auth/login', {
-            email,
+            email: String(email || '').trim().toLowerCase(),
             password
         });
         this.setSession(data);
         return data;
     },
 
-    logout() {
-        localStorage.removeItem('access_token');
-        localStorage.removeItem('user');
-        window.location.href = '/pages/login.html';
+    async logout() {
+        await apiClient.logout();
+        window.location.href = 'login.html';
     },
 
     setSession(data) {
-        // Handle Supabase session object or direct token
         const accessToken = data.session?.access_token || data.access_token;
+        const refreshToken = data.session?.refresh_token || data.refresh_token;
         const user = data.user;
 
-        if (accessToken) {
-            localStorage.setItem('access_token', accessToken);
-        }
-        if (user) {
-            // Map Supabase user metadata to our expected format if needed
-            const userToSave = {
-                id: user.id,
-                email: user.email,
-                full_name: user.user_metadata?.full_name || user.full_name,
-                display_name: user.user_metadata?.display_name || user.display_name,
-                avatar_url: user.user_metadata?.avatar_url || user.avatar_url
-            };
-            localStorage.setItem('user', JSON.stringify(userToSave));
-        }
+        if (accessToken) localStorage.setItem('access_token', accessToken);
+        if (refreshToken) localStorage.setItem('refresh_token', refreshToken);
+        if (user) localStorage.setItem('user', JSON.stringify(user));
     },
 
     getUser() {
@@ -56,142 +50,73 @@ export const auth = {
         return !!localStorage.getItem('access_token');
     },
 
-    // ===== Google Auth Integration =====
-
-    async signInWithGoogle() {
-        if (!window.supabaseClient) {
-            console.error("Supabase client is not initialized.");
-            return;
-        }
-        await window.supabaseClient.auth.signInWithOAuth({
-            provider: 'google',
-            options: {
-                redirectTo: window.location.origin + '/frontend/pages/dashboard.html'
-            }
-        });
-    },
-
-    async handleSupabaseRedirect() {
-        if (!window.supabaseClient) return;
-
-        // 1. Check for initial session (e.g. after redirect)
-        const { data: { session } } = await window.supabaseClient.auth.getSession();
-        if (session) {
-            await this.syncWithBackend(session);
+    async waitForAuth() {
+        if (!this.isAuthenticated()) {
+            return false;
         }
 
-        // 2. Listen for auth state changes
-        window.supabaseClient.auth.onAuthStateChange(async (event, session) => {
-            if (event === 'SIGNED_IN' && session) {
-                await this.syncWithBackend(session);
-            } else if (event === 'SIGNED_OUT') {
-                this.clearSession();
-            }
-        });
-    },
-
-    async syncWithBackend(session) {
-        if (!session) return;
-        
-        const lastSynced = localStorage.getItem('last_supabase_session_id');
-        if (lastSynced === session.access_token) return;
-
-        console.log("Syncing Supabase session with backend...");
-        try {
-            const data = await apiClient.post('/auth/sync-google', {
-                supabase_token: session.access_token
-            });
-
-            this.setSession(data);
-            localStorage.setItem('last_supabase_session_id', session.access_token);
-            
-            // Re-trigger UI update
-            window.updateGlobalUI && window.updateGlobalUI();
-            
-            // Clear hash if still present
-            if (window.location.hash) {
-                window.history.replaceState(null, null, window.location.pathname);
-            }
-        } catch (error) {
-            console.error("Failed to sync with backend:", error);
+        if (!this._authCheckPromise) {
+            this._authCheckPromise = apiClient.get('/me')
+                .then((user) => {
+                    if (user) {
+                        const current = this.getUser() || {};
+                        localStorage.setItem('user', JSON.stringify({ ...current, ...user }));
+                    }
+                    return true;
+                })
+                .catch((error) => {
+                    console.error('Auth verification failed:', error);
+                    this.clearSession();
+                    return false;
+                })
+                .finally(() => {
+                    this._authCheckPromise = null;
+                });
         }
+
+        return this._authCheckPromise;
     },
 
     clearSession() {
         localStorage.removeItem('access_token');
+        localStorage.removeItem('refresh_token');
         localStorage.removeItem('user');
-        localStorage.removeItem('last_supabase_session_id');
-    },
-
-    /**
-     * Helper for pages to wait until auth is fully initialized/synced
-     */
-    async waitForAuth() {
-        // If already authenticated, return true
-        if (this.isAuthenticated()) return true;
-
-        // If there's a hash with access_token, we are likely in a redirect flow
-        if (window.location.hash.includes('access_token')) {
-            console.log("Auth redirect detected, waiting for sync...");
-            
-            // Wait for up to 5 seconds for access_token to appear in localStorage
-            return new Promise((resolve) => {
-                let attempts = 0;
-                const interval = setInterval(() => {
-                    attempts++;
-                    if (this.isAuthenticated()) {
-                        clearInterval(interval);
-                        resolve(true);
-                    } else if (attempts > 50) { // 5 seconds
-                        clearInterval(interval);
-                        resolve(false);
-                    }
-                }, 100);
-            });
-        }
-
-        return false;
     }
 };
 
-// Initialize Supabase Listener on load
 function initAuthAndUI() {
-    auth.handleSupabaseRedirect();
-    
-    // Expose global for the onclick buttons
-    window.signInWithGoogle = () => auth.signInWithGoogle();
-    
-    // Global UI updater helper
     window.updateGlobalUI = () => {
         if (window.UserSync) {
             window.UserSync.sync();
-        } else {
-            // Fallback for when UserSync is not loaded
-            const user = auth.getUser();
-            if (user) {
-                const name = user.display_name || user.full_name || "Người dùng";
-                document.querySelectorAll('.user-name, .ph-name').forEach(el => el.innerText = name);
-                
-                if (user.avatar_url) {
-                    document.querySelectorAll('.user-avatar, .user-avatar-mini, .ph-avatar').forEach(el => {
-                        el.style.backgroundImage = `url('${user.avatar_url}')`;
-                        el.style.backgroundSize = 'cover';
-                        el.style.backgroundPosition = 'center';
-                        el.innerText = ''; // Clear fallback emoji
-                    });
-                }
-            }
+            return;
+        }
+
+        const user = auth.getUser();
+        if (!user) return;
+
+        const name = user.display_name || user.full_name || 'Nguoi dung';
+        document.querySelectorAll('.user-name, .ph-name').forEach(el => {
+            el.innerText = name;
+        });
+
+        if (user.avatar_url) {
+            document.querySelectorAll('.user-avatar, .user-avatar-mini, .ph-avatar').forEach(el => {
+                el.style.backgroundImage = `url('${user.avatar_url}')`;
+                el.style.backgroundSize = 'cover';
+                el.style.backgroundPosition = 'center';
+                el.innerText = '';
+            });
         }
     };
 
-    // Run UI update on load
+    window.handleLogout = () => auth.logout();
     window.updateGlobalUI();
 }
 
 if (typeof document !== 'undefined') {
+    initAuthAndUI();
+
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', initAuthAndUI);
-    } else {
-        initAuthAndUI();
     }
 }

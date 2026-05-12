@@ -4,6 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="../public/favicon.jpg" type="image/svg+xml">
     <title>PeaceFlow — Chi Tiết Nhiệm Vụ</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Patrick+Hand&display=swap"
@@ -1471,86 +1472,11 @@
     </div>
 
     <!-- Sidebar Overlay -->
-    <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
 
-    <!-- Mobile Topbar -->
-    <div class="mobile-topbar">
-        <button class="mobile-menu-btn" onclick="toggleSidebar()">☰</button>
-        <a href="index.html" style="display:flex;align-items:center;gap:8px;text-decoration:none;">
-            <div
-                style="width:32px;height:32px;background:var(--mint);border-radius:8px;border:2px solid var(--mint-dark);display:flex;align-items:center;justify-content:center;font-size:1rem;box-shadow:2px 2px 0px var(--mint-dark);">
-                🌿</div>
-            <span style="font-size:1.1rem;font-weight:800;color:var(--text-primary);">Peace<span
-                    style="color:var(--mint-dark);">Flow</span></span>
-        </a>
-        <span
-            style="background:var(--peach-light);padding:3px 10px;border-radius:50px;font-size:0.75rem;font-weight:700;color:var(--peach-dark);border:1.5px solid var(--peach);">⭐
-            295 XP</span>
-    </div>
-
-    <!-- Sidebar -->
-    <aside class="sidebar" id="sidebar">
-        <a href="index.html" class="sidebar-logo">
-            <div class="logo-icon">🌿</div>
-            <div class="logo-text">Peace<span>Flow</span></div>
-        </a>
-
-        <nav class="sidebar-nav">
-            <div class="nav-section-label">Chính</div>
-            <a href="dashboard.html" class="nav-item ">
-                <span class="ni">🏡</span> Tổng quan
-            </a>
-            <a href="mood-checkin.html" class="nav-item ">
-                <span class="ni">💭</span> Tâm trạng
-            </a>
-            <a href="tasks.html" class="nav-item active">
-                <span class="ni">🎮</span> Nhiệm vụ
-            </a>
-            <a href="journal.html" class="nav-item ">
-                <span class="ni">📝</span> Nhật ký
-            </a>
-
-            <div class="nav-section-label" style="margin-top:8px;">Kết nối</div>
-            <a href="experts.html" class="nav-item ">
-                <span class="ni">🩺</span> Chuyên gia
-            </a>
-            <a href="community.html" class="nav-item ">
-                <span class="ni">👥</span> Cộng đồng
-            </a>
-
-            <div class="nav-section-label" style="margin-top:8px;">Phân tích</div>
-            <a href="report.html" class="nav-item ">
-                <span class="ni">📊</span> Báo cáo
-            </a>
-            <a href="achievements.html" class="nav-item ">
-                <span class="ni">🏅</span> Thành tích
-            </a>
-
-            <div class="nav-section-label" style="margin-top:8px;">Cài đặt</div>
-            <a href="profile.html" class="nav-item ">
-                <span class="ni">👤</span> Hồ sơ
-            </a>
-            <a href="settings.html" class="nav-item ">
-                <span class="ni">⚙️</span> Cài đặt
-            </a>
-            <a href="#" class="nav-item" onclick="handleLogout()" style="color:var(--coral); margin-top: 10px; border-top: 1px dashed var(--kraft-light); padding-top: 15px;">
-                <span class="ni">🚪</span> Đăng xuất
-            </a>
-        </nav>
-
-        <div class="sidebar-bottom">
-            <div class="user-card-mini">
-                <div class="user-avatar-mini">🐱</div>
-                <div class="user-info-mini">
-                    <div class="user-name" data-user-field="display_name">Khách hàng giả lập</div>
-                    <div class="user-level">⭐ 295 XP · Level 2</div>
-                </div>
-            </div>
-            <a href="emergency.html" class="emergency-btn">
-                🆘 Hỗ trợ khẩn cấp
-            </a>
-        </div>
-    </aside>
+    <!-- Shared Sidebar -->
+    <div id="sharedSidebarOverlayMount"></div>
+    <div id="sharedMobileTopbarMount"></div>
+    <div id="sharedSidebarMount"></div>
 
     <!-- Main Content -->
     <main class="main-content">
@@ -1801,8 +1727,8 @@
         </div>
     </main>
 
-    <script src="../public/js/tasks-data.js"></script>
-    <script>
+    <script type="application/json" data-legacy="tasks-static-disabled"></script>
+    <script type="application/json" data-legacy="task-detail-static-disabled">
         // ============================================================
         // STATE
         // ============================================================
@@ -2136,11 +2062,674 @@
         // Init
         window.onload = initTask;
     </script>
+    <script type="module">
+        import { apiClient } from '../public/js/api-client.js';
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="../public/js/supabase-config.js"></script>
+        const taskDetailState = {
+            allTasks: [],
+            currentTask: null,
+            progress: null,
+            user: null,
+            currentPhase: 1,
+            timerInterval: null,
+            breathInterval: null,
+            totalSeconds: 300,
+            remainingSeconds: 300,
+            isPaused: false,
+            isCompleted: false,
+            stepsCompleted: new Set(),
+            feedbackEmoji: null
+        };
+
+        const TASK_DETAIL_FACTS = [
+            'Ban khong he don doc. Moi lan hoan thanh mot nhiem vu nho deu la mot tin hieu phuc hoi co that.',
+            'Di tung buoc nho van la tien len. Nhip on dinh quan trong hon toc do.',
+            'Khi co the diu lai, tam tri thuong se theo sau. Hay cho minh them mot chut thoi gian.',
+            'Mot nhiem vu don gian nhung hoan thanh tron ven thuong hieu qua hon rat nhieu so voi co qua suc.'
+        ];
+
+        function escapeHtml(value) {
+            return String(value ?? '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        function normalizeArray(value) {
+            if (Array.isArray(value)) return value;
+            if (typeof value === 'string') {
+                try {
+                    const parsed = JSON.parse(value);
+                    return Array.isArray(parsed) ? parsed : [];
+                } catch (error) {
+                    return [];
+                }
+            }
+            return [];
+        }
+
+        function getTaskMeta(task) {
+            if (!task?.metadata) return {};
+            if (typeof task.metadata === 'string') {
+                try {
+                    return JSON.parse(task.metadata);
+                } catch (error) {
+                    return {};
+                }
+            }
+            return task.metadata;
+        }
+
+        function getTaskIcon(task) {
+            return getTaskMeta(task).icon || task?.icon || '🌱';
+        }
+
+        function getTaskDescription(task) {
+            return task?.description || getTaskMeta(task).objective || 'Nhiệm vụ này chưa có mô tả chi tiết.';
+        }
+
+        function getTaskDurationLabel(task) {
+            const minutes = Number(task?.duration_minutes || 0);
+            if (!minutes) return 'Tùy chọn';
+            return minutes === 1 ? '1 phút' : `${minutes} phút`;
+        }
+
+        function getTaskSectionId(task) {
+            if (task?.category === 'emergency') return 'emergency';
+            return task?.difficulty || 'easy';
+        }
+
+        function getDifficultyLabel(task) {
+            const sectionId = getTaskSectionId(task);
+            if (sectionId === 'emergency') return '🔴 Khẩn cấp';
+            if (sectionId === 'medium') return '🟡 Trung bình';
+            if (sectionId === 'hard') return '🟠 Nâng cao';
+            return '🟢 Dễ';
+        }
+
+        function getBadgeClass(task) {
+            const sectionId = getTaskSectionId(task);
+            if (sectionId === 'emergency') return 'badge-coral';
+            if (sectionId === 'medium') return 'badge-yellow';
+            if (sectionId === 'hard') return 'badge-peach';
+            return 'badge-mint';
+        }
+
+        function isBreathingTask(task) {
+            const title = (task?.title || '').toLowerCase();
+            return task?.category === 'breathing' || title.includes('thở') || title.includes('breathing');
+        }
+
+        function formatTimer(seconds) {
+            const safeSeconds = Math.max(0, Number(seconds) || 0);
+            const minutes = Math.floor(safeSeconds / 60);
+            const remainder = safeSeconds % 60;
+            return `${minutes}:${String(remainder).padStart(2, '0')}`;
+        }
+
+        function updateHeader(progress, user) {
+            const xp = progress?.xp ?? progress?.total_xp ?? 0;
+            const level = progress?.level ?? progress?.current_level ?? 1;
+            const displayName = user?.display_name || user?.full_name || 'Bạn';
+            const mobileXp = document.querySelector('.mobile-topbar span[style*="background:var(--peach-light)"]');
+            const feedbackTitle = document.querySelector('.fp-title');
+            const feedbackSubtitle = document.querySelector('.fp-subtitle');
+
+            document.querySelectorAll('.user-name').forEach((el) => {
+                el.innerText = displayName;
+            });
+            document.querySelectorAll('.user-level').forEach((el) => {
+                el.innerText = `⭐ ${xp} XP · Level ${level}`;
+            });
+            if (mobileXp) {
+                mobileXp.innerText = `⭐ ${xp} XP`;
+            }
+            if (feedbackTitle) {
+                feedbackTitle.innerText = `Tuyệt vời, ${displayName}! 🎉`;
+            }
+            if (feedbackSubtitle && taskDetailState.currentTask) {
+                feedbackSubtitle.innerText = `Bạn vừa hoàn thành "${taskDetailState.currentTask.title}". Hệ thống đã ghi nhận kết quả vào lịch sử nhiệm vụ của bạn.`;
+            }
+        }
+
+        function renderTaskInfoCard(task) {
+            const card = document.querySelectorAll('.detail-right .info-card')[0];
+            if (!card) return;
+
+            const statusText = task.completed
+                ? `Đã hoàn thành ${task.completion_count || 1} lần`
+                : task.in_progress
+                    ? 'Đang thực hiện'
+                    : 'Chưa bắt đầu';
+
+            card.innerHTML = `
+                <div class="ic-title">📊 Thông tin nhiệm vụ</div>
+                <div class="ic-stat-row">
+                    <span class="ic-stat-label">Mã nhiệm vụ</span>
+                    <span class="ic-stat-val">${escapeHtml(task.code || task.id)}</span>
+                </div>
+                <div class="ic-stat-row">
+                    <span class="ic-stat-label">Cấp độ</span>
+                    <span class="ic-stat-val">${escapeHtml(getDifficultyLabel(task))}</span>
+                </div>
+                <div class="ic-stat-row">
+                    <span class="ic-stat-label">Thời gian</span>
+                    <span class="ic-stat-val">${escapeHtml(getTaskDurationLabel(task))}</span>
+                </div>
+                <div class="ic-stat-row">
+                    <span class="ic-stat-label">Phần thưởng</span>
+                    <span class="ic-stat-val" style="color:var(--peach-dark);">+${task.xp_reward || 0} XP ⭐</span>
+                </div>
+                <div class="ic-stat-row">
+                    <span class="ic-stat-label">Danh mục</span>
+                    <span class="ic-stat-val">${escapeHtml(task.category || 'general')}</span>
+                </div>
+                <div class="ic-stat-row">
+                    <span class="ic-stat-label">Trạng thái</span>
+                    <span class="ic-stat-val" style="color:${task.completed ? 'var(--mint-dark)' : task.in_progress ? 'var(--blue)' : 'var(--text-secondary)'};">${escapeHtml(statusText)}</span>
+                </div>
+            `;
+        }
+
+        function renderStatusCard(task) {
+            const card = document.querySelectorAll('.detail-right .info-card')[1];
+            if (!card) return;
+
+            const recommended = task.recommended ? 'Có trong gợi ý hôm nay' : 'Không nằm trong nhóm ưu tiên hôm nay';
+            const stepsCount = normalizeArray(task.steps).length;
+            const triggers = normalizeArray(task.tags).slice(0, 3);
+
+            card.innerHTML = `
+                <div class="ic-title">🧭 Trạng thái của bạn</div>
+                <div class="community-stat">
+                    <div class="cs-num">${task.completion_count || 0}</div>
+                    <div class="cs-label">lần bạn đã hoàn thành nhiệm vụ này</div>
+                    <div class="cs-bar">
+                        <div class="cs-bar-fill" style="width:${Math.min(100, (task.completion_count || 0) * 20)}%"></div>
+                    </div>
+                    <div style="font-size:0.72rem;color:var(--text-secondary);">${escapeHtml(recommended)}</div>
+                    <div style="font-size:0.72rem;color:var(--text-secondary);margin-top:8px;">${stepsCount} bước thực hiện${triggers.length ? ` · tags: ${escapeHtml(triggers.join(', '))}` : ''}</div>
+                </div>
+            `;
+        }
+
+        function renderBenefits(task) {
+            const benefitsList = document.getElementById('benefitsList');
+            if (!benefitsList) return;
+
+            const meta = getTaskMeta(task);
+            const benefits = normalizeArray(meta.benefits);
+
+            if (!benefits.length) {
+                benefitsList.innerHTML = '<div class="benefit-item"><span>Chưa có ghi chú lợi ích khoa học riêng cho nhiệm vụ này.</span></div>';
+                return;
+            }
+
+            benefitsList.innerHTML = benefits.map((benefit) => `
+                <div class="benefit-item">
+                    <span class="benefit-icon">💡</span>
+                    <span>${escapeHtml(benefit)}</span>
+                </div>
+            `).join('');
+        }
+
+        function renderRelatedTasks(task) {
+            const relatedTasksDiv = document.getElementById('relatedTasks');
+            if (!relatedTasksDiv) return;
+
+            const relatedTasks = taskDetailState.allTasks
+                .filter((candidate) => candidate.id !== task.id && getTaskSectionId(candidate) === getTaskSectionId(task))
+                .slice(0, 4);
+
+            if (!relatedTasks.length) {
+                relatedTasksDiv.innerHTML = '<div style="font-size:0.8rem;color:var(--text-secondary);padding:10px;">Chưa có nhiệm vụ liên quan trong cùng nhóm.</div>';
+                return;
+            }
+
+            relatedTasksDiv.innerHTML = relatedTasks.map((candidate) => `
+                <a href="task-detail.html?id=${encodeURIComponent(candidate.id)}" class="related-task">
+                    <div class="rt-icon">${escapeHtml(getTaskIcon(candidate))}</div>
+                    <div>
+                        <div class="rt-name">${escapeHtml(candidate.title)}</div>
+                        <div class="rt-meta">${escapeHtml(getDifficultyLabel(candidate))} · +${candidate.xp_reward || 0} XP</div>
+                    </div>
+                </a>
+            `).join('');
+        }
+
+        function renderStressFact() {
+            const display = document.getElementById('stressFactDisplay');
+            if (!display) return;
+            display.innerText = TASK_DETAIL_FACTS[Math.floor(Math.random() * TASK_DETAIL_FACTS.length)];
+            return;
+
+            if (typeof STRESS_FACTS !== 'undefined' && Array.isArray(STRESS_FACTS) && STRESS_FACTS.length) {
+                display.innerText = STRESS_FACTS[Math.floor(Math.random() * STRESS_FACTS.length)];
+                return;
+            }
+
+            display.innerText = 'Bạn không hề đơn độc. Mỗi lần hoàn thành một nhiệm vụ nhỏ đều là một tín hiệu phục hồi có thật.';
+        }
+
+        function renderTaskDetail(task) {
+            taskDetailState.currentTask = task;
+            taskDetailState.totalSeconds = Math.max(60, Number(task.duration_minutes || 5) * 60);
+            taskDetailState.remainingSeconds = taskDetailState.totalSeconds;
+            taskDetailState.isPaused = false;
+            taskDetailState.isCompleted = false;
+            taskDetailState.stepsCompleted = new Set();
+
+            const meta = getTaskMeta(task);
+            const steps = normalizeArray(task.steps);
+            const safetyNotes = normalizeArray(task.safety_notes);
+            const preparation = normalizeArray(meta.preparation);
+            const benefits = normalizeArray(meta.benefits);
+            const tags = normalizeArray(task.tags);
+            const objective = meta.objective || task.description || null;
+            const quote = meta.quote || 'Mỗi nhiệm vụ nhỏ hoàn thành là một bước tiến rõ ràng của quá trình hồi phục.';
+            const sectionId = getTaskSectionId(task);
+            const badgeClass = getBadgeClass(task);
+            const isBreathing = isBreathingTask(task);
+            const breadcrumb = document.getElementById('breadcrumbTitle');
+            const hero = document.getElementById('taskHero');
+            const icon = document.getElementById('taskIcon');
+            const title = document.getElementById('taskTitle');
+            const description = document.getElementById('taskDesc');
+            const quoteNode = document.getElementById('taskQuote');
+            const metaNode = document.getElementById('taskMeta');
+            const prepContainer = document.getElementById('prepContainer');
+            const prepList = document.getElementById('prepList');
+            const stepList = document.getElementById('stepList');
+            const safetyContainer = document.getElementById('safetyContainer');
+            const safetyList = document.getElementById('safetyList');
+            const ruleContainer = document.getElementById('ruleContainer');
+            const ruleText = document.getElementById('ruleText');
+            const timerPhaseLabel = document.getElementById('timerPhaseLabel');
+            const timerPhaseText = document.getElementById('timerPhaseText');
+            const breathingScene = document.getElementById('breathingScene');
+            const roundCounter = document.getElementById('roundCounter');
+            const breathLabel = document.getElementById('breathLabel');
+            const breathCount = document.getElementById('breathCount');
+
+            if (breadcrumb) breadcrumb.innerText = task.title;
+            if (hero) hero.className = `paper-card task-hero cat-${sectionId}`;
+            if (icon) {
+                icon.innerText = getTaskIcon(task);
+                icon.className = `th-icon ${sectionId}`;
+            }
+            if (title) title.innerText = task.title;
+            if (description) description.innerText = getTaskDescription(task);
+            if (quoteNode) quoteNode.innerText = quote;
+            if (metaNode) {
+                metaNode.innerHTML = `
+                    <span class="badge-pill ${badgeClass}">${escapeHtml(getDifficultyLabel(task))}</span>
+                    <span class="badge-pill badge-mint">⏱ ${escapeHtml(getTaskDurationLabel(task))}</span>
+                    <span class="badge-pill badge-peach">⭐ ${task.xp_reward || 0} XP</span>
+                    ${tags.slice(0, 3).map((tag) => `<span class="badge-pill" style="background:var(--sky-light);color:#4a90aa;border:1.5px solid var(--sky);">${escapeHtml(tag)}</span>`).join('')}
+                `;
+            }
+
+            if (prepContainer && prepList) {
+                if (preparation.length) {
+                    prepList.innerHTML = preparation.map((item) => `<li>${escapeHtml(item)}</li>`).join('');
+                    prepContainer.style.display = 'block';
+                } else {
+                    prepContainer.style.display = 'none';
+                }
+            }
+
+            if (stepList) {
+                stepList.innerHTML = steps.length
+                    ? steps.map((step, index) => `
+                        <div class="step-item" onclick="toggleStep(this, ${index})">
+                            <div class="step-num">${index + 1}</div>
+                            <div class="step-content">
+                                <div class="step-text">${escapeHtml(step)}</div>
+                            </div>
+                        </div>
+                    `).join('')
+                    : '<div style="font-size:0.82rem;color:var(--text-secondary);">Nhiệm vụ này chưa có checklist chi tiết.</div>';
+            }
+
+            if (safetyContainer && safetyList) {
+                if (safetyNotes.length) {
+                    safetyList.innerHTML = safetyNotes.map((item) => `<li>${escapeHtml(item)}</li>`).join('');
+                    safetyContainer.style.display = 'block';
+                } else {
+                    safetyContainer.style.display = 'none';
+                }
+            }
+
+            if (ruleContainer && ruleText) {
+                if (objective) {
+                    ruleText.innerText = objective;
+                    ruleContainer.style.display = 'block';
+                } else {
+                    ruleContainer.style.display = 'none';
+                }
+            }
+
+            renderBenefits({ ...task, metadata: { ...meta, benefits } });
+            renderRelatedTasks(task);
+            renderTaskInfoCard(task);
+            renderStatusCard(task);
+            renderStressFact();
+
+            if (timerPhaseLabel) {
+                timerPhaseLabel.innerText = `🧘 Thực hiện — ${task.title}`;
+            }
+            if (timerPhaseText) {
+                timerPhaseText.innerText = isBreathing
+                    ? 'Hít vào chậm và sâu theo nhịp hiển thị.'
+                    : 'Đi theo từng bước và nhấn Hoàn thành khi đã xong.';
+            }
+            if (breathingScene) {
+                breathingScene.style.display = isBreathing ? 'block' : 'none';
+            }
+            if (roundCounter) {
+                roundCounter.style.display = isBreathing ? 'flex' : 'none';
+            }
+            if (breathLabel) breathLabel.innerText = 'Hít vào';
+            if (breathCount) breathCount.innerText = '4';
+
+            updateTimerDisplay();
+            switchPhase(1);
+        }
+
+        function updateTimerDisplay() {
+            const timerDisplay = document.getElementById('timerDisplay');
+            const ring = document.getElementById('timerRing');
+            if (timerDisplay) {
+                timerDisplay.innerText = formatTimer(taskDetailState.remainingSeconds);
+            }
+            if (ring) {
+                const ratio = taskDetailState.totalSeconds > 0
+                    ? taskDetailState.remainingSeconds / taskDetailState.totalSeconds
+                    : 1;
+                ring.style.strokeDashoffset = 440 - (440 * ratio);
+            }
+        }
+
+        function stopBreathingAnimation() {
+            if (taskDetailState.breathInterval) {
+                clearInterval(taskDetailState.breathInterval);
+                taskDetailState.breathInterval = null;
+            }
+        }
+
+        function startBreathingAnimation() {
+            stopBreathingAnimation();
+
+            if (!isBreathingTask(taskDetailState.currentTask)) return;
+
+            const circle = document.getElementById('breathCircle');
+            const label = document.getElementById('breathLabel');
+            const count = document.getElementById('breathCount');
+            const phases = [
+                { name: 'inhale', label: 'Hít vào', count: '4' },
+                { name: 'hold', label: 'Giữ', count: '4' },
+                { name: 'exhale', label: 'Thở ra', count: '6' }
+            ];
+            let phaseIndex = 0;
+
+            const applyPhase = () => {
+                const phase = phases[phaseIndex];
+                if (circle) circle.className = `breath-circle ${phase.name}`;
+                if (label) label.innerText = phase.label;
+                if (count) count.innerText = phase.count;
+                phaseIndex = (phaseIndex + 1) % phases.length;
+            };
+
+            applyPhase();
+            taskDetailState.breathInterval = setInterval(applyPhase, 4000);
+        }
+
+        function stopAllTimers() {
+            if (taskDetailState.timerInterval) {
+                clearInterval(taskDetailState.timerInterval);
+                taskDetailState.timerInterval = null;
+            }
+            stopBreathingAnimation();
+        }
+
+        function switchPhase(nextPhase) {
+            taskDetailState.currentPhase = nextPhase;
+
+            document.querySelectorAll('.phase-item').forEach((el, index) => {
+                el.className = 'phase-item';
+                if (index + 1 === nextPhase) el.classList.add('active');
+                if (index + 1 < nextPhase) el.classList.add('done');
+            });
+
+            document.querySelectorAll('.phase-panel').forEach((panel) => panel.classList.remove('active'));
+            document.getElementById(`phase-${nextPhase}`)?.classList.add('active');
+
+            if (nextPhase !== 2) {
+                stopBreathingAnimation();
+            }
+        }
+
+        async function startTask() {
+            const task = taskDetailState.currentTask;
+            if (!task) return;
+
+            if (!task.in_progress && !task.completed) {
+                try {
+                    await apiClient.post(`/tasks/${task.id}/start`, {});
+                    task.in_progress = true;
+                } catch (error) {
+                    console.error('Failed to start task:', error);
+                }
+            }
+
+            taskDetailState.isPaused = false;
+            switchPhase(2);
+
+            const timerPhaseText = document.getElementById('timerPhaseText');
+            if (timerPhaseText) {
+                timerPhaseText.innerText = isBreathingTask(task)
+                    ? 'Giữ nhịp thở theo vòng lặp hiển thị.'
+                    : 'Bắt đầu thực hiện theo các bước ở phần chuẩn bị.';
+            }
+
+            if (taskDetailState.totalSeconds > 0) {
+                if (taskDetailState.timerInterval) {
+                    clearInterval(taskDetailState.timerInterval);
+                }
+
+                taskDetailState.timerInterval = setInterval(() => {
+                    if (taskDetailState.isPaused) return;
+
+                    taskDetailState.remainingSeconds -= 1;
+                    updateTimerDisplay();
+
+                    if (taskDetailState.remainingSeconds <= 0) {
+                        completeTask();
+                    }
+                }, 1000);
+            }
+
+            startBreathingAnimation();
+            renderTaskInfoCard(task);
+            renderStatusCard(task);
+        }
+
+        function pauseTimer() {
+            taskDetailState.isPaused = !taskDetailState.isPaused;
+            const pauseBtn = document.getElementById('pauseBtn');
+            const timerPhaseText = document.getElementById('timerPhaseText');
+
+            if (pauseBtn) {
+                pauseBtn.innerText = taskDetailState.isPaused ? '▶ Tiếp tục' : '⏸ Tạm dừng';
+            }
+            if (timerPhaseText) {
+                timerPhaseText.innerText = taskDetailState.isPaused ? 'Đã tạm dừng.' : 'Tiếp tục theo nhịp của bạn.';
+            }
+        }
+
+        function resetTimer() {
+            taskDetailState.isPaused = true;
+            taskDetailState.remainingSeconds = taskDetailState.totalSeconds;
+            updateTimerDisplay();
+            const pauseBtn = document.getElementById('pauseBtn');
+            const timerPhaseText = document.getElementById('timerPhaseText');
+            if (pauseBtn) {
+                pauseBtn.innerText = '▶ Tiếp tục';
+            }
+            if (timerPhaseText) {
+                timerPhaseText.innerText = 'Đã đưa nhiệm vụ về trạng thái sẵn sàng.';
+            }
+        }
+
+        async function completeTask() {
+            const task = taskDetailState.currentTask;
+            if (!task || taskDetailState.isCompleted) return;
+
+            taskDetailState.isCompleted = true;
+            stopAllTimers();
+            let completionSucceeded = false;
+
+            try {
+                const result = await apiClient.post(`/tasks/${task.id}/complete`, {
+                    self_rating_before: null,
+                    self_rating_after: null,
+                    notes: null
+                });
+
+                task.completed = true;
+                task.in_progress = false;
+                task.completion_count = (task.completion_count || 0) + 1;
+
+                if (result?.progress) {
+                    taskDetailState.progress = {
+                        ...taskDetailState.progress,
+                        ...result.progress,
+                        xp: result.progress.total_xp,
+                        level: result.progress.current_level,
+                        streak: result.progress.current_streak
+                    };
+                    updateHeader(taskDetailState.progress, taskDetailState.user);
+                }
+
+                const xpEarned = result?.xp_earned ?? task.xp_reward ?? 0;
+                const xpEarnedNode = document.getElementById('xpEarned');
+                if (xpEarnedNode) {
+                    xpEarnedNode.innerText = `+${xpEarned} XP`;
+                }
+
+                renderTaskInfoCard(task);
+                renderStatusCard({ ...task, recommended: task.recommended });
+                localStorage.setItem('peaceflow_dashboard_refresh', '1');
+                window.dispatchEvent(new Event('peaceflow-dashboard-refresh'));
+                completionSucceeded = true;
+            } catch (error) {
+                console.error('Failed to complete task:', error);
+                taskDetailState.isCompleted = false;
+                return;
+            }
+
+            if (completionSucceeded) {
+                switchPhase(3);
+                fireConfetti();
+            }
+        }
+
+        function fireConfetti() {
+            const container = document.getElementById('confettiContainer');
+            if (!container) return;
+
+            const colors = ['#A8D5BA', '#FFD93D', '#FF8B8B', '#A8D8EA', '#C3AED6'];
+            container.innerHTML = '';
+
+            for (let index = 0; index < 100; index += 1) {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti-piece';
+                confetti.style.left = `${Math.random() * 100}vw`;
+                confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                confetti.style.width = `${Math.random() * 8 + 5}px`;
+                confetti.style.height = `${Math.random() * 12 + 8}px`;
+                confetti.style.animationDuration = `${Math.random() * 3 + 2}s`;
+                confetti.style.animationDelay = `${Math.random() * 0.5}s`;
+                container.appendChild(confetti);
+            }
+
+            setTimeout(() => {
+                container.innerHTML = '';
+            }, 5000);
+        }
+
+        function toggleStep(element, index) {
+            element.classList.toggle('done');
+            if (element.classList.contains('done')) {
+                taskDetailState.stepsCompleted.add(index);
+            } else {
+                taskDetailState.stepsCompleted.delete(index);
+            }
+        }
+
+        function selectFeedback(button, emoji) {
+            taskDetailState.feedbackEmoji = emoji;
+            document.querySelectorAll('.fp-emoji-btn').forEach((item) => item.classList.remove('selected'));
+            button.classList.add('selected');
+        }
+
+        function shareTask() {
+            const url = window.location.href;
+            if (navigator.clipboard?.writeText) {
+                navigator.clipboard.writeText(url).catch(() => {});
+            }
+            alert('Đã sao chép liên kết nhiệm vụ vào clipboard.');
+        }
+
+        async function loadTaskDetailFromApi() {
+            try {
+                const [tasks, dashboard] = await Promise.all([
+                    apiClient.get('/tasks'),
+                    apiClient.get('/dashboard')
+                ]);
+
+                taskDetailState.allTasks = Array.isArray(tasks) ? tasks : [];
+                taskDetailState.progress = dashboard?.progress || null;
+                taskDetailState.user = dashboard?.user || null;
+
+                const taskId = new URLSearchParams(window.location.search).get('id');
+                const recommendedIds = new Set((dashboard?.tasks || []).map((task) => task.id));
+                const task = taskDetailState.allTasks.find((item) => item.id === taskId) || taskDetailState.allTasks[0];
+
+                if (!task) return;
+
+                task.recommended = recommendedIds.has(task.id);
+                taskDetailState.allTasks = taskDetailState.allTasks.map((item) => ({
+                    ...item,
+                    recommended: recommendedIds.has(item.id)
+                }));
+
+                updateHeader(taskDetailState.progress, taskDetailState.user);
+                renderTaskDetail(task);
+            } catch (error) {
+                console.error('Failed to load task detail from API:', error);
+            }
+        }
+
+        window.switchPhase = switchPhase;
+        window.startTask = startTask;
+        window.pauseTimer = pauseTimer;
+        window.resetTimer = resetTimer;
+        window.completeTask = completeTask;
+        window.toggleStep = toggleStep;
+        window.selectFeedback = selectFeedback;
+        window.shareTask = shareTask;
+
+        window.addEventListener('load', () => {
+            loadTaskDetailFromApi();
+        });
+    </script>
+    <script src="../public/components/sidebar.js"></script>
     <script src="../public/js/user-sync.js"></script>
     <script src="../public/js/app.js"></script>
 </body>
 
 </html>
+

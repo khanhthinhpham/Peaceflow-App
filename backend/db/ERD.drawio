@@ -1,0 +1,160 @@
+<mxfile host="65bd71144e">
+    <diagram id="peaceflow-erd" name="PeaceFlow ERD">
+        <mxGraphModel dx="1309" dy="628" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="3840" pageHeight="2160" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="title" value="&lt;font style=&quot;font-size:22px;&quot;&gt;&lt;b&gt;PeaceFlow Database ERD&lt;/b&gt;&lt;/font&gt;&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;Editable draw.io version reconstructed from backend migrations&lt;/font&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;" parent="1" vertex="1">
+                    <mxGeometry x="30" y="20" width="500" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="users" value="&lt;b&gt;users&lt;/b&gt;&lt;hr&gt;&lt;font color=&quot;#666666&quot;&gt;PK&lt;/font&gt; id&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;UK&lt;/font&gt; email&lt;br&gt;phone&lt;br&gt;password_hash&lt;br&gt;full_name&lt;br&gt;display_name&lt;br&gt;gender&lt;br&gt;status&lt;br&gt;last_login_at&lt;br&gt;created_at&lt;br&gt;updated_at" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;align=left;spacingLeft=8;spacingTop=6;" parent="1" vertex="1">
+                    <mxGeometry x="40" y="110" width="230" height="240" as="geometry"/>
+                </mxCell>
+                <mxCell id="refresh_tokens" value="&lt;b&gt;refresh_tokens&lt;/b&gt;&lt;hr&gt;&lt;font color=&quot;#666666&quot;&gt;PK&lt;/font&gt; id&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;FK&lt;/font&gt; user_id&lt;br&gt;token_hash&lt;br&gt;expires_at&lt;br&gt;revoked_at&lt;br&gt;device_info&lt;br&gt;ip_address&lt;br&gt;created_at" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;align=left;spacingLeft=8;spacingTop=6;" parent="1" vertex="1">
+                    <mxGeometry x="40" y="390" width="230" height="190" as="geometry"/>
+                </mxCell>
+                <mxCell id="user_profiles" value="&lt;b&gt;user_profiles&lt;/b&gt;&lt;hr&gt;&lt;font color=&quot;#666666&quot;&gt;PK&lt;/font&gt; id&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;FK, UK&lt;/font&gt; user_id&lt;br&gt;occupation&lt;br&gt;relationship_status&lt;br&gt;sleep_target_hours&lt;br&gt;preferred_task_duration&lt;br&gt;stress_triggers&lt;br&gt;goals&lt;br&gt;personalization_weights&lt;br&gt;updated_at" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;align=left;spacingLeft=8;spacingTop=6;" parent="1" vertex="1">
+                    <mxGeometry x="320" y="110" width="250" height="220" as="geometry"/>
+                </mxCell>
+                <mxCell id="user_progress" value="&lt;b&gt;user_progress&lt;/b&gt;&lt;hr&gt;&lt;font color=&quot;#666666&quot;&gt;PK&lt;/font&gt; id&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;FK, UK&lt;/font&gt; user_id&lt;br&gt;total_xp&lt;br&gt;current_level&lt;br&gt;current_streak&lt;br&gt;longest_streak&lt;br&gt;last_activity_date&lt;br&gt;badges_count&lt;br&gt;updated_at" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;align=left;spacingLeft=8;spacingTop=6;" parent="1" vertex="1">
+                    <mxGeometry x="320" y="370" width="250" height="200" as="geometry"/>
+                </mxCell>
+                <mxCell id="mood_checkins" value="&lt;b&gt;mood_checkins&lt;/b&gt;&lt;hr&gt;&lt;font color=&quot;#666666&quot;&gt;PK&lt;/font&gt; id&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;FK&lt;/font&gt; user_id&lt;br&gt;mood_score&lt;br&gt;anxiety_score&lt;br&gt;stress_score&lt;br&gt;energy_score&lt;br&gt;sleep_quality_score&lt;br&gt;dominant_emotion&lt;br&gt;triggers&lt;br&gt;created_at" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;align=left;spacingLeft=8;spacingTop=6;" parent="1" vertex="1">
+                    <mxGeometry x="650" y="110" width="240" height="220" as="geometry"/>
+                </mxCell>
+                <mxCell id="journal_entries" value="&lt;b&gt;journal_entries&lt;/b&gt;&lt;hr&gt;&lt;font color=&quot;#666666&quot;&gt;PK&lt;/font&gt; id&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;FK&lt;/font&gt; user_id&lt;br&gt;title&lt;br&gt;content&lt;br&gt;mood_before&lt;br&gt;mood_after&lt;br&gt;sentiment_score&lt;br&gt;tags&lt;br&gt;is_private&lt;br&gt;created_at&lt;br&gt;updated_at" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;align=left;spacingLeft=8;spacingTop=6;" parent="1" vertex="1">
+                    <mxGeometry x="650" y="380" width="240" height="230" as="geometry"/>
+                </mxCell>
+                <mxCell id="risk_snapshots" value="&lt;b&gt;risk_snapshots&lt;/b&gt;&lt;hr&gt;&lt;font color=&quot;#666666&quot;&gt;PK&lt;/font&gt; id&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;FK&lt;/font&gt; user_id&lt;br&gt;current_stress_index&lt;br&gt;current_anxiety_index&lt;br&gt;sleep_risk_index&lt;br&gt;burnout_risk_index&lt;br&gt;crisis_risk_level&lt;br&gt;recommendation_profile&lt;br&gt;explanation&lt;br&gt;calculated_at" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;align=left;spacingLeft=8;spacingTop=6;" parent="1" vertex="1">
+                    <mxGeometry x="930" y="110" width="250" height="220" as="geometry"/>
+                </mxCell>
+                <mxCell id="recommendation_logs" value="&lt;b&gt;recommendation_logs&lt;/b&gt;&lt;hr&gt;&lt;font color=&quot;#666666&quot;&gt;PK&lt;/font&gt; id&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;FK&lt;/font&gt; user_id&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;FK&lt;/font&gt; snapshot_id&lt;br&gt;recommended_tasks&lt;br&gt;context&lt;br&gt;created_at" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;align=left;spacingLeft=8;spacingTop=6;" parent="1" vertex="1">
+                    <mxGeometry x="930" y="390" width="250" height="160" as="geometry"/>
+                </mxCell>
+                <mxCell id="emergency_logs" value="&lt;b&gt;emergency_logs&lt;/b&gt;&lt;hr&gt;&lt;font color=&quot;#666666&quot;&gt;PK&lt;/font&gt; id&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;FK&lt;/font&gt; user_id&lt;br&gt;event_type&lt;br&gt;payload&lt;br&gt;created_at" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=12;align=left;spacingLeft=8;spacingTop=6;" parent="1" vertex="1">
+                    <mxGeometry x="930" y="590" width="250" height="140" as="geometry"/>
+                </mxCell>
+                <mxCell id="audit_logs" value="&lt;b&gt;audit_logs&lt;/b&gt;&lt;hr&gt;&lt;font color=&quot;#666666&quot;&gt;PK&lt;/font&gt; id&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;FK&lt;/font&gt; user_id&lt;br&gt;action&lt;br&gt;entity_type&lt;br&gt;entity_id&lt;br&gt;metadata&lt;br&gt;ip_address&lt;br&gt;user_agent&lt;br&gt;created_at" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=12;align=left;spacingLeft=8;spacingTop=6;" parent="1" vertex="1">
+                    <mxGeometry x="1220" y="590" width="240" height="190" as="geometry"/>
+                </mxCell>
+                <mxCell id="assessments" value="&lt;b&gt;assessments&lt;/b&gt;&lt;hr&gt;&lt;font color=&quot;#666666&quot;&gt;PK&lt;/font&gt; id&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;UK&lt;/font&gt; code&lt;br&gt;name&lt;br&gt;version&lt;br&gt;question_schema&lt;br&gt;scoring_rules&lt;br&gt;interpretation_rules&lt;br&gt;active&lt;br&gt;created_at" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;align=left;spacingLeft=8;spacingTop=6;" parent="1" vertex="1">
+                    <mxGeometry x="1220" y="110" width="240" height="200" as="geometry"/>
+                </mxCell>
+                <mxCell id="assessment_results" value="&lt;b&gt;assessment_results&lt;/b&gt;&lt;hr&gt;&lt;font color=&quot;#666666&quot;&gt;PK&lt;/font&gt; id&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;FK&lt;/font&gt; user_id&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;FK&lt;/font&gt; assessment_id&lt;br&gt;raw_answers&lt;br&gt;total_score&lt;br&gt;severity&lt;br&gt;dimension_scores&lt;br&gt;interpreted_result&lt;br&gt;created_at" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;align=left;spacingLeft=8;spacingTop=6;" parent="1" vertex="1">
+                    <mxGeometry x="1220" y="350" width="250" height="210" as="geometry"/>
+                </mxCell>
+                <mxCell id="tasks" value="&lt;b&gt;tasks&lt;/b&gt;&lt;hr&gt;&lt;font color=&quot;#666666&quot;&gt;PK&lt;/font&gt; id&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;UK&lt;/font&gt; code&lt;br&gt;title&lt;br&gt;category&lt;br&gt;difficulty&lt;br&gt;duration_minutes&lt;br&gt;xp_reward&lt;br&gt;tags&lt;br&gt;triggers_supported&lt;br&gt;active&lt;br&gt;updated_at" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=12;align=left;spacingLeft=8;spacingTop=6;" parent="1" vertex="1">
+                    <mxGeometry x="1540" y="110" width="240" height="220" as="geometry"/>
+                </mxCell>
+                <mxCell id="user_task_assignments" value="&lt;b&gt;user_task_assignments&lt;/b&gt;&lt;hr&gt;&lt;font color=&quot;#666666&quot;&gt;PK&lt;/font&gt; id&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;FK&lt;/font&gt; user_id&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;FK&lt;/font&gt; task_id&lt;br&gt;assigned_reason&lt;br&gt;recommendation_score&lt;br&gt;priority_level&lt;br&gt;status&lt;br&gt;assigned_at&lt;br&gt;due_at&lt;br&gt;completed_at" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=12;align=left;spacingLeft=8;spacingTop=6;" parent="1" vertex="1">
+                    <mxGeometry x="1540" y="380" width="250" height="220" as="geometry"/>
+                </mxCell>
+                <mxCell id="task_completions" value="&lt;b&gt;task_completions&lt;/b&gt;&lt;hr&gt;&lt;font color=&quot;#666666&quot;&gt;PK&lt;/font&gt; id&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;FK&lt;/font&gt; user_id&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;FK&lt;/font&gt; task_id&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;FK&lt;/font&gt; assignment_id&lt;br&gt;completion_notes&lt;br&gt;self_rating_before&lt;br&gt;self_rating_after&lt;br&gt;duration_actual&lt;br&gt;xp_earned&lt;br&gt;created_at" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=12;align=left;spacingLeft=8;spacingTop=6;" parent="1" vertex="1">
+                    <mxGeometry x="1760" y="720" width="250" height="220" as="geometry"/>
+                </mxCell>
+                <mxCell id="badges" value="&lt;b&gt;badges&lt;/b&gt;&lt;hr&gt;&lt;font color=&quot;#666666&quot;&gt;PK&lt;/font&gt; id&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;UK&lt;/font&gt; code&lt;br&gt;name&lt;br&gt;description&lt;br&gt;criteria&lt;br&gt;icon&lt;br&gt;rarity&lt;br&gt;created_at" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;align=left;spacingLeft=8;spacingTop=6;" parent="1" vertex="1">
+                    <mxGeometry x="1830" y="110" width="220" height="180" as="geometry"/>
+                </mxCell>
+                <mxCell id="user_badges" value="&lt;b&gt;user_badges&lt;/b&gt;&lt;hr&gt;&lt;font color=&quot;#666666&quot;&gt;PK&lt;/font&gt; id&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;FK&lt;/font&gt; user_id&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;FK&lt;/font&gt; badge_id&lt;br&gt;earned_at&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;UQ&lt;/font&gt; (user_id, badge_id)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;align=left;spacingLeft=8;spacingTop=6;" parent="1" vertex="1">
+                    <mxGeometry x="1830" y="350" width="220" height="150" as="geometry"/>
+                </mxCell>
+                <mxCell id="experts" value="&lt;b&gt;experts&lt;/b&gt;&lt;hr&gt;&lt;font color=&quot;#666666&quot;&gt;PK&lt;/font&gt; id&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;UK&lt;/font&gt; code&lt;br&gt;full_name&lt;br&gt;degree&lt;br&gt;status&lt;br&gt;rating&lt;br&gt;sessions_count&lt;br&gt;base_price&lt;br&gt;experience_years&lt;br&gt;specialties&lt;br&gt;active&lt;br&gt;updated_at" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=12;align=left;spacingLeft=8;spacingTop=6;" parent="1" vertex="1">
+                    <mxGeometry x="2150" y="110" width="230" height="220" as="geometry"/>
+                </mxCell>
+                <mxCell id="expert_bookings" value="&lt;b&gt;expert_bookings&lt;/b&gt;&lt;hr&gt;&lt;font color=&quot;#666666&quot;&gt;PK&lt;/font&gt; id&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;FK&lt;/font&gt; user_id&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;FK&lt;/font&gt; expert_id&lt;br&gt;session_type&lt;br&gt;starts_at&lt;br&gt;duration_minutes&lt;br&gt;price&lt;br&gt;status&lt;br&gt;created_at&lt;br&gt;updated_at" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=12;align=left;spacingLeft=8;spacingTop=6;" parent="1" vertex="1">
+                    <mxGeometry x="2150" y="380" width="230" height="210" as="geometry"/>
+                </mxCell>
+                <mxCell id="community_posts" value="&lt;b&gt;community_posts&lt;/b&gt;&lt;hr&gt;&lt;font color=&quot;#666666&quot;&gt;PK&lt;/font&gt; id&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;FK&lt;/font&gt; user_id&lt;br&gt;author_name&lt;br&gt;author_avatar&lt;br&gt;content&lt;br&gt;category&lt;br&gt;tags&lt;br&gt;is_anonymous&lt;br&gt;is_positive&lt;br&gt;created_at&lt;br&gt;updated_at" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=12;align=left;spacingLeft=8;spacingTop=6;" parent="1" vertex="1">
+                    <mxGeometry x="2480" y="110" width="240" height="220" as="geometry"/>
+                </mxCell>
+                <mxCell id="community_comments" value="&lt;b&gt;community_comments&lt;/b&gt;&lt;hr&gt;&lt;font color=&quot;#666666&quot;&gt;PK&lt;/font&gt; id&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;FK&lt;/font&gt; post_id&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;FK&lt;/font&gt; user_id&lt;br&gt;author_name&lt;br&gt;author_avatar&lt;br&gt;content&lt;br&gt;is_anonymous&lt;br&gt;created_at" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=12;align=left;spacingLeft=8;spacingTop=6;" parent="1" vertex="1">
+                    <mxGeometry x="2480" y="380" width="240" height="180" as="geometry"/>
+                </mxCell>
+                <mxCell id="community_reactions" value="&lt;b&gt;community_reactions&lt;/b&gt;&lt;hr&gt;&lt;font color=&quot;#666666&quot;&gt;PK&lt;/font&gt; id&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;FK&lt;/font&gt; post_id&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;FK&lt;/font&gt; user_id&lt;br&gt;reaction_type&lt;br&gt;created_at&lt;br&gt;&lt;font color=&quot;#666666&quot;&gt;UQ&lt;/font&gt; (post_id, user_id, reaction_type)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=12;align=left;spacingLeft=8;spacingTop=6;" parent="1" vertex="1">
+                    <mxGeometry x="2480" y="610" width="240" height="160" as="geometry"/>
+                </mxCell>
+                <mxCell id="legacy_note" value="&lt;b&gt;Note&lt;/b&gt;&lt;br&gt;`user_journals` exists in migration `0013_journals.sql` but is not used by current backend routes." style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;align=left;spacingLeft=8;spacingTop=8;" parent="1" vertex="1">
+                    <mxGeometry x="650" y="650" width="250" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="e1" value="1-N" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;startArrow=ERone;endArrow=ERmany;strokeColor=#6c8ebf;fontSize=11;" parent="1" source="users" target="refresh_tokens" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e2" value="1-1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;startArrow=ERone;endArrow=ERone;strokeColor=#6c8ebf;fontSize=11;" parent="1" source="users" target="user_profiles" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e3" value="1-1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;startArrow=ERone;endArrow=ERone;strokeColor=#d6b656;fontSize=11;" parent="1" source="users" target="user_progress" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e4" value="1-N" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;startArrow=ERone;endArrow=ERmany;strokeColor=#82b366;fontSize=11;" parent="1" source="users" target="mood_checkins" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e5" value="1-N" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;startArrow=ERone;endArrow=ERmany;strokeColor=#82b366;fontSize=11;" parent="1" source="users" target="journal_entries" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e6" value="1-N" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;startArrow=ERone;endArrow=ERmany;strokeColor=#82b366;fontSize=11;" parent="1" source="users" target="risk_snapshots" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e7" value="1-N" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;startArrow=ERone;endArrow=ERmany;strokeColor=#82b366;fontSize=11;" parent="1" source="users" target="assessment_results" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e8" value="1-N" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;startArrow=ERone;endArrow=ERmany;strokeColor=#82b366;fontSize=11;" parent="1" source="assessments" target="assessment_results" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e9" value="1-N" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;startArrow=ERone;endArrow=ERmany;strokeColor=#d79b00;fontSize=11;" parent="1" source="users" target="user_task_assignments" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e10" value="1-N" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;startArrow=ERone;endArrow=ERmany;strokeColor=#d79b00;fontSize=11;" parent="1" source="tasks" target="user_task_assignments" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e11" value="1-N" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;startArrow=ERone;endArrow=ERmany;strokeColor=#d79b00;fontSize=11;" parent="1" source="users" target="task_completions" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e12" value="1-N" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;startArrow=ERone;endArrow=ERmany;strokeColor=#d79b00;fontSize=11;" parent="1" source="tasks" target="task_completions" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e13" value="0..N" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;startArrow=ERone;endArrow=ERmany;strokeColor=#d79b00;fontSize=11;dashed=1;" parent="1" source="user_task_assignments" target="task_completions" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e14" value="1-N" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;startArrow=ERone;endArrow=ERmany;strokeColor=#d6b656;fontSize=11;" parent="1" source="users" target="user_badges" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e15" value="1-N" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;startArrow=ERone;endArrow=ERmany;strokeColor=#d6b656;fontSize=11;" parent="1" source="badges" target="user_badges" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e16" value="1-N" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;startArrow=ERone;endArrow=ERmany;strokeColor=#82b366;fontSize=11;" parent="1" source="users" target="recommendation_logs" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e17" value="0..N" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;startArrow=ERone;endArrow=ERmany;strokeColor=#82b366;fontSize=11;dashed=1;" parent="1" source="risk_snapshots" target="recommendation_logs" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e18" value="0..N" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;startArrow=ERzeroToOne;endArrow=ERmany;strokeColor=#b85450;fontSize=11;dashed=1;" parent="1" source="users" target="emergency_logs" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e19" value="0..N" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;startArrow=ERzeroToOne;endArrow=ERmany;strokeColor=#b85450;fontSize=11;dashed=1;" parent="1" source="users" target="audit_logs" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e20" value="1-N" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;startArrow=ERone;endArrow=ERmany;strokeColor=#9673a6;fontSize=11;" parent="1" source="users" target="expert_bookings" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e21" value="1-N" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;startArrow=ERone;endArrow=ERmany;strokeColor=#9673a6;fontSize=11;" parent="1" source="experts" target="expert_bookings" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e22" value="0..N" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;startArrow=ERzeroToOne;endArrow=ERmany;strokeColor=#b85450;fontSize=11;dashed=1;" parent="1" source="users" target="community_posts" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e23" value="1-N" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;startArrow=ERone;endArrow=ERmany;strokeColor=#b85450;fontSize=11;" parent="1" source="community_posts" target="community_comments" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e24" value="0..N" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;startArrow=ERzeroToOne;endArrow=ERmany;strokeColor=#b85450;fontSize=11;dashed=1;" parent="1" source="users" target="community_comments" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e25" value="1-N" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;startArrow=ERone;endArrow=ERmany;strokeColor=#b85450;fontSize=11;" parent="1" source="community_posts" target="community_reactions" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e26" value="1-N" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;startArrow=ERone;endArrow=ERmany;strokeColor=#b85450;fontSize=11;" parent="1" source="users" target="community_reactions" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>

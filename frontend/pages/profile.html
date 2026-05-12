@@ -4,6 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="../public/favicon.jpg" type="image/svg+xml">
     <title>PeaceFlow — Hồ Sơ Cá Nhân</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Patrick+Hand&display=swap"
@@ -1418,17 +1419,6 @@
             }
         }
     </style>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="../public/js/supabase-config.js"></script>
-    <script>
-      (async () => {
-        const { data } = await window.supabaseClient.auth.getSession();
-        if (!data?.session) {
-          window.location.href = 'login.html';
-          return;
-        }
-      })();
-    </script>
 </head>
 
 <body>
@@ -1466,83 +1456,10 @@
         </div>
     </div>
 
-    <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
-    <div class="mobile-topbar">
-        <button class="mobile-menu-btn" onclick="toggleSidebar()">☰</button>
-        <a href="index.html" style="display:flex;align-items:center;gap:8px;text-decoration:none;">
-            <div
-                style="width:32px;height:32px;background:var(--mint);border-radius:8px;border:2px solid var(--mint-dark);display:flex;align-items:center;justify-content:center;font-size:1rem;box-shadow:2px 2px 0px var(--mint-dark);">
-                🌿</div>
-            <span style="font-size:1.1rem;font-weight:800;color:var(--text-primary);">Peace<span
-                    style="color:var(--mint-dark);">Flow</span></span>
-        </a>
-        <span
-            style="background:var(--peach-light);padding:3px 10px;border-radius:50px;font-size:0.75rem;font-weight:700;color:var(--peach-dark);border:1.5px solid var(--peach);">⭐
-            295 XP</span>
-    </div>
-
-    <aside class="sidebar" id="sidebar">
-        <a href="index.html" class="sidebar-logo">
-            <div class="logo-icon">🌿</div>
-            <div class="logo-text">Peace<span>Flow</span></div>
-        </a>
-
-        <nav class="sidebar-nav">
-            <div class="nav-section-label">Chính</div>
-            <a href="dashboard.html" class="nav-item ">
-                <span class="ni">🏡</span> Tổng quan
-            </a>
-            <a href="mood-checkin.html" class="nav-item ">
-                <span class="ni">💭</span> Tâm trạng
-            </a>
-            <a href="tasks.html" class="nav-item ">
-                <span class="ni">🎮</span> Nhiệm vụ
-            </a>
-            <a href="journal.html" class="nav-item ">
-                <span class="ni">📝</span> Nhật ký
-            </a>
-
-            <div class="nav-section-label" style="margin-top:8px;">Kết nối</div>
-            <a href="experts.html" class="nav-item ">
-                <span class="ni">🩺</span> Chuyên gia
-            </a>
-            <a href="community.html" class="nav-item ">
-                <span class="ni">👥</span> Cộng đồng
-            </a>
-
-            <div class="nav-section-label" style="margin-top:8px;">Phân tích</div>
-            <a href="report.html" class="nav-item ">
-                <span class="ni">📊</span> Báo cáo
-            </a>
-            <a href="achievements.html" class="nav-item ">
-                <span class="ni">🏅</span> Thành tích
-            </a>
-
-            <div class="nav-section-label" style="margin-top:8px;">Cài đặt</div>
-            <a href="profile.html" class="nav-item active">
-                <span class="ni">👤</span> Hồ sơ
-            </a>
-            <a href="settings.html" class="nav-item ">
-                <span class="ni">⚙️</span> Cài đặt
-            </a>
-            <a href="#" class="nav-item" onclick="handleLogout()" style="color:var(--coral); margin-top: 10px; border-top: 1px dashed var(--kraft-light); padding-top: 15px;">
-                <span class="ni">🚪</span> Đăng xuất
-            </a>
-        </nav>
-
-        <div class="sidebar-bottom">
-            <div class="user-card-mini">
-                <div class="user-avatar-mini">🐱</div>
-                <div class="user-info-mini">
-                    <div class="user-name" data-user-field="display_name">Khách hàng giả lập</div>
-                    <div class="user-level">⭐ 295 XP · Level 2</div>
-                </div>
-            </div>
-            <a href="emergency.html" class="emergency-btn">
-                🆘 Hỗ trợ khẩn cấp
-            </a>
-        </div>
-    </aside>
+    <!-- Shared Sidebar -->
+    <div id="sharedSidebarOverlayMount"></div>
+    <div id="sharedMobileTopbarMount"></div>
+    <div id="sharedSidebarMount"></div>
 
     <main class="main-content">
         <div class="breadcrumb">
@@ -1561,7 +1478,7 @@
                 <div class="ph-info">
                     <div class="ph-name" data-user-field="display_name">Khách hàng giả lập</div>
                     <div class="ph-tagline">"Hôm nay là một ngày mới để tiến bộ 🌱"</div>
-                    <div class="ph-meta">
+                    <div class="ph-meta" id="profileHeroMeta">
                         <div class="ph-meta-item">📅 Tham gia: 01/05/2025</div>
                         <div class="ph-meta-item">📍 Hà Nội, Việt Nam</div>
                         <div class="ph-meta-item">🔥 Streak: 7 ngày</div>
@@ -1570,7 +1487,7 @@
                         <div class="ph-level-badge">⭐ Level 2 — Người Khám Phá</div>
                     </div>
                     <div class="ph-xp-bar-wrap">
-                        <div class="ph-xp-label"><span>295 XP</span><span>Còn 5 XP → Level 3</span></div>
+                        <div class="ph-xp-label"><span>-- XP</span><span>Còn 5 XP → Level 3</span></div>
                         <div class="ph-xp-bar">
                             <div class="ph-xp-fill" style="width:97.5%"></div>
                         </div>
@@ -1678,7 +1595,7 @@
                         <div class="form-row" style="margin-top:8px;">
                             <div class="form-group">
                                 <label class="form-label">Thời gian thiền mục tiêu/ngày</label>
-                                <select class="form-select">
+                                <select class="form-select" id="goalDuration">
                                     <option>5 phút</option>
                                     <option selected>10 phút</option>
                                     <option>15 phút</option>
@@ -1688,7 +1605,7 @@
                             </div>
                             <div class="form-group">
                                 <label class="form-label">Nhắc nhở hàng ngày lúc</label>
-                                <input type="time" class="form-input" value="08:00">
+                                <input type="time" class="form-input" value="08:00" id="reminderTime">
                             </div>
                         </div>
                         <div style="display:flex;justify-content:flex-end;">
@@ -1711,7 +1628,7 @@
 
                 <!-- TAB: ACTIVITY -->
                 <div class="tab-panel" id="panel-activity">
-                    <div class="stats-grid-4" style="margin-bottom:16px;">
+                    <div class="stats-grid-4" id="activityStatsGrid" style="margin-bottom:16px;">
                         <div class="paper-card stat-box">
                             <div class="sb-num">47</div>
                             <div class="sb-label">Nhiệm vụ hoàn thành</div>
@@ -1858,7 +1775,7 @@
             <!-- RIGHT SIDEBAR -->
             <div>
                 <!-- Streak & XP -->
-                <div class="paper-card right-card">
+                <div class="paper-card right-card" id="profileStreakCard">
                     <div class="rc-title">🔥 Chuỗi hoạt động</div>
                     <div class="streak-display">
                         <div class="sd-num">7 🔥</div>
@@ -1867,7 +1784,7 @@
                     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
                         <div
                             style="text-align:center;padding:8px;background:var(--cream);border-radius:var(--border-radius-sm);border:1.5px solid var(--kraft-light);">
-                            <div style="font-size:1rem;font-weight:800;color:var(--mint-dark);">295</div>
+                            <div style="font-size:1rem;font-weight:800;color:var(--mint-dark);">--</div>
                             <div style="font-size:0.62rem;color:var(--text-secondary);">Tổng XP</div>
                         </div>
                         <div
@@ -1879,7 +1796,7 @@
                 </div>
 
                 <!-- Quick Links -->
-                <div class="paper-card right-card">
+                <div class="paper-card right-card" id="profileTipCard">
                     <div class="rc-title">🔗 Truy cập nhanh</div>
                     <a href="dashboard.html" class="quick-link"><span class="ql-icon">🏡</span><span
                             class="ql-text">Tổng quan</span><span class="ql-arrow">›</span></a>
@@ -1901,8 +1818,10 @@
             </div>
         </div>
     </main>
+    <script src="../public/components/sidebar.js"></script>
     <script src="../public/js/user-sync.js"></script>
     <script type="module" src="../public/js/profile.js"></script>
     <script src="../public/js/app.js"></script>
 </body>
 </html>
+

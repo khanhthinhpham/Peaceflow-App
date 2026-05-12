@@ -4,6 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="../public/favicon.jpg" type="image/svg+xml">
     <title>PeaceFlow — Bài Tập Thiền Interactive</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Patrick+Hand&display=swap"
@@ -383,75 +384,10 @@
 </head>
 
 <body>
-    <div class="mobile-topbar">
-        <button class="mobile-menu-btn" onclick="document.getElementById('sidebar').classList.toggle('open')">☰</button>
-        <div style="font-weight:800;">PeaceFlow</div>
-        <div style="background:var(--peach-light);padding:3px 10px;border-radius:50px;font-size:0.75rem;font-weight:700;"
-            class="mobile-xp-display">⭐ 0 XP</div>
-    </div>
-
-    <aside class="sidebar" id="sidebar">
-        <a href="index.html" class="sidebar-logo">
-            <div class="logo-icon">🌿</div>
-            <div class="logo-text">Peace<span>Flow</span></div>
-        </a>
-
-        <nav class="sidebar-nav">
-            <div class="nav-section-label">Chính</div>
-            <a href="dashboard.html" class="nav-item ">
-                <span class="ni">🏡</span> Tổng quan
-            </a>
-            <a href="mood-checkin.html" class="nav-item ">
-                <span class="ni">💭</span> Tâm trạng
-            </a>
-            <a href="tasks.html" class="nav-item active">
-                <span class="ni">🎮</span> Nhiệm vụ
-            </a>
-            <a href="journal.html" class="nav-item ">
-                <span class="ni">📝</span> Nhật ký
-            </a>
-
-            <div class="nav-section-label" style="margin-top:8px;">Kết nối</div>
-            <a href="experts.html" class="nav-item ">
-                <span class="ni">🩺</span> Chuyên gia
-            </a>
-            <a href="community.html" class="nav-item ">
-                <span class="ni">👥</span> Cộng đồng
-            </a>
-
-            <div class="nav-section-label" style="margin-top:8px;">Phân tích</div>
-            <a href="report.html" class="nav-item ">
-                <span class="ni">📊</span> Báo cáo
-            </a>
-            <a href="achievements.html" class="nav-item ">
-                <span class="ni">🏅</span> Thành tích
-            </a>
-
-            <div class="nav-section-label" style="margin-top:8px;">Cài đặt</div>
-            <a href="profile.html" class="nav-item ">
-                <span class="ni">👤</span> Hồ sơ
-            </a>
-            <a href="settings.html" class="nav-item ">
-                <span class="ni">⚙️</span> Cài đặt
-            </a>
-            <a href="#" class="nav-item" onclick="handleLogout()" style="color:var(--coral); margin-top: 10px; border-top: 1px dashed var(--kraft-light); padding-top: 15px;">
-                <span class="ni">🚪</span> Đăng xuất
-            </a>
-        </nav>
-
-        <div class="sidebar-bottom">
-            <div class="user-card-mini">
-                <div class="user-avatar-mini">🐱</div>
-                <div class="user-info-mini">
-                    <div class="user-name">Khách hàng giả lập</div>
-                    <div class="user-level">⭐ 295 XP · Level 2</div>
-                </div>
-            </div>
-            <a href="emergency.html" class="emergency-btn">
-                🆘 Hỗ trợ khẩn cấp
-            </a>
-        </div>
-    </aside>
+    <!-- Shared Sidebar -->
+    <div id="sharedSidebarOverlayMount"></div>
+    <div id="sharedMobileTopbarMount"></div>
+    <div id="sharedSidebarMount"></div>
 
     <main class="main-content">
         <div class="breadcrumb"><a href="dashboard.html">🏡 Tổng quan</a><span>›</span><a href="tasks.html">🎮 Nhiệm
@@ -479,7 +415,7 @@
         </div>
     </main>
 
-    <script>
+    <script type="application/json" data-legacy="task-meditation-static-disabled">
         let timeLeft = 300, isRunning = false, interval = null;
         let userStats = { xp: 0, level: 1, name: 'Khách hàng giả lập' };
 
@@ -527,10 +463,125 @@
 
         window.onload = loadData;
     </script>
+    <script type="module">
+        import { apiClient } from '../public/js/api-client.js';
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="../public/js/supabase-config.js"></script>
+        const state = {
+            timeLeft: 300,
+            isRunning: false,
+            interval: null,
+            user: null,
+            progress: null,
+            task: null
+        };
+
+        function parseMeta(task) {
+            if (!task?.metadata) return {};
+            if (typeof task.metadata === 'string') {
+                try { return JSON.parse(task.metadata); } catch { return {}; }
+            }
+            return task.metadata;
+        }
+
+        function updateUI() {
+            const xp = state.progress?.xp ?? state.progress?.total_xp ?? 0;
+            const level = state.progress?.level ?? state.progress?.current_level ?? 1;
+            const name = state.user?.display_name || state.user?.full_name || 'Bạn';
+            document.querySelectorAll('.user-name').forEach((el) => el.innerText = name);
+            document.querySelectorAll('.user-level').forEach((el) => el.innerText = `⭐ ${xp} XP · Level ${level}`);
+            const mobileXp = document.querySelector('.mobile-xp-display');
+            if (mobileXp) mobileXp.innerText = `⭐ ${xp} XP`;
+        }
+
+        async function startMeditation() {
+            if (state.isRunning) return;
+            state.isRunning = true;
+            document.getElementById('startBtn').style.display = 'none';
+
+            if (state.task && !state.task.in_progress && !state.task.completed) {
+                try {
+                    await apiClient.post(`/tasks/${state.task.id}/start`, {});
+                    state.task.in_progress = true;
+                } catch (error) {
+                    console.error('Failed to start meditation task:', error);
+                }
+            }
+
+            state.interval = setInterval(() => {
+                state.timeLeft -= 1;
+                const minutes = Math.floor(state.timeLeft / 60);
+                const seconds = state.timeLeft % 60;
+                document.getElementById('timer').innerText = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+                if (state.timeLeft <= 0) {
+                    clearInterval(state.interval);
+                    finish();
+                }
+            }, 1000);
+        }
+
+        async function finish() {
+            let xp = 25;
+            try {
+                if (state.task) {
+                    const result = await apiClient.post(`/tasks/${state.task.id}/complete`, {
+                        self_rating_before: null,
+                        self_rating_after: null,
+                        notes: 'Meditation session completed'
+                    });
+                    xp = result?.xp_earned ?? xp;
+                    state.task.completed = true;
+                    state.task.in_progress = false;
+                    if (result?.progress) {
+                        state.progress = {
+                            ...state.progress,
+                            ...result.progress,
+                            xp: result.progress.total_xp,
+                            level: result.progress.current_level
+                        };
+                    }
+                    localStorage.setItem('peaceflow_dashboard_refresh', '1');
+                    window.dispatchEvent(new Event('peaceflow-dashboard-refresh'));
+                }
+            } catch (error) {
+                console.error('Failed to complete meditation task:', error);
+            }
+
+            document.querySelector('.meditation-arena').style.display = 'none';
+            document.getElementById('feedback').style.display = 'block';
+            const xpNode = document.querySelector('#feedback .xp-num');
+            if (xpNode) xpNode.innerText = `+${xp} XP`;
+            updateUI();
+        }
+
+        async function loadData() {
+            try {
+                const [tasks, dashboard] = await Promise.all([
+                    apiClient.get('/tasks'),
+                    apiClient.get('/dashboard')
+                ]);
+                state.user = dashboard?.user || null;
+                state.progress = dashboard?.progress || null;
+                state.task = (Array.isArray(tasks) ? tasks : []).find((task) => {
+                    const meta = parseMeta(task);
+                    const title = String(task.title || '').toLowerCase();
+                    return meta.legacy_code === '2.3' || task.code === '2.3' || task.category === 'meditation' || title.includes('thiền');
+                }) || null;
+            } catch (error) {
+                console.error('Failed to load meditation page data:', error);
+            }
+
+            updateUI();
+        }
+
+        window.startMeditation = startMeditation;
+
+        window.addEventListener('load', async () => {
+            await loadData();
+        });
+    </script>
+    <script src="../public/components/sidebar.js"></script>
     <script src="../public/js/app.js"></script>
 </body>
 
 </html>
+

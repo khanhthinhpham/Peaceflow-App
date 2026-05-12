@@ -4,6 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="../public/favicon.jpg" type="image/svg+xml">
     <title>Đăng Ký — PeaceFlow</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link
@@ -243,214 +244,78 @@
                 </button>
             </form>
 
-            <div class="divider">Hoặc</div>
-
-            <button type="button" class="btn-google" onclick="signInWithGoogle()">
-                <svg width="20" height="20" viewBox="0 0 48 48">
-                    <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
-                    <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.9c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
-                    <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
-                    <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
-                    <path fill="none" d="M0 0h48v48H0z"/>
-                </svg>
-                Đăng ký với Google
-            </button>
-
             <div class="auth-links">
                 Đã có tài khoản? <a href="login.html">Đăng nhập</a>
             </div>
         </div>
     </div>
+    <script type="module">
+        import { auth } from '../public/js/auth.js';
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="../public/js/supabase-config.js"></script>
+        const backendSignupForm = document.getElementById('signupForm');
+        const backendSignupBtn = document.getElementById('signupBtn');
+        const backendSignupMessage = document.getElementById('signupMessage');
 
-    <script>
-        const signupForm = document.getElementById('signupForm');
-        const signupBtn = document.getElementById('signupBtn');
-        const signupMessage = document.getElementById('signupMessage');
-
-        const nameInput = document.getElementById('name');
-        const emailInput = document.getElementById('email');
-        const passwordInput = document.getElementById('password');
-        const confirmPasswordInput = document.getElementById('confirmPassword');
-        const agreeTermsInput = document.getElementById('agreeTerms');
-
-        function showMessage(message, type = 'info') {
-            signupMessage.className = 'auth-message ' + type;
-            signupMessage.textContent = message;
+        function showBackendMessage(message, type = 'info') {
+            backendSignupMessage.className = 'auth-message ' + type;
+            backendSignupMessage.textContent = message;
         }
 
-        function clearMessage() {
-            signupMessage.className = 'auth-message';
-            signupMessage.textContent = '';
-        }
+        backendSignupForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            event.stopImmediatePropagation();
 
-        function isValidEmail(email) {
-            return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-        }
+            const fullName = document.getElementById('name').value.trim();
+            const email = document.getElementById('email').value.trim().toLowerCase();
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            const agreed = document.getElementById('agreeTerms').checked;
 
-        async function redirectIfLoggedIn() {
-            if (!window.supabaseClient) return;
-
-            try {
-                const { data, error } = await window.supabaseClient.auth.getSession();
-                if (error) throw error;
-
-                if (data?.session) {
-                    window.location.href = 'dashboard.html';
-                }
-            } catch (err) {
-                console.error('Không thể kiểm tra session:', err);
-            }
-        }
-
-        redirectIfLoggedIn();
-
-        signupForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            clearMessage();
-
-            const fullName = nameInput.value.trim();
-            const email = emailInput.value.trim().toLowerCase();
-            const password = passwordInput.value;
-            const confirmPassword = confirmPasswordInput.value;
-            const agreed = agreeTermsInput.checked;
-
-            if (!window.supabaseClient) {
-                showMessage('Chưa khởi tạo được Supabase client. Vui lòng kiểm tra file js/supabase-config.js', 'error');
+            if (!fullName || fullName.length < 2) {
+                showBackendMessage('Vui long nhap ten hien thi it nhat 2 ky tu.', 'error');
                 return;
             }
-
-            if (!fullName) {
-                showMessage('Vui lòng nhập tên hiển thị của bạn.', 'error');
-                nameInput.focus();
+            if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                showBackendMessage('Email chua hop le.', 'error');
                 return;
             }
-
-            if (fullName.length < 2) {
-                showMessage('Tên hiển thị cần có ít nhất 2 ký tự.', 'error');
-                nameInput.focus();
+            if (!password || password.length < 8) {
+                showBackendMessage('Mat khau can co it nhat 8 ky tu.', 'error');
                 return;
             }
-
-            if (!email) {
-                showMessage('Vui lòng nhập email.', 'error');
-                emailInput.focus();
-                return;
-            }
-
-            if (!isValidEmail(email)) {
-                showMessage('Định dạng email chưa hợp lệ.', 'error');
-                emailInput.focus();
-                return;
-            }
-
-            if (!password) {
-                showMessage('Vui lòng nhập mật khẩu.', 'error');
-                passwordInput.focus();
-                return;
-            }
-
-            if (password.length < 8) {
-                showMessage('Mật khẩu cần có ít nhất 8 ký tự.', 'error');
-                passwordInput.focus();
-                return;
-            }
-
             if (password !== confirmPassword) {
-                showMessage('Mật khẩu xác nhận không khớp.', 'error');
-                confirmPasswordInput.focus();
+                showBackendMessage('Mat khau xac nhan khong khop.', 'error');
                 return;
             }
-
             if (!agreed) {
-                showMessage('Bạn cần đồng ý với điều khoản và chính sách quyền riêng tư để tiếp tục.', 'error');
+                showBackendMessage('Ban can dong y dieu khoan de tiep tuc.', 'error');
                 return;
             }
 
-            signupBtn.disabled = true;
-            signupBtn.textContent = 'Đang tạo tài khoản...';
+            backendSignupBtn.disabled = true;
+            backendSignupBtn.textContent = 'Dang tao tai khoan...';
 
             try {
-                const { data, error } = await window.supabaseClient.auth.signUp({
-                    email,
-                    password,
-                    options: {
-                        data: {
-                            full_name: fullName,
-                            display_name: fullName
-                        },
-                        emailRedirectTo: window.location.origin + '/login.html'
-                    }
+                const data = await auth.signup(email, password, fullName, {
+                    consent_privacy: true,
+                    consent_terms: true,
+                    consent_sensitive_data: false
                 });
 
-                if (error) {
-                    throw error;
+                if (data?.session?.access_token) {
+                    showBackendMessage('Đăng ký thành công. Đang chuyển đến dashboard...', 'success');
+                    setTimeout(() => window.location.href = 'dashboard.html', 700);
+                } else {
+                    showBackendMessage('Đăng ký thành công. Vui lòng đăng nhập để tiếp tục.', 'success');
+                    backendSignupForm.reset();
                 }
-
-                const hasSession = !!data?.session;
-                const hasUser = !!data?.user;
-
-                if (hasUser && !hasSession) {
-                    showMessage(
-                        'Đăng ký thành công! PeaceFlow đã gửi email xác nhận đến hộp thư của bạn. Vui lòng kiểm tra email và xác nhận tài khoản trước khi đăng nhập.',
-                        'success'
-                    );
-                    signupForm.reset();
-                    return;
-                }
-
-                if (hasUser && hasSession) {
-                    showMessage('Đăng ký thành công! Đang chuyển bạn đến trang tổng quan...', 'success');
-                    setTimeout(() => {
-                        window.location.href = 'dashboard.html';
-                    }, 1200);
-                    return;
-                }
-
-                showMessage('Tài khoản đã được tạo. Vui lòng đăng nhập để tiếp tục.', 'success');
             } catch (error) {
-                console.error('Lỗi đăng ký:', error);
-
-                let friendlyMessage = 'Đăng ký thất bại. Vui lòng thử lại sau.';
-
-                if (error.message) {
-                    const msg = error.message.toLowerCase();
-
-                    if (msg.includes('user already registered')) {
-                        friendlyMessage = 'Email này đã được đăng ký. Vui lòng dùng email khác hoặc đăng nhập.';
-                    } else if (msg.includes('password')) {
-                        friendlyMessage = 'Mật khẩu chưa đáp ứng yêu cầu bảo mật.';
-                    } else if (msg.includes('invalid email')) {
-                        friendlyMessage = 'Email không hợp lệ. Vui lòng kiểm tra lại.';
-                    } else if (msg.includes('signup is disabled')) {
-                        friendlyMessage = 'Chức năng đăng ký hiện đang tạm khóa trên hệ thống.';
-                    } else {
-                        friendlyMessage = error.message;
-                    }
-                }
-
-                showMessage(friendlyMessage, 'error');
+                showBackendMessage( 'Đăng ký thất bại.');
             } finally {
-                signupBtn.disabled = false;
-                signupBtn.textContent = 'Đăng Ký';
+                backendSignupBtn.disabled = false;
+                backendSignupBtn.textContent = 'Dang Ky';
             }
-        });
-
-        async function signInWithGoogle() {
-            try {
-                const { data, error } = await window.supabaseClient.auth.signInWithOAuth({
-                    provider: 'google',
-                    options: {
-                        redirectTo: window.location.origin + '/frontend/pages/dashboard.html'
-                    }
-                });
-                if (error) throw error;
-            } catch (err) {
-                showMessage(err.message || 'Đăng nhập Google thất bại.', 'error');
-            }
-        }
+        }, true);
     </script>
 
     <script src="../public/js/app.js"></script>

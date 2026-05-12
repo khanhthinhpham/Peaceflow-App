@@ -6,12 +6,14 @@
   "scripts": {
     "dev": "nodemon src/server.js",
     "start": "node src/server.js",
+    "migrate": "node src/scripts/migrate.js",
     "seed:badges": "node src/scripts/seed-badges.js",
     "seed:assessments": "node src/scripts/seed-assessments.js",
+    "seed:experts": "node src/scripts/seed-experts.js",
+    "seed:community": "node src/scripts/seed-community.js",
     "import:tasks": "node src/scripts/import-tasks-from-js.js"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.49.1",
     "argon2": "^0.41.1",
     "cors": "^2.8.5",
     "dayjs": "^1.11.13",

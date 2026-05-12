@@ -1,71 +1,58 @@
-import { supabase } from '../../config/supabase.js';
-import { findUserByEmail, findUserById } from './auth.repository.js';
-import { env } from '../../config/env.js';
+import {
+  createDefaultProfile,
+  createDefaultProgress,
+  createUser,
+  findUserByEmail,
+  findUserById,
+  findValidRefreshToken,
+  revokeRefreshTokenByHash,
+  revokeRefreshTokenById,
+  saveRefreshToken
+} from './auth.repository.js';
+import crypto from 'crypto';
 import { db } from '../../config/db.js';
+import { hashPassword, verifyPassword } from '../../common/utils/hash.js';
+import { signAccessToken, signRefreshToken, verifyRefreshToken } from '../../common/utils/jwt.js';
 
 export async function register(data) {
-  const { email, password, full_name, display_name, ...consents } = data;
+  const normalizedEmail = String(data.email || '').trim().toLowerCase();
+  const { password, full_name, display_name, ...consents } = data;
 
-  const { data: authData, error } = await supabase.auth.signUp({
-    email,
-    password,
-    options: {
-      data: {
-        full_name,
-        display_name: display_name || full_name,
-        ...consents
-      }
-    }
+  const existing = await findUserByEmail(normalizedEmail);
+  if (existing) {
+    throw new Error('Email already registered');
+  }
+
+  const passwordHash = await hashPassword(password);
+  const user = await createUser({
+    email: normalizedEmail,
+    password_hash: passwordHash,
+    full_name,
+    display_name: display_name || full_name,
+    ...consents
   });
 
-  if (error) throw error;
+  await createDefaultProfile(user.id);
+  await createDefaultProgress(user.id);
 
-  // Trigger handle_new_user will sync data to public.users.
-  // We return the supabase session.
   return {
-    user: authData.user,
-    session: authData.session
+    user,
+    session: await createSession(user)
   };
 }
 
 export async function login(data) {
-  const { email, password } = data;
+  const email = String(data.email || '').trim();
+  const password = String(data.password || '');
 
-  const { data: authData, error } = await supabase.auth.signInWithPassword({
-    email,
-    password
-  });
-
-  if (error) throw error;
-
-  // Sync last_login_at in public.users
-  await db.query(
-    `update public.users set last_login_at = now() where id = $1`,
-    [authData.user.id]
-  );
-
-  return {
-    user: authData.user,
-    session: authData.session
-  };
-}
-
-export async function syncGoogle(supabaseToken) {
-  // Use supabase admin client to get user by token (or just trust the token if middleware does it)
-  const { data: { user: supabaseUser }, error } = await supabase.auth.getUser(supabaseToken);
-
-  if (error || !supabaseUser) {
-    throw new Error('Invalid Supabase token');
+  const user = await findUserByEmail(email);
+  if (!user || user.status !== 'active') {
+    throw new Error('Invalid email or password');
   }
 
-  const email = supabaseUser.email;
-
-  // Find user in our public.users (synced by trigger)
-  let user = await findUserByEmail(email);
-
-  if (!user) {
-    // If trigger failed, this is a safety fallback but usually not needed with correct trigger
-    throw new Error('User record not synced yet. Please try again in a few seconds.');
+  const passwordMatches = await verifyPassword(user.password_hash, password);
+  if (!passwordMatches) {
+    throw new Error('Invalid email or password');
   }
 
   await db.query(
@@ -74,17 +61,78 @@ export async function syncGoogle(supabaseToken) {
   );
 
   return {
-    user: {
-      id: user.id,
-      email: user.email,
-      full_name: user.full_name,
-      display_name: user.display_name,
-      avatar_url: user.avatar_url
-    },
-    // We don't sign our own tokens anymore, we use Supabase tokens.
-    // However, if the frontend needs our custom session format, we adapt.
-    access_token: supabaseToken,
-    // Note: refresh_token is not available here if we only have access_token.
-    // Usually syncGoogle is for OAuth flow where frontend already has the session.
+    user: sanitizeUser(user),
+    session: await createSession(user)
+  };
+}
+
+export async function refreshSession(refreshToken) {
+  const payload = verifyRefreshToken(refreshToken);
+  const tokenHash = hashRefreshToken(refreshToken);
+  const storedToken = await findValidRefreshToken(payload.sub, tokenHash);
+
+  if (!storedToken) {
+    throw new Error('Invalid or expired refresh token');
+  }
+
+  const user = await findUserById(payload.sub);
+  if (!user || user.status !== 'active') {
+    await revokeRefreshTokenById(storedToken.id);
+    throw new Error('Invalid or expired refresh token');
+  }
+
+  await revokeRefreshTokenById(storedToken.id);
+
+  return {
+    user: sanitizeUser(user),
+    session: await createSession(user)
+  };
+}
+
+export async function logout(refreshToken) {
+  const tokenHash = hashRefreshToken(refreshToken);
+  await revokeRefreshTokenByHash(tokenHash);
+}
+
+async function createSession(user) {
+  const payload = {
+    sub: user.id,
+    email: user.email,
+    full_name: user.full_name,
+    display_name: user.display_name
+  };
+
+  const accessToken = signAccessToken(payload);
+  const refreshToken = signRefreshToken(payload);
+  const refreshPayload = verifyRefreshToken(refreshToken);
+
+  await saveRefreshToken(
+    user.id,
+    hashRefreshToken(refreshToken),
+    new Date(refreshPayload.exp * 1000)
+  );
+
+  return {
+    access_token: accessToken,
+    refresh_token: refreshToken,
+    token_type: 'bearer'
+  };
+}
+
+function hashRefreshToken(token) {
+  return crypto.createHash('sha256').update(token).digest('hex');
+}
+
+function sanitizeUser(user) {
+  return {
+    id: user.id,
+    email: user.email,
+    full_name: user.full_name,
+    display_name: user.display_name,
+    avatar_url: user.avatar_url,
+    city: user.city,
+    country: user.country,
+    status: user.status,
+    created_at: user.created_at
   };
 }

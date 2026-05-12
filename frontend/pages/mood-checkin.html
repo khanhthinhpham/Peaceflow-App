@@ -4,6 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="../public/favicon.jpg" type="image/svg+xml">
     <title>PeaceFlow — Khảo Sát Tâm Trạng</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Patrick+Hand&display=swap"
@@ -123,6 +124,7 @@
             display: flex;
             flex-direction: column;
             gap: 4px;
+            overflow-y: auto;
         }
 
         .nav-item {
@@ -136,6 +138,11 @@
             font-weight: 600;
             font-size: 0.88rem;
             transition: var(--transition);
+            cursor: pointer;
+            border: none;
+            background: none;
+            width: 100%;
+            text-align: left;
         }
 
         .nav-item:hover {
@@ -1525,88 +1532,11 @@
     </div>
 
     <!-- Sidebar Overlay -->
-    <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
 
-    <!-- Mobile Topbar -->
-    <div class="mobile-topbar">
-        <button class="mobile-menu-btn" onclick="toggleSidebar()">☰</button>
-        <a href="index.html" style="display:flex;align-items:center;gap:8px;text-decoration:none;">
-            <div
-                style="width:32px;height:32px;background:var(--mint);border-radius:8px;border:2px solid var(--mint-dark);display:flex;align-items:center;justify-content:center;font-size:1rem;box-shadow:2px 2px 0px var(--mint-dark);">
-                🌿</div>
-            <span style="font-size:1.1rem;font-weight:800;color:var(--text-primary);">Peace<span
-                    style="color:var(--mint-dark);">Flow</span></span>
-        </a>
-        <div style="display:flex;align-items:center;gap:8px;">
-            <span
-                style="background:var(--peach-light);padding:3px 10px;border-radius:50px;font-size:0.75rem;font-weight:700;color:var(--peach-dark);border:1.5px solid var(--peach);">⭐
-                295 XP</span>
-        </div>
-    </div>
-
-    <!-- Sidebar -->
-    <aside class="sidebar" id="sidebar">
-        <a href="index.html" class="sidebar-logo">
-            <div class="logo-icon">🌿</div>
-            <div class="logo-text">Peace<span>Flow</span></div>
-        </a>
-
-        <nav class="sidebar-nav">
-            <div class="nav-section-label">Chính</div>
-            <a href="dashboard.html" class="nav-item ">
-                <span class="ni">🏡</span> Tổng quan
-            </a>
-            <a href="mood-checkin.html" class="nav-item active">
-                <span class="ni">💭</span> Tâm trạng
-            </a>
-            <a href="tasks.html" class="nav-item ">
-                <span class="ni">🎮</span> Nhiệm vụ
-            </a>
-            <a href="journal.html" class="nav-item ">
-                <span class="ni">📝</span> Nhật ký
-            </a>
-
-            <div class="nav-section-label" style="margin-top:8px;">Kết nối</div>
-            <a href="experts.html" class="nav-item ">
-                <span class="ni">🩺</span> Chuyên gia
-            </a>
-            <a href="community.html" class="nav-item ">
-                <span class="ni">👥</span> Cộng đồng
-            </a>
-
-            <div class="nav-section-label" style="margin-top:8px;">Phân tích</div>
-            <a href="report.html" class="nav-item ">
-                <span class="ni">📊</span> Báo cáo
-            </a>
-            <a href="achievements.html" class="nav-item ">
-                <span class="ni">🏅</span> Thành tích
-            </a>
-
-            <div class="nav-section-label" style="margin-top:8px;">Cài đặt</div>
-            <a href="profile.html" class="nav-item ">
-                <span class="ni">👤</span> Hồ sơ
-            </a>
-            <a href="settings.html" class="nav-item ">
-                <span class="ni">⚙️</span> Cài đặt
-            </a>
-            <a href="#" class="nav-item" onclick="handleLogout()" style="color:var(--coral); margin-top: 10px; border-top: 1px dashed var(--kraft-light); padding-top: 15px;">
-                <span class="ni">🚪</span> Đăng xuất
-            </a>
-        </nav>
-
-        <div class="sidebar-bottom">
-            <div class="user-card-mini">
-                <div class="user-avatar-mini">🐱</div>
-                <div class="user-info-mini">
-                    <div class="user-name" data-user-field="display_name">Khách hàng giả lập</div>
-                    <div class="user-level">⭐ 295 XP · Level 2</div>
-                </div>
-            </div>
-            <a href="emergency.html" class="emergency-btn">
-                🆘 Hỗ trợ khẩn cấp
-            </a>
-        </div>
-    </aside>
+    <!-- Shared Sidebar -->
+    <div id="sharedSidebarOverlayMount"></div>
+    <div id="sharedMobileTopbarMount"></div>
+    <div id="sharedSidebarMount"></div>
 
     <!-- Main Content -->
     <main class="main-content">
@@ -1616,7 +1546,7 @@
                 <div class="page-subtitle">Chọn phương thức phù hợp — PeaceCat luôn lắng nghe bạn 🐱</div>
             </div>
             <div style="display:flex;gap:8px;align-items:center;">
-                <span class="badge-pill badge-mint">✅ Check-in hôm nay: Chưa</span>
+                <span class="badge-pill badge-mint" id="todayCheckinBadge">✅ Check-in hôm nay: Chưa</span>
                 <a href="dashboard.html" class="btn-outline">← Dashboard</a>
             </div>
         </div>
@@ -1775,7 +1705,7 @@
         </div> <!-- End panel quick -->
     </main>
 
-    <script>
+    <script type="application/json" data-legacy="mood-checkin-static-disabled">
         // QUICK CHECK-IN SCRIPT
         let checkinData = { score: 5, mood: null, moodLabel: null, tags: new Set() };
 
@@ -1877,7 +1807,7 @@
 
         window.onload = loadData;
 
-        function submitCheckin() {
+        async function submitCheckin() {
             // Prepare Result
             document.getElementById('resultEmoji').innerText = checkinData.mood || '🌿';
             document.getElementById('resultMoodBadge').innerText = `${checkinData.mood || ''} ${checkinData.moodLabel || 'Bình thường'}`;
@@ -1908,6 +1838,66 @@
             }
             document.getElementById('suggestedTasks').innerHTML = taskHtml;
 
+            const accessToken = localStorage.getItem('access_token');
+            if (!accessToken) {
+                alert('Vui long dang nhap de luu du lieu tam trang.');
+                window.location.href = 'login.html';
+                return;
+            }
+
+            try {
+                const apiBaseUrl = (() => {
+                    const explicitOverride = window.__PEACEFLOW_API_BASE_URL__;
+                    if (typeof explicitOverride === 'string' && explicitOverride.trim()) {
+                        return explicitOverride.trim().replace(/\/+$/, '');
+                    }
+
+                    const storedOverride = localStorage.getItem('peaceflow_api_base_url');
+                    if (storedOverride && storedOverride.trim()) {
+                        return storedOverride.trim().replace(/\/+$/, '');
+                    }
+
+                    const { protocol, hostname, port, origin } = window.location;
+                    const isLocalHost = hostname === 'localhost' || hostname === '127.0.0.1';
+
+                    if (port === '4000') {
+                        return `${origin}/api/v1`;
+                    }
+
+                    if (isLocalHost) {
+                        return 'http://localhost:4000/api/v1';
+                    }
+
+                    if (port) {
+                        return `${protocol}//${hostname}:4000/api/v1`;
+                    }
+
+                    return `${origin}/api/v1`;
+                })();
+                const response = await fetch(`${apiBaseUrl}/moods`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${accessToken}`
+                    },
+                    body: JSON.stringify({
+                        mood_score: checkinData.score,
+                        anxiety_score: Math.max(0, 10 - checkinData.score),
+                        stress_score: Math.max(0, 10 - checkinData.score),
+                        energy_score: checkinData.score,
+                        sleep_quality_score: 5,
+                        dominant_emotion: checkinData.moodLabel || checkinData.mood,
+                        triggers: Array.from(checkinData.tags),
+                        notes: ''
+                    })
+                });
+                if (!response.ok) throw new Error('Mood API failed');
+            } catch (error) {
+                console.error('Could not save mood to API:', error);
+                alert('Khong luu duoc tam trang len server. Vui long thu lai.');
+                return;
+            }
+
             if (window.Store && window.UserModule) {
                 window.Store.addMoodEntry({ mood: checkinData.mood, level: checkinData.score, tags: Array.from(checkinData.tags), note: '' });
                 window.UserModule.addXP(10, 'checkin');
@@ -1935,11 +1925,435 @@
         // Dummy for tab safety
         function switchMode(mode, btn) { }
     </script>
+    <script>
+        (() => {
+            let submitting = false;
+            let checkinData = { score: 5, mood: null, moodLabel: null, tags: new Set() };
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="../public/js/supabase-config.js"></script>
+            function getApiBaseUrl() {
+                return 'https://standard-standings-raymond-laptop.trycloudflare.com/api/v1';
+            }
+            function getAuthHeaders() {
+                const accessToken = localStorage.getItem('access_token');
+                if (!accessToken) {
+                    alert('Vui lòng đăng nhập để lưu dữ liệu tâm trạng.');
+                    window.location.href = 'login.html';
+                    throw new Error('Missing access token');
+                }
+
+                return {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${accessToken}`
+                };
+            }
+
+            async function refreshAccessToken() {
+                const refreshToken = localStorage.getItem('refresh_token');
+                if (!refreshToken) {
+                    throw new Error('Missing refresh token');
+                }
+
+                const response = await fetch(`${getApiBaseUrl()}/auth/refresh`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        refresh_token: refreshToken
+                    })
+                });
+
+                const result = await response.json().catch(() => ({ success: false, message: 'Refresh failed' }));
+                if (!response.ok) {
+                    throw new Error(result.message || 'Refresh failed');
+                }
+
+                const data = result.data || result;
+                const nextAccessToken = data.session?.access_token || data.access_token;
+                const nextRefreshToken = data.session?.refresh_token || data.refresh_token;
+                const user = data.user;
+
+                if (!nextAccessToken || !nextRefreshToken) {
+                    throw new Error('Invalid refresh response');
+                }
+
+                localStorage.setItem('access_token', nextAccessToken);
+                localStorage.setItem('refresh_token', nextRefreshToken);
+                if (user) {
+                    localStorage.setItem('user', JSON.stringify(user));
+                }
+
+                return nextAccessToken;
+            }
+
+            async function fetchWithAuthRetry(url, options = {}, allowRetry = true) {
+                let headers = options.headers || {};
+                try {
+                    headers = {
+                        ...headers,
+                        ...getAuthHeaders()
+                    };
+                } catch (error) {
+                    throw error;
+                }
+
+                const response = await fetch(url, {
+                    ...options,
+                    headers
+                });
+
+                if (response.status === 401 && allowRetry) {
+                    try {
+                        const nextToken = await refreshAccessToken();
+                        const retriedResponse = await fetch(url, {
+                            ...options,
+                            headers: {
+                                ...options.headers,
+                                'Content-Type': headers['Content-Type'] || 'application/json',
+                                'Authorization': `Bearer ${nextToken}`
+                            }
+                        });
+                        return retriedResponse;
+                    } catch (error) {
+                        localStorage.removeItem('access_token');
+                        localStorage.removeItem('refresh_token');
+                        localStorage.removeItem('user');
+                        window.location.href = 'login.html';
+                        throw error;
+                    }
+                }
+
+                return response;
+            }
+
+            function escapeHtml(value) {
+                return String(value ?? '')
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#39;');
+            }
+
+            function normalizeTrigger(rawTag) {
+                const normalized = String(rawTag || '')
+                    .normalize('NFD')
+                    .replace(/[\u0300-\u036f]/g, '')
+                    .toLowerCase();
+
+                if (normalized.includes('cong viec')) return 'work';
+                if (normalized.includes('gia dinh')) return 'family';
+                if (normalized.includes('tinh cam')) return 'relationship';
+                if (normalized.includes('tai chinh')) return 'finance';
+                if (normalized.includes('suc khoe')) return 'health';
+                if (normalized.includes('co don')) return 'lonely';
+                if (normalized.includes('mat ngu')) return 'sleep_loss';
+                if (normalized.includes('mang xa hoi')) return 'social_media';
+                if (normalized.includes('hoc tap')) return 'study';
+                if (normalized.includes('khong ro')) return 'unknown';
+
+                return normalized.replace(/[^\w\s-]/g, '').trim().replace(/\s+/g, '_');
+            }
+
+            function deriveMoodPayload() {
+                const triggers = Array.from(checkinData.tags).map(normalizeTrigger);
+                const anxietyScore = checkinData.score <= 2 ? 9 : checkinData.score <= 4 ? 7 : checkinData.score <= 6 ? 5 : 3;
+                const stressScore = triggers.some((tag) => ['work', 'finance', 'study'].includes(tag))
+                    ? Math.min(10, anxietyScore + 1)
+                    : anxietyScore;
+                const energyScore = Math.max(1, Math.min(10, checkinData.score + (checkinData.score >= 7 ? 1 : 0)));
+                const sleepScore = triggers.includes('sleep_loss') ? 3 : null;
+
+                return {
+                    mood_score: checkinData.score,
+                    anxiety_score: anxietyScore,
+                    stress_score: stressScore,
+                    energy_score: energyScore,
+                    sleep_quality_score: sleepScore,
+                    dominant_emotion: checkinData.moodLabel || null,
+                    triggers,
+                    notes: Array.from(checkinData.tags).join(', ') || null
+                };
+            }
+
+            function getStatusBadge() {
+                return document.querySelector('#qs-4 .badge-pill[style*="background:var(--sky-light)"]');
+            }
+
+            function setStatusBadge(text) {
+                const badge = getStatusBadge();
+                if (badge) badge.innerText = text;
+            }
+
+            function isToday(value) {
+                if (!value) return false;
+                const date = new Date(value);
+                const now = new Date();
+                return date.getFullYear() === now.getFullYear()
+                    && date.getMonth() === now.getMonth()
+                    && date.getDate() === now.getDate();
+            }
+
+            function setTodayCheckinBadge(done, label = '') {
+                const badge = document.getElementById('todayCheckinBadge');
+                if (!badge) return;
+                badge.innerText = done
+                    ? `✅ Check-in hôm nay: Rồi${label ? ` · ${label}` : ''}`
+                    : '✅ Check-in hôm nay: Chưa';
+            }
+
+            function getTaskEmoji(category) {
+                const mapping = {
+                    breathing: '💨',
+                    meditation: '🧘',
+                    journal: '✍️',
+                    emergency: '🚨',
+                    sleep: '😴',
+                    reflection: '🙏'
+                };
+
+                return mapping[String(category || '').toLowerCase()] || '✨';
+            }
+
+            async function loadRemoteProgress() {
+                try {
+                    const user = JSON.parse(localStorage.getItem('user') || 'null');
+                    if (user) {
+                        const name = user.display_name || user.full_name || 'Người dùng';
+                        document.querySelectorAll('.user-name').forEach((el) => {
+                            el.innerText = name;
+                        });
+                    }
+
+                    const response = await fetchWithAuthRetry(`${getApiBaseUrl()}/progress`, {
+                        method: 'GET'
+                    });
+
+                    if (!response.ok) throw new Error('Progress API failed');
+
+                    const result = await response.json();
+                    const progress = result.data || result;
+                    const xp = progress?.xp ?? 0;
+                    const level = progress?.level ?? progress?.current_level ?? 1;
+
+                    document.querySelectorAll('.user-level').forEach((el) => {
+                        el.innerText = `⭐ ${xp} XP · Level ${level}`;
+                    });
+
+                    const topXp = document.querySelector('.mobile-topbar span[style*="background:var(--peach-light)"]');
+                    if (topXp) topXp.innerText = `⭐ ${xp} XP`;
+                } catch (error) {
+                    console.error('Could not load progress from API:', error);
+                }
+            }
+
+            async function syncTodayCheckinBadge() {
+                try {
+                    const response = await fetchWithAuthRetry(`${getApiBaseUrl()}/reports/detail`, {
+                        method: 'GET'
+                    });
+
+                    if (!response.ok) {
+                        setTodayCheckinBadge(false);
+                        return;
+                    }
+
+                    const result = await response.json();
+                    const report = result.data || result;
+                    const latestMood = report?.latest_mood || null;
+                    setTodayCheckinBadge(isToday(latestMood?.created_at), latestMood?.dominant_emotion || '');
+                } catch (error) {
+                    console.error('Could not load today check-in badge:', error);
+                    setTodayCheckinBadge(false);
+                }
+            }
+
+            async function fetchRecommendedTasks() {
+                try {
+                    const response = await fetchWithAuthRetry(`${getApiBaseUrl()}/tasks/recommended`, {
+                        method: 'GET'
+                    });
+
+                    if (!response.ok) throw new Error('Recommended tasks API failed');
+
+                    const result = await response.json();
+                    return result.data || result || [];
+                } catch (error) {
+                    console.error('Could not fetch recommended tasks:', error);
+                    return [];
+                }
+            }
+
+            function renderTaskSuggestions(tasks) {
+                const container = document.getElementById('suggestedTasks');
+                if (!container) return;
+
+                if (!tasks || !tasks.length) {
+                    container.innerHTML = `
+                        <div style="font-size:0.85rem;color:var(--text-secondary);">
+                            Hệ thống chưa có gợi ý mới. Bạn có thể mở danh sách nhiệm vụ để chọn bài phù hợp.
+                        </div>
+                    `;
+                    return;
+                }
+
+                container.innerHTML = tasks.slice(0, 3).map((task) => `
+                    <div class="rt-item" onclick="location.href='task-detail.html?id=${task.id}'">
+                        <div class="rt-icon">${getTaskEmoji(task.category)}</div>
+                        <div class="rt-info">
+                            <div class="rt-name">${escapeHtml(task.title)}</div>
+                            <div class="rt-meta">${escapeHtml(task.category || 'general')} • ${task.duration_minutes || 0} phút</div>
+                        </div>
+                        <div class="rt-xp">+${task.xp_reward || 0} XP</div>
+                    </div>
+                `).join('');
+            }
+
+            window.goCheckinStep = function goCheckinStepOverride(step) {
+                if (step === 2 && !checkinData.mood) {
+                    alert('Ban vui long chon mot tam trang truoc nhe!');
+                    return;
+                }
+
+                document.querySelectorAll('.checkin-step').forEach((section) => section.classList.remove('active'));
+                document.querySelectorAll('.si-dot').forEach((dot, index) => {
+                    const currentStep = index + 1;
+                    dot.classList.remove('active', 'done');
+                    if (currentStep < step) dot.classList.add('done');
+                    else if (currentStep === step) dot.classList.add('active');
+                });
+                document.querySelectorAll('.si-line').forEach((line, index) => {
+                    const currentStep = index + 2;
+                    line.classList.remove('done');
+                    if (currentStep <= step) line.classList.add('done');
+                });
+
+                document.getElementById(`qs-${step}`)?.classList.add('active');
+            };
+
+            window.switchMode = function switchModeOverride(_mode, btn) {
+                document.querySelectorAll('.mode-card').forEach((card) => card.classList.remove('active'));
+                btn?.classList.add('active');
+            };
+
+            window.loadData = loadRemoteProgress;
+
+            window.selectMood = function selectMoodOverride(btn, score, label) {
+                document.querySelectorAll('.mood-btn').forEach((button) => button.classList.remove('selected'));
+                btn.classList.add('selected');
+
+                checkinData.score = score;
+                checkinData.moodLabel = label;
+                checkinData.mood = btn.querySelector('.mood-emoji').innerText;
+
+                document.getElementById('mascotMoodEmoji').innerText = checkinData.mood;
+                document.getElementById('mascotMoodText').innerText = `Bạn đang cảm thấy "${label}". Bạn có thể cho mình biết cường độ cảm xúc này thế nào không?`;
+                document.getElementById('intensitySlider').value = score;
+                window.updateSlider(score);
+
+                setTimeout(() => {
+                    window.goCheckinStep(2);
+                }, 400);
+            };
+
+            window.updateSlider = function updateSliderOverride(val) {
+                checkinData.score = parseInt(val, 10);
+                document.getElementById('sliderVal').innerText = val;
+
+                let label = 'Trung bình';
+                if (val <= 3) label = 'Rất căng. Cần chăm sóc!';
+                else if (val <= 4) label = 'Hơi mệt / Căng nhẹ';
+                else if (val <= 6) label = 'Bình thường / Ổn định';
+                else if (val <= 8) label = 'Khá tốt / Thoải mái';
+                else label = 'Rất tuyệt vời';
+
+                document.getElementById('sliderValLabel').innerText = label;
+
+                const tree = document.getElementById('sliderTree');
+                if (val >= 7) tree.innerText = '🌸';
+                else if (val >= 4) tree.innerText = '🌿';
+                else tree.innerText = '🍂';
+            };
+
+            window.toggleTag = function toggleTagOverride(el) {
+                el.classList.toggle('selected');
+                const tagText = el.innerText.trim();
+                if (el.classList.contains('selected')) {
+                    checkinData.tags.add(tagText);
+                } else {
+                    checkinData.tags.delete(tagText);
+                }
+            };
+
+            window.submitCheckin = async function submitCheckinOverride() {
+                if (submitting) return;
+                submitting = true;
+
+                document.getElementById('resultEmoji').innerText = checkinData.mood || '🌿';
+                document.getElementById('resultMoodBadge').innerText = `${checkinData.mood || ''} ${checkinData.moodLabel || 'Bình thường'}`.trim();
+                document.getElementById('resultScoreBadge').innerText = `Mức ${checkinData.score}/10`;
+                document.getElementById('resultTitle').innerText = 'Đang lưu tâm trạng...';
+                document.getElementById('resultMsg').innerText = 'PeaceFlow đang ghi dữ liệu vào hệ thống và tạo gợi ý phù hợp.';
+                setStatusBadge('Đang lưu vào DB');
+
+                try {
+                    const response = await fetchWithAuthRetry(`${getApiBaseUrl()}/moods`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(deriveMoodPayload())
+                    });
+
+                    if (!response.ok) {
+                        const message = await response.text();
+                        throw new Error(message || 'Mood API failed');
+                    }
+
+                    const suggestedTasks = await fetchRecommendedTasks();
+                    renderTaskSuggestions(suggestedTasks);
+                    await loadRemoteProgress();
+                    await syncTodayCheckinBadge();
+
+                    document.getElementById('resultTitle').innerText = 'Đã lưu tâm trạng!';
+                    document.getElementById('resultMsg').innerText = 'Dữ liệu check-in đã được lưu vào DB và gợi ý đã được cập nhật.';
+                    setStatusBadge('Đã lưu vào DB');
+                    setTodayCheckinBadge(true, checkinData.moodLabel || '');
+                    window.goCheckinStep(4);
+                } catch (error) {
+                    console.error('Could not save mood to API:', error);
+                    document.getElementById('resultTitle').innerText = 'Chưa lưu được tâm trạng';
+                    document.getElementById('resultMsg').innerText = 'Bạn có thể thử lại sau vài giây.';
+                    setStatusBadge('Lưu thất bại');
+                    alert('Không lưu được tâm trạng lên server. Vui lòng thử lại.');
+                } finally {
+                    submitting = false;
+                }
+            };
+
+            window.resetCheckin = function resetCheckinOverride() {
+                checkinData = { score: 5, mood: null, moodLabel: null, tags: new Set() };
+                document.querySelectorAll('.mood-btn').forEach((button) => button.classList.remove('selected'));
+                document.querySelectorAll('.tag-btn').forEach((button) => button.classList.remove('selected'));
+                document.getElementById('suggestedTasks').innerHTML = '';
+                document.getElementById('intensitySlider').value = 5;
+                window.updateSlider(5);
+                setStatusBadge('Đang chờ lưu');
+                window.goCheckinStep(1);
+            };
+
+            window.onload = async () => {
+                window.updateSlider(5);
+                setStatusBadge('Đang chờ lưu');
+                await loadRemoteProgress();
+                await syncTodayCheckinBadge();
+            };
+        })();
+    </script>
+    <script src="../public/components/sidebar.js"></script>
     <script src="../public/js/user-sync.js"></script>
     <script src="../public/js/app.js"></script>
 </body>
 
 </html>
+

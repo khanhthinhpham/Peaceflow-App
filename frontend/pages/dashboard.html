@@ -4,6 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="../public/favicon.jpg" type="image/svg+xml">
     <title>PeaceFlow — Tổng Quan</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Patrick+Hand&display=swap"
@@ -128,6 +129,7 @@
             display: flex;
             flex-direction: column;
             gap: 4px;
+            overflow-y: auto;
         }
 
         .nav-item {
@@ -1379,98 +1381,15 @@
 </head>
 
 <body>
-
-    <!-- Mobile Overlay -->
-    <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
-
-    <!-- Mobile Topbar -->
-    <div class="mobile-topbar">
-        <button class="mobile-menu-btn" onclick="toggleSidebar()">☰</button>
-        <a href="index.html" style="display:flex;align-items:center;gap:8px;text-decoration:none;">
-            <div
-                style="width:32px;height:32px;background:var(--mint);border-radius:8px;border:2px solid var(--mint-dark);display:flex;align-items:center;justify-content:center;font-size:1rem;box-shadow:2px 2px 0px var(--mint-dark);">
-                🌿</div>
-            <span style="font-size:1.1rem;font-weight:800;color:var(--text-primary);">Peace<span
-                    style="color:var(--mint-dark);">Flow</span></span>
-        </a>
-        <div style="display:flex;align-items:center;gap:8px;">
-            <span
-                style="background:var(--peach-light);padding:3px 10px;border-radius:50px;font-size:0.75rem;font-weight:700;color:var(--peach-dark);border:1.5px solid var(--peach);">⭐
-                295 XP</span>
-            <div
-                style="width:34px;height:34px;border-radius:50%;background:var(--lavender-light);border:2px solid var(--kraft);display:flex;align-items:center;justify-content:center;font-size:1rem;">
-                🐱</div>
-        </div>
-    </div>
-
-    <!-- ===== SIDEBAR ===== -->
-    <aside class="sidebar" id="sidebar">
-        <a href="index.html" class="sidebar-logo">
-            <div class="logo-icon">🌿</div>
-            <div class="logo-text">Peace<span>Flow</span></div>
-        </a>
-
-        <nav class="sidebar-nav">
-            <div class="nav-section-label">Chính</div>
-            <a href="dashboard.html" class="nav-item active">
-                <span class="ni">🏡</span> Tổng quan
-            </a>
-            <a href="mood-checkin.html" class="nav-item ">
-                <span class="ni">💭</span> Tâm trạng
-            </a>
-            <a href="tasks.html" class="nav-item ">
-                <span class="ni">🎮</span> Nhiệm vụ
-            </a>
-            <a href="journal.html" class="nav-item ">
-                <span class="ni">📝</span> Nhật ký
-            </a>
-
-            <div class="nav-section-label" style="margin-top:8px;">Kết nối</div>
-            <a href="experts.html" class="nav-item ">
-                <span class="ni">🩺</span> Chuyên gia
-            </a>
-            <a href="community.html" class="nav-item ">
-                <span class="ni">👥</span> Cộng đồng
-            </a>
-
-            <div class="nav-section-label" style="margin-top:8px;">Phân tích</div>
-            <a href="report.html" class="nav-item ">
-                <span class="ni">📊</span> Báo cáo
-            </a>
-            <a href="achievements.html" class="nav-item ">
-                <span class="ni">🏅</span> Thành tích
-            </a>
-
-            <div class="nav-section-label" style="margin-top:8px;">Cài đặt</div>
-            <a href="profile.html" class="nav-item ">
-                <span class="ni">👤</span> Hồ sơ
-            </a>
-            <a href="settings.html" class="nav-item ">
-                <span class="ni">⚙️</span> Cài đặt
-            </a>
-            <a href="#" class="nav-item" onclick="handleLogout()" style="color:var(--coral); margin-top: 10px; border-top: 1px dashed var(--kraft-light); padding-top: 15px;">
-                <span class="ni">🚪</span> Đăng xuất
-            </a>
-        </nav>
-
-        <div class="sidebar-bottom">
-            <div class="user-card-mini">
-                <div class="user-avatar-mini">🐱</div>
-                <div class="user-info-mini">
-                    <div class="user-name" data-user-field="display_name">Khách hàng giả lập</div>
-                    <div class="user-level">⭐ 295 XP · Level 2</div>
-                </div>
-            </div>
-            <a href="emergency.html" class="emergency-btn">
-                🆘 Hỗ trợ khẩn cấp
-            </a>
-        </div>
-    </aside>
+    <!-- Shared Sidebar -->
+    <div id="sharedSidebarOverlayMount"></div>
+    <div id="sharedMobileTopbarMount"></div>
+    <div id="sharedSidebarMount"></div>
 
     <main class="main-content">
     <div class="page-header">
             <div>
-                <div class="page-title" data-user-field="display_name" data-user-template="🌿 Xin chào, {display_name}!">🌿 Xin chào, Khách hàng giả lập!</div>
+                <div class="page-title" data-user-field="display_name" data-user-template="🌿 Xin chào, {display_name}!">🌿 Xin chào!</div>
                 <div class="page-subtitle handwritten" style="font-size:1rem;color:var(--mint-dark);">"Hôm nay là một
                     ngày mới để tiến bộ 🌱"</div>
             </div>
@@ -1491,6 +1410,17 @@
             <div class="cp-actions">
                 <a href="mood-checkin.html" class="btn-primary" style="font-size:0.82rem;padding:9px 16px;">Bắt đầu
                     →</a>
+            </div>
+        </div>
+
+        <div id="emergencyBanner" class="paper-card"
+            style="display:none;margin:14px 0 20px;padding:16px 18px;border-color:var(--coral);background:rgba(255,139,139,0.08);">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+                <div>
+                    <div style="font-size:0.95rem;font-weight:800;color:#c05050;">🆘 Ưu tiên an toàn cho bạn lúc này</div>
+                    <div style="font-size:0.82rem;color:var(--text-secondary);margin-top:4px;">PeaceFlow phát hiện mức cần hỗ trợ cao từ dữ liệu gần đây. Bạn có thể mở khu hỗ trợ khẩn cấp hoặc liên hệ người tin tưởng.</div>
+                </div>
+                <a href="emergency.html" class="btn-primary" style="white-space:nowrap;">Mở hỗ trợ khẩn cấp</a>
             </div>
         </div>
 
@@ -1583,7 +1513,7 @@
                 </div>
 
                 <!-- AI Insight -->
-                <div class="paper-card insight-card" style="margin-bottom:18px;">
+                <div class="paper-card insight-card" id="insightCard" style="margin-bottom:18px;">
                     <div class="insight-header">
                         <div class="insight-icon">🤖</div>
                         <div class="insight-title">Insight từ PeaceCat AI</div>
@@ -1604,7 +1534,7 @@
                 </div>
 
                 <!-- Radar Chart -->
-                <div class="paper-card radar-card" style="margin-bottom:18px;">
+                <div class="paper-card radar-card" id="radarCard" style="margin-bottom:18px;">
                     <div class="section-title">
                         <span class="st-icon">🕸️</span> Sức khỏe tổng thể
                         <a href="#" class="st-link">Xem chi tiết →</a>
@@ -1681,7 +1611,7 @@
             <!-- Right Column -->
             <div>
                 <!-- Garden -->
-                <div class="paper-card garden-card" style="margin-bottom:18px;">
+                <div class="paper-card garden-card" id="gardenCard" style="margin-bottom:18px;">
                     <div class="section-title">
                         <span class="st-icon">🌳</span> Khu vườn tâm hồn
                         <a href="#" class="st-link">Xem đầy đủ →</a>
@@ -1752,7 +1682,7 @@
                 </div>
 
                 <!-- XP & Level -->
-                <div class="paper-card xp-card" style="margin-bottom:18px;">
+                <div class="paper-card xp-card" id="xpCard" style="margin-bottom:18px;">
                     <div class="xp-header">
                         <div class="xp-level-badge">
                             <div class="xp-level-circle">2</div>
@@ -1761,7 +1691,7 @@
                                 <div class="xl-range">100 – 300 XP</div>
                             </div>
                         </div>
-                        <div class="xp-total">295 XP</div>
+                        <div class="xp-total">-- XP</div>
                     </div>
                     <div class="xp-bar-wrap">
                         <div class="xp-bar-fill" style="width:97.5%"></div>
@@ -1774,7 +1704,7 @@
                 </div>
 
                 <!-- Streak -->
-                <div class="paper-card streak-card" style="margin-bottom:18px;">
+                <div class="paper-card streak-card" id="streakCard" style="margin-bottom:18px;">
                     <div class="streak-fire">🔥</div>
                     <div class="streak-number">7</div>
                     <div class="streak-label">ngày streak liên tục</div>
@@ -1790,7 +1720,7 @@
                 </div>
 
                 <!-- Weekly Challenge -->
-                <div class="paper-card challenge-card" style="margin-bottom:18px;">
+                <div class="paper-card challenge-card" id="challengeCard" style="margin-bottom:18px;">
                     <div class="challenge-header">
                         <span style="font-size:1.3rem;">🏆</span>
                         <div class="challenge-title">Thử thách tuần này</div>
@@ -1808,7 +1738,7 @@
                 </div>
 
                 <!-- Upcoming Expert Session -->
-                <div class="paper-card" style="margin-bottom:0;overflow:hidden;">
+                <div class="paper-card" id="expertCard" style="margin-bottom:0;overflow:hidden;">
                     <div
                         style="padding:14px 18px 8px;font-size:0.85rem;font-weight:700;border-bottom:1px solid var(--kraft-light);">
                         🩺 Phiên tư vấn sắp tới</div>
@@ -1828,7 +1758,7 @@
         <!-- TASKS SECTION -->
         <div class="grid-2">
             <!-- Today's Tasks -->
-            <div class="paper-card" style="overflow:hidden;">
+            <div class="paper-card" id="todayTasksCard" style="overflow:hidden;">
                 <div
                     style="padding:16px 18px;border-bottom:2px solid var(--kraft-light);display:flex;align-items:center;justify-content:space-between;">
                     <div class="section-title" style="margin-bottom:0;">
@@ -1877,11 +1807,10 @@
             document.body.style.overflow = '';
         }
     </script>
-
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="../public/js/supabase-config.js"></script>
+    <script src="../public/components/sidebar.js"></script>
     <script src="../public/js/user-sync.js"></script>
     <script type="module" src="../public/js/dashboard.js"></script>
 </body>
 
 </html>
+

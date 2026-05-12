@@ -4,6 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="../public/favicon.jpg" type="image/svg+xml">
     <title>PeaceFlow — Nhiệm Vụ</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Patrick+Hand&display=swap"
@@ -1515,86 +1516,11 @@
     </div>
 
     <!-- Sidebar Overlay -->
-    <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
 
-    <!-- Mobile Topbar -->
-    <div class="mobile-topbar">
-        <button class="mobile-menu-btn" onclick="toggleSidebar()">☰</button>
-        <a href="index.html" style="display:flex;align-items:center;gap:8px;text-decoration:none;">
-            <div
-                style="width:32px;height:32px;background:var(--mint);border-radius:8px;border:2px solid var(--mint-dark);display:flex;align-items:center;justify-content:center;font-size:1rem;box-shadow:2px 2px 0px var(--mint-dark);">
-                🌿</div>
-            <span style="font-size:1.1rem;font-weight:800;color:var(--text-primary);">Peace<span
-                    style="color:var(--mint-dark);">Flow</span></span>
-        </a>
-        <span
-            style="background:var(--peach-light);padding:3px 10px;border-radius:50px;font-size:0.75rem;font-weight:700;color:var(--peach-dark);border:1.5px solid var(--peach);">⭐
-            295 XP</span>
-    </div>
-
-    <!-- Sidebar -->
-    <aside class="sidebar" id="sidebar">
-        <a href="index.html" class="sidebar-logo">
-            <div class="logo-icon">🌿</div>
-            <div class="logo-text">Peace<span>Flow</span></div>
-        </a>
-
-        <nav class="sidebar-nav">
-            <div class="nav-section-label">Chính</div>
-            <a href="dashboard.html" class="nav-item ">
-                <span class="ni">🏡</span> Tổng quan
-            </a>
-            <a href="mood-checkin.html" class="nav-item ">
-                <span class="ni">💭</span> Tâm trạng
-            </a>
-            <a href="tasks.html" class="nav-item active">
-                <span class="ni">🎮</span> Nhiệm vụ
-            </a>
-            <a href="journal.html" class="nav-item ">
-                <span class="ni">📝</span> Nhật ký
-            </a>
-
-            <div class="nav-section-label" style="margin-top:8px;">Kết nối</div>
-            <a href="experts.html" class="nav-item ">
-                <span class="ni">🩺</span> Chuyên gia
-            </a>
-            <a href="community.html" class="nav-item ">
-                <span class="ni">👥</span> Cộng đồng
-            </a>
-
-            <div class="nav-section-label" style="margin-top:8px;">Phân tích</div>
-            <a href="report.html" class="nav-item ">
-                <span class="ni">📊</span> Báo cáo
-            </a>
-            <a href="achievements.html" class="nav-item ">
-                <span class="ni">🏅</span> Thành tích
-            </a>
-
-            <div class="nav-section-label" style="margin-top:8px;">Cài đặt</div>
-            <a href="profile.html" class="nav-item ">
-                <span class="ni">👤</span> Hồ sơ
-            </a>
-            <a href="settings.html" class="nav-item ">
-                <span class="ni">⚙️</span> Cài đặt
-            </a>
-            <a href="#" class="nav-item" onclick="handleLogout()" style="color:var(--coral); margin-top: 10px; border-top: 1px dashed var(--kraft-light); padding-top: 15px;">
-                <span class="ni">🚪</span> Đăng xuất
-            </a>
-        </nav>
-
-        <div class="sidebar-bottom">
-            <div class="user-card-mini">
-                <div class="user-avatar-mini">🐱</div>
-                <div class="user-info-mini">
-                    <div class="user-name" data-user-field="display_name">Khách hàng giả lập</div>
-                    <div class="user-level">⭐ 295 XP · Level 2</div>
-                </div>
-            </div>
-            <a href="emergency.html" class="emergency-btn">
-                🆘 Hỗ trợ khẩn cấp
-            </a>
-        </div>
-    </aside>
+    <!-- Shared Sidebar -->
+    <div id="sharedSidebarOverlayMount"></div>
+    <div id="sharedMobileTopbarMount"></div>
+    <div id="sharedSidebarMount"></div>
 
     <!-- Main Content -->
     <main class="main-content">
@@ -1613,16 +1539,16 @@
         <div class="paper-card xp-topbar">
             <div class="xp-level-badge">2</div>
             <div class="xp-info">
-                <div class="xi-name">Người khám phá</div>
-                <div class="xi-range">Level 2 · 100 – 300 XP</div>
+                <div class="xi-name">Đang tải tiến trình</div>
+                <div class="xi-range">Level -- · -- XP</div>
             </div>
             <div class="xp-bar-wrap">
                 <div class="xp-bar-bg">
                     <div class="xp-bar-fill" style="width:97.5%"></div>
                 </div>
-                <div class="xp-bar-label"><span>100 XP</span><span>Còn 5 XP → Level 3 🎉</span><span>300 XP</span></div>
+                <div class="xp-bar-label"><span>-- XP</span><span>Đang tải tiến trình...</span><span>-- XP</span></div>
             </div>
-            <div class="xp-total">295 XP</div>
+            <div class="xp-total">-- XP</div>
         </div>
 
         <!-- AI Suggestion -->
@@ -1669,8 +1595,7 @@
 
     </main>
 
-    <script src="../public/js/tasks-data.js"></script>
-    <script>
+    <script type="application/json" data-legacy="tasks-static-disabled">
         // ============================================================
         // DATA & STATE
         // ============================================================
@@ -1785,11 +1710,409 @@
         }
 
     </script>
+    <script type="module">
+        import { apiClient } from '../public/js/api-client.js';
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="../public/js/supabase-config.js"></script>
+        const taskPageState = {
+            allTasks: [],
+            filteredTasks: [],
+            recommendedIds: new Set(),
+            activeFilter: 'all',
+            searchQuery: '',
+            dashboard: null
+        };
+
+        const SECTION_CONFIG = [
+            {
+                id: 'emergency',
+                title: '🔴 Khẩn Cấp',
+                description: 'Ưu tiên thực hiện ngay khi cảm xúc đang quá tải.',
+                iconClass: 'emergency',
+                badgeClass: 'badge-coral'
+            },
+            {
+                id: 'easy',
+                title: '🟢 Dễ',
+                description: 'Các nhiệm vụ ngắn để giữ nhịp chăm sóc bản thân mỗi ngày.',
+                iconClass: 'easy',
+                badgeClass: 'badge-mint'
+            },
+            {
+                id: 'medium',
+                title: '🟡 Trung Bình',
+                description: 'Cần thêm chút thời gian tập trung hoặc không gian yên tĩnh.',
+                iconClass: 'medium',
+                badgeClass: 'badge-yellow'
+            },
+            {
+                id: 'hard',
+                title: '🟠 Nâng Cao',
+                description: 'Nhiệm vụ dài hơn, phù hợp khi bạn có đủ năng lượng để đào sâu.',
+                iconClass: 'hard',
+                badgeClass: 'badge-orange'
+            }
+        ];
+
+        function escapeHtml(value) {
+            return String(value ?? '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        function normalizeArray(value) {
+            if (Array.isArray(value)) return value;
+            if (typeof value === 'string') {
+                try {
+                    const parsed = JSON.parse(value);
+                    return Array.isArray(parsed) ? parsed : [];
+                } catch (error) {
+                    return [];
+                }
+            }
+            return [];
+        }
+
+        function getTaskIcon(task) {
+            return task?.metadata?.icon || task?.icon || '🌱';
+        }
+
+        function getTaskDurationLabel(task) {
+            const minutes = Number(task?.duration_minutes || 0);
+            if (!minutes) return 'Tùy chọn';
+            return minutes === 1 ? '1 phút' : `${minutes} phút`;
+        }
+
+        function getTaskDescription(task) {
+            return task?.description || task?.metadata?.objective || 'Nhiệm vụ này chưa có mô tả chi tiết.';
+        }
+
+        function isEmergencyTask(task) {
+            return task?.category === 'emergency';
+        }
+
+        function getTaskSectionId(task) {
+            if (isEmergencyTask(task)) return 'emergency';
+            return task?.difficulty || 'easy';
+        }
+
+        function getSectionMeta(sectionId) {
+            return SECTION_CONFIG.find((section) => section.id === sectionId) || SECTION_CONFIG[1];
+        }
+
+        function getDifficultyLabel(sectionId) {
+            if (sectionId === 'emergency') return 'Khẩn cấp';
+            if (sectionId === 'medium') return 'Trung bình';
+            if (sectionId === 'hard') return 'Nâng cao';
+            return 'Dễ';
+        }
+
+        function getRiskLabel(level) {
+            if (level === 'critical') return 'rất cao';
+            if (level === 'high') return 'cao';
+            if (level === 'moderate') return 'đang cần theo dõi';
+            return 'ổn định';
+        }
+
+        function getFilterMatch(task, activeFilter) {
+            if (activeFilter === 'all') return true;
+            if (activeFilter === 'completed') return Boolean(task.completed);
+            if (activeFilter === 'suggested') return taskPageState.recommendedIds.has(task.id);
+            if (activeFilter === 'emergency') return isEmergencyTask(task);
+            return !isEmergencyTask(task) && task.difficulty === activeFilter;
+        }
+
+        function applyTaskFilters() {
+            const query = taskPageState.searchQuery.trim().toLowerCase();
+
+            taskPageState.filteredTasks = taskPageState.allTasks.filter((task) => {
+                const matchesFilter = getFilterMatch(task, taskPageState.activeFilter);
+                if (!matchesFilter) return false;
+
+                if (!query) return true;
+
+                const haystack = [
+                    task.title,
+                    task.description,
+                    task.code,
+                    ...normalizeArray(task.tags)
+                ]
+                    .filter(Boolean)
+                    .join(' ')
+                    .toLowerCase();
+
+                return haystack.includes(query);
+            });
+        }
+
+        function renderHeader(data) {
+            const user = data?.user || {};
+            const progress = data?.progress || {};
+            const xp = progress.xp ?? progress.total_xp ?? 0;
+            const level = progress.level ?? progress.current_level ?? 1;
+            const displayName = user.display_name || user.full_name || 'Bạn';
+            const mobileXp = document.querySelector('.mobile-topbar span[style*="background:var(--peach-light)"]');
+
+            document.querySelectorAll('[data-user-field="display_name"]').forEach((el) => {
+                el.innerText = displayName;
+            });
+            document.querySelectorAll('.user-level').forEach((el) => {
+                el.innerText = `⭐ ${xp} XP · Level ${level}`;
+            });
+            if (mobileXp) {
+                mobileXp.innerText = `⭐ ${xp} XP`;
+            }
+
+            const subtitle = document.querySelector('.page-subtitle');
+            if (subtitle) {
+                subtitle.innerText = `Bạn đang có ${taskPageState.allTasks.length} nhiệm vụ khả dụng từ hệ thống gợi ý và thư viện bài tập.`;
+            }
+        }
+
+        function renderXpTopbar(progress) {
+            const topbar = document.querySelector('.xp-topbar');
+            if (!topbar) return;
+
+            const xp = progress?.xp ?? progress?.total_xp ?? 0;
+            const level = progress?.level ?? progress?.current_level ?? 1;
+            const levelInfo = progress?.level_info || {
+                title: `Level ${level}`,
+                minXP: 0,
+                maxXP: Infinity,
+                progress_percent: 100,
+                xp_to_next: 0
+            };
+            const maxXP = levelInfo.maxXP === Infinity ? '∞' : levelInfo.maxXP;
+            const nextLabel = levelInfo.maxXP === Infinity
+                ? 'Bạn đang ở cấp cao nhất hiện tại'
+                : `Còn ${levelInfo.xp_to_next ?? 0} XP → Level ${level + 1}`;
+
+            topbar.innerHTML = `
+                <div class="xp-level-badge">${level}</div>
+                <div class="xp-info">
+                    <div class="xi-name">${escapeHtml(levelInfo.title || `Level ${level}`)}</div>
+                    <div class="xi-range">Level ${level} · ${levelInfo.minXP ?? 0} – ${maxXP} XP</div>
+                </div>
+                <div class="xp-bar-wrap">
+                    <div class="xp-bar-bg">
+                        <div class="xp-bar-fill" style="width:${Math.max(0, Math.min(100, levelInfo.progress_percent ?? 0))}%"></div>
+                    </div>
+                    <div class="xp-bar-label">
+                        <span>${levelInfo.minXP ?? 0} XP</span>
+                        <span>${escapeHtml(nextLabel)}</span>
+                        <span>${maxXP} XP</span>
+                    </div>
+                </div>
+                <div class="xp-total">${xp} XP</div>
+            `;
+        }
+
+        function renderSuggestionBanner(data) {
+            const banner = document.querySelector('.ai-suggestion');
+            if (!banner) return;
+
+            const recommendedTasks = Array.isArray(data?.tasks) ? data.tasks : [];
+            const latestMood = data?.latest_mood;
+            const summary = data?.summary || {};
+            const moodText = latestMood?.mood_score !== null && latestMood?.mood_score !== undefined
+                ? `Mood gần nhất ${latestMood.mood_score}/10`
+                : 'Chưa có mood check-in gần đây';
+            const bannerText = recommendedTasks.length
+                ? `PeaceCat chọn ${recommendedTasks.length} nhiệm vụ phù hợp lúc này. ${moodText} và mức rủi ro ${getRiskLabel(summary.risk_level)} đang được dùng để ưu tiên danh sách.`
+                : 'Chưa có gợi ý cá nhân hóa rõ ràng, bạn vẫn có thể chọn bất kỳ nhiệm vụ nào phù hợp với năng lượng hiện tại.';
+
+            banner.innerHTML = `
+                <div class="ai-mascot">🐱</div>
+                <div class="ai-text">
+                    <div class="at-title">🤖 PeaceCat gợi ý hôm nay</div>
+                    <div class="at-sub">${escapeHtml(bannerText)}</div>
+                </div>
+                <div class="ai-actions">
+                    <button class="btn-primary" onclick="scrollToSuggested()">Xem gợi ý →</button>
+                </div>
+            `;
+        }
+
+        function renderWeeklyChallenge(challenge) {
+            const card = document.querySelector('.weekly-challenge');
+            if (!card) return;
+
+            const completed = challenge?.completed ?? 0;
+            const goal = challenge?.goal ?? 7;
+            const percent = Math.max(0, Math.min(100, challenge?.progress_percent ?? 0));
+            const daysLeft = challenge?.days_left ?? 0;
+
+            card.innerHTML = `
+                <div class="wc-header">
+                    <span style="font-size:1.3rem;">🏆</span>
+                    <div class="wc-title">${escapeHtml(challenge?.title || 'Mục tiêu tuần này')}</div>
+                    <span class="badge-pill badge-peach" style="margin-left:auto;">${daysLeft} ngày còn lại</span>
+                </div>
+                <div class="wc-desc">${escapeHtml(challenge?.description || 'Giữ nhịp hoàn thành nhiệm vụ đều đặn trong tuần này.')}</div>
+                <div class="wc-progress-bar">
+                    <div class="wc-progress-fill" style="width:${percent}%"></div>
+                </div>
+                <div class="wc-meta"><span>${completed}/${goal} nhiệm vụ</span><span>${escapeHtml(challenge?.reward_label || 'Giữ nhịp chăm sóc bản thân')}</span></div>
+            `;
+        }
+
+        function createTaskCard(task) {
+            const sectionId = getTaskSectionId(task);
+            const icon = getTaskIcon(task);
+            const description = getTaskDescription(task);
+            const duration = getTaskDurationLabel(task);
+            const isRecommended = taskPageState.recommendedIds.has(task.id);
+            const buttonLabel = task.completed ? 'Xem lại' : task.in_progress ? 'Tiếp tục' : 'Bắt đầu';
+            const completionLabel = task.completed
+                ? `<div class="tc-meta-item" style="color:var(--mint-dark);">✓ Đã hoàn thành ${task.completion_count || 1} lần</div>`
+                : '';
+            const recommendedLabel = isRecommended
+                ? `<div class="tc-meta-item" style="color:var(--peach-dark);">⭐ Gợi ý hôm nay</div>`
+                : '';
+            const inProgressLabel = task.in_progress && !task.completed
+                ? `<div class="tc-meta-item" style="color:var(--blue);">⏳ Đang thực hiện</div>`
+                : '';
+
+            return `
+                <div class="task-card paper-card cat-${sectionId} ${task.completed ? 'completed' : ''}" onclick="location.href='task-detail.html?id=${encodeURIComponent(task.id)}'">
+                    <div class="tc-top">
+                        <div class="tc-icon ${sectionId}">${escapeHtml(icon)}</div>
+                        <div class="tc-info">
+                            <div class="tc-name">${escapeHtml(task.title || 'Nhiệm vụ')}</div>
+                            <div class="tc-meta">
+                                <div class="tc-meta-item">⏱ ${escapeHtml(duration)}</div>
+                                ${recommendedLabel}
+                                ${inProgressLabel}
+                                ${completionLabel}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tc-desc">${escapeHtml(description)}</div>
+                    <div class="tc-bottom">
+                        <div class="tc-xp">+${task.xp_reward || 0} XP</div>
+                        <button class="tc-start-btn ${sectionId === 'emergency' ? 'emergency' : ''}" onclick="event.stopPropagation();location.href='task-detail.html?id=${encodeURIComponent(task.id)}'">${escapeHtml(buttonLabel)}</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderTasks() {
+            const sections = document.getElementById('taskSections');
+            if (!sections) return;
+
+            if (!taskPageState.filteredTasks.length) {
+                sections.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-secondary);">Không tìm thấy nhiệm vụ phù hợp với bộ lọc hiện tại.</div>';
+                return;
+            }
+
+            const grouped = new Map(SECTION_CONFIG.map((section) => [section.id, []]));
+            taskPageState.filteredTasks.forEach((task) => {
+                const sectionId = getTaskSectionId(task);
+                if (!grouped.has(sectionId)) {
+                    grouped.set(sectionId, []);
+                }
+                grouped.get(sectionId).push(task);
+            });
+
+            sections.innerHTML = SECTION_CONFIG.map((section) => {
+                const tasks = grouped.get(section.id) || [];
+                if (!tasks.length) return '';
+
+                return `
+                    <div class="task-section">
+                        <div class="section-header">
+                            <div class="sh-icon ${section.iconClass}">⭐</div>
+                            <div class="sh-title">${section.title}</div>
+                            <div class="sh-count">${tasks.length} nhiệm vụ</div>
+                            <div class="sh-desc">${escapeHtml(section.description)}</div>
+                        </div>
+                        <div class="task-grid">
+                            ${tasks.map(createTaskCard).join('')}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function setActiveFilterButton(activeButton) {
+            document.querySelectorAll('.filter-btn').forEach((button) => button.classList.remove('active'));
+            if (activeButton) {
+                activeButton.classList.add('active');
+                return;
+            }
+
+            const fallbackButton = Array.from(document.querySelectorAll('.filter-btn')).find((button) => {
+                const onclick = button.getAttribute('onclick') || '';
+                return onclick.includes(`'${taskPageState.activeFilter}'`);
+            });
+
+            if (fallbackButton) {
+                fallbackButton.classList.add('active');
+            }
+        }
+
+        async function loadTaskPage() {
+            const sections = document.getElementById('taskSections');
+            if (sections) {
+                sections.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-secondary);">Đang tải danh sách nhiệm vụ từ hệ thống...</div>';
+            }
+
+            try {
+                const [tasks, dashboard] = await Promise.all([
+                    apiClient.get('/tasks'),
+                    apiClient.get('/dashboard')
+                ]);
+
+                taskPageState.allTasks = Array.isArray(tasks) ? tasks : [];
+                taskPageState.dashboard = dashboard || null;
+                taskPageState.recommendedIds = new Set((dashboard?.tasks || []).map((task) => task.id));
+
+                renderHeader(dashboard);
+                renderXpTopbar(dashboard?.progress);
+                renderSuggestionBanner(dashboard);
+                renderWeeklyChallenge(dashboard?.challenge);
+
+                applyTaskFilters();
+                renderTasks();
+            } catch (error) {
+                console.error('Failed to load tasks page:', error);
+                if (sections) {
+                    sections.innerHTML = '<div style="text-align:center;padding:40px;color:var(--coral);">Không tải được nhiệm vụ từ API. Hãy đăng nhập lại hoặc kiểm tra backend.</div>';
+                }
+            }
+        }
+
+        window.filterTasks = function filterTasks(cat, btn) {
+            taskPageState.activeFilter = cat;
+            setActiveFilterButton(btn || null);
+            applyTaskFilters();
+            renderTasks();
+        };
+
+        window.searchTasks = function searchTasks(value) {
+            taskPageState.searchQuery = value || '';
+            applyTaskFilters();
+            renderTasks();
+        };
+
+        window.scrollToSuggested = function scrollToSuggested() {
+            taskPageState.activeFilter = 'suggested';
+            setActiveFilterButton(null);
+            applyTaskFilters();
+            renderTasks();
+            document.getElementById('taskSections')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        };
+
+        window.addEventListener('load', () => {
+            loadTaskPage();
+        });
+    </script>
+    <script src="../public/components/sidebar.js"></script>
     <script src="../public/js/user-sync.js"></script>
     <script src="../public/js/app.js"></script>
 </body>
 
 </html>
+

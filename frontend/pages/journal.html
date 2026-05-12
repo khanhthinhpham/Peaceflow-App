@@ -4,6 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="../public/favicon.jpg" type="image/svg+xml">
     <title>PeaceFlow — Nhật Ký Cảm Xúc</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Patrick+Hand&display=swap"
@@ -1625,83 +1626,10 @@
         </div>
     </div>
 
-    <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
-    <div class="mobile-topbar">
-        <button class="mobile-menu-btn" onclick="toggleSidebar()">☰</button>
-        <a href="index.html" style="display:flex;align-items:center;gap:8px;text-decoration:none;">
-            <div
-                style="width:32px;height:32px;background:var(--mint);border-radius:8px;border:2px solid var(--mint-dark);display:flex;align-items:center;justify-content:center;font-size:1rem;box-shadow:2px 2px 0px var(--mint-dark);">
-                🌿</div>
-            <span style="font-size:1.1rem;font-weight:800;color:var(--text-primary);">Peace<span
-                    style="color:var(--mint-dark);">Flow</span></span>
-        </a>
-        <span
-            style="background:var(--peach-light);padding:3px 10px;border-radius:50px;font-size:0.75rem;font-weight:700;color:var(--peach-dark);border:1.5px solid var(--peach);">⭐
-            295 XP</span>
-    </div>
-
-    <aside class="sidebar" id="sidebar">
-        <a href="index.html" class="sidebar-logo">
-            <div class="logo-icon">🌿</div>
-            <div class="logo-text">Peace<span>Flow</span></div>
-        </a>
-
-        <nav class="sidebar-nav">
-            <div class="nav-section-label">Chính</div>
-            <a href="dashboard.html" class="nav-item ">
-                <span class="ni">🏡</span> Tổng quan
-            </a>
-            <a href="mood-checkin.html" class="nav-item ">
-                <span class="ni">💭</span> Tâm trạng
-            </a>
-            <a href="tasks.html" class="nav-item ">
-                <span class="ni">🎮</span> Nhiệm vụ
-            </a>
-            <a href="journal.html" class="nav-item active">
-                <span class="ni">📝</span> Nhật ký
-            </a>
-
-            <div class="nav-section-label" style="margin-top:8px;">Kết nối</div>
-            <a href="experts.html" class="nav-item ">
-                <span class="ni">🩺</span> Chuyên gia
-            </a>
-            <a href="community.html" class="nav-item ">
-                <span class="ni">👥</span> Cộng đồng
-            </a>
-
-            <div class="nav-section-label" style="margin-top:8px;">Phân tích</div>
-            <a href="report.html" class="nav-item ">
-                <span class="ni">📊</span> Báo cáo
-            </a>
-            <a href="achievements.html" class="nav-item ">
-                <span class="ni">🏅</span> Thành tích
-            </a>
-
-            <div class="nav-section-label" style="margin-top:8px;">Cài đặt</div>
-            <a href="profile.html" class="nav-item ">
-                <span class="ni">👤</span> Hồ sơ
-            </a>
-            <a href="settings.html" class="nav-item ">
-                <span class="ni">⚙️</span> Cài đặt
-            </a>
-            <a href="#" class="nav-item" onclick="handleLogout()" style="color:var(--coral); margin-top: 10px; border-top: 1px dashed var(--kraft-light); padding-top: 15px;">
-                <span class="ni">🚪</span> Đăng xuất
-            </a>
-        </nav>
-
-        <div class="sidebar-bottom">
-            <div class="user-card-mini">
-                <div class="user-avatar-mini">🐱</div>
-                <div class="user-info-mini">
-                    <div class="user-name" data-user-field="display_name">Khách hàng giả lập</div>
-                    <div class="user-level">⭐ 295 XP · Level 2</div>
-                </div>
-            </div>
-            <a href="emergency.html" class="emergency-btn">
-                🆘 Hỗ trợ khẩn cấp
-            </a>
-        </div>
-    </aside>
+    <!-- Shared Sidebar -->
+    <div id="sharedSidebarOverlayMount"></div>
+    <div id="sharedMobileTopbarMount"></div>
+    <div id="sharedSidebarMount"></div>
 
     <main class="main-content">
         <div class="breadcrumb">
@@ -2019,7 +1947,7 @@
             document.getElementById('wordCount').innerText = `${words} từ · ${chars} ký tự`;
         }
 
-        function saveEntry() {
+        async function saveEntry() {
             const title = document.getElementById('journalTitle').value;
             const content = document.getElementById('journalTextarea').value;
             if (!content) {
@@ -2027,8 +1955,60 @@
                 return;
             }
             
-            // Logic to save entry (e.g., via journalManager if imported)
-            console.log('Saving entry:', { title, content, mood: window.selectedMood });
+            const accessToken = localStorage.getItem('access_token');
+            if (!accessToken) {
+                alert('Vui long dang nhap de luu nhat ky.');
+                window.location.href = 'login.html';
+                return;
+            }
+
+            try {
+                const apiBaseUrl = (() => {
+                    const explicitOverride = window.__PEACEFLOW_API_BASE_URL__;
+                    if (typeof explicitOverride === 'string' && explicitOverride.trim()) {
+                        return explicitOverride.trim().replace(/\/+$/, '');
+                    }
+
+                    const storedOverride = localStorage.getItem('peaceflow_api_base_url');
+                    if (storedOverride && storedOverride.trim()) {
+                        return storedOverride.trim().replace(/\/+$/, '');
+                    }
+
+                    const { protocol, hostname, port, origin } = window.location;
+                    const isLocalHost = hostname === 'localhost' || hostname === '127.0.0.1';
+
+                    if (port === '4000') {
+                        return `${origin}/api/v1`;
+                    }
+
+                    if (isLocalHost) {
+                        return 'http://localhost:4000/api/v1';
+                    }
+
+                    if (port) {
+                        return `${protocol}//${hostname}:4000/api/v1`;
+                    }
+
+                    return `${origin}/api/v1`;
+                })();
+                const response = await fetch(`${apiBaseUrl}/journal`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${accessToken}`
+                    },
+                    body: JSON.stringify({
+                        title,
+                        content,
+                        tags: window.selectedMood ? [window.selectedMood] : []
+                    })
+                });
+                if (!response.ok) throw new Error('Journal API failed');
+            } catch (error) {
+                console.error('Could not save journal to API:', error);
+                alert('Khong luu duoc nhat ky len server. Vui long thu lai.');
+                return;
+            }
             
             // Show success message
             const toast = document.getElementById('xpToast');
@@ -2068,8 +2048,792 @@
             }
         }
     </script>
+    <script src="../public/components/sidebar.js"></script>
     <script src="../public/js/user-sync.js"></script>
     <script src="../public/js/app.js"></script>
     <script type="module" src="../public/js/journal.js"></script>
+    <script type="module">
+        import { apiClient } from '../public/js/api-client.js';
+
+        const JOURNAL_PROMPTS = [
+            'Hôm nay điều gì khiến bạn thấy mình đã cố gắng đủ tốt?',
+            'Có cảm xúc nào đang ở lại rất lâu trong bạn hôm nay không?',
+            'Nếu phải gọi tên năng lượng của hôm nay bằng một câu, bạn sẽ viết gì?',
+            'Điều gì đang làm bạn nhẹ hơn một chút so với hôm qua?',
+            'Có điều gì bạn muốn tha thứ cho chính mình hôm nay không?',
+            'Một khoảnh khắc nhỏ nhưng đáng nhớ trong ngày là gì?',
+            'Nếu mai thức dậy nhẹ lòng hơn, bạn nghĩ điều gì đã thay đổi?',
+            'Bạn đang thật sự cần nghỉ, cần giúp đỡ, hay cần rõ ràng hơn?'
+        ];
+
+        const MOOD_META = {
+            '😊': { label: 'Vui vẻ', category: 'happy', score: 8, className: 'mood-happy' },
+            '😌': { label: 'Thoải mái', category: 'calm', score: 7, className: 'mood-calm' },
+            '😐': { label: 'Bình thường', category: 'neutral', score: 5, className: 'mood-neutral' },
+            '😟': { label: 'Lo lắng', category: 'anxious', score: 3, className: 'mood-anxious' },
+            '😢': { label: 'Buồn', category: 'sad', score: 2, className: 'mood-sad' },
+            '😡': { label: 'Tức giận', category: 'angry', score: 2, className: 'mood-anxious' }
+        };
+
+        const journalState = {
+            entries: [],
+            filteredEntries: [],
+            dashboard: null,
+            selectedMood: null,
+            selectedTags: new Set(),
+            isPrivate: true,
+            activeFilter: 'all',
+            searchQuery: '',
+            currentPromptIndex: 0,
+            calendarMonth: new Date(),
+            fontSize: 16
+        };
+
+        function escapeHtml(value) {
+            return String(value ?? '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        function normalizeArray(value) {
+            if (Array.isArray(value)) return value;
+            if (typeof value === 'string') {
+                try {
+                    const parsed = JSON.parse(value);
+                    return Array.isArray(parsed) ? parsed : [];
+                } catch (error) {
+                    return [];
+                }
+            }
+            return [];
+        }
+
+        function countWords(text) {
+            const content = String(text || '').trim();
+            return content ? content.split(/\s+/).length : 0;
+        }
+
+        function formatDateTime(value) {
+            return new Date(value).toLocaleString('vi-VN', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        function formatDateLabel(value) {
+            return new Date(value).toLocaleDateString('vi-VN', {
+                weekday: 'short',
+                day: '2-digit',
+                month: '2-digit'
+            });
+        }
+
+        function toIsoDate(value) {
+            return new Date(value).toISOString().slice(0, 10);
+        }
+
+        function getSelectedMoodMeta() {
+            return journalState.selectedMood ? MOOD_META[journalState.selectedMood] || null : null;
+        }
+
+        function deriveMoodEmoji(entry) {
+            const tags = normalizeArray(entry.tags);
+            const emojiTag = tags.find((tag) => Object.prototype.hasOwnProperty.call(MOOD_META, tag));
+            if (emojiTag) return emojiTag;
+
+            if (typeof entry.mood_before === 'number') {
+                if (entry.mood_before >= 8) return '😊';
+                if (entry.mood_before >= 6) return '😌';
+                if (entry.mood_before >= 4) return '😐';
+                if (entry.mood_before >= 3) return '😟';
+                return '😢';
+            }
+
+            const sentiment = Number(entry.sentiment_score || 0);
+            if (sentiment >= 1.5) return '😊';
+            if (sentiment >= 0.5) return '😌';
+            if (sentiment <= -1.5) return '😢';
+            if (sentiment <= -0.5) return '😟';
+            return '😐';
+        }
+
+        function getEntryPresentation(entry) {
+            const emoji = deriveMoodEmoji(entry);
+            const moodMeta = MOOD_META[emoji] || MOOD_META['😐'];
+            const sentimentScore = Number(entry.sentiment_score || 0);
+            const sentiment = sentimentScore > 0.5 ? 'positive' : sentimentScore < -0.5 ? 'negative' : 'neutral';
+            const sentimentLabel = sentiment === 'positive' ? 'Tích cực' : sentiment === 'negative' ? 'Nặng lòng' : 'Trung tính';
+
+            return {
+                emoji,
+                moodMeta,
+                sentiment,
+                sentimentLabel,
+                wordCount: countWords(entry.content),
+                preview: String(entry.content || '').trim().slice(0, 180)
+            };
+        }
+
+        function updateHeader() {
+            const progress = journalState.dashboard?.progress || {};
+            const user = journalState.dashboard?.user || {};
+            const xp = progress.xp ?? progress.total_xp ?? 0;
+            const level = progress.level ?? progress.current_level ?? 1;
+            const displayName = user.display_name || user.full_name || 'Bạn';
+            const mobileXp = document.querySelector('.mobile-topbar span[style*="background:var(--peach-light)"]');
+
+            document.querySelectorAll('[data-user-field="display_name"]').forEach((element) => {
+                element.innerText = displayName;
+            });
+            document.querySelectorAll('.user-level').forEach((element) => {
+                element.innerText = `⭐ ${xp} XP · Level ${level}`;
+            });
+            if (mobileXp) {
+                mobileXp.innerText = `⭐ ${xp} XP`;
+            }
+        }
+
+        function updateEditorDate() {
+            const editorDate = document.getElementById('editorDate');
+            if (!editorDate) return;
+
+            editorDate.innerText = `📅 ${new Date().toLocaleDateString('vi-VN', {
+                weekday: 'long',
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric'
+            })}`;
+        }
+
+        function refreshPrompt() {
+            journalState.currentPromptIndex = (journalState.currentPromptIndex + 1) % JOURNAL_PROMPTS.length;
+            const promptText = document.getElementById('promptText');
+            if (promptText) {
+                promptText.innerText = JOURNAL_PROMPTS[journalState.currentPromptIndex];
+            }
+        }
+
+        function renderPromptList() {
+            const promptList = document.getElementById('promptList');
+            if (!promptList) return;
+
+            promptList.innerHTML = JOURNAL_PROMPTS.slice(0, 5).map((prompt, index) => `
+                <div class="prompt-item" onclick="usePrompt(${index})">${escapeHtml(prompt)}</div>
+            `).join('');
+
+            const promptText = document.getElementById('promptText');
+            if (promptText) {
+                promptText.innerText = JOURNAL_PROMPTS[journalState.currentPromptIndex];
+            }
+        }
+
+        function usePrompt(index) {
+            const prompt = JOURNAL_PROMPTS[index];
+            const textarea = document.getElementById('journalTextarea');
+            if (!textarea || !prompt) return;
+
+            if (!textarea.value.trim()) {
+                textarea.value = `${prompt}\n\n`;
+            } else {
+                textarea.value = `${textarea.value.trim()}\n\n${prompt}\n`;
+            }
+            textarea.focus();
+            updateWordCount();
+            analyzeText(textarea.value);
+        }
+
+        function updateWordCount() {
+            const textarea = document.getElementById('journalTextarea');
+            const text = textarea?.value || '';
+            const words = countWords(text);
+            const chars = text.length;
+            const wordCount = document.getElementById('wordCount');
+            if (wordCount) {
+                wordCount.innerText = `${words} từ · ${chars} ký tự`;
+            }
+        }
+
+        function selectMood(element, mood) {
+            journalState.selectedMood = mood;
+            document.querySelectorAll('.mood-btn').forEach((button) => button.classList.remove('selected'));
+            element?.classList.add('selected');
+        }
+
+        function toggleTag(element, tag) {
+            if (journalState.selectedTags.has(tag)) {
+                journalState.selectedTags.delete(tag);
+                element?.classList.remove('selected');
+            } else {
+                journalState.selectedTags.add(tag);
+                element?.classList.add('selected');
+            }
+        }
+
+        function togglePrivacy() {
+            journalState.isPrivate = !journalState.isPrivate;
+            const icon = document.getElementById('privacyIcon');
+            const label = document.getElementById('privacyLabel');
+            if (icon) icon.innerText = journalState.isPrivate ? '🔒' : '🔓';
+            if (label) label.innerText = journalState.isPrivate ? 'Riêng tư' : 'Công khai';
+        }
+
+        function formatText(command) {
+            const textarea = document.getElementById('journalTextarea');
+            if (!textarea) return;
+            const start = textarea.selectionStart;
+            const end = textarea.selectionEnd;
+            const selectedText = textarea.value.slice(start, end);
+            let wrapper = '**';
+
+            if (command === 'italic') wrapper = '_';
+            if (command === 'underline') wrapper = '__';
+
+            const replacement = `${wrapper}${selectedText}${wrapper}`;
+            textarea.setRangeText(replacement, start, end, 'end');
+            updateWordCount();
+            analyzeText(textarea.value);
+        }
+
+        function insertEmoji(emoji) {
+            const textarea = document.getElementById('journalTextarea');
+            if (!textarea) return;
+            const position = textarea.selectionStart;
+            textarea.setRangeText(emoji, position, position, 'end');
+            textarea.focus();
+            updateWordCount();
+            analyzeText(textarea.value);
+        }
+
+        function toggleLinedPaper() {
+            document.getElementById('writingAreaWrap')?.classList.toggle('lined-paper');
+        }
+
+        function increaseFontSize() {
+            journalState.fontSize = Math.min(24, journalState.fontSize + 1);
+            const textarea = document.getElementById('journalTextarea');
+            if (textarea) textarea.style.fontSize = `${journalState.fontSize}px`;
+        }
+
+        function decreaseFontSize() {
+            journalState.fontSize = Math.max(12, journalState.fontSize - 1);
+            const textarea = document.getElementById('journalTextarea');
+            if (textarea) textarea.style.fontSize = `${journalState.fontSize}px`;
+        }
+
+        function analyzeSentiment(text) {
+            const content = String(text || '').toLowerCase();
+            const positive = ['biết ơn', 'vui', 'ổn', 'nhẹ', 'yên tâm', 'hạnh phúc', 'bình yên', 'tự hào'];
+            const negative = ['lo', 'mệt', 'buồn', 'tức', 'áp lực', 'căng', 'kiệt sức', 'sợ', 'khó'];
+            let score = 0;
+
+            positive.forEach((word) => {
+                if (content.includes(word)) score += 1;
+            });
+            negative.forEach((word) => {
+                if (content.includes(word)) score -= 1;
+            });
+
+            return Math.max(-5, Math.min(5, score));
+        }
+
+        function extractKeywords(text) {
+            const words = String(text || '')
+                .toLowerCase()
+                .replace(/[^\p{L}\p{N}\s#]/gu, ' ')
+                .split(/\s+/)
+                .filter((word) => word.length >= 4);
+
+            const counts = new Map();
+            words.forEach((word) => {
+                counts.set(word, (counts.get(word) || 0) + 1);
+            });
+
+            return Array.from(counts.entries())
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 5)
+                .map(([word]) => word);
+        }
+
+        function analyzeText(text) {
+            const card = document.getElementById('aiAnalysisCard');
+            const sentimentBars = document.getElementById('sentimentBars');
+            const keywordTags = document.getElementById('keywordTags');
+            const aiInsight = document.getElementById('aiInsight');
+            const aiSuggestion = document.getElementById('aiSuggestion');
+            const suggestedTasks = document.getElementById('suggestedTasks');
+
+            if (!card || !sentimentBars || !keywordTags || !aiInsight || !aiSuggestion || !suggestedTasks) return;
+
+            if (!String(text || '').trim()) {
+                card.classList.remove('show');
+                return;
+            }
+
+            const score = analyzeSentiment(text);
+            const normalized = Math.max(0, Math.min(100, 50 + (score * 10)));
+            const stress = Math.max(0, Math.min(100, 65 - (score * 12)));
+            const clarity = Math.max(0, Math.min(100, 55 + (score * 8)));
+            const keywords = extractKeywords(text);
+            const recommendedTasks = (journalState.dashboard?.tasks || []).slice(0, 2);
+
+            sentimentBars.innerHTML = `
+                <div class="sent-bar">
+                    <div class="sb-label">Tích cực</div>
+                    <div class="sb-track"><div class="sb-fill" style="width:${normalized}%;background:var(--mint-dark);"></div></div>
+                </div>
+                <div class="sent-bar">
+                    <div class="sb-label">Căng thẳng</div>
+                    <div class="sb-track"><div class="sb-fill" style="width:${stress}%;background:var(--coral);"></div></div>
+                </div>
+                <div class="sent-bar">
+                    <div class="sb-label">Rõ ràng</div>
+                    <div class="sb-track"><div class="sb-fill" style="width:${clarity}%;background:var(--sky);"></div></div>
+                </div>
+            `;
+
+            keywordTags.innerHTML = keywords.length
+                ? keywords.map((keyword) => `<span class="keyword-tag">${escapeHtml(keyword)}</span>`).join('')
+                : '<span class="keyword-tag">đang lắng nghe</span>';
+
+            aiInsight.innerText = score >= 2
+                ? 'Bài viết đang nghiêng về phía nhẹ hơn và có nhiều tín hiệu tích cực. Bạn có vẻ đang xử lý cảm xúc theo hướng rõ ràng hơn.'
+                : score <= -2
+                    ? 'Nội dung cho thấy bạn đang mang nhiều áp lực hoặc cảm xúc nặng. Việc viết ra lúc này rất có giá trị để giảm tải nhận thức.'
+                    : 'Bài viết đang ở trạng thái trung tính. Hãy tiếp tục viết sâu hơn về điều khiến bạn chưa thật sự yên tâm hoặc điều đang nâng đỡ bạn.';
+
+            if (recommendedTasks.length) {
+                aiSuggestion.style.display = 'block';
+                suggestedTasks.innerHTML = recommendedTasks.map((task) => `
+                    <a href="task-detail.html?id=${encodeURIComponent(task.id)}" class="tag-chip" style="text-decoration:none;">${escapeHtml(task.title)}</a>
+                `).join('');
+            } else {
+                aiSuggestion.style.display = 'none';
+            }
+
+            card.classList.add('show');
+        }
+
+        function calculateJournalStreak(entries) {
+            const uniqueDays = Array.from(new Set(entries.map((entry) => toIsoDate(entry.created_at)))).sort().reverse();
+            if (!uniqueDays.length) return 0;
+
+            let streak = 0;
+            let currentDate = new Date();
+            let expected = currentDate.toISOString().slice(0, 10);
+
+            if (uniqueDays[0] !== expected) {
+                currentDate.setDate(currentDate.getDate() - 1);
+                expected = currentDate.toISOString().slice(0, 10);
+                if (uniqueDays[0] !== expected) return 0;
+            }
+
+            for (let index = 0; index < uniqueDays.length; index += 1) {
+                const compareDate = new Date();
+                compareDate.setDate(compareDate.getDate() - index - (uniqueDays[0] === toIsoDate(new Date()) ? 0 : 1));
+                const compareIso = compareDate.toISOString().slice(0, 10);
+                if (uniqueDays[index] !== compareIso) break;
+                streak += 1;
+            }
+
+            return streak;
+        }
+
+        function renderStats() {
+            const statsGrid = document.querySelector('.stats-grid');
+            if (!statsGrid) return;
+
+            const totalEntries = journalState.entries.length;
+            const totalWords = journalState.entries.reduce((sum, entry) => sum + countWords(entry.content), 0);
+            const positiveEntries = journalState.entries.filter((entry) => Number(entry.sentiment_score || 0) > 0.5).length;
+            const positiveRate = totalEntries ? Math.round((positiveEntries / totalEntries) * 100) : 0;
+            const journalStreak = calculateJournalStreak(journalState.entries);
+
+            statsGrid.innerHTML = `
+                <div class="stat-item">
+                    <div class="si-num">${totalEntries}</div>
+                    <div class="si-label">Bài viết</div>
+                </div>
+                <div class="stat-item">
+                    <div class="si-num">${journalStreak} 🔥</div>
+                    <div class="si-label">Streak viết</div>
+                </div>
+                <div class="stat-item">
+                    <div class="si-num">${totalWords.toLocaleString('vi-VN')}</div>
+                    <div class="si-label">Tổng từ</div>
+                </div>
+                <div class="stat-item">
+                    <div class="si-num">${positiveRate}%</div>
+                    <div class="si-label">Tích cực</div>
+                </div>
+            `;
+        }
+
+        function renderMoodTrend() {
+            const chart = document.getElementById('moodTrendChart');
+            const labels = document.getElementById('moodDays');
+            if (!chart || !labels) return;
+
+            const points = journalState.dashboard?.mood_chart?.['7d']?.points || [];
+            if (!points.length) {
+                chart.innerHTML = '<div style="font-size:0.72rem;color:var(--text-light);">Chưa có đủ dữ liệu mood 7 ngày.</div>';
+                labels.innerHTML = '';
+                return;
+            }
+
+            chart.innerHTML = points.map((point) => {
+                const value = point.value ?? 0;
+                const height = Math.max(6, value * 6);
+                const color = value >= 7 ? 'var(--mint-dark)' : value >= 5 ? 'var(--gold)' : 'var(--coral)';
+                return `<div class="mtc-bar" data-label="${escapeHtml(`${point.label}: ${value || '--'}/10`)}" style="height:${height}px;background:${color};"></div>`;
+            }).join('');
+
+            labels.innerHTML = points.map((point) => `<div class="md-label">${escapeHtml(point.label)}</div>`).join('');
+        }
+
+        function renderCalendar() {
+            const monthLabel = document.getElementById('miniMonthLabel');
+            const grid = document.getElementById('miniCalGrid');
+            if (!monthLabel || !grid) return;
+
+            const monthDate = new Date(journalState.calendarMonth.getFullYear(), journalState.calendarMonth.getMonth(), 1);
+            const month = monthDate.getMonth();
+            const year = monthDate.getFullYear();
+            const entryDays = new Set(
+                journalState.entries
+                    .filter((entry) => new Date(entry.created_at).getMonth() === month && new Date(entry.created_at).getFullYear() === year)
+                    .map((entry) => new Date(entry.created_at).getDate())
+            );
+
+            monthLabel.innerText = monthDate.toLocaleDateString('vi-VN', {
+                month: 'long',
+                year: 'numeric'
+            });
+
+            const weekdays = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
+            const firstDay = (monthDate.getDay() + 6) % 7;
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            const today = new Date();
+
+            const cells = weekdays.map((day) => `<div class="mc-day-h">${day}</div>`);
+            for (let index = 0; index < firstDay; index += 1) {
+                cells.push('<div class="mc-day empty"></div>');
+            }
+            for (let day = 1; day <= daysInMonth; day += 1) {
+                const classes = ['mc-day'];
+                if (entryDays.has(day)) classes.push('has-entry');
+                if (
+                    today.getFullYear() === year &&
+                    today.getMonth() === month &&
+                    today.getDate() === day
+                ) {
+                    classes.push('today');
+                }
+                cells.push(`<div class="${classes.join(' ')}">${day}</div>`);
+            }
+
+            grid.innerHTML = cells.join('');
+        }
+
+        function getFilterMatch(entry, filter) {
+            if (filter === 'all') return true;
+            const presentation = getEntryPresentation(entry);
+            const tags = normalizeArray(entry.tags);
+
+            if (filter === 'grateful') {
+                return tags.includes('#biếtơn');
+            }
+
+            return presentation.moodMeta.category === filter;
+        }
+
+        function applyEntryFilters() {
+            const query = journalState.searchQuery.trim().toLowerCase();
+
+            journalState.filteredEntries = journalState.entries.filter((entry) => {
+                if (!getFilterMatch(entry, journalState.activeFilter)) return false;
+                if (!query) return true;
+
+                const haystack = [
+                    entry.title,
+                    entry.content,
+                    ...normalizeArray(entry.tags)
+                ]
+                    .filter(Boolean)
+                    .join(' ')
+                    .toLowerCase();
+
+                return haystack.includes(query);
+            });
+        }
+
+        function renderEntries() {
+            const list = document.getElementById('entryList');
+            if (!list) return;
+
+            if (!journalState.filteredEntries.length) {
+                list.innerHTML = '<div style="padding:32px;text-align:center;color:var(--text-secondary);">Chưa có bài nhật ký phù hợp với bộ lọc hiện tại.</div>';
+                return;
+            }
+
+            list.innerHTML = journalState.filteredEntries.map((entry) => {
+                const presentation = getEntryPresentation(entry);
+                return `
+                    <div class="entry-card paper-card ${presentation.moodMeta.className}" onclick="viewEntry('${entry.id}')">
+                        <div class="ec-header">
+                            <div>
+                                <div class="ec-title">${escapeHtml(entry.title || 'Nhật ký không tiêu đề')}</div>
+                                <div class="ec-date">${escapeHtml(formatDateTime(entry.created_at))}</div>
+                            </div>
+                            <div class="ec-mood-emoji">${presentation.emoji}</div>
+                        </div>
+                        <div class="ec-meta-row">
+                            <span class="ec-sentiment ${presentation.sentiment}">${presentation.sentimentLabel}</span>
+                            <span class="ec-wordcount">${presentation.wordCount} từ</span>
+                        </div>
+                        <div class="ec-preview">${escapeHtml(presentation.preview)}${presentation.preview.length >= 180 ? '…' : ''}</div>
+                        <div class="ec-tags-row">
+                            ${normalizeArray(entry.tags).slice(0, 4).map((tag) => `<span class="ec-tag">${escapeHtml(tag)}</span>`).join('')}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function showEditor() {
+            document.getElementById('editorView').style.display = 'block';
+            document.getElementById('historyView').style.display = 'none';
+            document.getElementById('tab-editor')?.classList.add('active');
+            document.getElementById('tab-history')?.classList.remove('active');
+        }
+
+        function showHistory() {
+            document.getElementById('editorView').style.display = 'none';
+            document.getElementById('historyView').style.display = 'block';
+            document.getElementById('tab-editor')?.classList.remove('active');
+            document.getElementById('tab-history')?.classList.add('active');
+            applyEntryFilters();
+            renderEntries();
+        }
+
+        function filterEntries(filter, button) {
+            journalState.activeFilter = filter;
+            document.querySelectorAll('.hf-btn').forEach((item) => item.classList.remove('active'));
+            button?.classList.add('active');
+            applyEntryFilters();
+            renderEntries();
+        }
+
+        function searchEntries(value) {
+            journalState.searchQuery = value || '';
+            applyEntryFilters();
+            renderEntries();
+        }
+
+        function showToast(xp) {
+            const toast = document.getElementById('xpToast');
+            const text = document.getElementById('xpToastText');
+            if (text) text.innerText = `+${xp} XP đã được cộng!`;
+            if (!toast) return;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2500);
+        }
+
+        function clearEditor() {
+            const title = document.getElementById('journalTitle');
+            const textarea = document.getElementById('journalTextarea');
+            if (title) title.value = '';
+            if (textarea) textarea.value = '';
+
+            journalState.selectedMood = null;
+            journalState.selectedTags.clear();
+            journalState.isPrivate = true;
+
+            document.querySelectorAll('.mood-btn').forEach((button) => button.classList.remove('selected'));
+            document.querySelectorAll('.tag-chip').forEach((chip) => chip.classList.remove('selected'));
+            document.getElementById('privacyIcon').innerText = '🔒';
+            document.getElementById('privacyLabel').innerText = 'Riêng tư';
+            document.getElementById('aiAnalysisCard')?.classList.remove('show');
+            updateWordCount();
+        }
+
+        function viewEntry(id) {
+            const entry = journalState.entries.find((item) => String(item.id) === String(id));
+            if (!entry) return;
+
+            const modal = document.getElementById('entryModalOverlay');
+            const title = document.getElementById('emTitle');
+            const meta = document.getElementById('emMeta');
+            const content = document.getElementById('emContent');
+            const aiText = document.getElementById('emAiText');
+            const aiSection = document.getElementById('emAiSection');
+            const presentation = getEntryPresentation(entry);
+            const insight = Number(entry.sentiment_score || 0) >= 1
+                ? 'Bài viết này mang sắc thái tích cực hoặc đã có dấu hiệu hồi phục cảm xúc.'
+                : Number(entry.sentiment_score || 0) <= -1
+                    ? 'Bài viết này cho thấy bạn đang mang áp lực khá rõ. Nếu cần, hãy kết hợp một bài task ngắn sau khi viết.'
+                    : 'Bài viết này phản ánh trạng thái trung tính và quan sát nội tâm ổn định.';
+
+            if (title) title.innerText = entry.title || 'Nhật ký không tiêu đề';
+            if (meta) meta.innerText = `${presentation.emoji} ${presentation.moodMeta.label} · ${formatDateTime(entry.created_at)}`;
+            if (content) content.innerText = entry.content || '';
+            if (aiText) aiText.innerText = insight;
+            if (aiSection) aiSection.style.display = 'block';
+            if (modal) modal.classList.add('show');
+        }
+
+        function closeEntryModal(event) {
+            if (!event || event.target?.id === 'entryModalOverlay') {
+                document.getElementById('entryModalOverlay')?.classList.remove('show');
+            }
+        }
+
+        function closeEntryModalDirect() {
+            document.getElementById('entryModalOverlay')?.classList.remove('show');
+        }
+
+        function changeMiniMonth(delta) {
+            journalState.calendarMonth = new Date(
+                journalState.calendarMonth.getFullYear(),
+                journalState.calendarMonth.getMonth() + delta,
+                1
+            );
+            renderCalendar();
+        }
+
+        async function saveEntry() {
+            const titleInput = document.getElementById('journalTitle');
+            const textarea = document.getElementById('journalTextarea');
+            const content = textarea?.value || '';
+            const title = titleInput?.value || '';
+
+            if (!content.trim()) {
+                alert('Vui lòng viết gì đó trước khi lưu.');
+                return;
+            }
+
+            const moodMeta = getSelectedMoodMeta();
+            const sentimentScore = analyzeSentiment(content);
+            const tags = Array.from(journalState.selectedTags);
+            if (journalState.selectedMood) {
+                tags.unshift(journalState.selectedMood);
+            }
+
+            try {
+                const result = await apiClient.post('/journal', {
+                    title,
+                    content,
+                    mood_before: moodMeta?.score ?? null,
+                    sentiment_score: sentimentScore,
+                    tags,
+                    is_private: journalState.isPrivate
+                });
+
+                const createdEntry = {
+                    ...result,
+                    tags: normalizeArray(result.tags)
+                };
+
+                journalState.entries.unshift(createdEntry);
+
+                if (result.progress) {
+                    journalState.dashboard = {
+                        ...(journalState.dashboard || {}),
+                        progress: {
+                            ...(journalState.dashboard?.progress || {}),
+                            ...result.progress,
+                            xp: result.progress.total_xp,
+                            level: result.progress.current_level,
+                            streak: result.progress.current_streak
+                        }
+                    };
+                    updateHeader();
+                }
+
+                applyEntryFilters();
+                renderEntries();
+                renderStats();
+                renderCalendar();
+                showToast(result.xp_earned || 15);
+                clearEditor();
+                refreshPrompt();
+            } catch (error) {
+                console.error('Could not save journal entry:', error);
+                alert('Không lưu được nhật ký lên server. Vui lòng thử lại.');
+            }
+        }
+
+        function renderFromApi(entries, dashboard) {
+            journalState.entries = (entries || []).map((entry) => ({
+                ...entry,
+                tags: normalizeArray(entry.tags)
+            }));
+            journalState.dashboard = dashboard || null;
+            journalState.calendarMonth = new Date();
+            updateHeader();
+            updateEditorDate();
+            renderPromptList();
+            renderStats();
+            renderMoodTrend();
+            renderCalendar();
+            applyEntryFilters();
+            renderEntries();
+        }
+
+        async function initJournalPage() {
+            try {
+                const [entries, dashboard] = await Promise.all([
+                    apiClient.get('/journal'),
+                    apiClient.get('/dashboard')
+                ]);
+                renderFromApi(entries, dashboard);
+            } catch (error) {
+                console.error('Failed to initialize journal page:', error);
+                renderPromptList();
+                updateEditorDate();
+                renderStats();
+                renderMoodTrend();
+                renderCalendar();
+            }
+
+            showEditor();
+            updateWordCount();
+        }
+
+        window.showEditor = showEditor;
+        window.showHistory = showHistory;
+        window.selectMood = selectMood;
+        window.togglePrivacy = togglePrivacy;
+        window.updateWordCount = updateWordCount;
+        window.saveEntry = saveEntry;
+        window.clearEditor = clearEditor;
+        window.filterEntries = filterEntries;
+        window.searchEntries = searchEntries;
+        window.viewEntry = viewEntry;
+        window.changeMiniMonth = changeMiniMonth;
+        window.toggleTag = toggleTag;
+        window.analyzeText = analyzeText;
+        window.refreshPrompt = refreshPrompt;
+        window.usePrompt = usePrompt;
+        window.formatText = formatText;
+        window.insertEmoji = insertEmoji;
+        window.toggleLinedPaper = toggleLinedPaper;
+        window.increaseFontSize = increaseFontSize;
+        window.decreaseFontSize = decreaseFontSize;
+        window.closeEntryModal = closeEntryModal;
+        window.closeEntryModalDirect = closeEntryModalDirect;
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initJournalPage);
+        } else {
+            initJournalPage();
+        }
+    </script>
 </body>
 </html>
+

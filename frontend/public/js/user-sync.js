@@ -90,10 +90,10 @@ const UserSync = {
 
 // Initialize
 if (typeof document !== 'undefined') {
+    UserSync.init();
+
     if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', () => UserSync.init());
-    } else {
-        UserSync.init();
+        document.addEventListener('DOMContentLoaded', () => UserSync.sync());
     }
 }
 

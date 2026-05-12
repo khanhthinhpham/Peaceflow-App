@@ -4,6 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="../public/favicon.jpg" type="image/svg+xml">
     <title>PeaceFlow — Kết Nối Chuyên Gia Tâm Lý</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Patrick+Hand&display=swap"
@@ -1713,86 +1714,11 @@ Ví dụ: Tôi đang gặp khó khăn với lo âu công việc và mất ngủ 
     </div>
 
     <!-- Sidebar Overlay -->
-    <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
 
-    <!-- Mobile Topbar -->
-    <div class="mobile-topbar">
-        <button class="mobile-menu-btn" onclick="toggleSidebar()">☰</button>
-        <a href="index.html" style="display:flex;align-items:center;gap:8px;text-decoration:none;">
-            <div
-                style="width:32px;height:32px;background:var(--mint);border-radius:8px;border:2px solid var(--mint-dark);display:flex;align-items:center;justify-content:center;font-size:1rem;box-shadow:2px 2px 0px var(--mint-dark);">
-                🌿</div>
-            <span style="font-size:1.1rem;font-weight:800;color:var(--text-primary);">Peace<span
-                    style="color:var(--mint-dark);">Flow</span></span>
-        </a>
-        <span
-            style="background:var(--peach-light);padding:3px 10px;border-radius:50px;font-size:0.75rem;font-weight:700;color:var(--peach-dark);border:1.5px solid var(--peach);">⭐
-            295 XP</span>
-    </div>
-
-    <!-- Sidebar -->
-    <aside class="sidebar" id="sidebar">
-        <a href="index.html" class="sidebar-logo">
-            <div class="logo-icon">🌿</div>
-            <div class="logo-text">Peace<span>Flow</span></div>
-        </a>
-
-        <nav class="sidebar-nav">
-            <div class="nav-section-label">Chính</div>
-            <a href="dashboard.html" class="nav-item ">
-                <span class="ni">🏡</span> Tổng quan
-            </a>
-            <a href="mood-checkin.html" class="nav-item ">
-                <span class="ni">💭</span> Tâm trạng
-            </a>
-            <a href="tasks.html" class="nav-item ">
-                <span class="ni">🎮</span> Nhiệm vụ
-            </a>
-            <a href="journal.html" class="nav-item ">
-                <span class="ni">📝</span> Nhật ký
-            </a>
-
-            <div class="nav-section-label" style="margin-top:8px;">Kết nối</div>
-            <a href="experts.html" class="nav-item active">
-                <span class="ni">🩺</span> Chuyên gia
-            </a>
-            <a href="community.html" class="nav-item ">
-                <span class="ni">👥</span> Cộng đồng
-            </a>
-
-            <div class="nav-section-label" style="margin-top:8px;">Phân tích</div>
-            <a href="report.html" class="nav-item ">
-                <span class="ni">📊</span> Báo cáo
-            </a>
-            <a href="achievements.html" class="nav-item ">
-                <span class="ni">🏅</span> Thành tích
-            </a>
-
-            <div class="nav-section-label" style="margin-top:8px;">Cài đặt</div>
-            <a href="profile.html" class="nav-item ">
-                <span class="ni">👤</span> Hồ sơ
-            </a>
-            <a href="settings.html" class="nav-item ">
-                <span class="ni">⚙️</span> Cài đặt
-            </a>
-            <a href="#" class="nav-item" onclick="handleLogout()" style="color:var(--coral); margin-top: 10px; border-top: 1px dashed var(--kraft-light); padding-top: 15px;">
-                <span class="ni">🚪</span> Đăng xuất
-            </a>
-        </nav>
-
-        <div class="sidebar-bottom">
-            <div class="user-card-mini">
-                <div class="user-avatar-mini">🐱</div>
-                <div class="user-info-mini">
-                    <div class="user-name" data-user-field="display_name">Khách hàng giả lập</div>
-                    <div class="user-level">⭐ 295 XP · Level 2</div>
-                </div>
-            </div>
-            <a href="emergency.html" class="emergency-btn">
-                🆘 Hỗ trợ khẩn cấp
-            </a>
-        </div>
-    </aside>
+    <!-- Shared Sidebar -->
+    <div id="sharedSidebarOverlayMount"></div>
+    <div id="sharedMobileTopbarMount"></div>
+    <div id="sharedSidebarMount"></div>
 
     <!-- Main Content -->
     <main class="main-content">
@@ -1804,7 +1730,7 @@ Ví dụ: Tôi đang gặp khó khăn với lo âu công việc và mất ngủ 
         <div class="page-header">
             <div>
                 <div class="page-title">🩺 Kết Nối Chuyên Gia Tâm Lý</div>
-                <div class="page-subtitle">Đội ngũ 30+ chuyên gia được chứng nhận — sẵn sàng đồng hành cùng bạn</div>
+                <div class="page-subtitle" id="expertsSubtitle">Đội ngũ 30+ chuyên gia được chứng nhận — sẵn sàng đồng hành cùng bạn</div>
             </div>
             <button class="btn-primary" onclick="showEmergency()">🆘 Hỗ trợ khẩn cấp</button>
         </div>
@@ -1821,32 +1747,32 @@ Ví dụ: Tôi đang gặp khó khăn với lo âu công việc và mất ngủ 
         <div class="paper-card ai-match-banner">
             <div class="amb-mascot">🐱</div>
             <div class="amb-text">
-                <div class="at-title">🤖 PeaceCat đã tìm được 3 chuyên gia phù hợp với bạn!</div>
-                <div class="at-sub">Dựa trên kết quả DASS-21 (Lo âu: Nhẹ) và lịch sử tâm trạng — PeaceCat gợi ý các
+                <div class="at-title" id="aiMatchTitle">🤖 PeaceCat đã tìm được 3 chuyên gia phù hợp với bạn!</div>
+                <div class="at-sub" id="aiMatchSubtitle">Dựa trên kết quả DASS-21 (Lo âu: Nhẹ) và lịch sử tâm trạng — PeaceCat gợi ý các
                     chuyên
                     gia chuyên về lo âu và stress công việc.</div>
             </div>
             <div class="amb-action">
-                <button class="btn-primary" onclick="filterExperts('matched',null)">Xem gợi ý →</button>
+                <button class="btn-primary" id="aiMatchButton" onclick="filterExperts('matched',null)">Xem gợi ý →</button>
             </div>
         </div>
 
         <!-- Stats Bar -->
         <div class="stats-bar">
             <div class="paper-card stat-card">
-                <div class="sc-num">32</div>
+                <div class="sc-num" id="expertsActiveCount">32</div>
                 <div class="sc-label">Chuyên gia đang hoạt động</div>
             </div>
             <div class="paper-card stat-card">
-                <div class="sc-num">4.8⭐</div>
+                <div class="sc-num" id="expertsAvgRating">4.8⭐</div>
                 <div class="sc-label">Đánh giá trung bình</div>
             </div>
             <div class="paper-card stat-card">
-                <div class="sc-num">2,847</div>
+                <div class="sc-num" id="expertsSessionsCount">2,847</div>
                 <div class="sc-label">Phiên tư vấn hoàn thành</div>
             </div>
             <div class="paper-card stat-card">
-                <div class="sc-num">96%</div>
+                <div class="sc-num" id="expertsSatisfactionRate">96%</div>
                 <div class="sc-label">Người dùng hài lòng</div>
             </div>
         </div>
@@ -1865,10 +1791,10 @@ Ví dụ: Tôi đang gặp khó khăn với lo âu công việc và mất ngủ 
             </div>
             <div class="filter-row">
                 <div class="search-wrap">
-                    <input type="text" class="search-input" placeholder="🔍 Tìm chuyên gia..."
+                    <input type="text" class="search-input" id="expertsSearchInput" placeholder="🔍 Tìm chuyên gia..."
                         oninput="searchExperts(this.value)">
                 </div>
-                <select class="sort-select" onchange="sortExperts(this.value)">
+                <select class="sort-select" id="expertsSortSelect" onchange="sortExperts(this.value)">
                     <option value="rating">Sắp xếp: Đánh giá cao nhất</option>
                     <option value="sessions">Nhiều phiên nhất</option>
                     <option value="price_asc">Giá thấp nhất</option>
@@ -2195,15 +2121,16 @@ Ví dụ: Tôi đang gặp khó khăn với lo âu công việc và mất ngủ 
         // INIT
         // ============================================================
         window.onload = () => {
+            if (window.__expertsApiMode) return;
             loadData();
             renderExperts(EXPERTS);
         };
     </script>
-
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="../public/js/supabase-config.js"></script>
+    <script src="../public/components/sidebar.js"></script>
     <script src="../public/js/user-sync.js"></script>
     <script src="../public/js/app.js"></script>
+    <script type="module" src="../public/js/experts.js"></script>
 </body>
 
 </html>
+

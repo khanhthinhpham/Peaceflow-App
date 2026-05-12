@@ -1,4 +1,5 @@
-import { supabase } from '../../config/supabase.js';
+import { findUserById } from '../../modules/auth/auth.repository.js';
+import { verifyAccessToken } from '../utils/jwt.js';
 
 export async function requireAuth(req, res, next) {
   try {
@@ -14,9 +15,10 @@ export async function requireAuth(req, res, next) {
       });
     }
 
-    const { data: { user }, error } = await supabase.auth.getUser(token);
-    
-    if (error || !user) {
+    const payload = verifyAccessToken(token);
+    const user = await findUserById(payload.sub);
+
+    if (!user || user.status !== 'active') {
       return res.status(401).json({
         success: false,
         message: 'Invalid or expired token'
@@ -25,8 +27,10 @@ export async function requireAuth(req, res, next) {
 
     req.user = {
       id: user.id,
+      sub: user.id,
       email: user.email,
-      ...user.user_metadata
+      full_name: user.full_name,
+      display_name: user.display_name
     };
     
     next();
