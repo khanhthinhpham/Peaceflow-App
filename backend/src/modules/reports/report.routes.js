@@ -264,9 +264,11 @@ router.get('/dashboard', requireAuth, async (req, res) => {
          where id = $1
          limit 1`,
         [userId]
-      ),
-      db.query(`select * from user_progress where user_id = $1 limit 1`, [userId]),
-      db.query(`select * from mood_checkins where user_id = $1 order by created_at desc limit 1`, [userId]),
+      ).catch((e) => { console.error('[DASHBOARD_QUERY] users:', e.message); return { rows: [] }; }),
+      db.query(`select * from user_progress where user_id = $1 limit 1`, [userId])
+        .catch((e) => { console.error('[DASHBOARD_QUERY] user_progress:', e.message); return { rows: [] }; }),
+      db.query(`select * from mood_checkins where user_id = $1 order by created_at desc limit 1`, [userId])
+        .catch((e) => { console.error('[DASHBOARD_QUERY] mood_checkins latest:', e.message); return { rows: [] }; }),
       db.query(
         `select
            created_at::date as day,
@@ -279,33 +281,33 @@ router.get('/dashboard', requireAuth, async (req, res) => {
          group by created_at::date
          order by day asc`,
         [userId]
-      ),
+      ).catch((e) => { console.error('[DASHBOARD_QUERY] mood_checkins history:', e.message); return { rows: [] }; }),
       db.query(
         `select round(avg(anxiety_score)::numeric, 1) as anxiety_average_14d
          from mood_checkins
          where user_id = $1
            and created_at >= now() - interval '14 days'`,
         [userId]
-      ),
+      ).catch((e) => { console.error('[DASHBOARD_QUERY] anxiety_14d:', e.message); return { rows: [] }; }),
       db.query(
         `select count(*)::int as weekly_tasks_completed
          from task_completions
          where user_id = $1
            and created_at >= now() - interval '7 days'`,
         [userId]
-      ),
+      ).catch((e) => { console.error('[DASHBOARD_QUERY] task_completions weekly:', e.message); return { rows: [] }; }),
       db.query(
         `select count(*)::int as completed_tasks
          from task_completions
          where user_id = $1`,
         [userId]
-      ),
+      ).catch((e) => { console.error('[DASHBOARD_QUERY] task_completions total:', e.message); return { rows: [] }; }),
       db.query(
         `select count(*)::int as badges_count
          from user_badges
          where user_id = $1`,
         [userId]
-      ),
+      ).catch((e) => { console.error('[DASHBOARD_QUERY] user_badges count:', e.message); return { rows: [] }; }),
       db.query(
         `select b.code, b.name, b.icon, b.rarity, ub.earned_at
          from user_badges ub
@@ -314,7 +316,7 @@ router.get('/dashboard', requireAuth, async (req, res) => {
          order by ub.earned_at desc
          limit 3`,
         [userId]
-      ),
+      ).catch((e) => { console.error('[DASHBOARD_QUERY] badges recent:', e.message); return { rows: [] }; }),
       db.query(
         `select title, content, sentiment_score, created_at
          from journal_entries
@@ -322,7 +324,7 @@ router.get('/dashboard', requireAuth, async (req, res) => {
          order by created_at desc
          limit 1`,
         [userId]
-      ),
+      ).catch((e) => { console.error('[DASHBOARD_QUERY] journal_entries:', e.message); return { rows: [] }; }),
       db.query(
         `select t.id, t.title, count(*)::int as completed_count
          from task_completions tc
@@ -333,7 +335,7 @@ router.get('/dashboard', requireAuth, async (req, res) => {
          order by completed_count desc, t.title asc
          limit 1`,
         [userId]
-      ),
+      ).catch((e) => { console.error('[DASHBOARD_QUERY] top_task:', e.message); return { rows: [] }; }),
       db.query(
         `select
            eb.id,
@@ -350,7 +352,7 @@ router.get('/dashboard', requireAuth, async (req, res) => {
          order by eb.starts_at asc
          limit 1`,
         [userId]
-      ).catch(() => ({ rows: [] }))
+      ).catch((e) => { console.error('[DASHBOARD_QUERY] expert_bookings:', e.message); return { rows: [] }; })
     ]);
 
     const user = userRes.rows[0] || null;
@@ -449,7 +451,7 @@ router.get('/dashboard', requireAuth, async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Dashboard route error:', error);
+    console.error('Dashboard route error:', error.message, error.stack);
     return res.status(500).json({ success: false, message: 'Could not fetch dashboard data' });
   }
 });
