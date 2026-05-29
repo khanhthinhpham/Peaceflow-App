@@ -7,6 +7,7 @@
     "dev": "nodemon src/server.js",
     "start": "node src/server.js",
     "migrate": "node src/scripts/migrate.js",
+    "sync:data": "node src/scripts/sync-data.js",
     "seed:badges": "node src/scripts/seed-badges.js",
     "seed:assessments": "node src/scripts/seed-assessments.js",
     "seed:experts": "node src/scripts/seed-experts.js",
