@@ -1848,6 +1848,7 @@
         </div>
     </main>
 
+    <script src="../public/js/env.js"></script>
     <script>
         // ============================================================
         // DATA
@@ -1963,6 +1964,7 @@
             }
 
             try {
+                const isNgrokUrl = (url) => /\.ngrok(-free)?\.(app|dev)$/i.test(String(url || ''));
                 const apiBaseUrl = (() => {
                     const explicitOverride = window.__PEACEFLOW_API_BASE_URL__;
                     if (typeof explicitOverride === 'string' && explicitOverride.trim()) {
@@ -1989,13 +1991,19 @@
                         return `${protocol}//${hostname}:4000/api/v1`;
                     }
 
+                    const configuredDefault = window.__PEACEFLOW_ENV__?.API_BASE_URL;
+                    if (typeof configuredDefault === 'string' && configuredDefault.trim()) {
+                        return configuredDefault.trim().replace(/\/+$/, '');
+                    }
+
                     return `${origin}/api/v1`;
                 })();
                 const response = await fetch(`${apiBaseUrl}/journal`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${accessToken}`
+                        'Authorization': `Bearer ${accessToken}`,
+                        ...(isNgrokUrl(apiBaseUrl) ? { 'ngrok-skip-browser-warning': 'true' } : {})
                     },
                     body: JSON.stringify({
                         title,

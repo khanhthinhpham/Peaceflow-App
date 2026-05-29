@@ -2197,8 +2197,8 @@
                 ? `Mood gần nhất của bạn là <strong>${latestMood.mood_score}/10</strong>.`
                 : 'Mình chưa thấy check-in mood gần đây của bạn.';
 
-            const insightSentence = insight?.headline
-                ? `<br><br><strong>Tín hiệu gần đây:</strong> ${escapeHtml(insight.headline)}`
+            const insightSentence = (insight?.title || insight?.body)
+                ? `<br><br><strong>Tín hiệu gần đây:</strong> ${escapeHtml(insight.title || insight.body)}`
                 : '';
 
             return `Chào <span data-user-field="display_name">${escapeHtml(getUserName())}</span>! 🌿 Mình là PeaceCat.<br><br>${moodSentence}${insightSentence}<br><br>Đây vẫn là không gian riêng tư để bạn nói ra điều đang diễn ra. <strong>Hôm nay bạn thấy thế nào?</strong>`;

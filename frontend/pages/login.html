@@ -68,6 +68,16 @@
             margin-bottom: 15px;
             border: 1px solid var(--coral);
         }
+        #loginError.success {
+            color: var(--mint-dark);
+            background: var(--mint-light);
+            border-color: var(--mint);
+        }
+        #loginError.error {
+            color: var(--coral-dark);
+            background: var(--coral-light);
+            border-color: var(--coral);
+        }
         .divider {
             display: flex;
             align-items: center;
@@ -154,6 +164,28 @@
         msg.style.display = text ? 'block' : 'none';
       }
 
+      function getLoginErrorMessage(error) {
+        const message = String(error?.message || '').trim();
+
+        if (message === 'Account not found' || message === 'Không tìm thấy tài khoản.') {
+          return 'Không tìm thấy tài khoản.';
+        }
+
+        if (message === 'Incorrect password' || message === 'Sai mật khẩu.') {
+          return 'Sai mật khẩu.';
+        }
+
+        if (message === 'Account is inactive' || message === 'Tài khoản hiện đang bị vô hiệu hóa.') {
+          return 'Tài khoản hiện đang bị vô hiệu hóa.';
+        }
+
+        if (message === 'Invalid email or password') {
+          return 'Email hoặc mật khẩu không đúng.';
+        }
+
+        return message || 'Đăng nhập thất bại.';
+      }
+
       function getPostLoginRedirect() {
         const target = sessionStorage.getItem('peaceflow_post_login_redirect');
         if (!target || target.includes('login.html')) return 'dashboard.html';
@@ -199,7 +231,7 @@
           showMessage('Đăng nhập thành công!', 'success');
           setTimeout(() => redirectAfterLogin(), 700);
         } catch (err) {
-          showMessage(err.message || 'Đăng nhập thất bại.', 'error');
+          showMessage(getLoginErrorMessage(err), 'error');
         } finally {
           btn.disabled = false;
           btn.textContent = 'Đăng Nhập';

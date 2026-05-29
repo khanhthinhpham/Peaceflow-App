@@ -465,6 +465,8 @@
     </script>
     <script type="module">
         import { apiClient } from '../public/js/api-client.js';
+        import { auth } from '../public/js/auth.js';
+        import { applyGuestEmergencyLinkGuards, buildGuestEmergencyUrl, guardGuestEmergencyPage, isGuestEmergencyModeActive } from '../public/js/guest-emergency.js';
 
         const state = {
             timeLeft: 300,
@@ -472,7 +474,8 @@
             interval: null,
             user: null,
             progress: null,
-            task: null
+            task: null,
+            guestEmergencyMode: false
         };
 
         function parseMeta(task) {
@@ -484,6 +487,14 @@
         }
 
         function updateUI() {
+            if (state.guestEmergencyMode) {
+                document.querySelectorAll('.user-name').forEach((el) => el.innerText = 'Khách khẩn cấp');
+                document.querySelectorAll('.user-level').forEach((el) => el.innerText = 'Chỉ mở bài tập khẩn cấp');
+                const mobileXp = document.querySelector('.mobile-xp-display');
+                if (mobileXp) mobileXp.innerText = '🆘 Khẩn cấp';
+                return;
+            }
+
             const xp = state.progress?.xp ?? state.progress?.total_xp ?? 0;
             const level = state.progress?.level ?? state.progress?.current_level ?? 1;
             const name = state.user?.display_name || state.user?.full_name || 'Bạn';
@@ -498,7 +509,7 @@
             state.isRunning = true;
             document.getElementById('startBtn').style.display = 'none';
 
-            if (state.task && !state.task.in_progress && !state.task.completed) {
+            if (!state.guestEmergencyMode && state.task && !state.task.in_progress && !state.task.completed) {
                 try {
                     await apiClient.post(`/tasks/${state.task.id}/start`, {});
                     state.task.in_progress = true;
@@ -522,7 +533,7 @@
         async function finish() {
             let xp = 25;
             try {
-                if (state.task) {
+                if (!state.guestEmergencyMode && state.task) {
                     const result = await apiClient.post(`/tasks/${state.task.id}/complete`, {
                         self_rating_before: null,
                         self_rating_after: null,
@@ -554,6 +565,25 @@
         }
 
         async function loadData() {
+            state.guestEmergencyMode = isGuestEmergencyModeActive(auth.isAuthenticated());
+
+            if (state.guestEmergencyMode) {
+                state.user = null;
+                state.progress = null;
+                state.task = null;
+                applyGuestEmergencyLinkGuards();
+                document.querySelectorAll('a[href="tasks.html"]').forEach((link) => {
+                    link.href = buildGuestEmergencyUrl('tasks.html');
+                });
+                updateUI();
+                return;
+            }
+
+            if (!auth.isAuthenticated()) {
+                window.location.replace('login.html');
+                return;
+            }
+
             try {
                 const [tasks, dashboard] = await Promise.all([
                     apiClient.get('/tasks'),
@@ -576,6 +606,7 @@
         window.startMeditation = startMeditation;
 
         window.addEventListener('load', async () => {
+            guardGuestEmergencyPage({ isAuthenticated: auth.isAuthenticated() });
             await loadData();
         });
     </script>

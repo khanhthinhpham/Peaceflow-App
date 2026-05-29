@@ -66,8 +66,11 @@ export const auth = {
                 })
                 .catch((error) => {
                     console.error('Auth verification failed:', error);
-                    this.clearSession();
-                    return false;
+                    // Keep the existing session on transient tunnel/CORS failures.
+                    // Login has already produced valid tokens; losing them here
+                    // causes an unnecessary logout loop while using dev tunnels.
+                    const hasToken = this.isAuthenticated();
+                    return hasToken;
                 })
                 .finally(() => {
                     this._authCheckPromise = null;

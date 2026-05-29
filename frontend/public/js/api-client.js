@@ -1,9 +1,64 @@
+import './env.js';
+
 function normalizeApiBaseUrl(value) {
     return String(value || '').trim().replace(/\/+$/, '');
 }
 
-function getApiBaseUrl() {
-    return 'https://standard-standings-raymond-laptop.trycloudflare.com/api/v1';
+function isDebugEnabled() {
+    return localStorage.getItem('peaceflow_debug') === '1';
+}
+
+function createTraceId() {
+    return `fe-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+}
+
+function previewPayload(value, maxLength = 500) {
+    try {
+        if (value === undefined) return '';
+        const text = typeof value === 'string' ? value : JSON.stringify(value);
+        if (!text) return '';
+        return text.length > maxLength ? `${text.slice(0, maxLength)}...` : text;
+    } catch (_error) {
+        return '[unserializable]';
+    }
+}
+
+function isNgrokUrl(url) {
+    return /\.ngrok(-free)?\.(app|dev)$/i.test(String(url || ''));
+}
+
+export function getApiBaseUrl() {
+    const explicitOverride = window.__PEACEFLOW_API_BASE_URL__;
+    if (typeof explicitOverride === 'string' && explicitOverride.trim()) {
+        return normalizeApiBaseUrl(explicitOverride);
+    }
+
+    const storedOverride = localStorage.getItem('peaceflow_api_base_url');
+    if (storedOverride && storedOverride.trim()) {
+        return normalizeApiBaseUrl(storedOverride);
+    }
+
+    const { protocol, hostname, port, origin } = window.location;
+    const isLocalHost = hostname === 'localhost' || hostname === '127.0.0.1';
+
+    if (port === '4000') {
+        return `${origin}/api/v1`;
+    }
+
+    if (isLocalHost) {
+        return 'http://localhost:4000/api/v1';
+    }
+
+    if (port) {
+        return `${protocol}//${hostname}:4000/api/v1`;
+    }
+
+    const configuredDefault = window.__PEACEFLOW_ENV__?.API_BASE_URL;
+    if (typeof configuredDefault === 'string' && configuredDefault.trim()) {
+        return normalizeApiBaseUrl(configuredDefault);
+    }
+
+    return `${origin}/api/v1`;
 }
 
 export const API_BASE_URL = getApiBaseUrl();
@@ -52,44 +107,89 @@ async function parseResponse(response) {
     return { success: false, message: text || `Error ${response.status}` };
 }
 
+function getErrorMessage(result, response) {
+    if (typeof result === 'string' && result.trim()) {
+        return result;
+    }
+
+    if (result && typeof result === 'object') {
+        if (typeof result.message === 'string' && result.message.trim()) {
+            return result.message;
+        }
+
+        if (typeof result.error === 'string' && result.error.trim()) {
+            return result.error;
+        }
+    }
+
+    return `API request failed (${response.status})`;
+}
+
+function normalizeRequestError(error) {
+    const message = String(error?.message || '').trim();
+
+    if (
+        error instanceof TypeError ||
+        message === 'Failed to fetch' ||
+        message === 'Load failed' ||
+        message.includes('NetworkError')
+    ) {
+        return new Error('Không kết nối được máy chủ.');
+    }
+
+    return error;
+}
+
 async function refreshAccessToken() {
     const refreshToken = getStoredRefreshToken();
     if (!refreshToken) {
         throw new Error('Missing refresh token');
     }
 
-    const response = await fetch(`${API_BASE_URL}/auth/refresh`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            refresh_token: refreshToken
-        })
-    });
+    const traceId = createTraceId();
+    const startedAt = performance.now();
 
-    const result = await parseResponse(response);
-    if (!response.ok) {
-        throw new Error(result.message || 'Refresh token request failed');
+    try {
+        const response = await fetch(`${API_BASE_URL}/auth/refresh`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'x-client-trace-id': traceId,
+                'ngrok-skip-browser-warning': 'true'
+            },
+            body: JSON.stringify({
+                refresh_token: refreshToken
+            })
+        });
+        if (isDebugEnabled()) {
+            console.info(`[FE_API] trace=${traceId} method=POST endpoint=/auth/refresh status=${response.status} duration_ms=${Math.round(performance.now() - startedAt)}`);
+        }
+
+        const result = await parseResponse(response);
+        if (!response.ok) {
+            throw new Error(result.message || 'Refresh token request failed');
+        }
+
+        const data = result.data || result;
+        const nextAccessToken = data.session?.access_token || data.access_token;
+        const nextRefreshToken = data.session?.refresh_token || data.refresh_token;
+        const user = data.user;
+
+        if (!nextAccessToken || !nextRefreshToken) {
+            throw new Error('Refresh token response missing session');
+        }
+
+        localStorage.setItem('access_token', nextAccessToken);
+        localStorage.setItem('refresh_token', nextRefreshToken);
+        if (user) {
+            localStorage.setItem('user', JSON.stringify(user));
+            window.dispatchEvent(new Event('user-profile-updated'));
+        }
+
+        return nextAccessToken;
+    } catch (error) {
+        throw normalizeRequestError(error);
     }
-
-    const data = result.data || result;
-    const nextAccessToken = data.session?.access_token || data.access_token;
-    const nextRefreshToken = data.session?.refresh_token || data.refresh_token;
-    const user = data.user;
-
-    if (!nextAccessToken || !nextRefreshToken) {
-        throw new Error('Refresh token response missing session');
-    }
-
-    localStorage.setItem('access_token', nextAccessToken);
-    localStorage.setItem('refresh_token', nextRefreshToken);
-    if (user) {
-        localStorage.setItem('user', JSON.stringify(user));
-        window.dispatchEvent(new Event('user-profile-updated'));
-    }
-
-    return nextAccessToken;
 }
 
 async function ensureAccessToken() {
@@ -109,26 +209,43 @@ export const apiClient = {
         const isAuthRefreshRequest = endpoint === '/auth/refresh';
         const isPublicAuthRequest = endpoint === '/auth/login' || endpoint === '/auth/register';
         const shouldRetryAuth = retryOptions.retryAuth !== false;
+        const traceId = createTraceId();
+        const startedAt = performance.now();
 
         const headers = {
             'Content-Type': 'application/json',
+            'x-client-trace-id': traceId,
             ...options.headers
         };
+
+        if (isNgrokUrl(API_BASE_URL)) {
+            headers['ngrok-skip-browser-warning'] = 'true';
+        }
 
         if (token && !isPublicAuthRequest) {
             headers.Authorization = `Bearer ${token}`;
         }
 
         try {
+            if (isDebugEnabled()) {
+                console.info(`[FE_API] trace=${traceId} method=${options.method || 'GET'} endpoint=${endpoint} request_body=${previewPayload(options.body)}`);
+            }
+
             const response = await fetch(url, {
                 ...options,
                 headers
             });
 
             const result = await parseResponse(response);
+            const durationMs = Math.round(performance.now() - startedAt);
+
+            if (isDebugEnabled()) {
+                const requestId = response.headers.get('x-request-id') || '-';
+                console.info(`[FE_API] trace=${traceId} method=${options.method || 'GET'} endpoint=${endpoint} status=${response.status} duration_ms=${durationMs} request_id=${requestId}`);
+            }
 
             if (!response.ok) {
-                if (response.status === 401 && shouldRetryAuth && !isAuthRefreshRequest) {
+                if (response.status === 401 && shouldRetryAuth && !isAuthRefreshRequest && !isPublicAuthRequest) {
                     try {
                         const nextToken = await ensureAccessToken();
                         return this.request(endpoint, options, {
@@ -142,13 +259,14 @@ export const apiClient = {
                     }
                 }
 
-                throw new Error(result.message || result.error || 'API request failed');
+                throw new Error(getErrorMessage(result, response));
             }
 
             return result.data || result;
         } catch (error) {
-            console.error(`[API] Request failed for ${endpoint}:`, error);
-            throw error;
+            const normalizedError = normalizeRequestError(error);
+            console.error(`[API] Request failed for ${endpoint} trace=${traceId}:`, normalizedError);
+            throw normalizedError;
         }
     },
 

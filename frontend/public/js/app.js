@@ -38,7 +38,22 @@ const SERVER_MANAGED_PAGES = new Set([
 ]);
 
 function getCurrentPage() {
-  return window.location.pathname.split('/').pop() || 'index.html';
+  const parsed = new URL(window.location.href);
+  const pathname = parsed.pathname.split('/').pop() || 'index.html';
+
+  if (pathname === 'app.html') {
+    const pageParam = parsed.searchParams.get('page');
+    if (!pageParam) return 'dashboard.html';
+
+    try {
+      const nested = new URL(pageParam, window.location.href);
+      return nested.pathname.split('/').pop() || 'dashboard.html';
+    } catch {
+      return String(pageParam).split('?')[0].split('#')[0] || 'dashboard.html';
+    }
+  }
+
+  return pathname;
 }
 
 function isServerManagedPage(page = getCurrentPage()) {
@@ -341,7 +356,7 @@ const NavModule = {
   },
 
   highlightCurrentPage() {
-    const path = window.location.pathname.split('/').pop() || 'index.html';
+    const path = getCurrentPage();
     document.querySelectorAll('.nav-item').forEach(item => {
       const href = item.getAttribute('href');
       if (href && href === path) {
@@ -1493,3 +1508,7 @@ window.handleLogout    = function handleLogout() {
   localStorage.removeItem('user');
   window.location.href = 'login.html';
 };
+
+App.init().catch((error) => {
+  console.error('PeaceFlow app bootstrap failed:', error);
+});

@@ -53,6 +53,39 @@ router.get('/tasks', requireAuth, async (req, res) => {
   });
 });
 
+// GET /api/v1/tasks/public-emergency
+router.get('/tasks/public-emergency', async (_req, res) => {
+  const result = await db.query(
+    `select
+       t.*,
+       false as completed,
+       false as in_progress,
+       0::int as completion_count
+     from tasks t
+     where t.active = true
+       and (
+         t.category = 'emergency'
+         or t.code like 'E%'
+         or exists (
+           select 1
+           from jsonb_array_elements_text(coalesce(t.tags, '[]'::jsonb)) as tag(value)
+           where lower(tag.value) = 'emergency'
+         )
+       )
+     order by
+       case when t.category = 'emergency' then 0 else 1 end,
+       t.difficulty,
+       t.duration_minutes,
+       t.code`,
+    []
+  );
+
+  return res.json({
+    success: true,
+    data: result.rows
+  });
+});
+
 // GET /api/v1/tasks/recommended
 router.get('/tasks/recommended', requireAuth, async (req, res) => {
   try {

@@ -1,4 +1,6 @@
 (function () {
+    const SPA_NAV_ENABLED = false;
+    const DEBUG_ENABLED = () => localStorage.getItem('peaceflow_debug') === '1';
     const PAGE_TO_NAV_KEY = {
         'dashboard.html': 'dashboard',
         'mood-checkin.html': 'mood',
@@ -36,6 +38,7 @@
     const templateUrl = scriptUrl
         ? new URL('./sidebar.html', scriptUrl).href
         : '../public/components/sidebar.html';
+    const SIDEBAR_TEMPLATE_CACHE_KEY = 'peaceflow_sidebar_template_v2';
 
     let sidebarMounted = false;
     let navigating = false;
@@ -47,9 +50,31 @@
     }
 
     function getCurrentPageFromUrl(url = window.location.href) {
-        const pathname = new URL(url, window.location.href).pathname;
+        const parsed = new URL(url, window.location.href);
+        const pathname = parsed.pathname;
         const segments = pathname.split('/');
-        return segments[segments.length - 1] || 'index.html';
+        const pageName = segments[segments.length - 1] || 'index.html';
+
+        if (pageName === 'app.html') {
+            const pageParam = parsed.searchParams.get('page');
+            if (!pageParam) return 'dashboard.html';
+
+            try {
+                const nested = new URL(pageParam, window.location.href);
+                const nestedSegments = nested.pathname.split('/');
+                return nestedSegments[nestedSegments.length - 1] || 'dashboard.html';
+            } catch (_error) {
+                return String(pageParam).split('?')[0].split('#')[0] || 'dashboard.html';
+            }
+        }
+
+        return pageName;
+    }
+
+    function isAppShellUrl(url = window.location.href) {
+        const parsed = new URL(url, window.location.href);
+        const pathname = parsed.pathname.split('/').pop() || '';
+        return pathname === 'app.html' || Boolean(document.getElementById('spaPageHost'));
     }
 
     function isSpaPageUrl(url) {
@@ -68,6 +93,53 @@
                 node.classList.remove('active');
             }
         });
+    }
+
+    function markSharedNav(url = window.location.href) {
+        const sidebar = document.getElementById('sidebar');
+        if (sidebar) {
+            markActiveNav(sidebar, url);
+        }
+    }
+
+    function hasStoredUser() {
+        const rawUser = localStorage.getItem('user');
+        if (!rawUser) return false;
+
+        try {
+            const user = JSON.parse(rawUser);
+            return Boolean(user && typeof user === 'object' && (user.id || user.email || user.display_name || user.full_name));
+        } catch (_error) {
+            return false;
+        }
+    }
+
+    function isAuthenticated() {
+        const accessToken = localStorage.getItem('access_token');
+        if (!accessToken || accessToken === 'undefined' || accessToken === 'null') {
+            return false;
+        }
+
+        return hasStoredUser();
+    }
+
+    function syncSidebarAuthAction() {
+        const actionLink = document.getElementById('sidebarAuthAction');
+        const actionIcon = document.getElementById('sidebarAuthActionIcon');
+        const actionText = document.getElementById('sidebarAuthActionText');
+        if (!actionLink || !actionIcon || !actionText) return;
+
+        if (isAuthenticated()) {
+            actionLink.setAttribute('href', '#');
+            actionLink.setAttribute('onclick', 'handleLogout()');
+            actionText.textContent = 'Đăng xuất';
+            actionIcon.textContent = '🚪';
+        } else {
+            actionLink.setAttribute('href', 'login.html');
+            actionLink.removeAttribute('onclick');
+            actionText.textContent = 'Đăng nhập';
+            actionIcon.textContent = '🔐';
+        }
     }
 
     function parseTemplateParts(html) {
@@ -276,6 +348,8 @@
     }
 
     function handleDocumentClick(event) {
+        if (isAppShellUrl()) return;
+
         const anchor = event.target.closest('a[href]');
         if (!anchor) return;
 
@@ -286,12 +360,16 @@
         const nextUrl = new URL(anchor.href, window.location.href);
         if (nextUrl.origin !== window.location.origin) return;
         if (!isSpaPageUrl(nextUrl.href)) return;
+        if (DEBUG_ENABLED()) {
+            console.info(`[FE_NAV] full_page_navigation from=${window.location.href} to=${nextUrl.href}`);
+        }
 
         event.preventDefault();
         loadSpaPage(nextUrl.href);
     }
 
     async function mountSharedSidebar() {
+        const startedAt = performance.now();
         const sidebarMount = document.getElementById('sharedSidebarMount');
         const topbarMount = document.getElementById('sharedMobileTopbarMount');
         const overlayMount = document.getElementById('sharedSidebarOverlayMount');
@@ -300,12 +378,16 @@
         if (sidebarMounted) return;
 
         try {
-            const response = await fetch(templateUrl, { cache: 'no-cache' });
-            if (!response.ok) {
-                throw new Error(`Sidebar template load failed: ${response.status}`);
-            }
+            let html = sessionStorage.getItem(SIDEBAR_TEMPLATE_CACHE_KEY);
 
-            const html = await response.text();
+            if (!html) {
+                const response = await fetch(templateUrl, { cache: 'force-cache' });
+                if (!response.ok) {
+                    throw new Error(`Sidebar template load failed: ${response.status}`);
+                }
+                html = await response.text();
+                sessionStorage.setItem(SIDEBAR_TEMPLATE_CACHE_KEY, html);
+            }
             const parts = parseTemplateParts(html);
 
             if (!parts.overlay || !parts.topbar || !parts.sidebar) {
@@ -319,10 +401,14 @@
             sidebarMount.replaceChildren(parts.sidebar);
 
             sidebarMounted = true;
+            if (DEBUG_ENABLED()) {
+                console.info(`[FE_SIDEBAR] mounted duration_ms=${Math.round(performance.now() - startedAt)}`);
+            }
 
             if (window.UserSync?.sync) {
                 window.UserSync.sync();
             }
+            syncSidebarAuthAction();
         } catch (error) {
             console.error('Failed to mount shared sidebar:', error);
         }
@@ -342,19 +428,34 @@
 
     window.mountSharedSidebar = mountSharedSidebar;
     window.loadSpaPage = loadSpaPage;
+    window.markSharedNav = markSharedNav;
+    window.syncSidebarAuthAction = syncSidebarAuthAction;
 
-    document.addEventListener('click', handleDocumentClick);
-    window.addEventListener('popstate', () => {
-        if (isSpaPageUrl(window.location.href)) {
-            loadSpaPage(window.location.href, { pushState: false });
+    window.addEventListener('storage', (event) => {
+        if (event.key === 'access_token' || event.key === 'user') {
+            syncSidebarAuthAction();
         }
     });
+
+    if (SPA_NAV_ENABLED) {
+        document.addEventListener('click', handleDocumentClick);
+        window.addEventListener('popstate', () => {
+            if (isAppShellUrl()) return;
+            if (isSpaPageUrl(window.location.href)) {
+                loadSpaPage(window.location.href, { pushState: false });
+            }
+        });
+    }
 
     markCurrentPageStyles();
 
     if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', mountSharedSidebar);
+        document.addEventListener('DOMContentLoaded', () => {
+            mountSharedSidebar();
+            syncSidebarAuthAction();
+        });
     } else {
         mountSharedSidebar();
+        syncSidebarAuthAction();
     }
 })();

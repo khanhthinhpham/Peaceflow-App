@@ -1,20 +1,25 @@
 import { apiClient } from './api-client.js';
 import { auth } from './auth.js';
 
-export const dashboard = {
+const dashboard = window.__peaceflowDashboardController || {
     state: {
         data: null,
         chartPeriod: '7d',
-        loading: false
+        loading: false,
+        initialized: false
     },
 
     async init() {
+        if (this.state.initialized) return;
+        this.state.initialized = true;
+
         try {
             await auth.waitForAuth();
             await this.refresh();
         } catch (error) {
             console.error('Dashboard init error:', error);
             this.renderFetchError();
+            this.state.initialized = false;
         }
     },
 
@@ -662,29 +667,101 @@ window.switchTab = (button, period) => {
     dashboard.switchChart(period, button);
 };
 
-if (typeof document !== 'undefined' && window.location.pathname.includes('dashboard.html')) {
+window.__peaceflowDashboardController = dashboard;
+
+export { dashboard };
+
+function isDashboardPage() {
+    return Boolean(
+        document.getElementById('insightCard')
+        && document.getElementById('radarCard')
+        && document.getElementById('gardenCard')
+        && document.getElementById('todayTasksCard')
+        && document.getElementById('xpCard')
+    );
+}
+
+function isDashboardRoute(pageSpec = window.__peaceflowCurrentPageSpec || '') {
+    return String(pageSpec || '').startsWith('dashboard.html');
+}
+
+function waitForDashboardPage(maxAttempts = 8, delayMs = 80) {
+    return new Promise((resolve) => {
+        let attempts = 0;
+
+        const check = () => {
+            if (isDashboardPage()) {
+                resolve(true);
+                return;
+            }
+            attempts += 1;
+            if (attempts >= maxAttempts) {
+                resolve(false);
+                return;
+            }
+            setTimeout(check, delayMs);
+        };
+
+        check();
+    });
+}
+
+async function handleDashboardRouteActivation(forceRefresh = false) {
+    const hasDashboardDom = await waitForDashboardPage();
+    if (!hasDashboardDom) return;
+
+    if (!dashboard.state.initialized) {
+        await dashboard.init();
+        return;
+    }
+
+    if (forceRefresh) {
+        await dashboard.refresh(true);
+    }
+}
+
+if (typeof document !== 'undefined') {
     const triggerDashboardRefresh = () => {
         dashboard.refresh(true).catch((error) => {
             console.error('Dashboard realtime refresh failed:', error);
         });
     };
 
-    document.addEventListener('DOMContentLoaded', () => dashboard.init());
-    window.addEventListener('pageshow', () => {
-        if (localStorage.getItem('peaceflow_dashboard_refresh') === '1') {
-            triggerDashboardRefresh();
-        }
-    });
-    document.addEventListener('visibilitychange', () => {
-        if (document.visibilityState !== 'visible') return;
-        if (localStorage.getItem('peaceflow_dashboard_refresh') === '1') {
-            triggerDashboardRefresh();
-        }
-    });
-    window.addEventListener('storage', (event) => {
-        if (event.key === 'peaceflow_dashboard_refresh' && event.newValue === '1') {
-            triggerDashboardRefresh();
-        }
-    });
-    window.addEventListener('peaceflow-dashboard-refresh', triggerDashboardRefresh);
+    if (!window.__peaceflowDashboardBindingsInstalled) {
+        window.__peaceflowDashboardBindingsInstalled = true;
+
+        window.addEventListener('pageshow', () => {
+            if (!isDashboardRoute()) return;
+            if (localStorage.getItem('peaceflow_dashboard_refresh') === '1') {
+                triggerDashboardRefresh();
+            }
+        });
+        document.addEventListener('visibilitychange', () => {
+            if (!isDashboardRoute()) return;
+            if (document.visibilityState !== 'visible') return;
+            if (localStorage.getItem('peaceflow_dashboard_refresh') === '1') {
+                triggerDashboardRefresh();
+            }
+        });
+        window.addEventListener('storage', (event) => {
+            if (event.key === 'peaceflow_dashboard_refresh' && event.newValue === '1') {
+                triggerDashboardRefresh();
+            }
+        });
+        window.addEventListener('peaceflow-dashboard-refresh', triggerDashboardRefresh);
+        window.addEventListener('peaceflow:route-mounted', async (event) => {
+            if (!isDashboardRoute(event.detail?.page)) return;
+            try {
+                await handleDashboardRouteActivation(true);
+            } catch (error) {
+                console.error('Dashboard route activation failed:', error);
+            }
+        });
+    }
+
+    if (isDashboardPage() || isDashboardRoute()) {
+        handleDashboardRouteActivation(true).catch((error) => {
+            console.error('Dashboard initial activation failed:', error);
+        });
+    }
 }

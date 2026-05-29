@@ -261,6 +261,37 @@
             backendSignupMessage.textContent = message;
         }
 
+        function getSignupErrorMessage(error) {
+            const message = String(error?.message || '').trim();
+
+            if (!message) {
+                return 'Đăng ký thất bại.';
+            }
+
+            if (
+                message === 'Email already registered' ||
+                message === 'Email đã được đăng ký.'
+            ) {
+                return 'Email đã được đăng ký.';
+            }
+
+            if (
+                message === 'Failed to fetch' ||
+                message === 'Load failed' ||
+                message.includes('NetworkError') ||
+                message === 'Không kết nối được máy chủ.' ||
+                message === 'Mất kết nối máy chủ.'
+            ) {
+                return 'Không kết nối được máy chủ.';
+            }
+
+            if (message === 'Invalid email') {
+                return 'Email chưa hợp lệ.';
+            }
+
+            return message;
+        }
+
         backendSignupForm.addEventListener('submit', async (event) => {
             event.preventDefault();
             event.stopImmediatePropagation();
@@ -310,10 +341,10 @@
                     backendSignupForm.reset();
                 }
             } catch (error) {
-                showBackendMessage( 'Đăng ký thất bại.');
+                showBackendMessage(getSignupErrorMessage(error), 'error');
             } finally {
                 backendSignupBtn.disabled = false;
-                backendSignupBtn.textContent = 'Dang Ky';
+                backendSignupBtn.textContent = 'Đăng ký';
             }
         }, true);
     </script>

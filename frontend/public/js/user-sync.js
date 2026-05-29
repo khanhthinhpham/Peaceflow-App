@@ -16,6 +16,9 @@ const UserSync = {
 
     sync() {
         const user = this.getUser();
+        if (typeof window.syncSidebarAuthAction === 'function') {
+            window.syncSidebarAuthAction();
+        }
         if (!user) return;
 
         const fields = document.querySelectorAll('[data-user-field]');

@@ -1449,6 +1449,8 @@
     </script>
     <script type="module">
         import { apiClient } from '../public/js/api-client.js';
+        import { auth } from '../public/js/auth.js';
+        import { applyGuestEmergencyLinkGuards, buildGuestEmergencyUrl, guardGuestEmergencyPage, isGuestEmergencyModeActive } from '../public/js/guest-emergency.js';
 
         const TECHNIQUES = {
             box: { name: '📦 Thở Vuông', dur: 4, rounds: 5, xp: 20, desc: 'Thở vuông là kỹ thuật điều hòa hơi thở theo chu kỳ 4 giây đều nhau.', tip: 'Box Breathing là kỹ thuật của Navy SEAL! 🌊', phases: [{ n: 'Hít vào', d: 4, c: 'inhale' }, { n: 'Giữ', d: 4, c: 'hold' }, { n: 'Thở ra', d: 4, c: 'exhale' }, { n: 'Nghỉ', d: 4, c: 'pause' }] },
@@ -1469,7 +1471,8 @@
             sessionInterval: null,
             task: null,
             user: null,
-            progress: null
+            progress: null,
+            guestEmergencyMode: false
         };
 
         function parseMeta(task) {
@@ -1481,6 +1484,14 @@
         }
 
         function updateSidebar() {
+            if (state.guestEmergencyMode) {
+                document.querySelectorAll('.user-name').forEach((el) => el.innerText = 'Khách khẩn cấp');
+                document.querySelectorAll('.user-level').forEach((el) => el.innerText = 'Chỉ mở bài tập khẩn cấp');
+                const mobileXp = document.querySelector('.mobile-xp-display');
+                if (mobileXp) mobileXp.innerText = '🆘 Khẩn cấp';
+                return;
+            }
+
             const xp = state.progress?.xp ?? state.progress?.total_xp ?? 0;
             const level = state.progress?.level ?? state.progress?.current_level ?? 1;
             const name = state.user?.display_name || state.user?.full_name || 'Bạn';
@@ -1557,7 +1568,7 @@
         async function startBreathing() {
             if (state.isRunning && !state.isPaused) return;
 
-            if (state.task && !state.task.in_progress && !state.task.completed) {
+            if (!state.guestEmergencyMode && state.task && !state.task.in_progress && !state.task.completed) {
                 try {
                     await apiClient.post(`/tasks/${state.task.id}/start`, {});
                     state.task.in_progress = true;
@@ -1619,7 +1630,7 @@
 
             let xp = TECHNIQUES[state.currentKey].xp;
             try {
-                if (state.task) {
+                if (!state.guestEmergencyMode && state.task) {
                     const result = await apiClient.post(`/tasks/${state.task.id}/complete`, {
                         self_rating_before: null,
                         self_rating_after: null,
@@ -1654,6 +1665,25 @@
         function closeEmergency() { document.getElementById('emergencyOverlay').classList.remove('show'); }
 
         async function loadData() {
+            state.guestEmergencyMode = isGuestEmergencyModeActive(auth.isAuthenticated());
+
+            if (state.guestEmergencyMode) {
+                state.user = null;
+                state.progress = null;
+                state.task = null;
+                applyGuestEmergencyLinkGuards();
+                document.querySelectorAll('a[href="tasks.html"]').forEach((link) => {
+                    link.href = buildGuestEmergencyUrl('tasks.html');
+                });
+                updateSidebar();
+                return;
+            }
+
+            if (!auth.isAuthenticated()) {
+                window.location.replace('login.html');
+                return;
+            }
+
             try {
                 const [tasks, dashboard] = await Promise.all([
                     apiClient.get('/tasks'),
@@ -1682,6 +1712,7 @@
         window.closeEmergency = closeEmergency;
 
         window.addEventListener('load', async () => {
+            guardGuestEmergencyPage({ isAuthenticated: auth.isAuthenticated() });
             await loadData();
             renderTech();
         });

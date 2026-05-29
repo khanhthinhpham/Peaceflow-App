@@ -647,6 +647,77 @@
             border-radius: 4px;
         }
 
+        .guest-emergency-note {
+            margin-top: 18px;
+            padding: 18px 20px;
+            border: 2px solid var(--coral);
+            border-radius: var(--border-radius);
+            background: linear-gradient(135deg, rgba(255, 179, 179, 0.32) 0%, rgba(255, 224, 196, 0.48) 100%);
+        }
+
+        .guest-emergency-note-title {
+            font-size: 1rem;
+            font-weight: 800;
+            color: var(--coral);
+            margin-bottom: 6px;
+        }
+
+        .guest-emergency-note-text {
+            font-size: 0.88rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-bottom: 14px;
+        }
+
+        .guest-emergency-note-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .auth-inline-notice {
+            position: fixed;
+            top: 96px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-8px);
+            width: min(460px, calc(100vw - 32px));
+            padding: 14px 16px;
+            border: 2px solid var(--coral);
+            border-radius: var(--border-radius);
+            background: rgba(255, 253, 247, 0.98);
+            box-shadow: 0 16px 30px rgba(74, 55, 40, 0.14);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.22s ease, transform 0.22s ease;
+            z-index: 450;
+        }
+
+        .auth-inline-notice.show {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .auth-inline-notice-title {
+            font-size: 0.94rem;
+            font-weight: 800;
+            color: var(--coral);
+            margin-bottom: 4px;
+        }
+
+        .auth-inline-notice-text {
+            font-size: 0.82rem;
+            color: var(--text-secondary);
+            line-height: 1.55;
+        }
+
+        .auth-inline-notice-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+            flex-wrap: wrap;
+        }
+
         /* ===== TASK CARD ===== */
         .task-card {
             flex: 0 0 calc(25% - 12px);
@@ -1530,8 +1601,16 @@
                 <div class="page-subtitle">Hoàn thành nhiệm vụ để tích XP và chăm sóc khu vườn tâm hồn 🌱</div>
             </div>
             <div style="display:flex;gap:8px;">
-                <a href="mood-checkin.html" class="btn-outline">💭 Check-in tâm trạng</a>
+                <a href="mood-checkin.html" class="btn-outline" id="taskCheckinLink">💭 Check-in tâm trạng</a>
                 <button class="btn-primary" onclick="showEmergency()">🆘 Khẩn cấp</button>
+            </div>
+        </div>
+        <div class="auth-inline-notice" id="taskAuthNotice">
+            <div class="auth-inline-notice-title">Bạn chưa đăng nhập</div>
+            <div class="auth-inline-notice-text">Đăng nhập để thực hiện mood check-in và mở thêm các nhiệm vụ được cá nhân hóa.</div>
+            <div class="auth-inline-notice-actions">
+                <a href="login.html" class="btn-primary" style="text-decoration:none;">Đăng nhập</a>
+                <button class="btn-outline" type="button" id="taskAuthNoticeClose">Đóng</button>
             </div>
         </div>
 
@@ -1592,6 +1671,7 @@
 
         <!-- Task Sections -->
         <div id="taskSections"></div>
+        <div id="guestEmergencyNote"></div>
 
     </main>
 
@@ -1712,6 +1792,8 @@
     </script>
     <script type="module">
         import { apiClient } from '../public/js/api-client.js';
+        import { auth } from '../public/js/auth.js';
+        import { applyGuestEmergencyLinkGuards, buildGuestEmergencyUrl, clearGuestEmergencyMode, guardGuestEmergencyPage, isGuestEmergencyModeActive } from '../public/js/guest-emergency.js';
 
         const taskPageState = {
             allTasks: [],
@@ -1719,8 +1801,123 @@
             recommendedIds: new Set(),
             activeFilter: 'all',
             searchQuery: '',
-            dashboard: null
+            dashboard: null,
+            guestEmergencyMode: false,
+            authNoticeTimer: null
         };
+
+        const GUEST_EMERGENCY_TASKS_FALLBACK = [
+            {
+                id: 'E1_SEPARATE_ENV',
+                code: 'E1_SEPARATE_ENV',
+                title: 'Tách biệt với môi trường hiện tại',
+                description: 'Giảm quá tải cảm giác bằng cách rời khỏi nguồn kích thích hiện tại.',
+                category: 'emergency',
+                difficulty: 'easy',
+                duration_minutes: 5,
+                xp_reward: 10,
+                steps: [
+                    'Dừng tương tác 10-20 giây',
+                    'Nhủ thầm: mình cần tách ra một chút để ổn định lại',
+                    'Rời khỏi nguồn căng thẳng nếu có thể',
+                    'Đặt hai chân chạm đất',
+                    'Hít vào 4 giây, thở ra 6 giây, lặp lại 5 lần'
+                ],
+                safety_notes: [
+                    'Đây là công cụ hỗ trợ tức thời, không thay thế chăm sóc y tế',
+                    'Nếu cảm thấy nguy cơ tự hại, hãy liên hệ hỗ trợ khẩn cấp ngay'
+                ],
+                tags: ['emergency', 'grounding', 'sensory_overload'],
+                metadata: {
+                    icon: '🚨',
+                    objective: 'Tạo khoảng tách an toàn để cơ thể hạ nhịp trước khi tiếp tục xử lý tình huống.',
+                    benefits: [
+                        'Giảm cường độ kích thích tức thời',
+                        'Giúp cơ thể lấy lại cảm giác an toàn',
+                        'Tạo khoảng dừng trước khi phản ứng tiếp'
+                    ],
+                    preparation: [
+                        'Tìm một góc yên hơn hoặc rời khỏi tình huống nếu có thể',
+                        'Đặt điện thoại xuống hoặc giảm nguồn kích thích xung quanh'
+                    ],
+                    quote: 'Bạn không cần giải quyết mọi thứ ngay lập tức. Ổn định lại trước là bước đầu tiên.'
+                },
+                route: buildGuestEmergencyUrl('task-detail.html?id=E1_SEPARATE_ENV')
+            },
+            {
+                id: 'E2_DEEP_BREATHING',
+                code: 'E2_DEEP_BREATHING',
+                title: 'Hít thở sâu',
+                description: 'Bài tập thở ngắn giúp hoạt hóa hệ thần kinh đối giao cảm.',
+                category: 'emergency',
+                difficulty: 'easy',
+                duration_minutes: 2,
+                xp_reward: 10,
+                steps: [
+                    'Ngồi thẳng lưng',
+                    'Đặt tay lên bụng',
+                    'Hít vào 4 giây',
+                    'Giữ 4 giây',
+                    'Thở ra 4 giây',
+                    'Lặp lại 5 chu kỳ'
+                ],
+                safety_notes: [
+                    'Nếu chóng mặt, giảm tốc độ hoặc dừng lại',
+                    'Nếu đang có khó thở cấp tính, cần tìm hỗ trợ y tế'
+                ],
+                tags: ['breathing', 'micro_task', 'emergency'],
+                metadata: {
+                    icon: '💨',
+                    objective: 'Dùng nhịp thở đều để hạ báo động của cơ thể và giảm cường độ hoảng loạn.',
+                    benefits: [
+                        'Làm chậm nhịp tim',
+                        'Giảm phản ứng hoảng loạn cấp',
+                        'Tăng cảm giác kiểm soát cơ thể'
+                    ],
+                    preparation: [
+                        'Tìm chỗ ngồi hoặc đứng ổn định',
+                        'Nới lỏng vai và hàm trước khi bắt đầu'
+                    ],
+                    quote: 'Chỉ cần một nhịp thở đủ sâu cũng có thể mở ra thêm khoảng trống để cơ thể bình tĩnh lại.'
+                },
+                route: buildGuestEmergencyUrl('task-detail.html?id=E2_DEEP_BREATHING')
+            },
+            {
+                id: 'E4_SLOW_SPEAKING',
+                code: 'E4_SLOW_SPEAKING',
+                title: 'Chú tâm nói chậm lại',
+                description: 'Điều hòa nhịp thở thông qua việc giảm tốc độ nói.',
+                category: 'emergency',
+                difficulty: 'easy',
+                duration_minutes: 2,
+                xp_reward: 10,
+                steps: [
+                    'Dừng 5 giây trước khi trả lời',
+                    'Nói chậm hơn bình thường 20-30%',
+                    'Ưu tiên câu ngắn',
+                    'Quan sát nhịp thở khi nói'
+                ],
+                safety_notes: [
+                    'Nếu đang tranh cãi căng thẳng, ưu tiên tách khỏi môi trường trước'
+                ],
+                tags: ['mindfulness', 'speech_regulation', 'micro_task'],
+                metadata: {
+                    icon: '🗣️',
+                    objective: 'Giảm tốc độ phản ứng để cơ thể và lời nói cùng chậm lại.',
+                    benefits: [
+                        'Hạ cường độ xung đột',
+                        'Giảm nhịp thở gấp khi giao tiếp',
+                        'Tạo thêm thời gian để suy nghĩ trước khi phản ứng'
+                    ],
+                    preparation: [
+                        'Đặt hai chân vững trên mặt đất',
+                        'Hít một hơi sâu trước khi bắt đầu nói'
+                    ],
+                    quote: 'Khi lời nói chậm lại, cơ thể cũng có cơ hội hạ nhịp theo.'
+                },
+                route: buildGuestEmergencyUrl('task-detail.html?id=E4_SLOW_SPEAKING')
+            }
+        ];
 
         const SECTION_CONFIG = [
             {
@@ -1847,6 +2044,116 @@
             });
         }
 
+        function renderGuestEmergencyNote() {
+            const container = document.getElementById('guestEmergencyNote');
+            if (!container) return;
+
+            if (!taskPageState.guestEmergencyMode) {
+                container.innerHTML = '';
+                return;
+            }
+
+            container.innerHTML = `
+                <div class="guest-emergency-note">
+                    <div class="guest-emergency-note-title">Bạn đang ở chế độ hỗ trợ khẩn cấp</div>
+                    <div class="guest-emergency-note-text">
+                        Hiện tại PeaceFlow chỉ mở các bài tập khẩn cấp để bạn ổn định lại trước. Đăng nhập để xem đầy đủ thư viện nhiệm vụ, nhật ký và các gợi ý cá nhân hóa.
+                    </div>
+                    <div class="guest-emergency-note-actions">
+                        <a href="login.html" class="btn-primary" style="text-decoration:none;">Đăng nhập để xem thêm nhiều bài tập</a>
+                    </div>
+                </div>
+            `;
+        }
+
+        function configureGuestEmergencyLayout() {
+            const subtitle = document.querySelector('.page-subtitle');
+            const searchInput = document.querySelector('.search-input');
+
+            taskPageState.activeFilter = 'emergency';
+            taskPageState.searchQuery = '';
+
+            if (subtitle) {
+                subtitle.innerText = 'Chỉ hiển thị các bài tập khẩn cấp dành cho khách chưa đăng nhập.';
+            }
+
+            document.querySelectorAll('.filter-btn').forEach((button) => {
+                const onclick = button.getAttribute('onclick') || '';
+                const isEmergencyButton = onclick.includes("'emergency'");
+                button.style.display = isEmergencyButton ? 'inline-flex' : 'none';
+                button.classList.toggle('active', isEmergencyButton);
+            });
+
+            if (searchInput) {
+                searchInput.style.display = 'none';
+            }
+
+            const topbar = document.querySelector('.xp-topbar');
+            if (topbar) {
+                topbar.innerHTML = `
+                    <div class="xp-level-badge">!</div>
+                    <div class="xp-info">
+                        <div class="xi-name">Chế độ hỗ trợ khẩn cấp</div>
+                        <div class="xi-range">Không cần tài khoản để bắt đầu các bài tập ổn định cảm xúc cơ bản.</div>
+                    </div>
+                `;
+            }
+
+            const suggestion = document.querySelector('.ai-suggestion');
+            if (suggestion) {
+                suggestion.innerHTML = `
+                    <div class="ai-mascot">🆘</div>
+                    <div class="ai-text">
+                        <div class="at-title">Hãy bắt đầu với một bài tập ngắn</div>
+                        <div class="at-sub">Nếu bạn đang quá tải, hãy chọn một bài thở hoặc thiền khẩn cấp bên dưới. Khi cần thêm nội dung, hãy đăng nhập để mở toàn bộ nhiệm vụ của PeaceFlow.</div>
+                    </div>
+                    <div class="ai-actions">
+                        <a href="login.html" class="btn-primary" style="text-decoration:none;">Đăng nhập để xem thêm nhiều bài tập</a>
+                    </div>
+                `;
+            }
+
+            const weeklyChallenge = document.querySelector('.weekly-challenge');
+            if (weeklyChallenge) {
+                weeklyChallenge.innerHTML = `
+                    <div class="wc-header">
+                        <span style="font-size:1.3rem;">💛</span>
+                        <div class="wc-title">Bạn không cần làm mọi thứ cùng lúc</div>
+                    </div>
+                    <div class="wc-desc">Hãy ưu tiên một bài tập ngắn để cơ thể hạ nhịp trước. Sau đó bạn có thể đăng nhập để theo dõi tiến trình và mở thêm nhiều bài tập khác.</div>
+                `;
+            }
+
+            renderGuestEmergencyNote();
+        }
+
+        function showAuthInlineNotice() {
+            const notice = document.getElementById('taskAuthNotice');
+            if (!notice) return;
+
+            notice.classList.add('show');
+
+            if (taskPageState.authNoticeTimer) {
+                clearTimeout(taskPageState.authNoticeTimer);
+            }
+
+            taskPageState.authNoticeTimer = setTimeout(() => {
+                notice.classList.remove('show');
+                taskPageState.authNoticeTimer = null;
+            }, 3200);
+        }
+
+        function hideAuthInlineNotice() {
+            const notice = document.getElementById('taskAuthNotice');
+            if (!notice) return;
+
+            notice.classList.remove('show');
+            if (taskPageState.authNoticeTimer) {
+                clearTimeout(taskPageState.authNoticeTimer);
+                taskPageState.authNoticeTimer = null;
+            }
+        }
+
         function renderHeader(data) {
             const user = data?.user || {};
             const progress = data?.progress || {};
@@ -1964,6 +2271,7 @@
             const description = getTaskDescription(task);
             const duration = getTaskDurationLabel(task);
             const isRecommended = taskPageState.recommendedIds.has(task.id);
+            const targetHref = task.route || `task-detail.html?id=${encodeURIComponent(task.id)}`;
             const buttonLabel = task.completed ? 'Xem lại' : task.in_progress ? 'Tiếp tục' : 'Bắt đầu';
             const completionLabel = task.completed
                 ? `<div class="tc-meta-item" style="color:var(--mint-dark);">✓ Đã hoàn thành ${task.completion_count || 1} lần</div>`
@@ -1976,7 +2284,7 @@
                 : '';
 
             return `
-                <div class="task-card paper-card cat-${sectionId} ${task.completed ? 'completed' : ''}" onclick="location.href='task-detail.html?id=${encodeURIComponent(task.id)}'">
+                <div class="task-card paper-card cat-${sectionId} ${task.completed ? 'completed' : ''}" onclick="location.href='${targetHref}'">
                     <div class="tc-top">
                         <div class="tc-icon ${sectionId}">${escapeHtml(icon)}</div>
                         <div class="tc-info">
@@ -1992,7 +2300,41 @@
                     <div class="tc-desc">${escapeHtml(description)}</div>
                     <div class="tc-bottom">
                         <div class="tc-xp">+${task.xp_reward || 0} XP</div>
-                        <button class="tc-start-btn ${sectionId === 'emergency' ? 'emergency' : ''}" onclick="event.stopPropagation();location.href='task-detail.html?id=${encodeURIComponent(task.id)}'">${escapeHtml(buttonLabel)}</button>
+                        <button class="tc-start-btn ${sectionId === 'emergency' ? 'emergency' : ''}" onclick="event.stopPropagation();location.href='${targetHref}'">${escapeHtml(buttonLabel)}</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function createResolvedTaskCard(task) {
+            return createTaskCard(task);
+
+            if (!taskPageState.guestEmergencyMode) {
+                return createTaskCard(task);
+            }
+
+            const sectionId = getTaskSectionId(task);
+            const icon = getTaskIcon(task);
+            const description = getTaskDescription(task);
+            const duration = getTaskDurationLabel(task);
+            const targetHref = task.route || buildGuestEmergencyUrl('tasks.html');
+
+            return `
+                <div class="task-card paper-card cat-${sectionId}" onclick="location.href='${targetHref}'">
+                    <div class="tc-top">
+                        <div class="tc-icon ${sectionId}">${escapeHtml(icon)}</div>
+                        <div class="tc-info">
+                            <div class="tc-name">${escapeHtml(task.title || 'Nhiệm vụ khẩn cấp')}</div>
+                            <div class="tc-meta">
+                                <div class="tc-meta-item">⏱ ${escapeHtml(duration)}</div>
+                                <div class="tc-meta-item" style="color:var(--coral);">🆘 Mở cho khách</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tc-desc">${escapeHtml(description)}</div>
+                    <div class="tc-bottom">
+                        <div class="tc-xp">Ưu tiên tức thì</div>
+                        <button class="tc-start-btn emergency" onclick="event.stopPropagation();location.href='${targetHref}'">Bắt đầu ngay</button>
                     </div>
                 </div>
             `;
@@ -2059,6 +2401,34 @@
                 sections.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-secondary);">Đang tải danh sách nhiệm vụ từ hệ thống...</div>';
             }
 
+            const isAuthenticated = auth.isAuthenticated();
+            taskPageState.guestEmergencyMode = isGuestEmergencyModeActive(isAuthenticated);
+
+            if (!isAuthenticated && taskPageState.guestEmergencyMode) {
+                const publicEmergencyTasks = await apiClient.request('/tasks/public-emergency', { method: 'GET' }, { retryAuth: false });
+                const guestTasks = Array.isArray(publicEmergencyTasks) && publicEmergencyTasks.length
+                    ? publicEmergencyTasks.map((task) => ({
+                        ...task,
+                        route: buildGuestEmergencyUrl(`task-detail.html?id=${encodeURIComponent(task.id)}`)
+                    }))
+                    : GUEST_EMERGENCY_TASKS_FALLBACK;
+
+                taskPageState.allTasks = guestTasks;
+                taskPageState.filteredTasks = guestTasks;
+                taskPageState.recommendedIds = new Set();
+                configureGuestEmergencyLayout();
+                applyTaskFilters();
+                renderTasks();
+                applyGuestEmergencyLinkGuards();
+                return;
+            }
+
+            if (!isAuthenticated) {
+                clearGuestEmergencyMode();
+                window.location.replace('login.html');
+                return;
+            }
+
             try {
                 const [tasks, dashboard] = await Promise.all([
                     apiClient.get('/tasks'),
@@ -2098,6 +2468,10 @@
         };
 
         window.scrollToSuggested = function scrollToSuggested() {
+            if (taskPageState.guestEmergencyMode) {
+                document.getElementById('taskSections')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                return;
+            }
             taskPageState.activeFilter = 'suggested';
             setActiveFilterButton(null);
             applyTaskFilters();
@@ -2106,6 +2480,17 @@
         };
 
         window.addEventListener('load', () => {
+            document.getElementById('taskCheckinLink')?.addEventListener('click', (event) => {
+                if (auth.isAuthenticated()) return;
+                event.preventDefault();
+                showAuthInlineNotice();
+            });
+
+            document.getElementById('taskAuthNoticeClose')?.addEventListener('click', () => {
+                hideAuthInlineNotice();
+            });
+
+            guardGuestEmergencyPage({ isAuthenticated: auth.isAuthenticated() });
             loadTaskPage();
         });
     </script>

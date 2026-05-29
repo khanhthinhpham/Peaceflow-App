@@ -137,6 +137,113 @@
             align-items: center;
         }
 
+        .nav-auth-menu {
+            position: relative;
+        }
+
+        .nav-avatar-btn {
+            width: 44px;
+            height: 44px;
+            border: 2px solid var(--mint-dark);
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--mint-light) 0%, var(--mint) 100%);
+            color: var(--text-primary);
+            font-family: 'Nunito', sans-serif;
+            font-size: 0.92rem;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 2px 2px 0px var(--mint-dark);
+            overflow: hidden;
+        }
+
+        .nav-avatar-btn.has-image {
+            background-size: cover;
+            background-position: center;
+            color: transparent;
+        }
+
+        .nav-auth-dropdown {
+            position: absolute;
+            top: calc(100% + 10px);
+            right: 0;
+            min-width: 220px;
+            padding: 14px;
+            border: 2px solid var(--kraft-light);
+            border-radius: var(--radius-lg);
+            background: rgba(255, 253, 247, 0.98);
+            box-shadow: 0 18px 40px rgba(61, 43, 31, 0.14);
+            display: none;
+        }
+
+        .nav-auth-dropdown.open {
+            display: block;
+        }
+
+        .nav-auth-user {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding-bottom: 12px;
+            margin-bottom: 12px;
+            border-bottom: 1px dashed var(--kraft-light);
+        }
+
+        .nav-auth-user-avatar {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            background: var(--cream-dark);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            overflow: hidden;
+        }
+
+        .nav-auth-user-avatar.has-image {
+            background-size: cover;
+            background-position: center;
+            color: transparent;
+        }
+
+        .nav-auth-user-name {
+            font-size: 0.92rem;
+            font-weight: 800;
+        }
+
+        .nav-auth-user-email {
+            font-size: 0.78rem;
+            color: var(--text-secondary);
+        }
+
+        .nav-auth-action {
+            display: block;
+            width: 100%;
+            padding: 11px 14px;
+            border: none;
+            border-radius: var(--radius-md);
+            background: var(--mint-light);
+            color: var(--text-primary);
+            font-family: 'Nunito', sans-serif;
+            font-size: 0.84rem;
+            font-weight: 800;
+            text-align: left;
+            cursor: pointer;
+        }
+
+        .nav-auth-action.logout {
+            margin-top: 8px;
+            background: var(--coral-light);
+            color: var(--coral-dark);
+        }
+
+        .auth-hidden {
+            display: none !important;
+        }
+
         .btn-nav-outline {
             padding: 8px 18px;
             border: 2px solid var(--kraft-light);
@@ -152,6 +259,24 @@
 
         .btn-nav-outline:hover {
             background: var(--kraft-light);
+        }
+
+        .btn-nav-emergency {
+            padding: 8px 16px;
+            border: 2px solid var(--coral);
+            border-radius: var(--radius-full);
+            font-family: 'Nunito', sans-serif;
+            font-size: 0.82rem;
+            font-weight: 800;
+            cursor: pointer;
+            background: var(--coral-light);
+            color: var(--coral-dark);
+            transition: var(--transition);
+        }
+
+        .btn-nav-emergency:hover {
+            background: var(--coral);
+            color: white;
         }
 
         .btn-nav-primary {
@@ -1656,6 +1781,49 @@
             transform: translateX(0);
         }
 
+        .mobile-auth-user {
+            display: none;
+            align-items: center;
+            gap: 12px;
+            margin-top: 16px;
+            padding: 12px;
+            border: 2px solid var(--kraft-light);
+            border-radius: var(--radius-md);
+            background: var(--warm-white);
+        }
+
+        .mobile-auth-user.open {
+            display: flex;
+        }
+
+        .mobile-auth-avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: var(--cream-dark);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            overflow: hidden;
+        }
+
+        .mobile-auth-avatar.has-image {
+            background-size: cover;
+            background-position: center;
+            color: transparent;
+        }
+
+        .mobile-auth-name {
+            font-size: 0.9rem;
+            font-weight: 800;
+        }
+
+        .mobile-auth-email {
+            font-size: 0.78rem;
+            color: var(--text-secondary);
+        }
+
         .mnp-close {
             float: right;
             background: none;
@@ -1841,13 +2009,29 @@
         <a href="journal.html" class="mnp-link">📝 Nhật ký</a>
         <a href="community.html" class="mnp-link">👥 Cộng đồng</a>
         <a href="emergency.html" class="mnp-link" style="color:var(--coral);">🆘 Hỗ trợ khẩn cấp</a>
+        <div class="mobile-auth-user" id="mobileAuthUser">
+            <div class="mobile-auth-avatar" id="mobileAuthAvatar">PF</div>
+            <div>
+                <div class="mobile-auth-name" id="mobileAuthName">Người dùng</div>
+                <div class="mobile-auth-email" id="mobileAuthEmail"></div>
+            </div>
+        </div>
         <div style="margin-top:16px;display:flex;flex-direction:column;gap:8px;">
-            <a href="signup.html"
+            <a href="tasks.html?guest_emergency=1" id="mobileEmergencyCta"
+                style="display:block;padding:12px;border:2px solid var(--coral);border-radius:var(--radius-full);background:var(--coral-light);color:var(--coral-dark);font-weight:800;font-size:0.85rem;text-align:center;">🆘
+                Bài tập khẩn cấp</a>
+            <a href="signup.html" id="mobileSignupCta"
                 style="display:block;padding:12px;border:2px solid var(--mint-dark);border-radius:var(--radius-full);background:var(--mint);color:var(--text-primary);font-weight:700;font-size:0.85rem;text-align:center;">🌿
                 Đăng ký miễn phí</a>
-            <a href="login.html"
+            <a href="login.html" id="mobileLoginCta"
                 style="display:block;padding:11px;border:2px solid var(--kraft-light);border-radius:var(--radius-full);color:var(--text-secondary);font-weight:600;font-size:0.82rem;text-align:center;">Đăng
                 nhập</a>
+            <a href="dashboard.html" id="mobileEnterCta" class="auth-hidden"
+                style="display:block;padding:12px;border:2px solid var(--mint-dark);border-radius:var(--radius-full);background:var(--mint);color:var(--text-primary);font-weight:700;font-size:0.85rem;text-align:center;">🌿
+                Vào PeaceFlow</a>
+            <button id="mobileLogoutBtn" class="auth-hidden"
+                style="padding:11px;border:2px solid var(--coral);border-radius:var(--radius-full);background:var(--coral-light);color:var(--coral-dark);font-weight:700;font-size:0.82rem;text-align:center;cursor:pointer;">Đăng
+                xuất</button>
         </div>
     </div>
 
@@ -1865,8 +2049,24 @@
             <a href="emergency.html" class="nav-link" style="color:var(--coral);">🆘 Khẩn cấp</a>
         </div>
         <div class="nav-cta">
-            <a href="login.html"><button class="btn-nav-outline">Đăng nhập</button></a>
-            <a href="signup.html"><button class="btn-nav-primary">🌿 Đăng ký miễn phí</button></a>
+            <a href="tasks.html?guest_emergency=1" id="navEmergencyLink"><button class="btn-nav-emergency">🆘 Khẩn cấp</button></a>
+            <a href="login.html" id="navLoginLink"><button class="btn-nav-outline">Đăng nhập</button></a>
+            <a href="signup.html" id="navSignupLink"><button class="btn-nav-primary" id="navSignupButton">🌿 Đăng ký miễn phí</button></a>
+            <a href="dashboard.html" id="navEnterLink" class="auth-hidden"><button class="btn-nav-primary">🌿 Vào PeaceFlow</button></a>
+            <div class="nav-auth-menu auth-hidden" id="navAuthMenu">
+                <button class="nav-avatar-btn" id="navAvatarBtn" type="button" aria-label="Tài khoản">PF</button>
+                <div class="nav-auth-dropdown" id="navAuthDropdown">
+                    <div class="nav-auth-user">
+                        <div class="nav-auth-user-avatar" id="navDropdownAvatar">PF</div>
+                        <div>
+                            <div class="nav-auth-user-name" id="navDropdownName">Người dùng</div>
+                            <div class="nav-auth-user-email" id="navDropdownEmail"></div>
+                        </div>
+                    </div>
+                    <a href="dashboard.html" class="nav-auth-action" style="text-decoration:none;">Vào PeaceFlow</a>
+                    <button class="nav-auth-action logout" id="navLogoutBtn" type="button">Đăng xuất</button>
+                </div>
+            </div>
         </div>
         <button class="mobile-nav-btn" onclick="openMobileNav()">☰</button>
     </nav>
@@ -1892,7 +2092,7 @@
                     đơn độc. 💚"</div>
             </div>
             <div class="hero-actions">
-                <a href="signup.html" class="btn-hero-primary">🚀 Đăng ký miễn phí</a>
+                <a href="signup.html" class="btn-hero-primary" id="heroPrimaryCta">🚀 Đăng ký miễn phí</a>
                 <a href="#how-it-works" class="btn-hero-outline">📖 Tìm hiểu thêm</a>
             </div>
             <div class="hero-stats">
@@ -2259,6 +2459,153 @@
             }, 1000);
         }
 
+    </script>
+
+    <script type="module">
+        import { auth } from '../public/js/auth.js';
+        import { buildGuestEmergencyUrl, clearGuestEmergencyMode } from '../public/js/guest-emergency.js';
+
+        const refs = {
+            navLoginLink: document.getElementById('navLoginLink'),
+            navEmergencyLink: document.getElementById('navEmergencyLink'),
+            navSignupLink: document.getElementById('navSignupLink'),
+            navEnterLink: document.getElementById('navEnterLink'),
+            navAuthMenu: document.getElementById('navAuthMenu'),
+            navAvatarBtn: document.getElementById('navAvatarBtn'),
+            navAuthDropdown: document.getElementById('navAuthDropdown'),
+            navDropdownAvatar: document.getElementById('navDropdownAvatar'),
+            navDropdownName: document.getElementById('navDropdownName'),
+            navDropdownEmail: document.getElementById('navDropdownEmail'),
+            navLogoutBtn: document.getElementById('navLogoutBtn'),
+            mobileAuthUser: document.getElementById('mobileAuthUser'),
+            mobileAuthAvatar: document.getElementById('mobileAuthAvatar'),
+            mobileAuthName: document.getElementById('mobileAuthName'),
+            mobileAuthEmail: document.getElementById('mobileAuthEmail'),
+            mobileSignupCta: document.getElementById('mobileSignupCta'),
+            mobileEmergencyCta: document.getElementById('mobileEmergencyCta'),
+            mobileLoginCta: document.getElementById('mobileLoginCta'),
+            mobileEnterCta: document.getElementById('mobileEnterCta'),
+            mobileLogoutBtn: document.getElementById('mobileLogoutBtn'),
+            heroPrimaryCta: document.getElementById('heroPrimaryCta')
+        };
+
+        function getUserLabel(user) {
+            return user?.display_name || user?.full_name || user?.email || 'Người dùng';
+        }
+
+        function getAvatarFallback(user) {
+            const label = getUserLabel(user).trim();
+            return label ? label.charAt(0).toUpperCase() : 'PF';
+        }
+
+        function applyAvatar(el, user) {
+            if (!el) return;
+
+            if (user?.avatar_url) {
+                el.style.backgroundImage = `url('${user.avatar_url}')`;
+                el.classList.add('has-image');
+                el.textContent = '';
+                return;
+            }
+
+            el.style.backgroundImage = '';
+            el.classList.remove('has-image');
+            el.textContent = getAvatarFallback(user);
+        }
+
+        function setAuthenticatedUI(user) {
+            clearGuestEmergencyMode();
+            refs.navEmergencyLink?.classList.add('auth-hidden');
+            refs.navLoginLink?.classList.add('auth-hidden');
+            refs.navSignupLink?.classList.add('auth-hidden');
+            refs.navEnterLink?.classList.remove('auth-hidden');
+            refs.navAuthMenu?.classList.remove('auth-hidden');
+
+            refs.mobileEmergencyCta?.classList.add('auth-hidden');
+            refs.mobileSignupCta?.classList.add('auth-hidden');
+            refs.mobileLoginCta?.classList.add('auth-hidden');
+            refs.mobileEnterCta?.classList.remove('auth-hidden');
+            refs.mobileLogoutBtn?.classList.remove('auth-hidden');
+            refs.mobileAuthUser?.classList.add('open');
+
+            if (refs.heroPrimaryCta) {
+                refs.heroPrimaryCta.href = 'dashboard.html';
+                refs.heroPrimaryCta.textContent = '🌿 Vào PeaceFlow';
+            }
+
+            const userLabel = getUserLabel(user);
+            if (refs.navDropdownName) refs.navDropdownName.textContent = userLabel;
+            if (refs.navDropdownEmail) refs.navDropdownEmail.textContent = user?.email || '';
+            if (refs.mobileAuthName) refs.mobileAuthName.textContent = userLabel;
+            if (refs.mobileAuthEmail) refs.mobileAuthEmail.textContent = user?.email || '';
+
+            applyAvatar(refs.navAvatarBtn, user);
+            applyAvatar(refs.navDropdownAvatar, user);
+            applyAvatar(refs.mobileAuthAvatar, user);
+        }
+
+        function setGuestUI() {
+            refs.navEmergencyLink?.classList.remove('auth-hidden');
+            refs.navLoginLink?.classList.remove('auth-hidden');
+            refs.navSignupLink?.classList.remove('auth-hidden');
+            refs.navEnterLink?.classList.add('auth-hidden');
+            refs.navAuthMenu?.classList.add('auth-hidden');
+            refs.navAuthDropdown?.classList.remove('open');
+
+            refs.mobileEmergencyCta?.classList.remove('auth-hidden');
+            refs.mobileSignupCta?.classList.remove('auth-hidden');
+            refs.mobileLoginCta?.classList.remove('auth-hidden');
+            refs.mobileEnterCta?.classList.add('auth-hidden');
+            refs.mobileLogoutBtn?.classList.add('auth-hidden');
+            refs.mobileAuthUser?.classList.remove('open');
+
+            if (refs.heroPrimaryCta) {
+                refs.heroPrimaryCta.href = 'signup.html';
+                refs.heroPrimaryCta.textContent = '🚀 Đăng ký miễn phí';
+            }
+        }
+
+        refs.navEmergencyLink?.setAttribute('href', buildGuestEmergencyUrl('tasks.html'));
+        refs.mobileEmergencyCta?.setAttribute('href', buildGuestEmergencyUrl('tasks.html'));
+
+        function closeAuthDropdown() {
+            refs.navAuthDropdown?.classList.remove('open');
+        }
+
+        async function syncLandingAuthUI() {
+            const authenticated = await auth.waitForAuth();
+            if (!authenticated) {
+                setGuestUI();
+                return;
+            }
+
+            setAuthenticatedUI(auth.getUser());
+        }
+
+        refs.navAvatarBtn?.addEventListener('click', (event) => {
+            event.stopPropagation();
+            refs.navAuthDropdown?.classList.toggle('open');
+        });
+
+        document.addEventListener('click', (event) => {
+            if (!refs.navAuthMenu?.contains(event.target)) {
+                closeAuthDropdown();
+            }
+        });
+
+        refs.navLogoutBtn?.addEventListener('click', async () => {
+            closeAuthDropdown();
+            await auth.logout();
+        });
+
+        refs.mobileLogoutBtn?.addEventListener('click', async () => {
+            await auth.logout();
+        });
+
+        window.handleLogout = () => auth.logout();
+        window.addEventListener('user-profile-updated', () => setAuthenticatedUI(auth.getUser()));
+
+        syncLandingAuthUI();
     </script>
 
     <script src="../public/js/app.js"></script>

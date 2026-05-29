@@ -20,7 +20,7 @@ export async function register(data) {
 
   const existing = await findUserByEmail(normalizedEmail);
   if (existing) {
-    throw new Error('Email already registered');
+    throw createAuthError('Email đã được đăng ký.', 409);
   }
 
   const passwordHash = await hashPassword(password);
@@ -46,13 +46,17 @@ export async function login(data) {
   const password = String(data.password || '');
 
   const user = await findUserByEmail(email);
-  if (!user || user.status !== 'active') {
-    throw new Error('Invalid email or password');
+  if (!user) {
+    throw createAuthError('Không tìm thấy tài khoản.', 404);
+  }
+
+  if (user.status !== 'active') {
+    throw createAuthError('Tài khoản hiện đang bị vô hiệu hóa.', 403);
   }
 
   const passwordMatches = await verifyPassword(user.password_hash, password);
   if (!passwordMatches) {
-    throw new Error('Invalid email or password');
+    throw createAuthError('Sai mật khẩu.', 401);
   }
 
   await db.query(
@@ -135,4 +139,10 @@ function sanitizeUser(user) {
     status: user.status,
     created_at: user.created_at
   };
+}
+
+function createAuthError(message, status) {
+  const error = new Error(message);
+  error.status = status;
+  return error;
 }

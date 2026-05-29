@@ -80,6 +80,6 @@ export const journalManager = {
 
 window.saveEntry = () => journalManager.saveEntry();
 
-if (window.location.pathname.includes('journal.html')) {
+if (document.getElementById('journalForm') || document.getElementById('journalEntries')) {
     journalManager.init();
 }
