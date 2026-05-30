@@ -3,16 +3,25 @@ import {
   createDefaultProgress,
   createUser,
   findUserByEmail,
+  findUserByGoogleEmail,
   findUserById,
   findValidRefreshToken,
   revokeRefreshTokenByHash,
   revokeRefreshTokenById,
-  saveRefreshToken
+  saveRefreshToken,
+  createEmailVerificationToken,
+  findEmailVerificationToken,
+  markEmailVerified,
+  createPasswordResetToken,
+  findPasswordResetToken,
+  updatePasswordAndMarkTokenUsed
 } from './auth.repository.js';
 import crypto from 'crypto';
 import { db } from '../../config/db.js';
+import { env } from '../../config/env.js';
 import { hashPassword, verifyPassword } from '../../common/utils/hash.js';
 import { signAccessToken, signRefreshToken, verifyRefreshToken } from '../../common/utils/jwt.js';
+import { sendVerificationEmail, sendPasswordResetEmail } from '../../common/services/email.service.js';
 
 export async function register(data) {
   const normalizedEmail = String(data.email || '').trim().toLowerCase();
@@ -29,16 +38,98 @@ export async function register(data) {
     password_hash: passwordHash,
     full_name,
     display_name: display_name || full_name,
+    email_verified: false,
     ...consents
   });
 
   await createDefaultProfile(user.id);
   await createDefaultProgress(user.id);
 
+  // Gửi email xác nhận (không block response nếu lỗi)
+  const verifyToken = generateSecureToken();
+  await createEmailVerificationToken(user.id, verifyToken);
+  sendVerificationEmail(user, verifyToken).catch((e) =>
+    console.error('Failed to send verification email:', e.message)
+  );
+
   return {
     user,
     session: await createSession(user)
   };
+}
+
+export async function loginWithGoogle(idToken) {
+  // Verify với Google tokeninfo
+  const res = await fetch(
+    `https://oauth2.googleapis.com/tokeninfo?id_token=${idToken}`
+  );
+  if (!res.ok) {
+    throw createAuthError('Google token không hợp lệ.', 401);
+  }
+  const payload = await res.json();
+
+  if (env.googleClientId && payload.aud !== env.googleClientId) {
+    throw createAuthError('Google token không đúng ứng dụng.', 401);
+  }
+
+  const email = String(payload.email || '').trim().toLowerCase();
+  if (!email) throw createAuthError('Không lấy được email từ Google.', 400);
+
+  let user = await findUserByGoogleEmail(email);
+
+  if (!user) {
+    // Tạo tài khoản mới từ Google
+    const fullName = payload.name || email.split('@')[0];
+    user = await createUser({
+      email,
+      password_hash: null,
+      full_name: fullName,
+      display_name: fullName,
+      avatar_url: payload.picture || null,
+      email_verified: true,
+      consent_privacy: true,
+      consent_terms: true,
+      consent_sensitive_data: false
+    });
+    await createDefaultProfile(user.id);
+    await createDefaultProgress(user.id);
+  } else if (user.status !== 'active') {
+    throw createAuthError('Tài khoản hiện đang bị vô hiệu hóa.', 403);
+  }
+
+  await db.query(`update users set last_login_at = now() where id = $1`, [user.id]);
+
+  return {
+    user: sanitizeUser(user),
+    session: await createSession(user)
+  };
+}
+
+export async function verifyEmail(token) {
+  const record = await findEmailVerificationToken(token);
+  if (!record) {
+    throw createAuthError('Link xác nhận không hợp lệ hoặc đã hết hạn.', 400);
+  }
+  await markEmailVerified(record.user_id, record.id);
+}
+
+export async function forgotPassword(email) {
+  const user = await findUserByEmail(String(email || '').trim().toLowerCase());
+  // Không báo lỗi nếu email không tồn tại (tránh email enumeration)
+  if (!user) return;
+
+  const token = generateSecureToken();
+  await createPasswordResetToken(user.id, token);
+  await sendPasswordResetEmail(user, token);
+}
+
+export async function resetPassword(token, newPassword) {
+  const record = await findPasswordResetToken(token);
+  if (!record) {
+    throw createAuthError('Link đặt lại mật khẩu không hợp lệ hoặc đã hết hạn.', 400);
+  }
+  const passwordHash = await hashPassword(newPassword);
+  await updatePasswordAndMarkTokenUsed(record.user_id, passwordHash, record.id);
 }
 
 export async function login(data) {
@@ -125,6 +216,10 @@ async function createSession(user) {
 
 function hashRefreshToken(token) {
   return crypto.createHash('sha256').update(token).digest('hex');
+}
+
+function generateSecureToken() {
+  return crypto.randomBytes(48).toString('hex');
 }
 
 function sanitizeUser(user) {

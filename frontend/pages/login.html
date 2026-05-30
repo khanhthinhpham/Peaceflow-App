@@ -131,14 +131,24 @@
 
             <div id="loginError"></div>
 
+            <button class="btn-google" id="btnGoogleLogin" type="button">
+                <svg width="20" height="20" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+                Đăng nhập với Google
+            </button>
+
+            <div class="divider">hoặc</div>
+
             <form class="auth-form" id="loginForm">
                 <div class="form-group">
                     <label class="form-label">Email</label>
                     <input type="email" id="email" class="form-input" placeholder="Nhập email của bạn" required autocomplete="email">
                 </div>
-                <div class="form-group" style="margin-bottom: 20px;">
+                <div class="form-group" style="margin-bottom: 8px;">
                     <label class="form-label">Mật khẩu</label>
                     <input type="password" id="password" class="form-input" placeholder="Nhập mật khẩu" required autocomplete="current-password">
+                </div>
+                <div style="text-align:right;margin-bottom:16px;">
+                    <a href="forgot-password.html" style="font-size:0.82rem;color:var(--text-light);">Quên mật khẩu?</a>
                 </div>
                 <button type="submit" class="btn-primary" style="width: 100%; font-size: 1rem; padding: 12px;">Đăng Nhập</button>
             </form>
@@ -151,8 +161,10 @@
             </div>
         </div>
     </div>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script type="module">
       import { auth } from '../public/js/auth.js';
+      import { apiClient } from '../public/js/api-client.js';
 
       const form = document.getElementById('loginForm');
       const btn = document.querySelector('button[type="submit"]');
@@ -204,6 +216,44 @@
         const authenticated = await auth.waitForAuth();
         if (authenticated) redirectAfterLogin();
       })();
+
+      // Google One Tap / button
+      const GOOGLE_CLIENT_ID = '287402483358-uiec013q9obn1m8j82ejhkdmuoi3ku6v.apps.googleusercontent.com';
+
+      async function handleGoogleCredential(response) {
+        btn.disabled = true;
+        showMessage('Đang xác thực với Google...', 'info');
+        try {
+          const data = await apiClient.post('/auth/google', { id_token: response.credential });
+          auth.setSession(data);
+          showMessage('Đăng nhập thành công!', 'success');
+          setTimeout(() => redirectAfterLogin(), 700);
+        } catch (err) {
+          showMessage(err.message || 'Đăng nhập Google thất bại.', 'error');
+          btn.disabled = false;
+        }
+      }
+
+      window.handleGoogleCredential = handleGoogleCredential;
+
+      window.addEventListener('load', () => {
+        if (window.google?.accounts) {
+          google.accounts.id.initialize({
+            client_id: GOOGLE_CLIENT_ID,
+            callback: handleGoogleCredential
+          });
+          google.accounts.id.renderButton(
+            document.getElementById('btnGoogleLogin'),
+            { theme: 'outline', size: 'large', width: 340, text: 'signin_with', shape: 'pill', locale: 'vi' }
+          );
+        }
+      });
+
+      document.getElementById('btnGoogleLogin')?.addEventListener('click', () => {
+        if (window.google?.accounts) {
+          google.accounts.id.prompt();
+        }
+      });
 
       form.addEventListener('submit', async (e) => {
         e.preventDefault();

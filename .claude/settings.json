@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(Get-ChildItem \"d:\\\\WORK\\\\Peaceflow-App\\\\frontend\\\\public\" -Name)",
+      "Bash(npm install *)"
+    ]
+  }
+}

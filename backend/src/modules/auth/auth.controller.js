@@ -1,6 +1,7 @@
 import { ZodError } from 'zod';
 import { registerSchema, loginSchema, logoutSchema, refreshSchema } from './auth.schemas.js';
 import * as authService from './auth.service.js';
+import { z } from 'zod';
 
 function sendAuthError(res, error, fallbackStatus = 400) {
   if (error instanceof ZodError) {
@@ -78,5 +79,49 @@ export async function logout(req, res) {
     });
   } catch (error) {
     return sendAuthError(res, error);
+  }
+}
+
+export async function googleLogin(req, res) {
+  try {
+    const { id_token } = z.object({ id_token: z.string().min(1) }).parse(req.body);
+    const result = await authService.loginWithGoogle(id_token);
+    return res.json({ success: true, data: result });
+  } catch (error) {
+    return sendAuthError(res, error, 401);
+  }
+}
+
+export async function verifyEmail(req, res) {
+  try {
+    const { token } = z.object({ token: z.string().min(1) }).parse(req.query);
+    await authService.verifyEmail(token);
+    return res.json({ success: true, data: { message: 'Email đã được xác nhận.' } });
+  } catch (error) {
+    return sendAuthError(res, error, 400);
+  }
+}
+
+export async function forgotPassword(req, res) {
+  try {
+    const { email } = z.object({ email: z.string().email() }).parse(req.body);
+    await authService.forgotPassword(email);
+    // Luôn trả về success để tránh email enumeration
+    return res.json({ success: true, data: { message: 'Nếu email tồn tại, bạn sẽ nhận được link đặt lại mật khẩu.' } });
+  } catch (error) {
+    return sendAuthError(res, error);
+  }
+}
+
+export async function resetPassword(req, res) {
+  try {
+    const { token, password } = z.object({
+      token: z.string().min(1),
+      password: z.string().min(8)
+    }).parse(req.body);
+    await authService.resetPassword(token, password);
+    return res.json({ success: true, data: { message: 'Mật khẩu đã được đặt lại thành công.' } });
+  } catch (error) {
+    return sendAuthError(res, error, 400);
   }
 }

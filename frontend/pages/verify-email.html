@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Xác nhận email — PeaceFlow</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../public/css/style.css">
+    <style>
+        .auth-container { min-height:100vh; display:flex; align-items:center; justify-content:center; background:linear-gradient(135deg,var(--cream) 0%,var(--mint-light) 100%); padding:20px; }
+        .auth-card { width:100%; max-width:400px; padding:48px 30px; text-align:center; background:var(--warm-white); }
+        .result-icon { font-size:3rem; margin-bottom:16px; }
+        .auth-links a { color:var(--mint-dark); font-weight:700; }
+    </style>
+</head>
+<body>
+    <div class="auth-container">
+        <div class="paper-card auth-card">
+            <div class="result-icon" id="icon">⏳</div>
+            <h1 style="font-size:1.4rem;margin-bottom:8px;" id="title">Đang xác nhận...</h1>
+            <p style="color:var(--text-secondary);font-size:0.9rem;line-height:1.6;" id="desc">Vui lòng chờ trong giây lát.</p>
+            <div style="margin-top:24px;" id="action"></div>
+        </div>
+    </div>
+    <script type="module">
+        import { apiClient } from '../public/js/api-client.js';
+
+        const params = new URLSearchParams(window.location.search);
+        const token = params.get('token');
+        const icon = document.getElementById('icon');
+        const title = document.getElementById('title');
+        const desc = document.getElementById('desc');
+        const action = document.getElementById('action');
+
+        async function verify() {
+            if (!token) {
+                icon.textContent = '❌';
+                title.textContent = 'Link không hợp lệ';
+                desc.textContent = 'Không tìm thấy token xác nhận trong link này.';
+                action.innerHTML = '<a href="login.html" class="btn-primary" style="display:inline-block;padding:10px 24px;">Về trang đăng nhập</a>';
+                return;
+            }
+
+            try {
+                await apiClient.get(`/auth/verify-email?token=${encodeURIComponent(token)}`, { noCache: true });
+                icon.textContent = '✅';
+                title.textContent = 'Email đã được xác nhận!';
+                desc.textContent = 'Tài khoản của bạn đã được kích hoạt. Bạn có thể đăng nhập ngay bây giờ.';
+                action.innerHTML = '<a href="login.html" class="btn-primary" style="display:inline-block;padding:10px 24px;">Đăng nhập</a>';
+            } catch (err) {
+                icon.textContent = '❌';
+                title.textContent = 'Xác nhận thất bại';
+                desc.textContent = err.message?.includes('hết hạn')
+                    ? 'Link xác nhận đã hết hạn (24 giờ). Vui lòng đăng ký lại hoặc liên hệ hỗ trợ.'
+                    : 'Link xác nhận không hợp lệ hoặc đã được sử dụng.';
+                action.innerHTML = '<a href="signup.html" class="btn-primary" style="display:inline-block;padding:10px 24px;">Đăng ký lại</a>';
+            }
+        }
+
+        verify();
+    </script>
+</body>
+</html>
