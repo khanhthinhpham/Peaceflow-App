@@ -38,7 +38,7 @@
     const templateUrl = scriptUrl
         ? new URL('./sidebar.html', scriptUrl).href
         : '../public/components/sidebar.html';
-    const SIDEBAR_TEMPLATE_CACHE_KEY = 'peaceflow_sidebar_template_v2';
+    const SIDEBAR_TEMPLATE_CACHE_KEY = 'peaceflow_sidebar_template_v3';
     const _spaHtmlCache = new Map(); // url -> { html, cachedAt }
     const SPA_HTML_CACHE_MS = 300_000; // 5 phút
     const SPA_SESSION_VERSION = Date.now();

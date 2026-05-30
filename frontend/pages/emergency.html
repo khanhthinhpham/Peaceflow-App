@@ -1447,8 +1447,11 @@
             try {
                 const token = localStorage.getItem('access_token');
                 if (!token) return;
-                const apiBase = window.__PEACEFLOW_ENV__?.API_BASE_URL
-                    || (location.hostname === 'localhost' ? 'http://localhost:4000/api/v1' : '/api/v1');
+                const apiBase = window.__PEACEFLOW_API_BASE_URL__
+                    || window.__PEACEFLOW_ENV__?.API_BASE_URL
+                    || localStorage.getItem('peaceflow_api_base_url')
+                    || (location.hostname === 'localhost' || location.hostname === '127.0.0.1'
+                        ? 'http://localhost:4000/api/v1' : '/api/v1');
                 await fetch(`${apiBase}/emergency/log`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
@@ -1733,6 +1736,7 @@
             });
         };
     </script>
+    <script src="../public/js/env.js"></script>
     <script src="../public/components/sidebar.js"></script>
     <script src="../public/js/user-sync.js"></script>
     <script src="../public/js/app.js"></script>

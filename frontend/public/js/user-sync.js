@@ -91,6 +91,18 @@ const UserSync = {
     }
 };
 
+// Cập nhật XP hiển thị trên topbar và sidebar khi có progress data
+window.addEventListener('peaceflow:progress-updated', (event) => {
+    const xp = event.detail?.xp ?? event.detail?.total_xp;
+    const level = event.detail?.level ?? event.detail?.current_level;
+    if (xp === undefined) return;
+
+    const xpBadge = document.getElementById('topbarXpBadge');
+    const xpLevel = document.getElementById('sidebarXpLevel');
+    if (xpBadge) xpBadge.textContent = `⭐ ${xp} XP`;
+    if (xpLevel) xpLevel.textContent = `⭐ ${xp} XP · Level ${level ?? '--'}`;
+});
+
 // Initialize
 if (typeof document !== 'undefined') {
     UserSync.init();

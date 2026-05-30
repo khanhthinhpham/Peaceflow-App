@@ -38,6 +38,16 @@ const dashboard = window.__peaceflowDashboardController || {
                 if (user) this.updateUserInfo(user);
             }
 
+            // Cập nhật XP trên topbar và sidebar
+            if (data?.progress) {
+                window.dispatchEvent(new CustomEvent('peaceflow:progress-updated', {
+                    detail: {
+                        xp: data.progress.xp ?? data.progress.total_xp ?? 0,
+                        level: data.progress.level ?? data.progress.current_level ?? 1
+                    }
+                }));
+            }
+
             this.render();
             localStorage.removeItem('peaceflow_dashboard_refresh');
         } finally {
