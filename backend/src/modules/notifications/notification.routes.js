@@ -6,8 +6,14 @@ import { env } from '../../config/env.js';
 
 const router = Router();
 
-if (env.vapidPrivateKey) {
-  webpush.setVapidDetails(env.vapidEmail, env.vapidPublicKey, env.vapidPrivateKey);
+let vapidReady = false;
+if (env.vapidPrivateKey && env.vapidPublicKey) {
+  try {
+    webpush.setVapidDetails(env.vapidEmail, env.vapidPublicKey, env.vapidPrivateKey);
+    vapidReady = true;
+  } catch (e) {
+    console.error('[VAPID] setVapidDetails failed:', e.message);
+  }
 }
 
 // GET /notifications — in-app notifications tính từ dữ liệu hiện có
@@ -141,7 +147,7 @@ router.delete('/notifications/unsubscribe', requireAuth, async (req, res) => {
 
 // Helper export để các module khác gọi push notification
 export async function sendPushToUser(userId, title, body, url = '/') {
-  if (!env.vapidPrivateKey) return;
+  if (!vapidReady) return;
   try {
     const subs = await db.query(
       `select endpoint, p256dh, auth from push_subscriptions where user_id = $1`,
