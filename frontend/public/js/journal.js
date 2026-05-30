@@ -65,7 +65,14 @@ export const journalManager = {
         if (!container) return;
 
         if (!entries || entries.length === 0) {
-            container.innerHTML = '<div class="empty-state">Hôm nay bạn chưa viết gì...</div>';
+            container.innerHTML = `
+                <div style="text-align:center;padding:40px 20px;color:var(--text-secondary);">
+                    <div style="font-size:2.5rem;margin-bottom:12px;">📝</div>
+                    <div style="font-weight:700;font-size:1rem;margin-bottom:6px;color:var(--text-primary);">Chưa có nhật ký nào</div>
+                    <div style="font-size:0.88rem;line-height:1.6;margin-bottom:16px;">
+                        Viết nhật ký giúp bạn hiểu cảm xúc và giải tỏa căng thẳng.<br>Chỉ cần vài dòng thôi!
+                    </div>
+                </div>`;
             return;
         }
 

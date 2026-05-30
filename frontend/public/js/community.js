@@ -302,9 +302,19 @@ function renderPosts() {
 
     const posts = state.posts.filter(postMatchesFilter);
     if (!posts.length) {
+        const isAllFilter = !state.activeFilter || state.activeFilter === 'all';
         refs.postFeed.innerHTML = `
-            <div class="paper-card post-card" style="text-align:center;color:var(--text-secondary);">
-                Chưa có bài viết nào cho bộ lọc hiện tại.
+            <div class="paper-card post-card" style="text-align:center;padding:32px 20px;">
+                <div style="font-size:2rem;margin-bottom:10px;">💬</div>
+                <div style="font-weight:700;color:var(--text-primary);margin-bottom:6px;">
+                    ${isAllFilter ? 'Cộng đồng chưa có bài viết nào' : 'Chưa có bài viết cho bộ lọc này'}
+                </div>
+                <div style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:16px;line-height:1.6;">
+                    ${isAllFilter ? 'Hãy là người đầu tiên chia sẻ cảm xúc, câu chuyện hoặc mẹo hay với cộng đồng!' : 'Thử chọn bộ lọc khác hoặc đăng bài mới.'}
+                </div>
+                <button onclick="window.scrollToComposer && window.scrollToComposer()" style="padding:10px 22px;background:var(--mint-dark);color:white;border:none;border-radius:50px;font-weight:700;font-size:0.85rem;cursor:pointer;">
+                    ✍️ Viết bài ngay
+                </button>
             </div>
         `;
         return;

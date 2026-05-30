@@ -75,6 +75,11 @@ const dashboard = window.__peaceflowDashboardController || {
 
         if (user.avatar_url) {
             document.querySelectorAll('.user-avatar-mini').forEach((el) => {
+                if (user.avatar_url.startsWith('emoji:')) {
+                    el.textContent = user.avatar_url.replace('emoji:', '');
+                    el.style.backgroundImage = '';
+                    return;
+                }
                 el.style.backgroundImage = `url('${user.avatar_url}')`;
                 el.style.backgroundSize = 'cover';
                 el.style.backgroundPosition = 'center';
@@ -87,6 +92,7 @@ const dashboard = window.__peaceflowDashboardController || {
         const { data, chartPeriod } = this.state;
         if (!data) return;
 
+        this.renderFirstTimeWelcome(data);
         this.renderStats(data.progress, data.latest_mood, data.summary);
         this.renderEmergencyBanner(Boolean(data.summary?.show_emergency_banner));
         this.renderChart(chartPeriod);
@@ -493,6 +499,52 @@ const dashboard = window.__peaceflowDashboardController || {
         `).join('');
 
         card.innerHTML = `${header}${items}`;
+    },
+
+    renderFirstTimeWelcome(data) {
+        const existing = document.getElementById('firstTimeWelcome');
+        const isNewUser = !data.latest_mood && (data.progress?.total_xp ?? 0) === 0;
+
+        if (!isNewUser) {
+            if (existing) existing.remove();
+            return;
+        }
+
+        if (existing) return; // đã render rồi
+
+        const banner = document.createElement('div');
+        banner.id = 'firstTimeWelcome';
+        banner.style.cssText = 'background:linear-gradient(135deg,var(--mint-light),var(--peach-light));border:2px solid var(--mint);border-radius:16px;padding:24px;margin-bottom:20px;text-align:center;';
+        banner.innerHTML = `
+            <div style="font-size:2rem;margin-bottom:8px;">🌱</div>
+            <div style="font-size:1.1rem;font-weight:800;color:var(--text-primary);margin-bottom:6px;">
+                Chào mừng đến với PeaceFlow!
+            </div>
+            <div style="font-size:0.88rem;color:var(--text-secondary);margin-bottom:20px;line-height:1.6;">
+                Hãy bắt đầu bằng cách check-in tâm trạng hôm nay.<br>
+                Chỉ mất 30 giây — hệ thống sẽ gợi ý nhiệm vụ phù hợp nhất cho bạn.
+            </div>
+            <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
+                <a href="mood-checkin.html" style="display:inline-block;padding:10px 22px;background:var(--mint-dark);color:white;border-radius:50px;font-weight:700;font-size:0.88rem;text-decoration:none;">
+                    💭 Check-in ngay
+                </a>
+                <a href="tasks.html" style="display:inline-block;padding:10px 22px;border:2px solid var(--kraft-light);border-radius:50px;font-weight:700;font-size:0.88rem;text-decoration:none;color:var(--text-secondary);">
+                    🎮 Xem nhiệm vụ
+                </a>
+                <a href="journal.html" style="display:inline-block;padding:10px 22px;border:2px solid var(--kraft-light);border-radius:50px;font-weight:700;font-size:0.88rem;text-decoration:none;color:var(--text-secondary);">
+                    📝 Viết nhật ký
+                </a>
+            </div>
+        `;
+
+        // Chèn vào đầu main content
+        const main = document.querySelector('.main-content') || document.querySelector('main') || document.body;
+        const firstCard = main.querySelector('.paper-card, [class*="card"]');
+        if (firstCard) {
+            main.insertBefore(banner, firstCard);
+        } else {
+            main.prepend(banner);
+        }
     },
 
     renderFetchError() {

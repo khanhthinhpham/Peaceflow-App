@@ -114,10 +114,15 @@ function initAuthAndUI() {
 
         if (user.avatar_url) {
             document.querySelectorAll('.user-avatar, .user-avatar-mini, .ph-avatar').forEach(el => {
-                el.style.backgroundImage = `url('${user.avatar_url}')`;
-                el.style.backgroundSize = 'cover';
-                el.style.backgroundPosition = 'center';
-                el.innerText = '';
+                if (user.avatar_url.startsWith('emoji:')) {
+                    el.textContent = user.avatar_url.replace('emoji:', '');
+                    el.style.backgroundImage = '';
+                } else {
+                    el.style.backgroundImage = `url('${user.avatar_url}')`;
+                    el.style.backgroundSize = 'cover';
+                    el.style.backgroundPosition = 'center';
+                    el.innerText = '';
+                }
             });
         }
     };

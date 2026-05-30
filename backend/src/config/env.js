@@ -28,5 +28,8 @@ export const env = {
   resendApiKey: process.env.RESEND_API_KEY,
   emailFrom: process.env.EMAIL_FROM || 'PeaceFlow <onboarding@resend.dev>',
   googleClientId: process.env.GOOGLE_CLIENT_ID,
-  frontendUrl: process.env.FRONTEND_URL || 'https://peaceflow.vn'
+  frontendUrl: process.env.FRONTEND_URL || 'https://peaceflow.vn',
+  vapidPublicKey: process.env.VAPID_PUBLIC_KEY || 'BBmum3N-lH6Ig9bGbellDDyTeSxZHQbYBmbXwtQGyMguftr1YOBsonHfT3JFJfvLMYpV-O-g57qC_IFg85rWrbE',
+  vapidPrivateKey: process.env.VAPID_PRIVATE_KEY,
+  vapidEmail: process.env.VAPID_EMAIL || 'mailto:admin@peaceflow.vn'
 };

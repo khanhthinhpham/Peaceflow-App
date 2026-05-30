@@ -11,6 +11,7 @@ import journalRoutes from '../modules/journals/journal.routes.js';
 import expertRoutes from '../modules/experts/expert.routes.js';
 import communityRoutes from '../modules/community/community.routes.js';
 import emergencyRoutes from '../modules/emergency/emergency.routes.js';
+import notificationRoutes from '../modules/notifications/notification.routes.js';
 
 const router = Router();
 
@@ -26,5 +27,6 @@ router.use('/', journalRoutes);
 router.use('/', expertRoutes);
 router.use('/', communityRoutes);
 router.use('/', emergencyRoutes);
+router.use('/', notificationRoutes);
 
 export default router;

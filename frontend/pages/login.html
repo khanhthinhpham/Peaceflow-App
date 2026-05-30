@@ -198,10 +198,15 @@
       }
 
       function redirectAfterLogin() {
-        const target = getPostLoginRedirect();
         sessionStorage.removeItem('peaceflow_post_login_redirect');
         sessionStorage.removeItem('peaceflow_last_login_redirect_at');
-        window.location.replace(target);
+        // Nếu chưa onboarding → đưa vào onboarding trước
+        const onboardingDone = localStorage.getItem('peaceflow_onboarding_done');
+        if (!onboardingDone) {
+          window.location.replace('onboarding.html');
+          return;
+        }
+        window.location.replace(getPostLoginRedirect());
       }
 
       // Nếu đã login thì vào dashboard luôn

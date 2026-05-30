@@ -1305,7 +1305,7 @@
                     </div>
                 </div>
                 <div class="step-nav center">
-                    <button class="btn-next" style="font-size:1.05rem;padding:15px 36px;" onclick="nextStep()">
+                    <button class="btn-next" style="font-size:1.05rem;padding:15px 36px;" onclick="goToStep(2)">
                         🚀 Bắt đầu hành trình
                     </button>
                 </div>
@@ -1621,13 +1621,13 @@
                 </div>
 
                 <div class="step-nav center" style="flex-direction:column;gap:12px;">
-                    <a href="mood-checkin.html" class="btn-next" style="font-size:1rem;padding:14px 32px;">
+                    <button class="btn-next" style="font-size:1rem;padding:14px 32px;" onclick="completeOnboarding('checkin')">
                         🌿 Bắt đầu check-in tâm trạng
-                    </a>
-                    <a href="dashboard.html"
-                        style="font-size:0.85rem;color:var(--text-light);text-decoration:underline;">
+                    </button>
+                    <button onclick="completeOnboarding('dashboard')"
+                        style="font-size:0.85rem;color:var(--text-light);text-decoration:underline;background:none;border:none;cursor:pointer;">
                         Đến Dashboard trước →
-                    </a>
+                    </button>
                 </div>
             </div>
         </div>
@@ -1762,6 +1762,84 @@
         }
     </script>
     <script src="../public/js/app.js"></script>
+    <script type="module">
+        import { auth } from '../public/js/auth.js';
+        import { apiClient } from '../public/js/api-client.js';
+
+        // Kiểm tra auth — nếu chưa đăng nhập thì về login
+        if (!auth.isAuthenticated()) {
+            window.location.replace('login.html');
+        }
+
+        // Ẩn step 1 (auth) khỏi dot navigation
+        document.addEventListener('DOMContentLoaded', () => {
+            const dot1 = document.querySelector('[title="Đăng ký"]');
+            if (dot1) dot1.style.display = 'none';
+
+            // Pre-fill tên từ user trong localStorage
+            const user = auth.getUser();
+            if (user) {
+                const nameInput = document.getElementById('nameInput');
+                if (nameInput && !nameInput.value) {
+                    nameInput.value = user.display_name || user.full_name || '';
+                }
+                const displayName = document.getElementById('displayName');
+                if (displayName) {
+                    displayName.textContent = user.display_name || user.full_name || 'bạn ơi';
+                }
+            }
+        });
+
+        // Lưu profile khi user xong step 2 rồi qua step 3
+        const _origGoToStep = window.goToStep;
+        window.goToStep = async function(n) {
+            const cur = document.querySelector('.step-screen.active')?.id?.replace('step-', '');
+            if (cur === '2' && n > 2) {
+                await saveProfileData();
+            }
+            _origGoToStep(n);
+        };
+
+        async function saveProfileData() {
+            const name = document.getElementById('nameInput')?.value?.trim();
+            const avatarEmoji = document.querySelector('#avatarGrid .avatar-option.selected .av-emoji')?.textContent?.trim();
+            const selectedReason = document.querySelector('#reasonOptions .reason-option.selected')?.textContent?.trim();
+
+            try {
+                // Lưu tên + avatar vào DB
+                const meUpdate = {};
+                if (name) meUpdate.display_name = name;
+                if (avatarEmoji) meUpdate.avatar_url = `emoji:${avatarEmoji}`;
+                if (Object.keys(meUpdate).length) {
+                    await apiClient.put('/me', meUpdate);
+                    // Sync localStorage user
+                    const user = auth.getUser() || {};
+                    Object.assign(user, meUpdate);
+                    localStorage.setItem('user', JSON.stringify(user));
+                }
+
+                await apiClient.put('/profile', {
+                    goals: selectedReason ? [selectedReason] : [],
+                    onboarding_answers: { reason: selectedReason || null }
+                });
+            } catch (e) {
+                console.error('Save profile failed:', e.message);
+            }
+        }
+
+        // Hoàn thành onboarding — mark done và redirect
+        window.completeOnboarding = async function(destination = 'dashboard') {
+            try {
+                await apiClient.put('/profile', {
+                    onboarding_answers: { completed: true }
+                });
+            } catch (e) {
+                console.error('Mark onboarding failed:', e.message);
+            }
+            localStorage.setItem('peaceflow_onboarding_done', '1');
+            window.location.href = destination === 'checkin' ? 'mood-checkin.html' : 'dashboard.html';
+        };
+    </script>
 </body>
 
 </html>

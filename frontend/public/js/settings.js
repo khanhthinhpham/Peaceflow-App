@@ -257,10 +257,15 @@ function renderSidebarUser() {
 
     const avatarUrl = state.user?.avatar_url;
     if (avatarUrl) {
-        refs.userAvatarMini.style.backgroundImage = `url('${avatarUrl}')`;
-        refs.userAvatarMini.style.backgroundSize = 'cover';
-        refs.userAvatarMini.style.backgroundPosition = 'center';
-        refs.userAvatarMini.textContent = '';
+        if (avatarUrl.startsWith('emoji:')) {
+            refs.userAvatarMini.textContent = avatarUrl.replace('emoji:', '');
+            refs.userAvatarMini.style.backgroundImage = '';
+        } else {
+            refs.userAvatarMini.style.backgroundImage = `url('${avatarUrl}')`;
+            refs.userAvatarMini.style.backgroundSize = 'cover';
+            refs.userAvatarMini.style.backgroundPosition = 'center';
+            refs.userAvatarMini.textContent = '';
+        }
         return;
     }
 

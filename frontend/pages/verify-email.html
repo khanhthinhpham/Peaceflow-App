@@ -46,8 +46,8 @@
                 await apiClient.get(`/auth/verify-email?token=${encodeURIComponent(token)}`, { noCache: true });
                 icon.textContent = '✅';
                 title.textContent = 'Email đã được xác nhận!';
-                desc.textContent = 'Tài khoản của bạn đã được kích hoạt. Bạn có thể đăng nhập ngay bây giờ.';
-                action.innerHTML = '<a href="login.html" class="btn-primary" style="display:inline-block;padding:10px 24px;">Đăng nhập</a>';
+                desc.textContent = 'Tài khoản đã kích hoạt. Hãy đăng nhập để bắt đầu hành trình.';
+                action.innerHTML = '<a href="login.html?verified=1" class="btn-primary" style="display:inline-block;padding:10px 24px;">Đăng nhập ngay →</a>';
             } catch (err) {
                 icon.textContent = '❌';
                 title.textContent = 'Xác nhận thất bại';

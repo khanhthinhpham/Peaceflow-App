@@ -21,6 +21,7 @@ const UserSync = {
         }
         if (!user) return;
 
+
         const fields = document.querySelectorAll('[data-user-field]');
         fields.forEach(el => {
             const field = el.getAttribute('data-user-field');
@@ -48,14 +49,18 @@ const UserSync = {
     },
 
     updateAvatar(el, value) {
-        if (el.tagName === 'IMG') {
+        if (!value) return;
+        if (value.startsWith('emoji:')) {
+            // Avatar dạng emoji từ onboarding
+            el.textContent = value.replace('emoji:', '');
+            el.style.backgroundImage = '';
+        } else if (el.tagName === 'IMG') {
             el.src = value;
         } else {
             el.style.backgroundImage = `url('${value}')`;
             el.style.backgroundSize = 'cover';
             el.style.backgroundPosition = 'center';
-            // If it's a div with an emoji fallback, clear the emoji
-            if (el.innerText.length <= 2) el.innerText = ''; 
+            if (el.innerText.length <= 2) el.innerText = '';
         }
     },
 

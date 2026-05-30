@@ -376,6 +376,10 @@
                     consent_sensitive_data: false
                 });
 
+                // Xóa session cũ — user phải verify email và login lại
+                auth.clearSession();
+                localStorage.removeItem('peaceflow_onboarding_done');
+
                 backendSignupForm.style.display = 'none';
                 document.querySelector('.divider')?.remove();
                 document.getElementById('btnGoogleSignup')?.remove();
