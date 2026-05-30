@@ -223,7 +223,7 @@ export const apiClient = {
         const url = `${API_BASE_URL}${endpoint}`;
         const token = retryOptions.accessToken ?? getStoredAccessToken();
         const isAuthRefreshRequest = endpoint === '/auth/refresh';
-        const isPublicAuthRequest = endpoint === '/auth/login' || endpoint === '/auth/register';
+        const isPublicAuthRequest = endpoint === '/auth/login' || endpoint === '/auth/register' || endpoint === '/auth/google' || endpoint === '/auth/forgot-password' || endpoint === '/auth/reset-password';
         const shouldRetryAuth = retryOptions.retryAuth !== false;
         const traceId = createTraceId();
         const startedAt = performance.now();
