@@ -1,5 +1,5 @@
 (function () {
-    const SPA_NAV_ENABLED = false;
+    const SPA_NAV_ENABLED = true;
     const DEBUG_ENABLED = () => localStorage.getItem('peaceflow_debug') === '1';
     const PAGE_TO_NAV_KEY = {
         'dashboard.html': 'dashboard',
@@ -39,6 +39,8 @@
         ? new URL('./sidebar.html', scriptUrl).href
         : '../public/components/sidebar.html';
     const SIDEBAR_TEMPLATE_CACHE_KEY = 'peaceflow_sidebar_template_v2';
+    const _spaHtmlCache = new Map(); // url -> { html, cachedAt }
+    const SPA_HTML_CACHE_MS = 300_000; // 5 phút
 
     let sidebarMounted = false;
     let navigating = false;
@@ -309,12 +311,18 @@
         navigating = true;
 
         try {
-            const response = await fetch(url, { credentials: 'same-origin', cache: 'no-cache' });
-            if (!response.ok) {
-                throw new Error(`Failed to load page ${url}: ${response.status}`);
+            const cached = _spaHtmlCache.get(url);
+            let html;
+            if (cached && (Date.now() - cached.cachedAt) < SPA_HTML_CACHE_MS) {
+                html = cached.html;
+            } else {
+                const response = await fetch(url, { credentials: 'same-origin' });
+                if (!response.ok) {
+                    throw new Error(`Failed to load page ${url}: ${response.status}`);
+                }
+                html = await response.text();
+                _spaHtmlCache.set(url, { html, cachedAt: Date.now() });
             }
-
-            const html = await response.text();
             const parser = new DOMParser();
             const parsedDocument = parser.parseFromString(html, 'text/html');
 
