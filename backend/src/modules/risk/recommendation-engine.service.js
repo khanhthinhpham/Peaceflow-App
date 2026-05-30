@@ -8,12 +8,15 @@ export class RecommendationEngineService {
    */
   static async recommendTasks(userId) {
     try {
-      // 1. Get latest state
-      const profile = await this._getUserProfile(userId);
-      const latestMood = await RiskEngineService._getLatestMood(userId);
-      const latestRisk = await RiskEngineService.calculateStressIndex(userId);
-      const history = await this._getTaskHistory(userId);
-      const candidateTasks = await this._getActiveTasks();
+      // 1. Get latest state — risk engine + history + tasks chạy song song
+      const [latestRisk, history, candidateTasks] = await Promise.all([
+        RiskEngineService.calculateStressIndex(userId),
+        this._getTaskHistory(userId),
+        this._getActiveTasks()
+      ]);
+      // Tái dụng data đã fetch bên trong calculateStressIndex
+      const latestMood = latestRisk._latestMood;
+      const profile = latestRisk._profile;
 
       // 2. Score tasks
       const scoredTasks = candidateTasks.map(task => {
@@ -84,14 +87,14 @@ export class RecommendationEngineService {
       const longTermTask = scoredTasks.find(t => t.duration_minutes >= 10) || scoredTasks[0];
       const backupTask = scoredTasks.find(t => !todayPriority.some(pt => pt.id === t.id)) || scoredTasks[4];
 
-      // 4. Log recommendation
-      await this._logRecommendation(userId, latestRisk.id, {
+      // 4. Log recommendation — fire-and-forget, không block response
+      this._logRecommendation(userId, latestRisk.id, {
         emergency_task: emergencyTask?.id,
         today_priority_tasks: todayPriority.map(t => t.id),
         micro_task: microTask?.id,
         long_term_task: longTermTask?.id,
         backup_task: backupTask?.id
-      }, { latest_mood: latestMood });
+      }, { latest_mood: latestMood }).catch((e) => console.error('Recommendation log failed:', e.message));
 
       return {
         emergency_task: emergencyTask,

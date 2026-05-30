@@ -7,10 +7,13 @@ export class RiskEngineService {
    */
   static async calculateStressIndex(userId) {
     try {
-      const latestMood = await this._getLatestMood(userId);
-      const latestJournal = await this._getLatestJournal(userId);
-      const recentEmergencyCount = await this._countEmergencyEventsLast7Days(userId);
-      const taskStats = await this._getTaskStatsLast7Days(userId);
+      const [latestMood, latestJournal, recentEmergencyCount, taskStats, profile] = await Promise.all([
+        this._getLatestMood(userId),
+        this._getLatestJournal(userId),
+        this._countEmergencyEventsLast7Days(userId),
+        this._getTaskStatsLast7Days(userId),
+        this._getUserProfile(userId)
+      ]);
 
       // Normalization (0-100)
       const A = this._normalizeAnxiety(latestMood?.anxiety_score);
@@ -21,8 +24,6 @@ export class RiskEngineService {
       const Journal = this._calculateJournalNegativity(latestJournal?.sentiment_score);
       const Emergency = this._calculateEmergencyFrequency(recentEmergencyCount);
 
-      // Weighted Formula
-      // StressIndex = 0.22*A + 0.22*S + 0.18*M + 0.15*Sleep + 0.10*TaskAvoid + 0.08*Journal + 0.05*Emergency
       const stressIndex = (
         0.22 * A +
         0.22 * S +
@@ -34,9 +35,6 @@ export class RiskEngineService {
       );
 
       const riskLevel = this._classifyRisk(stressIndex);
-      
-      // Get profile for personalization weights
-      const profile = await this._getUserProfile(userId);
       const primaryTrigger = this._detectPrimaryTrigger(profile, latestMood, latestJournal, { Sleep, Journal });
 
       const factors = {
@@ -49,17 +47,22 @@ export class RiskEngineService {
         emergency_frequency: Emergency
       };
 
-      // Save snapshot
-      const snapshot = await this._saveRiskSnapshot(userId, stressIndex, A, Sleep, riskLevel, factors, primaryTrigger);
+      // Fire-and-forget — không block response
+      let snapshotId = null;
+      this._saveRiskSnapshot(userId, stressIndex, A, Sleep, riskLevel, factors, primaryTrigger)
+        .then((snapshot) => { snapshotId = snapshot?.id; })
+        .catch((e) => console.error('Snapshot save failed:', e.message));
 
       return {
-        id: snapshot.id,
-        snapshot_id: snapshot.id,
+        id: snapshotId,
+        snapshot_id: snapshotId,
         stress_index: Math.round(stressIndex),
         risk_level: riskLevel,
         primary_trigger: primaryTrigger,
         factors,
-        show_emergency_banner: riskLevel === 'critical' || stressIndex >= 75
+        show_emergency_banner: riskLevel === 'critical' || stressIndex >= 75,
+        _latestMood: latestMood,
+        _profile: profile
       };
     } catch (error) {
       console.error('Error calculating stress index:', error);
