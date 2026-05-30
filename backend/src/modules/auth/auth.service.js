@@ -76,11 +76,6 @@ export async function loginWithGoogle(idToken) {
 
   let user = await findUserByGoogleEmail(email);
 
-  // Nếu user tồn tại nhưng đăng ký bằng email+password → không cho dùng Google OAuth
-  if (user && user.password_hash !== null) {
-    throw createAuthError('Email này đã được đăng ký bằng mật khẩu. Vui lòng đăng nhập bình thường.', 409);
-  }
-
   if (!user) {
     // Tạo tài khoản mới từ Google
     const fullName = payload.name || email.split('@')[0];
