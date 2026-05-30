@@ -68,16 +68,10 @@
             margin-bottom: 15px;
             border: 1px solid var(--coral);
         }
-        #loginError.success {
-            color: var(--mint-dark);
-            background: var(--mint-light);
-            border-color: var(--mint);
-        }
-        #loginError.error {
-            color: var(--coral-dark);
-            background: var(--coral-light);
-            border-color: var(--coral);
-        }
+        .auth-message { display:none; padding:12px 14px; border-radius:var(--radius-sm); font-size:0.88rem; margin-bottom:15px; border:1px solid transparent; line-height:1.5; }
+        .auth-message.error { display:block; color:#8A2F2F; background:#FFE3E3; border-color:#FFB8B8; }
+        .auth-message.success { display:block; color:var(--mint-dark); background:var(--mint-light); border-color:var(--mint); }
+        .auth-message.info { display:block; color:#6B5B2A; background:#FFF4CC; border-color:#FFE08A; }
         .divider {
             display: flex;
             align-items: center;

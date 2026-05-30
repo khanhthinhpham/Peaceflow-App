@@ -61,6 +61,7 @@ router.get('/community', requireAuth, async (req, res) => {
            from community_reactions
            where post_id = p.id and user_id = $1
          ) mr on true
+         where p.is_hidden = false
          group by p.id, u.display_name, u.full_name
          order by p.created_at desc`,
         [userId]
@@ -303,6 +304,46 @@ router.post('/community/posts/:id/reactions', requireAuth, async (req, res) => {
   } catch (error) {
     console.error('Community reaction error:', error);
     return res.status(500).json({ success: false, message: 'Could not update reaction' });
+  }
+});
+
+// POST /api/v1/community/posts/:id/report — báo cáo bài viết
+router.post('/community/posts/:id/report', requireAuth, async (req, res) => {
+  try {
+    const { reason = 'inappropriate' } = req.body;
+    const postId = req.params.id;
+    const userId = req.user.sub;
+
+    // Insert report (unique per user+post)
+    await db.query(
+      `insert into community_reports (post_id, user_id, reason)
+       values ($1, $2, $3)
+       on conflict (post_id, user_id) do nothing`,
+      [postId, userId, reason]
+    );
+
+    // Tăng count và auto-hide nếu >= 5 reports
+    const result = await db.query(
+      `update community_posts
+       set reports_count = (
+         select count(*) from community_reports where post_id = $1
+       ),
+       is_hidden = (
+         select count(*) from community_reports where post_id = $1
+       ) >= 5
+       where id = $1
+       returning reports_count, is_hidden`,
+      [postId]
+    );
+
+    if (result.rows[0]?.is_hidden) {
+      console.warn(`[MODERATION] post_id=${postId} auto-hidden after ${result.rows[0].reports_count} reports`);
+    }
+
+    return res.json({ success: true, data: { message: 'Đã ghi nhận báo cáo.' } });
+  } catch (error) {
+    console.error('Community report error:', error.message, error.stack);
+    return res.status(500).json({ success: false, message: 'Could not submit report' });
   }
 });
 

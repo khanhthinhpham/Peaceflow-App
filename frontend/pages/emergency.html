@@ -1442,6 +1442,21 @@
             '"Bạn xứng đáng được an toàn, được lắng nghe và được yêu thương. ✨"'
         ];
 
+        // Log emergency event lên server
+        async function logEmergencyEvent(event_type, payload = {}) {
+            try {
+                const token = localStorage.getItem('access_token');
+                if (!token) return;
+                const apiBase = window.__PEACEFLOW_ENV__?.API_BASE_URL
+                    || (location.hostname === 'localhost' ? 'http://localhost:4000/api/v1' : '/api/v1');
+                await fetch(`${apiBase}/emergency/log`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify({ event_type, payload })
+                });
+            } catch (_) {}
+        }
+
         let affirmationIndex = Math.floor(Math.random() * AFFIRMATIONS.length);
         let breathInterval = null;
         let breathPhase = 0;
@@ -1534,6 +1549,7 @@
             document.getElementById('breathStopBtn').style.display = 'inline-flex';
             breathPhase = 0;
             breathCycle = 0;
+            logEmergencyEvent('breathing_tool');
             runBreathPhase();
         }
 
@@ -1683,6 +1699,7 @@
         }
 
         function connectExpert(name) {
+            logEmergencyEvent('expert_request', { expert_name: name });
             showToast('🚀 Đang kết nối với ' + name + '...');
             setTimeout(() => { window.location.href = 'experts.html'; }, 1500);
         }
@@ -1706,7 +1723,15 @@
             close(id) { document.getElementById(id).classList.remove('show'); }
         };
 
-        window.onload = init;
+        window.onload = function() {
+            init();
+            // Log khi user click hotline
+            document.querySelectorAll('a[href^="tel:"]').forEach(el => {
+                el.addEventListener('click', () => {
+                    logEmergencyEvent('hotline_view', { number: el.getAttribute('href').replace('tel:', '') });
+                });
+            });
+        };
     </script>
     <script src="../public/components/sidebar.js"></script>
     <script src="../public/js/user-sync.js"></script>

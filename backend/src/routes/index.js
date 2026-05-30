@@ -10,6 +10,7 @@ import progressRoutes from '../modules/progress/progress.routes.js';
 import journalRoutes from '../modules/journals/journal.routes.js';
 import expertRoutes from '../modules/experts/expert.routes.js';
 import communityRoutes from '../modules/community/community.routes.js';
+import emergencyRoutes from '../modules/emergency/emergency.routes.js';
 
 const router = Router();
 
@@ -24,5 +25,6 @@ router.use('/', progressRoutes);
 router.use('/', journalRoutes);
 router.use('/', expertRoutes);
 router.use('/', communityRoutes);
+router.use('/', emergencyRoutes);
 
 export default router;

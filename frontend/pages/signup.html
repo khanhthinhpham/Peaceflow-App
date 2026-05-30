@@ -338,23 +338,23 @@
             const agreed = document.getElementById('agreeTerms').checked;
 
             if (!fullName || fullName.length < 2) {
-                showBackendMessage('Vui long nhap ten hien thi it nhat 2 ky tu.', 'error');
+                showBackendMessage('Vui lòng nhập tên hiển thị ít nhất 2 ký tự.', 'error');
                 return;
             }
             if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-                showBackendMessage('Email chua hop le.', 'error');
+                showBackendMessage('Email chưa hợp lệ.', 'error');
                 return;
             }
             if (!password || password.length < 8) {
-                showBackendMessage('Mat khau can co it nhat 8 ky tu.', 'error');
+                showBackendMessage('Mật khẩu cần có ít nhất 8 ký tự.', 'error');
                 return;
             }
             if (password !== confirmPassword) {
-                showBackendMessage('Mat khau xac nhan khong khop.', 'error');
+                showBackendMessage('Mật khẩu xác nhận không khớp.', 'error');
                 return;
             }
             if (!agreed) {
-                showBackendMessage('Ban can dong y dieu khoan de tiep tuc.', 'error');
+                showBackendMessage('Bạn cần đồng ý điều khoản để tiếp tục.', 'error');
                 return;
             }
 
