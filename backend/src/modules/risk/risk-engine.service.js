@@ -48,14 +48,12 @@ export class RiskEngineService {
       };
 
       // Fire-and-forget — không block response
-      let snapshotId = null;
       this._saveRiskSnapshot(userId, stressIndex, A, Sleep, riskLevel, factors, primaryTrigger)
-        .then((snapshot) => { snapshotId = snapshot?.id; })
         .catch((e) => console.error('Snapshot save failed:', e.message));
 
       return {
-        id: snapshotId,
-        snapshot_id: snapshotId,
+        id: null,
+        snapshot_id: null,
         stress_index: Math.round(stressIndex),
         risk_level: riskLevel,
         primary_trigger: primaryTrigger,
