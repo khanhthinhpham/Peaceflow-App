@@ -1,4 +1,5 @@
 import { apiClient, getApiBaseUrl } from './api-client.js';
+import { EventLogger } from './event-logger.js';
 
 const LOCAL_SETTINGS_KEY = 'peaceflow_profile_settings';
 const APP_VERSION = '1.0.0';
@@ -499,15 +500,19 @@ async function persistSettings(scope) {
 
     try {
         state.profile = await apiClient.put('/profile', buildProfilePayload());
+        EventLogger.log('settings', 'save:server:success', { scope });
         renderPage();
         showToast(scope === 'all' ? 'Đã lưu toàn bộ cài đặt.' : `Đã lưu cài đặt ${scope}.`);
     } catch (error) {
+        EventLogger.error('settings', 'save:server:failed', error, { scope });
         console.error('Settings save failed:', error);
         showToast('Không lưu được cài đặt lên máy chủ.', 'error');
     }
 }
 
 function switchSection(sectionId, clickedEl) {
+    // Người dùng chuyển sang nhóm cài đặt khác (thông báo, giao diện, AI, riêng tư...)
+    EventLogger.log('settings', 'section:switch', { section: sectionId, previous: state.currentSection });
     state.currentSection = sectionId;
     document.querySelectorAll('.settings-section').forEach((section) => {
         section.classList.toggle('active', section.id === `section-${sectionId}`);
@@ -519,6 +524,8 @@ function switchSection(sectionId, clickedEl) {
 }
 
 function toggleMasterNotif(checkbox) {
+    // Người dùng bật/tắt công tắc chính của toàn bộ thông báo
+    EventLogger.log('settings', 'notif:master:toggle', { enabled: Boolean(checkbox?.checked) });
     if (!refs.notifSubSettings) return;
 
     const enabled = Boolean(checkbox?.checked);
@@ -529,6 +536,8 @@ function toggleMasterNotif(checkbox) {
 }
 
 function selectTheme(el, themeName) {
+    // Người dùng thay đổi chủ đề màu sắc giao diện
+    EventLogger.log('settings', 'theme:select', { theme: themeName });
     if (themeName === 'dark') {
         showToast('Chủ đề tối chưa được triển khai.', 'info');
         return;
@@ -540,16 +549,22 @@ function selectTheme(el, themeName) {
 }
 
 function selectFontSize(el, size) {
+    // Người dùng thay đổi kích thước chữ hiển thị
+    EventLogger.log('settings', 'font:select', { size });
     applyFontSize(size);
     collectLocalSettings();
     el?.classList.add('selected');
 }
 
 async function saveAllSettings() {
+    // Người dùng nhấn "Lưu tất cả" — đồng bộ toàn bộ cài đặt lên server
+    EventLogger.log('settings', 'save:all');
     await persistSettings('all');
 }
 
 async function saveSection(section) {
+    // Người dùng lưu một nhóm cài đặt cụ thể
+    EventLogger.log('settings', 'save:section', { section });
     await persistSettings(section);
 }
 
@@ -563,6 +578,8 @@ function disconnectDevice(_button, deviceName) {
 }
 
 async function exportData(format) {
+    // Người dùng xuất toàn bộ dữ liệu cá nhân ra file
+    EventLogger.log('settings', 'data:export:attempt', { format });
     if (format !== 'json') {
         showToast('Trang này hiện chỉ hỗ trợ xuất JSON.', 'info');
         return;
@@ -592,17 +609,22 @@ async function exportData(format) {
         link.download = 'peaceflow-settings-export.json';
         link.click();
         URL.revokeObjectURL(link.href);
+        EventLogger.log('settings', 'data:export:success', { format });
         showToast('Đã xuất dữ liệu JSON.');
     } catch (error) {
+        EventLogger.error('settings', 'data:export:failed', error, { format });
         console.error('Export failed:', error);
         showToast('Không xuất được dữ liệu.', 'error');
     }
 }
 
 function resetData() {
+    // Người dùng yêu cầu xóa toàn bộ cài đặt local trên trình duyệt
+    EventLogger.log('settings', 'data:reset:request');
     const confirmed = window.confirm('Xóa toàn bộ cài đặt local trên trình duyệt này? Dữ liệu trên server sẽ không bị ảnh hưởng.');
     if (!confirmed) return;
 
+    EventLogger.log('settings', 'data:reset:confirmed');
     localStorage.removeItem(LOCAL_SETTINGS_KEY);
     localStorage.removeItem('PeaceFlow_settings');
     state.local = loadLocalSettings();
@@ -611,10 +633,14 @@ function resetData() {
 }
 
 function deleteAccount() {
+    // Người dùng nhấn nút xóa tài khoản (chức năng chưa có backend)
+    EventLogger.log('settings', 'account:delete:request');
     showToast('Backend chưa có endpoint xóa tài khoản.', 'info');
 }
 
 async function handleLogout() {
+    // Người dùng đăng xuất từ trang cài đặt
+    EventLogger.log('auth', 'logout:request', { page: 'settings' });
     try {
         await apiClient.logout();
     } finally {

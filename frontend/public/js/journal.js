@@ -1,4 +1,5 @@
 import { apiClient } from './api-client.js';
+import { EventLogger } from './event-logger.js';
 
 export const journalManager = {
     async init() {
@@ -15,6 +16,8 @@ export const journalManager = {
         const form = document.getElementById('journalForm');
         if (form) {
             form.addEventListener('submit', async (e) => {
+                // Người dùng submit form nhật ký
+                EventLogger.log('journal', 'form:submit');
                 e.preventDefault();
                 await this.saveEntry();
             });
@@ -24,8 +27,10 @@ export const journalManager = {
     async loadEntries() {
         try {
             const entries = await apiClient.get('/journal');
+            EventLogger.log('journal', 'entries:load', { count: Array.isArray(entries) ? entries.length : 0 });
             this.renderEntries(entries);
         } catch (error) {
+            EventLogger.error('journal', 'entries:load:failed', error);
             console.error('Error loading journals:', error);
         }
     },
@@ -33,15 +38,20 @@ export const journalManager = {
     async saveEntry() {
         const content = document.getElementById('journalContent').value;
         const mood = document.getElementById('journalMood')?.value || 'neutral';
-        
+
         if (!content) return;
+
+        // Người dùng lưu bài nhật ký lên server (không log nội dung để bảo vệ riêng tư)
+        EventLogger.log('journal', 'save:attempt', { wordCount: content.trim().split(/\s+/).length, mood });
 
         try {
             await apiClient.post('/journal', { content, mood });
+            EventLogger.log('journal', 'save:success', { mood });
             document.getElementById('journalContent').value = '';
             await this.loadEntries();
             alert('Nhật ký đã được lưu!');
         } catch (error) {
+            EventLogger.error('journal', 'save:failed', error, { mood });
             console.error('Error saving journal:', error);
             alert('Lỗi khi lưu nhật ký');
         }

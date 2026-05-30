@@ -1,4 +1,5 @@
 import { apiClient } from './api-client.js';
+import { EventLogger } from './event-logger.js';
 
 window.__communityApiMode = true;
 
@@ -455,6 +456,14 @@ async function handleSubmitPost() {
         return;
     }
 
+    // Người dùng gửi bài viết lên cộng đồng
+    EventLogger.log('community', 'post:submit:attempt', {
+        contentLength: content.length,
+        tags: state.selectedTags,
+        category: getSelectedCategory(),
+        isAnonymous: state.anonymousPosting
+    });
+
     try {
         const created = await apiClient.post('/community/posts', {
             content,
@@ -462,6 +471,8 @@ async function handleSubmitPost() {
             category: getSelectedCategory(),
             is_anonymous: state.anonymousPosting
         });
+
+        EventLogger.log('community', 'post:submit:success', { postId: created?.id, isAnonymous: state.anonymousPosting });
 
         state.posts.unshift(created);
         state.summary = {
@@ -477,6 +488,7 @@ async function handleSubmitPost() {
         renderPosts();
         showToast('Bài viết đã được chia sẻ lên cộng đồng.');
     } catch (error) {
+        EventLogger.error('community', 'post:submit:failed', error, { contentLength: content.length });
         showToast(error.message || 'Không thể đăng bài lúc này.');
     }
 }
@@ -484,6 +496,13 @@ async function handleSubmitPost() {
 async function handleToggleReaction(postId, reactionType) {
     const post = state.posts.find((item) => item.id === postId);
     if (!post) return;
+
+    // Người dùng thả/bỏ reaction trên một bài viết (❤️ Thương, 🤗 Ôm, 💪 Cố lên, ⭐ Hay quá)
+    EventLogger.log('community', 'reaction:toggle', {
+        postId,
+        reactionType,
+        wasReacted: Boolean(post.myReactions?.[reactionType])
+    });
 
     try {
         const result = await apiClient.post(`/community/posts/${postId}/reactions`, {
@@ -511,6 +530,7 @@ async function handleToggleReaction(postId, reactionType) {
             renderSummary();
         }
     } catch (error) {
+        EventLogger.error('community', 'reaction:toggle:failed', error, { postId, reactionType });
         showToast(error.message || 'Không thể cập nhật reaction.');
     }
 }
@@ -523,11 +543,16 @@ async function handleSubmitComment(postId) {
         return;
     }
 
+    // Người dùng gửi bình luận dưới một bài viết
+    EventLogger.log('community', 'comment:submit:attempt', { postId, contentLength: content.length });
+
     try {
         const created = await apiClient.post(`/community/posts/${postId}/comments`, {
             content,
             is_anonymous: false
         });
+
+        EventLogger.log('community', 'comment:submit:success', { postId, commentId: created?.id });
 
         applyPostPatch(postId, (post) => ({
             ...post,
@@ -546,17 +571,22 @@ async function handleSubmitComment(postId) {
         renderPosts();
         showToast('Bình luận đã được gửi.');
     } catch (error) {
+        EventLogger.error('community', 'comment:submit:failed', error, { postId });
         showToast(error.message || 'Không thể gửi bình luận.');
     }
 }
 
 function initInlineApiHooks() {
     window.scrollToComposer = () => {
+        // Người dùng nhấn nút "Viết gì đó" — cuộn xuống ô soạn thảo
+        EventLogger.log('community', 'composer:focus');
         document.getElementById('postComposer')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
         refs.postTextarea?.focus();
     };
 
     window.toggleAnonymous = () => {
+        // Người dùng bật/tắt chế độ đăng bài ẩn danh
+        EventLogger.log('community', 'anonymous:toggle', { nowAnonymous: !state.anonymousPosting });
         state.anonymousPosting = !state.anonymousPosting;
         renderComposerState();
     };
@@ -568,6 +598,10 @@ function initInlineApiHooks() {
     window.togglePostTag = (element, tag) => {
         const label = (element?.textContent || tag || '').trim();
         if (!label) return;
+
+        // Người dùng chọn/bỏ chọn hashtag cho bài viết (#biếton, #câuchuyện...)
+        const wasActive = state.selectedTags.includes(label);
+        EventLogger.log('community', 'post:tag:toggle', { tag: label, active: !wasActive });
 
         if (state.selectedTags.includes(label)) {
             state.selectedTags = state.selectedTags.filter((item) => item !== label);
@@ -583,6 +617,8 @@ function initInlineApiHooks() {
     };
 
     window.filterFeed = (category, button) => {
+        // Người dùng lọc bảng tin theo chủ đề (tất cả, biết ơn, câu chuyện...)
+        EventLogger.log('community', 'feed:filter', { category: category || 'all', previousFilter: state.currentFilter });
         state.currentFilter = category || 'all';
         updateFilterButtons(button || null);
         renderPosts();
@@ -593,6 +629,9 @@ function initInlineApiHooks() {
     };
 
     window.toggleComments = (postId) => {
+        // Người dùng mở/đóng phần bình luận của một bài viết
+        const willOpen = !state.openComments.has(postId);
+        EventLogger.log('community', 'comments:toggle', { postId, open: willOpen });
         if (state.openComments.has(postId)) {
             state.openComments.delete(postId);
         } else {
@@ -606,12 +645,16 @@ function initInlineApiHooks() {
     };
 
     window.switchLbTab = (tab, button) => {
+        // Người dùng chuyển tab bảng xếp hạng (XP, Streak, Nhiệm vụ)
+        EventLogger.log('community', 'leaderboard:tab:switch', { tab: tab || 'xp', previousTab: state.leaderboardTab });
         state.leaderboardTab = tab || 'xp';
         updateLeaderboardTabs(button || null);
         renderLeaderboard();
     };
 
     window.toggleLeaderboard = (element) => {
+        // Người dùng ẩn/hiện bảng xếp hạng trên thiết bị này
+        EventLogger.log('community', 'leaderboard:visibility:toggle', { willHide: !state.leaderboardHidden });
         state.leaderboardHidden = !state.leaderboardHidden;
         localStorage.setItem('peaceflow_lb_hidden', state.leaderboardHidden ? '1' : '0');
         if (element) {
@@ -624,6 +667,8 @@ function initInlineApiHooks() {
 
     window.joinChallenge = () => {
         if (state.joinedChallenge) return;
+        // Người dùng tham gia thử thách cộng đồng tuần này
+        EventLogger.log('community', 'challenge:join', { challengeTitle: state.challenge?.title });
         state.joinedChallenge = true;
         localStorage.setItem('peaceflow_joined_community_challenge', '1');
         renderChallenge();
@@ -631,6 +676,9 @@ function initInlineApiHooks() {
     };
 
     window.togglePostExpand = (postId) => {
+        // Người dùng mở rộng/thu gọn bài viết dài
+        const willExpand = !state.expandedPosts.has(postId);
+        EventLogger.log('community', 'post:expand:toggle', { postId, expand: willExpand });
         if (state.expandedPosts.has(postId)) {
             state.expandedPosts.delete(postId);
         } else {
@@ -640,6 +688,8 @@ function initInlineApiHooks() {
     };
 
     window.openReportModal = (postId) => {
+        // Người dùng mở form báo cáo một bài viết vi phạm
+        EventLogger.log('community', 'report:modal:open', { postId });
         state.reportPostId = postId;
         refs.reportOverlay?.classList.add('show');
     };
@@ -655,6 +705,8 @@ function initInlineApiHooks() {
     };
 
     window.submitReport = () => {
+        // Người dùng gửi báo cáo vi phạm
+        EventLogger.log('community', 'report:submit', { postId: state.reportPostId });
         refs.reportOverlay?.classList.remove('show');
         if (state.reportPostId) {
             showToast('Bài viết đã được ghi nhận báo cáo để moderator xem xét.');

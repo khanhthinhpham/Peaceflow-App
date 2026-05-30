@@ -715,8 +715,16 @@ async function handleDashboardRouteActivation(forceRefresh = false) {
         return;
     }
 
+    // Hiển thị data đang có ngay lập tức, không chờ fetch
+    if (dashboard.state.data) {
+        dashboard.render();
+    }
+
     if (forceRefresh) {
-        await dashboard.refresh(true);
+        // Refresh ngầm ở background — không block UI
+        dashboard.refresh(true).catch((error) => {
+            console.error('Dashboard background refresh failed:', error);
+        });
     }
 }
 
@@ -756,6 +764,16 @@ if (typeof document !== 'undefined') {
             } catch (error) {
                 console.error('Dashboard route activation failed:', error);
             }
+        });
+
+        // Khi SWR background fetch xong, cập nhật dashboard ngầm
+        window.addEventListener('peaceflow:swr-update', (event) => {
+            if (!isDashboardRoute()) return;
+            if (event.detail.endpoint !== '/dashboard') return;
+            if (!dashboard.state.data) return;
+            dashboard.state.data = event.detail.data;
+            if (event.detail.data?.user) dashboard.syncUser(event.detail.data.user);
+            dashboard.render();
         });
     }
 

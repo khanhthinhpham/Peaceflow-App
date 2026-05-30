@@ -2,7 +2,7 @@
 // Change API_BASE_URL here when you switch tunnel/server.
 (function initPeaceflowEnv() {
     const runtimeConfig = Object.freeze({
-        API_BASE_URL: 'https://affected-forgot-safe-reveals.trycloudflare.com/api/v1'
+        API_BASE_URL: 'https://peaceflow-app.vercel.app/api/v1'
     });
 
     window.__PEACEFLOW_ENV__ = runtimeConfig;

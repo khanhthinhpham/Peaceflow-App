@@ -1,3 +1,8 @@
+// Cố định trong suốt session — reset khi user reload trang (sau deploy mới)
+const SESSION_VERSION = Date.now();
+const _htmlCache = new Map(); // spec -> { html, cachedAt }
+const HTML_CACHE_MS = 300_000; // 5 phút
+
 const ROUTE_PAGE_NAMES = new Set([
     'dashboard.html',
     'mood-checkin.html',
@@ -102,15 +107,17 @@ function rewriteModuleImports(code, baseUrl) {
         .replace(/(\bimport\s*[\(\s]*['"])([^'"]+)(['"]\s*[\)]?)/g, replacer);
 }
 
-async function executeExternalScript(scriptNode, baseUrl, version) {
+async function executeExternalScript(scriptNode, baseUrl) {
     const srcUrl = new URL(scriptNode.getAttribute('src'), baseUrl);
-    srcUrl.searchParams.set('__router_nav', String(version));
+    // Dùng SESSION_VERSION thay vì navVersion — cùng session → cùng URL → browser cache module
+    // Reload trang sau deploy mới → SESSION_VERSION đổi → scripts fresh
+    srcUrl.searchParams.set('__v', String(SESSION_VERSION));
     await import(srcUrl.href);
 }
 
-async function executeInlineScript(scriptNode, baseUrl, version) {
+async function executeInlineScript(scriptNode, baseUrl) {
     const moduleSource = rewriteModuleImports(String(scriptNode.textContent || ''), baseUrl);
-    const blob = new Blob([`${moduleSource}\n//# sourceURL=router-inline-${version}.mjs`], { type: 'text/javascript' });
+    const blob = new Blob([`${moduleSource}\n//# sourceURL=router-inline.mjs`], { type: 'text/javascript' });
     const blobUrl = URL.createObjectURL(blob);
 
     try {
@@ -120,7 +127,7 @@ async function executeInlineScript(scriptNode, baseUrl, version) {
     }
 }
 
-async function executePageScripts(parsedDocument, baseUrl, version) {
+async function executePageScripts(parsedDocument, baseUrl) {
     const captured = { windowLoad: [], documentReady: [] };
     const originalWindowAdd = window.addEventListener.bind(window);
     const originalDocumentAdd = document.addEventListener.bind(document);
@@ -148,9 +155,9 @@ async function executePageScripts(parsedDocument, baseUrl, version) {
 
         for (const node of scriptNodes) {
             if (node.getAttribute('src')) {
-                await executeExternalScript(node, baseUrl, version);
+                await executeExternalScript(node, baseUrl);
             } else {
-                await executeInlineScript(node, baseUrl, version);
+                await executeInlineScript(node, baseUrl);
             }
         }
     } finally {
@@ -302,12 +309,22 @@ const AppRouter = {
 
             const fetchUrl = getContentFetchUrl(nextSpec);
             logRouter('navigate:start', `to=${nextSpec} mode=${historyMode}`);
-            const response = await fetch(fetchUrl, { credentials: 'same-origin' });
-            if (!response.ok) {
-                throw new Error(`Failed to load route ${fetchUrl}: ${response.status}`);
+
+            // Dùng cache HTML nếu còn trong TTL, tránh fetch lại mỗi lần chuyển tab
+            const cachedPage = _htmlCache.get(nextSpec);
+            let html;
+            if (cachedPage && (Date.now() - cachedPage.cachedAt) < HTML_CACHE_MS) {
+                html = cachedPage.html;
+                logRouter('navigate:cache-hit', `spec=${nextSpec}`);
+            } else {
+                const response = await fetch(fetchUrl, { credentials: 'same-origin' });
+                if (!response.ok) {
+                    throw new Error(`Failed to load route ${fetchUrl}: ${response.status}`);
+                }
+                html = await response.text();
+                _htmlCache.set(nextSpec, { html, cachedAt: Date.now() });
             }
 
-            const html = await response.text();
             const parsedDocument = new DOMParser().parseFromString(html, 'text/html');
 
             document.title = parsedDocument.querySelector('title')?.textContent || 'PeaceFlow';
@@ -316,7 +333,7 @@ const AppRouter = {
                 ...(this.loading ? [this.loading] : []),
                 ...getPageBodyNodes(parsedDocument).map((node) => document.importNode(node, true))
             );
-            await executePageScripts(parsedDocument, fetchUrl, currentVersion);
+            await executePageScripts(parsedDocument, fetchUrl);
 
             if (this.loading && !this.host.contains(this.loading)) {
                 this.host.prepend(this.loading);

@@ -1,9 +1,12 @@
 import { apiClient } from './api-client.js';
+import { EventLogger } from './event-logger.js';
 
 export const auth = {
     _authCheckPromise: null,
 
     async signup(email, password, fullName, consents = {}) {
+        // Người dùng tạo tài khoản mới
+        EventLogger.log('auth', 'signup:attempt', { email: String(email || '').trim().toLowerCase() });
         const data = await apiClient.post('/auth/register', {
             email: String(email || '').trim().toLowerCase(),
             password,
@@ -13,20 +16,26 @@ export const auth = {
             consent_terms: consents.consent_terms ?? true,
             consent_sensitive_data: consents.consent_sensitive_data ?? false
         });
+        EventLogger.log('auth', 'signup:success', { userId: data.user?.id });
         this.setSession(data);
         return data;
     },
 
     async login(email, password) {
+        // Người dùng đăng nhập vào tài khoản
+        EventLogger.log('auth', 'login:attempt', { email: String(email || '').trim().toLowerCase() });
         const data = await apiClient.post('/auth/login', {
             email: String(email || '').trim().toLowerCase(),
             password
         });
+        EventLogger.log('auth', 'login:success', { userId: data.user?.id });
         this.setSession(data);
         return data;
     },
 
     async logout() {
+        // Người dùng đăng xuất khỏi ứng dụng
+        EventLogger.log('auth', 'logout:request');
         await apiClient.logout();
         window.location.href = 'login.html';
     },
@@ -65,6 +74,7 @@ export const auth = {
                     return true;
                 })
                 .catch((error) => {
+                    EventLogger.error('auth', 'session:verify:failed', error);
                     console.error('Auth verification failed:', error);
                     // Keep the existing session on transient tunnel/CORS failures.
                     // Login has already produced valid tokens; losing them here

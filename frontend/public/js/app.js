@@ -29,6 +29,24 @@
 
 'use strict';
 
+/* ============================================================
+   00. EVENT LOGGER
+   Ghi log tất cả sự kiện người dùng theo định dạng [FE_EVENT].
+   Format: [FE_EVENT] ts=<ISO> category=<cat> action=<action> data=<json>
+============================================================ */
+const EventLogger = {
+  log(category, action, data = {}) {
+    const ts = new Date().toISOString();
+    const payload = Object.keys(data).length ? ' data=' + JSON.stringify(data) : '';
+    console.info(`[FE_EVENT] ts=${ts} category=${category} action=${action}${payload}`);
+  },
+  error(category, action, err, data = {}) {
+    const ts = new Date().toISOString();
+    const payload = Object.keys(data).length ? ' data=' + JSON.stringify(data) : '';
+    console.error(`[FE_EVENT_ERR] ts=${ts} category=${category} action=${action} error="${err?.message || String(err)}"${payload}`);
+  }
+};
+
 const SERVER_MANAGED_PAGES = new Set([
   'dashboard.html',
   'journal.html',
@@ -267,12 +285,17 @@ const UserModule = {
     Store.saveUser(user);
     this.current = user;
 
+    // Người dùng nhận được XP từ một hành động (check-in, nhiệm vụ, nhật ký...)
+    EventLogger.log('gamification', 'xp:gain', { amount, reason, totalXp: user.xp });
+
     // Show XP animation
     AnimationModule.showXPGain(amount);
 
     // Level up check
     if (newLevel > oldLevel) {
       const lvlInfo = this.getLevelInfo(user.xp);
+      // Người dùng đạt đủ XP để lên cấp độ mới
+      EventLogger.log('gamification', 'level:up', { oldLevel, newLevel, title: lvlInfo.title, totalXp: user.xp });
       setTimeout(() => {
         Toast.show(`🎉 Chúc mừng! Bạn lên Level ${newLevel} — ${lvlInfo.title}!`, 4000);
         AnimationModule.triggerConfetti();
@@ -336,6 +359,8 @@ const NavModule = {
   },
 
   toggleSidebar() {
+    // Người dùng nhấn nút menu để mở/đóng sidebar điều hướng
+    EventLogger.log('nav', 'sidebar:toggle', { willOpen: !this.sidebarOpen });
     this.sidebarOpen ? this.closeSidebar() : this.openSidebar();
   },
 
@@ -367,6 +392,8 @@ const NavModule = {
 
   // Tab switching (used across multiple pages)
   switchTab(tabId, panelPrefix = 'panel', tabPrefix = 'tab') {
+    // Người dùng chuyển sang tab khác trong trang
+    EventLogger.log('nav', 'tab:switch', { tabId, panelPrefix, tabPrefix });
     document.querySelectorAll(`[id^="${tabPrefix}-"]`).forEach(t => t.classList.remove('active'));
     document.querySelectorAll(`[id^="${panelPrefix}-"]`).forEach(p => p.classList.remove('active'));
     const tab = document.getElementById(`${tabPrefix}-${tabId}`);
@@ -428,6 +455,8 @@ const ModalModule = {
   stack: [],
 
   open(overlayId) {
+    // Người dùng mở một modal/overlay (ví dụ: modal khẩn cấp, xác nhận)
+    EventLogger.log('modal', 'open', { id: overlayId });
     const overlay = document.getElementById(overlayId);
     if (overlay) {
       overlay.classList.add('show');
@@ -437,6 +466,8 @@ const ModalModule = {
   },
 
   close(overlayId) {
+    // Người dùng đóng modal
+    EventLogger.log('modal', 'close', { id: overlayId });
     const overlay = document.getElementById(overlayId);
     if (overlay) overlay.classList.remove('show');
     this.stack = this.stack.filter(id => id !== overlayId);
@@ -444,6 +475,8 @@ const ModalModule = {
   },
 
   closeAll() {
+    // Người dùng nhấn Escape — đóng tất cả modal đang mở
+    if (this.stack.length) EventLogger.log('modal', 'close:all', { count: this.stack.length });
     this.stack.forEach(id => {
       const el = document.getElementById(id);
       if (el) el.classList.remove('show');
@@ -472,11 +505,15 @@ const EmergencyModule = {
   },
 
   show() {
+    // Người dùng nhấn nút SOS hoặc hệ thống phát hiện từ khóa nguy hiểm
+    EventLogger.log('emergency', 'panel:show', { source: this.triggered ? 'repeated' : 'first_trigger' });
     ModalModule.open('emergencyOverlay');
     this.triggered = true;
   },
 
   hide() {
+    // Người dùng đóng panel khẩn cấp
+    EventLogger.log('emergency', 'panel:hide');
     ModalModule.close('emergencyOverlay');
   },
 
@@ -490,6 +527,8 @@ const EmergencyModule = {
   // Check and trigger if needed
   checkAndTrigger(text) {
     if (this.scanText(text)) {
+      // Hệ thống phát hiện từ khóa nguy hiểm trong văn bản người dùng nhập
+      EventLogger.log('emergency', 'keyword:detected', { triggered: true });
       setTimeout(() => this.show(), 500);
       return true;
     }
@@ -522,21 +561,29 @@ const MoodModule = {
   TAGS: ['Công việc', 'Gia đình', 'Tình cảm', 'Tài chính', 'Sức khỏe', 'Cô đơn', 'Mất ngủ', 'Không rõ'],
 
   selectMood(index) {
-    this.selectedMood = this.MOODS[index];
+    // Người dùng chọn một biểu cảm tâm trạng (vui, buồn, lo lắng...)
+    const mood = this.MOODS[index];
+    EventLogger.log('mood', 'select', { index, emoji: mood?.emoji, label: mood?.label, score: mood?.score });
+    this.selectedMood = mood;
     document.querySelectorAll('.mood-option').forEach((el, i) => {
       el.classList.toggle('active', i === index);
     });
   },
 
   toggleTag(tag) {
-    if (this.selectedTags.has(tag)) this.selectedTags.delete(tag);
+    // Người dùng bật/tắt nhãn mô tả nguyên nhân tâm trạng (công việc, gia đình...)
+    const hadTag = this.selectedTags.has(tag);
+    if (hadTag) this.selectedTags.delete(tag);
     else this.selectedTags.add(tag);
+    EventLogger.log('mood', 'tag:toggle', { tag, active: !hadTag });
     document.querySelectorAll('.mood-tag').forEach(el => {
       el.classList.toggle('active', this.selectedTags.has(el.dataset.tag));
     });
   },
 
   save(note = '') {
+    // Người dùng xác nhận lưu tâm trạng hôm nay
+    EventLogger.log('mood', 'save:attempt', { mood: this.selectedMood?.label, score: this.selectedMood?.score, tags: [...this.selectedTags], hasNote: !!note.trim() });
     if (!this.selectedMood) {
       Toast.error('Vui lòng chọn tâm trạng trước nhé! 😊');
       return false;
@@ -549,6 +596,7 @@ const MoodModule = {
       date: new Date().toLocaleDateString('vi-VN'),
     };
     Store.addMoodEntry(entry);
+    EventLogger.log('mood', 'save:success', { mood: this.selectedMood.label, score: this.selectedMood.score, tags: [...this.selectedTags] });
     UserModule.addXP(5, 'mood_checkin');
     Toast.show('✅ Đã lưu tâm trạng hôm nay! +5 XP 🌿');
 
@@ -586,6 +634,8 @@ const BadgeModule = {
     check('xp_500',      user.xp >= 500);
 
     if (newBadges.length) {
+      // Người dùng vừa mở khóa được huy hiệu mới
+      EventLogger.log('gamification', 'badge:unlock', { badges: newBadges, totalBadges: earned.length });
       user.badges = earned;
       Store.saveUser(user);
       newBadges.forEach(id => {
@@ -609,6 +659,8 @@ const TaskModule = {
   activeTaskId: null,
 
   complete(taskId, xpAmount, category = 'general') {
+    // Người dùng hoàn thành một nhiệm vụ (thiền, hít thở, nhật ký...)
+    EventLogger.log('task', 'complete', { taskId, xpAmount, category });
     const user = Store.getUser();
     user.tasksCompleted = (user.tasksCompleted || 0) + 1;
 
@@ -723,6 +775,8 @@ const BreathingModule = {
 
   start(circleEl, labelEl, textEl, dotsEl, onComplete) {
     if (this.isRunning) return;
+    // Người dùng bắt đầu bài tập thở 4-4-4
+    EventLogger.log('breathing', 'start', { totalCycles: this.totalCycles });
     this.isRunning = true;
     this.currentPhase = 0;
     this.currentCycle = 0;
@@ -751,6 +805,8 @@ const BreathingModule = {
   },
 
   stop(circleEl, labelEl, textEl) {
+    // Người dùng dừng hoặc hoàn thành bài tập thở
+    EventLogger.log('breathing', 'stop', { completedCycles: this.currentCycle, totalCycles: this.totalCycles, wasCompleted: this.currentCycle >= this.totalCycles });
     clearTimeout(this.phaseTimeout);
     this.isRunning = false;
     if (circleEl) circleEl.className = 'breath-circle';
@@ -776,6 +832,8 @@ const MeditationModule = {
   timerInterval: null,
 
   start(durationMinutes, onTick, onComplete) {
+    // Người dùng bắt đầu phiên thiền với thời gian đã chọn
+    EventLogger.log('meditation', 'start', { durationMinutes, totalSeconds: durationMinutes * 60 });
     this.totalSeconds = durationMinutes * 60;
     this.remainingSeconds = this.totalSeconds;
     this.isRunning = true;
@@ -797,14 +855,20 @@ const MeditationModule = {
   },
 
   pause() {
+    // Người dùng tạm dừng bộ đếm thiền
+    EventLogger.log('meditation', 'pause', { remainingSeconds: this.remainingSeconds, progress: Math.round(this.getProgress()) });
     this.isPaused = true;
   },
 
   resume() {
+    // Người dùng tiếp tục phiên thiền sau khi tạm dừng
+    EventLogger.log('meditation', 'resume', { remainingSeconds: this.remainingSeconds });
     this.isPaused = false;
   },
 
   stop() {
+    // Người dùng dừng phiên thiền (dừng sớm hoặc hoàn thành)
+    EventLogger.log('meditation', 'stop', { remainingSeconds: this.remainingSeconds, completed: this.remainingSeconds <= 0 });
     clearInterval(this.timerInterval);
     this.isRunning = false;
     this.isPaused = false;
@@ -856,6 +920,8 @@ const JournalModule = {
   },
 
   save(content, mood, tags = []) {
+    // Người dùng lưu bài nhật ký (không log nội dung để bảo vệ sự riêng tư)
+    EventLogger.log('journal', 'save:attempt', { wordCount: content.trim().split(/\s+/).length, mood, tagCount: tags.length });
     if (!content.trim()) {
       Toast.error('Hãy viết gì đó trước nhé! 📝');
       return false;
@@ -881,6 +947,7 @@ const JournalModule = {
     Store.set('journal_entries', entries.slice(0, 500));
     Store.syncToRemote('journals', newEntry);
 
+    EventLogger.log('journal', 'save:success', { wordCount: newEntry.wordCount, mood, sentiment: sentiment.label, totalEntries: entries.length });
     UserModule.addXP(15, 'journal');
     Toast.show('📝 Nhật ký đã được lưu! +15 XP 🌿');
 
@@ -1030,6 +1097,8 @@ const ReportModule = {
   },
 
   exportPDF() {
+    // Người dùng xuất báo cáo tâm lý dạng PDF
+    EventLogger.log('report', 'export:pdf');
     Toast.show('📄 Đang chuẩn bị báo cáo PDF...', 2000);
     setTimeout(() => {
       window.print();
@@ -1049,6 +1118,8 @@ const SettingsModule = {
   },
 
   switchSection(sectionId, clickedEl) {
+    // Người dùng chuyển sang mục cài đặt khác (thông báo, giao diện, riêng tư...)
+    EventLogger.log('settings', 'section:switch', { section: sectionId });
     document.querySelectorAll('.settings-section').forEach(s => s.classList.remove('active'));
     document.querySelectorAll('.sn-item').forEach(i => i.classList.remove('active'));
     const section = document.getElementById(`section-${sectionId}`);
@@ -1067,14 +1138,20 @@ const SettingsModule = {
   },
 
   save() {
+    // Người dùng nhấn "Lưu tất cả" trong trang cài đặt
+    EventLogger.log('settings', 'save:all');
     Toast.show('✅ Đã lưu tất cả cài đặt!', 2500);
   },
 
   saveSection(section) {
+    // Người dùng lưu một nhóm cài đặt cụ thể
+    EventLogger.log('settings', 'save:section', { section });
     Toast.show(`✅ Đã lưu cài đặt ${section}!`, 2000);
   },
 
   selectTheme(el, themeName) {
+    // Người dùng chọn chủ đề giao diện mới
+    EventLogger.log('settings', 'theme:select', { theme: themeName });
     document.querySelectorAll('.theme-option').forEach(t => t.classList.remove('selected'));
     if (el) el.classList.add('selected');
     const settings = Store.getSettings();
@@ -1084,6 +1161,8 @@ const SettingsModule = {
   },
 
   selectFontSize(el, size) {
+    // Người dùng thay đổi cỡ chữ hiển thị
+    EventLogger.log('settings', 'font:select', { size });
     document.querySelectorAll('.fs-btn').forEach(b => b.classList.remove('selected'));
     if (el) el.classList.add('selected');
     document.documentElement.style.fontSize = size === 'small' ? '14px' : size === 'large' ? '18px' : '16px';
@@ -1091,6 +1170,8 @@ const SettingsModule = {
   },
 
   toggleMasterNotif(checkbox) {
+    // Người dùng bật/tắt toàn bộ thông báo
+    EventLogger.log('settings', 'notif:master:toggle', { enabled: checkbox?.checked });
     const subSettings = document.getElementById('notif-sub-settings');
     if (subSettings) subSettings.style.opacity = checkbox.checked ? '1' : '0.4';
   },
@@ -1120,7 +1201,10 @@ const SettingsModule = {
   },
 
   deleteAccount() {
+    // Người dùng yêu cầu xóa tài khoản — chờ xác nhận
+    EventLogger.log('settings', 'account:delete:request');
     this.showConfirm('⚠️', 'Xóa tài khoản', 'Toàn bộ dữ liệu của bạn sẽ bị xóa vĩnh viễn. Không thể hoàn tác!', () => {
+      EventLogger.log('settings', 'account:delete:confirmed');
       Store.clear();
       Toast.show('🗑️ Tài khoản đã được xóa.', 3000);
       setTimeout(() => window.location.href = 'index.html', 2000);
@@ -1128,7 +1212,10 @@ const SettingsModule = {
   },
 
   resetData() {
+    // Người dùng yêu cầu xóa toàn bộ lịch sử tâm trạng và nhật ký — chờ xác nhận
+    EventLogger.log('settings', 'data:reset:request');
     this.showConfirm('🔄', 'Đặt lại dữ liệu', 'Toàn bộ lịch sử tâm trạng, nhật ký và tiến trình sẽ bị xóa.', () => {
+      EventLogger.log('settings', 'data:reset:confirmed');
       ['mood_history', 'journal_entries', 'community_reactions'].forEach(k => Store.remove(k));
       Toast.show('✅ Đã đặt lại dữ liệu thành công!', 3000);
     });
@@ -1359,6 +1446,8 @@ const App = {
     // Settings init
     if (page === 'settings.html') SettingsModule.init();
 
+    // Ứng dụng đã khởi tạo xong và sẵn sàng cho người dùng tương tác
+    EventLogger.log('app', 'page:load', { page, version: PeaceFlow.version });
     console.log(`✅ PeaceFlow v${PeaceFlow.version} initialized — Page: ${page}`);
   },
 

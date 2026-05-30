@@ -1,4 +1,5 @@
 import { apiClient } from './api-client.js';
+import { EventLogger } from './event-logger.js';
 
 const AVATARS = ['🐱', '🌱', '🌿', '🧘', '🌤️', '🌙', '💚', '🦋', '🍀', '☁️', '🌸', '⭐'];
 const LOCAL_SETTINGS_KEY = 'peaceflow_profile_settings';
@@ -437,6 +438,11 @@ async function loadData() {
 }
 
 async function saveProfile() {
+    // Người dùng lưu thông tin hồ sơ cá nhân (tên, giới tính, tagline, avatar...)
+    EventLogger.log('profile', 'save:attempt', {
+        displayName: refs.displayName?.value?.trim(),
+        avatar: state.selectedAvatar
+    });
     const saveBtn = document.querySelector('.btn-primary[onclick*="saveProfile"]');
     if (saveBtn) saveBtn.textContent = 'Đang lưu...';
 
@@ -464,9 +470,11 @@ async function saveProfile() {
         state.user = user;
         state.profile = profile;
         syncStoredUser();
+        EventLogger.log('profile', 'save:success', { userId: state.user?.id, avatar: state.selectedAvatar });
         renderPage();
         showToast('Đã lưu thông tin hồ sơ.');
     } catch (error) {
+        EventLogger.error('profile', 'save:failed', error);
         console.error('Profile save failed:', error);
         showToast('Không lưu được hồ sơ.', 'error');
     } finally {
@@ -475,6 +483,8 @@ async function saveProfile() {
 }
 
 async function saveGoals() {
+    // Người dùng lưu danh sách mục tiêu sức khỏe tâm thần đã chọn
+    EventLogger.log('profile', 'goals:save:attempt', { goals: Array.from(state.selectedGoals) });
     const saveBtn = document.querySelector('.btn-primary[onclick*="saveGoals"]');
     if (saveBtn) saveBtn.textContent = 'Đang lưu...';
 
@@ -488,9 +498,11 @@ async function saveGoals() {
         });
 
         state.profile = profile;
+        EventLogger.log('profile', 'goals:save:success', { goals: Array.from(state.selectedGoals) });
         renderPage();
         showToast('Đã lưu mục tiêu.');
     } catch (error) {
+        EventLogger.error('profile', 'goals:save:failed', error, { goals: Array.from(state.selectedGoals) });
         console.error('Goals save failed:', error);
         showToast('Không lưu được mục tiêu.', 'error');
     } finally {
@@ -509,6 +521,9 @@ function toggleGoal(chip) {
     const label = chip?.textContent?.trim();
     if (!label) return;
 
+    // Người dùng chọn/bỏ chọn một mục tiêu sức khỏe tâm thần
+    const wasSelected = state.selectedGoals.has(label);
+    EventLogger.log('profile', 'goal:toggle', { goal: label, active: !wasSelected });
     if (state.selectedGoals.has(label)) state.selectedGoals.delete(label);
     else state.selectedGoals.add(label);
 
@@ -516,11 +531,15 @@ function toggleGoal(chip) {
 }
 
 function switchTab(tab) {
+    // Người dùng chuyển tab trong trang hồ sơ (Thông tin, Huy hiệu, Hoạt động, Cài đặt)
+    EventLogger.log('profile', 'tab:switch', { tab, previous: state.activeTab });
     state.activeTab = tab;
     renderTabs();
 }
 
 function saveSettings() {
+    // Người dùng lưu cài đặt riêng tư/thông báo trên trang hồ sơ
+    EventLogger.log('profile', 'settings:save:local');
     document.querySelectorAll('[data-setting-key]').forEach((input) => {
         state.localSettings[input.dataset.settingKey] = Boolean(input.checked);
     });
@@ -533,6 +552,8 @@ function savePassword() {
 }
 
 function exportData(format) {
+    // Người dùng xuất dữ liệu hồ sơ ra file
+    EventLogger.log('profile', 'data:export', { format });
     if (format === 'json') {
         const payload = {
             user: state.user,
@@ -566,6 +587,8 @@ function bindEvents() {
     refs.avatarGrid?.addEventListener('click', (event) => {
         const option = event.target.closest('[data-avatar]');
         if (!option) return;
+        // Người dùng chọn avatar emoji mới cho hồ sơ
+        EventLogger.log('profile', 'avatar:select', { avatar: option.dataset.avatar, previous: state.selectedAvatar });
         state.selectedAvatar = option.dataset.avatar;
         renderAvatarGrid();
         renderHero();

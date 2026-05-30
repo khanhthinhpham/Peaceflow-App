@@ -202,6 +202,10 @@ async function ensureAccessToken() {
     return refreshPromise;
 }
 
+const _swrCache = new Map(); // endpoint -> { data, cachedAt }
+const SWR_FRESH_MS = 30_000;  // dưới 30s: trả cache ngay
+const SWR_MAX_MS   = 300_000; // trên 5 phút: bỏ cache, fetch lại
+
 export const apiClient = {
     async request(endpoint, options = {}, retryOptions = {}) {
         const url = `${API_BASE_URL}${endpoint}`;
@@ -270,11 +274,52 @@ export const apiClient = {
         }
     },
 
-    get(endpoint) {
-        return this.request(endpoint, { method: 'GET' });
+    get(endpoint, { noCache = false } = {}) {
+        if (noCache) return this.request(endpoint, { method: 'GET' });
+
+        const cached = _swrCache.get(endpoint);
+        const now = Date.now();
+
+        if (cached) {
+            const age = now - cached.cachedAt;
+
+            if (age < SWR_FRESH_MS) {
+                return Promise.resolve(cached.data);
+            }
+
+            if (age < SWR_MAX_MS) {
+                // Stale: trả cache ngay, fetch ngầm ở background
+                this.request(endpoint, { method: 'GET' })
+                    .then((data) => {
+                        _swrCache.set(endpoint, { data, cachedAt: Date.now() });
+                        window.dispatchEvent(new CustomEvent('peaceflow:swr-update', {
+                            detail: { endpoint, data }
+                        }));
+                    })
+                    .catch(() => {});
+                return Promise.resolve(cached.data);
+            }
+        }
+
+        // Không có cache hoặc đã hết hạn: fetch và lưu cache
+        return this.request(endpoint, { method: 'GET' }).then((data) => {
+            _swrCache.set(endpoint, { data, cachedAt: Date.now() });
+            return data;
+        });
+    },
+
+    _invalidateRelated(endpoint) {
+        // Xóa cache của resource liên quan và dashboard
+        const base = '/' + endpoint.split('/').filter(Boolean)[0];
+        for (const key of _swrCache.keys()) {
+            if (key === base || key.startsWith(base + '/') || key === '/dashboard') {
+                _swrCache.delete(key);
+            }
+        }
     },
 
     post(endpoint, data) {
+        this._invalidateRelated(endpoint);
         return this.request(endpoint, {
             method: 'POST',
             body: JSON.stringify(data)
@@ -282,6 +327,7 @@ export const apiClient = {
     },
 
     put(endpoint, data) {
+        this._invalidateRelated(endpoint);
         return this.request(endpoint, {
             method: 'PUT',
             body: JSON.stringify(data)
@@ -289,6 +335,7 @@ export const apiClient = {
     },
 
     delete(endpoint) {
+        this._invalidateRelated(endpoint);
         return this.request(endpoint, { method: 'DELETE' });
     },
 
