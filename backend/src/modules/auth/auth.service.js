@@ -52,10 +52,8 @@ export async function register(data) {
     console.error('Failed to send verification email:', e.message)
   );
 
-  return {
-    user,
-    session: await createSession(user)
-  };
+  // Không tạo session — user phải verify email trước khi login
+  return { user };
 }
 
 export async function loginWithGoogle(idToken) {
@@ -113,6 +111,15 @@ export async function verifyEmail(token) {
   await markEmailVerified(record.user_id, record.id);
 }
 
+export async function resendVerificationEmail(email) {
+  const user = await findUserByEmail(String(email || '').trim().toLowerCase());
+  if (!user || user.email_verified) return;
+
+  const token = generateSecureToken();
+  await createEmailVerificationToken(user.id, token);
+  await sendVerificationEmail(user, token);
+}
+
 export async function forgotPassword(email) {
   const user = await findUserByEmail(String(email || '').trim().toLowerCase());
   // Không báo lỗi nếu email không tồn tại (tránh email enumeration)
@@ -143,6 +150,10 @@ export async function login(data) {
 
   if (user.status !== 'active') {
     throw createAuthError('Tài khoản hiện đang bị vô hiệu hóa.', 403);
+  }
+
+  if (!user.email_verified) {
+    throw createAuthError('EMAIL_NOT_VERIFIED', 403);
   }
 
   const passwordMatches = await verifyPassword(user.password_hash, password);

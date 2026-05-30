@@ -102,6 +102,16 @@ export async function verifyEmail(req, res) {
   }
 }
 
+export async function resendVerification(req, res) {
+  try {
+    const { email } = z.object({ email: z.string().email() }).parse(req.body);
+    await authService.resendVerificationEmail(email);
+    return res.json({ success: true, data: { message: 'Email xác nhận đã được gửi lại.' } });
+  } catch (error) {
+    return sendAuthError(res, error);
+  }
+}
+
 export async function forgotPassword(req, res) {
   try {
     const { email } = z.object({ email: z.string().email() }).parse(req.body);

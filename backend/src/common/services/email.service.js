@@ -3,7 +3,7 @@ import { env } from '../../config/env.js';
 
 const resend = new Resend(env.resendApiKey);
 const FROM = env.emailFrom;
-const APP_URL = env.appUrl;
+const APP_URL = env.frontendUrl;
 
 export async function sendVerificationEmail(user, token) {
   const link = `${APP_URL}/pages/verify-email.html?token=${token}`;
