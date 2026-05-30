@@ -14,16 +14,17 @@ const LEVELS = [
 
 // GET /api/v1/progress
 router.get('/progress', requireAuth, async (req, res) => {
+  try {
   const result = await db.query(
     `select * from user_progress where user_id = $1 limit 1`,
     [req.user.sub]
-  );
+  ).catch((e) => { console.error('[PROGRESS_QUERY] user_progress:', e.message); return { rows: [] }; });
   const weeklyTasks = await db.query(
     `select count(*)::int as count
      from task_completions
      where user_id = $1 and created_at > now() - interval '7 days'`,
     [req.user.sub]
-  );
+  ).catch((e) => { console.error('[PROGRESS_QUERY] task_completions:', e.message); return { rows: [] }; });
 
   const progress = result.rows[0];
   const weeklyTasksCompleted = weeklyTasks.rows[0]?.count || 0;
@@ -48,6 +49,10 @@ router.get('/progress', requireAuth, async (req, res) => {
           weekly_tasks_completed: weeklyTasksCompleted
         }
   });
+  } catch (error) {
+    console.error('Progress route error:', error.message, error.stack);
+    return res.status(500).json({ success: false, message: 'Could not fetch progress' });
+  }
 });
 
 // GET /api/v1/achievements
@@ -74,14 +79,14 @@ router.get('/achievements', requireAuth, async (req, res) => {
          where id = $1
          limit 1`,
         [userId]
-      ),
+      ).catch((e) => { console.error('[ACH_QUERY] users:', e.message); return { rows: [] }; }),
       db.query(
         `select *
          from user_progress
          where user_id = $1
          limit 1`,
         [userId]
-      ),
+      ).catch((e) => { console.error('[ACH_QUERY] user_progress:', e.message); return { rows: [] }; }),
       db.query(
         `select
            b.id,
@@ -98,7 +103,7 @@ router.get('/achievements', requireAuth, async (req, res) => {
           and ub.user_id = $1
          order by b.created_at asc, b.name asc`,
         [userId]
-      ),
+      ).catch((e) => { console.error('[ACH_QUERY] badges:', e.message); return { rows: [] }; }),
       db.query(
         `select
            count(*)::int as tasks_completed,
@@ -115,13 +120,13 @@ router.get('/achievements', requireAuth, async (req, res) => {
          join tasks t on t.id = tc.task_id
          where tc.user_id = $1`,
         [userId]
-      ),
+      ).catch((e) => { console.error('[ACH_QUERY] task_completions:', e.message); return { rows: [] }; }),
       db.query(
         `select count(*)::int as journal_entries_count
          from journal_entries
          where user_id = $1`,
         [userId]
-      ),
+      ).catch((e) => { console.error('[ACH_QUERY] journal_entries:', e.message); return { rows: [] }; }),
       db.query(
         `select
            count(*)::int as mood_checkins_count,
@@ -146,7 +151,7 @@ router.get('/achievements', requireAuth, async (req, res) => {
          from mood_checkins
          where user_id = $1`,
         [userId]
-      ),
+      ).catch((e) => { console.error('[ACH_QUERY] mood_checkins:', e.message); return { rows: [] }; }),
       db.query(
         `select activity_day
          from (
@@ -167,7 +172,7 @@ router.get('/achievements', requireAuth, async (req, res) => {
          ) activities
          order by activity_day asc`,
         [userId]
-      ),
+      ).catch((e) => { console.error('[ACH_QUERY] activity_calendar:', e.message); return { rows: [] }; }),
       db.query(
         `select count(*)::int as active_days
          from (
@@ -184,14 +189,14 @@ router.get('/achievements', requireAuth, async (req, res) => {
            where user_id = $1
          ) activities`,
         [userId]
-      ),
+      ).catch((e) => { console.error('[ACH_QUERY] activity_total:', e.message); return { rows: [] }; }),
       db.query(
         `select
            (select count(*)::int from task_completions where user_id = $1 and created_at >= now() - interval '7 days') as tasks_last_7d,
            (select count(*)::int from journal_entries where user_id = $1 and created_at >= now() - interval '7 days') as journals_last_7d,
            (select count(*)::int from mood_checkins where user_id = $1 and created_at >= now() - interval '7 days') as moods_last_7d`,
         [userId]
-      ),
+      ).catch((e) => { console.error('[ACH_QUERY] weekly_activity:', e.message); return { rows: [] }; }),
       db.query(
         `with badge_counts as (
            select user_id, count(*)::int as badges_count
@@ -226,7 +231,7 @@ router.get('/achievements', requireAuth, async (req, res) => {
          where ranked.rank <= 5
          order by ranked.rank asc, ranked.total_xp desc`,
         []
-      ),
+      ).catch((e) => { console.error('[ACH_QUERY] leaderboard_top:', e.message); return { rows: [] }; }),
       db.query(
         `with badge_counts as (
            select user_id, count(*)::int as badges_count
@@ -258,7 +263,7 @@ router.get('/achievements', requireAuth, async (req, res) => {
          where ranked.user_id = $1
          limit 1`,
         [userId]
-      )
+      ).catch((e) => { console.error('[ACH_QUERY] leaderboard_rank:', e.message); return { rows: [] }; })
     ]);
 
     const user = userRes.rows[0] || null;
@@ -411,7 +416,7 @@ router.get('/achievements', requireAuth, async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Achievements route error:', error);
+    console.error('Achievements route error:', error.message, error.stack);
     return res.status(500).json({
       success: false,
       message: 'Could not fetch achievements data'

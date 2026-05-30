@@ -19,10 +19,14 @@ router.get('/reports/summary', requireAuth, async (req, res) => {
     const userId = req.user.sub;
 
     const [progressRes, latestMoodRes, totalTasksRes, badgesRes, riskRes] = await Promise.all([
-      db.query(`select * from user_progress where user_id = $1 limit 1`, [userId]),
-      db.query(`select * from mood_checkins where user_id = $1 order by created_at desc limit 1`, [userId]),
-      db.query(`select count(*)::int as completed_tasks from task_completions where user_id = $1`, [userId]),
-      db.query(`select count(*)::int as badges_count from user_badges where user_id = $1`, [userId]),
+      db.query(`select * from user_progress where user_id = $1 limit 1`, [userId])
+        .catch((e) => { console.error('[SUMMARY_QUERY] user_progress:', e.message); return { rows: [] }; }),
+      db.query(`select * from mood_checkins where user_id = $1 order by created_at desc limit 1`, [userId])
+        .catch((e) => { console.error('[SUMMARY_QUERY] mood_checkins:', e.message); return { rows: [] }; }),
+      db.query(`select count(*)::int as completed_tasks from task_completions where user_id = $1`, [userId])
+        .catch((e) => { console.error('[SUMMARY_QUERY] task_completions:', e.message); return { rows: [] }; }),
+      db.query(`select count(*)::int as badges_count from user_badges where user_id = $1`, [userId])
+        .catch((e) => { console.error('[SUMMARY_QUERY] user_badges:', e.message); return { rows: [] }; }),
       RiskEngineService.calculateStressIndex(userId).catch(() => ({ stress_index: 0, risk_level: 'low', show_emergency_banner: false }))
     ]);
 
@@ -71,9 +75,11 @@ router.get('/reports/detail', requireAuth, async (req, res) => {
          where id = $1
          limit 1`,
         [userId]
-      ),
-      db.query(`select * from user_progress where user_id = $1 limit 1`, [userId]),
-      db.query(`select * from mood_checkins where user_id = $1 order by created_at desc limit 1`, [userId]),
+      ).catch((e) => { console.error('[DETAIL_QUERY] users:', e.message); return { rows: [] }; }),
+      db.query(`select * from user_progress where user_id = $1 limit 1`, [userId])
+        .catch((e) => { console.error('[DETAIL_QUERY] user_progress:', e.message); return { rows: [] }; }),
+      db.query(`select * from mood_checkins where user_id = $1 order by created_at desc limit 1`, [userId])
+        .catch((e) => { console.error('[DETAIL_QUERY] mood_checkins latest:', e.message); return { rows: [] }; }),
       db.query(
         `select
            created_at::date as day,
@@ -88,7 +94,7 @@ router.get('/reports/detail', requireAuth, async (req, res) => {
          group by created_at::date
          order by day asc`,
         [userId]
-      ),
+      ).catch((e) => { console.error('[DETAIL_QUERY] mood_checkins history:', e.message); return { rows: [] }; }),
       db.query(
         `select
            id,
@@ -103,7 +109,7 @@ router.get('/reports/detail', requireAuth, async (req, res) => {
            and created_at >= now() - interval '90 days'
          order by created_at desc`,
         [userId]
-      ),
+      ).catch((e) => { console.error('[DETAIL_QUERY] journal_entries:', e.message); return { rows: [] }; }),
       db.query(
         `select
            tc.id,
@@ -124,7 +130,7 @@ router.get('/reports/detail', requireAuth, async (req, res) => {
            and tc.created_at >= now() - interval '90 days'
          order by tc.created_at desc`,
         [userId]
-      ),
+      ).catch((e) => { console.error('[DETAIL_QUERY] task_completions:', e.message); return { rows: [] }; }),
       db.query(
         `select
            ar.id,
@@ -140,13 +146,13 @@ router.get('/reports/detail', requireAuth, async (req, res) => {
          order by ar.created_at desc
          limit 8`,
         [userId]
-      ).catch(() => ({ rows: [] })),
+      ).catch((e) => { console.error('[DETAIL_QUERY] assessment_results:', e.message); return { rows: [] }; }),
       db.query(
         `select count(*)::int as badges_count
          from user_badges
          where user_id = $1`,
         [userId]
-      )
+      ).catch((e) => { console.error('[DETAIL_QUERY] user_badges:', e.message); return { rows: [] }; })
     ]);
 
     const storedProgress = progressRes.rows[0] || null;
@@ -217,7 +223,7 @@ router.get('/reports/detail', requireAuth, async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Report detail error:', error);
+    console.error('Report detail error:', error.message, error.stack);
     return res.status(500).json({ success: false, message: 'Could not fetch report detail' });
   }
 });
