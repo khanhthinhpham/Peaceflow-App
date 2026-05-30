@@ -64,9 +64,11 @@ router.get('/community', requireAuth, async (req, res) => {
          group by p.id, u.display_name, u.full_name
          order by p.created_at desc`,
         [userId]
-      ),
-      db.query(`select count(*)::int as members from users where status = 'active'`),
-      db.query(`select count(*)::int as reactions from community_reactions`),
+      ).catch((e) => { console.error('[COMMUNITY_QUERY] community_posts:', e.message); return { rows: [] }; }),
+      db.query(`select count(*)::int as members from users where status = 'active'`)
+        .catch((e) => { console.error('[COMMUNITY_QUERY] users count:', e.message); return { rows: [] }; }),
+      db.query(`select count(*)::int as reactions from community_reactions`)
+        .catch((e) => { console.error('[COMMUNITY_QUERY] community_reactions:', e.message); return { rows: [] }; }),
       db.query(
         `select
            u.id,
@@ -83,7 +85,7 @@ router.get('/community', requireAuth, async (req, res) => {
          where u.status = 'active'
          order by up.total_xp desc
          limit 5`
-      ),
+      ).catch((e) => { console.error('[COMMUNITY_QUERY] leaderboard:', e.message); return { rows: [] }; }),
       db.query(
         `select
            coalesce(u.display_name, u.full_name, 'Người dùng') as name,
@@ -96,7 +98,7 @@ router.get('/community', requireAuth, async (req, res) => {
            and up.current_level >= 5
          order by up.total_xp desc
          limit 3`
-      ),
+      ).catch((e) => { console.error('[COMMUNITY_QUERY] mentors:', e.message); return { rows: [] }; }),
       db.query(
         `select
            count(*)::int as participants,
@@ -105,7 +107,7 @@ router.get('/community', requireAuth, async (req, res) => {
          join tasks t on t.id = tc.task_id
          where tc.created_at >= date_trunc('week', now())
            and t.category in ('breathing', 'meditation')`
-      )
+      ).catch((e) => { console.error('[COMMUNITY_QUERY] challenge:', e.message); return { rows: [] }; })
     ]);
 
     const posts = postsRes.rows.map((row) => mapPost(row));

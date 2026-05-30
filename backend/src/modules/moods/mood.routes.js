@@ -60,33 +60,35 @@ router.post('/moods', requireAuth, async (req, res) => {
 });
 
 router.get('/moods', requireAuth, async (req, res) => {
-  const result = await db.query(
-    `select * from mood_checkins
-     where user_id = $1
-     order by created_at desc
-     limit 100`,
-    [req.user.sub]
-  );
-
-  return res.json({
-    success: true,
-    data: result.rows
-  });
+  try {
+    const result = await db.query(
+      `select * from mood_checkins
+       where user_id = $1
+       order by created_at desc
+       limit 100`,
+      [req.user.sub]
+    );
+    return res.json({ success: true, data: result.rows });
+  } catch (error) {
+    console.error('Moods list error:', error.message, error.stack);
+    return res.status(500).json({ success: false, message: 'Could not fetch moods' });
+  }
 });
 
 router.get('/moods/latest', requireAuth, async (req, res) => {
-  const result = await db.query(
-    `select * from mood_checkins
-     where user_id = $1
-     order by created_at desc
-     limit 1`,
-    [req.user.sub]
-  );
-
-  return res.json({
-    success: true,
-    data: result.rows[0] || null
-  });
+  try {
+    const result = await db.query(
+      `select * from mood_checkins
+       where user_id = $1
+       order by created_at desc
+       limit 1`,
+      [req.user.sub]
+    );
+    return res.json({ success: true, data: result.rows[0] || null });
+  } catch (error) {
+    console.error('Moods latest error:', error.message, error.stack);
+    return res.status(500).json({ success: false, message: 'Could not fetch latest mood' });
+  }
 });
 
 export default router;

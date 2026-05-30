@@ -17,7 +17,7 @@ router.get('/experts', requireAuth, async (req, res) => {
            case status when 'online' then 0 when 'busy' then 1 else 2 end,
            rating desc,
            sessions_count desc`
-      ),
+      ).catch((e) => { console.error('[EXPERTS_QUERY] experts:', e.message); return { rows: [] }; }),
       db.query(
         `select *
          from mood_checkins
@@ -25,7 +25,7 @@ router.get('/experts', requireAuth, async (req, res) => {
          order by created_at desc
          limit 1`,
         [userId]
-      ),
+      ).catch((e) => { console.error('[EXPERTS_QUERY] mood_checkins:', e.message); return { rows: [] }; }),
       db.query(
         `select
            a.code,
@@ -55,7 +55,7 @@ router.get('/experts', requireAuth, async (req, res) => {
          order by eb.starts_at asc
          limit 1`,
         [userId]
-      )
+      ).catch((e) => { console.error('[EXPERTS_QUERY] expert_bookings:', e.message); return { rows: [] }; })
     ]);
 
     const matchingTags = buildMatchingTags(latestMoodRes.rows[0] || null, latestAssessmentRes.rows[0] || null);

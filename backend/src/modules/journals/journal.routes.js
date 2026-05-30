@@ -17,25 +17,30 @@ const JOURNAL_XP_REWARD = 15;
 
 // GET /api/v1/journal
 router.get('/journal', requireAuth, async (req, res) => {
-  const result = await db.query(
-    `select
-       id,
-       title,
-       content,
-       tags,
-       created_at,
-       updated_at,
-       mood_before,
-       mood_after,
-       sentiment_score,
-       is_private,
-       null::text as mood
-     from journal_entries
-     where user_id = $1
-     order by created_at desc`,
-    [req.user.sub]
-  );
-  return res.json({ success: true, data: result.rows });
+  try {
+    const result = await db.query(
+      `select
+         id,
+         title,
+         content,
+         tags,
+         created_at,
+         updated_at,
+         mood_before,
+         mood_after,
+         sentiment_score,
+         is_private,
+         null::text as mood
+       from journal_entries
+       where user_id = $1
+       order by created_at desc`,
+      [req.user.sub]
+    );
+    return res.json({ success: true, data: result.rows });
+  } catch (error) {
+    console.error('Journal list error:', error.message, error.stack);
+    return res.status(500).json({ success: false, message: 'Could not fetch journal entries' });
+  }
 });
 
 // POST /api/v1/journal

@@ -16,74 +16,77 @@ const LEVELS = [
 
 // GET /api/v1/tasks
 router.get('/tasks', requireAuth, async (req, res) => {
-  const userId = req.user.sub;
-  const result = await db.query(
-    `select
-       t.*,
-       exists(
-         select 1
-         from task_completions tc
-         where tc.user_id = $1
-           and tc.task_id = t.id
-       ) as completed,
-       exists(
-         select 1
-         from user_task_assignments uta
-         where uta.user_id = $1
-           and uta.task_id = t.id
-           and uta.status = 'in_progress'
-       ) as in_progress,
-       (
-         select count(*)::int
-         from task_completions tc
-         where tc.user_id = $1
-           and tc.task_id = t.id
-       ) as completion_count
-     from tasks t
-     where t.active = true
-     order by
-       case when t.category = 'emergency' then 0 else 1 end,
-       t.difficulty,
-       t.duration_minutes`,
-    [userId]
-  );
-  return res.json({
-    success: true,
-    data: result.rows
-  });
+  try {
+    const userId = req.user.sub;
+    const result = await db.query(
+      `select
+         t.*,
+         exists(
+           select 1
+           from task_completions tc
+           where tc.user_id = $1
+             and tc.task_id = t.id
+         ) as completed,
+         exists(
+           select 1
+           from user_task_assignments uta
+           where uta.user_id = $1
+             and uta.task_id = t.id
+             and uta.status = 'in_progress'
+         ) as in_progress,
+         (
+           select count(*)::int
+           from task_completions tc
+           where tc.user_id = $1
+             and tc.task_id = t.id
+         ) as completion_count
+       from tasks t
+       where t.active = true
+       order by
+         case when t.category = 'emergency' then 0 else 1 end,
+         t.difficulty,
+         t.duration_minutes`,
+      [userId]
+    );
+    return res.json({ success: true, data: result.rows });
+  } catch (error) {
+    console.error('Tasks list error:', error.message, error.stack);
+    return res.status(500).json({ success: false, message: 'Could not fetch tasks' });
+  }
 });
 
 // GET /api/v1/tasks/public-emergency
 router.get('/tasks/public-emergency', async (_req, res) => {
-  const result = await db.query(
-    `select
-       t.*,
-       false as completed,
-       false as in_progress,
-       0::int as completion_count
-     from tasks t
-     where t.active = true
-       and (
-         t.category = 'emergency'
-         or t.code like 'E%'
-         or exists (
-           select 1
-           from jsonb_array_elements_text(coalesce(t.tags, '[]'::jsonb)) as tag(value)
-           where lower(tag.value) = 'emergency'
+  try {
+    const result = await db.query(
+      `select
+         t.*,
+         false as completed,
+         false as in_progress,
+         0::int as completion_count
+       from tasks t
+       where t.active = true
+         and (
+           t.category = 'emergency'
+           or t.code like 'E%'
+           or exists (
+             select 1
+             from jsonb_array_elements_text(coalesce(t.tags, '[]'::jsonb)) as tag(value)
+             where lower(tag.value) = 'emergency'
+           )
          )
-       )
-     order by
-       case when t.category = 'emergency' then 0 else 1 end,
-       t.difficulty,
-       t.duration_minutes,
-       t.code`,
-    []
-  );
-
-  return res.json({
-    success: true,
-    data: result.rows
-  });
+       order by
+         case when t.category = 'emergency' then 0 else 1 end,
+         t.difficulty,
+         t.duration_minutes,
+         t.code`,
+      []
+    );
+    return res.json({ success: true, data: result.rows });
+  } catch (error) {
+    console.error('Public emergency tasks error:', error.message, error.stack);
+    return res.status(500).json({ success: false, message: 'Could not fetch emergency tasks' });
+  }
 });
 
 // GET /api/v1/tasks/recommended
@@ -102,34 +105,36 @@ router.get('/tasks/recommended', requireAuth, async (req, res) => {
 
 // POST /api/v1/tasks/:id/start
 router.post('/tasks/:id/start', requireAuth, async (req, res) => {
-  const taskId = req.params.id;
-  const userId = req.user.sub;
+  try {
+    const taskId = req.params.id;
+    const userId = req.user.sub;
 
-  const existing = await db.query(
-    `select * from user_task_assignments
-     where user_id = $1 and task_id = $2 and status = 'in_progress'
-     limit 1`,
-    [userId, taskId]
-  );
+    const existing = await db.query(
+      `select * from user_task_assignments
+       where user_id = $1 and task_id = $2 and status = 'in_progress'
+       limit 1`,
+      [userId, taskId]
+    );
 
-  if (existing.rows[0]) {
+    if (existing.rows[0]) {
+      return res.json({ success: true, data: existing.rows[0] });
+    }
+
+    const result = await db.query(
+      `insert into user_task_assignments (user_id, task_id, status, assigned_at)
+       values ($1, $2, 'in_progress', now())
+       returning *`,
+      [userId, taskId]
+    );
+
     return res.json({
       success: true,
-      data: existing.rows[0]
+      data: result.rows[0] || { message: 'Task already in progress' }
     });
+  } catch (error) {
+    console.error('Task start error:', error.message, error.stack);
+    return res.status(500).json({ success: false, message: 'Could not start task' });
   }
-
-  const result = await db.query(
-    `insert into user_task_assignments (user_id, task_id, status, assigned_at)
-     values ($1, $2, 'in_progress', now())
-     returning *`,
-    [userId, taskId]
-  );
-
-  return res.json({
-    success: true,
-    data: result.rows[0] || { message: 'Task already in progress' }
-  });
 });
 
 // POST /api/v1/tasks/:id/complete
