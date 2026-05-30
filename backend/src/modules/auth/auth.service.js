@@ -45,12 +45,13 @@ export async function register(data) {
   await createDefaultProfile(user.id);
   await createDefaultProgress(user.id);
 
-  // Gửi email xác nhận (không block response nếu lỗi)
   const verifyToken = generateSecureToken();
   await createEmailVerificationToken(user.id, verifyToken);
-  sendVerificationEmail(user, verifyToken).catch((e) =>
-    console.error('Failed to send verification email:', e.message)
-  );
+  try {
+    await sendVerificationEmail(user, verifyToken);
+  } catch (e) {
+    console.error('Failed to send verification email:', e.message);
+  }
 
   // Không tạo session — user phải verify email trước khi login
   return { user };
