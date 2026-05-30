@@ -1,14 +1,16 @@
+import { db } from '../../config/db.js';
+
 export const BadgeAwardService = {
   async syncUserBadges(client, userId) {
     const [progressRes, taskStatsRes, journalStatsRes, moodStatsRes, badgesRes] = await Promise.all([
-      client.query(
+      db.query(
         `select total_xp, current_streak
          from user_progress
          where user_id = $1
          limit 1`,
         [userId]
       ),
-      client.query(
+      db.query(
         `select
            count(*)::int as tasks_completed,
            count(*) filter (where t.difficulty = 'hard')::int as hard_tasks_completed,
@@ -25,13 +27,13 @@ export const BadgeAwardService = {
          where tc.user_id = $1`,
         [userId]
       ),
-      client.query(
+      db.query(
         `select count(*)::int as journal_entries_count
          from journal_entries
          where user_id = $1`,
         [userId]
       ),
-      client.query(
+      db.query(
         `select
            count(*)::int as mood_checkins_count,
            exists(
@@ -56,7 +58,7 @@ export const BadgeAwardService = {
          where user_id = $1`,
         [userId]
       ),
-      client.query(
+      db.query(
         `select
            b.id,
            b.code,
