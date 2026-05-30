@@ -738,8 +738,17 @@ async function init() {
     await fetchCommunity();
 }
 
+let _justBooted = false;
+
 if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init, { once: true });
+    document.addEventListener('DOMContentLoaded', () => { _justBooted = true; init(); }, { once: true });
 } else {
+    _justBooted = true;
     init();
 }
+
+window.addEventListener('peaceflow:route-mounted', (event) => {
+    if ((event.detail?.page || '').split('?')[0] !== 'community.html') return;
+    if (_justBooted) { _justBooted = false; return; }
+    init();
+});

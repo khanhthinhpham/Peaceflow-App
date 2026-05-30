@@ -599,6 +599,9 @@ const MoodModule = {
     EventLogger.log('mood', 'save:success', { mood: this.selectedMood.label, score: this.selectedMood.score, tags: [...this.selectedTags] });
     UserModule.addXP(5, 'mood_checkin');
     Toast.show('✅ Đã lưu tâm trạng hôm nay! +5 XP 🌿');
+    localStorage.setItem('peaceflow_dashboard_refresh', '1');
+    window.dispatchEvent(new CustomEvent('peaceflow:invalidate-cache', { detail: { endpoint: '/dashboard' } }));
+    window.dispatchEvent(new CustomEvent('peaceflow:mood-saved'));
 
     // Check if mood score is low → suggest emergency
     if (this.selectedMood.score <= 2) {
@@ -638,6 +641,9 @@ const BadgeModule = {
       EventLogger.log('gamification', 'badge:unlock', { badges: newBadges, totalBadges: earned.length });
       user.badges = earned;
       Store.saveUser(user);
+      localStorage.setItem('peaceflow_dashboard_refresh', '1');
+      window.dispatchEvent(new CustomEvent('peaceflow:invalidate-cache', { detail: { endpoint: '/achievements' } }));
+      window.dispatchEvent(new CustomEvent('peaceflow:badge-earned', { detail: { badges: newBadges } }));
       newBadges.forEach(id => {
         const badge = PeaceFlow.BADGES.find(b => b.id === id);
         if (badge) {
@@ -671,10 +677,13 @@ const TaskModule = {
 
     Store.saveUser(user);
     Store.syncToRemote('user_tasks', { taskId, category, xpAmount });
-    
+
     UserModule.addXP(xpAmount, `task_${taskId}`);
     AnimationModule.triggerConfetti();
     Toast.show(`🎉 Nhiệm vụ hoàn thành! +${xpAmount} XP`, 3000);
+    localStorage.setItem('peaceflow_dashboard_refresh', '1');
+    window.dispatchEvent(new CustomEvent('peaceflow:invalidate-cache', { detail: { endpoint: '/dashboard' } }));
+    window.dispatchEvent(new CustomEvent('peaceflow:task-completed', { detail: { taskId, xpAmount, category } }));
   },
 
   startTimer(seconds, onTick, onComplete) {

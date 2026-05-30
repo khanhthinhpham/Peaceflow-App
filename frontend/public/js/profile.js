@@ -601,11 +601,20 @@ async function init() {
     renderPage();
 }
 
+let _justBooted = false;
+
 document.addEventListener('DOMContentLoaded', () => {
+    _justBooted = true;
     init().catch((error) => {
         console.error('Profile init failed:', error);
         showToast('Không tải được hồ sơ từ máy chủ.', 'error');
     });
+});
+
+window.addEventListener('peaceflow:route-mounted', (event) => {
+    if ((event.detail?.page || '').split('?')[0] !== 'profile.html') return;
+    if (_justBooted) { _justBooted = false; return; }
+    init().catch((error) => console.error('Profile init failed:', error));
 });
 
 window.saveProfile = saveProfile;

@@ -50,6 +50,9 @@ export const journalManager = {
             document.getElementById('journalContent').value = '';
             await this.loadEntries();
             alert('Nhật ký đã được lưu!');
+            localStorage.setItem('peaceflow_dashboard_refresh', '1');
+            window.dispatchEvent(new CustomEvent('peaceflow:invalidate-cache', { detail: { endpoint: '/dashboard' } }));
+            window.dispatchEvent(new CustomEvent('peaceflow:journal-saved', { detail: { mood } }));
         } catch (error) {
             EventLogger.error('journal', 'save:failed', error, { mood });
             console.error('Error saving journal:', error);
@@ -90,6 +93,15 @@ export const journalManager = {
 
 window.saveEntry = () => journalManager.saveEntry();
 
+let _justBooted = false;
+
 if (document.getElementById('journalForm') || document.getElementById('journalEntries')) {
+    _justBooted = true;
     journalManager.init();
 }
+
+window.addEventListener('peaceflow:route-mounted', (event) => {
+    if ((event.detail?.page || '').split('?')[0] !== 'journal.html') return;
+    if (_justBooted) { _justBooted = false; return; }
+    journalManager.init();
+});

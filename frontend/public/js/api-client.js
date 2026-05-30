@@ -206,6 +206,18 @@ const _swrCache = new Map(); // endpoint -> { data, cachedAt }
 const SWR_FRESH_MS = 30_000;  // dưới 30s: trả cache ngay
 const SWR_MAX_MS   = 300_000; // trên 5 phút: bỏ cache, fetch lại
 
+// Cho phép app.js (non-module) invalidate cache qua event
+if (typeof window !== 'undefined') {
+    window.addEventListener('peaceflow:invalidate-cache', (event) => {
+        const endpoint = event.detail?.endpoint;
+        if (endpoint) {
+            _swrCache.delete(endpoint);
+        } else {
+            _swrCache.clear();
+        }
+    });
+}
+
 export const apiClient = {
     async request(endpoint, options = {}, retryOptions = {}) {
         const url = `${API_BASE_URL}${endpoint}`;

@@ -41,6 +41,7 @@
     const SIDEBAR_TEMPLATE_CACHE_KEY = 'peaceflow_sidebar_template_v2';
     const _spaHtmlCache = new Map(); // url -> { html, cachedAt }
     const SPA_HTML_CACHE_MS = 300_000; // 5 phút
+    const SPA_SESSION_VERSION = Date.now();
 
     let sidebarMounted = false;
     let navigating = false;
@@ -202,58 +203,45 @@
         return SHARED_SCRIPT_MARKERS.some((marker) => src.includes(marker));
     }
 
-    function executeScriptNode(scriptNode) {
-        return new Promise((resolve, reject) => {
-            const script = document.createElement('script');
-            if (scriptNode.type) script.type = scriptNode.type;
-            if (scriptNode.noModule) script.noModule = true;
-
-            if (scriptNode.src) {
-                script.src = new URL(scriptNode.getAttribute('src'), window.location.href).href;
-                script.onload = () => {
-                    script.remove();
-                    resolve();
-                };
-                script.onerror = (error) => {
-                    script.remove();
-                    reject(error);
-                };
-            } else {
-                script.textContent = scriptNode.textContent;
-            }
-
-            document.body.appendChild(script);
-
-            if (!scriptNode.src) {
-                script.remove();
-                resolve();
-            }
-        });
+    function rewriteModuleImports(code, baseUrl) {
+        const replacer = (_match, prefix, specifier, suffix) => {
+            if (!specifier.startsWith('./') && !specifier.startsWith('../')) return `${prefix}${specifier}${suffix}`;
+            return `${prefix}${new URL(specifier, baseUrl).href}${suffix}`;
+        };
+        return code
+            .replace(/(\bfrom\s+['"])([^'"]+)(['"])/g, replacer)
+            .replace(/(\bimport\s*[\(\s]*['"])([^'"]+)(['"]\s*[\)]?)/g, replacer);
     }
 
-    async function executePageScripts(parsedDocument) {
-        const captured = {
-            windowLoad: [],
-            documentReady: []
-        };
+    async function executeExternalScript(scriptNode, baseUrl) {
+        const srcUrl = new URL(scriptNode.getAttribute('src'), baseUrl);
+        srcUrl.searchParams.set('__v', String(SPA_SESSION_VERSION));
+        await import(srcUrl.href);
+    }
 
+    async function executeInlineScript(scriptNode, baseUrl) {
+        const moduleSource = rewriteModuleImports(String(scriptNode.textContent || ''), baseUrl);
+        const blob = new Blob([`${moduleSource}\n//# sourceURL=spa-inline.mjs`], { type: 'text/javascript' });
+        const blobUrl = URL.createObjectURL(blob);
+        try {
+            await import(blobUrl);
+        } finally {
+            URL.revokeObjectURL(blobUrl);
+        }
+    }
+
+    async function executePageScripts(parsedDocument, baseUrl) {
+        const captured = { windowLoad: [], documentReady: [] };
         const originalWindowAdd = window.addEventListener.bind(window);
         const originalDocumentAdd = document.addEventListener.bind(document);
         const previousOnload = window.onload;
 
-        window.addEventListener = function patchedWindowAddEventListener(type, listener, options) {
-            if (type === 'load') {
-                captured.windowLoad.push(listener);
-                return;
-            }
+        window.addEventListener = function (type, listener, options) {
+            if (type === 'load') { captured.windowLoad.push(listener); return; }
             return originalWindowAdd(type, listener, options);
         };
-
-        document.addEventListener = function patchedDocumentAddEventListener(type, listener, options) {
-            if (type === 'DOMContentLoaded') {
-                captured.documentReady.push(listener);
-                return;
-            }
+        document.addEventListener = function (type, listener, options) {
+            if (type === 'DOMContentLoaded') { captured.documentReady.push(listener); return; }
             return originalDocumentAdd(type, listener, options);
         };
 
@@ -261,7 +249,11 @@
 
         try {
             for (const node of scriptNodes) {
-                await executeScriptNode(node);
+                if (node.getAttribute('src')) {
+                    await executeExternalScript(node, baseUrl);
+                } else {
+                    await executeInlineScript(node, baseUrl);
+                }
             }
         } finally {
             window.addEventListener = originalWindowAdd;
@@ -269,27 +261,13 @@
         }
 
         captured.documentReady.forEach((listener) => {
-            try {
-                listener.call(document, new Event('DOMContentLoaded'));
-            } catch (error) {
-                console.error('DOMContentLoaded callback failed during SPA navigation:', error);
-            }
+            try { listener.call(document, new Event('DOMContentLoaded')); } catch (e) { console.error(e); }
         });
-
         captured.windowLoad.forEach((listener) => {
-            try {
-                listener.call(window, new Event('load'));
-            } catch (error) {
-                console.error('Load callback failed during SPA navigation:', error);
-            }
+            try { listener.call(window, new Event('load')); } catch (e) { console.error(e); }
         });
-
         if (window.onload && window.onload !== previousOnload && typeof window.onload === 'function') {
-            try {
-                window.onload.call(window, new Event('load'));
-            } catch (error) {
-                console.error('window.onload failed during SPA navigation:', error);
-            }
+            try { window.onload.call(window, new Event('load')); } catch (e) { console.error(e); }
         }
     }
 
@@ -330,7 +308,7 @@
             syncPageStyles(parsedDocument);
             clearCurrentPageNodes();
             insertPageNodes(parsedDocument);
-            await executePageScripts(parsedDocument);
+            await executePageScripts(parsedDocument, url);
 
             const sidebar = document.getElementById('sidebar');
             if (sidebar) {
@@ -340,9 +318,16 @@
             closeSidebarIfOpen();
             window.scrollTo({ top: 0, behavior: 'auto' });
 
+            const pageName = url.split('/').pop()?.split('?')[0] || '';
+            window.__peaceflowCurrentPageSpec = pageName;
+
             if (window.UserSync?.sync) {
                 window.UserSync.sync();
             }
+
+            window.dispatchEvent(new CustomEvent('peaceflow:route-mounted', {
+                detail: { page: pageName }
+            }));
 
             if (options.pushState !== false) {
                 window.history.pushState({ spa: true, url }, '', url);

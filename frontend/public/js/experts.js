@@ -577,8 +577,17 @@ function boot() {
     init();
 }
 
+let _justBooted = false;
+
 if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', boot);
+    document.addEventListener('DOMContentLoaded', () => { _justBooted = true; boot(); });
 } else {
+    _justBooted = true;
     boot();
 }
+
+window.addEventListener('peaceflow:route-mounted', (event) => {
+    if ((event.detail?.page || '').split('?')[0] !== 'experts.html') return;
+    if (_justBooted) { _justBooted = false; return; }
+    boot();
+});

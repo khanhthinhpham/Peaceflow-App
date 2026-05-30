@@ -766,6 +766,15 @@ if (typeof document !== 'undefined') {
             }
         });
 
+        // Refresh dashboard khi có mutation từ các trang khác
+        const _onMutation = () => {
+            if (!isDashboardRoute()) return;
+            dashboard.refresh(true).catch(() => {});
+        };
+        window.addEventListener('peaceflow:mood-saved', _onMutation);
+        window.addEventListener('peaceflow:task-completed', _onMutation);
+        window.addEventListener('peaceflow:journal-saved', _onMutation);
+
         // Khi SWR background fetch xong, cập nhật dashboard ngầm
         window.addEventListener('peaceflow:swr-update', (event) => {
             if (!isDashboardRoute()) return;
