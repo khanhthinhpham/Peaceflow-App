@@ -84,7 +84,7 @@ function isServerManagedPage(page = getCurrentPage()) {
 const PeaceFlow = {
   version: '1.0.0',
   appName: 'PeaceFlow',
-  hotline: '1800-599-920',
+  hotline: '0931773637',
   emergencyNumber: '115',
 
   // XP thresholds per level

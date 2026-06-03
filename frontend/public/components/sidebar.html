@@ -6,7 +6,10 @@
     <div style="width:32px;height:32px;background:var(--mint);border-radius:8px;border:2px solid var(--mint-dark);display:flex;align-items:center;justify-content:center;font-size:1rem;box-shadow:2px 2px 0px var(--mint-dark);">🌿</div>
     <span style="font-size:1.1rem;font-weight:800;color:var(--text-primary);">Peace<span style="color:var(--mint-dark);">Flow</span></span>
   </a>
-  <div data-notification-bell></div>
+  <button id="notifBellBtn" onclick="window.NotificationManager?.togglePanel()" style="position:relative;background:none;border:none;cursor:pointer;font-size:1.3rem;padding:6px;line-height:1;flex-shrink:0;">
+    🔔
+    <span id="notifBadge" style="display:none;position:absolute;top:-2px;right:-4px;background:var(--coral);color:white;font-size:0.6rem;font-weight:800;width:16px;height:16px;border-radius:50%;align-items:center;justify-content:center;"></span>
+  </button>
 </div>
 
 <aside data-sidebar-part="sidebar" class="sidebar" id="sidebar">
@@ -59,7 +62,13 @@
   </nav>
 
   <div class="sidebar-bottom">
-    <div data-notification-bell style="margin-bottom:8px;"></div>
+    <button id="notifBellBtnDesktop" onclick="window.NotificationManager?.togglePanel()" style="display:flex;align-items:center;gap:8px;width:100%;background:none;border:1.5px solid var(--kraft-light);border-radius:var(--radius-sm);padding:9px 12px;cursor:pointer;margin-bottom:8px;font-family:inherit;color:var(--text-secondary);font-size:0.85rem;font-weight:600;">
+      <span style="font-size:1.1rem;position:relative;">
+        🔔
+        <span id="notifBadgeDesktop" style="display:none;position:absolute;top:-4px;right:-6px;background:var(--coral);color:white;font-size:0.55rem;font-weight:800;width:14px;height:14px;border-radius:50%;align-items:center;justify-content:center;"></span>
+      </span>
+      Thông báo
+    </button>
     <div class="user-card-mini">
       <div class="user-avatar-mini">🐱</div>
       <div class="user-info-mini">

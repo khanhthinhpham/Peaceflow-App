@@ -2318,7 +2318,7 @@
                 <p>Nền tảng hỗ trợ sức khỏe tinh thần, giúp bạn vượt qua căng thẳng, tìm lại sự bình yên mỗi ngày bằng
                     các nhiệm vụ game hóa thú vị.</p>
                 <div class="footer-hotline">
-                    <div class="fh-num">📞 1800-599-920</div>
+                    <div class="fh-num">📞 0931773637</div>
                     <div class="fh-label">Đường dây nóng hỗ trợ tâm lý 24/7</div>
                 </div>
             </div>
@@ -2468,8 +2468,9 @@
             btn.style.background = "var(--mint-dark)";
             btn.style.color = "white";
 
+            const isLoggedIn = !!localStorage.getItem('access_token');
             setTimeout(() => {
-                window.location.href = 'signup.html';
+                window.location.href = isLoggedIn ? 'mood-checkin.html' : 'signup.html';
             }, 1000);
         }
 

@@ -33,25 +33,17 @@ export const NotificationManager = {
     },
 
     renderBell() {
-        const bellContainers = document.querySelectorAll('[data-notification-bell]');
-        bellContainers.forEach((container) => {
-            container.innerHTML = `
-                <button id="notifBell" onclick="NotificationManager.togglePanel()" style="
-                    position:relative;background:none;border:none;cursor:pointer;
-                    font-size:1.3rem;padding:4px;line-height:1;">
-                    🔔
-                    ${this._unread > 0 ? `<span style="
-                        position:absolute;top:-2px;right:-4px;
-                        background:var(--coral);color:white;
-                        font-size:0.6rem;font-weight:800;
-                        width:16px;height:16px;border-radius:50%;
-                        display:flex;align-items:center;justify-content:center;">
-                        ${Math.min(this._unread, 9)}
-                    </span>` : ''}
-                </button>
-            `;
+        const count = Math.min(this._unread, 9);
+        ['notifBadge', 'notifBadgeDesktop'].forEach((id) => {
+            const badge = document.getElementById(id);
+            if (!badge) return;
+            if (this._unread > 0) {
+                badge.textContent = count;
+                badge.style.display = 'flex';
+            } else {
+                badge.style.display = 'none';
+            }
         });
-        window.NotificationManager = this;
     },
 
     togglePanel() {
@@ -166,6 +158,9 @@ export const NotificationManager = {
         }
     }
 };
+
+// Expose ra window để sidebar.js gọi được
+window.NotificationManager = NotificationManager;
 
 // Auto-init khi DOM sẵn sàng
 if (typeof document !== 'undefined') {

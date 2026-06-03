@@ -402,6 +402,11 @@
                 window.UserSync.sync();
             }
             syncSidebarAuthAction();
+
+            // Render notification bell sau khi sidebar mount xong
+            if (window.NotificationManager?.renderBell) {
+                window.NotificationManager.renderBell();
+            }
         } catch (error) {
             console.error('Failed to mount shared sidebar:', error);
         }
