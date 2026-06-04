@@ -12,6 +12,7 @@ import expertRoutes from '../modules/experts/expert.routes.js';
 import communityRoutes from '../modules/community/community.routes.js';
 import emergencyRoutes from '../modules/emergency/emergency.routes.js';
 import notificationRoutes from '../modules/notifications/notification.routes.js';
+import cronRoutes from './cron.routes.js';
 
 const router = Router();
 
@@ -28,5 +29,6 @@ router.use('/', expertRoutes);
 router.use('/', communityRoutes);
 router.use('/', emergencyRoutes);
 router.use('/', notificationRoutes);
+router.use('/', cronRoutes);
 
 export default router;
