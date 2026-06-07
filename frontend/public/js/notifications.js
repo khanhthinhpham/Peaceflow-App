@@ -46,6 +46,10 @@ export const NotificationManager = {
         });
     },
 
+    _isPushGranted() {
+        return 'Notification' in window && Notification.permission === 'granted';
+    },
+
     togglePanel() {
         let panel = document.getElementById('notifPanel');
         if (panel) { panel.remove(); return; }
@@ -59,12 +63,21 @@ export const NotificationManager = {
             border-radius:16px;box-shadow:4px 4px 0px rgba(74,55,40,0.12);
         `;
 
+        const pushFooter = this._isPushGranted() ? '' : `
+            <div style="padding:10px 16px;text-align:center;border-top:1px solid var(--kraft-light);">
+                <button onclick="NotificationManager.requestPush();document.getElementById('notifPanel')?.remove()"
+                    style="font-size:0.78rem;color:var(--mint-dark);background:none;border:none;cursor:pointer;font-weight:600;">
+                    🔔 Bật thông báo push để nhận nhắc nhở
+                </button>
+            </div>`;
+
         if (!this._notifications.length) {
             panel.innerHTML = `
                 <div style="padding:24px;text-align:center;color:var(--text-secondary);">
                     <div style="font-size:2rem;margin-bottom:8px;">🔔</div>
                     <div style="font-size:0.88rem;">Không có thông báo nào</div>
-                </div>`;
+                </div>
+                ${pushFooter}`;
         } else {
             panel.innerHTML = `
                 <div style="padding:12px 16px;border-bottom:1px solid var(--kraft-light);font-weight:800;font-size:0.88rem;">
@@ -83,12 +96,7 @@ export const NotificationManager = {
                         </div>
                     </a>
                 `).join('')}
-                <div style="padding:10px 16px;text-align:center;">
-                    <button onclick="NotificationManager.requestPush();document.getElementById('notifPanel')?.remove()"
-                        style="font-size:0.75rem;color:var(--mint-dark);background:none;border:none;cursor:pointer;font-weight:600;">
-                        🔔 Bật thông báo push
-                    </button>
-                </div>
+                ${pushFooter}
             `;
         }
 
