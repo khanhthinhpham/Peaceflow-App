@@ -89,4 +89,26 @@ router.get('/cron/run-jobs', verifyCronSecret, async (req, res) => {
   return res.json({ success: true, data: results });
 });
 
+// POST /api/v1/cron/test-streak-notifications — test thủ công, không phụ thuộc giờ
+router.post('/cron/test-streak-notifications', verifyCronSecret, async (req, res) => {
+  const results = {};
+
+  try {
+    const r = await runStreakWarningJob();
+    results.streak_warning = `ok (sent=${r.sent})`;
+  } catch (e) {
+    results.streak_warning = e.message;
+  }
+
+  try {
+    const r = await runStreakLostNotificationJob();
+    results.streak_lost = `ok (sent=${r.sent})`;
+  } catch (e) {
+    results.streak_lost = e.message;
+  }
+
+  console.log('[CRON_TEST] streak notifications test', results);
+  return res.json({ success: true, data: results });
+});
+
 export default router;
