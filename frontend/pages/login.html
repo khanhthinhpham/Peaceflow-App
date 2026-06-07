@@ -197,16 +197,31 @@
         return target;
       }
 
-      function redirectAfterLogin() {
+      async function redirectAfterLogin() {
         sessionStorage.removeItem('peaceflow_post_login_redirect');
         sessionStorage.removeItem('peaceflow_last_login_redirect_at');
-        // Nếu chưa onboarding → đưa vào onboarding trước
+
+        // Thiết bị đã dùng trước → có cache localStorage, bỏ qua gọi API
         const onboardingDone = localStorage.getItem('peaceflow_onboarding_done');
-        if (!onboardingDone) {
-          window.location.replace('onboarding.html');
+        if (onboardingDone) {
+          window.location.replace(getPostLoginRedirect());
           return;
         }
-        window.location.replace(getPostLoginRedirect());
+
+        // Thiết bị mới → hỏi server xem đã hoàn thành onboarding chưa
+        try {
+          const res = await apiClient.get('/profile');
+          const completed = res?.data?.onboarding_answers?.completed;
+          if (completed) {
+            localStorage.setItem('peaceflow_onboarding_done', '1');
+            window.location.replace(getPostLoginRedirect());
+            return;
+          }
+        } catch (e) {
+          console.error('Profile check failed:', e.message);
+        }
+
+        window.location.replace('onboarding.html');
       }
 
       // Nếu đã login thì vào dashboard luôn

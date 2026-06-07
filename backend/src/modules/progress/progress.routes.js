@@ -5,11 +5,11 @@ import { db } from '../../config/db.js';
 const router = Router();
 
 const LEVELS = [
-  { level: 1, title: 'Nguoi Bat Dau', minXP: 0, maxXP: 100 },
-  { level: 2, title: 'Nguoi Kham Pha', minXP: 100, maxXP: 300 },
-  { level: 3, title: 'Nguoi Kien Cuong', minXP: 300, maxXP: 600 },
-  { level: 4, title: 'Nguoi Truyen Cam Hung', minXP: 600, maxXP: 1000 },
-  { level: 5, title: 'Bac Thay Binh Yen', minXP: 1000, maxXP: Infinity }
+  { level: 1, title: 'Người Bắt Đầu', minXP: 0, maxXP: 100 },
+  { level: 2, title: 'Người Khám Phá', minXP: 100, maxXP: 300 },
+  { level: 3, title: 'Người Kiến Cường', minXP: 300, maxXP: 600 },
+  { level: 4, title: 'Người Truyền Cảm Hứng', minXP: 600, maxXP: 1000 },
+  { level: 5, title: 'Bậc Thầy Bình Yên', minXP: 1000, maxXP: Infinity }
 ];
 
 // GET /api/v1/progress
