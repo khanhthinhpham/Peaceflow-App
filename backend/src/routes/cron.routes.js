@@ -4,6 +4,7 @@ import { runTaskExpiryJob } from '../jobs/task-expiry.job.js';
 import { runRecalculateRiskJob } from '../jobs/recalculate-risk.job.js';
 import { runReportCacheJob } from '../jobs/report-cache.job.js';
 import { runStreakWarningJob, runStreakLostNotificationJob } from '../jobs/streak-notification.job.js';
+import { requireAuth } from '../common/middleware/auth.middleware.js';
 
 const router = Router();
 
@@ -89,8 +90,8 @@ router.get('/cron/run-jobs', verifyCronSecret, async (req, res) => {
   return res.json({ success: true, data: results });
 });
 
-// POST /api/v1/cron/test-streak-notifications — test thủ công, không phụ thuộc giờ
-router.post('/cron/test-streak-notifications', verifyCronSecret, async (req, res) => {
+// POST /api/v1/cron/test-streak-notifications — test thủ công, dùng user token
+router.post('/cron/test-streak-notifications', requireAuth, async (req, res) => {
   const results = {};
 
   try {
