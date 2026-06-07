@@ -118,19 +118,21 @@ export const NotificationManager = {
     async registerPush() {
         if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
         try {
-            // Tìm sw.js từ root của site
             const swPath = window.location.pathname.includes('/frontend/') ? '/frontend/sw.js' : '/sw.js';
             const reg = await navigator.serviceWorker.register(swPath);
             await navigator.serviceWorker.ready;
 
             const existing = await reg.pushManager.getSubscription();
             if (existing) {
+                const s = existing.toJSON();
                 await apiClient.post('/notifications/subscribe', {
-                    endpoint: existing.endpoint,
-                    keys: { p256dh: btoa(String.fromCharCode(...new Uint8Array(existing.getKey('p256dh')))), auth: btoa(String.fromCharCode(...new Uint8Array(existing.getKey('auth')))) }
-                }).catch(() => {});
+                    endpoint: s.endpoint,
+                    keys: s.keys
+                }).catch((err) => console.warn('[Push] Re-save subscription failed:', err));
             }
-        } catch (_) {}
+        } catch (err) {
+            console.warn('[Push] registerPush failed:', err);
+        }
     },
 
     async requestPush() {
