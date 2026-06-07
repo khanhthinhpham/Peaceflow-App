@@ -112,4 +112,29 @@ router.post('/cron/test-streak-notifications', requireAuth, async (req, res) => 
   return res.json({ success: true, data: results });
 });
 
+// POST /api/v1/cron/test-push-all — gửi test notification tới toàn bộ user có subscription
+router.post('/cron/test-push-all', requireAuth, async (req, res) => {
+  try {
+    const { sendPushToUser } = await import('../modules/notifications/notification.routes.js');
+    const { db } = await import('../config/db.js');
+
+    const result = await db.query(`select distinct user_id from push_subscriptions`);
+    let sent = 0;
+
+    for (const row of result.rows) {
+      await sendPushToUser(
+        row.user_id,
+        '🌿 PeaceFlow Test',
+        'Thông báo test — hệ thống push notification đang hoạt động!',
+        'dashboard.html'
+      );
+      sent++;
+    }
+
+    return res.json({ success: true, data: { sent } });
+  } catch (e) {
+    return res.status(500).json({ success: false, message: e.message });
+  }
+});
+
 export default router;
