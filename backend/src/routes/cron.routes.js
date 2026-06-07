@@ -3,6 +3,7 @@ import { runStreakJob } from '../jobs/streak.job.js';
 import { runTaskExpiryJob } from '../jobs/task-expiry.job.js';
 import { runRecalculateRiskJob } from '../jobs/recalculate-risk.job.js';
 import { runReportCacheJob } from '../jobs/report-cache.job.js';
+import { runStreakWarningJob, runStreakLostNotificationJob } from '../jobs/streak-notification.job.js';
 
 const router = Router();
 
@@ -36,8 +37,26 @@ router.get('/cron/run-jobs', verifyCronSecret, async (req, res) => {
     results.task_expiry = e.message;
   }
 
+  // Streak warning: chạy lúc 20:xx giờ Việt Nam — cảnh báo trước nửa đêm 4 tiếng
+  if (vnHour === 20) {
+    try {
+      const r = await runStreakWarningJob();
+      results.streak_warning = `ok (sent=${r.sent})`;
+    } catch (e) {
+      results.streak_warning = e.message;
+    }
+  }
+
   // Streak reset: chỉ chạy lúc 00:xx giờ Việt Nam
   if (vnHour === 0) {
+    // Gửi thông báo "mất streak" trước khi reset
+    try {
+      const r = await runStreakLostNotificationJob();
+      results.streak_lost = `ok (sent=${r.sent})`;
+    } catch (e) {
+      results.streak_lost = e.message;
+    }
+
     try {
       await runStreakJob();
       results.streak = 'ok';
