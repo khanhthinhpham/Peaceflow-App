@@ -23,7 +23,7 @@ router.get('/notifications', requireAuth, async (req, res) => {
     const isTest = req.query.test === 'true';
     const notifications = [];
 
-    const [moodRes, progressRes, badgesRes] = await Promise.all([
+    const [moodRes, progressRes, badgesRes, communityCommentRes, communityReactionRes] = await Promise.all([
       db.query(
         `select created_at from mood_checkins where user_id = $1 order by created_at desc limit 1`,
         [userId]
@@ -38,6 +38,22 @@ router.get('/notifications', requireAuth, async (req, res) => {
          join badges b on b.id = ub.badge_id
          where ub.user_id = $1
          order by ub.earned_at desc limit 3`,
+        [userId]
+      ).catch(() => ({ rows: [] })),
+      db.query(
+        `select count(*)::int as total, max(c.created_at) as latest
+         from community_comments c
+         join community_posts p on p.id = c.post_id
+         where p.user_id = $1 and c.user_id != $1
+           and c.created_at >= now() - interval '24 hours'`,
+        [userId]
+      ).catch(() => ({ rows: [] })),
+      db.query(
+        `select count(*)::int as total, max(r.created_at) as latest
+         from community_reactions r
+         join community_posts p on p.id = r.post_id
+         where p.user_id = $1 and r.user_id != $1
+           and r.created_at >= now() - interval '24 hours'`,
         [userId]
       ).catch(() => ({ rows: [] }))
     ]);
@@ -94,9 +110,37 @@ router.get('/notifications', requireAuth, async (req, res) => {
       });
     }
 
-    // Sắp xếp: badge → streak warning → reminder
+    // Tương tác cộng đồng trong 24 giờ qua
+    const commentCount = communityCommentRes.rows[0]?.total || 0;
+    const reactionCount = communityReactionRes.rows[0]?.total || 0;
+
+    if (isTest || commentCount > 0) {
+      notifications.push({
+        id: `community-comments-${communityCommentRes.rows[0]?.latest || ''}`,
+        type: 'community',
+        icon: '💬',
+        title: commentCount === 1 ? 'Có 1 bình luận mới' : `Có ${commentCount} bình luận mới`,
+        body: 'Ai đó vừa bình luận bài viết của bạn.',
+        action: 'pages/community.html',
+        created_at: communityCommentRes.rows[0]?.latest || new Date().toISOString()
+      });
+    }
+
+    if (isTest || reactionCount > 0) {
+      notifications.push({
+        id: `community-reactions-${communityReactionRes.rows[0]?.latest || ''}`,
+        type: 'community',
+        icon: '❤️',
+        title: reactionCount === 1 ? 'Có 1 cảm xúc mới' : `Có ${reactionCount} cảm xúc mới`,
+        body: 'Bài viết của bạn vừa nhận được cảm xúc.',
+        action: 'pages/community.html',
+        created_at: communityReactionRes.rows[0]?.latest || new Date().toISOString()
+      });
+    }
+
+    // Sắp xếp: badge → community → streak warning → reminder
     notifications.sort((a, b) => {
-      const order = { achievement: 0, warning: 1, reminder: 2 };
+      const order = { achievement: 0, community: 1, warning: 2, reminder: 3 };
       return (order[a.type] ?? 3) - (order[b.type] ?? 3);
     });
 
