@@ -121,7 +121,7 @@ router.get('/notifications', requireAuth, async (req, res) => {
         icon: '💬',
         title: commentCount === 1 ? 'Có 1 bình luận mới' : `Có ${commentCount} bình luận mới`,
         body: 'Ai đó vừa bình luận bài viết của bạn.',
-        action: 'pages/community.html',
+        action: 'community.html',
         created_at: communityCommentRes.rows[0]?.latest || new Date().toISOString()
       });
     }
@@ -133,7 +133,7 @@ router.get('/notifications', requireAuth, async (req, res) => {
         icon: '❤️',
         title: reactionCount === 1 ? 'Có 1 cảm xúc mới' : `Có ${reactionCount} cảm xúc mới`,
         body: 'Bài viết của bạn vừa nhận được cảm xúc.',
-        action: 'pages/community.html',
+        action: 'community.html',
         created_at: communityReactionRes.rows[0]?.latest || new Date().toISOString()
       });
     }
