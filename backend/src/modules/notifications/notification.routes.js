@@ -57,39 +57,28 @@ router.get('/notifications', requireAuth, async (req, res) => {
 
     // Streak sắp bị phá
     const progress = progressRes.rows[0];
-    if (progress && progress.current_streak >= 2 && progress.last_activity_date) {
-      const lastActivity = new Date(progress.last_activity_date);
-      const daysSince = Math.floor((Date.now() - lastActivity.getTime()) / 86400000);
-      if (isTest || daysSince >= 1) {
-        notifications.push({
-          id: 'streak-warning',
-          type: 'warning',
-          icon: '🔥',
-          title: `Streak ${progress.current_streak} ngày sắp bị phá!`,
-          body: 'Hoàn thành ít nhất 1 nhiệm vụ hoặc check-in hôm nay.',
-          action: 'tasks.html',
-          created_at: new Date().toISOString()
-        });
-      }
-    }
-
-    // Nhắc check-in tâm trạng
-    const lastMood = moodRes.rows[0];
-    const hoursSinceMood = lastMood
-      ? (Date.now() - new Date(lastMood.created_at).getTime()) / 3600000
-      : Infinity;
-
-    if (isTest || hoursSinceMood > 22) {
+    if (progress && progress.current_streak >= 2) {
       notifications.push({
-        id: 'checkin-reminder',
-        type: 'reminder',
-        icon: '💭',
-        title: hoursSinceMood === Infinity ? 'Check-in tâm trạng đầu tiên' : 'Đã đến giờ check-in!',
-        body: 'Ghi nhận tâm trạng mỗi ngày giúp hệ thống gợi ý chính xác hơn.',
-        action: 'mood-checkin.html',
+        id: 'streak-warning',
+        type: 'warning',
+        icon: '🔥',
+        title: `Streak ${progress.current_streak} ngày sắp bị phá!`,
+        body: 'Hoàn thành ít nhất 1 nhiệm vụ hoặc check-in hôm nay.',
+        action: 'tasks.html',
         created_at: new Date().toISOString()
       });
     }
+
+    // Nhắc check-in tâm trạng
+    notifications.push({
+      id: 'checkin-reminder',
+      type: 'reminder',
+      icon: '💭',
+      title: 'Đã đến giờ check-in!',
+      body: 'Ghi nhận tâm trạng mỗi ngày giúp hệ thống gợi ý chính xác hơn.',
+      action: 'mood-checkin.html',
+      created_at: new Date().toISOString()
+    });
 
     // Sắp xếp: badge → streak warning → reminder
     notifications.sort((a, b) => {
