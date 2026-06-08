@@ -248,7 +248,7 @@ router.post('/community/posts/:id/comments', requireAuth, async (req, res) => {
     const postOwnerId = postRes.rows[0]?.user_id;
     if (postOwnerId && postOwnerId !== req.user.sub) {
       const commenterName = Boolean(is_anonymous) ? 'Ai đó' : (userRes.rows[0]?.name || 'Ai đó');
-      sendPushToUser(postOwnerId, '💬 Bình luận mới', `${commenterName} đã bình luận bài viết của bạn.`, 'community.html').catch(() => {});
+      sendPushToUser(postOwnerId, '💬 Bình luận mới', `${commenterName} đã bình luận bài viết của bạn.`, 'pages/community.html').catch(() => {});
     }
 
     return res.json({
@@ -301,7 +301,7 @@ router.post('/community/posts/:id/reactions', requireAuth, async (req, res) => {
       const postOwnerId = postRes.rows[0]?.user_id;
       if (postOwnerId && postOwnerId !== req.user.sub) {
         const emojiMap = { heart: '❤️', hug: '🤗', strong: '💪', star: '⭐' };
-        sendPushToUser(postOwnerId, `${emojiMap[reactionType] || '👍'} Có người thả cảm xúc`, 'Bài viết của bạn vừa nhận được cảm xúc mới.', 'community.html').catch(() => {});
+        sendPushToUser(postOwnerId, `${emojiMap[reactionType] || '👍'} Có người thả cảm xúc`, 'Bài viết của bạn vừa nhận được cảm xúc mới.', 'pages/community.html').catch(() => {});
       }
     }
 

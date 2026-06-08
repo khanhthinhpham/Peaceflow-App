@@ -17,7 +17,7 @@ export async function runStreakWarningJob() {
         row.user_id,
         `🔥 Streak ${row.current_streak} ngày sắp mất!`,
         'Hoàn thành 1 nhiệm vụ hoặc check-in trước nửa đêm để giữ streak.',
-        'tasks.html'
+        'pages/tasks.html'
       );
       sent++;
     }
@@ -46,7 +46,7 @@ export async function runStreakLostNotificationJob() {
         row.user_id,
         `💔 Streak ${row.current_streak} ngày đã bị phá!`,
         'Bạn đã bỏ lỡ hôm qua. Hãy bắt đầu streak mới ngay hôm nay!',
-        'tasks.html'
+        'pages/tasks.html'
       );
       sent++;
     }
