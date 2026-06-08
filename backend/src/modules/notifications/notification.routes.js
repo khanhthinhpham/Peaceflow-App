@@ -36,8 +36,8 @@ router.get('/notifications', requireAuth, async (req, res) => {
         `select b.name, b.icon, ub.earned_at
          from user_badges ub
          join badges b on b.id = ub.badge_id
-         where ub.user_id = $1 and ub.earned_at >= now() - interval '${isTest ? '999' : '7'} days'
-         order by ub.earned_at desc limit 5`,
+         where ub.user_id = $1
+         order by ub.earned_at desc limit 3`,
         [userId]
       ).catch(() => ({ rows: [] }))
     ]);
