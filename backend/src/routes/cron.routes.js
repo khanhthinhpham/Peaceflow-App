@@ -4,7 +4,6 @@ import { runTaskExpiryJob } from '../jobs/task-expiry.job.js';
 import { runRecalculateRiskJob } from '../jobs/recalculate-risk.job.js';
 import { runReportCacheJob } from '../jobs/report-cache.job.js';
 import { runStreakWarningJob, runStreakLostNotificationJob } from '../jobs/streak-notification.job.js';
-import { requireAuth } from '../common/middleware/auth.middleware.js';
 
 const router = Router();
 
@@ -90,51 +89,5 @@ router.get('/cron/run-jobs', verifyCronSecret, async (req, res) => {
   return res.json({ success: true, data: results });
 });
 
-// POST /api/v1/cron/test-streak-notifications — test thủ công, dùng user token
-router.post('/cron/test-streak-notifications', requireAuth, async (req, res) => {
-  const results = {};
-
-  try {
-    const r = await runStreakWarningJob();
-    results.streak_warning = `ok (sent=${r.sent})`;
-  } catch (e) {
-    results.streak_warning = e.message;
-  }
-
-  try {
-    const r = await runStreakLostNotificationJob();
-    results.streak_lost = `ok (sent=${r.sent})`;
-  } catch (e) {
-    results.streak_lost = e.message;
-  }
-
-  console.log('[CRON_TEST] streak notifications test', results);
-  return res.json({ success: true, data: results });
-});
-
-// POST /api/v1/cron/test-push-all — gửi test notification tới toàn bộ user có subscription
-router.post('/cron/test-push-all', requireAuth, async (req, res) => {
-  try {
-    const { sendPushToUser } = await import('../modules/notifications/notification.routes.js');
-    const { db } = await import('../config/db.js');
-
-    const result = await db.query(`select distinct user_id from push_subscriptions`);
-    let sent = 0;
-
-    for (const row of result.rows) {
-      await sendPushToUser(
-        row.user_id,
-        '🌿 PeaceFlow Test',
-        'Thông báo test — hệ thống push notification đang hoạt động!',
-        'dashboard.html'
-      );
-      sent++;
-    }
-
-    return res.json({ success: true, data: { sent } });
-  } catch (e) {
-    return res.status(500).json({ success: false, message: e.message });
-  }
-});
 
 export default router;
