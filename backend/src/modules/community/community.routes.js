@@ -249,30 +249,27 @@ router.post('/community/posts/:id/comments', requireAuth, async (req, res) => {
       ]
     );
 
-    // Lấy info notification song song, không block response
+    // Kick off notification work — floating promise, không block response
     const commenterName = Boolean(is_anonymous) ? 'Ai đó' : (userRes.rows[0]?.name || 'Ai đó');
-    const [postRes, prevCommenters] = await Promise.all([
-      db.query(`select user_id from community_posts where id = $1 limit 1`, [req.params.id]),
-      db.query(
-        `select distinct user_id from community_comments
-         where post_id = $1 and user_id != $2 limit 20`,
-        [req.params.id, req.user.sub]
-      )
-    ]);
-    const postOwnerId = postRes.rows[0]?.user_id;
-    const recipients = new Set();
-    if (postOwnerId && postOwnerId !== req.user.sub) recipients.add(postOwnerId);
-    prevCommenters.rows.forEach(r => { if (r.user_id !== req.user.sub) recipients.add(r.user_id); });
-
-    // Fire-and-forget push + insert
-    for (const recipientId of recipients) {
-      const isOwner = recipientId === postOwnerId;
-      const msg = isOwner
-        ? `${commenterName} đã bình luận bài viết của bạn.`
-        : `${commenterName} cũng đã bình luận trong bài viết bạn tham gia.`;
-      sendPushToUser(recipientId, '💬 Bình luận mới', msg, 'pages/community.html').catch(() => {});
-      insertNotification(recipientId, commenterName, 'comment', req.params.id, msg).catch(() => {});
-    }
+    const postId = req.params.id;
+    const commenterId = req.user.sub;
+    ;(async () => {
+      const [postRes, prevCommenters] = await Promise.all([
+        db.query(`select user_id from community_posts where id = $1 limit 1`, [postId]),
+        db.query(`select distinct user_id from community_comments where post_id = $1 and user_id != $2 limit 20`, [postId, commenterId])
+      ]);
+      const postOwnerId = postRes.rows[0]?.user_id;
+      const recipients = new Set();
+      if (postOwnerId && postOwnerId !== commenterId) recipients.add(postOwnerId);
+      prevCommenters.rows.forEach(r => { if (r.user_id !== commenterId) recipients.add(r.user_id); });
+      for (const recipientId of recipients) {
+        const msg = recipientId === postOwnerId
+          ? `${commenterName} đã bình luận bài viết của bạn.`
+          : `${commenterName} cũng đã bình luận trong bài viết bạn tham gia.`;
+        sendPushToUser(recipientId, '💬 Bình luận mới', msg, 'pages/community.html').catch(() => {});
+        insertNotification(recipientId, commenterName, 'comment', postId, msg).catch(() => {});
+      }
+    })().catch(e => console.error('[BG] comment notify:', e.message));
 
     return res.json({
       success: true,
@@ -316,19 +313,22 @@ router.post('/community/posts/:id/reactions', requireAuth, async (req, res) => {
       );
       reacted = true;
 
-      // Lấy info song song
-      const [postRes, actorRes] = await Promise.all([
-        db.query(`select user_id from community_posts where id = $1 limit 1`, [req.params.id]),
-        db.query(`select coalesce(display_name, full_name, 'Ai đó') as name from users where id = $1 limit 1`, [req.user.sub])
-      ]);
-      const postOwnerId = postRes.rows[0]?.user_id;
-      if (postOwnerId && postOwnerId !== req.user.sub) {
+      // Kick off notification work — floating promise, không block response
+      const postId = req.params.id;
+      const actorId = req.user.sub;
+      ;(async () => {
+        const [postRes, actorRes] = await Promise.all([
+          db.query(`select user_id from community_posts where id = $1 limit 1`, [postId]),
+          db.query(`select coalesce(display_name, full_name, 'Ai đó') as name from users where id = $1 limit 1`, [actorId])
+        ]);
+        const postOwnerId = postRes.rows[0]?.user_id;
+        if (!postOwnerId || postOwnerId === actorId) return;
         const emojiMap = { heart: '❤️', hug: '🤗', strong: '💪', star: '⭐' };
         const actorName = actorRes.rows[0]?.name || 'Ai đó';
         const msg = `${actorName} đã thả ${emojiMap[reactionType] || '👍'} vào bài viết của bạn.`;
         sendPushToUser(postOwnerId, `${emojiMap[reactionType] || '👍'} Cảm xúc mới`, msg, 'pages/community.html').catch(() => {});
-        insertNotification(postOwnerId, actorName, 'reaction', req.params.id, msg).catch(() => {});
-      }
+        insertNotification(postOwnerId, actorName, 'reaction', postId, msg).catch(() => {});
+      })().catch(e => console.error('[BG] reaction notify:', e.message));
     }
 
     const counts = await db.query(
