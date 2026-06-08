@@ -1,7 +1,7 @@
 import { apiClient } from './api-client.js';
 import { auth } from './auth.js';
 
-const VAPID_PUBLIC_KEY = 'BBmum3N-lH6Ig9bGbellDDyTeSxZHQbYBmbXwtQGyMguftr1YOBsonHfT3JFJfvLMYpV-O-g57qC_IFg85rWrbE';
+const VAPID_PUBLIC_KEY = 'BPv-CCXdm5KP7VgrtF2NILO4xIRp2w5zk-BqcCJDoYTKWLHDrSUkhD5ODXJDlyV529vsm78bgPrNXCs0TasYjx0';
 
 function urlBase64ToUint8Array(base64String) {
     const padding = '='.repeat((4 - (base64String.length % 4)) % 4);

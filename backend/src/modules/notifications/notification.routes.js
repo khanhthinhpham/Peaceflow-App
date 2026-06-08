@@ -20,6 +20,7 @@ if (env.vapidPrivateKey && env.vapidPublicKey) {
 router.get('/notifications', requireAuth, async (req, res) => {
   try {
     const userId = req.user.sub;
+    const isTest = req.query.test === 'true';
     const notifications = [];
 
     const [moodRes, progressRes, badgesRes] = await Promise.all([
@@ -35,7 +36,7 @@ router.get('/notifications', requireAuth, async (req, res) => {
         `select b.name, b.icon, ub.earned_at
          from user_badges ub
          join badges b on b.id = ub.badge_id
-         where ub.user_id = $1 and ub.earned_at >= now() - interval '7 days'
+         where ub.user_id = $1 and ub.earned_at >= now() - interval '${isTest ? '999' : '7'} days'
          order by ub.earned_at desc limit 5`,
         [userId]
       ).catch(() => ({ rows: [] }))
@@ -59,7 +60,7 @@ router.get('/notifications', requireAuth, async (req, res) => {
     if (progress && progress.current_streak >= 2 && progress.last_activity_date) {
       const lastActivity = new Date(progress.last_activity_date);
       const daysSince = Math.floor((Date.now() - lastActivity.getTime()) / 86400000);
-      if (daysSince >= 1) {
+      if (isTest || daysSince >= 1) {
         notifications.push({
           id: 'streak-warning',
           type: 'warning',
@@ -78,7 +79,7 @@ router.get('/notifications', requireAuth, async (req, res) => {
       ? (Date.now() - new Date(lastMood.created_at).getTime()) / 3600000
       : Infinity;
 
-    if (hoursSinceMood > 22) {
+    if (isTest || hoursSinceMood > 22) {
       notifications.push({
         id: 'checkin-reminder',
         type: 'reminder',
