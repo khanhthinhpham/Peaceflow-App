@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { requireAuth } from '../../common/middleware/auth.middleware.js';
 import { db } from '../../config/db.js';
+import { sendPushToUser } from '../notifications/notification.routes.js';
 
 const router = Router();
 const CATEGORY_MAP = {
@@ -239,6 +240,17 @@ router.post('/community/posts/:id/comments', requireAuth, async (req, res) => {
       ]
     );
 
+    // Notify post owner (không gửi nếu tự comment bài mình)
+    const postRes = await db.query(
+      `select user_id from community_posts where id = $1 limit 1`,
+      [req.params.id]
+    );
+    const postOwnerId = postRes.rows[0]?.user_id;
+    if (postOwnerId && postOwnerId !== req.user.sub) {
+      const commenterName = Boolean(is_anonymous) ? 'Ai đó' : (userRes.rows[0]?.name || 'Ai đó');
+      sendPushToUser(postOwnerId, '💬 Bình luận mới', `${commenterName} đã bình luận bài viết của bạn.`, 'community.html').catch(() => {});
+    }
+
     return res.json({
       success: true,
       data: {
@@ -280,6 +292,17 @@ router.post('/community/posts/:id/reactions', requireAuth, async (req, res) => {
         [req.params.id, req.user.sub, reactionType]
       );
       reacted = true;
+
+      // Notify post owner (không gửi nếu tự react bài mình)
+      const postRes = await db.query(
+        `select user_id from community_posts where id = $1 limit 1`,
+        [req.params.id]
+      );
+      const postOwnerId = postRes.rows[0]?.user_id;
+      if (postOwnerId && postOwnerId !== req.user.sub) {
+        const emojiMap = { heart: '❤️', hug: '🤗', strong: '💪', star: '⭐' };
+        sendPushToUser(postOwnerId, `${emojiMap[reactionType] || '👍'} Có người thả cảm xúc`, 'Bài viết của bạn vừa nhận được cảm xúc mới.', 'community.html').catch(() => {});
+      }
     }
 
     const counts = await db.query(

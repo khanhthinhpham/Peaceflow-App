@@ -19,6 +19,59 @@ export const NotificationManager = {
         await this.loadNotifications();
         this.renderBell();
         await this.registerPush();
+        this._maybePromptPush();
+    },
+
+    _maybePromptPush() {
+        if (!('Notification' in window)) return;
+        if (this._isPushGranted()) return;
+        if (Notification.permission === 'denied') return;
+        if (localStorage.getItem('push_prompted')) return;
+
+        setTimeout(() => {
+            const modal = document.createElement('div');
+            modal.id = 'pushPromptModal';
+            modal.style.cssText = `
+                position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:9999;
+                width:calc(100% - 48px);max-width:360px;
+                background:var(--warm-white,#faf8f4);border:2px solid var(--kraft-light,#e8ddd0);
+                border-radius:16px;box-shadow:4px 4px 0px rgba(74,55,40,0.12);
+                padding:20px;
+            `;
+            modal.innerHTML = `
+                <style>#pushPromptModal{animation:fadeIn .3s ease}@keyframes fadeIn{from{opacity:0;transform:translate(-50%,-50%) scale(0.95)}to{opacity:1;transform:translate(-50%,-50%) scale(1)}}</style>
+                <div style="display:flex;gap:12px;align-items:flex-start;">
+                    <div style="font-size:2rem;line-height:1;">🔔</div>
+                    <div style="flex:1;">
+                        <div style="font-weight:800;font-size:0.9rem;color:var(--text-primary,#2d1f14);margin-bottom:4px;">
+                            Bật nhắc nhở hàng ngày?
+                        </div>
+                        <div style="font-size:0.8rem;color:var(--text-secondary,#8b7355);margin-bottom:12px;">
+                            PeaceFlow sẽ nhắc check-in tâm trạng và cảnh báo khi streak sắp mất.
+                        </div>
+                        <div style="display:flex;gap:8px;">
+                            <button id="pushPromptYes" style="flex:1;padding:8px;background:var(--mint-dark,#4a9e8e);color:white;border:none;border-radius:8px;font-weight:700;font-size:0.82rem;cursor:pointer;">
+                                Bật thông báo
+                            </button>
+                            <button id="pushPromptNo" style="padding:8px 14px;background:none;border:1.5px solid var(--kraft-light,#e8ddd0);border-radius:8px;font-size:0.82rem;cursor:pointer;color:var(--text-secondary,#8b7355);">
+                                Để sau
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+
+            document.getElementById('pushPromptYes').onclick = async () => {
+                modal.remove();
+                localStorage.setItem('push_prompted', '1');
+                await NotificationManager.requestPush();
+            };
+            document.getElementById('pushPromptNo').onclick = () => {
+                modal.remove();
+                localStorage.setItem('push_prompted', '1');
+            };
+        }, 3000);
     },
 
     async loadNotifications() {

@@ -211,7 +211,7 @@
         // Thiết bị mới → hỏi server xem đã hoàn thành onboarding chưa
         try {
           const res = await apiClient.get('/profile');
-          const completed = res?.data?.onboarding_answers?.completed;
+          const completed = res?.onboarding_answers?.completed;
           if (completed) {
             localStorage.setItem('peaceflow_onboarding_done', '1');
             window.location.replace(getPostLoginRedirect());
