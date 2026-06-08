@@ -251,9 +251,8 @@ function renderComments(post) {
     `;
 }
 
-function renderPostCard(post) {
-    const collapsed = isLongPost(post.content) && !state.expandedPosts.has(post.id);
-    const reactionButtons = Object.entries(REACTION_META).map(([key, meta]) => `
+function renderReactionButtons(post) {
+    return Object.entries(REACTION_META).map(([key, meta]) => `
         <button
             class="reaction-btn ${post.myReactions?.[key] ? `reacted ${key}` : ''}"
             onclick="toggleReaction('${post.id}','${key}')"
@@ -262,10 +261,39 @@ function renderPostCard(post) {
             <span>${meta.label}</span>
             <span class="reaction-count">${formatCompactNumber(post.reactions?.[key] || 0)}</span>
         </button>
-    `).join('');
+    `).join('') + `
+        <button class="comment-btn" onclick="toggleComments('${post.id}')">
+            💬 ${formatCompactNumber(post.comments?.length || 0)} bình luận
+        </button>
+    `;
+}
+
+function patchPostReactions(postId) {
+    const post = state.posts.find((p) => p.id === postId);
+    const el = document.getElementById(`post-reactions-${postId}`);
+    if (post && el) el.innerHTML = renderReactionButtons(post);
+}
+
+function patchCommentSection(postId) {
+    const post = state.posts.find((p) => p.id === postId);
+    const el = document.getElementById(`comments-${postId}`);
+    if (post && el) {
+        const tmp = document.createElement('div');
+        tmp.innerHTML = renderComments(post);
+        el.replaceWith(tmp.firstElementChild);
+    }
+    patchPostReactions(postId);
+}
+
+function updatePostState(postId, patcher) {
+    state.posts = state.posts.map((p) => (p.id === postId ? patcher(p) : p));
+}
+
+function renderPostCard(post) {
+    const collapsed = isLongPost(post.content) && !state.expandedPosts.has(post.id);
 
     return `
-        <article class="paper-card post-card">
+        <article class="paper-card post-card" data-post-id="${post.id}">
             <div class="post-header">
                 <div class="post-author">
                     <div class="pa-avatar ${post.anon ? 'anon' : 'user'}">${escapeHtml(post.avatar || '🌿')}</div>
@@ -286,11 +314,8 @@ function renderPostCard(post) {
             ${isLongPost(post.content)
                 ? `<div class="read-more" onclick="togglePostExpand('${post.id}')">${collapsed ? 'Xem thêm' : 'Thu gọn'}</div>`
                 : ''}
-            <div class="post-reactions">
-                ${reactionButtons}
-                <button class="comment-btn" onclick="toggleComments('${post.id}')">
-                    💬 ${formatCompactNumber(post.comments?.length || 0)} bình luận
-                </button>
+            <div class="post-reactions" id="post-reactions-${post.id}">
+                ${renderReactionButtons(post)}
             </div>
             ${renderComments(post)}
         </article>
@@ -507,39 +532,47 @@ async function handleToggleReaction(postId, reactionType) {
     const post = state.posts.find((item) => item.id === postId);
     if (!post) return;
 
-    // Người dùng thả/bỏ reaction trên một bài viết (❤️ Thương, 🤗 Ôm, 💪 Cố lên, ⭐ Hay quá)
-    EventLogger.log('community', 'reaction:toggle', {
-        postId,
-        reactionType,
-        wasReacted: Boolean(post.myReactions?.[reactionType])
-    });
+    const wasReacted = Boolean(post.myReactions?.[reactionType]);
+
+    EventLogger.log('community', 'reaction:toggle', { postId, reactionType, wasReacted });
+
+    // Optimistic update — chỉ update đúng phần reaction, không render lại cả feed
+    updatePostState(postId, (current) => ({
+        ...current,
+        reactions: {
+            ...current.reactions,
+            [reactionType]: Math.max(0, (current.reactions?.[reactionType] || 0) + (wasReacted ? -1 : 1))
+        },
+        myReactions: { ...(current.myReactions || {}), [reactionType]: !wasReacted }
+    }));
+    patchPostReactions(postId);
+    if (state.summary) {
+        state.summary.reactions = Math.max(0, Number(state.summary.reactions || 0) + (wasReacted ? -1 : 1));
+        renderSummary();
+    }
 
     try {
         const result = await apiClient.post(`/community/posts/${postId}/reactions`, {
             reaction_type: reactionType
         });
-
-        applyPostPatch(postId, (current) => ({
+        // Sync với data thật từ server
+        updatePostState(postId, (current) => ({
+            ...current,
+            reactions: { heart: 0, hug: 0, strong: 0, star: 0, ...(result.reactions || {}) },
+            myReactions: { ...(current.myReactions || {}), [reactionType]: Boolean(result.reacted) }
+        }));
+        patchPostReactions(postId);
+    } catch (error) {
+        // Revert nếu lỗi
+        updatePostState(postId, (current) => ({
             ...current,
             reactions: {
-                heart: 0,
-                hug: 0,
-                strong: 0,
-                star: 0,
-                ...(result.reactions || {})
+                ...current.reactions,
+                [reactionType]: Math.max(0, (current.reactions?.[reactionType] || 0) + (wasReacted ? 1 : -1))
             },
-            myReactions: {
-                ...(current.myReactions || {}),
-                [reactionType]: Boolean(result.reacted)
-            }
+            myReactions: { ...(current.myReactions || {}), [reactionType]: wasReacted }
         }));
-
-        if (state.summary) {
-            const diff = result.reacted ? 1 : -1;
-            state.summary.reactions = Math.max(0, Number(state.summary.reactions || 0) + diff);
-            renderSummary();
-        }
-    } catch (error) {
+        patchPostReactions(postId);
         EventLogger.error('community', 'reaction:toggle:failed', error, { postId, reactionType });
         showToast(error.message || 'Không thể cập nhật reaction.');
     }
@@ -553,34 +586,52 @@ async function handleSubmitComment(postId) {
         return;
     }
 
-    // Người dùng gửi bình luận dưới một bài viết
     EventLogger.log('community', 'comment:submit:attempt', { postId, contentLength: content.length });
+
+    // Optimistic update — chỉ update comments section, không render lại cả feed
+    const optimisticComment = {
+        avatar: '🐱',
+        name: getCurrentUserName(),
+        text: content
+    };
+    updatePostState(postId, (post) => ({
+        ...post,
+        comments: [...(post.comments || []), optimisticComment]
+    }));
+    state.openComments.add(postId);
+    if (input) input.value = '';
+    patchCommentSection(postId);
 
     try {
         const created = await apiClient.post(`/community/posts/${postId}/comments`, {
             content,
             is_anonymous: false
         });
-
         EventLogger.log('community', 'comment:submit:success', { postId, commentId: created?.id });
-
-        applyPostPatch(postId, (post) => ({
-            ...post,
-            comments: [
-                ...(post.comments || []),
-                {
-                    avatar: created.author_avatar || '🐱',
-                    name: created.author_name || getCurrentUserName(),
+        // Sync tên/avatar thật từ server
+        updatePostState(postId, (post) => {
+            const comments = [...(post.comments || [])];
+            const idx = comments.lastIndexOf(optimisticComment);
+            if (idx !== -1) {
+                comments[idx] = {
+                    avatar: created.author_avatar || optimisticComment.avatar,
+                    name: created.author_name || optimisticComment.name,
                     text: created.content || content
-                }
-            ]
-        }));
-
-        state.openComments.add(postId);
-        if (input) input.value = '';
-        renderPosts();
-        showToast('Bình luận đã được gửi.');
+                };
+            }
+            return { ...post, comments };
+        });
+        patchCommentSection(postId);
     } catch (error) {
+        // Revert nếu lỗi
+        updatePostState(postId, (post) => {
+            const comments = [...(post.comments || [])];
+            const idx = comments.lastIndexOf(optimisticComment);
+            if (idx !== -1) comments.splice(idx, 1);
+            return { ...post, comments };
+        });
+        patchCommentSection(postId);
+        if (input) input.value = content;
         EventLogger.error('community', 'comment:submit:failed', error, { postId });
         showToast(error.message || 'Không thể gửi bình luận.');
     }
