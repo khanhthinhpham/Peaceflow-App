@@ -1,5 +1,6 @@
 import { apiClient } from './api-client.js';
 import { auth } from './auth.js';
+import { subscribeNotifications, unsubscribeNotifications } from './supabase-realtime.js';
 
 const VAPID_PUBLIC_KEY = 'BPv-CCXdm5KP7VgrtF2NILO4xIRp2w5zk-BqcCJDoYTKWLHDrSUkhD5ODXJDlyV529vsm78bgPrNXCs0TasYjx0';
 
@@ -20,6 +21,23 @@ export const NotificationManager = {
         this.renderBell();
         await this.registerPush();
         this._maybePromptPush();
+        this._startRealtime();
+    },
+
+    _startRealtime() {
+        unsubscribeNotifications();
+        subscribeNotifications((notif) => {
+            // Hiện toast ngay lập tức
+            this._showToast({
+                icon: notif.type === 'comment' ? '💬' : '❤️',
+                title: notif.type === 'comment' ? 'Bình luận mới' : 'Cảm xúc mới',
+                body: notif.message,
+                action: 'community.html'
+            });
+            // Cập nhật bell
+            this._unread++;
+            this.renderBell();
+        });
     },
 
     _maybePromptPush() {
@@ -79,10 +97,76 @@ export const NotificationManager = {
             const data = await apiClient.get('/notifications', { noCache: true });
             this._notifications = Array.isArray(data) ? data : [];
             this._unread = this._notifications.length;
+            this._maybeShowToast();
         } catch (_) {
             this._notifications = [];
             this._unread = 0;
         }
+    },
+
+    _maybeShowToast() {
+        if (!this._notifications.length) return;
+
+        const seenRaw = localStorage.getItem('notif_seen_ids');
+        const seenIds = seenRaw ? new Set(JSON.parse(seenRaw)) : null;
+        const currentIds = this._notifications.map(n => n.id);
+
+        // Lưu lại danh sách hiện tại
+        localStorage.setItem('notif_seen_ids', JSON.stringify(currentIds));
+
+        // Lần đầu tiên → chỉ lưu baseline, không show toast
+        if (!seenIds) return;
+
+        // Tìm tất cả notification mới (chưa từng thấy)
+        const newNotifs = this._notifications.filter(n => !seenIds.has(n.id));
+        if (!newNotifs.length) return;
+
+        // Show toast cho cái mới nhất, queue các cái còn lại
+        newNotifs.forEach((notif, i) => {
+            setTimeout(() => this._showToast(notif), i * 800);
+        });
+    },
+
+    _showToast(notif) {
+        const existing = document.getElementById('notifToast');
+        if (existing) existing.remove();
+
+        const toast = document.createElement('div');
+        toast.id = 'notifToast';
+        toast.style.cssText = `
+            position:fixed;top:16px;right:16px;z-index:99999;
+            max-width:300px;min-width:220px;
+            background:var(--warm-white,#faf8f4);border:2px solid var(--kraft-light,#e8ddd0);
+            border-radius:14px;box-shadow:4px 4px 0px rgba(74,55,40,0.15);
+            padding:12px 14px;cursor:pointer;
+            animation:toastIn .3s ease;
+        `;
+        toast.innerHTML = `
+            <style>@keyframes toastIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
+            @keyframes toastOut{from{opacity:1;transform:translateX(0)}to{opacity:0;transform:translateX(20px)}}</style>
+            <div style="display:flex;gap:10px;align-items:flex-start;">
+                <div style="font-size:1.4rem;flex-shrink:0;line-height:1.2;">${notif.icon}</div>
+                <div style="flex:1;min-width:0;">
+                    <div style="font-weight:800;font-size:0.82rem;color:var(--text-primary,#2d1f14);margin-bottom:2px;">${notif.title}</div>
+                    <div style="font-size:0.75rem;color:var(--text-secondary,#8b7355);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${notif.body}</div>
+                </div>
+                <button onclick="document.getElementById('notifToast')?.remove()" style="background:none;border:none;cursor:pointer;color:var(--text-secondary,#8b7355);font-size:1rem;line-height:1;padding:0;flex-shrink:0;">✕</button>
+            </div>
+        `;
+
+        toast.addEventListener('click', (e) => {
+            if (e.target.tagName === 'BUTTON') return;
+            if (notif.action) window.location.href = notif.action;
+            toast.remove();
+        });
+
+        document.body.appendChild(toast);
+
+        setTimeout(() => {
+            if (!toast.parentNode) return;
+            toast.style.animation = 'toastOut .3s ease forwards';
+            setTimeout(() => toast.remove(), 300);
+        }, 4000);
     },
 
     renderBell() {

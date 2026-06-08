@@ -248,7 +248,13 @@ router.post('/community/posts/:id/comments', requireAuth, async (req, res) => {
     const postOwnerId = postRes.rows[0]?.user_id;
     if (postOwnerId && postOwnerId !== req.user.sub) {
       const commenterName = Boolean(is_anonymous) ? 'Ai đó' : (userRes.rows[0]?.name || 'Ai đó');
-      sendPushToUser(postOwnerId, '💬 Bình luận mới', `${commenterName} đã bình luận bài viết của bạn.`, 'pages/community.html').catch(() => {});
+      const msg = `${commenterName} đã bình luận bài viết của bạn.`;
+      sendPushToUser(postOwnerId, '💬 Bình luận mới', msg, 'pages/community.html').catch(() => {});
+      db.query(
+        `insert into notifications (recipient_id, actor_name, type, post_id, message)
+         values ($1, $2, 'comment', $3, $4)`,
+        [postOwnerId, commenterName, req.params.id, msg]
+      ).catch(() => {});
     }
 
     return res.json({
@@ -301,7 +307,18 @@ router.post('/community/posts/:id/reactions', requireAuth, async (req, res) => {
       const postOwnerId = postRes.rows[0]?.user_id;
       if (postOwnerId && postOwnerId !== req.user.sub) {
         const emojiMap = { heart: '❤️', hug: '🤗', strong: '💪', star: '⭐' };
-        sendPushToUser(postOwnerId, `${emojiMap[reactionType] || '👍'} Có người thả cảm xúc`, 'Bài viết của bạn vừa nhận được cảm xúc mới.', 'pages/community.html').catch(() => {});
+        const actorRes = await db.query(
+          `select coalesce(display_name, full_name, 'Ai đó') as name from users where id = $1 limit 1`,
+          [req.user.sub]
+        );
+        const actorName = actorRes.rows[0]?.name || 'Ai đó';
+        const msg = `${actorName} đã thả ${emojiMap[reactionType] || '👍'} vào bài viết của bạn.`;
+        sendPushToUser(postOwnerId, `${emojiMap[reactionType] || '👍'} Cảm xúc mới`, msg, 'pages/community.html').catch(() => {});
+        db.query(
+          `insert into notifications (recipient_id, actor_name, type, post_id, message)
+           values ($1, $2, 'reaction', $3, $4)`,
+          [postOwnerId, actorName, req.params.id, msg]
+        ).catch(() => {});
       }
     }
 
