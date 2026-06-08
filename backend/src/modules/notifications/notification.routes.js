@@ -55,14 +55,15 @@ router.get('/notifications', requireAuth, async (req, res) => {
       });
     });
 
-    // Streak sắp bị phá — chỉ hiện khi chưa hoạt động hôm nay
+    // Streak sắp bị phá — chỉ hiện từ 20h VN và chưa hoạt động hôm nay
     const progress = progressRes.rows[0];
     if (progress && progress.current_streak >= 1) {
       const lastActivity = progress.last_activity_date ? new Date(progress.last_activity_date) : null;
       const daysSince = lastActivity
         ? Math.floor((Date.now() - lastActivity.getTime()) / 86400000)
         : 999;
-      if (isTest || daysSince >= 1) {
+      const vnHour = (new Date().getUTCHours() + 7) % 24;
+      if (isTest || (daysSince >= 1 && vnHour >= 20)) {
         notifications.push({
           id: 'streak-warning',
           type: 'warning',
