@@ -23,7 +23,7 @@ router.get('/notifications', requireAuth, async (req, res) => {
     const isTest = req.query.test === 'true';
     const notifications = [];
 
-    const [moodRes, progressRes, badgesRes, communityCommentRes, communityReactionRes] = await Promise.all([
+    const [moodRes, progressRes, badgesRes, communityCommentRes, communityReactionRes, communityNotifsRes] = await Promise.all([
       db.query(
         `select created_at from mood_checkins where user_id = $1 order by created_at desc limit 1`,
         [userId]
@@ -54,6 +54,15 @@ router.get('/notifications', requireAuth, async (req, res) => {
          join community_posts p on p.id = r.post_id
          where p.user_id = $1 and r.user_id != $1
            and r.created_at >= now() - interval '24 hours'`,
+        [userId]
+      ).catch(() => ({ rows: [] })),
+      db.query(
+        `select group_key, type, post_id, message, count(*)::int as total,
+                max(created_at) as latest, min(actor_name) as actor_name
+         from notifications
+         where recipient_id = $1 and is_read = false
+         group by group_key, type, post_id, message
+         order by max(created_at) desc limit 10`,
         [userId]
       ).catch(() => ({ rows: [] }))
     ]);
@@ -110,32 +119,33 @@ router.get('/notifications', requireAuth, async (req, res) => {
       });
     }
 
-    // Tương tác cộng đồng trong 24 giờ qua
-    const commentCount = communityCommentRes.rows[0]?.total || 0;
-    const reactionCount = communityReactionRes.rows[0]?.total || 0;
-
-    if (isTest || commentCount > 0) {
+    // Tương tác cộng đồng từ bảng notifications (đã gộp theo group_key)
+    communityNotifsRes.rows.forEach((row) => {
+      const isComment = row.type === 'comment';
+      const count = row.total;
+      const title = isComment
+        ? (count > 1 ? `${count} bình luận mới` : 'Bình luận mới')
+        : (count > 1 ? `${count} cảm xúc mới` : 'Cảm xúc mới');
+      const body = count > 1
+        ? `${row.actor_name} và ${count - 1} người khác đã ${isComment ? 'bình luận' : 'thả cảm xúc'} bài viết của bạn.`
+        : row.message;
       notifications.push({
-        id: `community-comments-${communityCommentRes.rows[0]?.latest || ''}`,
+        id: `notif-${row.group_key}`,
         type: 'community',
-        icon: '💬',
-        title: commentCount === 1 ? 'Có 1 bình luận mới' : `Có ${commentCount} bình luận mới`,
-        body: 'Ai đó vừa bình luận bài viết của bạn.',
+        icon: isComment ? '💬' : '❤️',
+        title,
+        body,
         action: 'community.html',
-        created_at: communityCommentRes.rows[0]?.latest || new Date().toISOString()
+        created_at: row.latest
       });
-    }
+    });
 
-    if (isTest || reactionCount > 0) {
-      notifications.push({
-        id: `community-reactions-${communityReactionRes.rows[0]?.latest || ''}`,
-        type: 'community',
-        icon: '❤️',
-        title: reactionCount === 1 ? 'Có 1 cảm xúc mới' : `Có ${reactionCount} cảm xúc mới`,
-        body: 'Bài viết của bạn vừa nhận được cảm xúc.',
-        action: 'community.html',
-        created_at: communityReactionRes.rows[0]?.latest || new Date().toISOString()
-      });
+    // Fallback: nếu chưa có data trong bảng notifications (test mode)
+    if (isTest && communityNotifsRes.rows.length === 0) {
+      const commentCount = communityCommentRes.rows[0]?.total || 0;
+      const reactionCount = communityReactionRes.rows[0]?.total || 0;
+      if (commentCount > 0) notifications.push({ id: 'test-comments', type: 'community', icon: '💬', title: `${commentCount} bình luận mới`, body: 'Ai đó vừa bình luận bài viết của bạn.', action: 'community.html', created_at: new Date().toISOString() });
+      if (reactionCount > 0) notifications.push({ id: 'test-reactions', type: 'community', icon: '❤️', title: `${reactionCount} cảm xúc mới`, body: 'Bài viết của bạn vừa nhận cảm xúc mới.', action: 'community.html', created_at: new Date().toISOString() });
     }
 
     // Sắp xếp: badge → community → streak warning → reminder

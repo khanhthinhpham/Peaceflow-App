@@ -4,6 +4,15 @@ import { db } from '../../config/db.js';
 import { sendPushToUser } from '../notifications/notification.routes.js';
 
 const router = Router();
+
+async function insertNotification(recipientId, actorName, type, postId, message) {
+  const groupKey = `${type}:${postId}:${recipientId}`;
+  await db.query(
+    `insert into notifications (recipient_id, actor_name, type, post_id, message, group_key)
+     values ($1, $2, $3, $4, $5, $6)`,
+    [recipientId, actorName, type, postId, message, groupKey]
+  );
+}
 const CATEGORY_MAP = {
   gratitude: { label: '🙏 Biết ơn', className: 'pt-gratitude' },
   story: { label: '📖 Câu chuyện', className: 'pt-story' },
@@ -240,21 +249,32 @@ router.post('/community/posts/:id/comments', requireAuth, async (req, res) => {
       ]
     );
 
-    // Notify post owner (không gửi nếu tự comment bài mình)
+    // Notify post owner + người đã comment trước (không gửi cho chính mình)
     const postRes = await db.query(
       `select user_id from community_posts where id = $1 limit 1`,
       [req.params.id]
     );
     const postOwnerId = postRes.rows[0]?.user_id;
-    if (postOwnerId && postOwnerId !== req.user.sub) {
-      const commenterName = Boolean(is_anonymous) ? 'Ai đó' : (userRes.rows[0]?.name || 'Ai đó');
-      const msg = `${commenterName} đã bình luận bài viết của bạn.`;
-      sendPushToUser(postOwnerId, '💬 Bình luận mới', msg, 'pages/community.html').catch(() => {});
-      db.query(
-        `insert into notifications (recipient_id, actor_name, type, post_id, message)
-         values ($1, $2, 'comment', $3, $4)`,
-        [postOwnerId, commenterName, req.params.id, msg]
-      ).catch(() => {});
+    const commenterName = Boolean(is_anonymous) ? 'Ai đó' : (userRes.rows[0]?.name || 'Ai đó');
+
+    const recipients = new Set();
+    if (postOwnerId && postOwnerId !== req.user.sub) recipients.add(postOwnerId);
+
+    // Notify những người đã comment trước (trừ bản thân và chủ bài đã notify rồi)
+    const prevCommenters = await db.query(
+      `select distinct user_id from community_comments
+       where post_id = $1 and user_id != $2 and user_id != $3 limit 20`,
+      [req.params.id, req.user.sub, postOwnerId || req.user.sub]
+    );
+    prevCommenters.rows.forEach(r => recipients.add(r.user_id));
+
+    for (const recipientId of recipients) {
+      const isOwner = recipientId === postOwnerId;
+      const msg = isOwner
+        ? `${commenterName} đã bình luận bài viết của bạn.`
+        : `${commenterName} cũng đã bình luận trong bài viết bạn tham gia.`;
+      sendPushToUser(recipientId, '💬 Bình luận mới', msg, 'pages/community.html').catch(() => {});
+      insertNotification(recipientId, commenterName, 'comment', req.params.id, msg).catch(() => {});
     }
 
     return res.json({
@@ -314,11 +334,7 @@ router.post('/community/posts/:id/reactions', requireAuth, async (req, res) => {
         const actorName = actorRes.rows[0]?.name || 'Ai đó';
         const msg = `${actorName} đã thả ${emojiMap[reactionType] || '👍'} vào bài viết của bạn.`;
         sendPushToUser(postOwnerId, `${emojiMap[reactionType] || '👍'} Cảm xúc mới`, msg, 'pages/community.html').catch(() => {});
-        db.query(
-          `insert into notifications (recipient_id, actor_name, type, post_id, message)
-           values ($1, $2, 'reaction', $3, $4)`,
-          [postOwnerId, actorName, req.params.id, msg]
-        ).catch(() => {});
+        insertNotification(postOwnerId, actorName, 'reaction', req.params.id, msg).catch(() => {});
       }
     }
 
