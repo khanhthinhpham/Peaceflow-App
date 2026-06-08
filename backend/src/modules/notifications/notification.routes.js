@@ -57,7 +57,7 @@ router.get('/notifications', requireAuth, async (req, res) => {
 
     // Streak sắp bị phá
     const progress = progressRes.rows[0];
-    if (progress && progress.current_streak >= 2) {
+    if (progress && progress.current_streak >= 1) {
       notifications.push({
         id: 'streak-warning',
         type: 'warning',
