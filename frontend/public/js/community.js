@@ -255,6 +255,7 @@ function renderReactionButtons(post) {
     return Object.entries(REACTION_META).map(([key, meta]) => `
         <button
             class="reaction-btn ${post.myReactions?.[key] ? `reacted ${key}` : ''}"
+            data-reaction="${key}"
             onclick="toggleReaction('${post.id}','${key}')"
         >
             <span>${meta.icon}</span>
@@ -271,7 +272,16 @@ function renderReactionButtons(post) {
 function patchPostReactions(postId) {
     const post = state.posts.find((p) => p.id === postId);
     const el = document.getElementById(`post-reactions-${postId}`);
-    if (post && el) el.innerHTML = renderReactionButtons(post);
+    if (!post || !el) return;
+
+    Object.keys(REACTION_META).forEach((key) => {
+        const btn = el.querySelector(`[data-reaction="${key}"]`);
+        if (!btn) return;
+        const reacted = Boolean(post.myReactions?.[key]);
+        btn.classList.toggle('reacted', reacted);
+        btn.classList.toggle(key, reacted);
+        btn.querySelector('.reaction-count').textContent = formatCompactNumber(post.reactions?.[key] || 0);
+    });
 }
 
 function patchCommentSection(postId) {
