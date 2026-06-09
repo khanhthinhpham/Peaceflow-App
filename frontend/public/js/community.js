@@ -39,7 +39,11 @@ const state = {
     expandedPosts: new Set(),
     reportPostId: null,
     currentUser: parseStoredUser(),
-    progress: null
+    progress: null,
+    editingPostId: null,
+    editingCommentId: null,
+    replyingTo: null,
+    openMenuPostId: null
 };
 
 const refs = {
@@ -222,22 +226,65 @@ function isLongPost(content) {
     return String(content || '').length > 220;
 }
 
+function renderSingleComment(post, comment, isReply = false) {
+    const myId = state.currentUser?.id;
+    const isOwn = comment.userId && myId && comment.userId === myId;
+    const isEditing = state.editingCommentId === comment.id;
+
+    const contentHtml = isEditing
+        ? `<textarea class="comment-edit-input" id="comment-edit-${comment.id}" maxlength="240">${escapeHtml(comment.text || '')}</textarea>
+           <div class="comment-edit-actions">
+               <button class="comment-send" onclick="saveCommentEdit('${post.id}','${comment.id}')">Lưu</button>
+               <button class="btn-ghost" style="font-size:0.75rem;padding:3px 8px;" onclick="cancelCommentEdit()">Hủy</button>
+           </div>`
+        : `<div class="ci-text">${escapeHtml(comment.text || '')}</div>`;
+
+    const actions = isEditing ? '' : `
+        <div class="ci-actions">
+            ${!isReply ? `<button class="ci-action-btn" onclick="toggleReply('${post.id}','${comment.id}')">Trả lời</button>` : ''}
+            ${isOwn ? `<button class="ci-action-btn" onclick="editComment('${post.id}','${comment.id}')">Sửa</button>
+                       <button class="ci-action-btn danger" onclick="deleteComment('${post.id}','${comment.id}')">Xóa</button>` : ''}
+        </div>`;
+
+    const replyInputHtml = (!isReply && state.replyingTo === comment.id) ? `
+        <div class="reply-input-row">
+            <input class="comment-input" id="reply-input-${comment.id}" placeholder="Trả lời ${escapeHtml(comment.name || '')}..." maxlength="240"/>
+            <button class="comment-send" onclick="submitReply('${post.id}','${comment.id}')">Gửi</button>
+        </div>` : '';
+
+    return `
+        <div class="comment-item ${isReply ? 'comment-reply' : ''}">
+            <div class="ci-avatar">${escapeHtml(comment.avatar || '🌿')}</div>
+            <div class="ci-bubble">
+                <div class="ci-name">${escapeHtml(comment.name || 'Người dùng')}</div>
+                ${contentHtml}
+                ${actions}
+            </div>
+        </div>
+        ${replyInputHtml}`;
+}
+
 function renderComments(post) {
     const comments = Array.isArray(post.comments) ? post.comments : [];
+    const topLevel = comments.filter((c) => !c.parentId);
+    const repliesMap = {};
+    comments.filter((c) => c.parentId).forEach((r) => {
+        if (!repliesMap[r.parentId]) repliesMap[r.parentId] = [];
+        repliesMap[r.parentId].push(r);
+    });
+
+    const commentsHtml = topLevel.length
+        ? topLevel.map((comment) => {
+            const replies = (repliesMap[comment.id] || [])
+                .map((r) => renderSingleComment(post, r, true))
+                .join('');
+            return renderSingleComment(post, comment, false) + replies;
+        }).join('')
+        : '<div style="font-size:0.72rem;color:var(--text-light);margin-bottom:8px;">Chưa có bình luận nào. Bạn có thể mở lời trước.</div>';
 
     return `
         <div class="comments-section ${state.openComments.has(post.id) ? 'show' : ''}" id="comments-${post.id}">
-            ${comments.length
-                ? comments.map((comment) => `
-                    <div class="comment-item">
-                        <div class="ci-avatar">${escapeHtml(comment.avatar || '🌿')}</div>
-                        <div class="ci-bubble">
-                            <div class="ci-name">${escapeHtml(comment.name || 'Người dùng')}</div>
-                            <div class="ci-text">${escapeHtml(comment.text || '')}</div>
-                        </div>
-                    </div>
-                `).join('')
-                : '<div style="font-size:0.72rem;color:var(--text-light);margin-bottom:8px;">Chưa có bình luận nào. Bạn có thể mở lời trước.</div>'}
+            ${commentsHtml}
             <div class="comment-input-row">
                 <input
                     class="comment-input"
@@ -301,6 +348,33 @@ function updatePostState(postId, patcher) {
 
 function renderPostCard(post) {
     const collapsed = isLongPost(post.content) && !state.expandedPosts.has(post.id);
+    const isOwn = post.userId && state.currentUser?.id && post.userId === state.currentUser.id;
+    const isEditing = state.editingPostId === post.id;
+    const menuOpen = state.openMenuPostId === post.id;
+
+    const menuDropdown = `
+        <div class="post-menu-wrapper">
+            <button class="post-menu" onclick="togglePostMenu('${post.id}')" title="Tùy chọn">⋯</button>
+            <div class="post-menu-dropdown ${menuOpen ? 'open' : ''}">
+                ${isOwn
+                    ? `<button onclick="editPost('${post.id}')">✏️ Sửa bài</button>
+                       <button onclick="deletePost('${post.id}')">🗑️ Xóa bài</button>`
+                    : `<button onclick="openReportModal('${post.id}')">🚩 Báo cáo</button>`}
+            </div>
+        </div>`;
+
+    const contentHtml = isEditing
+        ? `<textarea class="post-edit-input" id="post-edit-${post.id}" maxlength="1000">${escapeHtml(post.content || '')}</textarea>
+           <div class="post-edit-actions">
+               <button class="comment-send" onclick="savePostEdit('${post.id}')">Lưu</button>
+               <button class="btn-ghost" style="font-size:0.8rem;padding:4px 12px;" onclick="cancelPostEdit()">Hủy</button>
+           </div>`
+        : `<div class="post-content ${collapsed ? 'collapsed' : ''}" id="post-content-${post.id}">
+               ${escapeHtml(post.content || '')}
+           </div>
+           ${isLongPost(post.content)
+               ? `<div class="read-more" onclick="togglePostExpand('${post.id}')">${collapsed ? 'Xem thêm' : 'Thu gọn'}</div>`
+               : ''}`;
 
     return `
         <article class="paper-card post-card" data-post-id="${post.id}">
@@ -315,15 +389,10 @@ function renderPostCard(post) {
                         <div class="pa-meta">${escapeHtml(post.time || 'Vừa xong')}</div>
                     </div>
                 </div>
-                <button class="post-menu" onclick="openReportModal('${post.id}')" title="Báo cáo bài viết">⋯</button>
+                ${menuDropdown}
             </div>
             <div class="post-tag ${escapeHtml(post.tagClass || '')}">${escapeHtml(post.tagLabel || '📖 Câu chuyện')}</div>
-            <div class="post-content ${collapsed ? 'collapsed' : ''}" id="post-content-${post.id}">
-                ${escapeHtml(post.content || '')}
-            </div>
-            ${isLongPost(post.content)
-                ? `<div class="read-more" onclick="togglePostExpand('${post.id}')">${collapsed ? 'Xem thêm' : 'Thu gọn'}</div>`
-                : ''}
+            ${contentHtml}
             <div class="post-reactions" id="post-reactions-${post.id}">
                 ${renderReactionButtons(post)}
             </div>
@@ -543,18 +612,24 @@ async function handleToggleReaction(postId, reactionType) {
     if (!post) return;
 
     const wasReacted = Boolean(post.myReactions?.[reactionType]);
+    // Reaction đang active khác loại này (để optimistic xóa nó)
+    const prevReactionType = Object.entries(post.myReactions || {})
+        .find(([key, val]) => val && key !== reactionType)?.[0];
 
     EventLogger.log('community', 'reaction:toggle', { postId, reactionType, wasReacted });
 
     // Optimistic update — chỉ update đúng phần reaction, không render lại cả feed
-    updatePostState(postId, (current) => ({
-        ...current,
-        reactions: {
-            ...current.reactions,
-            [reactionType]: Math.max(0, (current.reactions?.[reactionType] || 0) + (wasReacted ? -1 : 1))
-        },
-        myReactions: { ...(current.myReactions || {}), [reactionType]: !wasReacted }
-    }));
+    updatePostState(postId, (current) => {
+        const newReactions = { ...current.reactions };
+        const newMyReactions = { ...current.myReactions };
+        if (prevReactionType) {
+            newMyReactions[prevReactionType] = false;
+            newReactions[prevReactionType] = Math.max(0, (newReactions[prevReactionType] || 0) - 1);
+        }
+        newMyReactions[reactionType] = !wasReacted;
+        newReactions[reactionType] = Math.max(0, (newReactions[reactionType] || 0) + (wasReacted ? -1 : 1));
+        return { ...current, reactions: newReactions, myReactions: newMyReactions };
+    });
     patchPostReactions(postId);
     if (state.summary) {
         state.summary.reactions = Math.max(0, Number(state.summary.reactions || 0) + (wasReacted ? -1 : 1));
@@ -600,6 +675,9 @@ async function handleSubmitComment(postId) {
 
     // Optimistic update — chỉ update comments section, không render lại cả feed
     const optimisticComment = {
+        id: `temp-${Date.now()}`,
+        userId: state.currentUser?.id,
+        parentId: null,
         avatar: '🐱',
         name: getCurrentUserName(),
         text: content
@@ -621,9 +699,12 @@ async function handleSubmitComment(postId) {
         // Sync tên/avatar thật từ server
         updatePostState(postId, (post) => {
             const comments = [...(post.comments || [])];
-            const idx = comments.lastIndexOf(optimisticComment);
+            const idx = comments.findIndex((c) => c.id === optimisticComment.id);
             if (idx !== -1) {
                 comments[idx] = {
+                    id: created.id,
+                    userId: created.user_id,
+                    parentId: null,
                     avatar: created.author_avatar || optimisticComment.avatar,
                     name: created.author_name || optimisticComment.name,
                     text: created.content || content
@@ -644,6 +725,173 @@ async function handleSubmitComment(postId) {
         if (input) input.value = content;
         EventLogger.error('community', 'comment:submit:failed', error, { postId });
         showToast(error.message || 'Không thể gửi bình luận.');
+    }
+}
+
+function patchPostCard(postId) {
+    const post = state.posts.find((p) => p.id === postId);
+    if (!post) return;
+    const el = document.querySelector(`[data-post-id="${postId}"]`);
+    if (!el) return;
+    const tmp = document.createElement('div');
+    tmp.innerHTML = renderPostCard(post);
+    el.replaceWith(tmp.firstElementChild);
+}
+
+async function handleEditPost(postId) {
+    state.openMenuPostId = null;
+    state.editingPostId = postId;
+    patchPostCard(postId);
+    document.getElementById(`post-edit-${postId}`)?.focus();
+}
+
+function handleCancelPostEdit() {
+    state.editingPostId = null;
+    renderPosts();
+}
+
+async function handleSavePostEdit(postId) {
+    const textarea = document.getElementById(`post-edit-${postId}`);
+    const content = textarea?.value?.trim();
+    if (!content) return showToast('Nội dung không được để trống.');
+    try {
+        await apiClient.put(`/community/posts/${postId}`, { content });
+        updatePostState(postId, (post) => ({ ...post, content }));
+        state.editingPostId = null;
+        patchPostCard(postId);
+        showToast('Đã lưu chỉnh sửa.');
+    } catch (error) {
+        showToast(error.message || 'Không thể lưu chỉnh sửa.');
+    }
+}
+
+async function handleDeletePost(postId) {
+    if (!confirm('Bạn chắc chắn muốn xóa bài viết này?')) return;
+    try {
+        await apiClient.delete(`/community/posts/${postId}`);
+        state.posts = state.posts.filter((p) => p.id !== postId);
+        state.openMenuPostId = null;
+        renderPosts();
+        showToast('Đã xóa bài viết.');
+    } catch (error) {
+        showToast(error.message || 'Không thể xóa bài viết.');
+    }
+}
+
+function handleTogglePostMenu(postId) {
+    document.querySelectorAll('.post-menu-dropdown.open').forEach((el) => {
+        if (el.closest('[data-post-id]')?.dataset.postId !== postId) el.classList.remove('open');
+    });
+    const dropdown = document.querySelector(`[data-post-id="${postId}"] .post-menu-dropdown`);
+    if (!dropdown) return;
+    const isOpen = dropdown.classList.contains('open');
+    dropdown.classList.toggle('open', !isOpen);
+    state.openMenuPostId = isOpen ? null : postId;
+}
+
+function handleEditComment(postId, commentId) {
+    state.editingCommentId = commentId;
+    patchCommentSection(postId);
+    document.getElementById(`comment-edit-${commentId}`)?.focus();
+}
+
+function handleCancelCommentEdit() {
+    const postId = state.posts.find((p) =>
+        (p.comments || []).some((c) => c.id === state.editingCommentId)
+    )?.id;
+    state.editingCommentId = null;
+    if (postId) patchCommentSection(postId);
+}
+
+async function handleSaveCommentEdit(postId, commentId) {
+    const textarea = document.getElementById(`comment-edit-${commentId}`);
+    const content = textarea?.value?.trim();
+    if (!content) return showToast('Nội dung không được để trống.');
+    try {
+        await apiClient.put(`/community/posts/${postId}/comments/${commentId}`, { content });
+        updatePostState(postId, (post) => ({
+            ...post,
+            comments: (post.comments || []).map((c) => c.id === commentId ? { ...c, text: content } : c)
+        }));
+        state.editingCommentId = null;
+        patchCommentSection(postId);
+        showToast('Đã lưu chỉnh sửa.');
+    } catch (error) {
+        showToast(error.message || 'Không thể lưu chỉnh sửa.');
+    }
+}
+
+async function handleDeleteComment(postId, commentId) {
+    if (!confirm('Xóa bình luận này?')) return;
+    try {
+        await apiClient.delete(`/community/posts/${postId}/comments/${commentId}`);
+        updatePostState(postId, (post) => ({
+            ...post,
+            comments: (post.comments || []).filter((c) => c.id !== commentId && c.parentId !== commentId)
+        }));
+        patchCommentSection(postId);
+        showToast('Đã xóa bình luận.');
+    } catch (error) {
+        showToast(error.message || 'Không thể xóa bình luận.');
+    }
+}
+
+function handleToggleReply(postId, commentId) {
+    state.replyingTo = state.replyingTo === commentId ? null : commentId;
+    patchCommentSection(postId);
+    if (state.replyingTo) {
+        document.getElementById(`reply-input-${commentId}`)?.focus();
+    }
+}
+
+async function handleSubmitReply(postId, parentCommentId) {
+    const input = document.getElementById(`reply-input-${parentCommentId}`);
+    const content = input?.value?.trim();
+    if (!content) return showToast('Hãy viết nội dung trả lời.');
+
+    const optimisticReply = {
+        id: `temp-${Date.now()}`,
+        userId: state.currentUser?.id,
+        parentId: parentCommentId,
+        avatar: '🐱',
+        name: getCurrentUserName(),
+        text: content
+    };
+    updatePostState(postId, (post) => ({ ...post, comments: [...(post.comments || []), optimisticReply] }));
+    state.replyingTo = null;
+    if (input) input.value = '';
+    patchCommentSection(postId);
+
+    try {
+        const created = await apiClient.post(`/community/posts/${postId}/comments`, {
+            content,
+            is_anonymous: false,
+            parent_id: parentCommentId
+        });
+        updatePostState(postId, (post) => {
+            const comments = [...(post.comments || [])];
+            const idx = comments.findIndex((c) => c.id === optimisticReply.id);
+            if (idx !== -1) {
+                comments[idx] = {
+                    id: created.id,
+                    userId: created.user_id,
+                    parentId: created.parent_id || parentCommentId,
+                    avatar: created.author_avatar || optimisticReply.avatar,
+                    name: created.author_name || optimisticReply.name,
+                    text: created.content || content
+                };
+            }
+            return { ...post, comments };
+        });
+        patchCommentSection(postId);
+    } catch (error) {
+        updatePostState(postId, (post) => ({
+            ...post,
+            comments: (post.comments || []).filter((c) => c.id !== optimisticReply.id)
+        }));
+        patchCommentSection(postId);
+        if (input) input.value = content;
+        showToast(error.message || 'Không thể gửi trả lời.');
     }
 }
 
@@ -698,6 +946,25 @@ function initInlineApiHooks() {
     window.toggleReaction = (postId, reactionType) => {
         handleToggleReaction(postId, reactionType);
     };
+
+    window.togglePostMenu = (postId) => { handleTogglePostMenu(postId); };
+    window.editPost = (postId) => { handleEditPost(postId); };
+    window.savePostEdit = (postId) => { handleSavePostEdit(postId); };
+    window.cancelPostEdit = () => { handleCancelPostEdit(); };
+    window.deletePost = (postId) => { handleDeletePost(postId); };
+    window.editComment = (postId, commentId) => { handleEditComment(postId, commentId); };
+    window.saveCommentEdit = (postId, commentId) => { handleSaveCommentEdit(postId, commentId); };
+    window.cancelCommentEdit = () => { handleCancelCommentEdit(); };
+    window.deleteComment = (postId, commentId) => { handleDeleteComment(postId, commentId); };
+    window.toggleReply = (postId, commentId) => { handleToggleReply(postId, commentId); };
+    window.submitReply = (postId, parentId) => { handleSubmitReply(postId, parentId); };
+
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('.post-menu-wrapper') && state.openMenuPostId) {
+            document.querySelectorAll('.post-menu-dropdown.open').forEach((el) => el.classList.remove('open'));
+            state.openMenuPostId = null;
+        }
+    });
 
     window.toggleComments = (postId) => {
         // Người dùng mở/đóng phần bình luận của một bài viết

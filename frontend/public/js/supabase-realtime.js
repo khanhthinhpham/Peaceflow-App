@@ -11,7 +11,9 @@ function getUserId() {
     const token = localStorage.getItem('access_token');
     if (!token) return null;
     try {
-        return JSON.parse(atob(token.split('.')[1])).sub;
+        // JWT dùng base64url (-_), atob() chỉ hiểu base64 tiêu chuẩn (+/)
+        const base64 = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+        return JSON.parse(atob(base64)).sub;
     } catch {
         return null;
     }

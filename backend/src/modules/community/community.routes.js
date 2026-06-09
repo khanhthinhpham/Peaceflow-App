@@ -35,6 +35,8 @@ router.get('/community', requireAuth, async (req, res) => {
              json_agg(
                distinct jsonb_build_object(
                  'id', c.id,
+                 'user_id', c.user_id,
+                 'parent_id', c.parent_id,
                  'content', c.content,
                  'author_name',
                    case
@@ -220,7 +222,7 @@ router.post('/community/posts', requireAuth, async (req, res) => {
 
 router.post('/community/posts/:id/comments', requireAuth, async (req, res) => {
   try {
-    const { content, is_anonymous } = req.body;
+    const { content, is_anonymous, parent_id } = req.body;
     if (!content || !String(content).trim()) {
       return res.status(400).json({ success: false, message: 'Comment content is required' });
     }
@@ -235,9 +237,9 @@ router.post('/community/posts/:id/comments', requireAuth, async (req, res) => {
 
     const result = await db.query(
       `insert into community_comments (
-         post_id, user_id, author_name, author_avatar, content, is_anonymous
+         post_id, user_id, author_name, author_avatar, content, is_anonymous, parent_id
        )
-       values ($1, $2, $3, $4, $5, $6)
+       values ($1, $2, $3, $4, $5, $6, $7)
        returning *`,
       [
         req.params.id,
@@ -245,7 +247,8 @@ router.post('/community/posts/:id/comments', requireAuth, async (req, res) => {
         userRes.rows[0]?.name || 'Người dùng',
         is_anonymous ? '🌿' : '🐱',
         String(content).trim(),
-        Boolean(is_anonymous)
+        Boolean(is_anonymous),
+        parent_id || null
       ]
     );
 
@@ -306,6 +309,10 @@ router.post('/community/posts/:id/reactions', requireAuth, async (req, res) => {
       await db.query(`delete from community_reactions where id = $1`, [existing.rows[0].id]);
       reacted = false;
     } else {
+      await db.query(
+        `delete from community_reactions where post_id = $1 and user_id = $2`,
+        [req.params.id, req.user.sub]
+      );
       await db.query(
         `insert into community_reactions (post_id, user_id, reaction_type)
          values ($1, $2, $3)`,
@@ -396,6 +403,66 @@ router.post('/community/posts/:id/report', requireAuth, async (req, res) => {
   }
 });
 
+router.put('/community/posts/:id', requireAuth, async (req, res) => {
+  try {
+    const { content } = req.body;
+    if (!content?.trim()) return res.status(400).json({ success: false, message: 'Content required' });
+    const result = await db.query(
+      `update community_posts set content = $1, updated_at = now() where id = $2 and user_id = $3 returning id`,
+      [String(content).trim(), req.params.id, req.user.sub]
+    );
+    if (!result.rows[0]) return res.status(403).json({ success: false, message: 'Không có quyền chỉnh sửa.' });
+    return res.json({ success: true });
+  } catch (error) {
+    console.error('Edit post error:', error);
+    return res.status(500).json({ success: false });
+  }
+});
+
+router.delete('/community/posts/:id', requireAuth, async (req, res) => {
+  try {
+    const result = await db.query(
+      `delete from community_posts where id = $1 and user_id = $2 returning id`,
+      [req.params.id, req.user.sub]
+    );
+    if (!result.rows[0]) return res.status(403).json({ success: false, message: 'Không có quyền xóa.' });
+    return res.json({ success: true });
+  } catch (error) {
+    console.error('Delete post error:', error);
+    return res.status(500).json({ success: false });
+  }
+});
+
+router.put('/community/posts/:postId/comments/:commentId', requireAuth, async (req, res) => {
+  try {
+    const { content } = req.body;
+    if (!content?.trim()) return res.status(400).json({ success: false, message: 'Content required' });
+    const result = await db.query(
+      `update community_comments set content = $1 where id = $2 and post_id = $3 and user_id = $4 returning id`,
+      [String(content).trim(), req.params.commentId, req.params.postId, req.user.sub]
+    );
+    if (!result.rows[0]) return res.status(403).json({ success: false, message: 'Không có quyền chỉnh sửa.' });
+    return res.json({ success: true });
+  } catch (error) {
+    console.error('Edit comment error:', error);
+    return res.status(500).json({ success: false });
+  }
+});
+
+router.delete('/community/posts/:postId/comments/:commentId', requireAuth, async (req, res) => {
+  try {
+    const result = await db.query(
+      `delete from community_comments where id = $1 and post_id = $2 and user_id = $3 returning id`,
+      [req.params.commentId, req.params.postId, req.user.sub]
+    );
+    if (!result.rows[0]) return res.status(403).json({ success: false, message: 'Không có quyền xóa.' });
+    return res.json({ success: true });
+  } catch (error) {
+    console.error('Delete comment error:', error);
+    return res.status(500).json({ success: false });
+  }
+});
+
 function normalizeCategory(category) {
   const normalized = String(category || 'story').toLowerCase();
   return Object.prototype.hasOwnProperty.call(CATEGORY_MAP, normalized) ? normalized : 'story';
@@ -421,6 +488,7 @@ function mapPost(row) {
 
   return {
     id: row.id,
+    userId: row.user_id,
     anon: Boolean(row.is_anonymous),
     avatar: row.author_avatar || '🌿',
     name: row.is_anonymous
@@ -435,6 +503,9 @@ function mapPost(row) {
     reactions,
     myReactions,
     comments: Array.isArray(row.comments) ? row.comments.map((comment) => ({
+      id: comment.id,
+      userId: comment.user_id,
+      parentId: comment.parent_id || null,
       avatar: comment.author_avatar || '🌿',
       name: comment.author_name || 'Người dùng',
       text: comment.content
