@@ -303,7 +303,7 @@
                 document.getElementById('resultScoreBadge').innerText = `Mức ${checkinData.score}/10`;
                 document.getElementById('resultTitle').innerText = 'Đang lưu tâm trạng...';
                 document.getElementById('resultMsg').innerText = 'PeaceFlow đang ghi dữ liệu vào hệ thống và tạo gợi ý phù hợp.';
-                setStatusBadge('Đang lưu vào DB');
+                setStatusBadge('Đang lưu...');
 
                 try {
                     const response = await fetchWithAuthRetry(`${getApiBaseUrl()}/moods`, {
@@ -324,8 +324,8 @@
                     await loadRemoteProgress();
 
                     document.getElementById('resultTitle').innerText = 'Đã lưu tâm trạng!';
-                    document.getElementById('resultMsg').innerText = 'Dữ liệu check-in đã được lưu vào DB và gợi ý đã được cập nhật.';
-                    setStatusBadge('Đã lưu vào DB');
+                    document.getElementById('resultMsg').innerText = 'Dữ liệu check-in đã được lưu và gợi ý đã được cập nhật.';
+                    setStatusBadge('Đã lưu!');
                     window.goCheckinStep(4);
                 } catch (error) {
                     console.error('Could not save mood to API:', error);

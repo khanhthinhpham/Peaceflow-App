@@ -484,7 +484,7 @@ function renderMentors() {
                 <div class="mi-name">${escapeHtml(mentor.name || 'Mentor')}</div>
                 <div class="mi-level">Level ${escapeHtml(String(mentor.current_level || 5))} · ${formatCompactNumber(mentor.total_xp || 0)} XP · streak ${formatCompactNumber(mentor.current_streak || 0)}</div>
             </div>
-            <button class="mi-btn" onclick="showToast('Tính năng nhắn mentor sẽ được nối DB ở bước sau.')">Nhắn</button>
+            <button class="mi-btn" onclick="showToast('Tính năng nhắn mentor sẽ được nối ở bước sau.')">Nhắn</button>
         </div>
     `).join('');
 }

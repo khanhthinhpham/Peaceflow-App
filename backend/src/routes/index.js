@@ -13,6 +13,7 @@ import communityRoutes from '../modules/community/community.routes.js';
 import emergencyRoutes from '../modules/emergency/emergency.routes.js';
 import notificationRoutes from '../modules/notifications/notification.routes.js';
 import cronRoutes from './cron.routes.js';
+import aiRoutes from '../modules/ai/ai.routes.js';
 
 const router = Router();
 
@@ -30,5 +31,6 @@ router.use('/', communityRoutes);
 router.use('/', emergencyRoutes);
 router.use('/', notificationRoutes);
 router.use('/', cronRoutes);
+router.use('/', aiRoutes);
 
 export default router;

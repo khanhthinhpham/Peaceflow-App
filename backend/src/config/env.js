@@ -30,6 +30,10 @@ export const env = {
   googleClientId: process.env.GOOGLE_CLIENT_ID,
   frontendUrl: process.env.FRONTEND_URL || 'https://peaceflow.vn',
   anthropicApiKey: process.env.ANTHROPIC_API_KEY,
+  ragBaseUrl: process.env.RAG_BASE_URL  || 'https://noetic-edda-sometimes.ngrok-free.dev',
+  ragApiKey: process.env.RAG_API_KEY,
+  ragAdminKey: process.env.RAG_ADMIN_KEY,
+  ragTenantId: process.env.RAG_TENANT_ID || 'peaceflow',
   vapidPublicKey: process.env.VAPID_PUBLIC_KEY || 'BBmum3N-lH6Ig9bGbellDDyTeSxZHQbYBmbXwtQGyMguftr1YOBsonHfT3JFJfvLMYpV-O-g57qC_IFg85rWrbE',
   vapidPrivateKey: process.env.VAPID_PRIVATE_KEY,
   vapidEmail: process.env.VAPID_EMAIL || 'mailto:admin@peaceflow.vn'

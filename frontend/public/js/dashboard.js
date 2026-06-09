@@ -114,7 +114,7 @@ const dashboard = window.__peaceflowDashboardController || {
         });
 
         this.setText('stat-mood', mood?.mood_score ?? '--');
-        this.setText('trend-mood', mood?.mood_score !== undefined && mood?.mood_score !== null ? 'Dữ liệu mới nhất từ DB' : 'Chưa có dữ liệu');
+        this.setText('trend-mood', mood?.mood_score !== undefined && mood?.mood_score !== null ? 'Dữ liệu mới nhất' : 'Chưa có dữ liệu');
         this.setStyle('trend-mood', 'color', mood?.mood_score !== undefined && mood?.mood_score !== null ? 'var(--mint-dark)' : 'var(--text-light)');
 
         const streak = progress?.current_streak ?? progress?.streak ?? 0;
@@ -476,7 +476,7 @@ const dashboard = window.__peaceflowDashboardController || {
         if (!tasks.length) {
             card.innerHTML = `${header}
                 <div style="padding:20px;text-align:center;color:var(--text-secondary);">
-                    Chưa có nhiệm vụ được đề xuất từ DB. Hãy hoàn thành mood check-in để hệ thống gợi ý phù hợp hơn.
+                    Chưa có nhiệm vụ được đề xuất. Hãy hoàn thành mood check-in để hệ thống gợi ý phù hợp hơn.
                 </div>
             `;
             return;

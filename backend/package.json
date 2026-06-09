@@ -12,7 +12,9 @@
     "seed:assessments": "node src/scripts/seed-assessments.js",
     "seed:experts": "node src/scripts/seed-experts.js",
     "seed:community": "node src/scripts/seed-community.js",
-    "import:tasks": "node src/scripts/import-tasks-from-js.js"
+    "import:tasks": "node src/scripts/import-tasks-from-js.js",
+    "rag:setup": "node src/scripts/setup-rag.js",
+    "rag:ingest": "node src/scripts/ingest-tasks-to-rag.js"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.100.1",
