@@ -50,6 +50,7 @@ const dashboard = window.__peaceflowDashboardController || {
 
             this.render();
             localStorage.removeItem('peaceflow_dashboard_refresh');
+            this.loadAiInsight();
         } finally {
             this.state.loading = false;
         }
@@ -261,6 +262,54 @@ const dashboard = window.__peaceflowDashboardController || {
             </div>
             <div class="insight-text">${this.escapeHtml(insight?.body || 'Chưa có phân tích.').replace(/\n/g, '<br>')}</div>
             <div class="insight-tags">${tags}</div>
+        `;
+    },
+
+    async loadAiInsight() {
+        const card = document.getElementById('insightCard');
+        if (!card) return;
+
+        // Cache theo ngày VN — không gọi lại trong cùng 1 ngày
+        const today = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' });
+        const cacheKey = `peaceflow_ai_insight_${today}`;
+        const cached = sessionStorage.getItem(cacheKey);
+        if (cached) {
+            this.renderAiInsight(card, cached);
+            return;
+        }
+
+        // Loading state
+        card.innerHTML = `
+            <div class="insight-header">
+                <div class="insight-icon">🤖</div>
+                <div class="insight-title">PeaceCat AI đang phân tích...</div>
+                <span class="badge-pill badge-mint" style="margin-left:auto;">AI</span>
+            </div>
+            <div class="insight-text" style="opacity:0.55;font-style:italic;">Đang tải gợi ý cá nhân hóa cho bạn...</div>
+        `;
+
+        try {
+            const res = await apiClient.post('/ai/daily-message');
+            const html = res?.message || res?.data?.message || '';
+            if (html) {
+                sessionStorage.setItem(cacheKey, html);
+                this.renderAiInsight(card, html);
+            }
+        } catch (e) {
+            console.warn('[AI] insight load failed:', e.message);
+            // Fallback về insight từ DB
+            if (this.state.data?.insight) this.renderInsight(this.state.data.insight);
+        }
+    },
+
+    renderAiInsight(card, html) {
+        card.innerHTML = `
+            <div class="insight-header">
+                <div class="insight-icon">🤖</div>
+                <div class="insight-title">Gợi ý hôm nay từ PeaceCat AI</div>
+                <span class="badge-pill badge-mint" style="margin-left:auto;">AI</span>
+            </div>
+            <div class="insight-text">${html}</div>
         `;
     },
 

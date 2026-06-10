@@ -14,7 +14,8 @@
     "seed:community": "node src/scripts/seed-community.js",
     "import:tasks": "node src/scripts/import-tasks-from-js.js",
     "rag:setup": "node src/scripts/setup-rag.js",
-    "rag:ingest": "node src/scripts/ingest-tasks-to-rag.js"
+    "rag:ingest": "node src/scripts/ingest-tasks-to-rag.js",
+    "streak:fix": "node src/scripts/fix-streaks.js"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.100.1",
