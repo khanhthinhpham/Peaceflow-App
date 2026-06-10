@@ -104,7 +104,7 @@ const dashboard = window.__peaceflowDashboardController || {
         this.renderStreak(data.progress);
         this.renderChallenge(data.challenge);
         this.renderExpertCard(data.expert_session, data.summary);
-        this.renderRecommendations(data.tasks || []);
+        this.renderRecommendations(this.state.aiTasks || data.tasks || []);
     },
 
     renderStats(progress, mood, summary) {
@@ -279,6 +279,11 @@ const dashboard = window.__peaceflowDashboardController || {
             try {
                 const p = JSON.parse(cached);
                 this.renderAiInsight(card, p.recommendation || '', p.exercises || [], tasks);
+                const aiTasks = this._mapExercisesToTasks(p.exercises || [], tasks);
+                if (aiTasks.length) {
+                    this.state.aiTasks = aiTasks;
+                    this.renderRecommendations(aiTasks);
+                }
             } catch {
                 this.renderAiInsight(card, cached, [], tasks);
             }
@@ -301,6 +306,11 @@ const dashboard = window.__peaceflowDashboardController || {
             if (recommendation || exercises.length) {
                 localStorage.setItem(cacheKey, JSON.stringify({ recommendation, exercises }));
                 this.renderAiInsight(card, recommendation, exercises, tasks);
+                const aiTasks = this._mapExercisesToTasks(exercises, tasks);
+                if (aiTasks.length) {
+                    this.state.aiTasks = aiTasks;
+                    this.renderRecommendations(aiTasks);
+                }
             }
         } catch (e) {
             console.warn('[AI] insight load failed:', e.message);
@@ -312,22 +322,8 @@ const dashboard = window.__peaceflowDashboardController || {
         let exercisesHtml = '';
         if (exercises.length) {
             const items = exercises.map(ex => {
-                // "task-3_6.pdf" → code "3.6"
-                const m = ex.filename?.match(/task-([\w]+)\.pdf/);
-                const code = m ? m[1].replace(/_/g, '.') : null;
-
-                // Tìm task theo code trước, fallback title
-                let matched = code ? tasks.find(t => t.code === code) : null;
-                if (!matched && ex.exercise_name) {
-                    const raw = ex.exercise_name.replace(/\s*\([^)]+\)\s*$/, '').trim().toLowerCase();
-                    matched = tasks.find(t => {
-                        const title = (t.title || '').toLowerCase();
-                        return title === raw || title.includes(raw) || raw.includes(title);
-                    });
-                }
-
-                const taskId = matched ? matched.id : code;
-                const href = taskId ? `task-detail.html?id=${encodeURIComponent(taskId)}` : null;
+                const matched = tasks.find(t => t.title === ex.exercise_name);
+                const href = matched ? `task-detail.html?id=${encodeURIComponent(matched.id)}` : null;
                 const nameHtml = href
                     ? `<a href="${href}" style="color:var(--mint-dark);font-weight:700;text-decoration:none;cursor:pointer;">${ex.exercise_name}</a>`
                     : `<strong>${ex.exercise_name}</strong>`;
@@ -347,6 +343,12 @@ const dashboard = window.__peaceflowDashboardController || {
             </div>
             <div class="insight-text">${recommendation}${exercisesHtml}</div>
         `;
+    },
+
+    _mapExercisesToTasks(exercises, tasks) {
+        return exercises.map(ex =>
+            tasks.find(t => t.title === ex.exercise_name) || null
+        ).filter(Boolean);
     },
 
     renderRadar(metrics) {
