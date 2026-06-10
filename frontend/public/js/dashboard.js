@@ -309,8 +309,59 @@ const dashboard = window.__peaceflowDashboardController || {
                 <div class="insight-title">Gợi ý hôm nay từ PeaceCat AI</div>
                 <span class="badge-pill badge-mint" style="margin-left:auto;">AI</span>
             </div>
-            <div class="insight-text">${html}</div>
+            <div class="insight-text">${this.postProcessAiHtml(html)}</div>
         `;
+    },
+
+    // Xử lý HTML từ RAG: bỏ nguồn PDF, gộp tên bài + lý do thành 1 mục, gắn link
+    postProcessAiHtml(html) {
+        const div = document.createElement('div');
+        div.innerHTML = html;
+
+        div.querySelectorAll('ol, ul').forEach(list => {
+            const items = Array.from(list.querySelectorAll(':scope > li'));
+            const toRemove = [];
+
+            for (let i = 0; i + 1 < items.length; i += 2) {
+                const taskItem   = items[i];
+                const reasonItem = items[i + 1];
+
+                const pdfMatch = reasonItem.innerHTML.match(/\[peaceflow[\\\/]task-([\w]+)\.pdf\]/);
+                const taskId   = pdfMatch ? pdfMatch[1].replace(/_/g, '.') : null;
+
+                // Xóa nguồn PDF trong reasonItem
+                reasonItem.innerHTML = reasonItem.innerHTML
+                    .replace(/\s*\[peaceflow[\\\/]task-[\w]+\.pdf\]\s*/g, '').trim();
+
+                // Gắn link cho tên bài tập (strong/b trong taskItem)
+                if (taskId) {
+                    const strong = taskItem.querySelector('strong, b');
+                    if (strong && !strong.querySelector('a')) {
+                        const a = document.createElement('a');
+                        a.href = `task-detail.html?id=${encodeURIComponent(taskId)}`;
+                        a.style.cssText = 'color:var(--mint-dark);font-weight:700;text-decoration:none;';
+                        a.innerHTML = strong.innerHTML;
+                        strong.innerHTML = '';
+                        strong.appendChild(a);
+                    }
+                }
+
+                // Gộp lý do vào dưới tên bài — không còn là item riêng
+                const reasonDiv = document.createElement('div');
+                reasonDiv.style.cssText = 'margin-top:4px;font-size:0.85rem;color:var(--text-secondary);font-weight:400;line-height:1.5;';
+                reasonDiv.innerHTML = reasonItem.innerHTML;
+                taskItem.appendChild(reasonDiv);
+
+                toRemove.push(reasonItem);
+            }
+
+            toRemove.forEach(el => el.remove());
+        });
+
+        // Xóa PDF ref còn sót (nếu cấu trúc không phải danh sách)
+        div.innerHTML = div.innerHTML.replace(/\s*\[peaceflow[\\\/]task-[\w]+\.pdf\]\s*/g, '');
+
+        return div.innerHTML;
     },
 
     renderRadar(metrics) {
