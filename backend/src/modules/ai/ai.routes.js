@@ -27,10 +27,23 @@ router.get('/me/ai-context', requireAuth, async (req, res) => {
     }
 });
 
+// key: userId → { result, contextHash }
+// Chỉ gọi RAG khi context thực sự thay đổi (không phụ thuộc ngày)
+const _ragCache = new Map();
+
 // POST /ai/daily-message — lời nhắn buổi sáng cá nhân hóa
 router.post('/ai/daily-message', requireAuth, aiRateLimit, async (req, res) => {
     try {
-        const result = await getDailyMessage(req.user.sub);
+        const ctx = await buildUserContext(req.user.sub);
+        const contextHash = JSON.stringify(ctx);
+
+        const cached = _ragCache.get(req.user.sub);
+        if (cached && cached.contextHash === contextHash) {
+            return res.json({ success: true, data: cached.result });
+        }
+
+        const result = await getDailyMessage(req.user.sub, ctx);
+        _ragCache.set(req.user.sub, { result, contextHash });
         return res.json({ success: true, data: result });
     } catch (error) {
         console.error('[AI] daily-message error:', error);

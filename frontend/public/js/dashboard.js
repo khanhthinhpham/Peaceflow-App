@@ -274,13 +274,12 @@ const dashboard = window.__peaceflowDashboardController || {
         const rawTasks = await apiClient.get('/tasks').catch(() => []);
         const tasks = Array.isArray(rawTasks) ? rawTasks : [];
 
-        const cached = sessionStorage.getItem(cacheKey);
+        const cached = localStorage.getItem(cacheKey);
         if (cached) {
             try {
                 const p = JSON.parse(cached);
                 this.renderAiInsight(card, p.recommendation || '', p.exercises || [], tasks);
             } catch {
-                // cache cũ (HTML string) — hiển thị luôn không có link
                 this.renderAiInsight(card, cached, [], tasks);
             }
             return;
@@ -297,10 +296,10 @@ const dashboard = window.__peaceflowDashboardController || {
 
         try {
             const res = await apiClient.post('/ai/daily-message');
-            const recommendation = res?.data?.recommendation || '';
-            const exercises = Array.isArray(res?.data?.exercises) ? res.data.exercises : [];
+            const recommendation = res?.recommendation || '';
+            const exercises = Array.isArray(res?.exercises) ? res.exercises : [];
             if (recommendation || exercises.length) {
-                sessionStorage.setItem(cacheKey, JSON.stringify({ recommendation, exercises }));
+                localStorage.setItem(cacheKey, JSON.stringify({ recommendation, exercises }));
                 this.renderAiInsight(card, recommendation, exercises, tasks);
             }
         } catch (e) {

@@ -23,8 +23,8 @@ async function callRAG(ctx, sessionId) {
     return response.json();
 }
 
-export async function getDailyMessage(userId) {
-    const ctx = await buildUserContext(userId);
+export async function getDailyMessage(userId, ctx = null) {
+    if (!ctx) ctx = await buildUserContext(userId);
     const data = await callRAG(ctx, `peaceflow_daily_${userId}`);
     return {
         recommendation: data.recommendation ?? data.answer ?? data.result ?? data.text ?? data.message ?? '',
