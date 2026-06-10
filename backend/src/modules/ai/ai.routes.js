@@ -30,8 +30,8 @@ router.get('/me/ai-context', requireAuth, async (req, res) => {
 // POST /ai/daily-message — lời nhắn buổi sáng cá nhân hóa
 router.post('/ai/daily-message', requireAuth, aiRateLimit, async (req, res) => {
     try {
-        const message = await getDailyMessage(req.user.sub);
-        return res.json({ success: true, data: { message } });
+        const result = await getDailyMessage(req.user.sub);
+        return res.json({ success: true, data: result });
     } catch (error) {
         console.error('[AI] daily-message error:', error);
         return res.status(500).json({ success: false, message: 'Không thể tạo lời nhắn lúc này.' });

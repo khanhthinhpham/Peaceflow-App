@@ -269,16 +269,23 @@ const dashboard = window.__peaceflowDashboardController || {
         const card = document.getElementById('insightCard');
         if (!card) return;
 
-        // Cache theo ngày VN — không gọi lại trong cùng 1 ngày
         const today = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' });
         const cacheKey = `peaceflow_ai_insight_${today}`;
+        const rawTasks = await apiClient.get('/tasks').catch(() => []);
+        const tasks = Array.isArray(rawTasks) ? rawTasks : [];
+
         const cached = sessionStorage.getItem(cacheKey);
         if (cached) {
-            this.renderAiInsight(card, cached);
+            try {
+                const p = JSON.parse(cached);
+                this.renderAiInsight(card, p.recommendation || '', p.exercises || [], tasks);
+            } catch {
+                // cache cũ (HTML string) — hiển thị luôn không có link
+                this.renderAiInsight(card, cached, [], tasks);
+            }
             return;
         }
 
-        // Loading state
         card.innerHTML = `
             <div class="insight-header">
                 <div class="insight-icon">🤖</div>
@@ -290,78 +297,57 @@ const dashboard = window.__peaceflowDashboardController || {
 
         try {
             const res = await apiClient.post('/ai/daily-message');
-            const html = res?.message || res?.data?.message || '';
-            if (html) {
-                sessionStorage.setItem(cacheKey, html);
-                this.renderAiInsight(card, html);
+            const recommendation = res?.data?.recommendation || '';
+            const exercises = Array.isArray(res?.data?.exercises) ? res.data.exercises : [];
+            if (recommendation || exercises.length) {
+                sessionStorage.setItem(cacheKey, JSON.stringify({ recommendation, exercises }));
+                this.renderAiInsight(card, recommendation, exercises, tasks);
             }
         } catch (e) {
             console.warn('[AI] insight load failed:', e.message);
-            // Fallback về insight từ DB
             if (this.state.data?.insight) this.renderInsight(this.state.data.insight);
         }
     },
 
-    renderAiInsight(card, html) {
+    renderAiInsight(card, recommendation, exercises = [], tasks = []) {
+        let exercisesHtml = '';
+        if (exercises.length) {
+            const items = exercises.map(ex => {
+                // "task-3_6.pdf" → code "3.6"
+                const m = ex.filename?.match(/task-([\w]+)\.pdf/);
+                const code = m ? m[1].replace(/_/g, '.') : null;
+
+                // Tìm task theo code trước, fallback title
+                let matched = code ? tasks.find(t => t.code === code) : null;
+                if (!matched && ex.exercise_name) {
+                    const raw = ex.exercise_name.replace(/\s*\([^)]+\)\s*$/, '').trim().toLowerCase();
+                    matched = tasks.find(t => {
+                        const title = (t.title || '').toLowerCase();
+                        return title === raw || title.includes(raw) || raw.includes(title);
+                    });
+                }
+
+                const taskId = matched ? matched.id : code;
+                const href = taskId ? `task-detail.html?id=${encodeURIComponent(taskId)}` : null;
+                const nameHtml = href
+                    ? `<a href="${href}" style="color:var(--mint-dark);font-weight:700;text-decoration:none;cursor:pointer;">${ex.exercise_name}</a>`
+                    : `<strong>${ex.exercise_name}</strong>`;
+
+                return `<li style="margin-bottom:12px;">${nameHtml}${ex.explanation
+                    ? `<div style="margin-top:4px;font-size:0.85rem;color:var(--text-secondary);line-height:1.5;">${ex.explanation}</div>`
+                    : ''}</li>`;
+            }).join('');
+            exercisesHtml = `<ol style="padding-left:1.25rem;margin:8px 0 0;">${items}</ol>`;
+        }
+
         card.innerHTML = `
             <div class="insight-header">
                 <div class="insight-icon">🤖</div>
                 <div class="insight-title">Gợi ý hôm nay từ PeaceCat AI</div>
                 <span class="badge-pill badge-mint" style="margin-left:auto;">AI</span>
             </div>
-            <div class="insight-text">${this.postProcessAiHtml(html)}</div>
+            <div class="insight-text">${recommendation}${exercisesHtml}</div>
         `;
-    },
-
-    // Xử lý HTML từ RAG: bỏ nguồn PDF, gộp tên bài + lý do thành 1 mục, gắn link
-    postProcessAiHtml(html) {
-        const div = document.createElement('div');
-        div.innerHTML = html;
-
-        div.querySelectorAll('ol, ul').forEach(list => {
-            const items = Array.from(list.querySelectorAll(':scope > li'));
-            const toRemove = [];
-
-            for (let i = 0; i + 1 < items.length; i += 2) {
-                const taskItem   = items[i];
-                const reasonItem = items[i + 1];
-
-                const pdfMatch = reasonItem.innerHTML.match(/\[peaceflow[\\\/]task-([\w]+)\.pdf\]/);
-                const taskId   = pdfMatch ? pdfMatch[1].replace(/_/g, '.') : null;
-
-                // Xóa nguồn PDF trong reasonItem
-                reasonItem.innerHTML = reasonItem.innerHTML
-                    .replace(/\s*\[peaceflow[\\\/]task-[\w]+\.pdf\]\s*/g, '').trim();
-
-                // Gắn link cho tên bài tập (strong/b trong taskItem)
-                if (taskId) {
-                    const strong = taskItem.querySelector('strong, b');
-                    if (strong && !strong.querySelector('a')) {
-                        const a = document.createElement('a');
-                        a.href = `task-detail.html?id=${encodeURIComponent(taskId)}`;
-                        a.style.cssText = 'color:var(--mint-dark);font-weight:700;text-decoration:none;';
-                        a.innerHTML = strong.innerHTML;
-                        strong.innerHTML = '';
-                        strong.appendChild(a);
-                    }
-                }
-
-                // Gộp lý do vào dưới tên bài — không còn là item riêng
-                const reasonDiv = document.createElement('div');
-                reasonDiv.style.cssText = 'margin-top:4px;font-size:0.85rem;color:var(--text-secondary);font-weight:400;line-height:1.5;';
-                reasonDiv.innerHTML = reasonItem.innerHTML;
-                taskItem.appendChild(reasonDiv);
-
-                toRemove.push(reasonItem);
-            }
-
-            toRemove.forEach(el => el.remove());
-        });
-
-        // Xóa PDF ref còn sót (nếu cấu trúc không phải danh sách)
-        div.innerHTML = div.innerHTML.replace(/\s*\[peaceflow[\\\/]task-[\w]+\.pdf\]\s*/g, '');
-
-        return div.innerHTML;
     },
 
     renderRadar(metrics) {

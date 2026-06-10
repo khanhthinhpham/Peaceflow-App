@@ -20,20 +20,16 @@ async function callRAG(ctx, sessionId) {
         throw new Error(`RAG ${response.status}: ${err}`);
     }
 
-    const data = await response.json();
-    return (
-        data.answer ??
-        data.recommendation ??
-        data.result ??
-        data.text ??
-        data.message ??
-        (typeof data.data === 'string' ? data.data : JSON.stringify(data))
-    );
+    return response.json();
 }
 
 export async function getDailyMessage(userId) {
     const ctx = await buildUserContext(userId);
-    return callRAG(ctx, `peaceflow_daily_${userId}`);
+    const data = await callRAG(ctx, `peaceflow_daily_${userId}`);
+    return {
+        recommendation: data.recommendation ?? data.answer ?? data.result ?? data.text ?? data.message ?? '',
+        exercises: Array.isArray(data.exercises) ? data.exercises : [],
+    };
 }
 
 export async function getRecommendedTask(userId) {
