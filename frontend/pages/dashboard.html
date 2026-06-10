@@ -1606,6 +1606,41 @@
                         </div>
                     </div>
                 </div>
+                <!-- <div class="grid-2"> -->
+            <!-- Today's Tasks -->
+            <div class="paper-card" id="todayTasksCard" style="overflow:hidden;">
+                <div
+                    style="padding:16px 18px;border-bottom:2px solid var(--kraft-light);display:flex;align-items:center;justify-content:space-between;">
+                    <div class="section-title" style="margin-bottom:0;">
+                        <span class="st-icon">🎯</span> Nhiệm vụ hôm nay
+                    </div>
+                    <a href="tasks.html" class="st-link"
+                        style="font-size:0.75rem;color:var(--mint-dark);font-weight:600;text-decoration:none;">Xem tất
+                        cả →</a>
+                </div>
+                <!-- Redirects to task-breathing.html -->
+                <div class="task-card paper-card" style="border:none;border-radius:0;box-shadow:none;cursor:pointer;"
+                    onclick="location.href='task-breathing.html'">
+                    <div class="task-icon-box easy">💨</div>
+                    <div class="task-info">
+                        <div class="task-name">Hít thở sâu 4-4-4</div>
+                        <div class="task-meta"><span>⏱ 2 phút</span><span>🔴 Cấp 0</span></div>
+                    </div>
+                    <span class="task-xp">+10 XP</span>
+                </div>
+                <div class="task-divider"></div>
+                <!-- Redirects to task-detail.html -->
+                <div class="task-card paper-card" style="border:none;border-radius:0;box-shadow:none;cursor:pointer;"
+                    onclick="location.href='task-detail.html?id=1.30'">
+                    <div class="task-icon-box easy">🙏</div>
+                    <div class="task-info">
+                        <div class="task-name">3 điều biết ơn</div>
+                        <div class="task-meta"><span>⏱ 5 phút</span><span>🟢 Cấp 1</span></div>
+                    </div>
+                    <span class="task-xp">+10 XP</span>
+                </div>
+            </div>
+        <!-- </div> -->
             </div>
 
             <!-- Right Column -->
@@ -1751,43 +1786,6 @@
                         </div>
                         <button class="btn-outline" style="font-size:0.72rem;padding:6px 12px;">Xem</button>
                     </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- TASKS SECTION -->
-        <div class="grid-2">
-            <!-- Today's Tasks -->
-            <div class="paper-card" id="todayTasksCard" style="overflow:hidden;">
-                <div
-                    style="padding:16px 18px;border-bottom:2px solid var(--kraft-light);display:flex;align-items:center;justify-content:space-between;">
-                    <div class="section-title" style="margin-bottom:0;">
-                        <span class="st-icon">🎯</span> Nhiệm vụ hôm nay
-                    </div>
-                    <a href="tasks.html" class="st-link"
-                        style="font-size:0.75rem;color:var(--mint-dark);font-weight:600;text-decoration:none;">Xem tất
-                        cả →</a>
-                </div>
-                <!-- Redirects to task-breathing.html -->
-                <div class="task-card paper-card" style="border:none;border-radius:0;box-shadow:none;cursor:pointer;"
-                    onclick="location.href='task-breathing.html'">
-                    <div class="task-icon-box easy">💨</div>
-                    <div class="task-info">
-                        <div class="task-name">Hít thở sâu 4-4-4</div>
-                        <div class="task-meta"><span>⏱ 2 phút</span><span>🔴 Cấp 0</span></div>
-                    </div>
-                    <span class="task-xp">+10 XP</span>
-                </div>
-                <div class="task-divider"></div>
-                <!-- Redirects to task-detail.html -->
-                <div class="task-card paper-card" style="border:none;border-radius:0;box-shadow:none;cursor:pointer;"
-                    onclick="location.href='task-detail.html?id=1.30'">
-                    <div class="task-icon-box easy">🙏</div>
-                    <div class="task-info">
-                        <div class="task-name">3 điều biết ơn</div>
-                        <div class="task-meta"><span>⏱ 5 phút</span><span>🟢 Cấp 1</span></div>
-                    </div>
-                    <span class="task-xp">+10 XP</span>
                 </div>
             </div>
         </div>

@@ -1797,6 +1797,16 @@
             if (cur === '2' && n > 2) {
                 await saveProfileData();
             }
+            if (n >= 2) {
+                try {
+                    await apiClient.put('/profile', {
+                        onboarding_answers: { started: true }
+                    });
+                    localStorage.setItem('peaceflow_onboarding_done', '1');
+                } catch (e) {
+                    console.error('Mark onboarding started failed:', e.message);
+                }
+            }
             _origGoToStep(n);
         };
 

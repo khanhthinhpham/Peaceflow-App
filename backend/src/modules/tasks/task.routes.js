@@ -195,11 +195,9 @@ router.post('/tasks/:id/complete', requireAuth, async (req, res) => {
       [userId]
     );
 
-    const today = new Date();
-    const todayIso = formatDateOnly(today);
-    const yesterday = new Date(today);
-    yesterday.setDate(yesterday.getDate() - 1);
-    const yesterdayIso = formatDateOnly(yesterday);
+    const now = new Date();
+    const todayIso = now.toLocaleDateString('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' });
+    const yesterdayIso = new Date(now - 864e5).toLocaleDateString('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' });
 
     const currentProgress = progressResult.rows[0] || {
       total_xp: 0,

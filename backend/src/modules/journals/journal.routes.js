@@ -91,11 +91,9 @@ router.post('/journal', requireAuth, async (req, res) => {
       last_activity_date: null
     };
 
-    const today = new Date();
-    const todayIso = formatDateOnly(today);
-    const yesterday = new Date(today);
-    yesterday.setDate(yesterday.getDate() - 1);
-    const yesterdayIso = formatDateOnly(yesterday);
+    const now = new Date();
+    const todayIso = now.toLocaleDateString('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' });
+    const yesterdayIso = new Date(now - 864e5).toLocaleDateString('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' });
     const lastActivityDate = currentProgress.last_activity_date
       ? formatDateOnly(currentProgress.last_activity_date)
       : null;

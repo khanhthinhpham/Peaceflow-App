@@ -208,17 +208,19 @@
           return;
         }
 
-        // Thiết bị mới → hỏi server xem đã hoàn thành onboarding chưa
+        // Thiết bị mới → hỏi server xem user đã từng vào onboarding chưa
         try {
           const res = await apiClient.get('/profile');
-          const completed = res?.onboarding_answers?.completed;
-          if (completed) {
+          const hasOnboarded = res?.onboarding_answers != null;
+          if (hasOnboarded) {
             localStorage.setItem('peaceflow_onboarding_done', '1');
             window.location.replace(getPostLoginRedirect());
             return;
           }
         } catch (e) {
           console.error('Profile check failed:', e.message);
+          window.location.replace(getPostLoginRedirect());
+          return;
         }
 
         window.location.replace('onboarding.html');
