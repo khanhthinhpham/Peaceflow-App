@@ -8,7 +8,7 @@ export async function runStreakJob() {
       where current_streak > 0
         and (
           last_activity_date is null
-          or last_activity_date < current_date - interval '1 day'
+          or last_activity_date < (now() at time zone 'Asia/Ho_Chi_Minh')::date - interval '1 day'
         )
       returning user_id
     `);
