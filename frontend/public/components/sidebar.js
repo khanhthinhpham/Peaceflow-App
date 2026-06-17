@@ -38,7 +38,7 @@
     const templateUrl = scriptUrl
         ? new URL('./sidebar.html', scriptUrl).href
         : '../public/components/sidebar.html';
-    const SIDEBAR_TEMPLATE_CACHE_KEY = 'peaceflow_sidebar_template_v3';
+    const SIDEBAR_TEMPLATE_CACHE_KEY = 'peaceflow_sidebar_template_v4';
     const _spaHtmlCache = new Map(); // url -> { html, cachedAt }
     const SPA_HTML_CACHE_MS = 300_000; // 5 phút
     const SPA_SESSION_VERSION = Date.now();
@@ -143,6 +143,24 @@
             actionText.textContent = 'Đăng nhập';
             actionIcon.textContent = '🔐';
         }
+    }
+
+    function isApprovedExpert() {
+        try {
+            const user = JSON.parse(localStorage.getItem('user') || 'null');
+            return Boolean(user && user.is_expert);
+        } catch (_error) {
+            return false;
+        }
+    }
+
+    // Hiện tag "Chuyên gia" cạnh tên và nút "Quản lý chuyên gia" khi user đã được duyệt.
+    function syncExpertUi() {
+        const expert = isApprovedExpert();
+        const tag = document.getElementById('sidebarExpertTag');
+        const portalLink = document.getElementById('sidebarExpertPortal');
+        if (tag) tag.style.display = expert ? '' : 'none';
+        if (portalLink) portalLink.style.display = expert ? '' : 'none';
     }
 
     function parseTemplateParts(html) {
@@ -402,6 +420,7 @@
                 window.UserSync.sync();
             }
             syncSidebarAuthAction();
+            syncExpertUi();
 
             // Render notification bell sau khi sidebar mount xong
             if (window.NotificationManager?.renderBell) {
@@ -428,12 +447,17 @@
     window.loadSpaPage = loadSpaPage;
     window.markSharedNav = markSharedNav;
     window.syncSidebarAuthAction = syncSidebarAuthAction;
+    window.syncExpertUi = syncExpertUi;
 
     window.addEventListener('storage', (event) => {
         if (event.key === 'access_token' || event.key === 'user') {
             syncSidebarAuthAction();
+            syncExpertUi();
         }
     });
+
+    // Khi /me trả về và merge vào localStorage (waitForAuth), cập nhật lại tag/nút chuyên gia.
+    window.addEventListener('user-profile-updated', syncExpertUi);
 
     if (SPA_NAV_ENABLED) {
         document.addEventListener('click', handleDocumentClick);

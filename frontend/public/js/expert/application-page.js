@@ -1,6 +1,5 @@
-import { apiClient } from '../api-client.js';
 import { auth } from '../auth.js';
-import { mountExpertShell, requireExpertUser, showExpertBanner } from './shell.js';
+import { mountExpertShell, requireExpertUser, showExpertBanner, loadExpertData, invalidateExpertData } from './shell.js';
 
 let applicationState = null;
 let overviewState = null;
@@ -18,10 +17,7 @@ async function init() {
     });
 
     try {
-        [applicationState, overviewState] = await Promise.all([
-            auth.getMyExpertApplication(),
-            apiClient.get('/expert-portal/overview', { noCache: true })
-        ]);
+        ({ application: applicationState, overview: overviewState } = await loadExpertData());
         renderState();
         wireSubmit();
     } catch (error) {
@@ -187,6 +183,7 @@ function wireSubmit() {
                 showExpertBanner('Hồ sơ chuyên gia đã được gửi thành công. Admin sẽ xem xét và phản hồi qua email.', 'success');
                 form.style.display = 'none';
             }
+            invalidateExpertData();
         } catch (error) {
             showExpertBanner(error.message || 'Không thể xử lý hồ sơ chuyên gia.', 'error');
         } finally {

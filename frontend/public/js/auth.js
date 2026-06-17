@@ -104,6 +104,9 @@ export const auth = {
                     if (user) {
                         const current = this.getUser() || {};
                         localStorage.setItem('user', JSON.stringify({ ...current, ...user }));
+                        if (typeof window !== 'undefined') {
+                            window.dispatchEvent(new CustomEvent('user-profile-updated'));
+                        }
                     }
                     return true;
                 })

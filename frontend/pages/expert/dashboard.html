@@ -3,6 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script>
+        // Nếu mở trực tiếp trang này (không qua expert app-shell), nhảy vào shell để dùng SPA.
+        if (!window.location.pathname.endsWith('/app.html')) {
+            window.location.replace('app.html?page=' + window.location.pathname.split('/').pop());
+        }
+    </script>
     <title>Expert Dashboard — PeaceFlow</title>
     <link rel="icon" href="../../public/favicon.jpg" type="image/svg+xml">
     <link rel="preconnect" href="https://fonts.googleapis.com">

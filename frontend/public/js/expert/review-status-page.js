@@ -1,6 +1,5 @@
-import { apiClient } from '../api-client.js';
 import { auth } from '../auth.js';
-import { mountExpertShell, requireExpertUser, showExpertBanner } from './shell.js';
+import { mountExpertShell, requireExpertUser, showExpertBanner, loadExpertData, invalidateExpertData } from './shell.js';
 import { escapeHtml, formatDateTime } from './utils.js';
 
 let applicationState = null;
@@ -18,10 +17,7 @@ async function init() {
     });
 
     try {
-        [applicationState, overviewState] = await Promise.all([
-            auth.getMyExpertApplication(),
-            apiClient.get('/expert-portal/overview', { noCache: true })
-        ]);
+        ({ application: applicationState, overview: overviewState } = await loadExpertData());
 
         renderHistory();
         wireResubmit();
@@ -134,6 +130,7 @@ function wireResubmit() {
             formData.set('credential_file', file);
 
             await auth.submitExpertApplication(formData);
+            invalidateExpertData();
             showExpertBanner('Đã gửi hồ sơ xét duyệt lại thành công. Admin sẽ xem xét bản bằng cấp/chứng chỉ mới trong khi profile hiện tại của bạn vẫn hoạt động.', 'success');
             form.style.display = 'none';
         } catch (error) {

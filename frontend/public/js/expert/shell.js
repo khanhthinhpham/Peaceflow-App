@@ -1,4 +1,5 @@
 import { auth } from '../auth.js';
+import { apiClient } from '../api-client.js';
 import { escapeHtml } from './utils.js';
 
 const NAV_ITEMS = [
@@ -62,11 +63,18 @@ export function mountExpertShell({ active, title, subtitle, badgeText }) {
     if (badgeEl) badgeEl.textContent = badgeText || 'Expert workspace';
 }
 
+// Xác minh phiên (/me) chỉ một lần cho mỗi session module. Trong SPA, mỗi trang vẫn
+// gọi requireExpertUser nhưng từ lần 2 trở đi lấy user từ localStorage, không gọi lại /me.
+let authVerified = false;
+
 export async function requireExpertUser() {
-    const authenticated = await auth.waitForAuth();
-    if (!authenticated) {
-        window.location.replace('../login.html');
-        return null;
+    if (!authVerified) {
+        const authenticated = await auth.waitForAuth();
+        if (!authenticated) {
+            window.location.replace('../login.html');
+            return null;
+        }
+        authVerified = true;
     }
 
     const user = auth.getUser();
@@ -76,6 +84,33 @@ export async function requireExpertUser() {
     }
 
     return user;
+}
+
+// Cache dùng chung cho dữ liệu expert (3 trang dùng cùng 2 endpoint). TTL ngắn để
+// điều hướng giữa các trang không gọi lại API; gọi invalidateExpertData() sau khi
+// submit để lần tải kế tiếp lấy dữ liệu mới.
+let expertDataCache = null;
+let expertDataCachedAt = 0;
+const EXPERT_DATA_TTL_MS = 20_000;
+
+export async function loadExpertData({ force = false } = {}) {
+    if (!force && expertDataCache && (Date.now() - expertDataCachedAt) < EXPERT_DATA_TTL_MS) {
+        return expertDataCache;
+    }
+
+    const [application, overview] = await Promise.all([
+        auth.getMyExpertApplication(),
+        apiClient.get('/expert-portal/overview', { noCache: true })
+    ]);
+
+    expertDataCache = { application, overview };
+    expertDataCachedAt = Date.now();
+    return expertDataCache;
+}
+
+export function invalidateExpertData() {
+    expertDataCache = null;
+    expertDataCachedAt = 0;
 }
 
 export function showExpertBanner(message, type = 'info') {

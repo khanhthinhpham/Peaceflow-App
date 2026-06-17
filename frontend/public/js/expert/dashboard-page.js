@@ -1,6 +1,4 @@
-import { apiClient } from '../api-client.js';
-import { auth } from '../auth.js';
-import { mountExpertShell, requireExpertUser, showExpertBanner } from './shell.js';
+import { mountExpertShell, requireExpertUser, showExpertBanner, loadExpertData } from './shell.js';
 import { escapeHtml, formatCurrency, formatDateTime } from './utils.js';
 
 async function init() {
@@ -15,10 +13,7 @@ async function init() {
     });
 
     try {
-        const [applicationState, overview] = await Promise.all([
-            auth.getMyExpertApplication(),
-            apiClient.get('/expert-portal/overview', { noCache: true })
-        ]);
+        const { application: applicationState, overview } = await loadExpertData();
 
         renderDashboard(applicationState, overview);
     } catch (error) {
