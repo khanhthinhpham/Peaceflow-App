@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { requireAuth } from '../../common/middleware/auth.middleware.js';
 import { db } from '../../config/db.js';
+import { z } from 'zod';
 
 const router = Router();
 
@@ -11,8 +12,9 @@ router.get('/expert-portal/overview', requireAuth, async (req, res) => {
     }
 
     const expertProfileRes = await db.query(
-      `select id, code, full_name, degree, status, rating, sessions_count, satisfaction_rate,
-              base_price, location, experience_years, specialties, bio, active, created_at
+      `select id, code, full_name, degree, phone, avatar_emoji, status, rating, sessions_count, satisfaction_rate,
+              base_price, location, experience_years, specialties, bio, credentials, approaches, next_slot_label,
+              active, created_at
        from experts
        where user_id = $1
        limit 1`,
@@ -76,7 +78,9 @@ router.get('/expert-portal/overview', requireAuth, async (req, res) => {
       data: {
         expert: {
           ...expert,
-          specialties: ensureArray(expert.specialties)
+          specialties: ensureArray(expert.specialties),
+          credentials: ensureArray(expert.credentials),
+          approaches: ensureArray(expert.approaches)
         },
         stats: statsRes.rows[0] || {
           upcoming_sessions: 0,
@@ -90,6 +94,97 @@ router.get('/expert-portal/overview', requireAuth, async (req, res) => {
   } catch (error) {
     console.error('Expert portal overview error:', error);
     return res.status(500).json({ success: false, message: 'Could not fetch expert portal overview' });
+  }
+});
+
+router.put('/expert-portal/profile', requireAuth, async (req, res) => {
+  try {
+    if (req.user.role !== 'expert') {
+      return res.status(403).json({ success: false, message: 'Expert access required' });
+    }
+
+    const payload = expertProfileSchema.parse(req.body);
+
+    const expertRes = await db.query(
+      `select id
+       from experts
+       where user_id = $1
+       limit 1`,
+      [req.user.sub]
+    );
+
+    const expert = expertRes.rows[0];
+    if (!expert) {
+      return res.status(404).json({ success: false, message: 'Expert profile not found' });
+    }
+
+    const updatedExpertRes = await db.query(
+      `update experts
+       set full_name = $2,
+           degree = $3,
+           phone = $4,
+           avatar_emoji = $5,
+           status = $6,
+           base_price = $7,
+           location = $8,
+           experience_years = $9,
+           specialties = $10::jsonb,
+           bio = $11,
+           credentials = $12::jsonb,
+           approaches = $13::jsonb,
+           next_slot_label = $14,
+           updated_at = now()
+       where id = $1
+       returning id, code, full_name, degree, phone, avatar_emoji, status, rating, sessions_count,
+                 satisfaction_rate, base_price, location, experience_years, specialties, bio,
+                 credentials, approaches, next_slot_label, active, created_at, updated_at`,
+      [
+        expert.id,
+        payload.full_name,
+        payload.degree,
+        payload.phone,
+        payload.avatar_emoji,
+        payload.status,
+        payload.base_price,
+        payload.location || null,
+        payload.experience_years,
+        JSON.stringify(payload.specialties || []),
+        payload.bio || null,
+        JSON.stringify(payload.credentials || []),
+        JSON.stringify(payload.approaches || []),
+        payload.next_slot_label || null
+      ]
+    );
+
+    await db.query(
+      `update users
+       set full_name = $2,
+           display_name = $2,
+           phone = $3
+       where id = $1`,
+      [req.user.sub, payload.full_name, payload.phone]
+    );
+
+    const row = updatedExpertRes.rows[0];
+    return res.json({
+      success: true,
+      data: {
+        ...row,
+        specialties: ensureArray(row.specialties),
+        credentials: ensureArray(row.credentials),
+        approaches: ensureArray(row.approaches)
+      }
+    });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({
+        success: false,
+        message: error.issues?.[0]?.message || 'Invalid expert profile payload'
+      });
+    }
+
+    console.error('Expert portal profile update error:', error);
+    return res.status(500).json({ success: false, message: 'Could not update expert profile' });
   }
 });
 
@@ -343,6 +438,38 @@ function mapExpert(row, matchingTags) {
 function ensureArray(value) {
   return Array.isArray(value) ? value : [];
 }
+
+function csvToArray(value) {
+  if (Array.isArray(value)) return value;
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    if (!trimmed) return [];
+    try {
+      const parsed = JSON.parse(trimmed);
+      if (Array.isArray(parsed)) return parsed;
+    } catch (_) {}
+    return trimmed.split(',').map((item) => item.trim()).filter(Boolean);
+  }
+  return [];
+}
+
+const csvOrArraySchema = z.preprocess(csvToArray, z.array(z.string()).default([]));
+
+const expertProfileSchema = z.object({
+  full_name: z.string().min(2, 'Vui lòng nhập họ tên.').max(255),
+  degree: z.string().min(2, 'Vui lòng nhập bằng cấp.'),
+  phone: z.string().min(6, 'Số điện thoại không hợp lệ.').max(30),
+  avatar_emoji: z.string().min(1).max(16).default('👩‍⚕️'),
+  status: z.enum(['online', 'busy', 'offline']),
+  base_price: z.coerce.number().int().min(0).max(100000000).default(0),
+  location: z.string().max(255).optional().nullable(),
+  experience_years: z.coerce.number().int().min(0).max(80).default(0),
+  specialties: csvOrArraySchema,
+  bio: z.string().optional().nullable(),
+  credentials: csvOrArraySchema,
+  approaches: csvOrArraySchema,
+  next_slot_label: z.string().max(255).optional().nullable()
+});
 
 function round1(value) {
   return Math.round((value || 0) * 10) / 10;

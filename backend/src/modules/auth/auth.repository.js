@@ -189,7 +189,8 @@ export async function findApplicationByToken(token) {
 
 export async function findLatestApplicationByUserId(userId) {
   const result = await db.query(
-    `select id, user_id, status, full_name, degree, phone, credential_filename, created_at, reviewed_at
+    `select id, user_id, status, full_name, degree, phone, specialties, experience_years,
+            location, bio, credential_filename, created_at, reviewed_at
      from expert_applications
      where user_id = $1
      order by created_at desc

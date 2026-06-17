@@ -48,6 +48,13 @@ export const auth = {
         return data;
     },
 
+    async updateExpertProfile(payload) {
+        EventLogger.log('auth', 'update_expert_profile:attempt');
+        const data = await apiClient.put('/expert-portal/profile', payload);
+        EventLogger.log('auth', 'update_expert_profile:success');
+        return data;
+    },
+
     async login(email, password) {
         // Người dùng đăng nhập vào tài khoản
         EventLogger.log('auth', 'login:attempt', { email: String(email || '').trim().toLowerCase() });
