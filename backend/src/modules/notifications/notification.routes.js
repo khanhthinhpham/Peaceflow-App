@@ -121,6 +121,19 @@ router.get('/notifications', requireAuth, async (req, res) => {
 
     // Tương tác cộng đồng từ bảng notifications (đã gộp theo group_key)
     communityNotifsRes.rows.forEach((row) => {
+      // Thông báo lịch hẹn chuyên gia
+      if (row.type === 'booking_new' || row.type === 'booking_update') {
+        notifications.push({
+          id: `booking-${row.group_key || new Date(row.latest).getTime()}`,
+          type: 'booking',
+          icon: '📅',
+          title: row.type === 'booking_new' ? 'Lịch hẹn mới' : 'Cập nhật lịch hẹn',
+          body: row.message,
+          action: row.type === 'booking_new' ? 'expert/app.html?page=dashboard.html' : 'experts.html',
+          created_at: row.latest
+        });
+        return;
+      }
       const isComment = row.type === 'comment';
       const count = row.total;
       const title = isComment
@@ -150,7 +163,7 @@ router.get('/notifications', requireAuth, async (req, res) => {
 
     // Sắp xếp: badge → community → streak warning → reminder
     notifications.sort((a, b) => {
-      const order = { achievement: 0, community: 1, warning: 2, reminder: 3 };
+      const order = { booking: 0, achievement: 1, community: 2, warning: 3, reminder: 4 };
       return (order[a.type] ?? 3) - (order[b.type] ?? 3);
     });
 

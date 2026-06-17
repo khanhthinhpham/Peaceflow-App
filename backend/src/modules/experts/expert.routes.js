@@ -346,18 +346,24 @@ router.get('/expert-bookings/upcoming', requireAuth, async (req, res) => {
   }
 });
 
+const bookingCreateSchema = z.object({
+  session_type: z.enum(['chat', 'voice', 'video', 'inperson']),
+  starts_at: z.coerce.date(),
+  duration_minutes: z.coerce.number().int().min(15).max(240),
+  price: z.coerce.number().int().min(0).optional().default(0),
+  notes: z.string().max(1000).optional().nullable()
+});
+
 router.post('/experts/:id/bookings', requireAuth, async (req, res) => {
   try {
-    const {
-      session_type,
-      starts_at,
-      duration_minutes,
-      price,
-      notes
-    } = req.body;
+    const payload = bookingCreateSchema.parse(req.body);
+
+    if (payload.starts_at.getTime() <= Date.now()) {
+      return res.status(400).json({ success: false, message: 'Thời gian đặt lịch phải ở tương lai.' });
+    }
 
     const expertResult = await db.query(
-      `select id, full_name, degree, avatar_emoji
+      `select id, user_id, full_name, degree, avatar_emoji
        from experts
        where id = $1
          and active = true
@@ -370,29 +376,43 @@ router.post('/experts/:id/bookings', requireAuth, async (req, res) => {
       return res.status(404).json({ success: false, message: 'Expert not found' });
     }
 
+    // Chống trùng giờ: không cho đặt nếu khoảng [starts_at, starts_at+duration) chồng lấn
+    // một booking pending/confirmed khác của cùng chuyên gia.
+    const endsAt = new Date(payload.starts_at.getTime() + payload.duration_minutes * 60000);
+    const overlap = await db.query(
+      `select 1 from expert_bookings
+       where expert_id = $1
+         and status in ('pending', 'confirmed')
+         and tstzrange(starts_at, starts_at + (duration_minutes || ' minutes')::interval) && tstzrange($2, $3)
+       limit 1`,
+      [expert.id, payload.starts_at.toISOString(), endsAt.toISOString()]
+    );
+    if (overlap.rows[0]) {
+      return res.status(409).json({ success: false, message: 'Khung giờ này đã có lịch khác, vui lòng chọn giờ khác.' });
+    }
+
     const bookingResult = await db.query(
-      `insert into expert_bookings (
-         user_id,
-         expert_id,
-         session_type,
-         starts_at,
-         duration_minutes,
-         price,
-         notes,
-         status
-       )
-       values ($1, $2, $3, $4, $5, $6, $7, 'confirmed')
+      `insert into expert_bookings (user_id, expert_id, session_type, starts_at, duration_minutes, price, notes, status)
+       values ($1, $2, $3, $4, $5, $6, $7, 'pending')
        returning *`,
       [
         req.user.sub,
         expert.id,
-        session_type,
-        starts_at,
-        duration_minutes,
-        price || 0,
-        notes || null
+        payload.session_type,
+        payload.starts_at.toISOString(),
+        payload.duration_minutes,
+        payload.price || 0,
+        payload.notes || null
       ]
     );
+
+    // Thông báo cho chuyên gia về lịch hẹn mới (chờ xác nhận)
+    const clientRes = await db.query(
+      `select coalesce(display_name, full_name, 'Một thân chủ') as name from users where id = $1`,
+      [req.user.sub]
+    );
+    const clientName = clientRes.rows[0]?.name || 'Một thân chủ';
+    await notify(expert.user_id, clientName, 'booking_new', `${clientName} vừa đặt một lịch hẹn — chờ bạn xác nhận.`);
 
     return res.json({
       success: true,
@@ -404,8 +424,243 @@ router.post('/experts/:id/bookings', requireAuth, async (req, res) => {
       }
     });
   } catch (error) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ success: false, message: error.issues?.[0]?.message || 'Dữ liệu đặt lịch không hợp lệ' });
+    }
     console.error('Create expert booking error:', error);
     return res.status(500).json({ success: false, message: 'Could not create booking' });
+  }
+});
+
+// ===== EXPERT PORTAL: quản lý vận hành cho chuyên gia =====
+
+// Đổi nhanh trạng thái hoạt động (online/busy/offline)
+router.patch('/expert-portal/status', requireAuth, async (req, res) => {
+  try {
+    if (req.user.role !== 'expert') {
+      return res.status(403).json({ success: false, message: 'Expert access required' });
+    }
+    const { status } = z.object({ status: z.enum(['online', 'busy', 'offline']) }).parse(req.body);
+    const r = await db.query(
+      `update experts set status = $2, updated_at = now() where user_id = $1 returning status`,
+      [req.user.sub, status]
+    );
+    if (!r.rows[0]) {
+      return res.status(404).json({ success: false, message: 'Expert profile not found' });
+    }
+    return res.json({ success: true, data: { status: r.rows[0].status } });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ success: false, message: 'Trạng thái không hợp lệ' });
+    }
+    console.error('Expert status toggle error:', error);
+    return res.status(500).json({ success: false, message: 'Could not update status' });
+  }
+});
+
+// Danh sách toàn bộ lịch hẹn của chuyên gia (để quản lý)
+router.get('/expert-portal/bookings', requireAuth, async (req, res) => {
+  try {
+    if (req.user.role !== 'expert') {
+      return res.status(403).json({ success: false, message: 'Expert access required' });
+    }
+    const eRes = await db.query(`select id from experts where user_id = $1 limit 1`, [req.user.sub]);
+    if (!eRes.rows[0]) {
+      return res.json({ success: true, data: [] });
+    }
+    const r = await db.query(
+      `select eb.id, eb.session_type, eb.starts_at, eb.duration_minutes, eb.price, eb.status, eb.notes, eb.created_at,
+              u.full_name as client_name, u.email as client_email,
+              er.rating as review_rating, er.comment as review_comment
+       from expert_bookings eb
+       join users u on u.id = eb.user_id
+       left join expert_reviews er on er.booking_id = eb.id
+       where eb.expert_id = $1
+       order by eb.starts_at desc`,
+      [eRes.rows[0].id]
+    );
+    return res.json({ success: true, data: r.rows });
+  } catch (error) {
+    console.error('Expert bookings list error:', error);
+    return res.status(500).json({ success: false, message: 'Could not fetch bookings' });
+  }
+});
+
+// Cập nhật trạng thái một lịch hẹn (xác nhận / hoàn thành / huỷ)
+router.patch('/expert-portal/bookings/:id', requireAuth, async (req, res) => {
+  try {
+    if (req.user.role !== 'expert') {
+      return res.status(403).json({ success: false, message: 'Expert access required' });
+    }
+    const { status } = z.object({ status: z.enum(['confirmed', 'completed', 'cancelled']) }).parse(req.body);
+    const eRes = await db.query(`select id, full_name from experts where user_id = $1 limit 1`, [req.user.sub]);
+    const expert = eRes.rows[0];
+    if (!expert) {
+      return res.status(404).json({ success: false, message: 'Expert profile not found' });
+    }
+    const bRes = await db.query(
+      `select id, status, user_id from expert_bookings where id = $1 and expert_id = $2 limit 1`,
+      [req.params.id, expert.id]
+    );
+    const booking = bRes.rows[0];
+    if (!booking) {
+      return res.status(404).json({ success: false, message: 'Không tìm thấy lịch hẹn.' });
+    }
+
+    const updated = await db.query(
+      `update expert_bookings set status = $2 where id = $1 returning *`,
+      [booking.id, status]
+    );
+
+    // Tăng số buổi đã hoàn thành (chỉ khi chuyển sang completed lần đầu)
+    if (status === 'completed' && booking.status !== 'completed') {
+      await db.query(`update experts set sessions_count = coalesce(sessions_count, 0) + 1 where id = $1`, [expert.id]);
+    }
+
+    const labelMap = { confirmed: 'đã xác nhận', completed: 'đã hoàn thành', cancelled: 'đã huỷ' };
+    await notify(booking.user_id, expert.full_name, 'booking_update',
+      `Chuyên gia ${expert.full_name} ${labelMap[status]} lịch hẹn của bạn.`);
+
+    return res.json({ success: true, data: updated.rows[0] });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ success: false, message: 'Trạng thái không hợp lệ' });
+    }
+    console.error('Expert booking update error:', error);
+    return res.status(500).json({ success: false, message: 'Could not update booking' });
+  }
+});
+
+// ===== Lịch rảnh hằng tuần =====
+
+router.get('/expert-portal/availability', requireAuth, async (req, res) => {
+  try {
+    if (req.user.role !== 'expert') {
+      return res.status(403).json({ success: false, message: 'Expert access required' });
+    }
+    const eRes = await db.query(`select id from experts where user_id = $1 limit 1`, [req.user.sub]);
+    if (!eRes.rows[0]) {
+      return res.json({ success: true, data: [] });
+    }
+    const r = await db.query(
+      `select id, weekday, to_char(start_time, 'HH24:MI') as start_time, to_char(end_time, 'HH24:MI') as end_time
+       from expert_availability where expert_id = $1 order by weekday, start_time`,
+      [eRes.rows[0].id]
+    );
+    return res.json({ success: true, data: r.rows });
+  } catch (error) {
+    console.error('Get availability error:', error);
+    return res.status(500).json({ success: false, message: 'Could not fetch availability' });
+  }
+});
+
+router.put('/expert-portal/availability', requireAuth, async (req, res) => {
+  try {
+    if (req.user.role !== 'expert') {
+      return res.status(403).json({ success: false, message: 'Expert access required' });
+    }
+    const { slots } = z.object({
+      slots: z.array(z.object({
+        weekday: z.coerce.number().int().min(0).max(6),
+        start_time: z.string().regex(/^\d{2}:\d{2}$/),
+        end_time: z.string().regex(/^\d{2}:\d{2}$/)
+      })).max(60)
+    }).parse(req.body);
+
+    const eRes = await db.query(`select id from experts where user_id = $1 limit 1`, [req.user.sub]);
+    if (!eRes.rows[0]) {
+      return res.status(404).json({ success: false, message: 'Expert profile not found' });
+    }
+    const expertId = eRes.rows[0].id;
+
+    const client = await db.connect();
+    try {
+      await client.query('begin');
+      await client.query(`delete from expert_availability where expert_id = $1`, [expertId]);
+      for (const s of slots) {
+        if (s.end_time <= s.start_time) continue;
+        await client.query(
+          `insert into expert_availability (expert_id, weekday, start_time, end_time) values ($1, $2, $3, $4)`,
+          [expertId, s.weekday, s.start_time, s.end_time]
+        );
+      }
+      await client.query('commit');
+    } catch (e) {
+      await client.query('rollback');
+      throw e;
+    } finally {
+      client.release();
+    }
+    return res.json({ success: true });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ success: false, message: 'Khung giờ rảnh không hợp lệ' });
+    }
+    console.error('Save availability error:', error);
+    return res.status(500).json({ success: false, message: 'Could not save availability' });
+  }
+});
+
+// Client xem lịch rảnh của một chuyên gia
+router.get('/experts/:id/availability', requireAuth, async (req, res) => {
+  try {
+    const r = await db.query(
+      `select weekday, to_char(start_time, 'HH24:MI') as start_time, to_char(end_time, 'HH24:MI') as end_time
+       from expert_availability where expert_id = $1 order by weekday, start_time`,
+      [req.params.id]
+    );
+    return res.json({ success: true, data: r.rows });
+  } catch (error) {
+    console.error('Public availability error:', error);
+    return res.status(500).json({ success: false, message: 'Could not fetch availability' });
+  }
+});
+
+// ===== Đánh giá sau buổi =====
+router.post('/expert-bookings/:id/review', requireAuth, async (req, res) => {
+  try {
+    const { rating, comment } = z.object({
+      rating: z.coerce.number().int().min(1).max(5),
+      comment: z.string().max(1000).optional().nullable()
+    }).parse(req.body);
+
+    const bRes = await db.query(
+      `select id, expert_id, status from expert_bookings where id = $1 and user_id = $2 limit 1`,
+      [req.params.id, req.user.sub]
+    );
+    const booking = bRes.rows[0];
+    if (!booking) {
+      return res.status(404).json({ success: false, message: 'Không tìm thấy lịch hẹn.' });
+    }
+    if (booking.status !== 'completed') {
+      return res.status(400).json({ success: false, message: 'Chỉ có thể đánh giá buổi đã hoàn thành.' });
+    }
+
+    await db.query(
+      `insert into expert_reviews (booking_id, expert_id, user_id, rating, comment)
+       values ($1, $2, $3, $4, $5)
+       on conflict (booking_id) do update set rating = excluded.rating, comment = excluded.comment, created_at = now()`,
+      [booking.id, booking.expert_id, req.user.sub, rating, comment || null]
+    );
+
+    // Cập nhật lại rating trung bình + tỉ lệ hài lòng của chuyên gia
+    const agg = await db.query(
+      `select round(avg(rating)::numeric, 1) as avg_rating, round(avg(rating) * 20)::int as satisfaction
+       from expert_reviews where expert_id = $1`,
+      [booking.expert_id]
+    );
+    await db.query(
+      `update experts set rating = $2, satisfaction_rate = $3 where id = $1`,
+      [booking.expert_id, agg.rows[0].avg_rating, agg.rows[0].satisfaction]
+    );
+
+    return res.json({ success: true, data: { rating, avg_rating: agg.rows[0].avg_rating } });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ success: false, message: error.issues?.[0]?.message || 'Dữ liệu đánh giá không hợp lệ' });
+    }
+    console.error('Expert review error:', error);
+    return res.status(500).json({ success: false, message: 'Could not submit review' });
   }
 });
 
@@ -437,6 +692,19 @@ function mapExpert(row, matchingTags) {
 
 function ensureArray(value) {
   return Array.isArray(value) ? value : [];
+}
+
+// Ghi một notification (best-effort, không làm hỏng request chính nếu lỗi).
+async function notify(recipientId, actorName, type, message) {
+  if (!recipientId) return;
+  try {
+    await db.query(
+      `insert into notifications (recipient_id, actor_name, type, message) values ($1, $2, $3, $4)`,
+      [recipientId, actorName, type, message]
+    );
+  } catch (e) {
+    console.error('[notify] failed:', e.message);
+  }
 }
 
 function csvToArray(value) {

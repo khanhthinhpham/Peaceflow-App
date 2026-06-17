@@ -358,6 +358,14 @@ export const apiClient = {
         });
     },
 
+    patch(endpoint, data) {
+        this._invalidateRelated(endpoint);
+        return this.request(endpoint, {
+            method: 'PATCH',
+            body: JSON.stringify(data)
+        });
+    },
+
     delete(endpoint) {
         this._invalidateRelated(endpoint);
         return this.request(endpoint, { method: 'DELETE' });
