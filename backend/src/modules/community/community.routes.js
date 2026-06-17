@@ -31,6 +31,7 @@ router.get('/community', requireAuth, async (req, res) => {
            p.*,
            u.display_name,
            u.full_name,
+           (select exists(select 1 from experts e where e.user_id = p.user_id)) as author_is_expert,
            coalesce(
              json_agg(
                distinct jsonb_build_object(
@@ -44,6 +45,7 @@ router.get('/community', requireAuth, async (req, res) => {
                      else coalesce(c.author_name, cu.display_name, cu.full_name, 'Người dùng')
                    end,
                  'author_avatar', c.author_avatar,
+                 'author_is_expert', (select exists(select 1 from experts e where e.user_id = c.user_id)),
                  'is_anonymous', c.is_anonymous,
                  'created_at', c.created_at
                )
@@ -494,6 +496,7 @@ function mapPost(row) {
     name: row.is_anonymous
       ? row.author_name || 'Người ẩn danh'
       : row.author_name || row.display_name || row.full_name || 'Người dùng',
+    isExpert: !row.is_anonymous && Boolean(row.author_is_expert),
     level: null,
     time: formatRelativeTime(row.created_at),
     tag: category,
@@ -508,6 +511,7 @@ function mapPost(row) {
       parentId: comment.parent_id || null,
       avatar: comment.author_avatar || '🌿',
       name: comment.author_name || 'Người dùng',
+      isExpert: !comment.is_anonymous && Boolean(comment.author_is_expert),
       text: comment.content
     })) : [],
     showComments: false,

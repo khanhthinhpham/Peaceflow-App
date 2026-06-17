@@ -155,12 +155,16 @@
     }
 
     // Hiện tag "Chuyên gia" cạnh tên và nút "Quản lý chuyên gia" khi user đã được duyệt.
+    // Mọi phần tử có [data-expert-only] (vd tag cạnh lời chào ở dashboard) cũng được bật/tắt theo.
     function syncExpertUi() {
         const expert = isApprovedExpert();
         const tag = document.getElementById('sidebarExpertTag');
         const portalLink = document.getElementById('sidebarExpertPortal');
         if (tag) tag.style.display = expert ? '' : 'none';
         if (portalLink) portalLink.style.display = expert ? '' : 'none';
+        document.querySelectorAll('[data-expert-only]').forEach((el) => {
+            el.style.display = expert ? '' : 'none';
+        });
     }
 
     function parseTemplateParts(html) {
@@ -392,7 +396,10 @@
             let html = sessionStorage.getItem(SIDEBAR_TEMPLATE_CACHE_KEY);
 
             if (!html) {
-                const response = await fetch(templateUrl, { cache: 'force-cache' });
+                // Gắn version vào URL: force-cache chỉ so theo URL, nên khi template đổi
+                // (bump version) URL mới sẽ không khớp cache cũ → fetch lại bản mới.
+                const versionedUrl = `${templateUrl}${templateUrl.includes('?') ? '&' : '?'}v=4`;
+                const response = await fetch(versionedUrl, { cache: 'force-cache' });
                 if (!response.ok) {
                     throw new Error(`Sidebar template load failed: ${response.status}`);
                 }
@@ -458,6 +465,8 @@
 
     // Khi /me trả về và merge vào localStorage (waitForAuth), cập nhật lại tag/nút chuyên gia.
     window.addEventListener('user-profile-updated', syncExpertUi);
+    // Khi SPA mount trang mới, phần tử [data-expert-only] trong nội dung trang cần được cập nhật lại.
+    window.addEventListener('peaceflow:route-mounted', syncExpertUi);
 
     if (SPA_NAV_ENABLED) {
         document.addEventListener('click', handleDocumentClick);
