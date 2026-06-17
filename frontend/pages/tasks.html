@@ -2439,6 +2439,20 @@
                 taskPageState.dashboard = dashboard || null;
                 taskPageState.recommendedIds = new Set((dashboard?.tasks || []).map((task) => task.id));
 
+                // Bổ sung AI exercises từ localStorage
+                const _today = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' });
+                const _uid = auth.getUser()?.id || 'guest';
+                const _aiCache = localStorage.getItem(`peaceflow_ai_insight_${_uid}_${_today}`);
+                if (_aiCache) {
+                    try {
+                        const { exercises = [] } = JSON.parse(_aiCache);
+                        exercises.forEach(ex => {
+                            const t = taskPageState.allTasks.find(t => t.title === ex.exercise_name);
+                            if (t) taskPageState.recommendedIds.add(t.id);
+                        });
+                    } catch {}
+                }
+
                 renderHeader(dashboard);
                 renderXpTopbar(dashboard?.progress);
                 renderSuggestionBanner(dashboard);

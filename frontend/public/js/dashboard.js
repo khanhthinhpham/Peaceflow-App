@@ -28,6 +28,8 @@ const dashboard = window.__peaceflowDashboardController || {
         this.state.loading = true;
 
         try {
+            this.state.aiLoaded = false;
+            this.state.aiTasks = null;
             const data = await apiClient.get('/dashboard');
             this.state.data = data;
 
@@ -97,7 +99,7 @@ const dashboard = window.__peaceflowDashboardController || {
         this.renderStats(data.progress, data.latest_mood, data.summary);
         this.renderEmergencyBanner(Boolean(data.summary?.show_emergency_banner));
         this.renderChart(chartPeriod);
-        this.renderInsight(data.insight);
+        if (!this.state.aiLoaded) this.renderInsight(data.insight);
         this.renderRadar(data.wellness?.radar || []);
         this.renderGarden(data.wellness?.garden || [], data.summary?.risk_level);
         this.renderXP(data.progress);
@@ -270,7 +272,8 @@ const dashboard = window.__peaceflowDashboardController || {
         if (!card) return;
 
         const today = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' });
-        const cacheKey = `peaceflow_ai_insight_${today}`;
+        const userId = this.state.data?.user?.id || auth.getUser()?.id || 'guest';
+        const cacheKey = `peaceflow_ai_insight_${userId}_${today}`;
         const rawTasks = await apiClient.get('/tasks').catch(() => []);
         const tasks = Array.isArray(rawTasks) ? rawTasks : [];
 
@@ -279,6 +282,7 @@ const dashboard = window.__peaceflowDashboardController || {
             try {
                 const p = JSON.parse(cached);
                 this.renderAiInsight(card, p.recommendation || '', p.exercises || [], tasks);
+                this.state.aiLoaded = true;
                 const aiTasks = this._mapExercisesToTasks(p.exercises || [], tasks);
                 if (aiTasks.length) {
                     this.state.aiTasks = aiTasks;
@@ -306,6 +310,7 @@ const dashboard = window.__peaceflowDashboardController || {
             if (recommendation || exercises.length) {
                 localStorage.setItem(cacheKey, JSON.stringify({ recommendation, exercises }));
                 this.renderAiInsight(card, recommendation, exercises, tasks);
+                this.state.aiLoaded = true;
                 const aiTasks = this._mapExercisesToTasks(exercises, tasks);
                 if (aiTasks.length) {
                     this.state.aiTasks = aiTasks;

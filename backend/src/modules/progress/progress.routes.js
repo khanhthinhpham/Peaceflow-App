@@ -15,9 +15,47 @@ const LEVELS = [
 // GET /api/v1/progress
 router.get('/progress', requireAuth, async (req, res) => {
   try {
+  const userId = req.user.sub;
+
+  // --- Streak check-in: chi can vao app la tinh streak (khong can lam nhiem vu) ---
+  const now = new Date();
+  const todayIso = now.toLocaleDateString('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' });
+  const yesterdayIso = new Date(now - 864e5).toLocaleDateString('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' });
+
+  const existing = await db.query(
+    `select current_streak, longest_streak, last_activity_date
+     from user_progress where user_id = $1 limit 1`,
+    [userId]
+  ).catch((e) => { console.error('[PROGRESS_CHECKIN] read:', e.message); return { rows: [] }; });
+
+  const prev = existing.rows[0];
+  const lastActivity = formatDateOnly(prev?.last_activity_date);
+
+  if (lastActivity !== todayIso) {
+    let nextStreak;
+    if (lastActivity === yesterdayIso) {
+      nextStreak = (prev?.current_streak || 0) + 1;
+    } else {
+      nextStreak = 1;
+    }
+    const longestStreak = Math.max(prev?.longest_streak || 0, nextStreak);
+
+    await db.query(
+      `insert into user_progress (user_id, current_streak, longest_streak, last_activity_date)
+       values ($1, $2, $3, $4)
+       on conflict (user_id)
+       do update set
+         current_streak = excluded.current_streak,
+         longest_streak = excluded.longest_streak,
+         last_activity_date = excluded.last_activity_date`,
+      [userId, nextStreak, longestStreak, todayIso]
+    ).catch((e) => { console.error('[PROGRESS_CHECKIN] write:', e.message); });
+  }
+  // --- het phan check-in ---
+
   const result = await db.query(
     `select * from user_progress where user_id = $1 limit 1`,
-    [req.user.sub]
+    [userId]
   ).catch((e) => { console.error('[PROGRESS_QUERY] user_progress:', e.message); return { rows: [] }; });
   const weeklyTasks = await db.query(
     `select count(*)::int as count
@@ -651,6 +689,16 @@ function isRecentBadge(value) {
   const now = Date.now();
   const diff = now - earnedAt.getTime();
   return diff >= 0 && diff <= (7 * 24 * 60 * 60 * 1000);
+}
+
+function formatDateOnly(value) {
+  if (!value) return null;
+  if (typeof value === 'string') return value.slice(0, 10);
+  const date = value instanceof Date ? value : new Date(value);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
 }
 
 export default router;
