@@ -190,10 +190,35 @@ export async function findApplicationByToken(token) {
 export async function findLatestApplicationByUserId(userId) {
   const result = await db.query(
     `select id, user_id, status, full_name, degree, phone, specialties, experience_years,
-            location, bio, credential_filename, created_at, reviewed_at
+            location, bio, credential_filename, expert_id, created_at, reviewed_at
      from expert_applications
      where user_id = $1
      order by created_at desc
+     limit 1`,
+    [userId]
+  );
+  return result.rows[0] || null;
+}
+
+export async function listApplicationsByUserId(userId) {
+  const result = await db.query(
+    `select id, user_id, status, full_name, phone, degree, specialties, experience_years,
+            location, bio, credential_filename, expert_id, created_at, reviewed_at
+     from expert_applications
+     where user_id = $1
+     order by created_at desc`,
+    [userId]
+  );
+  return result.rows;
+}
+
+export async function findExpertByUserId(userId) {
+  const result = await db.query(
+    `select id, code, full_name, degree, phone, avatar_emoji, status, rating, sessions_count,
+            satisfaction_rate, base_price, location, experience_years, specialties, bio,
+            credentials, approaches, next_slot_label, active, user_id, created_at, updated_at
+     from experts
+     where user_id = $1
      limit 1`,
     [userId]
   );
@@ -216,7 +241,6 @@ export async function approveApplication(application) {
   try {
     await client.query('begin');
 
-    // Kích hoạt tài khoản chuyên gia
     await client.query(
       `update users
        set status = 'active', email_verified = true, role = 'expert', phone = coalesce(phone, $2)
@@ -224,26 +248,58 @@ export async function approveApplication(application) {
       [application.user_id, application.phone]
     );
 
-    // Tạo bản ghi trong bảng experts (nếu chưa có cho user này)
-    const code = `EXP-${crypto.randomBytes(4).toString('hex').toUpperCase()}`;
-    const expertRes = await client.query(
-      `insert into experts
-        (code, full_name, degree, phone, location, experience_years, specialties, bio, user_id, status, active)
-       values ($1, $2, $3, $4, $5, $6, $7::jsonb, $8, $9, 'offline', true)
-       returning id`,
-      [
-        code,
-        application.full_name,
-        application.degree,
-        application.phone,
-        application.location || null,
-        application.experience_years || 0,
-        JSON.stringify(application.specialties || []),
-        application.bio || null,
-        application.user_id
-      ]
+    const existingExpertRes = await client.query(
+      `select id from experts where user_id = $1 limit 1`,
+      [application.user_id]
     );
-    const expertId = expertRes.rows[0].id;
+
+    let expertId;
+    if (existingExpertRes.rows[0]) {
+      expertId = existingExpertRes.rows[0].id;
+      await client.query(
+        `update experts
+         set full_name = $2,
+             degree = $3,
+             phone = $4,
+             location = $5,
+             experience_years = $6,
+             specialties = $7::jsonb,
+             bio = $8,
+             active = true,
+             updated_at = now()
+         where id = $1`,
+        [
+          expertId,
+          application.full_name,
+          application.degree,
+          application.phone,
+          application.location || null,
+          application.experience_years || 0,
+          JSON.stringify(application.specialties || []),
+          application.bio || null
+        ]
+      );
+    } else {
+      const code = `EXP-${crypto.randomBytes(4).toString('hex').toUpperCase()}`;
+      const expertRes = await client.query(
+        `insert into experts
+          (code, full_name, degree, phone, location, experience_years, specialties, bio, user_id, status, active)
+         values ($1, $2, $3, $4, $5, $6, $7::jsonb, $8, $9, 'offline', true)
+         returning id`,
+        [
+          code,
+          application.full_name,
+          application.degree,
+          application.phone,
+          application.location || null,
+          application.experience_years || 0,
+          JSON.stringify(application.specialties || []),
+          application.bio || null,
+          application.user_id
+        ]
+      );
+      expertId = expertRes.rows[0].id;
+    }
 
     await client.query(
       `update expert_applications

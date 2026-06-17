@@ -180,6 +180,10 @@
         if (user?.role === 'expert') {
           try {
             const expertState = await auth.getMyExpertApplication();
+            if (expertState?.application?.status === 'pending') {
+              window.location.replace('expert/review-status.html');
+              return;
+            }
             if (expertState?.application?.status === 'approved') {
               window.location.replace('expert/dashboard.html');
               return;

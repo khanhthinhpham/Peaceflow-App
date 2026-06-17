@@ -3,7 +3,8 @@ import { escapeHtml } from './utils.js';
 
 const NAV_ITEMS = [
     { href: 'dashboard.html', key: 'dashboard', icon: '🏡', label: 'Tổng quan' },
-    { href: 'application.html', key: 'application', icon: '🗂️', label: 'Hồ sơ chuyên gia' }
+    { href: 'application.html', key: 'application', icon: '🗂️', label: 'Hồ sơ chuyên gia' },
+    { href: 'review-status.html', key: 'review-status', icon: '🧾', label: 'Lịch sử xét duyệt' }
 ];
 
 export function mountExpertShell({ active, title, subtitle, badgeText }) {

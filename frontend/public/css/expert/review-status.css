@@ -1,0 +1,120 @@
+.expert-review-layout {
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: 18px;
+}
+
+.expert-review-panel {
+  padding: 22px;
+}
+
+.expert-review-list {
+  display: grid;
+  gap: 14px;
+}
+
+.expert-review-item {
+  padding: 18px;
+  border-radius: 18px;
+  border: 1px solid rgba(74, 55, 40, 0.12);
+  background: rgba(255,255,255,0.72);
+}
+
+.expert-review-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+  margin-bottom: 10px;
+}
+
+.expert-review-title {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.expert-review-sub {
+  margin: 4px 0 0;
+  color: var(--text-secondary);
+  font-size: 0.92rem;
+}
+
+.expert-status-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 12px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 800;
+}
+
+.expert-status-pill.pending {
+  background: #fff4cc;
+  color: #6b5b2a;
+}
+
+.expert-status-pill.approved {
+  background: rgba(197, 232, 210, 0.65);
+  color: var(--mint-dark);
+}
+
+.expert-status-pill.rejected {
+  background: rgba(255, 227, 227, 0.92);
+  color: #8a2f2f;
+}
+
+.expert-review-meta {
+  display: grid;
+  gap: 8px;
+  color: var(--text-secondary);
+  font-size: 0.92rem;
+}
+
+.expert-review-meta strong {
+  color: var(--expert-ink);
+}
+
+.expert-rereview-box {
+  padding: 22px;
+}
+
+.expert-rereview-box h2 {
+  margin-top: 0;
+  margin-bottom: 10px;
+}
+
+.expert-rereview-box p {
+  color: var(--text-secondary);
+  line-height: 1.65;
+}
+
+.expert-rereview-summary {
+  margin: 16px 0;
+  padding: 16px;
+  border-radius: 18px;
+  background: rgba(255,255,255,0.72);
+  border: 1px solid rgba(74, 55, 40, 0.12);
+}
+
+.expert-rereview-summary div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px dashed rgba(74,55,40,0.12);
+}
+
+.expert-rereview-summary div:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+
+.expert-rereview-summary span {
+  color: var(--text-light);
+}
+
+@media (max-width: 980px) {
+  .expert-review-layout {
+    grid-template-columns: 1fr;
+  }
+}

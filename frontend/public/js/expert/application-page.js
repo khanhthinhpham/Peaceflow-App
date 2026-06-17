@@ -55,6 +55,7 @@ function renderState() {
         document.getElementById('submitBtn').textContent = 'Cập nhật hồ sơ chuyên gia';
         document.getElementById('expertFormHelper').textContent = 'Bạn đang chỉnh sửa profile đã được duyệt trong bảng experts. Các thay đổi này cập nhật trực tiếp hồ sơ chuyên gia hiện hành.';
         showExpertBanner('Hồ sơ đã được duyệt. Bạn có thể cập nhật profile chuyên gia ngay trên hệ thống.', 'success');
+        document.getElementById('expertFormHelper').textContent = 'Nếu bạn muốn nộp lại bằng cấp hoặc chứng chỉ mới để xét duyệt lại, hãy dùng trang Lịch sử xét duyệt.';
         return;
     }
 
@@ -173,6 +174,7 @@ function wireSubmit() {
                 hydrateFromExpertProfile(updated);
             } else {
                 const formData = new FormData();
+                formData.set('full_name', fullName);
                 formData.set('phone', phone);
                 formData.set('degree', degree);
                 formData.set('specialties', specialties);

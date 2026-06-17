@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lịch Sử Xét Duyệt — PeaceFlow</title>
+    <link rel="icon" href="../../public/favicon.jpg" type="image/svg+xml">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Patrick+Hand&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../../public/css/style.css">
+    <link rel="stylesheet" href="../../public/css/expert/portal.css">
+    <link rel="stylesheet" href="../../public/css/expert/review-status.css">
+</head>
+<body class="expert-portal-body">
+    <div class="expert-portal">
+        <aside class="expert-sidebar" id="expertSidebar"></aside>
+        <main class="expert-main">
+            <header class="expert-topbar">
+                <div>
+                    <p class="expert-page-kicker">PeaceFlow Expert</p>
+                    <h1 class="expert-page-title" id="expertPageTitle"></h1>
+                    <p class="expert-page-subtitle" id="expertPageSubtitle"></p>
+                </div>
+                <div class="expert-badge" id="expertPageBadge"></div>
+            </header>
+
+            <div class="expert-status-banner" id="expertStatusBanner"></div>
+
+            <section class="expert-review-layout">
+                <article class="expert-panel expert-review-panel">
+                    <h2 class="expert-section-title">Timeline hồ sơ</h2>
+                    <div class="expert-review-list" id="reviewHistory"></div>
+                </article>
+
+                <aside class="expert-panel expert-rereview-box">
+                    <h2>Gửi lại bằng cấp / chứng chỉ</h2>
+                    <p>
+                        Khi profile chuyên gia của bạn đã hoạt động nhưng có bằng cấp, chứng chỉ hoặc tài liệu xác thực mới,
+                        bạn có thể gửi lại hồ sơ để admin xét duyệt lại mà không làm gián đoạn profile hiện hành.
+                    </p>
+
+                    <div class="expert-rereview-summary" id="rereviewSummary"></div>
+
+                    <form id="rereviewForm">
+                        <div class="form-group">
+                            <label class="form-label" for="rereviewCredentialFile">File mới để xét duyệt lại</label>
+                            <input type="file" id="rereviewCredentialFile" class="form-input" accept=".pdf,image/*,.doc,.docx,application/pdf" required>
+                            <div class="field-hint">Hệ thống sẽ dùng hồ sơ chuyên gia hiện tại của bạn và gắn file mới để admin review lại.</div>
+                        </div>
+
+                        <button type="submit" id="rereviewBtn" class="btn-primary" style="width:100%;">
+                            Gửi lại để xét duyệt
+                        </button>
+                    </form>
+                </aside>
+            </section>
+        </main>
+    </div>
+
+    <script type="module" src="../../public/js/expert/review-status-page.js"></script>
+</body>
+</html>

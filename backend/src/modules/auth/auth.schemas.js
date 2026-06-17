@@ -25,6 +25,7 @@ export const registerExpertSchema = z.object({
 });
 
 export const expertApplicationSchema = z.object({
+  full_name: z.string().min(2, 'Vui lòng nhập họ tên.').optional(),
   phone: z.string().min(6, 'Số điện thoại không hợp lệ.'),
   degree: z.string().min(2, 'Vui lòng nhập bằng cấp.'),
   specialties: z.preprocess((v) => {

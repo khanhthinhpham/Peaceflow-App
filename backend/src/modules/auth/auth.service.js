@@ -18,7 +18,9 @@ import {
   createExpertUser,
   createExpertApplication,
   findApplicationByToken,
+  findExpertByUserId,
   findLatestApplicationByUserId,
+  listApplicationsByUserId,
   getCredentialByToken,
   approveApplication,
   rejectApplication,
@@ -122,14 +124,13 @@ export async function submitExpertApplication(userId, data, file) {
   if (latestApplication?.status === 'pending') {
     throw createAuthError('Hồ sơ chuyên gia của bạn đang chờ admin duyệt.', 409);
   }
-  if (latestApplication?.status === 'approved') {
-    throw createAuthError('Tài khoản này đã có hồ sơ chuyên gia được duyệt.', 409);
-  }
+
+  const existingExpert = await findExpertByUserId(userId);
 
   const approvalToken = generateSecureToken();
   const application = await createExpertApplication({
     user_id: user.id,
-    full_name: user.full_name,
+    full_name: data.full_name || user.full_name,
     phone: data.phone || user.phone || '',
     degree: data.degree,
     specialties: data.specialties || [],
@@ -142,7 +143,9 @@ export async function submitExpertApplication(userId, data, file) {
     approval_token: approvalToken
   });
 
-  await updateUserStatus(user.id, 'pending');
+  if (!existingExpert) {
+    await updateUserStatus(user.id, 'pending');
+  }
 
   try {
     await sendExpertApplicationToAdmin({
@@ -172,7 +175,9 @@ export async function getMyExpertApplication(userId) {
     role: user.role,
     email_verified: user.email_verified,
     user_status: user.status,
-    application: await findLatestApplicationByUserId(userId)
+    application: await findLatestApplicationByUserId(userId),
+    applications: await listApplicationsByUserId(userId),
+    has_expert_profile: !!(await findExpertByUserId(userId))
   };
 }
 
