@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="../public/favicon.jpg" type="image/svg+xml">
+    <title>Hồ Sơ Chuyên Gia — PeaceFlow</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../public/css/style.css">
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Nunito', sans-serif;
+            background: linear-gradient(160deg, #f8f1e8 0%, #f3fbf5 100%);
+            color: var(--text-primary);
+        }
+        .page {
+            max-width: 760px;
+            margin: 0 auto;
+            padding: 32px 20px 56px;
+        }
+        .card {
+            background: var(--warm-white);
+            padding: 28px 22px;
+        }
+        .title {
+            margin: 0 0 10px;
+            font-size: 1.8rem;
+        }
+        .subtitle {
+            margin: 0 0 22px;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+        .status {
+            display: none;
+            margin-bottom: 18px;
+            padding: 12px 14px;
+            border-radius: var(--radius-sm);
+            border: 1px solid transparent;
+            line-height: 1.5;
+        }
+        .status.show { display: block; }
+        .status.info { background: #FFF4CC; color: #6B5B2A; border-color: #FFE08A; }
+        .status.error { background: #FFE3E3; color: #8A2F2F; border-color: #FFB8B8; }
+        .status.success { background: var(--mint-light); color: var(--mint-dark); border-color: var(--mint); }
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+        }
+        .grid .full {
+            grid-column: 1 / -1;
+        }
+        @media (max-width: 640px) {
+            .grid { grid-template-columns: 1fr; }
+        }
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 18px;
+            gap: 14px;
+        }
+        .topbar a {
+            color: var(--mint-dark);
+            font-weight: 800;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <main class="page">
+        <div class="topbar">
+            <a href="dashboard.html">&larr; Về dashboard</a>
+            <a href="#" id="logoutLink">Đăng xuất</a>
+        </div>
+
+        <section class="paper-card card">
+            <h1 class="title">Nộp hồ sơ chuyên gia</h1>
+            <p class="subtitle">
+                Hoàn tất hồ sơ chuyên môn của bạn sau khi đã xác minh email. Hồ sơ sẽ được admin xem xét trước khi kích hoạt quyền chuyên gia.
+            </p>
+
+            <div id="pageStatus" class="status"></div>
+
+            <form id="expertApplicationForm">
+                <div class="grid">
+                    <div class="form-group">
+                        <label class="form-label" for="phone">Số điện thoại</label>
+                        <input type="text" id="phone" class="form-input" placeholder="Nhập số điện thoại liên hệ" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="experienceYears">Số năm kinh nghiệm</label>
+                        <input type="number" id="experienceYears" class="form-input" min="0" max="80" placeholder="0" required>
+                    </div>
+
+                    <div class="form-group full">
+                        <label class="form-label" for="degree">Bằng cấp</label>
+                        <input type="text" id="degree" class="form-input" placeholder="Ví dụ: Thạc sĩ Tâm lý lâm sàng" required>
+                    </div>
+
+                    <div class="form-group full">
+                        <label class="form-label" for="specialties">Chuyên môn</label>
+                        <input type="text" id="specialties" class="form-input" placeholder="Ví dụ: trị liệu cá nhân, CBT, sang chấn">
+                        <div class="field-hint">Ngăn cách bằng dấu phẩy.</div>
+                    </div>
+
+                    <div class="form-group full">
+                        <label class="form-label" for="location">Nơi công tác</label>
+                        <input type="text" id="location" class="form-input" placeholder="Bệnh viện, phòng khám, trung tâm...">
+                    </div>
+
+                    <div class="form-group full">
+                        <label class="form-label" for="bio">Giới thiệu ngắn</label>
+                        <textarea id="bio" class="form-input" rows="5" placeholder="Kinh nghiệm, thế mạnh chuyên môn, cách bạn hỗ trợ thân chủ..."></textarea>
+                    </div>
+
+                    <div class="form-group full">
+                        <label class="form-label" for="credentialFile">File bằng cấp</label>
+                        <input type="file" id="credentialFile" class="form-input" accept=".pdf,image/*,.doc,.docx,application/pdf" required>
+                        <div class="field-hint">Hỗ trợ PDF hoặc ảnh, tối đa 10MB.</div>
+                    </div>
+                </div>
+
+                <button type="submit" id="submitBtn" class="btn-primary" style="width:100%;margin-top:10px;">
+                    Gửi hồ sơ chuyên gia
+                </button>
+            </form>
+        </section>
+    </main>
+
+    <script type="module">
+        import { auth } from '../public/js/auth.js';
+
+        const form = document.getElementById('expertApplicationForm');
+        const submitBtn = document.getElementById('submitBtn');
+        const statusBox = document.getElementById('pageStatus');
+
+        function showStatus(message, type = 'info') {
+            statusBox.textContent = message;
+            statusBox.className = `status show ${type}`;
+        }
+
+        async function bootstrap() {
+            const ok = await auth.waitForAuth();
+            if (!ok) {
+                window.location.replace('login.html');
+                return false;
+            }
+
+            const user = auth.getUser();
+            if (user?.role !== 'expert') {
+                window.location.replace('dashboard.html');
+                return false;
+            }
+
+            const expertState = await auth.getMyExpertApplication();
+            if (!expertState?.email_verified) {
+                showStatus('Bạn cần xác minh email trước khi nộp hồ sơ chuyên gia.', 'info');
+                form.style.display = 'none';
+                return false;
+            }
+            if (expertState?.application?.status === 'pending') {
+                showStatus('Hồ sơ của bạn đang chờ admin duyệt. Chúng tôi sẽ thông báo qua email khi có kết quả.', 'info');
+                form.style.display = 'none';
+                return false;
+            }
+            if (expertState?.application?.status === 'approved') {
+                showStatus('Hồ sơ chuyên gia của bạn đã được duyệt. Bạn có thể sử dụng tài khoản như một chuyên gia.', 'success');
+                form.style.display = 'none';
+                return false;
+            }
+            if (expertState?.application?.status === 'rejected') {
+                showStatus('Hồ sơ trước đó chưa được duyệt. Bạn có thể cập nhật và gửi lại hồ sơ mới.', 'info');
+            }
+
+            return true;
+        }
+
+        form.addEventListener('submit', async (event) => {
+            event.preventDefault();
+
+            const phone = document.getElementById('phone').value.trim();
+            const degree = document.getElementById('degree').value.trim();
+            const specialties = document.getElementById('specialties').value.trim();
+            const experienceYears = document.getElementById('experienceYears').value.trim();
+            const location = document.getElementById('location').value.trim();
+            const bio = document.getElementById('bio').value.trim();
+            const credentialFile = document.getElementById('credentialFile').files[0];
+
+            if (!phone || phone.length < 6) {
+                showStatus('Vui lòng nhập số điện thoại hợp lệ.', 'error');
+                return;
+            }
+            if (!degree || degree.length < 2) {
+                showStatus('Vui lòng nhập bằng cấp.', 'error');
+                return;
+            }
+            if (!credentialFile) {
+                showStatus('Vui lòng tải lên file bằng cấp.', 'error');
+                return;
+            }
+
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Đang gửi hồ sơ...';
+
+            try {
+                const formData = new FormData();
+                formData.set('phone', phone);
+                formData.set('degree', degree);
+                formData.set('specialties', specialties);
+                formData.set('experience_years', experienceYears || '0');
+                formData.set('location', location);
+                formData.set('bio', bio);
+                formData.set('credential_file', credentialFile);
+
+                await auth.submitExpertApplication(formData);
+                showStatus('Hồ sơ chuyên gia đã được gửi thành công. Admin sẽ xem xét và phản hồi qua email.', 'success');
+                form.style.display = 'none';
+            } catch (error) {
+                showStatus(error.message || 'Không thể gửi hồ sơ chuyên gia.', 'error');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Gửi hồ sơ chuyên gia';
+            }
+        });
+
+        document.getElementById('logoutLink').addEventListener('click', async (event) => {
+            event.preventDefault();
+            await auth.logout();
+        });
+
+        bootstrap().catch((error) => {
+            console.error(error);
+            showStatus('Không thể tải trạng thái hồ sơ chuyên gia lúc này.', 'error');
+            form.style.display = 'none';
+        });
+    </script>
+</body>
+</html>

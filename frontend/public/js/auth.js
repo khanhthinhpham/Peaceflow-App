@@ -30,6 +30,17 @@ export const auth = {
         return data;
     },
 
+    async getMyExpertApplication() {
+        return apiClient.get('/auth/expert-application/me', { noCache: true });
+    },
+
+    async submitExpertApplication(formData) {
+        EventLogger.log('auth', 'submit_expert_application:attempt');
+        const data = await apiClient.postForm('/auth/expert-application', formData);
+        EventLogger.log('auth', 'submit_expert_application:success', { applicationId: data.application?.id });
+        return data;
+    },
+
     async login(email, password) {
         // Người dùng đăng nhập vào tài khoản
         EventLogger.log('auth', 'login:attempt', { email: String(email || '').trim().toLowerCase() });

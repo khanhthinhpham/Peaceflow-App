@@ -34,7 +34,7 @@
             border-radius: var(--radius-sm);
             border: 2px solid var(--mint-dark);
             font-size: 1.8rem;
-            box-shadow: 3px 3px 0px var(--mint-dark);
+            box-shadow: 3px 3px 0 var(--mint-dark);
             margin-bottom: 20px;
         }
         .auth-title {
@@ -84,33 +84,8 @@
             flex: 1;
             border-bottom: 1px dashed var(--kraft-light);
         }
-        .divider:not(:empty)::before {
-            margin-right: .5em;
-        }
-        .divider:not(:empty)::after {
-            margin-left: .5em;
-        }
-        .btn-google {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            width: 100%;
-            padding: 10px 12px;
-            border: 2px solid var(--kraft-light);
-            border-radius: 50px;
-            background: white;
-            color: var(--text-primary);
-            font-family: 'Nunito', sans-serif;
-            font-size: 0.95rem;
-            font-weight: 700;
-            cursor: pointer;
-            transition: var(--transition);
-        }
-        .btn-google:hover {
-            background: var(--cream);
-            border-color: var(--kraft);
-        }
+        .divider:not(:empty)::before { margin-right: .5em; }
+        .divider:not(:empty)::after { margin-left: .5em; }
     </style>
 </head>
 <body>
@@ -158,6 +133,7 @@
       const form = document.getElementById('loginForm');
       const btn = document.querySelector('button[type="submit"]');
       const msg = document.getElementById('loginError');
+      const params = new URLSearchParams(window.location.search);
 
       function showMessage(text, type = 'info') {
         msg.textContent = text;
@@ -171,26 +147,18 @@
         if (message === 'Account not found' || message === 'Không tìm thấy tài khoản.') {
           return 'Không tìm thấy tài khoản.';
         }
-
         if (message === 'Incorrect password' || message === 'Sai mật khẩu.') {
           return 'Sai mật khẩu.';
         }
-
         if (message === 'Account is inactive' || message === 'Tài khoản hiện đang bị vô hiệu hóa.') {
           return 'Tài khoản hiện đang bị vô hiệu hóa.';
         }
-
         if (message === 'EMAIL_NOT_VERIFIED') {
           return '__EMAIL_NOT_VERIFIED__';
         }
-
-        if (
-          message === 'Hồ sơ chuyên gia của bạn đang chờ admin duyệt.' ||
-          message === 'Há»“ sÆ¡ chuyÃªn gia cá»§a báº¡n Ä‘ang chá» admin duyá»‡t.'
-        ) {
+        if (message === 'Hồ sơ chuyên gia của bạn đang chờ admin duyệt.') {
           return '__EXPERT_PENDING__';
         }
-
         if (message === 'Invalid email or password') {
           return 'Email hoặc mật khẩu không đúng.';
         }
@@ -208,14 +176,29 @@
         sessionStorage.removeItem('peaceflow_post_login_redirect');
         sessionStorage.removeItem('peaceflow_last_login_redirect_at');
 
-        // Thiết bị đã dùng trước → có cache localStorage, bỏ qua gọi API
+        const user = auth.getUser();
+        if (user?.role === 'expert') {
+          try {
+            const expertState = await auth.getMyExpertApplication();
+            if (expertState?.application?.status === 'approved') {
+              window.location.replace(getPostLoginRedirect());
+              return;
+            }
+            if (!expertState?.application || expertState?.application?.status === 'rejected') {
+              window.location.replace('expert-application.html');
+              return;
+            }
+          } catch (e) {
+            console.error('Expert application check failed:', e.message);
+          }
+        }
+
         const onboardingDone = localStorage.getItem('peaceflow_onboarding_done');
         if (onboardingDone) {
           window.location.replace(getPostLoginRedirect());
           return;
         }
 
-        // Thiết bị mới → hỏi server xem user đã từng vào onboarding chưa
         try {
           const res = await apiClient.get('/profile');
           const hasOnboarded = res?.onboarding_answers != null;
@@ -233,13 +216,15 @@
         window.location.replace('onboarding.html');
       }
 
-      // Nếu đã login thì vào dashboard luôn
+      if (params.get('verified') === '1') {
+        showMessage('Email đã được xác minh. Bạn có thể đăng nhập ngay.', 'success');
+      }
+
       (async () => {
         const authenticated = await auth.waitForAuth();
         if (authenticated) redirectAfterLogin();
       })();
 
-      // Google One Tap / button
       const GOOGLE_CLIENT_ID = '287402483358-uiec013q9obn1m8j82ejhkdmuoi3ku6v.apps.googleusercontent.com';
 
       async function handleGoogleCredential(response) {
@@ -269,7 +254,7 @@
           google.accounts.id.renderButton(container, {
             theme: 'outline',
             size: 'large',
-            width: width,
+            width,
             text: 'signin_with',
             shape: 'pill',
             locale: 'vi'
@@ -299,7 +284,6 @@
 
         try {
           await auth.login(email, password);
-
           showMessage('Đăng nhập thành công!', 'success');
           setTimeout(() => redirectAfterLogin(), 700);
         } catch (err) {
@@ -307,7 +291,7 @@
           if (errMsg === '__EMAIL_NOT_VERIFIED__') {
             msg.innerHTML = `
               📧 Email chưa được xác nhận.<br>
-              <span style="font-size:0.85rem;">Kiểm tra hộp thư của bạn và click link xác nhận.
+              <span style="font-size:0.85rem;">Kiểm tra hộp thư của bạn và nhấn vào liên kết xác nhận.
               <a href="#" id="resendVerify" style="color:var(--mint-dark);font-weight:700;">Gửi lại email</a></span>
             `;
             msg.className = 'auth-message info';

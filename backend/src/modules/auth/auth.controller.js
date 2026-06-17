@@ -2,6 +2,7 @@ import { ZodError } from 'zod';
 import {
   registerSchema,
   registerExpertSchema,
+  expertApplicationSchema,
   loginSchema,
   logoutSchema,
   refreshSchema
@@ -49,7 +50,7 @@ export async function register(req, res) {
 export async function registerExpert(req, res) {
   try {
     const payload = registerExpertSchema.parse(req.body);
-    const result = await authService.registerExpert(payload, req.file);
+    const result = await authService.registerExpert(payload);
 
     return res.status(201).json({
       success: true,
@@ -57,6 +58,32 @@ export async function registerExpert(req, res) {
     });
   } catch (error) {
     return sendAuthError(res, error);
+  }
+}
+
+export async function submitExpertApplication(req, res) {
+  try {
+    const payload = expertApplicationSchema.parse(req.body);
+    const result = await authService.submitExpertApplication(req.user.sub, payload, req.file);
+
+    return res.status(201).json({
+      success: true,
+      data: result
+    });
+  } catch (error) {
+    return sendAuthError(res, error);
+  }
+}
+
+export async function getMyExpertApplication(req, res) {
+  try {
+    const result = await authService.getMyExpertApplication(req.user.sub);
+    return res.json({
+      success: true,
+      data: result
+    });
+  } catch (error) {
+    return sendAuthError(res, error, 400);
   }
 }
 

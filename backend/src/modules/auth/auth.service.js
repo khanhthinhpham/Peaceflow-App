@@ -18,9 +18,11 @@ import {
   createExpertUser,
   createExpertApplication,
   findApplicationByToken,
+  findLatestApplicationByUserId,
   getCredentialByToken,
   approveApplication,
-  rejectApplication
+  rejectApplication,
+  updateUserStatus
 } from './auth.repository.js';
 import crypto from 'crypto';
 import { db } from '../../config/db.js';
@@ -65,16 +67,11 @@ export async function register(data) {
     console.error('Failed to send verification email:', e.message);
   }
 
-  // Không tạo session — user phải verify email trước khi login
   return { user };
 }
 
-export async function registerExpert(data, file) {
+export async function registerExpert(data) {
   const normalizedEmail = String(data.email || '').trim().toLowerCase();
-
-  if (!file || !file.buffer || !file.size) {
-    throw createAuthError('Vui lòng tải lên file bằng cấp.', 400);
-  }
 
   const existing = await findUserByEmail(normalizedEmail);
   if (existing) {
@@ -87,7 +84,6 @@ export async function registerExpert(data, file) {
     password_hash: passwordHash,
     full_name: data.full_name,
     display_name: data.display_name || data.full_name,
-    phone: data.phone,
     consent_privacy: data.consent_privacy,
     consent_terms: data.consent_terms
   });
@@ -95,11 +91,46 @@ export async function registerExpert(data, file) {
   await createDefaultProfile(user.id);
   await createDefaultProgress(user.id);
 
+  const verifyToken = generateSecureToken();
+  await createEmailVerificationToken(user.id, verifyToken);
+  try {
+    await sendVerificationEmail(user, verifyToken);
+  } catch (e) {
+    console.error('Failed to send expert verification email:', e.message);
+  }
+
+  return { user };
+}
+
+export async function submitExpertApplication(userId, data, file) {
+  if (!file || !file.buffer || !file.size) {
+    throw createAuthError('Vui lòng tải lên file bằng cấp.', 400);
+  }
+
+  const user = await findUserById(userId);
+  if (!user) {
+    throw createAuthError('Không tìm thấy tài khoản.', 404);
+  }
+  if (user.role !== 'expert') {
+    throw createAuthError('Chỉ tài khoản chuyên gia mới có thể gửi hồ sơ.', 403);
+  }
+  if (!user.email_verified) {
+    throw createAuthError('Vui lòng xác minh email trước khi gửi hồ sơ.', 403);
+  }
+
+  const latestApplication = await findLatestApplicationByUserId(userId);
+  if (latestApplication?.status === 'pending') {
+    throw createAuthError('Hồ sơ chuyên gia của bạn đang chờ admin duyệt.', 409);
+  }
+  if (latestApplication?.status === 'approved') {
+    throw createAuthError('Tài khoản này đã có hồ sơ chuyên gia được duyệt.', 409);
+  }
+
   const approvalToken = generateSecureToken();
   const application = await createExpertApplication({
     user_id: user.id,
-    full_name: data.full_name,
-    phone: data.phone,
+    full_name: user.full_name,
+    phone: data.phone || user.phone || '',
     degree: data.degree,
     specialties: data.specialties || [],
     experience_years: data.experience_years || 0,
@@ -111,17 +142,38 @@ export async function registerExpert(data, file) {
     approval_token: approvalToken
   });
 
+  await updateUserStatus(user.id, 'pending');
+
   try {
     await sendExpertApplicationToAdmin({
-      application: { ...application, email: normalizedEmail },
+      application: { ...application, email: user.email },
       fileBuffer: file.buffer
     });
   } catch (e) {
     console.error('Failed to send expert application email to admin:', e.message);
   }
 
-  // Không tạo session — tài khoản phải được admin duyệt trước
-  return { user: { id: user.id, email: user.email, full_name: user.full_name, status: user.status } };
+  return {
+    application: {
+      id: application.id,
+      status: application.status,
+      created_at: application.created_at
+    }
+  };
+}
+
+export async function getMyExpertApplication(userId) {
+  const user = await findUserById(userId);
+  if (!user) {
+    throw createAuthError('Không tìm thấy tài khoản.', 404);
+  }
+
+  return {
+    role: user.role,
+    email_verified: user.email_verified,
+    user_status: user.status,
+    application: await findLatestApplicationByUserId(userId)
+  };
 }
 
 export async function approveExpertApplication(token) {
@@ -181,7 +233,6 @@ export async function getExpertCredential(token) {
 }
 
 export async function loginWithGoogle(idToken) {
-  // Verify với Google tokeninfo
   const res = await fetch(
     `https://oauth2.googleapis.com/tokeninfo?id_token=${idToken}`
   );
@@ -200,7 +251,6 @@ export async function loginWithGoogle(idToken) {
   let user = await findUserByGoogleEmail(email);
 
   if (!user) {
-    // Tạo tài khoản mới từ Google
     const fullName = payload.name || email.split('@')[0];
     user = await createUser({
       email,
@@ -246,7 +296,6 @@ export async function resendVerificationEmail(email) {
 
 export async function forgotPassword(email) {
   const user = await findUserByEmail(String(email || '').trim().toLowerCase());
-  // Không báo lỗi nếu email không tồn tại (tránh email enumeration)
   if (!user) return;
 
   const token = generateSecureToken();
@@ -272,16 +321,16 @@ export async function login(data) {
     throw createAuthError('Không tìm thấy tài khoản.', 404);
   }
 
+  if (!user.email_verified) {
+    throw createAuthError('EMAIL_NOT_VERIFIED', 403);
+  }
+
   if (user.status === 'pending') {
     throw createAuthError('Hồ sơ chuyên gia của bạn đang chờ admin duyệt.', 403);
   }
 
   if (user.status !== 'active') {
     throw createAuthError('Tài khoản hiện đang bị vô hiệu hóa.', 403);
-  }
-
-  if (!user.email_verified) {
-    throw createAuthError('EMAIL_NOT_VERIFIED', 403);
   }
 
   const passwordMatches = await verifyPassword(user.password_hash, password);
@@ -370,6 +419,8 @@ function sanitizeUser(user) {
     avatar_url: user.avatar_url,
     city: user.city,
     country: user.country,
+    role: user.role,
+    email_verified: user.email_verified,
     status: user.status,
     created_at: user.created_at
   };

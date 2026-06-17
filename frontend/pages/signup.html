@@ -191,14 +191,6 @@
             color: var(--text-primary);
             box-shadow: 2px 2px 0 var(--peach-dark);
         }
-
-        .expert-fields {
-            display: none;
-        }
-
-        .expert-fields.active {
-            display: block;
-        }
     </style>
 </head>
 
@@ -231,45 +223,6 @@
                     <label class="form-label" for="email">Email</label>
                     <input type="email" id="email" class="form-input" placeholder="Nhập email của bạn" required
                         autocomplete="email">
-                </div>
-
-                <div class="expert-fields" id="expertFields">
-                    <div class="form-group">
-                        <label class="form-label" for="phone">Số điện thoại</label>
-                        <input type="text" id="phone" class="form-input" placeholder="Nhập số điện thoại liên hệ" autocomplete="tel">
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label" for="degree">Bằng cấp</label>
-                        <input type="text" id="degree" class="form-input" placeholder="Ví dụ: Thạc sĩ Tâm lý lâm sàng">
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label" for="specialties">Chuyên môn</label>
-                        <input type="text" id="specialties" class="form-input" placeholder="Ví dụ: trị liệu cá nhân, CBT, sang chấn">
-                        <div class="field-hint">Ngăn cách bằng dấu phẩy.</div>
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label" for="experienceYears">Số năm kinh nghiệm</label>
-                        <input type="number" id="experienceYears" class="form-input" placeholder="0" min="0" max="80" inputmode="numeric">
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label" for="location">Nơi công tác</label>
-                        <input type="text" id="location" class="form-input" placeholder="Bệnh viện, phòng khám, trung tâm...">
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label" for="bio">Giới thiệu ngắn</label>
-                        <textarea id="bio" class="form-input" placeholder="Kinh nghiệm, thế mạnh chuyên môn, cách bạn hỗ trợ thân chủ..." rows="4"></textarea>
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label" for="credentialFile">File bằng cấp</label>
-                        <input type="file" id="credentialFile" class="form-input" accept=".pdf,image/*,.doc,.docx,application/pdf">
-                        <div class="field-hint">Hỗ trợ PDF hoặc ảnh, tối đa 10MB.</div>
-                    </div>
                 </div>
 
                 <div class="form-group">
@@ -323,7 +276,6 @@
         const backendSignupForm = document.getElementById('signupForm');
         const backendSignupBtn = document.getElementById('signupBtn');
         const backendSignupMessage = document.getElementById('signupMessage');
-        const expertFields = document.getElementById('expertFields');
         const signupModeUser = document.getElementById('signupModeUser');
         const signupModeExpert = document.getElementById('signupModeExpert');
         const signupDivider = document.getElementById('signupDivider');
@@ -338,16 +290,12 @@
         function setSignupMode(mode) {
             signupMode = mode === 'expert' ? 'expert' : 'user';
             const isExpert = signupMode === 'expert';
-            expertFields.classList.toggle('active', isExpert);
             signupModeUser.classList.toggle('active', !isExpert);
             signupModeExpert.classList.toggle('active', isExpert);
-            document.getElementById('phone').required = isExpert;
-            document.getElementById('degree').required = isExpert;
-            document.getElementById('credentialFile').required = isExpert;
             if (isExpert) {
                 signupDivider.style.display = 'none';
                 googleSignup.style.display = 'none';
-                showBackendMessage('Tài khoản chuyên gia sẽ cần admin duyệt sau khi bạn gửi hồ sơ.', 'info');
+                showBackendMessage('Chuyên gia sẽ xác minh email trước. Sau khi đăng nhập, bạn sẽ được chuyển sang bước nộp hồ sơ và file bằng cấp.', 'info');
             } else {
                 signupDivider.style.display = '';
                 googleSignup.style.display = '';
@@ -421,13 +369,6 @@
             const password = document.getElementById('password').value;
             const confirmPassword = document.getElementById('confirmPassword').value;
             const agreed = document.getElementById('agreeTerms').checked;
-            const phone = document.getElementById('phone').value.trim();
-            const degree = document.getElementById('degree').value.trim();
-            const specialties = document.getElementById('specialties').value.trim();
-            const experienceYears = document.getElementById('experienceYears').value.trim();
-            const location = document.getElementById('location').value.trim();
-            const bio = document.getElementById('bio').value.trim();
-            const credentialFile = document.getElementById('credentialFile').files[0];
             const isExpert = signupMode === 'expert';
 
             if (!fullName || fullName.length < 2) {
@@ -450,21 +391,9 @@
                 showBackendMessage('Bạn cần đồng ý điều khoản để tiếp tục.', 'error');
                 return;
             }
-            if (isExpert && (!phone || phone.length < 6)) {
-                showBackendMessage('Vui lòng nhập số điện thoại hợp lệ.', 'error');
-                return;
-            }
-            if (isExpert && degree.length < 2) {
-                showBackendMessage('Vui lòng nhập bằng cấp.', 'error');
-                return;
-            }
-            if (isExpert && !credentialFile) {
-                showBackendMessage('Vui lòng tải lên file bằng cấp.', 'error');
-                return;
-            }
 
             backendSignupBtn.disabled = true;
-            backendSignupBtn.textContent = isExpert ? 'Đang gửi hồ sơ...' : 'Đang tạo tài khoản...';
+            backendSignupBtn.textContent = 'Đang tạo tài khoản...';
 
             try {
                 if (isExpert) {
@@ -473,15 +402,8 @@
                     formData.set('password', password);
                     formData.set('full_name', fullName);
                     formData.set('display_name', fullName);
-                    formData.set('phone', phone);
-                    formData.set('degree', degree);
-                    formData.set('specialties', specialties);
-                    formData.set('experience_years', experienceYears || '0');
-                    formData.set('location', location);
-                    formData.set('bio', bio);
                     formData.set('consent_privacy', 'true');
                     formData.set('consent_terms', 'true');
-                    formData.set('credential_file', credentialFile);
                     await auth.signupExpert(formData);
                 } else {
                     await auth.signup(email, password, fullName, {
@@ -499,7 +421,7 @@
                 googleSignup?.remove();
                 showBackendMessage(
                     isExpert
-                        ? `✅ Hồ sơ chuyên gia đã được gửi thành công từ ${email}. Admin sẽ nhận email duyệt và bạn sẽ được thông báo khi hồ sơ được chấp thuận.`
+                        ? `✅ Tài khoản chuyên gia đã được tạo cho ${email}. Hãy xác minh email trước, rồi đăng nhập để gửi hồ sơ và file bằng cấp.`
                         : `✅ Đăng ký thành công! Chúng tôi đã gửi email xác nhận đến ${email}. Vui lòng kiểm tra hộp thư và nhấn vào liên kết để kích hoạt tài khoản.`,
                     'success'
                 );

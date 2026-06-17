@@ -11,7 +11,7 @@ export async function findUserByEmail(email) {
 
 export async function findUserById(id) {
   const result = await db.query(
-    `select id, email, full_name, display_name, avatar_url, city, country, status, created_at
+    `select id, email, full_name, display_name, avatar_url, city, country, phone, role, status, email_verified, created_at
      from public.users
      where id = $1
      limit 1`,
@@ -133,7 +133,7 @@ export async function createExpertUser(payload) {
   const result = await db.query(
     `insert into public.users
       (email, password_hash, full_name, display_name, phone, role, status, email_verified, consent_privacy, consent_terms)
-     values ($1, $2, $3, $4, $5, 'expert', 'pending', false, $6, $7)
+     values ($1, $2, $3, $4, $5, 'expert', 'active', false, $6, $7)
      returning id, email, full_name, display_name, phone, role, status, created_at`,
     [
       String(email || '').trim().toLowerCase(),
@@ -183,6 +183,18 @@ export async function findApplicationByToken(token) {
      where a.approval_token = $1
      limit 1`,
     [token]
+  );
+  return result.rows[0] || null;
+}
+
+export async function findLatestApplicationByUserId(userId) {
+  const result = await db.query(
+    `select id, user_id, status, full_name, degree, phone, credential_filename, created_at, reviewed_at
+     from expert_applications
+     where user_id = $1
+     order by created_at desc
+     limit 1`,
+    [userId]
   );
   return result.rows[0] || null;
 }
@@ -258,7 +270,7 @@ export async function rejectApplication(application) {
       [application.id]
     );
     await client.query(
-      `update users set status = 'inactive' where id = $1`,
+      `update users set status = 'active' where id = $1`,
       [application.user_id]
     );
     await client.query('commit');
@@ -268,6 +280,10 @@ export async function rejectApplication(application) {
   } finally {
     client.release();
   }
+}
+
+export async function updateUserStatus(userId, status) {
+  await db.query(`update users set status = $2 where id = $1`, [userId, status]);
 }
 
 export async function createDefaultProfile(userId) {

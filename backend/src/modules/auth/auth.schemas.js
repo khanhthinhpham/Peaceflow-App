@@ -20,9 +20,13 @@ export const registerExpertSchema = z.object({
   password: z.string().min(8),
   full_name: z.string().min(2),
   display_name: z.string().optional(),
+  consent_privacy: coerceBool.refine(v => v === true, 'Bạn cần đồng ý điều khoản.'),
+  consent_terms: coerceBool.refine(v => v === true, 'Bạn cần đồng ý điều khoản.')
+});
+
+export const expertApplicationSchema = z.object({
   phone: z.string().min(6, 'Số điện thoại không hợp lệ.'),
   degree: z.string().min(2, 'Vui lòng nhập bằng cấp.'),
-  // specialties: nhận chuỗi "a, b, c" hoặc JSON array -> chuẩn hoá thành mảng
   specialties: z.preprocess((v) => {
     if (Array.isArray(v)) return v;
     if (typeof v === 'string') {
@@ -31,16 +35,16 @@ export const registerExpertSchema = z.object({
       try {
         const parsed = JSON.parse(s);
         if (Array.isArray(parsed)) return parsed;
-      } catch (_) { /* not JSON */ }
+      } catch (_) {
+        // not JSON
+      }
       return s.split(',').map((x) => x.trim()).filter(Boolean);
     }
     return [];
   }, z.array(z.string()).default([])),
   experience_years: z.coerce.number().int().min(0).max(80).default(0),
   location: z.string().optional().nullable(),
-  bio: z.string().optional().nullable(),
-  consent_privacy: coerceBool.refine(v => v === true, 'Bạn cần đồng ý điều khoản.'),
-  consent_terms: coerceBool.refine(v => v === true, 'Bạn cần đồng ý điều khoản.')
+  bio: z.string().optional().nullable()
 });
 
 export const loginSchema = z.object({

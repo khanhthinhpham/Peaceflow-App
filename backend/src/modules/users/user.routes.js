@@ -7,7 +7,7 @@ const router = Router();
 router.get('/me', requireAuth, async (req, res) => {
   try {
     const result = await db.query(
-      `select id, email, full_name, display_name, phone, gender, avatar_url, city, country, status, created_at
+      `select id, email, full_name, display_name, phone, gender, avatar_url, city, country, role, email_verified, status, created_at
        from users where id = $1`,
       [req.user.sub]
     );
