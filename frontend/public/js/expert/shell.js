@@ -7,14 +7,16 @@ const NAV_ITEMS = [
     { href: 'review-status.html', key: 'review-status', icon: '🧾', label: 'Lịch sử xét duyệt' }
 ];
 
+// Sidebar chỉ dựng một lần cho mỗi session module. Khi chạy trong expert app-shell
+// (SPA), #expertSidebar nằm ngoài vùng nội dung bị thay nên không bị dựng lại khi
+// đổi trang — tránh nhấp nháy và giảm lag. Các lần gọi sau chỉ cập nhật active + tiêu đề.
+let sidebarBuilt = false;
+
 export function mountExpertShell({ active, title, subtitle, badgeText }) {
     const user = auth.getUser() || {};
     const sidebar = document.getElementById('expertSidebar');
-    const titleEl = document.getElementById('expertPageTitle');
-    const subtitleEl = document.getElementById('expertPageSubtitle');
-    const badgeEl = document.getElementById('expertPageBadge');
 
-    if (sidebar) {
+    if (sidebar && !sidebarBuilt) {
         sidebar.innerHTML = `
             <div class="expert-brand">
                 <div class="expert-brand-mark">🌿</div>
@@ -30,7 +32,7 @@ export function mountExpertShell({ active, title, subtitle, badgeText }) {
             </section>
             <nav class="expert-nav">
                 ${NAV_ITEMS.map((item) => `
-                    <a class="expert-nav-link ${item.key === active ? 'active' : ''}" href="${item.href}">
+                    <a class="expert-nav-link" data-nav-key="${item.key}" href="${item.href}">
                         <span class="expert-nav-icon">${item.icon}</span>
                         <span>${item.label}</span>
                     </a>
@@ -41,15 +43,23 @@ export function mountExpertShell({ active, title, subtitle, badgeText }) {
                 <button type="button" id="expertLogoutBtn">Đăng xuất</button>
             </div>
         `;
+        sidebarBuilt = true;
+        document.getElementById('expertLogoutBtn')?.addEventListener('click', async () => {
+            await auth.logout();
+        });
     }
 
+    // Cập nhật trạng thái active mỗi lần đổi trang (không dựng lại sidebar).
+    sidebar?.querySelectorAll('.expert-nav-link').forEach((link) => {
+        link.classList.toggle('active', link.getAttribute('data-nav-key') === active);
+    });
+
+    const titleEl = document.getElementById('expertPageTitle');
+    const subtitleEl = document.getElementById('expertPageSubtitle');
+    const badgeEl = document.getElementById('expertPageBadge');
     if (titleEl) titleEl.textContent = title || '';
     if (subtitleEl) subtitleEl.textContent = subtitle || '';
     if (badgeEl) badgeEl.textContent = badgeText || 'Expert workspace';
-
-    document.getElementById('expertLogoutBtn')?.addEventListener('click', async () => {
-        await auth.logout();
-    });
 }
 
 export async function requireExpertUser() {

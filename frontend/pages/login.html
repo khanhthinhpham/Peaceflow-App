@@ -181,15 +181,15 @@
           try {
             const expertState = await auth.getMyExpertApplication();
             if (expertState?.application?.status === 'pending') {
-              window.location.replace('expert/review-status.html');
+              window.location.replace('expert/app.html?page=review-status.html');
               return;
             }
             if (expertState?.application?.status === 'approved') {
-              window.location.replace('expert/dashboard.html');
+              window.location.replace('expert/app.html?page=dashboard.html');
               return;
             }
             if (!expertState?.application || expertState?.application?.status === 'rejected') {
-              window.location.replace('expert/application.html');
+              window.location.replace('expert/app.html?page=application.html');
               return;
             }
           } catch (e) {
