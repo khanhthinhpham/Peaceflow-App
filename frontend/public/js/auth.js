@@ -21,6 +21,15 @@ export const auth = {
         return data;
     },
 
+    async signupExpert(formData) {
+        EventLogger.log('auth', 'signup_expert:attempt', {
+            email: String(formData.get('email') || '').trim().toLowerCase()
+        });
+        const data = await apiClient.postForm('/auth/register-expert', formData);
+        EventLogger.log('auth', 'signup_expert:success', { userId: data.user?.id });
+        return data;
+    },
+
     async login(email, password) {
         // Người dùng đăng nhập vào tài khoản
         EventLogger.log('auth', 'login:attempt', { email: String(email || '').trim().toLowerCase() });

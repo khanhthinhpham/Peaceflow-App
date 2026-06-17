@@ -27,6 +27,8 @@ export const env = {
   jwtRefreshExpires: process.env.JWT_REFRESH_EXPIRES || '30d',
   resendApiKey: process.env.RESEND_API_KEY,
   emailFrom: process.env.EMAIL_FROM || 'PeaceFlow <onboarding@resend.dev>',
+  adminEmail: process.env.ADMIN_EMAIL || 'hoangtu251004@gmail.com',
+  apiPublicUrl: (process.env.API_PUBLIC_URL || `http://localhost:${process.env.PORT || 4000}`).replace(/\/+$/, ''),
   googleClientId: process.env.GOOGLE_CLIENT_ID,
   frontendUrl: process.env.FRONTEND_URL || 'https://peaceflow.vn',
   anthropicApiKey: process.env.ANTHROPIC_API_KEY,

@@ -184,6 +184,13 @@
           return '__EMAIL_NOT_VERIFIED__';
         }
 
+        if (
+          message === 'Hồ sơ chuyên gia của bạn đang chờ admin duyệt.' ||
+          message === 'Há»“ sÆ¡ chuyÃªn gia cá»§a báº¡n Ä‘ang chá» admin duyá»‡t.'
+        ) {
+          return '__EXPERT_PENDING__';
+        }
+
         if (message === 'Invalid email or password') {
           return 'Email hoặc mật khẩu không đúng.';
         }
@@ -312,6 +319,8 @@
                 document.getElementById('resendVerify').textContent = 'Đã gửi!';
               } catch (_) {}
             });
+          } else if (errMsg === '__EXPERT_PENDING__') {
+            showMessage('Hồ sơ chuyên gia của bạn đang chờ admin duyệt. Vui lòng kiểm tra email để nhận thông báo khi hồ sơ được chấp thuận.', 'info');
           } else {
             showMessage(errMsg, 'error');
           }

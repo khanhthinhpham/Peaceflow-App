@@ -1,3 +1,4 @@
+import crypto from 'crypto';
 import { db } from '../../config/db.js';
 
 export async function findUserByEmail(email) {
@@ -116,6 +117,157 @@ export async function findPasswordResetToken(token) {
 export async function updatePasswordAndMarkTokenUsed(userId, passwordHash, tokenId) {
   await db.query(`update users set password_hash = $1 where id = $2`, [passwordHash, userId]);
   await db.query(`update password_reset_tokens set used_at = now() where id = $1`, [tokenId]);
+}
+
+export async function createExpertUser(payload) {
+  const {
+    email,
+    password_hash,
+    full_name,
+    display_name,
+    phone = null,
+    consent_privacy = false,
+    consent_terms = false
+  } = payload;
+
+  const result = await db.query(
+    `insert into public.users
+      (email, password_hash, full_name, display_name, phone, role, status, email_verified, consent_privacy, consent_terms)
+     values ($1, $2, $3, $4, $5, 'expert', 'pending', false, $6, $7)
+     returning id, email, full_name, display_name, phone, role, status, created_at`,
+    [
+      String(email || '').trim().toLowerCase(),
+      password_hash,
+      full_name,
+      display_name || full_name,
+      phone,
+      consent_privacy || false,
+      consent_terms || false
+    ]
+  );
+
+  return result.rows[0];
+}
+
+export async function createExpertApplication(data) {
+  const result = await db.query(
+    `insert into expert_applications
+      (user_id, full_name, phone, degree, specialties, experience_years, location, bio,
+       credential_file, credential_filename, credential_mime, approval_token)
+     values ($1, $2, $3, $4, $5::jsonb, $6, $7, $8, $9, $10, $11, $12)
+     returning id, user_id, full_name, phone, degree, specialties, experience_years,
+               location, bio, credential_filename, credential_mime, approval_token, status, created_at`,
+    [
+      data.user_id,
+      data.full_name,
+      data.phone,
+      data.degree,
+      JSON.stringify(data.specialties || []),
+      data.experience_years || 0,
+      data.location || null,
+      data.bio || null,
+      data.credential_file,
+      data.credential_filename,
+      data.credential_mime,
+      data.approval_token
+    ]
+  );
+  return result.rows[0];
+}
+
+export async function findApplicationByToken(token) {
+  const result = await db.query(
+    `select a.*, u.email, u.display_name, u.full_name as user_full_name
+     from expert_applications a
+     join users u on u.id = a.user_id
+     where a.approval_token = $1
+     limit 1`,
+    [token]
+  );
+  return result.rows[0] || null;
+}
+
+export async function getCredentialByToken(token) {
+  const result = await db.query(
+    `select credential_file, credential_filename, credential_mime
+     from expert_applications
+     where approval_token = $1
+     limit 1`,
+    [token]
+  );
+  return result.rows[0] || null;
+}
+
+export async function approveApplication(application) {
+  const client = await db.connect();
+  try {
+    await client.query('begin');
+
+    // Kích hoạt tài khoản chuyên gia
+    await client.query(
+      `update users
+       set status = 'active', email_verified = true, role = 'expert', phone = coalesce(phone, $2)
+       where id = $1`,
+      [application.user_id, application.phone]
+    );
+
+    // Tạo bản ghi trong bảng experts (nếu chưa có cho user này)
+    const code = `EXP-${crypto.randomBytes(4).toString('hex').toUpperCase()}`;
+    const expertRes = await client.query(
+      `insert into experts
+        (code, full_name, degree, phone, location, experience_years, specialties, bio, user_id, status, active)
+       values ($1, $2, $3, $4, $5, $6, $7::jsonb, $8, $9, 'offline', true)
+       returning id`,
+      [
+        code,
+        application.full_name,
+        application.degree,
+        application.phone,
+        application.location || null,
+        application.experience_years || 0,
+        JSON.stringify(application.specialties || []),
+        application.bio || null,
+        application.user_id
+      ]
+    );
+    const expertId = expertRes.rows[0].id;
+
+    await client.query(
+      `update expert_applications
+       set status = 'approved', reviewed_at = now(), expert_id = $2
+       where id = $1`,
+      [application.id, expertId]
+    );
+
+    await client.query('commit');
+    return { expertId };
+  } catch (error) {
+    await client.query('rollback');
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
+export async function rejectApplication(application) {
+  const client = await db.connect();
+  try {
+    await client.query('begin');
+    await client.query(
+      `update expert_applications set status = 'rejected', reviewed_at = now() where id = $1`,
+      [application.id]
+    );
+    await client.query(
+      `update users set status = 'inactive' where id = $1`,
+      [application.user_id]
+    );
+    await client.query('commit');
+  } catch (error) {
+    await client.query('rollback');
+    throw error;
+  } finally {
+    client.release();
+  }
 }
 
 export async function createDefaultProfile(userId) {

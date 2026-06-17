@@ -229,10 +229,13 @@ export const apiClient = {
         const startedAt = performance.now();
 
         const headers = {
-            'Content-Type': 'application/json',
             'x-client-trace-id': traceId,
             ...options.headers
         };
+
+        if (!(options.body instanceof FormData) && !headers['Content-Type']) {
+            headers['Content-Type'] = 'application/json';
+        }
 
         if (isNgrokUrl(API_BASE_URL)) {
             headers['ngrok-skip-browser-warning'] = 'true';
@@ -335,6 +338,15 @@ export const apiClient = {
         return this.request(endpoint, {
             method: 'POST',
             body: JSON.stringify(data)
+        });
+    },
+
+    postForm(endpoint, formData) {
+        this._invalidateRelated(endpoint);
+        return this.request(endpoint, {
+            method: 'POST',
+            body: formData,
+            headers: {}
         });
     },
 

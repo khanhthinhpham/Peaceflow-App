@@ -116,6 +116,14 @@ if (env.apiPrefix !== '/api') {
 
 app.use((err, req, res, next) => {
   const reqId = req.requestId || '-';
+  if (err?.code === 'LIMIT_FILE_SIZE') {
+    return res.status(400).json({
+      success: false,
+      message: 'File bằng cấp vượt quá dung lượng cho phép 10MB.',
+      request_id: reqId
+    });
+  }
+
   console.error(
     `[API_ERR] id=${reqId} method=${req.method} path=${req.originalUrl} message=${err?.message || 'unknown'}`
   );

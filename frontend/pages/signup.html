@@ -23,7 +23,7 @@
 
         .auth-card {
             width: 100%;
-            max-width: 420px;
+            max-width: 520px;
             padding: 40px 30px;
             text-align: center;
             background: var(--warm-white);
@@ -39,7 +39,7 @@
             border-radius: var(--radius-sm);
             border: 2px solid var(--peach-dark);
             font-size: 1.8rem;
-            box-shadow: 3px 3px 0px var(--peach-dark);
+            box-shadow: 3px 3px 0 var(--peach-dark);
             margin-bottom: 20px;
         }
 
@@ -150,38 +150,54 @@
             color: var(--text-light);
             font-size: 0.85rem;
         }
+
         .divider::before,
         .divider::after {
             content: '';
             flex: 1;
             border-bottom: 1px dashed var(--kraft-light);
         }
+
         .divider:not(:empty)::before {
             margin-right: .5em;
         }
+
         .divider:not(:empty)::after {
             margin-left: .5em;
         }
-        .btn-google {
-            display: flex;
-            align-items: center;
-            justify-content: center;
+
+        .account-toggle {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
             gap: 10px;
-            width: 100%;
-            padding: 10px 12px;
+            margin-bottom: 18px;
+        }
+
+        .toggle-chip {
             border: 2px solid var(--kraft-light);
-            border-radius: 50px;
-            background: white;
-            color: var(--text-primary);
-            font-family: 'Nunito', sans-serif;
-            font-size: 0.95rem;
-            font-weight: 700;
+            border-radius: 999px;
+            background: #fff;
+            padding: 10px 14px;
+            font: inherit;
+            font-weight: 800;
             cursor: pointer;
+            color: var(--text-secondary);
             transition: var(--transition);
         }
-        .btn-google:hover {
-            background: var(--cream);
-            border-color: var(--kraft);
+
+        .toggle-chip.active {
+            background: var(--peach);
+            border-color: var(--peach-dark);
+            color: var(--text-primary);
+            box-shadow: 2px 2px 0 var(--peach-dark);
+        }
+
+        .expert-fields {
+            display: none;
+        }
+
+        .expert-fields.active {
+            display: block;
         }
     </style>
 </head>
@@ -200,6 +216,11 @@
             <div id="signupMessage" class="auth-message"></div>
 
             <form class="auth-form" id="signupForm">
+                <div class="account-toggle" aria-label="Loại tài khoản">
+                    <button type="button" class="toggle-chip active" id="signupModeUser">Người dùng</button>
+                    <button type="button" class="toggle-chip" id="signupModeExpert">Chuyên gia</button>
+                </div>
+
                 <div class="form-group">
                     <label class="form-label" for="name">Tên hiển thị</label>
                     <input type="text" id="name" class="form-input" placeholder="Bạn muốn được gọi là gì?" required
@@ -210,6 +231,45 @@
                     <label class="form-label" for="email">Email</label>
                     <input type="email" id="email" class="form-input" placeholder="Nhập email của bạn" required
                         autocomplete="email">
+                </div>
+
+                <div class="expert-fields" id="expertFields">
+                    <div class="form-group">
+                        <label class="form-label" for="phone">Số điện thoại</label>
+                        <input type="text" id="phone" class="form-input" placeholder="Nhập số điện thoại liên hệ" autocomplete="tel">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="degree">Bằng cấp</label>
+                        <input type="text" id="degree" class="form-input" placeholder="Ví dụ: Thạc sĩ Tâm lý lâm sàng">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="specialties">Chuyên môn</label>
+                        <input type="text" id="specialties" class="form-input" placeholder="Ví dụ: trị liệu cá nhân, CBT, sang chấn">
+                        <div class="field-hint">Ngăn cách bằng dấu phẩy.</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="experienceYears">Số năm kinh nghiệm</label>
+                        <input type="number" id="experienceYears" class="form-input" placeholder="0" min="0" max="80" inputmode="numeric">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="location">Nơi công tác</label>
+                        <input type="text" id="location" class="form-input" placeholder="Bệnh viện, phòng khám, trung tâm...">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="bio">Giới thiệu ngắn</label>
+                        <textarea id="bio" class="form-input" placeholder="Kinh nghiệm, thế mạnh chuyên môn, cách bạn hỗ trợ thân chủ..." rows="4"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="credentialFile">File bằng cấp</label>
+                        <input type="file" id="credentialFile" class="form-input" accept=".pdf,image/*,.doc,.docx,application/pdf">
+                        <div class="field-hint">Hỗ trợ PDF hoặc ảnh, tối đa 10MB.</div>
+                    </div>
                 </div>
 
                 <div class="form-group">
@@ -239,12 +299,12 @@
                 </label>
 
                 <button type="submit" id="signupBtn" class="btn-primary"
-                    style="width: 100%; font-size: 1rem; padding: 12px; background: var(--peach); border-color: var(--peach-dark); box-shadow: 2px 2px 0px var(--peach-dark);">
+                    style="width: 100%; font-size: 1rem; padding: 12px; background: var(--peach); border-color: var(--peach-dark); box-shadow: 2px 2px 0 var(--peach-dark);">
                     Đăng Ký
                 </button>
             </form>
 
-            <div class="divider" style="margin-top:20px;">hoặc</div>
+            <div class="divider" id="signupDivider" style="margin-top:20px;">hoặc</div>
 
             <div id="btnGoogleSignup" style="display:flex;justify-content:center;margin-bottom:4px;"></div>
 
@@ -259,6 +319,61 @@
         import { apiClient } from '../public/js/api-client.js';
 
         const GOOGLE_CLIENT_ID = '287402483358-uiec013q9obn1m8j82ejhkdmuoi3ku6v.apps.googleusercontent.com';
+
+        const backendSignupForm = document.getElementById('signupForm');
+        const backendSignupBtn = document.getElementById('signupBtn');
+        const backendSignupMessage = document.getElementById('signupMessage');
+        const expertFields = document.getElementById('expertFields');
+        const signupModeUser = document.getElementById('signupModeUser');
+        const signupModeExpert = document.getElementById('signupModeExpert');
+        const signupDivider = document.getElementById('signupDivider');
+        const googleSignup = document.getElementById('btnGoogleSignup');
+        let signupMode = 'user';
+
+        function showBackendMessage(message, type = 'info') {
+            backendSignupMessage.className = message ? `auth-message ${type}` : 'auth-message';
+            backendSignupMessage.textContent = message || '';
+        }
+
+        function setSignupMode(mode) {
+            signupMode = mode === 'expert' ? 'expert' : 'user';
+            const isExpert = signupMode === 'expert';
+            expertFields.classList.toggle('active', isExpert);
+            signupModeUser.classList.toggle('active', !isExpert);
+            signupModeExpert.classList.toggle('active', isExpert);
+            document.getElementById('phone').required = isExpert;
+            document.getElementById('degree').required = isExpert;
+            document.getElementById('credentialFile').required = isExpert;
+            if (isExpert) {
+                signupDivider.style.display = 'none';
+                googleSignup.style.display = 'none';
+                showBackendMessage('Tài khoản chuyên gia sẽ cần admin duyệt sau khi bạn gửi hồ sơ.', 'info');
+            } else {
+                signupDivider.style.display = '';
+                googleSignup.style.display = '';
+                showBackendMessage('');
+            }
+        }
+
+        function getSignupErrorMessage(error) {
+            const message = String(error?.message || '').trim();
+
+            if (!message) return 'Đăng ký thất bại.';
+            if (message === 'Email already registered' || message === 'Email đã được đăng ký.') {
+                return 'Email đã được đăng ký.';
+            }
+            if (
+                message === 'Failed to fetch' ||
+                message === 'Load failed' ||
+                message.includes('NetworkError') ||
+                message === 'Không kết nối được máy chủ.' ||
+                message === 'Mất kết nối máy chủ.'
+            ) {
+                return 'Không kết nối được máy chủ.';
+            }
+            if (message === 'Invalid email') return 'Email chưa hợp lệ.';
+            return message;
+        }
 
         async function handleGoogleCredential(response) {
             showBackendMessage('Đang xác thực với Google...', 'info');
@@ -282,12 +397,11 @@
                     auto_select: false,
                     cancel_on_tap_outside: true
                 });
-                const container = document.getElementById('btnGoogleSignup');
-                const width = Math.min(container?.offsetWidth || 360, 360);
-                google.accounts.id.renderButton(container, {
+                const width = Math.min(googleSignup?.offsetWidth || 360, 360);
+                google.accounts.id.renderButton(googleSignup, {
                     theme: 'outline',
                     size: 'large',
-                    width: width,
+                    width,
                     text: 'signup_with',
                     shape: 'pill',
                     locale: 'vi'
@@ -295,45 +409,8 @@
             }
         });
 
-        const backendSignupForm = document.getElementById('signupForm');
-        const backendSignupBtn = document.getElementById('signupBtn');
-        const backendSignupMessage = document.getElementById('signupMessage');
-
-        function showBackendMessage(message, type = 'info') {
-            backendSignupMessage.className = 'auth-message ' + type;
-            backendSignupMessage.textContent = message;
-        }
-
-        function getSignupErrorMessage(error) {
-            const message = String(error?.message || '').trim();
-
-            if (!message) {
-                return 'Đăng ký thất bại.';
-            }
-
-            if (
-                message === 'Email already registered' ||
-                message === 'Email đã được đăng ký.'
-            ) {
-                return 'Email đã được đăng ký.';
-            }
-
-            if (
-                message === 'Failed to fetch' ||
-                message === 'Load failed' ||
-                message.includes('NetworkError') ||
-                message === 'Không kết nối được máy chủ.' ||
-                message === 'Mất kết nối máy chủ.'
-            ) {
-                return 'Không kết nối được máy chủ.';
-            }
-
-            if (message === 'Invalid email') {
-                return 'Email chưa hợp lệ.';
-            }
-
-            return message;
-        }
+        signupModeUser.addEventListener('click', () => setSignupMode('user'));
+        signupModeExpert.addEventListener('click', () => setSignupMode('expert'));
 
         backendSignupForm.addEventListener('submit', async (event) => {
             event.preventDefault();
@@ -344,6 +421,14 @@
             const password = document.getElementById('password').value;
             const confirmPassword = document.getElementById('confirmPassword').value;
             const agreed = document.getElementById('agreeTerms').checked;
+            const phone = document.getElementById('phone').value.trim();
+            const degree = document.getElementById('degree').value.trim();
+            const specialties = document.getElementById('specialties').value.trim();
+            const experienceYears = document.getElementById('experienceYears').value.trim();
+            const location = document.getElementById('location').value.trim();
+            const bio = document.getElementById('bio').value.trim();
+            const credentialFile = document.getElementById('credentialFile').files[0];
+            const isExpert = signupMode === 'expert';
 
             if (!fullName || fullName.length < 2) {
                 showBackendMessage('Vui lòng nhập tên hiển thị ít nhất 2 ký tự.', 'error');
@@ -365,35 +450,68 @@
                 showBackendMessage('Bạn cần đồng ý điều khoản để tiếp tục.', 'error');
                 return;
             }
+            if (isExpert && (!phone || phone.length < 6)) {
+                showBackendMessage('Vui lòng nhập số điện thoại hợp lệ.', 'error');
+                return;
+            }
+            if (isExpert && degree.length < 2) {
+                showBackendMessage('Vui lòng nhập bằng cấp.', 'error');
+                return;
+            }
+            if (isExpert && !credentialFile) {
+                showBackendMessage('Vui lòng tải lên file bằng cấp.', 'error');
+                return;
+            }
 
             backendSignupBtn.disabled = true;
-            backendSignupBtn.textContent = 'Đang tạo tài khoản...';
+            backendSignupBtn.textContent = isExpert ? 'Đang gửi hồ sơ...' : 'Đang tạo tài khoản...';
 
             try {
-                await auth.signup(email, password, fullName, {
-                    consent_privacy: true,
-                    consent_terms: true,
-                    consent_sensitive_data: false
-                });
+                if (isExpert) {
+                    const formData = new FormData();
+                    formData.set('email', email);
+                    formData.set('password', password);
+                    formData.set('full_name', fullName);
+                    formData.set('display_name', fullName);
+                    formData.set('phone', phone);
+                    formData.set('degree', degree);
+                    formData.set('specialties', specialties);
+                    formData.set('experience_years', experienceYears || '0');
+                    formData.set('location', location);
+                    formData.set('bio', bio);
+                    formData.set('consent_privacy', 'true');
+                    formData.set('consent_terms', 'true');
+                    formData.set('credential_file', credentialFile);
+                    await auth.signupExpert(formData);
+                } else {
+                    await auth.signup(email, password, fullName, {
+                        consent_privacy: true,
+                        consent_terms: true,
+                        consent_sensitive_data: false
+                    });
+                }
 
-                // Xóa session cũ — user phải verify email và login lại
                 auth.clearSession();
                 localStorage.removeItem('peaceflow_onboarding_done');
 
                 backendSignupForm.style.display = 'none';
-                document.querySelector('.divider')?.remove();
-                document.getElementById('btnGoogleSignup')?.remove();
+                signupDivider?.remove();
+                googleSignup?.remove();
                 showBackendMessage(
-                    `✅ Đăng ký thành công! Chúng tôi đã gửi email xác nhận đến ${email}. Vui lòng kiểm tra hộp thư (kể cả thư mục spam) và click vào link để kích hoạt tài khoản.`,
+                    isExpert
+                        ? `✅ Hồ sơ chuyên gia đã được gửi thành công từ ${email}. Admin sẽ nhận email duyệt và bạn sẽ được thông báo khi hồ sơ được chấp thuận.`
+                        : `✅ Đăng ký thành công! Chúng tôi đã gửi email xác nhận đến ${email}. Vui lòng kiểm tra hộp thư và nhấn vào liên kết để kích hoạt tài khoản.`,
                     'success'
                 );
             } catch (error) {
                 showBackendMessage(getSignupErrorMessage(error), 'error');
             } finally {
                 backendSignupBtn.disabled = false;
-                backendSignupBtn.textContent = 'Đăng ký';
+                backendSignupBtn.textContent = 'Đăng Ký';
             }
         }, true);
+
+        setSignupMode('user');
     </script>
 
     <script src="../public/js/app.js"></script>
