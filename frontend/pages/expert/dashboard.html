@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Expert Dashboard — PeaceFlow</title>
+    <link rel="icon" href="../../public/favicon.jpg" type="image/svg+xml">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Patrick+Hand&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../../public/css/style.css">
+    <link rel="stylesheet" href="../../public/css/expert/portal.css">
+    <link rel="stylesheet" href="../../public/css/expert/dashboard.css">
+</head>
+<body class="expert-portal-body">
+    <div class="expert-portal">
+        <aside class="expert-sidebar" id="expertSidebar"></aside>
+        <main class="expert-main">
+            <header class="expert-topbar">
+                <div>
+                    <p class="expert-page-kicker">PeaceFlow Expert</p>
+                    <h1 class="expert-page-title" id="expertPageTitle"></h1>
+                    <p class="expert-page-subtitle" id="expertPageSubtitle"></p>
+                </div>
+                <div class="expert-badge" id="expertPageBadge"></div>
+            </header>
+
+            <div class="expert-status-banner" id="expertStatusBanner"></div>
+
+            <section class="expert-panel expert-hero" id="expertHero"></section>
+
+            <section class="expert-stats-grid" id="expertStats"></section>
+
+            <section class="expert-grid">
+                <article class="expert-panel expert-section">
+                    <h2 class="expert-section-title">Lịch hẹn sắp tới</h2>
+                    <div class="expert-session-list" id="expertSessions"></div>
+                </article>
+
+                <article class="expert-panel expert-section">
+                    <h2 class="expert-section-title">Hồ sơ chuyên môn</h2>
+                    <div id="expertProfile"></div>
+                </article>
+            </section>
+        </main>
+    </div>
+
+    <script type="module" src="../../public/js/expert/dashboard-page.js"></script>
+</body>
+</html>

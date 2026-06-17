@@ -30,7 +30,10 @@ export async function requireAuth(req, res, next) {
       sub: user.id,
       email: user.email,
       full_name: user.full_name,
-      display_name: user.display_name
+      display_name: user.display_name,
+      role: user.role,
+      email_verified: user.email_verified,
+      status: user.status
     };
     
     next();

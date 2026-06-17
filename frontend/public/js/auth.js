@@ -21,11 +21,18 @@ export const auth = {
         return data;
     },
 
-    async signupExpert(formData) {
+    async signupExpert(payload) {
         EventLogger.log('auth', 'signup_expert:attempt', {
-            email: String(formData.get('email') || '').trim().toLowerCase()
+            email: String(payload?.email || '').trim().toLowerCase()
         });
-        const data = await apiClient.postForm('/auth/register-expert', formData);
+        const data = await apiClient.post('/auth/register-expert', {
+            email: String(payload?.email || '').trim().toLowerCase(),
+            password: payload?.password,
+            full_name: payload?.full_name,
+            display_name: payload?.display_name,
+            consent_privacy: payload?.consent_privacy ?? true,
+            consent_terms: payload?.consent_terms ?? true
+        });
         EventLogger.log('auth', 'signup_expert:success', { userId: data.user?.id });
         return data;
     },

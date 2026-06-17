@@ -181,11 +181,11 @@
           try {
             const expertState = await auth.getMyExpertApplication();
             if (expertState?.application?.status === 'approved') {
-              window.location.replace(getPostLoginRedirect());
+              window.location.replace('expert/dashboard.html');
               return;
             }
             if (!expertState?.application || expertState?.application?.status === 'rejected') {
-              window.location.replace('expert-application.html');
+              window.location.replace('expert/application.html');
               return;
             }
           } catch (e) {

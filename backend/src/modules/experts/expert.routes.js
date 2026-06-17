@@ -4,6 +4,95 @@ import { db } from '../../config/db.js';
 
 const router = Router();
 
+router.get('/expert-portal/overview', requireAuth, async (req, res) => {
+  try {
+    if (req.user.role !== 'expert') {
+      return res.status(403).json({ success: false, message: 'Expert access required' });
+    }
+
+    const expertProfileRes = await db.query(
+      `select id, code, full_name, degree, status, rating, sessions_count, satisfaction_rate,
+              base_price, location, experience_years, specialties, bio, active, created_at
+       from experts
+       where user_id = $1
+       limit 1`,
+      [req.user.sub]
+    );
+
+    const expert = expertProfileRes.rows[0] || null;
+    if (!expert) {
+      return res.json({
+        success: true,
+        data: {
+          expert: null,
+          stats: {
+            upcoming_sessions: 0,
+            completed_sessions: 0,
+            total_clients: 0,
+            monthly_revenue: 0
+          },
+          upcoming_sessions: []
+        }
+      });
+    }
+
+    const [statsRes, upcomingRes] = await Promise.all([
+      db.query(
+        `select
+           count(*) filter (where status = 'confirmed' and starts_at >= now())::int as upcoming_sessions,
+           count(*) filter (where status = 'completed')::int as completed_sessions,
+           count(distinct user_id)::int as total_clients,
+           coalesce(sum(price) filter (
+             where status in ('confirmed', 'completed')
+               and date_trunc('month', starts_at) = date_trunc('month', now())
+           ), 0)::int as monthly_revenue
+         from expert_bookings
+         where expert_id = $1`,
+        [expert.id]
+      ),
+      db.query(
+        `select
+           eb.id,
+           eb.session_type,
+           eb.starts_at,
+           eb.duration_minutes,
+           eb.price,
+           eb.status,
+           u.full_name as client_name,
+           u.email as client_email
+         from expert_bookings eb
+         join users u on u.id = eb.user_id
+         where eb.expert_id = $1
+           and eb.status = 'confirmed'
+           and eb.starts_at >= now()
+         order by eb.starts_at asc
+         limit 5`,
+        [expert.id]
+      )
+    ]);
+
+    return res.json({
+      success: true,
+      data: {
+        expert: {
+          ...expert,
+          specialties: ensureArray(expert.specialties)
+        },
+        stats: statsRes.rows[0] || {
+          upcoming_sessions: 0,
+          completed_sessions: 0,
+          total_clients: 0,
+          monthly_revenue: 0
+        },
+        upcoming_sessions: upcomingRes.rows
+      }
+    });
+  } catch (error) {
+    console.error('Expert portal overview error:', error);
+    return res.status(500).json({ success: false, message: 'Could not fetch expert portal overview' });
+  }
+});
+
 router.get('/experts', requireAuth, async (req, res) => {
   try {
     const userId = req.user.sub;
