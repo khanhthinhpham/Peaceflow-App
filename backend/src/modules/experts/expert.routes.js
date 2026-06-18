@@ -2,7 +2,9 @@ import { Router } from 'express';
 import { requireAuth } from '../../common/middleware/auth.middleware.js';
 import { db } from '../../config/db.js';
 import { z } from 'zod';
+import { env } from '../../config/env.js';
 import { sendBookingRequestEmail, sendBookingStatusEmail } from '../../common/services/email.service.js';
+import { generateOrderCode, transferContent, buildVietQrUrl, platformBankInfo, computeFee } from '../../common/services/payment.service.js';
 
 const router = Router();
 
@@ -365,6 +367,8 @@ router.post('/experts/:id/bookings', requireAuth, async (req, res) => {
       return res.status(400).json({ success: false, message: 'Thời gian đặt lịch phải ở tương lai.' });
     }
 
+    await expireStaleBookings();
+
     const expertResult = await db.query(
       `select e.id, e.user_id, e.full_name, e.degree, e.avatar_emoji, u.email as user_email
        from experts e
@@ -386,7 +390,7 @@ router.post('/experts/:id/bookings', requireAuth, async (req, res) => {
     const overlap = await db.query(
       `select 1 from expert_bookings
        where expert_id = $1
-         and status in ('pending', 'confirmed')
+         and status in ('pending_payment', 'pending', 'confirmed')
          and tstzrange(starts_at, starts_at + (duration_minutes || ' minutes')::interval) && tstzrange($2, $3)
        limit 1`,
       [expert.id, payload.starts_at.toISOString(), endsAt.toISOString()]
@@ -409,9 +413,12 @@ router.post('/experts/:id/bookings', requireAuth, async (req, res) => {
       return res.status(409).json({ success: false, message: 'Chuyên gia bận vào khung giờ này, vui lòng chọn giờ khác.' });
     }
 
+    // Đặt lịch ở trạng thái CHỜ THANH TOÁN — sinh đơn + QR VietQR. Chỉ sau khi
+    // thân chủ chuyển khoản (claim) lịch mới vào hàng "Cần xác nhận" của chuyên gia.
+    const amount = payload.price || 0;
     const bookingResult = await db.query(
-      `insert into expert_bookings (user_id, expert_id, session_type, starts_at, duration_minutes, price, notes, status)
-       values ($1, $2, $3, $4, $5, $6, $7, 'pending')
+      `insert into expert_bookings (user_id, expert_id, session_type, starts_at, duration_minutes, price, notes, status, amount)
+       values ($1, $2, $3, $4, $5, $6, $7, 'pending_payment', $8)
        returning *`,
       [
         req.user.sub,
@@ -419,39 +426,39 @@ router.post('/experts/:id/bookings', requireAuth, async (req, res) => {
         payload.session_type,
         payload.starts_at.toISOString(),
         payload.duration_minutes,
-        payload.price || 0,
-        payload.notes || null
+        amount,
+        payload.notes || null,
+        amount
       ]
     );
+    const booking = bookingResult.rows[0];
 
-    // Thông báo cho chuyên gia về lịch hẹn mới (chờ xác nhận)
-    const clientRes = await db.query(
-      `select coalesce(display_name, full_name, 'Một thân chủ') as name from users where id = $1`,
-      [req.user.sub]
+    const orderCode = generateOrderCode();
+    const content = transferContent(orderCode);
+    const expiresAt = new Date(Date.now() + env.paymentExpireMinutes * 60000);
+    const qrUrl = buildVietQrUrl({ amount, content });
+
+    await db.query(
+      `insert into payments (booking_id, order_code, amount, status, provider, qr_code, expires_at)
+       values ($1, $2, $3, 'pending', 'vietqr_manual', $4, $5)`,
+      [booking.id, orderCode, amount, qrUrl, expiresAt.toISOString()]
     );
-    const clientName = clientRes.rows[0]?.name || 'Một thân chủ';
-    await notify(expert.user_id, clientName, 'booking_new', `${clientName} vừa đặt một lịch hẹn — chờ bạn xác nhận.`);
-
-    // Gửi email cho chuyên gia (best-effort, không chặn request nếu lỗi).
-    try {
-      await sendBookingRequestEmail({
-        to: expert.user_email,
-        expertName: expert.full_name,
-        clientName,
-        sessionType: payload.session_type,
-        startsAt: payload.starts_at.toISOString()
-      });
-    } catch (e) {
-      console.error('[email] booking request failed:', e.message);
-    }
 
     return res.json({
       success: true,
       data: {
-        ...bookingResult.rows[0],
+        ...booking,
         expert_name: expert.full_name,
         expert_degree: expert.degree,
-        expert_avatar: expert.avatar_emoji
+        expert_avatar: expert.avatar_emoji,
+        payment: {
+          order_code: orderCode,
+          content,
+          amount,
+          qr_image: qrUrl,
+          bank: platformBankInfo(),
+          expires_at: expiresAt.toISOString()
+        }
       }
     });
   } catch (error) {
@@ -460,6 +467,128 @@ router.post('/experts/:id/bookings', requireAuth, async (req, res) => {
     }
     console.error('Create expert booking error:', error);
     return res.status(500).json({ success: false, message: 'Could not create booking' });
+  }
+});
+
+// Xem thông tin thanh toán (QR / nội dung CK / trạng thái) của một lịch hẹn.
+router.get('/bookings/:id/payment', requireAuth, async (req, res) => {
+  try {
+    const r = await db.query(
+      `select b.id as booking_id, b.status as booking_status, b.amount,
+              p.order_code, p.qr_code, p.status as payment_status, p.expires_at
+       from expert_bookings b
+       left join payments p on p.booking_id = b.id
+       where b.id = $1 and b.user_id = $2
+       order by p.created_at desc
+       limit 1`,
+      [req.params.id, req.user.sub]
+    );
+    const row = r.rows[0];
+    if (!row) return res.status(404).json({ success: false, message: 'Không tìm thấy lịch hẹn.' });
+    return res.json({
+      success: true,
+      data: {
+        booking_id: row.booking_id,
+        booking_status: row.booking_status,
+        amount: row.amount,
+        order_code: row.order_code,
+        content: row.order_code ? transferContent(row.order_code) : null,
+        qr_image: row.qr_code,
+        payment_status: row.payment_status,
+        bank: platformBankInfo(),
+        expires_at: row.expires_at
+      }
+    });
+  } catch (error) {
+    console.error('Get payment error:', error);
+    return res.status(500).json({ success: false, message: 'Could not fetch payment' });
+  }
+});
+
+// Thân chủ báo "đã chuyển khoản" → đưa lịch vào hàng chờ chuyên gia xác nhận.
+router.post('/bookings/:id/claim-payment', requireAuth, async (req, res) => {
+  try {
+    const bRes = await db.query(
+      `select b.*, e.user_id as expert_user_id, e.full_name as expert_name, eu.email as expert_email
+       from expert_bookings b
+       join experts e on e.id = b.expert_id
+       left join users eu on eu.id = e.user_id
+       where b.id = $1 and b.user_id = $2 limit 1`,
+      [req.params.id, req.user.sub]
+    );
+    const booking = bRes.rows[0];
+    if (!booking) return res.status(404).json({ success: false, message: 'Không tìm thấy lịch hẹn.' });
+    if (booking.status !== 'pending_payment') {
+      return res.status(409).json({ success: false, message: 'Lịch hẹn không ở trạng thái chờ thanh toán.' });
+    }
+
+    await db.query(`update expert_bookings set status = 'pending' where id = $1`, [booking.id]);
+
+    const clientRes = await db.query(
+      `select coalesce(display_name, full_name, 'Một thân chủ') as name from users where id = $1`,
+      [req.user.sub]
+    );
+    const clientName = clientRes.rows[0]?.name || 'Một thân chủ';
+    await notify(booking.expert_user_id, clientName, 'booking_new', `${clientName} đã thanh toán & đặt lịch — chờ bạn xác nhận.`);
+    try {
+      await sendBookingRequestEmail({
+        to: booking.expert_email,
+        expertName: booking.expert_name,
+        clientName,
+        sessionType: booking.session_type,
+        startsAt: booking.starts_at
+      });
+    } catch (e) {
+      console.error('[email] claim notify failed:', e.message);
+    }
+
+    return res.json({ success: true });
+  } catch (error) {
+    console.error('Claim payment error:', error);
+    return res.status(500).json({ success: false, message: 'Could not claim payment' });
+  }
+});
+
+// Thân chủ tự huỷ lịch → hoàn tiền vào ví theo chính sách (nếu đã thanh toán).
+router.post('/expert-bookings/:id/cancel', requireAuth, async (req, res) => {
+  try {
+    const bRes = await db.query(
+      `select b.*, e.user_id as expert_user_id, e.full_name as expert_name
+       from expert_bookings b join experts e on e.id = b.expert_id
+       where b.id = $1 and b.user_id = $2 limit 1`,
+      [req.params.id, req.user.sub]
+    );
+    const booking = bRes.rows[0];
+    if (!booking) return res.status(404).json({ success: false, message: 'Không tìm thấy lịch hẹn.' });
+    if (['completed', 'cancelled', 'expired'].includes(booking.status)) {
+      return res.status(409).json({ success: false, message: 'Lịch hẹn này không thể huỷ.' });
+    }
+
+    let refund = 0;
+    let pct = 0;
+    const payRes = await db.query(`select status from payments where booking_id = $1 order by created_at desc limit 1`, [booking.id]);
+    const paid = payRes.rows[0]?.status === 'paid';
+    if (paid && Number(booking.amount) > 0) {
+      const hours = (new Date(booking.starts_at).getTime() - Date.now()) / 3600000;
+      pct = hours >= 24 ? 100 : (hours >= 12 ? 50 : 0);
+      refund = Math.round((Number(booking.amount) * pct) / 100);
+    }
+
+    await db.query(`update expert_bookings set status = 'cancelled', cancelled_at = now(), cancel_reason = 'user' where id = $1`, [booking.id]);
+    await db.query(`update expert_ledger set status = 'reversed' where booking_id = $1`, [booking.id]);
+    if (paid) {
+      await db.query(`update payments set status = 'cancelled' where booking_id = $1`, [booking.id]);
+    }
+    if (refund > 0) {
+      await creditWallet(req.user.sub, refund, 'refund', booking.id, `Hoàn ${pct}% do bạn huỷ lịch`);
+    }
+
+    await notify(booking.expert_user_id, null, 'booking_update', `Một lịch hẹn đã bị thân chủ huỷ.`);
+
+    return res.json({ success: true, data: { refunded: refund, refund_percent: pct } });
+  } catch (error) {
+    console.error('User cancel booking error:', error);
+    return res.status(500).json({ success: false, message: 'Could not cancel booking' });
   }
 });
 
@@ -506,7 +635,7 @@ router.get('/expert-portal/bookings', requireAuth, async (req, res) => {
        from expert_bookings eb
        join users u on u.id = eb.user_id
        left join expert_reviews er on er.booking_id = eb.id
-       where eb.expert_id = $1
+       where eb.expert_id = $1 and eb.status <> 'pending_payment'
        order by eb.starts_at desc`,
       [eRes.rows[0].id]
     );
@@ -542,10 +671,39 @@ router.patch('/expert-portal/bookings/:id', requireAuth, async (req, res) => {
       `update expert_bookings set status = $2 where id = $1 returning *`,
       [booking.id, status]
     );
+    const b = updated.rows[0];
+
+    // Xác nhận = đã nhận tiền: đánh dấu payment paid + ghi sổ doanh thu (fee/earning).
+    if (status === 'confirmed' && booking.status !== 'confirmed') {
+      await db.query(`update payments set status = 'paid', paid_at = now() where booking_id = $1 and status = 'pending'`, [b.id]);
+      await db.query(`update expert_bookings set paid_at = coalesce(paid_at, now()) where id = $1`, [b.id]);
+      const ledgerExists = await db.query(`select 1 from expert_ledger where booking_id = $1 limit 1`, [b.id]);
+      if (!ledgerExists.rows[0]) {
+        const fee = computeFee(b.amount || b.price || 0);
+        await db.query(
+          `insert into expert_ledger (expert_id, booking_id, gross, platform_fee, expert_earning, status)
+           values ($1, $2, $3, $4, $5, 'pending')`,
+          [expert.id, b.id, fee.gross, fee.platform_fee, fee.expert_earning]
+        );
+      }
+    }
+
+    // Huỷ lịch ĐÃ thanh toán → hoàn 100% vào ví thân chủ (lỗi do chuyên gia).
+    if (status === 'cancelled') {
+      const payRes = await db.query(`select status from payments where booking_id = $1 order by created_at desc limit 1`, [b.id]);
+      if (payRes.rows[0]?.status === 'paid' && Number(b.amount) > 0) {
+        await creditWallet(b.user_id, b.amount, 'refund', b.id, 'Hoàn 100% do chuyên gia huỷ lịch đã thanh toán');
+        await db.query(`update payments set status = 'cancelled' where booking_id = $1`, [b.id]);
+        await db.query(`update expert_ledger set status = 'reversed' where booking_id = $1`, [b.id]);
+      }
+      await db.query(`update expert_bookings set cancelled_at = now(), cancel_reason = 'expert' where id = $1`, [b.id]);
+    }
 
     // Tăng số buổi đã hoàn thành (chỉ khi chuyển sang completed lần đầu)
     if (status === 'completed' && booking.status !== 'completed') {
       await db.query(`update experts set sessions_count = coalesce(sessions_count, 0) + 1 where id = $1`, [expert.id]);
+      await db.query(`update expert_ledger set status = 'payable' where booking_id = $1 and status = 'pending'`, [b.id]);
+      await db.query(`update experts set balance = coalesce(balance, 0) + coalesce((select expert_earning from expert_ledger where booking_id = $1 limit 1), 0) where id = $2`, [b.id, expert.id]);
     }
 
     const labelMap = { confirmed: 'đã xác nhận', completed: 'đã hoàn thành', cancelled: 'đã huỷ' };
@@ -680,6 +838,8 @@ router.get('/experts/:id/slots', requireAuth, async (req, res) => {
       return res.status(400).json({ success: false, message: 'Ngày không hợp lệ.' });
     }
 
+    await expireStaleBookings();
+
     const [busyRes, bookingRes, nowRes] = await Promise.all([
       db.query(
         `select to_char(start_time, 'HH24:MI') as s, to_char(end_time, 'HH24:MI') as e
@@ -690,7 +850,7 @@ router.get('/experts/:id/slots', requireAuth, async (req, res) => {
       db.query(
         `select to_char(starts_at at time zone $3, 'HH24:MI') as t, duration_minutes
          from expert_bookings
-         where expert_id = $1 and status in ('pending', 'confirmed')
+         where expert_id = $1 and status in ('pending_payment', 'pending', 'confirmed')
            and (starts_at at time zone $3)::date = $2::date`,
         [req.params.id, date, SLOT_TZ]
       ),
@@ -821,6 +981,30 @@ async function notify(recipientId, actorName, type, message) {
   } catch (e) {
     console.error('[notify] failed:', e.message);
   }
+}
+
+// Hết hạn các đơn chưa thanh toán quá giờ → nhả khung giờ đang giữ chỗ.
+async function expireStaleBookings() {
+  try {
+    await db.query(`update payments set status = 'expired' where status = 'pending' and expires_at < now()`);
+    await db.query(
+      `update expert_bookings b set status = 'expired'
+       where b.status = 'pending_payment'
+         and exists (select 1 from payments p where p.booking_id = b.id and p.status = 'expired')`
+    );
+  } catch (e) {
+    console.error('[expire] failed:', e.message);
+  }
+}
+
+// Cộng tiền vào ví người dùng + ghi sổ giao dịch ví.
+async function creditWallet(userId, amount, type, bookingId, note) {
+  if (!userId || !amount) return;
+  await db.query(`update users set wallet_balance = coalesce(wallet_balance, 0) + $2 where id = $1`, [userId, amount]);
+  await db.query(
+    `insert into wallet_transactions (user_id, amount, type, booking_id, note) values ($1, $2, $3, $4, $5)`,
+    [userId, amount, type, bookingId || null, note || null]
+  );
 }
 
 function csvToArray(value) {

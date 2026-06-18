@@ -2,17 +2,10 @@ import { auth } from '../auth.js';
 import { apiClient } from '../api-client.js';
 import { escapeHtml } from './utils.js';
 
-const SVG_ATTRS = 'viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"';
-
-const ICON_LEAF = `<svg ${SVG_ATTRS}><path d="M5 21c0-8.5 6-15 15-16 1 8.5-5 16-15 16Z"/><path d="M9 17c2.2-3.8 5.2-6 9-7"/></svg>`;
-const ICON_OVERVIEW = `<svg ${SVG_ATTRS}><rect x="3" y="3" width="7.5" height="7.5" rx="1.6"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="1.6"/><rect x="3" y="13.5" width="7.5" height="7.5" rx="1.6"/><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="1.6"/></svg>`;
-const ICON_PROFILE = `<svg ${SVG_ATTRS}><circle cx="12" cy="8" r="3.6"/><path d="M5 20c0-3.6 3.2-5.6 7-5.6s7 2 7 5.6"/></svg>`;
-const ICON_HISTORY = `<svg ${SVG_ATTRS}><path d="M3.5 12a8.5 8.5 0 1 0 2.8-6.3"/><path d="M3.2 4.2v3.8h3.8"/><path d="M12 8v4.2l3 1.8"/></svg>`;
-
 const NAV_ITEMS = [
-    { href: 'dashboard.html', key: 'dashboard', icon: ICON_OVERVIEW, label: 'Tổng quan' },
-    { href: 'application.html', key: 'application', icon: ICON_PROFILE, label: 'Hồ sơ chuyên gia' },
-    { href: 'review-status.html', key: 'review-status', icon: ICON_HISTORY, label: 'Lịch sử xét duyệt' }
+    { href: 'dashboard.html', key: 'dashboard', icon: '🏡', label: 'Tổng quan' },
+    { href: 'application.html', key: 'application', icon: '📋', label: 'Hồ sơ chuyên gia' },
+    { href: 'review-status.html', key: 'review-status', icon: '🧾', label: 'Lịch sử xét duyệt' }
 ];
 
 let sidebarBuilt = false;
@@ -25,47 +18,60 @@ export function mountExpertShell({ active, title, subtitle, badgeText }) {
     const user = auth.getUser() || {};
     const sidebar = document.getElementById('expertSidebar');
 
+    if (sidebar) {
+        sidebar.classList.add('sidebar');
+    }
+
     if (sidebar && !sidebarBuilt) {
         const displayName = user.display_name || user.full_name || 'PeaceFlow Expert';
         const initials = getInitials(displayName);
 
         sidebar.innerHTML = `
-            <div class="expert-sidebar-inner">
-                <div class="expert-brand">
-                    <div class="expert-brand-mark">${ICON_LEAF}</div>
-                    <div>
-                        <p class="expert-brand-eyebrow">PeaceFlow</p>
-                        <h2 class="expert-brand-title">Expert Portal</h2>
-                    </div>
-                </div>
+            <a href="dashboard.html" class="sidebar-logo">
+                <div class="logo-icon">🌿</div>
+                <div class="logo-text">Peace<span>Flow</span></div>
+            </a>
 
-                <section class="expert-user-card">
-                    <div class="expert-user-avatar">${escapeHtml(initials)}</div>
-                    <div class="expert-user-copy">
-                        <div class="expert-user-row">
-                            <h3 class="expert-user-name">${escapeHtml(displayName)}</h3>
-                            <span class="expert-user-badge">Chuyên gia</span>
+            <nav class="sidebar-nav">
+                <div class="nav-section-label">Quản lý</div>
+                ${NAV_ITEMS.map((item) => `
+                    <a class="nav-item expert-shell-link" data-nav-key="${item.key}" href="${item.href}">
+                        <span class="ni">${item.icon}</span>
+                        <span>${item.label}</span>
+                    </a>
+                `).join('')}
+            </nav>
+
+            <div class="sidebar-bottom">
+                <div class="user-card-mini" style="margin-bottom:10px;">
+                    <div class="user-avatar-mini">${escapeHtml(initials)}</div>
+                    <div class="user-info-mini" style="min-width:0;">
+                        <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+                            <div class="user-name">${escapeHtml(displayName)}</div>
+                            <span style="font-size:0.6rem; font-weight:800; background:var(--mint); color:var(--text-white); padding:1px 6px; border-radius:6px; border:1px solid var(--mint-dark); white-space:nowrap;">Chuyên gia</span>
                         </div>
-                        <p class="expert-user-meta" title="${escapeHtml(user.email || '')}">${escapeHtml(user.email || '')}</p>
+                        <div class="user-level" title="${escapeHtml(user.email || '')}">${escapeHtml(user.email || '')}</div>
                     </div>
-                </section>
-
-                <div class="expert-nav-group">
-                    <p class="expert-nav-label">Quản lý</p>
-                    <nav class="expert-nav">
-                        ${NAV_ITEMS.map((item) => `
-                            <a class="expert-nav-link" data-nav-key="${item.key}" href="${item.href}">
-                                <span class="expert-nav-icon">${item.icon}</span>
-                                <span>${item.label}</span>
-                            </a>
-                        `).join('')}
-                    </nav>
                 </div>
 
-                <div class="expert-sidebar-footer">
-                    <a href="../dashboard.html" class="expert-footer-link">Về dashboard người dùng</a>
-                    <button type="button" id="expertLogoutBtn" class="expert-footer-link">Đăng xuất</button>
-                </div>
+                <a
+                    href="../dashboard.html"
+                    class="nav-item expert-shell-link expert-footer-dashboard-link"
+                    style="margin-bottom:8px; border:1.5px solid var(--kraft-light); background:var(--warm-white);"
+                >
+                    <span class="ni">🏠</span>
+                    <span>Về dashboard người dùng</span>
+                </a>
+
+                <button
+                    type="button"
+                    id="expertLogoutBtn"
+                    class="nav-item expert-footer-logout-btn"
+                    style="width:100%; background:rgba(255,179,179,.12); text-align:left; cursor:pointer; font-family:inherit; border:1.5px solid var(--coral); color:var(--coral-dark);"
+                >
+                    <span class="ni">🚪</span>
+                    <span>Đăng xuất</span>
+                </button>
             </div>
         `;
 
@@ -75,7 +81,7 @@ export function mountExpertShell({ active, title, subtitle, badgeText }) {
         });
     }
 
-    sidebar?.querySelectorAll('.expert-nav-link').forEach((link) => {
+    sidebar?.querySelectorAll('.expert-shell-link[data-nav-key]').forEach((link) => {
         link.classList.toggle('active', link.getAttribute('data-nav-key') === active);
     });
 

@@ -1623,8 +1623,16 @@
                 <!-- Step 3: Problem Description -->
                 <div id="booking-step-3" style="display:none;">
                     <div class="bm-section">
-                        <div class="bm-section-title">📝 Mô tả ngắn vấn đề (tùy chọn)</div>
-                        <textarea class="problem-textarea" rows="5" placeholder="Chia sẻ ngắn gọn điều bạn muốn được hỗ trợ... Thông tin này giúp chuyên gia chuẩn bị tốt hơn cho buổi tư vấn.
+                        <div class="bm-section-title">🧭 Bạn muốn được hỗ trợ về điều gì?</div>
+                        <div id="bookingTopicChips" style="display:flex;flex-wrap:wrap;gap:8px;"></div>
+                    </div>
+                    <div class="bm-section">
+                        <div class="bm-section-title">📊 Mức độ ảnh hưởng tới cuộc sống</div>
+                        <div id="bookingSeverityChips" style="display:flex;flex-wrap:wrap;gap:8px;"></div>
+                    </div>
+                    <div class="bm-section">
+                        <div class="bm-section-title">📝 Mô tả tình trạng của bạn</div>
+                        <textarea class="problem-textarea" rows="5" placeholder="Chia sẻ ngắn gọn tình trạng & điều bạn muốn được hỗ trợ. Thông tin này giúp chuyên gia hiểu và quyết định nhận lịch.
 
 Ví dụ: Tôi đang gặp khó khăn với lo âu công việc và mất ngủ trong 2 tuần gần đây..."></textarea>
                         <div style="font-size:0.72rem;color:var(--text-light);margin-top:4px;">🔒 Thông tin được mã hóa
@@ -1657,6 +1665,9 @@ Ví dụ: Tôi đang gặp khó khăn với lo âu công việc và mất ngủ 
                         <button class="btn-primary" onclick="confirmBooking()">✓ Xác nhận đặt lịch</button>
                     </div>
                 </div>
+
+                <!-- Payment (VietQR) -->
+                <div id="booking-payment" style="display:none;"></div>
 
                 <!-- Success -->
                 <div id="booking-success" style="display:none;text-align:center;padding:20px 0;">

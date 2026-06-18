@@ -38,5 +38,12 @@ export const env = {
   ragTenantId: process.env.RAG_TENANT_ID || 'peaceflow',
   vapidPublicKey: process.env.VAPID_PUBLIC_KEY || 'BBmum3N-lH6Ig9bGbellDDyTeSxZHQbYBmbXwtQGyMguftr1YOBsonHfT3JFJfvLMYpV-O-g57qC_IFg85rWrbE',
   vapidPrivateKey: process.env.VAPID_PRIVATE_KEY,
-  vapidEmail: process.env.VAPID_EMAIL || 'mailto:admin@peaceflow.vn'
+  vapidEmail: process.env.VAPID_EMAIL || 'mailto:admin@peaceflow.vn',
+
+  // Thanh toán giữ chỗ — VietQR (miễn phí) + xác nhận thủ công
+  platformBankId: process.env.PLATFORM_BANK_ID || 'MB',
+  platformBankAccount: process.env.PLATFORM_BANK_ACCOUNT || '0000000000',
+  platformBankName: process.env.PLATFORM_BANK_NAME || 'PEACEFLOW',
+  platformFeePercent: Number(process.env.PLATFORM_FEE_PERCENT || 25),
+  paymentExpireMinutes: Number(process.env.PAYMENT_EXPIRE_MINUTES || 30)
 };

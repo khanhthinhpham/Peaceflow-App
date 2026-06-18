@@ -47,6 +47,16 @@ async function init() {
 
     try {
         const { application: applicationState, overview } = await loadExpertData();
+
+        // Cổng duyệt: chỉ chuyên gia ĐÃ ĐƯỢC DUYỆT (có profile) mới vào được dashboard chính.
+        // Chưa duyệt thì đưa về trang nộp hồ sơ / theo dõi xét duyệt.
+        if (!overview?.expert) {
+            const status = applicationState?.application?.status;
+            const target = status === 'pending' ? 'review-status.html' : 'application.html';
+            window.location.replace(`app.html?page=${target}`);
+            return;
+        }
+
         renderDashboard(applicationState, overview);
         setupExpertOperations(overview);
     } catch (error) {
@@ -333,16 +343,20 @@ function renderPending() {
         return;
     }
 
-    el.innerHTML = pending.map((booking) => `
+    const cards = pending.map((booking) => `
         <article class="expert-pending-card">
             <strong>${escapeHtml(booking.client_name || 'Thân chủ')}</strong>
-            <div class="expert-pending-meta">${escapeHtml(SESSION_TYPE_LABELS[booking.session_type] || booking.session_type)} · ${formatDateTime(booking.starts_at)}</div>
+            <div class="expert-pending-meta">${escapeHtml(SESSION_TYPE_LABELS[booking.session_type] || booking.session_type)} · ${formatDateTime(booking.starts_at)} · ${booking.duration_minutes} phút</div>
+            ${booking.notes
+                ? `<div class="expert-pending-note">${escapeHtml(booking.notes)}</div>`
+                : '<div class="expert-pending-note is-empty">Thân chủ chưa để lại mô tả tình trạng.</div>'}
             <div class="expert-booking-actions">
                 ${bookingActionBtn(booking.id, 'confirmed', 'Xác nhận', 'primary')}
                 ${bookingActionBtn(booking.id, 'cancelled', 'Từ chối', 'ghost')}
             </div>
         </article>
     `).join('');
+    el.innerHTML = `<div style="max-height:520px;overflow-y:auto;">${cards}</div>`;
 
     el.querySelectorAll('[data-booking-action]').forEach((button) => {
         button.addEventListener('click', () => updateBooking(

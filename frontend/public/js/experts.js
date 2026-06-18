@@ -9,6 +9,9 @@ const SESSION_CONFIG = {
     inperson: { label: 'Gặp trực tiếp', icon: '🏥', multiplier: 2, duration: 60 }
 };
 
+const TOPIC_OPTIONS = ['Lo âu', 'Trầm cảm', 'Stress công việc', 'Mất ngủ', 'Mối quan hệ', 'Sang chấn', 'Khác'];
+const SEVERITY_OPTIONS = ['Nhẹ', 'Vừa', 'Nặng'];
+
 const state = {
     experts: [],
     filteredExperts: [],
@@ -28,6 +31,8 @@ const state = {
         date: '',
         time: '',
         startsAt: '',
+        topic: '',
+        severity: '',
         notes: ''
     }
 };
@@ -78,10 +83,12 @@ const refs = {
 };
 
 const BOOKING_STATUS_BADGE = {
-    pending: { label: 'Chờ xác nhận', color: '#bf6f00', bg: 'rgba(245,180,80,.18)' },
+    pending_payment: { label: 'Chờ thanh toán', color: '#bf6f00', bg: 'rgba(245,180,80,.18)' },
+    pending: { label: 'Chờ chuyên gia duyệt', color: '#bf6f00', bg: 'rgba(245,180,80,.18)' },
     confirmed: { label: 'Đã xác nhận', color: '#2f8f5b', bg: 'rgba(47,143,91,.14)' },
     completed: { label: 'Đã hoàn thành', color: '#5a6b5c', bg: 'rgba(120,140,120,.16)' },
-    cancelled: { label: 'Đã hủy', color: '#a23b3b', bg: 'rgba(200,80,80,.14)' }
+    cancelled: { label: 'Đã hủy', color: '#a23b3b', bg: 'rgba(200,80,80,.14)' },
+    expired: { label: 'Hết hạn', color: '#a23b3b', bg: 'rgba(200,80,80,.10)' }
 };
 
 let reviewState = { bookingId: null, rating: 5 };
@@ -367,6 +374,29 @@ async function renderTimeSlots() {
     `).join('');
 }
 
+function bookingChip(group, value, active) {
+    return `<button type="button" data-chip-group="${group}" data-chip-value="${escapeHtml(value)}"
+        style="padding:7px 13px;border-radius:999px;border:1.5px solid ${active ? 'var(--mint-dark,#7bbf95)' : 'var(--kraft-light,#e8ddd0)'};background:${active ? 'var(--mint-light,#c5e8d2)' : 'transparent'};font:inherit;font-size:0.82rem;font-weight:700;cursor:pointer;color:var(--text-primary,#4a3728);">${escapeHtml(value)}</button>`;
+}
+
+function renderBookingExtras() {
+    const topicEl = document.getElementById('bookingTopicChips');
+    const sevEl = document.getElementById('bookingSeverityChips');
+    if (topicEl) topicEl.innerHTML = TOPIC_OPTIONS.map((t) => bookingChip('topic', t, state.bookingData.topic === t)).join('');
+    if (sevEl) sevEl.innerHTML = SEVERITY_OPTIONS.map((s) => bookingChip('severity', s, state.bookingData.severity === s)).join('');
+
+    [topicEl, sevEl].forEach((box) => {
+        box?.querySelectorAll('[data-chip-group]').forEach((btn) => {
+            btn.addEventListener('click', () => {
+                const group = btn.getAttribute('data-chip-group');
+                const value = btn.getAttribute('data-chip-value');
+                state.bookingData[group] = state.bookingData[group] === value ? '' : value;
+                renderBookingExtras();
+            });
+        });
+    });
+}
+
 function updateBookingSummary() {
     const expert = getExpertById(state.currentExpertId);
     const session = SESSION_CONFIG[state.bookingData.sessionType] || SESSION_CONFIG.chat;
@@ -374,7 +404,12 @@ function updateBookingSummary() {
         ? `${state.bookingData.date}T${state.bookingData.time}:00+07:00`
         : '';
     state.bookingData.startsAt = startsAt;
-    state.bookingData.notes = refs.notesTextarea?.value?.trim() || '';
+
+    const headerParts = [];
+    if (state.bookingData.topic) headerParts.push(`Chủ đề: ${state.bookingData.topic}`);
+    if (state.bookingData.severity) headerParts.push(`Mức độ: ${state.bookingData.severity}`);
+    const freeText = refs.notesTextarea?.value?.trim() || '';
+    state.bookingData.notes = [headerParts.join(' · '), freeText].filter(Boolean).join('\n');
 
     refs.bsExpert.textContent = expert?.name || '—';
     refs.bsType.textContent = session.label;
@@ -413,6 +448,8 @@ function openBookingModal(id) {
         date: '',
         time: '10:00',
         startsAt: '',
+        topic: '',
+        severity: '',
         notes: ''
     };
 
@@ -422,6 +459,7 @@ function openBookingModal(id) {
     refs.bsExpert.textContent = expert.name;
     if (refs.notesTextarea) refs.notesTextarea.value = '';
     renderSessionTypeOptions(expert);
+    renderBookingExtras();
     renderCalendar();
     renderTimeSlots();
     goBookingStep(1);
@@ -432,14 +470,128 @@ function openBookingModal(id) {
 function closeBookingModal() {
     refs.bookingOverlay.classList.remove('show');
     document.body.style.overflow = '';
+    stopPaymentCountdown();
     setTimeout(() => {
         document.getElementById('booking-success').style.display = 'none';
+        const pay = document.getElementById('booking-payment');
+        if (pay) { pay.style.display = 'none'; pay.innerHTML = ''; }
         document.getElementById('booking-step-1').style.display = 'block';
+        document.getElementById('booking-step-4').style.display = 'none';
         document.querySelectorAll('.bm-step').forEach((step, index) => {
             step.classList.toggle('active', index === 0);
         });
     }, 200);
 }
+
+let _paymentTimer = null;
+
+function showPaymentStep(bookingId, payment) {
+    for (let i = 1; i <= 4; i += 1) {
+        const s = document.getElementById(`booking-step-${i}`);
+        if (s) s.style.display = 'none';
+    }
+    document.getElementById('booking-success').style.display = 'none';
+    const el = document.getElementById('booking-payment');
+    el.style.display = 'block';
+    el.innerHTML = `
+        <div class="bm-section">
+            <div class="bm-section-title">💳 Thanh toán giữ chỗ</div>
+            <p style="font-size:0.84rem;color:var(--text-secondary);margin-bottom:14px;line-height:1.5;">Quét mã VietQR bằng app ngân hàng (đã điền sẵn số tiền & nội dung). Chuyển xong, bấm <strong>"Tôi đã chuyển khoản"</strong> — chuyên gia sẽ kiểm tra và xác nhận.</p>
+            <div style="display:flex;gap:18px;flex-wrap:wrap;align-items:center;justify-content:center;">
+                <img src="${payment.qr_image}" alt="VietQR" style="width:200px;height:200px;border:1.5px solid var(--kraft-light);border-radius:12px;background:#fff;" />
+                <div style="font-size:0.86rem;line-height:1.95;min-width:200px;">
+                    <div><span style="color:var(--text-secondary);">Ngân hàng:</span> <strong>${escapeHtml(payment.bank?.bankId || '')}</strong></div>
+                    <div><span style="color:var(--text-secondary);">Số TK:</span> <strong>${escapeHtml(payment.bank?.accountNo || '')}</strong></div>
+                    <div><span style="color:var(--text-secondary);">Chủ TK:</span> <strong>${escapeHtml(payment.bank?.accountName || '')}</strong></div>
+                    <div><span style="color:var(--text-secondary);">Số tiền:</span> <strong style="color:var(--coral);">${formatCurrency(payment.amount)}</strong></div>
+                    <div><span style="color:var(--text-secondary);">Nội dung:</span> <strong>${escapeHtml(payment.content || '')}</strong></div>
+                </div>
+            </div>
+            <div id="paymentCountdown" style="text-align:center;margin-top:12px;font-size:0.82rem;color:var(--text-secondary);"></div>
+        </div>
+        <div style="display:flex;gap:10px;justify-content:flex-end;">
+            <button class="btn-outline" onclick="closeBookingModal()">Thanh toán sau</button>
+            <button class="btn-primary" id="claimPaymentBtn">✓ Tôi đã chuyển khoản</button>
+        </div>
+    `;
+    el.querySelector('#claimPaymentBtn').addEventListener('click', () => claimPayment(bookingId));
+    startPaymentCountdown(payment.expires_at);
+}
+
+async function claimPayment(bookingId) {
+    try {
+        await apiClient.post(`/bookings/${bookingId}/claim-payment`, {});
+        stopPaymentCountdown();
+        const el = document.getElementById('booking-payment');
+        el.innerHTML = `
+            <div style="text-align:center;padding:20px 0;">
+                <div style="font-size:3rem;margin-bottom:12px;">🎉</div>
+                <div style="font-size:1.1rem;font-weight:800;margin-bottom:6px;">Đã ghi nhận chuyển khoản!</div>
+                <div style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:16px;line-height:1.5;">Chuyên gia sẽ kiểm tra thanh toán và xác nhận lịch. Bạn sẽ nhận thông báo khi được duyệt.</div>
+                <button class="btn-primary" onclick="closeBookingModal()">Đóng</button>
+            </div>`;
+        loadMyBookings();
+        showToast('Đã gửi xác nhận chuyển khoản.');
+    } catch (error) {
+        showToast(error.message || 'Không gửi được xác nhận.', 'error');
+    }
+}
+
+function startPaymentCountdown(expiresAt) {
+    stopPaymentCountdown();
+    if (!expiresAt) return;
+    const end = new Date(expiresAt).getTime();
+    const tick = () => {
+        const elc = document.getElementById('paymentCountdown');
+        if (!elc) { stopPaymentCountdown(); return; }
+        const ms = end - Date.now();
+        if (ms <= 0) { elc.textContent = '⌛ Đơn giữ chỗ đã hết hạn — hãy đặt lại.'; stopPaymentCountdown(); return; }
+        const m = Math.floor(ms / 60000);
+        const s = Math.floor((ms % 60000) / 1000);
+        elc.textContent = `⌛ Đơn giữ chỗ hết hạn sau ${m}:${String(s).padStart(2, '0')}`;
+    };
+    tick();
+    _paymentTimer = setInterval(tick, 1000);
+}
+
+function stopPaymentCountdown() {
+    if (_paymentTimer) { clearInterval(_paymentTimer); _paymentTimer = null; }
+}
+
+async function reopenPayment(bookingId) {
+    try {
+        const p = await apiClient.get(`/bookings/${bookingId}/payment`, { noCache: true });
+        if (p.booking_status !== 'pending_payment') {
+            showToast('Đơn không còn ở trạng thái chờ thanh toán.');
+            loadMyBookings();
+            return;
+        }
+        refs.bookingOverlay.classList.add('show');
+        document.body.style.overflow = 'hidden';
+        showPaymentStep(bookingId, {
+            amount: p.amount,
+            qr_image: p.qr_image,
+            content: p.content,
+            bank: p.bank,
+            expires_at: p.expires_at
+        });
+    } catch (_error) {
+        showToast('Không mở được thanh toán.', 'error');
+    }
+}
+
+async function cancelMyBooking(bookingId) {
+    if (!window.confirm('Bạn chắc chắn muốn huỷ lịch hẹn này?')) return;
+    try {
+        const r = await apiClient.post(`/expert-bookings/${bookingId}/cancel`, {});
+        showToast(r?.refunded ? `Đã huỷ. Hoàn ${formatCurrency(r.refunded)} vào ví.` : 'Đã huỷ lịch hẹn.');
+        loadMyBookings();
+    } catch (error) {
+        showToast(error.message || 'Không huỷ được lịch.', 'error');
+    }
+}
+
+
 
 function goBookingStep(step) {
     if (step === 3 && (!state.bookingData.date || !state.bookingData.time)) {
@@ -502,16 +654,14 @@ async function confirmBooking() {
             notes: state.bookingData.notes
         });
 
-        document.getElementById('booking-step-4').style.display = 'none';
-        document.getElementById('booking-success').style.display = 'block';
-        refs.successDatetime.textContent = formatDateTime(booking.starts_at);
-        refs.successExpert.textContent = booking.expert_name;
-        refs.successType.textContent = SESSION_CONFIG[booking.session_type]?.label || booking.session_type;
-        state.upcomingBooking = booking;
         localStorage.setItem('peaceflow_dashboard_refresh', '1');
-        renderSummary();
         loadMyBookings();
-        showToast('Đã gửi yêu cầu đặt lịch — chờ chuyên gia xác nhận.');
+        if (booking.payment) {
+            showPaymentStep(booking.id, booking.payment);
+        } else {
+            document.getElementById('booking-step-4').style.display = 'none';
+            document.getElementById('booking-success').style.display = 'block';
+        }
     } catch (error) {
         console.error('Booking failed:', error);
         showToast(error.message || 'Không đặt được lịch tư vấn.', 'error');
@@ -597,7 +747,7 @@ async function init() {
 }
 
 function isUpcomingBooking(b) {
-    return ['pending', 'confirmed'].includes(b.status) && new Date(b.starts_at).getTime() >= Date.now();
+    return ['pending_payment', 'pending', 'confirmed'].includes(b.status) && new Date(b.starts_at).getTime() >= Date.now();
 }
 
 async function loadMyBookings() {
@@ -653,6 +803,12 @@ function renderMyBookings() {
             btn.getAttribute('data-review-expert')
         ));
     });
+    refs.myBookingsList.querySelectorAll('[data-pay-id]').forEach((btn) => {
+        btn.addEventListener('click', () => reopenPayment(btn.getAttribute('data-pay-id')));
+    });
+    refs.myBookingsList.querySelectorAll('[data-cancel-id]').forEach((btn) => {
+        btn.addEventListener('click', () => cancelMyBooking(btn.getAttribute('data-cancel-id')));
+    });
 }
 
 function renderMyBookingCard(b) {
@@ -663,6 +819,13 @@ function renderMyBookingCard(b) {
         action = b.review_rating
             ? `<div style="color:#f5a623;font-weight:800;white-space:nowrap;">${'★'.repeat(b.review_rating)}</div>`
             : `<button class="btn-primary" style="padding:6px 14px;font-size:0.82rem;" data-review-id="${b.id}" data-review-expert="${escapeHtml(b.expert_name || '')}">Đánh giá</button>`;
+    } else if (b.status === 'pending_payment') {
+        action = `<div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;">
+            <button class="btn-primary" style="padding:6px 12px;font-size:0.8rem;" data-pay-id="${b.id}">Thanh toán</button>
+            <button class="btn-outline" style="padding:6px 12px;font-size:0.8rem;" data-cancel-id="${b.id}">Huỷ</button>
+        </div>`;
+    } else if (b.status === 'pending' || b.status === 'confirmed') {
+        action = `<button class="btn-outline" style="padding:6px 12px;font-size:0.8rem;" data-cancel-id="${b.id}">Huỷ</button>`;
     }
     return `
         <div style="display:flex;align-items:center;gap:14px;padding:12px 0;border-bottom:1px solid var(--kraft-light,#e8ddd0);">
