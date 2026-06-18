@@ -9,6 +9,11 @@ function expertBadgeHtml(isExpert) {
     return '<span style="font-size:0.6rem;font-weight:800;background:var(--mint);color:var(--text-primary);padding:1px 6px;border-radius:6px;border:1px solid var(--mint-dark);white-space:nowrap;">🩺 Chuyên gia</span>';
 }
 
+function adminBadgeHtml(isAdmin) {
+    if (!isAdmin) return '';
+    return '<span style="font-size:0.6rem;font-weight:800;background:var(--coral,#FF8B8B);color:#fff;padding:1px 6px;border-radius:6px;border:1px solid var(--coral-dark,#E05555);white-space:nowrap;">🛡️ Admin</span>';
+}
+
 const REACTION_META = {
     heart: { icon: '❤️', label: 'Thương' },
     hug: { icon: '🤗', label: 'Ôm' },
@@ -262,7 +267,7 @@ function renderSingleComment(post, comment, isReply = false) {
         <div class="comment-item ${isReply ? 'comment-reply' : ''}">
             <div class="ci-avatar">${escapeHtml(comment.avatar || '🌿')}</div>
             <div class="ci-bubble">
-                <div class="ci-name" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">${escapeHtml(comment.name || 'Người dùng')}${expertBadgeHtml(comment.isExpert)}</div>
+                <div class="ci-name" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">${escapeHtml(comment.name || 'Người dùng')}${adminBadgeHtml(comment.isAdmin)}${expertBadgeHtml(comment.isExpert)}</div>
                 ${contentHtml}
                 ${actions}
             </div>
@@ -390,6 +395,7 @@ function renderPostCard(post) {
                     <div>
                         <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
                             <div class="pa-name">${escapeHtml(post.name || 'Người dùng')}</div>
+                            ${adminBadgeHtml(post.isAdmin)}
                             ${expertBadgeHtml(post.isExpert)}
                             ${post.level ? `<span class="pa-level">${escapeHtml(post.level)}</span>` : ''}
                         </div>
@@ -688,6 +694,7 @@ async function handleSubmitComment(postId) {
         avatar: '🐱',
         name: getCurrentUserName(),
         isExpert: Boolean(state.currentUser?.is_expert),
+        isAdmin: state.currentUser?.role === 'admin',
         text: content
     };
     updatePostState(postId, (post) => ({
@@ -716,6 +723,7 @@ async function handleSubmitComment(postId) {
                     avatar: created.author_avatar || optimisticComment.avatar,
                     name: created.author_name || optimisticComment.name,
                     isExpert: Boolean(state.currentUser?.is_expert),
+        isAdmin: state.currentUser?.role === 'admin',
                     text: created.content || content
                 };
             }
@@ -865,6 +873,7 @@ async function handleSubmitReply(postId, parentCommentId) {
         avatar: '🐱',
         name: getCurrentUserName(),
         isExpert: Boolean(state.currentUser?.is_expert),
+        isAdmin: state.currentUser?.role === 'admin',
         text: content
     };
     updatePostState(postId, (post) => ({ ...post, comments: [...(post.comments || []), optimisticReply] }));
@@ -889,6 +898,7 @@ async function handleSubmitReply(postId, parentCommentId) {
                     avatar: created.author_avatar || optimisticReply.avatar,
                     name: created.author_name || optimisticReply.name,
                     isExpert: Boolean(state.currentUser?.is_expert),
+        isAdmin: state.currentUser?.role === 'admin',
                     text: created.content || content
                 };
             }

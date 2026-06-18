@@ -32,6 +32,7 @@ router.get('/community', requireAuth, async (req, res) => {
            u.display_name,
            u.full_name,
            (select exists(select 1 from experts e where e.user_id = p.user_id)) as author_is_expert,
+           (u.role = 'admin') as author_is_admin,
            coalesce(
              json_agg(
                distinct jsonb_build_object(
@@ -46,6 +47,7 @@ router.get('/community', requireAuth, async (req, res) => {
                    end,
                  'author_avatar', c.author_avatar,
                  'author_is_expert', (select exists(select 1 from experts e where e.user_id = c.user_id)),
+                 'author_is_admin', (cu.role = 'admin'),
                  'is_anonymous', c.is_anonymous,
                  'created_at', c.created_at
                )
@@ -76,7 +78,7 @@ router.get('/community', requireAuth, async (req, res) => {
            where post_id = p.id and user_id = $1
          ) mr on true
          where p.is_hidden = false
-         group by p.id, u.display_name, u.full_name
+         group by p.id, u.display_name, u.full_name, u.role
          order by p.created_at desc`,
         [userId]
       ).catch((e) => { console.error('[COMMUNITY_QUERY] community_posts:', e.message); return { rows: [] }; }),
@@ -497,6 +499,7 @@ function mapPost(row) {
       ? row.author_name || 'Người ẩn danh'
       : row.author_name || row.display_name || row.full_name || 'Người dùng',
     isExpert: !row.is_anonymous && Boolean(row.author_is_expert),
+    isAdmin: !row.is_anonymous && Boolean(row.author_is_admin),
     level: null,
     time: formatRelativeTime(row.created_at),
     tag: category,
@@ -512,6 +515,7 @@ function mapPost(row) {
       avatar: comment.author_avatar || '🌿',
       name: comment.author_name || 'Người dùng',
       isExpert: !comment.is_anonymous && Boolean(comment.author_is_expert),
+      isAdmin: !comment.is_anonymous && Boolean(comment.author_is_admin),
       text: comment.content
     })) : [],
     showComments: false,

@@ -38,7 +38,7 @@
     const templateUrl = scriptUrl
         ? new URL('./sidebar.html', scriptUrl).href
         : '../public/components/sidebar.html';
-    const SIDEBAR_TEMPLATE_CACHE_KEY = 'peaceflow_sidebar_template_v4';
+    const SIDEBAR_TEMPLATE_CACHE_KEY = 'peaceflow_sidebar_template_v5';
     const _spaHtmlCache = new Map(); // url -> { html, cachedAt }
     const SPA_HTML_CACHE_MS = 300_000; // 5 phút
     const SPA_SESSION_VERSION = Date.now();
@@ -145,25 +145,35 @@
         }
     }
 
-    function isApprovedExpert() {
+    function getStoredUser() {
         try {
-            const user = JSON.parse(localStorage.getItem('user') || 'null');
-            return Boolean(user && user.is_expert);
+            return JSON.parse(localStorage.getItem('user') || 'null');
         } catch (_error) {
-            return false;
+            return null;
         }
     }
 
-    // Hiện tag "Chuyên gia" cạnh tên và nút "Quản lý chuyên gia" khi user đã được duyệt.
-    // Mọi phần tử có [data-expert-only] (vd tag cạnh lời chào ở dashboard) cũng được bật/tắt theo.
+    // Hiện tag "Chuyên gia"/"Admin" cạnh tên + link tương ứng theo quyền của user.
+    // Phần tử [data-expert-only] / [data-admin-only] cũng được bật/tắt theo.
     function syncExpertUi() {
-        const expert = isApprovedExpert();
+        const user = getStoredUser();
+        const expert = Boolean(user && user.is_expert);
+        const isAdmin = Boolean(user && user.role === 'admin');
+
         const tag = document.getElementById('sidebarExpertTag');
         const portalLink = document.getElementById('sidebarExpertPortal');
         if (tag) tag.style.display = expert ? '' : 'none';
         if (portalLink) portalLink.style.display = expert ? '' : 'none';
         document.querySelectorAll('[data-expert-only]').forEach((el) => {
             el.style.display = expert ? '' : 'none';
+        });
+
+        const adminTag = document.getElementById('sidebarAdminTag');
+        const adminLink = document.getElementById('sidebarAdminPortal');
+        if (adminTag) adminTag.style.display = isAdmin ? '' : 'none';
+        if (adminLink) adminLink.style.display = isAdmin ? '' : 'none';
+        document.querySelectorAll('[data-admin-only]').forEach((el) => {
+            el.style.display = isAdmin ? '' : 'none';
         });
     }
 
@@ -398,7 +408,7 @@
             if (!html) {
                 // Gắn version vào URL: force-cache chỉ so theo URL, nên khi template đổi
                 // (bump version) URL mới sẽ không khớp cache cũ → fetch lại bản mới.
-                const versionedUrl = `${templateUrl}${templateUrl.includes('?') ? '&' : '?'}v=4`;
+                const versionedUrl = `${templateUrl}${templateUrl.includes('?') ? '&' : '?'}v=5`;
                 const response = await fetch(versionedUrl, { cache: 'force-cache' });
                 if (!response.ok) {
                     throw new Error(`Sidebar template load failed: ${response.status}`);
