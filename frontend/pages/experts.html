@@ -1676,6 +1676,19 @@ Ví dụ: Tôi đang gặp khó khăn với lo âu công việc và mất ngủ 
     </div>
 
     <!-- Profile Modal -->
+    <div class="modal-overlay" id="reviewModalOverlay" onclick="closeReviewIfOutside(event)">
+        <div style="background:var(--warm-white,#fffdf7);border-radius:18px;max-width:420px;width:calc(100% - 32px);padding:24px;box-shadow:0 24px 60px rgba(74,55,40,.2);">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                <h3 style="margin:0;font-size:1.2rem;">Đánh giá buổi tư vấn</h3>
+                <button onclick="closeReviewModal()" style="background:none;border:none;font-size:1.1rem;cursor:pointer;color:var(--text-secondary,#8b7355);">✕</button>
+            </div>
+            <p id="reviewExpertName" style="margin:0 0 16px;color:var(--text-secondary,#8b7355);"></p>
+            <div id="reviewStars" style="display:flex;gap:8px;justify-content:center;margin-bottom:16px;"></div>
+            <textarea id="reviewComment" rows="3" placeholder="Cảm nhận của bạn (không bắt buộc)" style="width:100%;border:1.5px solid var(--kraft-light,#e8ddd0);border-radius:12px;padding:10px 12px;font-family:inherit;font-size:0.9rem;resize:vertical;box-sizing:border-box;margin-bottom:16px;"></textarea>
+            <button class="btn-primary" style="width:100%;" onclick="submitReview()">Gửi đánh giá</button>
+        </div>
+    </div>
+
     <div class="modal-overlay" id="profileModalOverlay" onclick="closeProfileIfOutside(event)">
         <div class="profile-modal" id="profileModal">
             <div class="pm-hero">
@@ -1756,6 +1769,14 @@ Ví dụ: Tôi đang gặp khó khăn với lo âu công việc và mất ngủ 
                 <button class="btn-primary" id="aiMatchButton" onclick="filterExperts('matched',null)">Xem gợi ý →</button>
             </div>
         </div>
+
+        <!-- Lịch hẹn của tôi -->
+        <section class="paper-card" id="myBookingsSection" style="padding:18px 20px;margin-bottom:18px;display:none;">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px;">
+                <div class="page-title" style="font-size:1.15rem;margin:0;">📅 Lịch hẹn của tôi</div>
+            </div>
+            <div id="myBookingsList"></div>
+        </section>
 
         <!-- Stats Bar -->
         <div class="stats-bar">

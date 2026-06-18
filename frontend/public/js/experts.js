@@ -68,8 +68,23 @@ const refs = {
     successDatetime: document.getElementById('success-datetime'),
     successType: document.getElementById('success-type'),
     successExpert: document.getElementById('success-expert'),
-    notesTextarea: document.querySelector('.problem-textarea')
+    notesTextarea: document.querySelector('.problem-textarea'),
+    myBookingsSection: document.getElementById('myBookingsSection'),
+    myBookingsList: document.getElementById('myBookingsList'),
+    reviewOverlay: document.getElementById('reviewModalOverlay'),
+    reviewExpertName: document.getElementById('reviewExpertName'),
+    reviewStars: document.getElementById('reviewStars'),
+    reviewComment: document.getElementById('reviewComment')
 };
+
+const BOOKING_STATUS_BADGE = {
+    pending: { label: 'Chờ xác nhận', color: '#bf6f00', bg: 'rgba(245,180,80,.18)' },
+    confirmed: { label: 'Đã xác nhận', color: '#2f8f5b', bg: 'rgba(47,143,91,.14)' },
+    completed: { label: 'Đã hoàn thành', color: '#5a6b5c', bg: 'rgba(120,140,120,.16)' },
+    cancelled: { label: 'Đã hủy', color: '#a23b3b', bg: 'rgba(200,80,80,.14)' }
+};
+
+let reviewState = { bookingId: null, rating: 5 };
 
 function escapeHtml(value) {
     return String(value ?? '')
@@ -314,15 +329,37 @@ function renderCalendar() {
     }).join('');
 }
 
-function renderTimeSlots() {
+async function renderTimeSlots() {
     if (!refs.timeSlots) return;
 
-    const slots = ['08:00', '09:00', '10:00', '14:00', '15:00', '16:00', '20:00'];
-    const selectedTime = state.bookingData.time || '10:00';
-    state.bookingData.time = selectedTime;
+    const expertId = state.currentExpertId;
+    const date = state.bookingData.date;
+    if (!expertId || !date) {
+        refs.timeSlots.innerHTML = '<div class="time-slot-empty" style="grid-column:1/-1;color:var(--text-secondary,#8b7355);font-size:0.85rem;padding:6px 2px;">Hãy chọn ngày để xem giờ trống.</div>';
+        return;
+    }
+
+    refs.timeSlots.innerHTML = '<div class="time-slot-empty" style="grid-column:1/-1;color:var(--text-secondary,#8b7355);font-size:0.85rem;padding:6px 2px;">Đang tải khung giờ trống...</div>';
+
+    let slots = [];
+    try {
+        slots = await apiClient.get(`/experts/${expertId}/slots?date=${date}`, { noCache: true });
+    } catch (_error) {
+        slots = [];
+    }
+
+    if (!Array.isArray(slots) || !slots.length) {
+        state.bookingData.time = '';
+        refs.timeSlots.innerHTML = '<div class="time-slot-empty" style="grid-column:1/-1;color:var(--text-secondary,#8b7355);font-size:0.85rem;padding:6px 2px;">Chuyên gia không còn giờ trống trong ngày này. Hãy chọn ngày khác.</div>';
+        return;
+    }
+
+    if (!slots.includes(state.bookingData.time)) {
+        state.bookingData.time = slots[0];
+    }
 
     refs.timeSlots.innerHTML = slots.map((time) => `
-        <div class="time-slot ${time === selectedTime ? 'selected' : ''}"
+        <div class="time-slot ${time === state.bookingData.time ? 'selected' : ''}"
             onclick="selectBookingTime('${time}', this)">
             ${time}
         </div>
@@ -438,6 +475,7 @@ function selectBookingDate(isoDate, element) {
     state.bookingData.date = isoDate;
     element.parentElement.querySelectorAll('.calendar-day').forEach((day) => day.classList.remove('selected'));
     element.classList.add('selected');
+    renderTimeSlots();
 }
 
 function selectBookingTime(time, element) {
@@ -471,10 +509,11 @@ async function confirmBooking() {
         state.upcomingBooking = booking;
         localStorage.setItem('peaceflow_dashboard_refresh', '1');
         renderSummary();
-        showToast('Đã đặt lịch tư vấn.');
+        loadMyBookings();
+        showToast('Đã gửi yêu cầu đặt lịch — chờ chuyên gia xác nhận.');
     } catch (error) {
         console.error('Booking failed:', error);
-        showToast('Không đặt được lịch tư vấn.', 'error');
+        showToast(error.message || 'Không đặt được lịch tư vấn.', 'error');
     }
 }
 
@@ -541,6 +580,7 @@ async function init() {
 
         renderSummary();
         applyFilters();
+        loadMyBookings();
         await loadSidebarProgress();
     } catch (error) {
         console.error('Experts init failed:', error);
@@ -555,6 +595,100 @@ async function init() {
     }
 }
 
+async function loadMyBookings() {
+    if (!refs.myBookingsSection || !refs.myBookingsList) return;
+    let bookings = [];
+    try {
+        bookings = await apiClient.get('/expert-bookings', { noCache: true });
+    } catch (_error) {
+        bookings = [];
+    }
+    if (!Array.isArray(bookings) || !bookings.length) {
+        refs.myBookingsSection.style.display = 'none';
+        return;
+    }
+    refs.myBookingsSection.style.display = 'block';
+    refs.myBookingsList.innerHTML = bookings.map(renderMyBookingCard).join('');
+    refs.myBookingsList.querySelectorAll('[data-review-id]').forEach((btn) => {
+        btn.addEventListener('click', () => openReviewModal(
+            btn.getAttribute('data-review-id'),
+            btn.getAttribute('data-review-expert')
+        ));
+    });
+}
+
+function renderMyBookingCard(b) {
+    const badge = BOOKING_STATUS_BADGE[b.status] || BOOKING_STATUS_BADGE.pending;
+    const typeLabel = SESSION_CONFIG[b.session_type]?.label || b.session_type;
+    let action = '';
+    if (b.status === 'completed') {
+        action = b.review_rating
+            ? `<div style="color:#f5a623;font-weight:800;white-space:nowrap;">${'★'.repeat(b.review_rating)}</div>`
+            : `<button class="btn-primary" style="padding:6px 14px;font-size:0.82rem;" data-review-id="${b.id}" data-review-expert="${escapeHtml(b.expert_name || '')}">Đánh giá</button>`;
+    }
+    return `
+        <div style="display:flex;align-items:center;gap:14px;padding:12px 0;border-bottom:1px solid var(--kraft-light,#e8ddd0);">
+            <div style="font-size:1.6rem;flex:0 0 auto;">${escapeHtml(b.expert_avatar || '👩‍⚕️')}</div>
+            <div style="flex:1;min-width:0;">
+                <div style="font-weight:700;">${escapeHtml(b.expert_name || 'Chuyên gia')}</div>
+                <div style="font-size:0.82rem;color:var(--text-secondary,#8b7355);">${escapeHtml(typeLabel)} · ${formatDateTime(b.starts_at)} · ${b.duration_minutes} phút</div>
+            </div>
+            <span style="padding:4px 10px;border-radius:999px;font-size:0.72rem;font-weight:800;color:${badge.color};background:${badge.bg};white-space:nowrap;">${badge.label}</span>
+            <div style="flex:0 0 auto;">${action}</div>
+        </div>
+    `;
+}
+
+function openReviewModal(bookingId, expertName) {
+    reviewState = { bookingId, rating: 5 };
+    if (refs.reviewExpertName) refs.reviewExpertName.textContent = expertName ? `Buổi tư vấn với ${expertName}` : '';
+    if (refs.reviewComment) refs.reviewComment.value = '';
+    renderReviewStars();
+    refs.reviewOverlay?.classList.add('show');
+    document.body.style.overflow = 'hidden';
+}
+
+function renderReviewStars() {
+    if (!refs.reviewStars) return;
+    refs.reviewStars.innerHTML = [1, 2, 3, 4, 5].map((n) => `
+        <button type="button" data-star="${n}" style="background:none;border:none;cursor:pointer;font-size:2rem;line-height:1;padding:0;color:${n <= reviewState.rating ? '#f5a623' : '#d8cfc2'};">★</button>
+    `).join('');
+    refs.reviewStars.querySelectorAll('[data-star]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+            reviewState.rating = Number(btn.getAttribute('data-star'));
+            renderReviewStars();
+        });
+    });
+}
+
+function closeReviewModal() {
+    refs.reviewOverlay?.classList.remove('show');
+    document.body.style.overflow = '';
+}
+
+function closeReviewIfOutside(event) {
+    if (event.target.id === 'reviewModalOverlay') closeReviewModal();
+}
+
+async function submitReview() {
+    if (!reviewState.bookingId) return;
+    try {
+        await apiClient.post(`/expert-bookings/${reviewState.bookingId}/review`, {
+            rating: reviewState.rating,
+            comment: refs.reviewComment?.value?.trim() || ''
+        });
+        closeReviewModal();
+        showToast('Cảm ơn bạn đã đánh giá!');
+        loadMyBookings();
+    } catch (error) {
+        showToast(error.message || 'Không gửi được đánh giá.', 'error');
+    }
+}
+
+window.openReviewModal = openReviewModal;
+window.closeReviewModal = closeReviewModal;
+window.closeReviewIfOutside = closeReviewIfOutside;
+window.submitReview = submitReview;
 window.renderExperts = renderExperts;
 window.filterExperts = filterExperts;
 window.searchExperts = searchExperts;

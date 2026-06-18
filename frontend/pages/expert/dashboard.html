@@ -4,12 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script>
-        // Nếu mở trực tiếp trang này (không qua expert app-shell), nhảy vào shell để dùng SPA.
         if (!window.location.pathname.endsWith('/app.html')) {
             window.location.replace('app.html?page=' + window.location.pathname.split('/').pop());
         }
     </script>
-    <title>Expert Dashboard — PeaceFlow</title>
+    <title>Expert Dashboard - PeaceFlow</title>
     <link rel="icon" href="../../public/favicon.jpg" type="image/svg+xml">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Patrick+Hand&display=swap" rel="stylesheet">
@@ -20,45 +19,78 @@
 <body class="expert-portal-body">
     <div class="expert-portal">
         <aside class="expert-sidebar" id="expertSidebar"></aside>
-        <main class="expert-main">
-            <header class="expert-topbar">
-                <div>
+        <main class="expert-main expert-dashboard-main">
+            <header class="expert-topbar expert-dashboard-topbar">
+                <div class="expert-topbar-copy">
                     <p class="expert-page-kicker">PeaceFlow Expert</p>
                     <h1 class="expert-page-title" id="expertPageTitle"></h1>
                     <p class="expert-page-subtitle" id="expertPageSubtitle"></p>
                 </div>
-                <div class="expert-badge" id="expertPageBadge"></div>
+
+                <div class="expert-topbar-tools">
+                    <button
+                        type="button"
+                        class="expert-bell-btn"
+                        id="notifBellBtn"
+                        onclick="window.NotificationManager?.togglePanel()"
+                        data-notification-bell
+                        aria-label="Thông báo"
+                    >
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+                        <span id="notifBadge" class="expert-bell-badge"></span>
+                    </button>
+                    <div id="expertStatusToggle" class="expert-status-toggle-slot"></div>
+                    <div class="expert-avatar-chip" aria-hidden="true">EX</div>
+                </div>
             </header>
 
             <div class="expert-status-banner" id="expertStatusBanner"></div>
 
-            <div id="expertStatusToggle" style="margin-bottom:18px;"></div>
+            <section class="expert-kpi-row" id="expertKpis"></section>
 
-            <section class="expert-panel expert-hero" id="expertHero"></section>
+            <section class="expert-dashboard-grid">
+                <section class="expert-panel expert-section expert-booking-panel">
+                    <div class="expert-section-head">
+                        <div>
+                            <h2 class="expert-section-title">Lịch hẹn</h2>
+                            <p class="expert-section-copy">Trung tâm điều phối các buổi tư vấn của bạn.</p>
+                        </div>
+                    </div>
+                    <div id="expertBookings"></div>
+                </section>
 
-            <section class="expert-stats-grid" id="expertStats"></section>
+                <aside class="expert-dashboard-secondary">
+                    <section class="expert-panel expert-section expert-pending-panel">
+                        <div class="expert-section-head">
+                            <div>
+                                <h2 class="expert-section-title">Cần xác nhận</h2>
+                                <p class="expert-section-copy">Lịch mới từ thân chủ đang chờ bạn duyệt.</p>
+                            </div>
+                            <span class="expert-pending-badge" id="expertPendingBadge">0</span>
+                        </div>
+                        <div id="expertPending"></div>
+                    </section>
 
-            <section class="expert-panel expert-section" style="margin-bottom:18px;">
-                <h2 class="expert-section-title">Quản lý lịch hẹn</h2>
-                <div id="expertBookings"></div>
+                    <section class="expert-panel expert-section expert-profile-panel">
+                        <div class="expert-section-head">
+                            <div>
+                                <h2 class="expert-section-title">Hồ sơ</h2>
+                            </div>
+                            <a class="expert-inline-link" href="application.html">Chỉnh sửa</a>
+                        </div>
+                        <div id="expertProfile"></div>
+                    </section>
+                </aside>
             </section>
 
-            <section class="expert-panel expert-section" style="margin-bottom:18px;">
-                <h2 class="expert-section-title">Lịch rảnh hằng tuần</h2>
-                <p style="color:var(--text-secondary); margin:0 0 14px;">Thân chủ sẽ dựa vào khung giờ này để đặt lịch. Để trống nghĩa là chưa công bố lịch rảnh.</p>
+            <section class="expert-panel expert-section expert-availability-panel" id="expertAvailabilitySection">
+                <div class="expert-section-head">
+                    <div>
+                        <h2 class="expert-section-title">Lịch làm việc hàng tuần</h2>
+                        <p class="expert-section-copy">Mặc định mọi khung giờ đều rảnh. Tô đỏ những giờ bạn bận — thân chủ sẽ không đặt được vào lúc đó.</p>
+                    </div>
+                </div>
                 <div id="expertAvailability"></div>
-            </section>
-
-            <section class="expert-grid">
-                <article class="expert-panel expert-section">
-                    <h2 class="expert-section-title">Lịch hẹn sắp tới</h2>
-                    <div class="expert-session-list" id="expertSessions"></div>
-                </article>
-
-                <article class="expert-panel expert-section">
-                    <h2 class="expert-section-title">Hồ sơ chuyên môn</h2>
-                    <div id="expertProfile"></div>
-                </article>
             </section>
         </main>
     </div>

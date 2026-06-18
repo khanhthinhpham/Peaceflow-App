@@ -300,11 +300,13 @@ router.get('/expert-bookings', requireAuth, async (req, res) => {
          eb.*,
          e.full_name as expert_name,
          e.degree as expert_degree,
-         e.avatar_emoji as expert_avatar
+         e.avatar_emoji as expert_avatar,
+         er.rating as review_rating
        from expert_bookings eb
        join experts e on e.id = eb.expert_id
+       left join expert_reviews er on er.booking_id = eb.id
        where eb.user_id = $1
-       order by eb.starts_at asc`,
+       order by eb.starts_at desc`,
       [req.user.sub]
     );
 
@@ -389,6 +391,20 @@ router.post('/experts/:id/bookings', requireAuth, async (req, res) => {
     );
     if (overlap.rows[0]) {
       return res.status(409).json({ success: false, message: 'Khung giờ này đã có lịch khác, vui lòng chọn giờ khác.' });
+    }
+
+    // Chặn đặt vào khung giờ chuyên gia đã đánh dấu bận (lịch làm việc hằng tuần).
+    const busyHit = await db.query(
+      `select 1 from expert_availability a
+       where a.expert_id = $1
+         and a.weekday = extract(dow from ($2::timestamptz at time zone 'Asia/Bangkok'))::int
+         and a.start_time < ($3::timestamptz at time zone 'Asia/Bangkok')::time
+         and a.end_time > ($2::timestamptz at time zone 'Asia/Bangkok')::time
+       limit 1`,
+      [expert.id, payload.starts_at.toISOString(), endsAt.toISOString()]
+    );
+    if (busyHit.rows[0]) {
+      return res.status(409).json({ success: false, message: 'Chuyên gia bận vào khung giờ này, vui lòng chọn giờ khác.' });
     }
 
     const bookingResult = await db.query(
@@ -613,6 +629,70 @@ router.get('/experts/:id/availability', requireAuth, async (req, res) => {
   } catch (error) {
     console.error('Public availability error:', error);
     return res.status(500).json({ success: false, message: 'Could not fetch availability' });
+  }
+});
+
+// Các khung giờ trống (1 giờ) của chuyên gia trong một ngày — để client chọn khi đặt lịch.
+const SLOT_TZ = 'Asia/Bangkok';
+const SLOT_START_HOUR = 8;
+const SLOT_END_HOUR = 21;
+
+router.get('/experts/:id/slots', requireAuth, async (req, res) => {
+  try {
+    const date = String(req.query.date || '').slice(0, 10);
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+      return res.status(400).json({ success: false, message: 'Ngày không hợp lệ.' });
+    }
+
+    const [busyRes, bookingRes, nowRes] = await Promise.all([
+      db.query(
+        `select to_char(start_time, 'HH24:MI') as s, to_char(end_time, 'HH24:MI') as e
+         from expert_availability
+         where expert_id = $1 and weekday = extract(dow from $2::date)::int`,
+        [req.params.id, date]
+      ),
+      db.query(
+        `select to_char(starts_at at time zone $3, 'HH24:MI') as t, duration_minutes
+         from expert_bookings
+         where expert_id = $1 and status in ('pending', 'confirmed')
+           and (starts_at at time zone $3)::date = $2::date`,
+        [req.params.id, date, SLOT_TZ]
+      ),
+      db.query(
+        `select to_char(now() at time zone $1, 'YYYY-MM-DD') as today,
+                extract(hour from now() at time zone $1)::int as hour`,
+        [SLOT_TZ]
+      )
+    ]);
+
+    const toMin = (hhmm) => {
+      const [h, m] = String(hhmm).split(':').map(Number);
+      return (h * 60) + (m || 0);
+    };
+    const overlaps = (a1, a2, b1, b2) => a1 < b2 && b1 < a2;
+
+    const busy = busyRes.rows.map((r) => [toMin(r.s), toMin(r.e)]);
+    const booked = bookingRes.rows.map((r) => {
+      const start = toMin(r.t);
+      return [start, start + (Number(r.duration_minutes) || 60)];
+    });
+    const isToday = nowRes.rows[0]?.today === date;
+    const nowHour = Number(nowRes.rows[0]?.hour ?? 0);
+
+    const slots = [];
+    for (let h = SLOT_START_HOUR; h < SLOT_END_HOUR; h += 1) {
+      const s = h * 60;
+      const e = s + 60;
+      if (isToday && h <= nowHour) continue;
+      if (busy.some(([b1, b2]) => overlaps(s, e, b1, b2))) continue;
+      if (booked.some(([b1, b2]) => overlaps(s, e, b1, b2))) continue;
+      slots.push(`${String(h).padStart(2, '0')}:00`);
+    }
+
+    return res.json({ success: true, data: slots });
+  } catch (error) {
+    console.error('Expert slots error:', error);
+    return res.status(500).json({ success: false, message: 'Could not fetch slots' });
   }
 });
 
