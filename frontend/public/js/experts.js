@@ -94,6 +94,31 @@ const BOOKING_STATUS_BADGE = {
 
 let reviewState = { bookingId: null, rating: 5 };
 let myBookingsState = { items: [], tab: 'upcoming' };
+let walletBalance = 0;
+
+async function loadWallet() {
+    try {
+        const w = await apiClient.get('/wallet', { noCache: true });
+        walletBalance = Number(w.balance) || 0;
+    } catch (_error) {
+        walletBalance = 0;
+    }
+    const chip = document.getElementById('walletBalanceChip');
+    if (chip) {
+        chip.textContent = `👛 Ví: ${formatCurrency(walletBalance)}`;
+        chip.style.display = walletBalance > 0 ? '' : 'none';
+    }
+}
+
+async function payWallet(bookingId) {
+    try {
+        await apiClient.post(`/bookings/${bookingId}/pay-wallet`, {});
+        paymentPaidSuccess();
+        loadWallet();
+    } catch (error) {
+        showToast(error.message || 'Không thanh toán được bằng ví.', 'error');
+    }
+}
 
 function escapeHtml(value) {
     return String(value ?? '')
@@ -500,10 +525,14 @@ function showPaymentStep(bookingId, payment) {
     const intro = auto
         ? 'Quét mã bằng app ngân hàng (đã điền sẵn số tiền & nội dung). Hệ thống <strong>tự động xác nhận</strong> ngay khi nhận được tiền — bạn không cần làm gì thêm.'
         : 'Quét mã VietQR bằng app ngân hàng (đã điền sẵn số tiền & nội dung). Chuyển xong, bấm <strong>"Tôi đã chuyển khoản"</strong> — quản trị sẽ đối chiếu & xác nhận.';
+    const canWallet = Number(payment.amount) > 0 && walletBalance >= Number(payment.amount);
+    const walletBtn = canWallet ? `<button class="btn-primary" id="payWalletBtn">👛 Trả bằng ví (${formatCurrency(walletBalance)})</button>` : '';
     const footer = auto
         ? `<button class="btn-outline" onclick="closeBookingModal()">Thanh toán sau</button>
+           ${walletBtn}
            ${payment.checkout_url ? `<a class="btn-primary" href="${payment.checkout_url}" target="_blank" rel="noopener">Mở trang thanh toán</a>` : ''}`
         : `<button class="btn-outline" onclick="closeBookingModal()">Thanh toán sau</button>
+           ${walletBtn}
            <button class="btn-primary" id="claimPaymentBtn">✓ Tôi đã chuyển khoản</button>`;
 
     el.innerHTML = `
@@ -532,6 +561,7 @@ function showPaymentStep(bookingId, payment) {
     } else {
         startPaymentPoll(bookingId);
     }
+    el.querySelector('#payWalletBtn')?.addEventListener('click', () => payWallet(bookingId));
     startPaymentCountdown(payment.expires_at);
 }
 
@@ -637,6 +667,7 @@ async function cancelMyBooking(bookingId) {
         const r = await apiClient.post(`/expert-bookings/${bookingId}/cancel`, {});
         showToast(r?.refunded ? `Đã huỷ. Hoàn ${formatCurrency(r.refunded)} vào ví.` : 'Đã huỷ lịch hẹn.');
         loadMyBookings();
+        loadWallet();
     } catch (error) {
         showToast(error.message || 'Không huỷ được lịch.', 'error');
     }
@@ -783,6 +814,7 @@ async function init() {
         renderSummary();
         applyFilters();
         loadMyBookings();
+        loadWallet();
         await loadSidebarProgress();
     } catch (error) {
         console.error('Experts init failed:', error);
@@ -963,6 +995,7 @@ if (!window.__myBookingsRealtimeBound) {
     window.__myBookingsRealtimeBound = true;
     window.addEventListener('peaceflow:booking-changed', () => {
         if (document.getElementById('myBookingsList')) loadMyBookings();
+        loadWallet();
     });
 }
 

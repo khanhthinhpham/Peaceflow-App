@@ -132,9 +132,10 @@ function setupExpertOperations(overview) {
     const bookingsSection = document.getElementById('expertBookings')?.closest('section');
     const pendingSection = document.getElementById('expertPending')?.closest('section');
     const availabilitySection = document.getElementById('expertAvailabilitySection');
+    const earningsSection = document.getElementById('expertEarnings')?.closest('section');
 
     if (!hasProfile) {
-        [toggle, kpiRow, bookingsSection, pendingSection, availabilitySection].forEach((node) => {
+        [toggle, kpiRow, bookingsSection, pendingSection, availabilitySection, earningsSection].forEach((node) => {
             if (node) node.style.display = 'none';
         });
         return;
@@ -143,6 +144,39 @@ function setupExpertOperations(overview) {
     renderStatusToggle(overview.expert.status || 'offline');
     loadBookingManagement();
     loadAvailabilityEditor();
+    loadEarnings();
+}
+
+async function loadEarnings() {
+    const el = document.getElementById('expertEarnings');
+    if (!el) return;
+    let data = null;
+    try {
+        data = await apiClient.get('/expert-portal/earnings', { noCache: true });
+    } catch (_error) {
+        el.innerHTML = '<p style="color:var(--text-secondary);">Không tải được doanh thu.</p>';
+        return;
+    }
+    const rows = (data.recent || []).slice(0, 8).map((r) => `
+        <div style="display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px dashed var(--kraft-light);font-size:0.85rem;">
+            <span style="color:var(--text-secondary);">${escapeHtml(r.client_name || 'Thân chủ')} · ${formatDateTime(r.created_at)}</span>
+            <strong style="color:var(--mint-dark);white-space:nowrap;">+${formatCurrency(r.expert_earning)}</strong>
+        </div>
+    `).join('') || '<p style="color:var(--text-secondary);font-size:0.85rem;">Chưa có doanh thu.</p>';
+    el.innerHTML = `
+        <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:14px;">
+            <div style="flex:1;min-width:120px;background:var(--mint-light);border:1.5px solid var(--mint);border-radius:14px;padding:12px 14px;">
+                <div style="font-size:0.72rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--mint-dark);">Số dư khả dụng</div>
+                <div style="font-size:1.4rem;font-weight:800;color:var(--mint-dark);">${formatCurrency(data.balance)}</div>
+            </div>
+            <div style="flex:1;min-width:120px;background:var(--warm-white);border:1.5px solid var(--kraft-light);border-radius:14px;padding:12px 14px;">
+                <div style="font-size:0.72rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--text-secondary);">Tổng đã nhận</div>
+                <div style="font-size:1.4rem;font-weight:800;">${formatCurrency(data.total_earned)}</div>
+            </div>
+        </div>
+        ${data.pending ? `<div style="font-size:0.82rem;color:var(--text-secondary);margin-bottom:10px;">⏳ Chờ hoàn thành buổi: ${formatCurrency(data.pending)}</div>` : ''}
+        <div>${rows}</div>
+    `;
 }
 
 function renderStatusToggle(currentStatus) {

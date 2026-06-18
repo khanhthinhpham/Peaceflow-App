@@ -895,6 +895,130 @@ router.post('/admin/bookings/:id/reject-payment', requireAuth, async (req, res) 
   }
 });
 
+// ===== VÍ NGƯỜI DÙNG =====
+
+router.get('/wallet', requireAuth, async (req, res) => {
+  try {
+    const u = await db.query(`select coalesce(wallet_balance, 0)::int as balance from users where id = $1`, [req.user.sub]);
+    const tx = await db.query(
+      `select amount, type, note, created_at from wallet_transactions where user_id = $1 order by created_at desc limit 50`,
+      [req.user.sub]
+    );
+    return res.json({ success: true, data: { balance: u.rows[0]?.balance || 0, transactions: tx.rows } });
+  } catch (error) {
+    console.error('Get wallet error:', error);
+    return res.status(500).json({ success: false, message: 'Could not fetch wallet' });
+  }
+});
+
+// Thanh toán lịch hẹn bằng số dư ví (tự xác nhận → chờ chuyên gia nhận).
+router.post('/bookings/:id/pay-wallet', requireAuth, async (req, res) => {
+  try {
+    const bRes = await db.query(
+      `select b.*, e.user_id as expert_user_id, coalesce(u.display_name, u.full_name, 'Thân chủ') as client_name
+       from expert_bookings b join experts e on e.id = b.expert_id join users u on u.id = b.user_id
+       where b.id = $1 and b.user_id = $2 limit 1`,
+      [req.params.id, req.user.sub]
+    );
+    const b = bRes.rows[0];
+    if (!b) return res.status(404).json({ success: false, message: 'Không tìm thấy lịch hẹn.' });
+    if (b.status !== 'pending_payment') return res.status(409).json({ success: false, message: 'Lịch không ở trạng thái chờ thanh toán.' });
+    const amount = Number(b.amount) || 0;
+    if (amount <= 0) return res.status(400).json({ success: false, message: 'Đơn không hợp lệ.' });
+
+    const uRes = await db.query(`select coalesce(wallet_balance, 0)::int as bal from users where id = $1`, [req.user.sub]);
+    if ((uRes.rows[0]?.bal || 0) < amount) return res.status(400).json({ success: false, message: 'Số dư ví không đủ.' });
+
+    await db.query(`update users set wallet_balance = wallet_balance - $2 where id = $1`, [req.user.sub, amount]);
+    await db.query(
+      `insert into wallet_transactions (user_id, amount, type, booking_id, note) values ($1, $2, 'payment', $3, 'Thanh toán lịch hẹn bằng ví')`,
+      [req.user.sub, -amount, b.id]
+    );
+    await db.query(`update payments set status = 'paid', paid_at = now(), provider = 'wallet' where booking_id = $1 and status = 'pending'`, [b.id]);
+    await db.query(`update expert_bookings set status = 'awaiting_expert', paid_at = now() where id = $1`, [b.id]);
+
+    await notify(b.user_id, null, 'booking_update', 'Đã thanh toán bằng ví — đang chờ chuyên gia nhận lịch.');
+    if (b.expert_user_id) await notify(b.expert_user_id, b.client_name, 'booking_new', 'Có lịch đã thanh toán — mời bạn nhận hoặc từ chối.');
+
+    return res.json({ success: true });
+  } catch (error) {
+    console.error('Pay wallet error:', error);
+    return res.status(500).json({ success: false, message: 'Could not pay with wallet' });
+  }
+});
+
+// ===== DOANH THU / SỐ DƯ CHUYÊN GIA =====
+router.get('/expert-portal/earnings', requireAuth, async (req, res) => {
+  try {
+    if (req.user.role !== 'expert') return res.status(403).json({ success: false, message: 'Expert access required' });
+    const eRes = await db.query(`select id, coalesce(balance, 0)::int as balance from experts where user_id = $1 limit 1`, [req.user.sub]);
+    if (!eRes.rows[0]) return res.json({ success: true, data: { balance: 0, total_earned: 0, pending: 0, recent: [] } });
+    const expertId = eRes.rows[0].id;
+    const agg = await db.query(
+      `select
+         coalesce(sum(expert_earning) filter (where status in ('payable', 'settled')), 0)::int as total_earned,
+         coalesce(sum(expert_earning) filter (where status = 'pending'), 0)::int as pending
+       from expert_ledger where expert_id = $1`,
+      [expertId]
+    );
+    const recent = await db.query(
+      `select l.expert_earning, l.gross, l.platform_fee, l.status, l.created_at, u.full_name as client_name
+       from expert_ledger l
+       join expert_bookings b on b.id = l.booking_id
+       join users u on u.id = b.user_id
+       where l.expert_id = $1 order by l.created_at desc limit 20`,
+      [expertId]
+    );
+    return res.json({
+      success: true,
+      data: { balance: eRes.rows[0].balance, total_earned: agg.rows[0].total_earned, pending: agg.rows[0].pending, recent: recent.rows }
+    });
+  } catch (error) {
+    console.error('Expert earnings error:', error);
+    return res.status(500).json({ success: false, message: 'Could not fetch earnings' });
+  }
+});
+
+// ===== ADMIN: chi trả (payout) cho chuyên gia =====
+router.get('/admin/payouts/pending', requireAuth, async (req, res) => {
+  try {
+    if (req.user.role !== 'admin') return res.status(403).json({ success: false, message: 'Admin only' });
+    const r = await db.query(
+      `select e.id, e.full_name, coalesce(e.balance, 0)::int as balance, u.email
+       from experts e left join users u on u.id = e.user_id
+       where coalesce(e.balance, 0) > 0 order by e.balance desc`
+    );
+    return res.json({ success: true, data: r.rows });
+  } catch (error) {
+    console.error('Admin payouts pending error:', error);
+    return res.status(500).json({ success: false, message: 'Could not fetch payouts' });
+  }
+});
+
+router.post('/admin/payouts/:expertId', requireAuth, async (req, res) => {
+  try {
+    if (req.user.role !== 'admin') return res.status(403).json({ success: false, message: 'Admin only' });
+    const eRes = await db.query(`select id, user_id, coalesce(balance, 0)::int as balance, full_name from experts where id = $1 limit 1`, [req.params.expertId]);
+    const exp = eRes.rows[0];
+    if (!exp) return res.status(404).json({ success: false, message: 'Không tìm thấy chuyên gia.' });
+    if (exp.balance <= 0) return res.status(400).json({ success: false, message: 'Chuyên gia không có số dư để chi trả.' });
+
+    await db.query(
+      `insert into expert_payouts (expert_id, amount, status, note, paid_at) values ($1, $2, 'paid', $3, now())`,
+      [exp.id, exp.balance, req.body?.note || null]
+    );
+    await db.query(`update expert_ledger set status = 'settled' where expert_id = $1 and status = 'payable'`, [exp.id]);
+    await db.query(`update experts set balance = 0 where id = $1`, [exp.id]);
+    if (exp.user_id) {
+      await notify(exp.user_id, null, 'booking_update', `Bạn đã được chi trả ${Number(exp.balance).toLocaleString('vi-VN')}đ.`);
+    }
+    return res.json({ success: true, data: { amount: exp.balance } });
+  } catch (error) {
+    console.error('Admin payout error:', error);
+    return res.status(500).json({ success: false, message: 'Could not create payout' });
+  }
+});
+
 // ===== Lịch rảnh hằng tuần =====
 
 router.get('/expert-portal/availability', requireAuth, async (req, res) => {

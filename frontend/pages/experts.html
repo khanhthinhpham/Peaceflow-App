@@ -1756,7 +1756,10 @@ Ví dụ: Tôi đang gặp khó khăn với lo âu công việc và mất ngủ 
                 <div class="page-title">🩺 Kết Nối Chuyên Gia Tâm Lý</div>
                 <div class="page-subtitle" id="expertsSubtitle">Đội ngũ 30+ chuyên gia được chứng nhận — sẵn sàng đồng hành cùng bạn</div>
             </div>
-            <button class="btn-primary" onclick="showEmergency()">🆘 Hỗ trợ khẩn cấp</button>
+            <div style="display:flex;align-items:center;gap:10px;">
+                <span id="walletBalanceChip" style="display:none;font-size:0.85rem;font-weight:800;color:var(--mint-dark);background:var(--mint-light);padding:8px 14px;border-radius:999px;border:1.5px solid var(--mint);">👛 Ví: 0đ</span>
+                <button class="btn-primary" onclick="showEmergency()">🆘 Hỗ trợ khẩn cấp</button>
+            </div>
         </div>
 
         <!-- Hotline Banner -->

@@ -24,6 +24,12 @@
         </div>
 
         <div id="adminPaymentsList"></div>
+
+        <h2 style="margin:30px 0 14px;font-size:1.4rem;">💸 Chi trả chuyên gia</h2>
+        <div class="paper-card" style="padding:14px 16px;margin-bottom:16px;font-size:0.85rem;color:var(--text-secondary);line-height:1.55;">
+            Số dư khả dụng của chuyên gia (75% mỗi buổi đã hoàn thành). Bấm <strong>Chi trả</strong> khi đã chuyển khoản cho chuyên gia — hệ thống sẽ ghi nhận và đưa số dư về 0.
+        </div>
+        <div id="adminPayoutsList"></div>
     </div>
 
     <script type="module">
@@ -93,23 +99,61 @@
             btn.disabled = true;
             try {
                 await apiClient.post(url, {});
-                load();
+                refreshAll();
             } catch (e) {
                 alert(e.message || 'Thao tác thất bại.');
                 btn.disabled = false;
             }
         }
 
-        document.getElementById('reloadBtn').addEventListener('click', load);
+        const payoutsEl = document.getElementById('adminPayoutsList');
+        async function loadPayouts() {
+            payoutsEl.innerHTML = '<div class="paper-card" style="padding:20px;text-align:center;color:var(--text-secondary);">Đang tải...</div>';
+            let rows = [];
+            try {
+                rows = await apiClient.get('/admin/payouts/pending', { noCache: true });
+            } catch (_e) {
+                payoutsEl.innerHTML = '<div class="paper-card" style="padding:20px;text-align:center;color:var(--coral);">Không tải được danh sách.</div>';
+                return;
+            }
+            if (!Array.isArray(rows) || !rows.length) {
+                payoutsEl.innerHTML = '<div class="paper-card" style="padding:24px;text-align:center;color:var(--text-secondary);">Không có số dư nào cần chi trả.</div>';
+                return;
+            }
+            payoutsEl.innerHTML = rows.map((e) => `
+                <div class="paper-card" style="padding:14px 18px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
+                    <div>
+                        <div style="font-weight:800;">${esc(e.full_name)}</div>
+                        <div style="font-size:0.82rem;color:var(--text-secondary);">${esc(e.email || '')}</div>
+                    </div>
+                    <div style="text-align:right;">
+                        <div style="font-size:1.2rem;font-weight:800;color:var(--mint-dark,#7BBF95);">${money(e.balance)}</div>
+                        <button class="btn-primary" style="margin-top:6px;" data-payout="${e.id}">Chi trả</button>
+                    </div>
+                </div>
+            `).join('');
+            payoutsEl.querySelectorAll('[data-payout]').forEach((btn) => {
+                btn.addEventListener('click', () => {
+                    if (window.confirm('Xác nhận đã chuyển khoản cho chuyên gia và đưa số dư về 0?')) {
+                        act(`/admin/payouts/${btn.getAttribute('data-payout')}`, btn);
+                    }
+                });
+            });
+        }
+
+        function refreshAll() { load(); loadPayouts(); }
+
+        document.getElementById('reloadBtn').addEventListener('click', refreshAll);
 
         (async () => {
             const ok = await auth.waitForAuth();
             const user = auth.getUser();
             if (!ok || user?.role !== 'admin') {
                 listEl.innerHTML = '<div class="paper-card" style="padding:28px;text-align:center;color:var(--coral);">Bạn cần đăng nhập bằng tài khoản quản trị (admin) để dùng trang này.</div>';
+                payoutsEl.innerHTML = '';
                 return;
             }
-            load();
+            refreshAll();
         })();
     </script>
 </body>
