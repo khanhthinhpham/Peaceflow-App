@@ -38,7 +38,7 @@
     const templateUrl = scriptUrl
         ? new URL('./sidebar.html', scriptUrl).href
         : '../public/components/sidebar.html';
-    const SIDEBAR_TEMPLATE_CACHE_KEY = 'peaceflow_sidebar_template_v5';
+    const SIDEBAR_TEMPLATE_CACHE_KEY = 'peaceflow_sidebar_template_v6';
     const _spaHtmlCache = new Map(); // url -> { html, cachedAt }
     const SPA_HTML_CACHE_MS = 300_000; // 5 phút
     const SPA_SESSION_VERSION = Date.now();
@@ -408,7 +408,7 @@
             if (!html) {
                 // Gắn version vào URL: force-cache chỉ so theo URL, nên khi template đổi
                 // (bump version) URL mới sẽ không khớp cache cũ → fetch lại bản mới.
-                const versionedUrl = `${templateUrl}${templateUrl.includes('?') ? '&' : '?'}v=5`;
+                const versionedUrl = `${templateUrl}${templateUrl.includes('?') ? '&' : '?'}v=6`;
                 const response = await fetch(versionedUrl, { cache: 'force-cache' });
                 if (!response.ok) {
                     throw new Error(`Sidebar template load failed: ${response.status}`);
