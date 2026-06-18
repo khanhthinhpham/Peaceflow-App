@@ -821,6 +821,65 @@ router.patch('/expert-portal/bookings/:id', requireAuth, async (req, res) => {
 
 // ===== ADMIN: xác nhận thanh toán (tiền về tài khoản nền tảng) =====
 
+router.get('/admin/overview', requireAuth, async (req, res) => {
+  try {
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({ success: false, message: 'Admin only' });
+    }
+
+    const [
+      usersRes,
+      expertsRes,
+      bookingsTodayRes,
+      pendingPaymentsRes,
+      payoutsRes,
+      applicationsRes,
+      communityRes
+    ] = await Promise.all([
+      db.query(`select count(*)::int as total from users`),
+      db.query(`select count(*)::int as total from experts where active = true`),
+      db.query(
+        `select count(*)::int as total
+         from expert_bookings
+         where date_trunc('day', starts_at) = date_trunc('day', now())`
+      ),
+      db.query(`select count(*)::int as total from expert_bookings where status = 'pending'`),
+      db.query(
+        `select
+           count(*)::int as total_experts,
+           coalesce(sum(balance), 0)::int as total_balance
+         from experts
+         where coalesce(balance, 0) > 0`
+      ),
+      db.query(`select count(*)::int as total from expert_applications where status = 'pending'`),
+      db.query(
+        `select
+           count(*) filter (where coalesce(reports_count, 0) > 0)::int as reported_posts,
+           count(*) filter (where is_hidden = true)::int as hidden_posts
+         from community_posts`
+      )
+    ]);
+
+    return res.json({
+      success: true,
+      data: {
+        total_users: usersRes.rows[0]?.total || 0,
+        active_experts: expertsRes.rows[0]?.total || 0,
+        bookings_today: bookingsTodayRes.rows[0]?.total || 0,
+        pending_payment_bookings: pendingPaymentsRes.rows[0]?.total || 0,
+        pending_payout_experts: payoutsRes.rows[0]?.total_experts || 0,
+        pending_payout_amount: payoutsRes.rows[0]?.total_balance || 0,
+        pending_expert_applications: applicationsRes.rows[0]?.total || 0,
+        reported_community_posts: communityRes.rows[0]?.reported_posts || 0,
+        hidden_community_posts: communityRes.rows[0]?.hidden_posts || 0
+      }
+    });
+  } catch (error) {
+    console.error('Admin overview error:', error);
+    return res.status(500).json({ success: false, message: 'Could not fetch admin overview' });
+  }
+});
+
 // Danh sách lịch đã báo chuyển khoản, chờ admin đối chiếu sao kê.
 router.get('/admin/bookings/pending-payment', requireAuth, async (req, res) => {
   try {

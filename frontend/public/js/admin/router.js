@@ -1,7 +1,12 @@
 import { requireAdmin } from './shell.js';
 
-// Các tab nội dung của khu admin. Router chỉ swap phần <main>, sidebar giữ nguyên.
-const ADMIN_PAGES = new Set(['dashboard.html', 'experts.html', 'payments.html', 'users.html', 'community.html']);
+const ADMIN_PAGES = new Set([
+    'dashboard.html',
+    'experts.html',
+    'payments.html',
+    'users.html',
+    'community.html'
+]);
 
 const SESSION_VERSION = Date.now();
 let navSeq = 0;
@@ -48,13 +53,12 @@ const AdminRouter = {
         if (nextUrl.origin !== window.location.origin) return;
         if (!nextUrl.pathname.includes('/admin/')) return;
 
-        const name = resolvePageName(nextUrl.searchParams.get('page') || nextUrl.pathname.split('/').pop() || '');
         const rawName = nextUrl.pathname.split('/').pop() || '';
-        // Chỉ SPA-hoá link nội bộ khu admin (app.html?page= hoặc *.html là tab admin).
+        const page = resolvePageName(nextUrl.searchParams.get('page') || rawName);
         if (!nextUrl.searchParams.has('page') && !ADMIN_PAGES.has(rawName)) return;
 
         event.preventDefault();
-        this.navigate(name, { history: 'push' });
+        this.navigate(page, { history: 'push' });
     },
 
     async navigate(page, options = {}) {
@@ -72,12 +76,14 @@ const AdminRouter = {
 
             const pageUrl = new URL(`./${page}`, window.location.href).href;
             const response = await fetch(pageUrl, { credentials: 'same-origin' });
-            if (!response.ok) throw new Error(`Failed to load admin page ${pageUrl}: ${response.status}`);
+            if (!response.ok) {
+                throw new Error(`Failed to load admin page ${pageUrl}: ${response.status}`);
+            }
 
             const doc = new DOMParser().parseFromString(await response.text(), 'text/html');
             if (mySeq !== navSeq) return;
 
-            document.title = doc.querySelector('title')?.textContent || 'Trang quản trị — PeaceFlow';
+            document.title = doc.querySelector('title')?.textContent || 'Trang quản trị - PeaceFlow';
 
             const main = doc.querySelector('main.admin-main');
             this.host.replaceChildren(main ? document.importNode(main, true) : document.createElement('main'));
@@ -90,7 +96,7 @@ const AdminRouter = {
                 await import(moduleUrl.href);
             }
         } catch (error) {
-            console.error('Admin SPA navigation failed, falling back to full load:', error);
+            console.error('Admin SPA navigation failed, switching to full load:', error);
             window.location.href = new URL(`./${page}`, window.location.href).href;
         } finally {
             this.navigating = false;

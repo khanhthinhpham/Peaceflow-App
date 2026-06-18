@@ -8,7 +8,7 @@
             window.location.replace('app.html?page=' + window.location.pathname.split('/').pop());
         }
     </script>
-    <title>Thanh toán & Payout — Quản trị PeaceFlow</title>
+    <title>Thanh toán và payout - Quản trị PeaceFlow</title>
     <link rel="stylesheet" href="../../public/css/style.css">
     <link rel="stylesheet" href="../../public/css/admin/admin.css">
 </head>
@@ -17,21 +17,22 @@
         <div class="admin-page-head" style="display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap;">
             <div>
                 <p class="admin-page-kicker">PeaceFlow Admin</p>
-                <h1 class="admin-page-title">Thanh toán & Payout</h1>
-                <p class="admin-page-sub">Xác nhận tiền về tài khoản nền tảng & chi trả cho chuyên gia.</p>
+                <h1 class="admin-page-title">Thanh toán và payout</h1>
+                <p class="admin-page-sub">Xác nhận tiền vào tài khoản nền tảng và chốt chi trả cho chuyên gia.</p>
             </div>
-            <button id="reloadBtn" class="btn-outline">↻ Tải lại</button>
+            <button id="reloadBtn" class="btn-outline">Tải lại</button>
         </div>
 
         <h2 style="margin:6px 0 12px;font-size:1.25rem;font-weight:800;">Chờ xác nhận thanh toán</h2>
         <div class="admin-card" style="font-size:.85rem;color:var(--text-secondary);line-height:1.55;">
-            Đối chiếu sao kê tài khoản nền tảng. Đúng <strong>số tiền</strong> + <strong>nội dung CK</strong> → bấm <strong>Xác nhận đã nhận tiền</strong> để chuyển đơn sang bước chuyên gia nhận lịch. Không thấy tiền → <strong>Từ chối</strong>.
+            Đối chiếu đúng số tiền và nội dung chuyển khoản rồi bấm xác nhận để chuyển booking sang bước chờ chuyên gia nhận lịch.
+            Nếu không thấy tiền, có thể từ chối để hủy đơn.
         </div>
         <div id="adminPaymentsList"></div>
 
-        <h2 style="margin:30px 0 12px;font-size:1.25rem;font-weight:800;">💸 Chi trả chuyên gia</h2>
+        <h2 style="margin:30px 0 12px;font-size:1.25rem;font-weight:800;">Chi trả cho chuyên gia</h2>
         <div class="admin-card" style="font-size:.85rem;color:var(--text-secondary);line-height:1.55;">
-            Số dư khả dụng của chuyên gia (75% mỗi buổi đã hoàn thành). Bấm <strong>Chi trả</strong> sau khi đã chuyển khoản — hệ thống ghi nhận và đưa số dư về 0.
+            Đây là số dư khả dụng đang chờ đối soát. Sau khi chuyển khoản thực tế cho chuyên gia, bấm chi trả để ghi nhận và đưa số dư về 0.
         </div>
         <div id="adminPayoutsList"></div>
     </main>

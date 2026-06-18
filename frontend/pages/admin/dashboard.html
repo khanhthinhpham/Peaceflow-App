@@ -8,7 +8,7 @@
             window.location.replace('app.html?page=' + window.location.pathname.split('/').pop());
         }
     </script>
-    <title>Tổng quan — Quản trị PeaceFlow</title>
+    <title>Tổng quan - Quản trị PeaceFlow</title>
     <link rel="stylesheet" href="../../public/css/style.css">
     <link rel="stylesheet" href="../../public/css/admin/admin.css">
 </head>
@@ -17,10 +17,19 @@
         <div class="admin-page-head">
             <p class="admin-page-kicker">PeaceFlow Admin</p>
             <h1 class="admin-page-title">Tổng quan</h1>
-            <p class="admin-page-sub">Số liệu vận hành & tài chính của nền tảng.</p>
+            <p class="admin-page-sub">Theo dõi nhanh vận hành booking, thanh toán, duyệt chuyên gia và kiểm duyệt cộng đồng.</p>
         </div>
         <section class="admin-kpi-grid" id="adminOverviewKpis"></section>
-        <div class="admin-card" id="adminOverviewExtra"></div>
+        <div class="admin-grid-two">
+            <section class="admin-card" id="adminOverviewExtra"></section>
+            <section class="admin-card">
+                <h2 class="admin-list-title">Gợi ý bước tiếp theo</h2>
+                <p class="admin-note">
+                    Dùng tab thanh toán để xác nhận các booking đã chuyển khoản, tab duyệt chuyên gia để xử lý hồ sơ mới,
+                    và tab cộng đồng để theo dõi nội dung bị báo cáo.
+                </p>
+            </section>
+        </div>
     </main>
     <script type="module" src="../../public/js/admin/dashboard-page.js"></script>
 </body>

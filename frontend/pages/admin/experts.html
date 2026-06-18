@@ -8,7 +8,7 @@
             window.location.replace('app.html?page=' + window.location.pathname.split('/').pop());
         }
     </script>
-    <title>Duyệt chuyên gia — Quản trị PeaceFlow</title>
+    <title>Duyệt chuyên gia - Quản trị PeaceFlow</title>
     <link rel="stylesheet" href="../../public/css/style.css">
     <link rel="stylesheet" href="../../public/css/admin/admin.css">
 </head>
@@ -17,12 +17,16 @@
         <div class="admin-page-head">
             <p class="admin-page-kicker">PeaceFlow Admin</p>
             <h1 class="admin-page-title">Duyệt chuyên gia</h1>
-            <p class="admin-page-sub">Xét duyệt hồ sơ đăng ký & quản lý chuyên gia đang hoạt động.</p>
+            <p class="admin-page-sub">Theo dõi hồ sơ chờ duyệt và tình trạng đội ngũ chuyên gia hiện có.</p>
         </div>
+        <div class="admin-card" id="adminExpertsSummary"></div>
         <div class="admin-placeholder admin-card">
             <div class="ph-icon">🧑‍⚕️</div>
-            <h2 style="margin:0 0 6px;">Đang phát triển</h2>
-            <p style="margin:0;">Tab này sẽ hiển thị danh sách hồ sơ chờ duyệt (duyệt/từ chối ngay trên web) và danh sách chuyên gia đang hoạt động. Sẽ bổ sung ở bước kế tiếp.</p>
+            <h2 style="margin:0 0 6px;">Bước kế tiếp cho tab này</h2>
+            <p style="margin:0;">
+                Kết nối danh sách hồ sơ từ <code>expert_applications</code> để duyệt hoặc từ chối trực tiếp trên web,
+                đồng thời hiển thị chuyên gia đã được kích hoạt trong hệ thống.
+            </p>
         </div>
     </main>
     <script type="module" src="../../public/js/admin/experts-page.js"></script>

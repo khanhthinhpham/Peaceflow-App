@@ -8,7 +8,7 @@
             window.location.replace('app.html?page=' + window.location.pathname.split('/').pop());
         }
     </script>
-    <title>Kiểm duyệt cộng đồng — Quản trị PeaceFlow</title>
+    <title>Kiểm duyệt cộng đồng - Quản trị PeaceFlow</title>
     <link rel="stylesheet" href="../../public/css/style.css">
     <link rel="stylesheet" href="../../public/css/admin/admin.css">
 </head>
@@ -17,12 +17,15 @@
         <div class="admin-page-head">
             <p class="admin-page-kicker">PeaceFlow Admin</p>
             <h1 class="admin-page-title">Kiểm duyệt cộng đồng</h1>
-            <p class="admin-page-sub">Xử lý bài viết bị báo cáo: ẩn/hiện, xoá, xem báo cáo.</p>
+            <p class="admin-page-sub">Theo dõi nội dung bị báo cáo và các bài viết đã bị ẩn tự động.</p>
         </div>
+        <div class="admin-card" id="adminCommunitySummary"></div>
         <div class="admin-placeholder admin-card">
             <div class="ph-icon">🛡️</div>
-            <h2 style="margin:0 0 6px;">Đang phát triển</h2>
-            <p style="margin:0;">Tab này sẽ hiển thị các bài viết bị báo cáo (reports_count) và cho phép ẩn/hiện/xoá. Sẽ bổ sung ở bước kế tiếp.</p>
+            <h2 style="margin:0 0 6px;">Bước kế tiếp cho tab này</h2>
+            <p style="margin:0;">
+                Bổ sung danh sách bài viết bị report, cho phép ẩn, hiện lại hoặc gỡ bài ngay trong giao diện admin.
+            </p>
         </div>
     </main>
     <script type="module" src="../../public/js/admin/community-page.js"></script>
