@@ -143,6 +143,85 @@ export async function sendPasswordResetEmail(user, token) {
   });
 }
 
+const SESSION_LABELS = { chat: 'Chat text', voice: 'Gọi thoại', video: 'Video call', inperson: 'Gặp trực tiếp' };
+
+function formatBookingTime(value) {
+  try {
+    return new Intl.DateTimeFormat('vi-VN', {
+      weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric',
+      hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Bangkok'
+    }).format(new Date(value));
+  } catch (_error) {
+    return String(value);
+  }
+}
+
+// Gửi cho chuyên gia khi có thân chủ đặt lịch mới (chờ xác nhận).
+export async function sendBookingRequestEmail({ to, expertName, clientName, sessionType, startsAt }) {
+  if (!resend || !to) return;
+  const portalLink = `${APP_URL}/pages/expert/app.html?page=dashboard.html`;
+  await resend.emails.send({
+    from: FROM,
+    to,
+    subject: '🗓️ Yêu cầu đặt lịch mới — PeaceFlow',
+    html: `
+      <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:32px 24px;">
+        <h2 style="color:#2D6A4F;margin-bottom:8px;">Bạn có một yêu cầu đặt lịch mới</h2>
+        <p style="color:#555;line-height:1.6;">Xin chào ${expertName || 'chuyên gia'},</p>
+        <p style="color:#555;line-height:1.6;"><strong>${clientName || 'Một thân chủ'}</strong> vừa đặt một buổi tư vấn và đang chờ bạn xác nhận:</p>
+        <table style="width:100%;border-collapse:collapse;font-size:0.95rem;color:#333;margin:16px 0;">
+          <tr><td style="padding:6px 0;color:#888;width:140px;">Hình thức</td><td><strong>${SESSION_LABELS[sessionType] || sessionType}</strong></td></tr>
+          <tr><td style="padding:6px 0;color:#888;">Thời gian</td><td><strong>${formatBookingTime(startsAt)}</strong></td></tr>
+        </table>
+        <a href="${portalLink}" style="display:inline-block;margin:16px 0;padding:12px 28px;background:#52B788;color:#fff;border-radius:8px;text-decoration:none;font-weight:700;">Xem & xác nhận</a>
+        <p style="color:#999;font-size:0.85rem;">Bạn cũng có thể xác nhận trong mục "Cần xác nhận" trên dashboard chuyên gia.</p>
+      </div>
+    `
+  });
+}
+
+// Gửi cho thân chủ khi chuyên gia cập nhật trạng thái lịch hẹn.
+export async function sendBookingStatusEmail({ to, clientName, expertName, sessionType, startsAt, status }) {
+  if (!resend || !to) return;
+  const info = {
+    confirmed: {
+      subject: '✅ Lịch hẹn đã được xác nhận — PeaceFlow',
+      title: 'Lịch hẹn của bạn đã được xác nhận',
+      body: `Chuyên gia <strong>${expertName}</strong> đã xác nhận buổi tư vấn của bạn.`
+    },
+    cancelled: {
+      subject: '❌ Lịch hẹn đã bị hủy — PeaceFlow',
+      title: 'Lịch hẹn đã bị hủy',
+      body: `Rất tiếc, chuyên gia <strong>${expertName}</strong> đã hủy buổi tư vấn này. Bạn có thể đặt lại một khung giờ khác.`
+    },
+    completed: {
+      subject: '🎉 Buổi tư vấn đã hoàn thành — PeaceFlow',
+      title: 'Buổi tư vấn đã hoàn thành',
+      body: `Buổi tư vấn với <strong>${expertName}</strong> đã hoàn thành. Hãy dành chút thời gian đánh giá để giúp cộng đồng nhé.`
+    }
+  }[status];
+  if (!info) return;
+
+  const link = `${APP_URL}/pages/experts.html`;
+  await resend.emails.send({
+    from: FROM,
+    to,
+    subject: info.subject,
+    html: `
+      <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:32px 24px;">
+        <h2 style="color:#2D6A4F;margin-bottom:8px;">${info.title}</h2>
+        <p style="color:#555;line-height:1.6;">Xin chào ${clientName || 'bạn'},</p>
+        <p style="color:#555;line-height:1.6;">${info.body}</p>
+        <table style="width:100%;border-collapse:collapse;font-size:0.95rem;color:#333;margin:16px 0;">
+          <tr><td style="padding:6px 0;color:#888;width:140px;">Hình thức</td><td><strong>${SESSION_LABELS[sessionType] || sessionType}</strong></td></tr>
+          <tr><td style="padding:6px 0;color:#888;">Thời gian</td><td><strong>${formatBookingTime(startsAt)}</strong></td></tr>
+        </table>
+        <a href="${link}" style="display:inline-block;margin:16px 0;padding:12px 28px;background:#52B788;color:#fff;border-radius:8px;text-decoration:none;font-weight:700;">Xem lịch hẹn của tôi</a>
+      </div>
+    `
+  });
+}
+
 function ensureResendConfigured() {
   if (!resend) {
     throw new Error('RESEND_API_KEY is not configured.');

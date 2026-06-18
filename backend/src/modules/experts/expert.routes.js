@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { requireAuth } from '../../common/middleware/auth.middleware.js';
 import { db } from '../../config/db.js';
 import { z } from 'zod';
+import { sendBookingRequestEmail, sendBookingStatusEmail } from '../../common/services/email.service.js';
 
 const router = Router();
 
@@ -365,10 +366,11 @@ router.post('/experts/:id/bookings', requireAuth, async (req, res) => {
     }
 
     const expertResult = await db.query(
-      `select id, user_id, full_name, degree, avatar_emoji
-       from experts
-       where id = $1
-         and active = true
+      `select e.id, e.user_id, e.full_name, e.degree, e.avatar_emoji, u.email as user_email
+       from experts e
+       left join users u on u.id = e.user_id
+       where e.id = $1
+         and e.active = true
        limit 1`,
       [req.params.id]
     );
@@ -429,6 +431,19 @@ router.post('/experts/:id/bookings', requireAuth, async (req, res) => {
     );
     const clientName = clientRes.rows[0]?.name || 'Một thân chủ';
     await notify(expert.user_id, clientName, 'booking_new', `${clientName} vừa đặt một lịch hẹn — chờ bạn xác nhận.`);
+
+    // Gửi email cho chuyên gia (best-effort, không chặn request nếu lỗi).
+    try {
+      await sendBookingRequestEmail({
+        to: expert.user_email,
+        expertName: expert.full_name,
+        clientName,
+        sessionType: payload.session_type,
+        startsAt: payload.starts_at.toISOString()
+      });
+    } catch (e) {
+      console.error('[email] booking request failed:', e.message);
+    }
 
     return res.json({
       success: true,
@@ -536,6 +551,27 @@ router.patch('/expert-portal/bookings/:id', requireAuth, async (req, res) => {
     const labelMap = { confirmed: 'đã xác nhận', completed: 'đã hoàn thành', cancelled: 'đã huỷ' };
     await notify(booking.user_id, expert.full_name, 'booking_update',
       `Chuyên gia ${expert.full_name} ${labelMap[status]} lịch hẹn của bạn.`);
+
+    // Gửi email cho thân chủ về thay đổi trạng thái (best-effort).
+    try {
+      const clientRes = await db.query(
+        `select email, coalesce(display_name, full_name) as name from users where id = $1`,
+        [booking.user_id]
+      );
+      const client = clientRes.rows[0];
+      if (client?.email) {
+        await sendBookingStatusEmail({
+          to: client.email,
+          clientName: client.name,
+          expertName: expert.full_name,
+          sessionType: updated.rows[0].session_type,
+          startsAt: updated.rows[0].starts_at,
+          status
+        });
+      }
+    } catch (e) {
+      console.error('[email] booking status failed:', e.message);
+    }
 
     return res.json({ success: true, data: updated.rows[0] });
   } catch (error) {

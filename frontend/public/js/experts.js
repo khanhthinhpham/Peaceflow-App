@@ -85,6 +85,7 @@ const BOOKING_STATUS_BADGE = {
 };
 
 let reviewState = { bookingId: null, rating: 5 };
+let myBookingsState = { items: [], tab: 'upcoming' };
 
 function escapeHtml(value) {
     return String(value ?? '')
@@ -595,6 +596,10 @@ async function init() {
     }
 }
 
+function isUpcomingBooking(b) {
+    return ['pending', 'confirmed'].includes(b.status) && new Date(b.starts_at).getTime() >= Date.now();
+}
+
 async function loadMyBookings() {
     if (!refs.myBookingsSection || !refs.myBookingsList) return;
     let bookings = [];
@@ -607,8 +612,41 @@ async function loadMyBookings() {
         refs.myBookingsSection.style.display = 'none';
         return;
     }
+    myBookingsState.items = bookings;
+    myBookingsState.tab = bookings.some(isUpcomingBooking) ? 'upcoming' : 'all';
     refs.myBookingsSection.style.display = 'block';
-    refs.myBookingsList.innerHTML = bookings.map(renderMyBookingCard).join('');
+    renderMyBookings();
+}
+
+function mbTabBtn(key, label, active) {
+    return `<button type="button" data-mb-tab="${key}"
+        style="padding:7px 14px;border-radius:999px;border:1.5px solid ${active ? 'var(--mint-dark,#7bbf95)' : 'var(--kraft-light,#e8ddd0)'};background:${active ? 'var(--mint-light,#c5e8d2)' : 'transparent'};font:inherit;font-weight:700;font-size:0.82rem;cursor:pointer;color:var(--text-primary,#4a3728);">${label}</button>`;
+}
+
+function renderMyBookings() {
+    if (!refs.myBookingsList) return;
+    const items = myBookingsState.items;
+    const upcoming = items.filter(isUpcomingBooking);
+    const list = myBookingsState.tab === 'upcoming' ? upcoming : items;
+
+    refs.myBookingsList.innerHTML = `
+        <div style="display:flex;gap:8px;margin-bottom:12px;">
+            ${mbTabBtn('upcoming', `Sắp tới (${upcoming.length})`, myBookingsState.tab === 'upcoming')}
+            ${mbTabBtn('all', `Tất cả (${items.length})`, myBookingsState.tab === 'all')}
+        </div>
+        <div style="max-height:360px;overflow-y:auto;">
+            ${list.length
+                ? list.map(renderMyBookingCard).join('')
+                : '<div style="padding:16px 2px;color:var(--text-secondary,#8b7355);font-size:0.88rem;">Không có lịch trong mục này.</div>'}
+        </div>
+    `;
+
+    refs.myBookingsList.querySelectorAll('[data-mb-tab]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+            myBookingsState.tab = btn.getAttribute('data-mb-tab') || 'upcoming';
+            renderMyBookings();
+        });
+    });
     refs.myBookingsList.querySelectorAll('[data-review-id]').forEach((btn) => {
         btn.addEventListener('click', () => openReviewModal(
             btn.getAttribute('data-review-id'),
