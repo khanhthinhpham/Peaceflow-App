@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script>
+        if (!window.location.pathname.endsWith('/app.html')) {
+            window.location.replace('app.html?page=' + window.location.pathname.split('/').pop());
+        }
+    </script>
+    <title>Người dùng — Quản trị PeaceFlow</title>
+    <link rel="stylesheet" href="../../public/css/style.css">
+    <link rel="stylesheet" href="../../public/css/admin/admin.css">
+</head>
+<body class="admin-body">
+    <main class="admin-main">
+        <div class="admin-page-head">
+            <p class="admin-page-kicker">PeaceFlow Admin</p>
+            <h1 class="admin-page-title">Người dùng</h1>
+            <p class="admin-page-sub">Danh sách tài khoản, vai trò, trạng thái & ví.</p>
+        </div>
+        <div class="admin-placeholder admin-card">
+            <div class="ph-icon">👥</div>
+            <h2 style="margin:0 0 6px;">Đang phát triển</h2>
+            <p style="margin:0;">Tab này sẽ cho phép tìm kiếm người dùng, xem chi tiết, khoá/mở tài khoản, đổi vai trò và xem ví. Sẽ bổ sung ở bước kế tiếp.</p>
+        </div>
+    </main>
+    <script type="module" src="../../public/js/admin/users-page.js"></script>
+</body>
+</html>

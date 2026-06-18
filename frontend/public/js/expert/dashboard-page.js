@@ -162,9 +162,9 @@ async function loadEarnings() {
             <span style="color:var(--text-secondary);">${escapeHtml(r.client_name || 'Thân chủ')} · ${formatDateTime(r.created_at)}</span>
             <strong style="color:var(--mint-dark);white-space:nowrap;">+${formatCurrency(r.expert_earning)}</strong>
         </div>
-    `).join('') || '<p style="color:var(--text-secondary);font-size:0.85rem;">Chưa có doanh thu.</p>';
+    `).join('') || '<p style="color:var(--text-secondary);font-size:0.85rem; margin:20px 30px;">Chưa có doanh thu.</p>';
     el.innerHTML = `
-        <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:14px;">
+        <div style="display:flex;gap:12px;flex-wrap:wrap;margin:20px;">
             <div style="flex:1;min-width:120px;background:var(--mint-light);border:1.5px solid var(--mint);border-radius:14px;padding:12px 14px;">
                 <div style="font-size:0.72rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--mint-dark);">Số dư khả dụng</div>
                 <div style="font-size:1.4rem;font-weight:800;color:var(--mint-dark);">${formatCurrency(data.balance)}</div>
