@@ -652,7 +652,8 @@ router.patch('/expert-portal/bookings/:id', requireAuth, async (req, res) => {
     if (req.user.role !== 'expert') {
       return res.status(403).json({ success: false, message: 'Expert access required' });
     }
-    const { status } = z.object({ status: z.enum(['confirmed', 'completed', 'cancelled']) }).parse(req.body);
+    // Chuyên gia chỉ Hoàn thành / Huỷ (việc xác nhận đã nhận tiền do admin làm).
+    const { status } = z.object({ status: z.enum(['completed', 'cancelled']) }).parse(req.body);
     const eRes = await db.query(`select id, full_name from experts where user_id = $1 limit 1`, [req.user.sub]);
     const expert = eRes.rows[0];
     if (!expert) {
@@ -666,27 +667,15 @@ router.patch('/expert-portal/bookings/:id', requireAuth, async (req, res) => {
     if (!booking) {
       return res.status(404).json({ success: false, message: 'Không tìm thấy lịch hẹn.' });
     }
+    if (booking.status !== 'confirmed') {
+      return res.status(409).json({ success: false, message: 'Chỉ thao tác được với lịch đã xác nhận thanh toán.' });
+    }
 
     const updated = await db.query(
       `update expert_bookings set status = $2 where id = $1 returning *`,
       [booking.id, status]
     );
     const b = updated.rows[0];
-
-    // Xác nhận = đã nhận tiền: đánh dấu payment paid + ghi sổ doanh thu (fee/earning).
-    if (status === 'confirmed' && booking.status !== 'confirmed') {
-      await db.query(`update payments set status = 'paid', paid_at = now() where booking_id = $1 and status = 'pending'`, [b.id]);
-      await db.query(`update expert_bookings set paid_at = coalesce(paid_at, now()) where id = $1`, [b.id]);
-      const ledgerExists = await db.query(`select 1 from expert_ledger where booking_id = $1 limit 1`, [b.id]);
-      if (!ledgerExists.rows[0]) {
-        const fee = computeFee(b.amount || b.price || 0);
-        await db.query(
-          `insert into expert_ledger (expert_id, booking_id, gross, platform_fee, expert_earning, status)
-           values ($1, $2, $3, $4, $5, 'pending')`,
-          [expert.id, b.id, fee.gross, fee.platform_fee, fee.expert_earning]
-        );
-      }
-    }
 
     // Huỷ lịch ĐÃ thanh toán → hoàn 100% vào ví thân chủ (lỗi do chuyên gia).
     if (status === 'cancelled') {
@@ -738,6 +727,99 @@ router.patch('/expert-portal/bookings/:id', requireAuth, async (req, res) => {
     }
     console.error('Expert booking update error:', error);
     return res.status(500).json({ success: false, message: 'Could not update booking' });
+  }
+});
+
+// ===== ADMIN: xác nhận thanh toán (tiền về tài khoản nền tảng) =====
+
+// Danh sách lịch đã báo chuyển khoản, chờ admin đối chiếu sao kê.
+router.get('/admin/bookings/pending-payment', requireAuth, async (req, res) => {
+  try {
+    if (req.user.role !== 'admin') return res.status(403).json({ success: false, message: 'Admin only' });
+    const r = await db.query(
+      `select b.id, b.amount, b.starts_at, b.session_type, b.notes, b.created_at,
+              u.full_name as client_name, u.email as client_email,
+              e.full_name as expert_name,
+              p.order_code
+       from expert_bookings b
+       join users u on u.id = b.user_id
+       join experts e on e.id = b.expert_id
+       left join payments p on p.booking_id = b.id
+       where b.status = 'pending'
+       order by b.created_at desc`
+    );
+    return res.json({
+      success: true,
+      data: r.rows.map((row) => ({ ...row, content: row.order_code ? transferContent(row.order_code) : null }))
+    });
+  } catch (error) {
+    console.error('Admin pending payments error:', error);
+    return res.status(500).json({ success: false, message: 'Could not fetch pending payments' });
+  }
+});
+
+// Admin xác nhận đã nhận tiền → chốt lịch + ghi sổ doanh thu.
+router.post('/admin/bookings/:id/confirm-payment', requireAuth, async (req, res) => {
+  try {
+    if (req.user.role !== 'admin') return res.status(403).json({ success: false, message: 'Admin only' });
+    const bRes = await db.query(
+      `select b.*, e.user_id as expert_user_id, e.full_name as expert_name
+       from expert_bookings b join experts e on e.id = b.expert_id
+       where b.id = $1 limit 1`,
+      [req.params.id]
+    );
+    const b = bRes.rows[0];
+    if (!b) return res.status(404).json({ success: false, message: 'Không tìm thấy lịch hẹn.' });
+    if (b.status !== 'pending') return res.status(409).json({ success: false, message: 'Lịch không ở trạng thái chờ xác nhận thanh toán.' });
+
+    await db.query(`update expert_bookings set status = 'confirmed', paid_at = now() where id = $1`, [b.id]);
+    await db.query(`update payments set status = 'paid', paid_at = now() where booking_id = $1 and status = 'pending'`, [b.id]);
+    const ledgerExists = await db.query(`select 1 from expert_ledger where booking_id = $1 limit 1`, [b.id]);
+    if (!ledgerExists.rows[0]) {
+      const fee = computeFee(b.amount || 0);
+      await db.query(
+        `insert into expert_ledger (expert_id, booking_id, gross, platform_fee, expert_earning, status)
+         values ($1, $2, $3, $4, $5, 'pending')`,
+        [b.expert_id, b.id, fee.gross, fee.platform_fee, fee.expert_earning]
+      );
+    }
+
+    await notify(b.user_id, null, 'booking_update', 'Thanh toán đã được xác nhận — lịch hẹn của bạn đã được chốt.');
+    await notify(b.expert_user_id, null, 'booking_update', 'Một lịch hẹn đã thanh toán & được xác nhận.');
+    try {
+      const cRes = await db.query(`select email, coalesce(display_name, full_name) as name from users where id = $1`, [b.user_id]);
+      const c = cRes.rows[0];
+      if (c?.email) {
+        await sendBookingStatusEmail({ to: c.email, clientName: c.name, expertName: b.expert_name, sessionType: b.session_type, startsAt: b.starts_at, status: 'confirmed' });
+      }
+    } catch (e) {
+      console.error('[email] admin confirm failed:', e.message);
+    }
+
+    return res.json({ success: true });
+  } catch (error) {
+    console.error('Admin confirm payment error:', error);
+    return res.status(500).json({ success: false, message: 'Could not confirm payment' });
+  }
+});
+
+// Admin từ chối (không thấy tiền) → huỷ đơn.
+router.post('/admin/bookings/:id/reject-payment', requireAuth, async (req, res) => {
+  try {
+    if (req.user.role !== 'admin') return res.status(403).json({ success: false, message: 'Admin only' });
+    const bRes = await db.query(`select * from expert_bookings where id = $1 limit 1`, [req.params.id]);
+    const b = bRes.rows[0];
+    if (!b) return res.status(404).json({ success: false, message: 'Không tìm thấy lịch hẹn.' });
+    if (b.status !== 'pending') return res.status(409).json({ success: false, message: 'Lịch không ở trạng thái chờ xác nhận thanh toán.' });
+
+    await db.query(`update expert_bookings set status = 'cancelled', cancelled_at = now(), cancel_reason = 'payment_failed' where id = $1`, [b.id]);
+    await db.query(`update payments set status = 'failed' where booking_id = $1`, [b.id]);
+    await notify(b.user_id, null, 'booking_update', 'Chưa nhận được thanh toán cho lịch hẹn — đơn đã bị huỷ. Vui lòng đặt lại.');
+
+    return res.json({ success: true });
+  } catch (error) {
+    console.error('Admin reject payment error:', error);
+    return res.status(500).json({ success: false, message: 'Could not reject payment' });
   }
 });
 

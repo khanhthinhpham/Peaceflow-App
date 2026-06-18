@@ -350,10 +350,7 @@ function renderPending() {
             ${booking.notes
                 ? `<div class="expert-pending-note">${escapeHtml(booking.notes)}</div>`
                 : '<div class="expert-pending-note is-empty">Thân chủ chưa để lại mô tả tình trạng.</div>'}
-            <div class="expert-booking-actions">
-                ${bookingActionBtn(booking.id, 'confirmed', 'Xác nhận', 'primary')}
-                ${bookingActionBtn(booking.id, 'cancelled', 'Từ chối', 'ghost')}
-            </div>
+            <div style="margin-top:8px;font-size:0.8rem;font-weight:700;color:var(--text-secondary);">⏳ Đang chờ quản trị xác nhận thanh toán</div>
         </article>
     `).join('');
     el.innerHTML = `<div style="max-height:520px;overflow-y:auto;">${cards}</div>`;
