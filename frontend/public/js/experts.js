@@ -745,6 +745,13 @@ window.closeBookingIfOutside = closeBookingIfOutside;
 window.closeProfileIfOutside = closeProfileIfOutside;
 window.loadData = loadSidebarProgress;
 
+if (!window.__myBookingsRealtimeBound) {
+    window.__myBookingsRealtimeBound = true;
+    window.addEventListener('peaceflow:booking-changed', () => {
+        if (document.getElementById('myBookingsList')) loadMyBookings();
+    });
+}
+
 function boot() {
     init();
 }

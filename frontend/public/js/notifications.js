@@ -27,17 +27,36 @@ export const NotificationManager = {
     _startRealtime() {
         unsubscribeNotifications();
         subscribeNotifications((notif) => {
-            // Hiện toast ngay lập tức
+            // Hiện toast ngay lập tức theo đúng loại thông báo
+            const meta = this._toastMetaFor(notif);
             this._showToast({
-                icon: notif.type === 'comment' ? '💬' : '❤️',
-                title: notif.type === 'comment' ? 'Bình luận mới' : 'Cảm xúc mới',
+                icon: meta.icon,
+                title: meta.title,
                 body: notif.message,
-                action: 'community.html'
+                action: meta.action
             });
             // Cập nhật bell
             this._unread++;
             this.renderBell();
+
+            // Báo cho các trang đang mở để tự cập nhật danh sách lịch hẹn (không cần reload)
+            if (notif?.type === 'booking_new' || notif?.type === 'booking_update') {
+                window.dispatchEvent(new CustomEvent('peaceflow:booking-changed', { detail: notif }));
+            }
         });
+    },
+
+    _toastMetaFor(notif) {
+        switch (notif?.type) {
+            case 'booking_new':
+                return { icon: '📅', title: 'Lịch hẹn mới', action: 'expert/app.html?page=dashboard.html' };
+            case 'booking_update':
+                return { icon: '📅', title: 'Cập nhật lịch hẹn', action: 'experts.html' };
+            case 'comment':
+                return { icon: '💬', title: 'Bình luận mới', action: 'community.html' };
+            default:
+                return { icon: '❤️', title: 'Cảm xúc mới', action: 'community.html' };
+        }
     },
 
     _maybePromptPush() {

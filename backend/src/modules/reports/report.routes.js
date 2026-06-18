@@ -354,7 +354,7 @@ router.get('/dashboard', requireAuth, async (req, res) => {
          from expert_bookings eb
          join experts e on e.id = eb.expert_id
          where eb.user_id = $1
-           and eb.status in ('pending', 'confirmed')
+           and eb.status = 'confirmed'
            and eb.starts_at >= now()
          order by eb.starts_at asc
          limit 1`,

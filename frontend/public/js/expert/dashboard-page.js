@@ -614,4 +614,12 @@ function minutesToTime(value) {
     return `${hours}:${minutes}`;
 }
 
+// Tự cập nhật khi có lịch hẹn mới/đổi trạng thái (realtime) — không cần reload.
+if (!window.__expertBookingRealtimeBound) {
+    window.__expertBookingRealtimeBound = true;
+    window.addEventListener('peaceflow:booking-changed', () => {
+        if (document.getElementById('expertBookings')) loadBookingManagement();
+    });
+}
+
 init();
