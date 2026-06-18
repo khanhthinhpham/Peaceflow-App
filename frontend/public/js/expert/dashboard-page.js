@@ -261,14 +261,14 @@ function renderKpis() {
     const items = bookingState.items;
 
     const todayCount = items.filter((b) => b.status === 'confirmed' && isToday(b.starts_at)).length;
-    const pendingCount = items.filter((b) => b.status === 'pending').length;
+    const pendingCount = items.filter((b) => b.status === 'awaiting_expert').length;
     const weekIncome = items
         .filter((b) => b.status === 'completed' && isThisWeek(b.starts_at))
         .reduce((sum, b) => sum + (Number(b.price) || 0), 0);
 
     const cards = [
         { icon: '🗓️', label: 'Hôm nay', value: `${todayCount} buổi`, hint: todayCount ? 'Đã xác nhận' : 'Chưa có lịch', tone: 'today' },
-        { icon: '⏳', label: 'Chờ xác nhận', value: String(pendingCount), hint: pendingCount ? 'Cần xử lý' : 'Đã xử lý hết', tone: pendingCount ? 'alert' : 'today' },
+        { icon: '⏳', label: 'Chờ bạn nhận', value: String(pendingCount), hint: pendingCount ? 'Đã thanh toán' : 'Không có', tone: pendingCount ? 'alert' : 'today' },
         { icon: '💰', label: 'Thu nhập tuần', value: formatCurrency(weekIncome), hint: 'Từ buổi đã hoàn thành', tone: 'income' }
     ];
 
@@ -332,14 +332,14 @@ function renderPending() {
     const el = document.getElementById('expertPending');
     const badge = document.getElementById('expertPendingBadge');
     if (!el) return;
-    const pending = bookingState.items.filter((b) => b.status === 'pending');
+    const pending = bookingState.items.filter((b) => b.status === 'awaiting_expert');
     if (badge) {
         badge.textContent = String(pending.length);
         badge.classList.toggle('is-alert', pending.length > 0);
     }
 
     if (!pending.length) {
-        el.innerHTML = '<p class="expert-pending-empty">Không có lịch nào đang chờ. Mọi yêu cầu mới sẽ xuất hiện ở đây.</p>';
+        el.innerHTML = '<p class="expert-pending-empty">Không có lịch nào chờ bạn nhận. Lịch đã thanh toán sẽ xuất hiện ở đây.</p>';
         return;
     }
 
@@ -350,7 +350,10 @@ function renderPending() {
             ${booking.notes
                 ? `<div class="expert-pending-note">${escapeHtml(booking.notes)}</div>`
                 : '<div class="expert-pending-note is-empty">Thân chủ chưa để lại mô tả tình trạng.</div>'}
-            <div style="margin-top:8px;font-size:0.8rem;font-weight:700;color:var(--text-secondary);">⏳ Đang chờ quản trị xác nhận thanh toán</div>
+            <div class="expert-booking-actions">
+                ${bookingActionBtn(booking.id, 'confirmed', 'Nhận lịch', 'primary')}
+                ${bookingActionBtn(booking.id, 'cancelled', 'Từ chối', 'ghost')}
+            </div>
         </article>
     `).join('');
     el.innerHTML = `<div style="max-height:520px;overflow-y:auto;">${cards}</div>`;

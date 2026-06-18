@@ -45,5 +45,10 @@ export const env = {
   platformBankAccount: process.env.PLATFORM_BANK_ACCOUNT || '0000000000',
   platformBankName: process.env.PLATFORM_BANK_NAME || 'PEACEFLOW',
   platformFeePercent: Number(process.env.PLATFORM_FEE_PERCENT || 25),
-  paymentExpireMinutes: Number(process.env.PAYMENT_EXPIRE_MINUTES || 30)
+  paymentExpireMinutes: Number(process.env.PAYMENT_EXPIRE_MINUTES || 30),
+
+  // PayOS — tự động xác nhận thanh toán qua webhook
+  payosClientId: process.env.PAYOS_CLIENT_ID,
+  payosApiKey: process.env.PAYOS_API_KEY,
+  payosChecksumKey: process.env.PAYOS_CHECKSUM_KEY
 };

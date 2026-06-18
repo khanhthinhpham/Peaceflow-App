@@ -4,7 +4,7 @@ import { db } from '../../config/db.js';
 import { z } from 'zod';
 import { env } from '../../config/env.js';
 import { sendBookingRequestEmail, sendBookingStatusEmail } from '../../common/services/email.service.js';
-import { generateOrderCode, transferContent, buildVietQrUrl, platformBankInfo, computeFee } from '../../common/services/payment.service.js';
+import { generateOrderCode, transferContent, buildTransferContent, buildVietQrUrl, platformBankInfo, computeFee, isPayosEnabled, createPayosPayment, qrImageFromString, verifyPayosWebhook } from '../../common/services/payment.service.js';
 
 const router = Router();
 
@@ -390,7 +390,7 @@ router.post('/experts/:id/bookings', requireAuth, async (req, res) => {
     const overlap = await db.query(
       `select 1 from expert_bookings
        where expert_id = $1
-         and status in ('pending_payment', 'pending', 'confirmed')
+         and status in ('pending_payment', 'pending', 'awaiting_expert', 'confirmed')
          and tstzrange(starts_at, starts_at + (duration_minutes || ' minutes')::interval) && tstzrange($2, $3)
        limit 1`,
       [expert.id, payload.starts_at.toISOString(), endsAt.toISOString()]
@@ -434,14 +434,36 @@ router.post('/experts/:id/bookings', requireAuth, async (req, res) => {
     const booking = bookingResult.rows[0];
 
     const orderCode = generateOrderCode();
-    const content = transferContent(orderCode);
+    const clientNameRes = await db.query(`select coalesce(display_name, full_name, '') as name from users where id = $1`, [req.user.sub]);
+    const clientName = clientNameRes.rows[0]?.name || '';
+
+    // Nội dung CK: "TÊN PEACEFLOW <mã>" (chế độ thủ công); PayOS dùng mã ngắn (giới hạn 25 ký tự).
+    let content = buildTransferContent(clientName, orderCode);
     const expiresAt = new Date(Date.now() + env.paymentExpireMinutes * 60000);
-    const qrUrl = buildVietQrUrl({ amount, content });
+
+    // Nếu có PayOS → tạo đơn PayOS (tự xác nhận qua webhook). Lỗi/không cấu hình → QR tĩnh + thủ công.
+    let qrUrl = buildVietQrUrl({ amount, content });
+    let checkoutUrl = null;
+    let provider = 'vietqr_manual';
+    let auto = false;
+    if (isPayosEnabled() && amount > 0) {
+      try {
+        const ret = `${env.frontendUrl}/pages/experts.html`;
+        const data = await createPayosPayment({ orderCode, amount, description: transferContent(orderCode), returnUrl: ret, cancelUrl: ret });
+        qrUrl = data.qrCode ? qrImageFromString(data.qrCode) : qrUrl;
+        checkoutUrl = data.checkoutUrl || null;
+        content = transferContent(orderCode);
+        provider = 'payos';
+        auto = true;
+      } catch (e) {
+        console.error('[payos] create failed, fallback static QR:', e.message);
+      }
+    }
 
     await db.query(
-      `insert into payments (booking_id, order_code, amount, status, provider, qr_code, expires_at)
-       values ($1, $2, $3, 'pending', 'vietqr_manual', $4, $5)`,
-      [booking.id, orderCode, amount, qrUrl, expiresAt.toISOString()]
+      `insert into payments (booking_id, order_code, amount, status, provider, qr_code, checkout_url, content, expires_at)
+       values ($1, $2, $3, 'pending', $4, $5, $6, $7, $8)`,
+      [booking.id, orderCode, amount, provider, qrUrl, checkoutUrl, content, expiresAt.toISOString()]
     );
 
     return res.json({
@@ -456,6 +478,8 @@ router.post('/experts/:id/bookings', requireAuth, async (req, res) => {
           content,
           amount,
           qr_image: qrUrl,
+          checkout_url: checkoutUrl,
+          auto,
           bank: platformBankInfo(),
           expires_at: expiresAt.toISOString()
         }
@@ -475,7 +499,7 @@ router.get('/bookings/:id/payment', requireAuth, async (req, res) => {
   try {
     const r = await db.query(
       `select b.id as booking_id, b.status as booking_status, b.amount,
-              p.order_code, p.qr_code, p.status as payment_status, p.expires_at
+              p.order_code, p.qr_code, p.checkout_url, p.provider, p.content, p.status as payment_status, p.expires_at
        from expert_bookings b
        left join payments p on p.booking_id = b.id
        where b.id = $1 and b.user_id = $2
@@ -492,8 +516,10 @@ router.get('/bookings/:id/payment', requireAuth, async (req, res) => {
         booking_status: row.booking_status,
         amount: row.amount,
         order_code: row.order_code,
-        content: row.order_code ? transferContent(row.order_code) : null,
+        content: row.content || (row.order_code ? transferContent(row.order_code) : null),
         qr_image: row.qr_code,
+        checkout_url: row.checkout_url,
+        auto: row.provider === 'payos',
         payment_status: row.payment_status,
         bank: platformBankInfo(),
         expires_at: row.expires_at
@@ -505,7 +531,55 @@ router.get('/bookings/:id/payment', requireAuth, async (req, res) => {
   }
 });
 
-// Thân chủ báo "đã chuyển khoản" → đưa lịch vào hàng chờ chuyên gia xác nhận.
+// Webhook PayOS — tự động xác nhận khi có tiền. Public (không requireAuth), trả 200.
+router.post('/payments/webhook', async (req, res) => {
+  try {
+    const body = req.body || {};
+    // PayOS gửi ping khi đăng ký webhook → cứ trả 200.
+    if (!body.data) return res.status(200).json({ success: true });
+    if (!verifyPayosWebhook(body)) {
+      console.warn('[payos webhook] invalid signature');
+      return res.status(200).json({ success: false, message: 'invalid signature' });
+    }
+
+    const orderCode = body.data.orderCode;
+    const payRes = await db.query(`select * from payments where order_code = $1 limit 1`, [orderCode]);
+    const pay = payRes.rows[0];
+    if (!pay) return res.status(200).json({ success: true });
+    if (pay.status === 'paid') return res.status(200).json({ success: true }); // idempotent
+
+    await db.query(
+      `update payments set status = 'paid', paid_at = now(), provider_ref = $2, raw = $3 where id = $1`,
+      [pay.id, body.data.reference || null, JSON.stringify(body)]
+    );
+    const upd = await db.query(
+      `update expert_bookings set status = 'awaiting_expert', paid_at = now()
+       where id = $1 and status = 'pending_payment' returning *`,
+      [pay.booking_id]
+    );
+    const b = upd.rows[0];
+    if (b) {
+      const infoRes = await db.query(
+        `select e.user_id as expert_user_id, coalesce(u.display_name, u.full_name, 'Thân chủ') as client_name
+         from expert_bookings bk join experts e on e.id = bk.expert_id join users u on u.id = bk.user_id
+         where bk.id = $1 limit 1`,
+        [b.id]
+      );
+      const info = infoRes.rows[0];
+      await notify(b.user_id, null, 'booking_update', 'Đã nhận thanh toán — đang chờ chuyên gia nhận lịch.');
+      if (info?.expert_user_id) {
+        await notify(info.expert_user_id, info.client_name, 'booking_new', 'Có lịch đã thanh toán — mời bạn nhận hoặc từ chối.');
+      }
+    }
+
+    return res.status(200).json({ success: true });
+  } catch (error) {
+    console.error('PayOS webhook error:', error);
+    return res.status(200).json({ success: false });
+  }
+});
+
+// Thân chủ báo "đã chuyển khoản" → đưa lịch vào hàng chờ chuyên gia xác nhận (chế độ thủ công).
 router.post('/bookings/:id/claim-payment', requireAuth, async (req, res) => {
   try {
     const bRes = await db.query(
@@ -529,18 +603,14 @@ router.post('/bookings/:id/claim-payment', requireAuth, async (req, res) => {
       [req.user.sub]
     );
     const clientName = clientRes.rows[0]?.name || 'Một thân chủ';
-    await notify(booking.expert_user_id, clientName, 'booking_new', `${clientName} đã thanh toán & đặt lịch — chờ bạn xác nhận.`);
-    try {
-      await sendBookingRequestEmail({
-        to: booking.expert_email,
-        expertName: booking.expert_name,
-        clientName,
-        sessionType: booking.session_type,
-        startsAt: booking.starts_at
-      });
-    } catch (e) {
-      console.error('[email] claim notify failed:', e.message);
+
+    // Báo ADMIN để đối chiếu sao kê & xác nhận thanh toán.
+    const adminsRes = await db.query(`select id from users where role = 'admin'`);
+    for (const admin of adminsRes.rows) {
+      await notify(admin.id, clientName, 'booking_update', `${clientName} báo đã chuyển khoản — cần đối chiếu & xác nhận thanh toán.`);
     }
+    // Báo chuyên gia (thông tin, không cần thao tác): có lịch đã thanh toán đang chờ duyệt.
+    await notify(booking.expert_user_id, clientName, 'booking_new', `${clientName} đã đặt & thanh toán một lịch hẹn — đang chờ xác nhận.`);
 
     return res.json({ success: true });
   } catch (error) {
@@ -652,23 +722,29 @@ router.patch('/expert-portal/bookings/:id', requireAuth, async (req, res) => {
     if (req.user.role !== 'expert') {
       return res.status(403).json({ success: false, message: 'Expert access required' });
     }
-    // Chuyên gia chỉ Hoàn thành / Huỷ (việc xác nhận đã nhận tiền do admin làm).
-    const { status } = z.object({ status: z.enum(['completed', 'cancelled']) }).parse(req.body);
+    // Chuyên gia: Nhận lịch (đã thanh toán) / Hoàn thành / Từ chối-Huỷ.
+    const { status } = z.object({ status: z.enum(['confirmed', 'completed', 'cancelled']) }).parse(req.body);
     const eRes = await db.query(`select id, full_name from experts where user_id = $1 limit 1`, [req.user.sub]);
     const expert = eRes.rows[0];
     if (!expert) {
       return res.status(404).json({ success: false, message: 'Expert profile not found' });
     }
     const bRes = await db.query(
-      `select id, status, user_id from expert_bookings where id = $1 and expert_id = $2 limit 1`,
+      `select id, status, user_id, amount, price from expert_bookings where id = $1 and expert_id = $2 limit 1`,
       [req.params.id, expert.id]
     );
     const booking = bRes.rows[0];
     if (!booking) {
       return res.status(404).json({ success: false, message: 'Không tìm thấy lịch hẹn.' });
     }
-    if (booking.status !== 'confirmed') {
-      return res.status(409).json({ success: false, message: 'Chỉ thao tác được với lịch đã xác nhận thanh toán.' });
+    if (status === 'confirmed' && booking.status !== 'awaiting_expert') {
+      return res.status(409).json({ success: false, message: 'Chỉ nhận được lịch đã thanh toán & đang chờ duyệt.' });
+    }
+    if (status === 'completed' && booking.status !== 'confirmed') {
+      return res.status(409).json({ success: false, message: 'Chỉ hoàn thành lịch đã nhận.' });
+    }
+    if (status === 'cancelled' && !['awaiting_expert', 'confirmed'].includes(booking.status)) {
+      return res.status(409).json({ success: false, message: 'Không thể huỷ lịch này.' });
     }
 
     const updated = await db.query(
@@ -677,25 +753,38 @@ router.patch('/expert-portal/bookings/:id', requireAuth, async (req, res) => {
     );
     const b = updated.rows[0];
 
-    // Huỷ lịch ĐÃ thanh toán → hoàn 100% vào ví thân chủ (lỗi do chuyên gia).
+    // Nhận lịch → ghi sổ doanh thu (pending; thành payable khi hoàn thành).
+    if (status === 'confirmed') {
+      const ledgerExists = await db.query(`select 1 from expert_ledger where booking_id = $1 limit 1`, [b.id]);
+      if (!ledgerExists.rows[0]) {
+        const fee = computeFee(b.amount || b.price || 0);
+        await db.query(
+          `insert into expert_ledger (expert_id, booking_id, gross, platform_fee, expert_earning, status)
+           values ($1, $2, $3, $4, $5, 'pending')`,
+          [expert.id, b.id, fee.gross, fee.platform_fee, fee.expert_earning]
+        );
+      }
+    }
+
+    // Từ chối / huỷ lịch ĐÃ thanh toán → hoàn 100% vào ví thân chủ.
     if (status === 'cancelled') {
       const payRes = await db.query(`select status from payments where booking_id = $1 order by created_at desc limit 1`, [b.id]);
       if (payRes.rows[0]?.status === 'paid' && Number(b.amount) > 0) {
-        await creditWallet(b.user_id, b.amount, 'refund', b.id, 'Hoàn 100% do chuyên gia huỷ lịch đã thanh toán');
+        await creditWallet(b.user_id, b.amount, 'refund', b.id, 'Hoàn 100% do chuyên gia từ chối / huỷ lịch');
         await db.query(`update payments set status = 'cancelled' where booking_id = $1`, [b.id]);
         await db.query(`update expert_ledger set status = 'reversed' where booking_id = $1`, [b.id]);
       }
       await db.query(`update expert_bookings set cancelled_at = now(), cancel_reason = 'expert' where id = $1`, [b.id]);
     }
 
-    // Tăng số buổi đã hoàn thành (chỉ khi chuyển sang completed lần đầu)
-    if (status === 'completed' && booking.status !== 'completed') {
+    // Hoàn thành → cộng số dư + số buổi.
+    if (status === 'completed') {
       await db.query(`update experts set sessions_count = coalesce(sessions_count, 0) + 1 where id = $1`, [expert.id]);
       await db.query(`update expert_ledger set status = 'payable' where booking_id = $1 and status = 'pending'`, [b.id]);
       await db.query(`update experts set balance = coalesce(balance, 0) + coalesce((select expert_earning from expert_ledger where booking_id = $1 limit 1), 0) where id = $2`, [b.id, expert.id]);
     }
 
-    const labelMap = { confirmed: 'đã xác nhận', completed: 'đã hoàn thành', cancelled: 'đã huỷ' };
+    const labelMap = { confirmed: 'đã nhận lịch', completed: 'đã hoàn thành', cancelled: 'đã huỷ' };
     await notify(booking.user_id, expert.full_name, 'booking_update',
       `Chuyên gia ${expert.full_name} ${labelMap[status]} lịch hẹn của bạn.`);
 
@@ -740,7 +829,7 @@ router.get('/admin/bookings/pending-payment', requireAuth, async (req, res) => {
       `select b.id, b.amount, b.starts_at, b.session_type, b.notes, b.created_at,
               u.full_name as client_name, u.email as client_email,
               e.full_name as expert_name,
-              p.order_code
+              p.order_code, p.content
        from expert_bookings b
        join users u on u.id = b.user_id
        join experts e on e.id = b.expert_id
@@ -750,7 +839,7 @@ router.get('/admin/bookings/pending-payment', requireAuth, async (req, res) => {
     );
     return res.json({
       success: true,
-      data: r.rows.map((row) => ({ ...row, content: row.order_code ? transferContent(row.order_code) : null }))
+      data: r.rows.map((row) => ({ ...row, content: row.content || (row.order_code ? transferContent(row.order_code) : null) }))
     });
   } catch (error) {
     console.error('Admin pending payments error:', error);
@@ -772,29 +861,12 @@ router.post('/admin/bookings/:id/confirm-payment', requireAuth, async (req, res)
     if (!b) return res.status(404).json({ success: false, message: 'Không tìm thấy lịch hẹn.' });
     if (b.status !== 'pending') return res.status(409).json({ success: false, message: 'Lịch không ở trạng thái chờ xác nhận thanh toán.' });
 
-    await db.query(`update expert_bookings set status = 'confirmed', paid_at = now() where id = $1`, [b.id]);
+    // Đã nhận tiền → chuyển sang CHỜ CHUYÊN GIA NHẬN LỊCH (ghi sổ doanh thu khi chuyên gia nhận).
+    await db.query(`update expert_bookings set status = 'awaiting_expert', paid_at = now() where id = $1`, [b.id]);
     await db.query(`update payments set status = 'paid', paid_at = now() where booking_id = $1 and status = 'pending'`, [b.id]);
-    const ledgerExists = await db.query(`select 1 from expert_ledger where booking_id = $1 limit 1`, [b.id]);
-    if (!ledgerExists.rows[0]) {
-      const fee = computeFee(b.amount || 0);
-      await db.query(
-        `insert into expert_ledger (expert_id, booking_id, gross, platform_fee, expert_earning, status)
-         values ($1, $2, $3, $4, $5, 'pending')`,
-        [b.expert_id, b.id, fee.gross, fee.platform_fee, fee.expert_earning]
-      );
-    }
 
-    await notify(b.user_id, null, 'booking_update', 'Thanh toán đã được xác nhận — lịch hẹn của bạn đã được chốt.');
-    await notify(b.expert_user_id, null, 'booking_update', 'Một lịch hẹn đã thanh toán & được xác nhận.');
-    try {
-      const cRes = await db.query(`select email, coalesce(display_name, full_name) as name from users where id = $1`, [b.user_id]);
-      const c = cRes.rows[0];
-      if (c?.email) {
-        await sendBookingStatusEmail({ to: c.email, clientName: c.name, expertName: b.expert_name, sessionType: b.session_type, startsAt: b.starts_at, status: 'confirmed' });
-      }
-    } catch (e) {
-      console.error('[email] admin confirm failed:', e.message);
-    }
+    await notify(b.user_id, null, 'booking_update', 'Đã xác nhận thanh toán — đang chờ chuyên gia nhận lịch.');
+    await notify(b.expert_user_id, null, 'booking_new', 'Có lịch đã thanh toán — mời bạn nhận hoặc từ chối.');
 
     return res.json({ success: true });
   } catch (error) {
@@ -932,7 +1004,7 @@ router.get('/experts/:id/slots', requireAuth, async (req, res) => {
       db.query(
         `select to_char(starts_at at time zone $3, 'HH24:MI') as t, duration_minutes
          from expert_bookings
-         where expert_id = $1 and status in ('pending_payment', 'pending', 'confirmed')
+         where expert_id = $1 and status in ('pending_payment', 'pending', 'awaiting_expert', 'confirmed')
            and (starts_at at time zone $3)::date = $2::date`,
         [req.params.id, date, SLOT_TZ]
       ),

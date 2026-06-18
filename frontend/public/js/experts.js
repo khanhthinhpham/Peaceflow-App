@@ -84,7 +84,8 @@ const refs = {
 
 const BOOKING_STATUS_BADGE = {
     pending_payment: { label: 'Chờ thanh toán', color: '#bf6f00', bg: 'rgba(245,180,80,.18)' },
-    pending: { label: 'Chờ chuyên gia duyệt', color: '#bf6f00', bg: 'rgba(245,180,80,.18)' },
+    pending: { label: 'Chờ xác nhận thanh toán', color: '#bf6f00', bg: 'rgba(245,180,80,.18)' },
+    awaiting_expert: { label: 'Chờ chuyên gia nhận lịch', color: '#bf6f00', bg: 'rgba(245,180,80,.18)' },
     confirmed: { label: 'Đã xác nhận', color: '#2f8f5b', bg: 'rgba(47,143,91,.14)' },
     completed: { label: 'Đã hoàn thành', color: '#5a6b5c', bg: 'rgba(120,140,120,.16)' },
     cancelled: { label: 'Đã hủy', color: '#a23b3b', bg: 'rgba(200,80,80,.14)' },
@@ -471,6 +472,7 @@ function closeBookingModal() {
     refs.bookingOverlay.classList.remove('show');
     document.body.style.overflow = '';
     stopPaymentCountdown();
+    stopPaymentPoll();
     setTimeout(() => {
         document.getElementById('booking-success').style.display = 'none';
         const pay = document.getElementById('booking-payment');
@@ -493,12 +495,23 @@ function showPaymentStep(bookingId, payment) {
     document.getElementById('booking-success').style.display = 'none';
     const el = document.getElementById('booking-payment');
     el.style.display = 'block';
+
+    const auto = Boolean(payment.auto);
+    const intro = auto
+        ? 'Quét mã bằng app ngân hàng (đã điền sẵn số tiền & nội dung). Hệ thống <strong>tự động xác nhận</strong> ngay khi nhận được tiền — bạn không cần làm gì thêm.'
+        : 'Quét mã VietQR bằng app ngân hàng (đã điền sẵn số tiền & nội dung). Chuyển xong, bấm <strong>"Tôi đã chuyển khoản"</strong> — quản trị sẽ đối chiếu & xác nhận.';
+    const footer = auto
+        ? `<button class="btn-outline" onclick="closeBookingModal()">Thanh toán sau</button>
+           ${payment.checkout_url ? `<a class="btn-primary" href="${payment.checkout_url}" target="_blank" rel="noopener">Mở trang thanh toán</a>` : ''}`
+        : `<button class="btn-outline" onclick="closeBookingModal()">Thanh toán sau</button>
+           <button class="btn-primary" id="claimPaymentBtn">✓ Tôi đã chuyển khoản</button>`;
+
     el.innerHTML = `
         <div class="bm-section">
             <div class="bm-section-title">💳 Thanh toán giữ chỗ</div>
-            <p style="font-size:0.84rem;color:var(--text-secondary);margin-bottom:14px;line-height:1.5;">Quét mã VietQR bằng app ngân hàng (đã điền sẵn số tiền & nội dung). Chuyển xong, bấm <strong>"Tôi đã chuyển khoản"</strong> — chuyên gia sẽ kiểm tra và xác nhận.</p>
+            <p style="font-size:0.84rem;color:var(--text-secondary);margin-bottom:14px;line-height:1.5;">${intro}</p>
             <div style="display:flex;gap:18px;flex-wrap:wrap;align-items:center;justify-content:center;">
-                <img src="${payment.qr_image}" alt="VietQR" style="width:200px;height:200px;border:1.5px solid var(--kraft-light);border-radius:12px;background:#fff;" />
+                <img src="${payment.qr_image}" alt="QR thanh toán" style="width:200px;height:200px;border:1.5px solid var(--kraft-light);border-radius:12px;background:#fff;" />
                 <div style="font-size:0.86rem;line-height:1.95;min-width:200px;">
                     <div><span style="color:var(--text-secondary);">Ngân hàng:</span> <strong>${escapeHtml(payment.bank?.bankId || '')}</strong></div>
                     <div><span style="color:var(--text-secondary);">Số TK:</span> <strong>${escapeHtml(payment.bank?.accountNo || '')}</strong></div>
@@ -507,15 +520,51 @@ function showPaymentStep(bookingId, payment) {
                     <div><span style="color:var(--text-secondary);">Nội dung:</span> <strong>${escapeHtml(payment.content || '')}</strong></div>
                 </div>
             </div>
-            <div id="paymentCountdown" style="text-align:center;margin-top:12px;font-size:0.82rem;color:var(--text-secondary);"></div>
+            ${auto ? '<div style="text-align:center;margin-top:10px;font-size:0.82rem;color:var(--mint-dark);font-weight:700;">⏳ Đang chờ thanh toán… (tự xác nhận)</div>' : ''}
+            <div id="paymentCountdown" style="text-align:center;margin-top:8px;font-size:0.82rem;color:var(--text-secondary);"></div>
         </div>
         <div style="display:flex;gap:10px;justify-content:flex-end;">
-            <button class="btn-outline" onclick="closeBookingModal()">Thanh toán sau</button>
-            <button class="btn-primary" id="claimPaymentBtn">✓ Tôi đã chuyển khoản</button>
+            ${footer}
         </div>
     `;
-    el.querySelector('#claimPaymentBtn').addEventListener('click', () => claimPayment(bookingId));
+    if (!auto) {
+        el.querySelector('#claimPaymentBtn').addEventListener('click', () => claimPayment(bookingId));
+    } else {
+        startPaymentPoll(bookingId);
+    }
     startPaymentCountdown(payment.expires_at);
+}
+
+function paymentPaidSuccess() {
+    stopPaymentCountdown();
+    stopPaymentPoll();
+    const el = document.getElementById('booking-payment');
+    if (!el) return;
+    el.innerHTML = `
+        <div style="text-align:center;padding:20px 0;">
+            <div style="font-size:3rem;margin-bottom:12px;">🎉</div>
+            <div style="font-size:1.1rem;font-weight:800;margin-bottom:6px;">Đã nhận thanh toán!</div>
+            <div style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:16px;line-height:1.5;">Đang chờ chuyên gia nhận lịch. Bạn sẽ nhận thông báo khi được xác nhận.</div>
+            <button class="btn-primary" onclick="closeBookingModal()">Đóng</button>
+        </div>`;
+    loadMyBookings();
+    showToast('Thanh toán thành công!');
+}
+
+let _paymentPoll = null;
+function startPaymentPoll(bookingId) {
+    stopPaymentPoll();
+    _paymentPoll = setInterval(async () => {
+        try {
+            const p = await apiClient.get(`/bookings/${bookingId}/payment`, { noCache: true });
+            if (p.booking_status && p.booking_status !== 'pending_payment') {
+                paymentPaidSuccess();
+            }
+        } catch (_e) { /* bỏ qua, thử lại lượt sau */ }
+    }, 4000);
+}
+function stopPaymentPoll() {
+    if (_paymentPoll) { clearInterval(_paymentPoll); _paymentPoll = null; }
 }
 
 async function claimPayment(bookingId) {
@@ -527,7 +576,7 @@ async function claimPayment(bookingId) {
             <div style="text-align:center;padding:20px 0;">
                 <div style="font-size:3rem;margin-bottom:12px;">🎉</div>
                 <div style="font-size:1.1rem;font-weight:800;margin-bottom:6px;">Đã ghi nhận chuyển khoản!</div>
-                <div style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:16px;line-height:1.5;">Chuyên gia sẽ kiểm tra thanh toán và xác nhận lịch. Bạn sẽ nhận thông báo khi được duyệt.</div>
+                <div style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:16px;line-height:1.5;">Quản trị sẽ đối chiếu thanh toán và xác nhận lịch. Bạn sẽ nhận thông báo khi được duyệt.</div>
                 <button class="btn-primary" onclick="closeBookingModal()">Đóng</button>
             </div>`;
         loadMyBookings();
@@ -573,7 +622,9 @@ async function reopenPayment(bookingId) {
             qr_image: p.qr_image,
             content: p.content,
             bank: p.bank,
-            expires_at: p.expires_at
+            expires_at: p.expires_at,
+            auto: p.auto,
+            checkout_url: p.checkout_url
         });
     } catch (_error) {
         showToast('Không mở được thanh toán.', 'error');
@@ -747,7 +798,7 @@ async function init() {
 }
 
 function isUpcomingBooking(b) {
-    return ['pending_payment', 'pending', 'confirmed'].includes(b.status) && new Date(b.starts_at).getTime() >= Date.now();
+    return ['pending_payment', 'pending', 'awaiting_expert', 'confirmed'].includes(b.status) && new Date(b.starts_at).getTime() >= Date.now();
 }
 
 async function loadMyBookings() {
@@ -824,7 +875,7 @@ function renderMyBookingCard(b) {
             <button class="btn-primary" style="padding:6px 12px;font-size:0.8rem;" data-pay-id="${b.id}">Thanh toán</button>
             <button class="btn-outline" style="padding:6px 12px;font-size:0.8rem;" data-cancel-id="${b.id}">Huỷ</button>
         </div>`;
-    } else if (b.status === 'pending' || b.status === 'confirmed') {
+    } else if (['pending', 'awaiting_expert', 'confirmed'].includes(b.status)) {
         action = `<button class="btn-outline" style="padding:6px 12px;font-size:0.8rem;" data-cancel-id="${b.id}">Huỷ</button>`;
     }
     return `
