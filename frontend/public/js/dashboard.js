@@ -30,7 +30,8 @@ const dashboard = window.__peaceflowDashboardController || {
         try {
             this.state.aiLoaded = false;
             this.state.aiTasks = null;
-            const data = await apiClient.get('/dashboard');
+            const forceFresh = force || localStorage.getItem('peaceflow_dashboard_refresh') === '1';
+            const data = await apiClient.get('/dashboard', { noCache: forceFresh });
             this.state.data = data;
 
             if (data?.user) {
@@ -519,16 +520,32 @@ const dashboard = window.__peaceflowDashboardController || {
         if (!card) return;
 
         if (expertSession) {
+            const statusMap = {
+                pending: { label: 'Chờ xác nhận', color: '#bf6f00', bg: 'rgba(245,180,80,.18)' },
+                confirmed: { label: 'Đã xác nhận', color: '#2f8f5b', bg: 'rgba(47,143,91,.14)' }
+            };
+            const status = statusMap[expertSession.status] || statusMap.confirmed;
+            const typeMap = { chat: 'Chat text', voice: 'Gọi thoại', video: 'Video call', inperson: 'Gặp trực tiếp' };
+            const typeLabel = typeMap[expertSession.session_type] || expertSession.session_type || 'Tư vấn trực tuyến';
+            let timeLabel = expertSession.starts_at;
+            try {
+                timeLabel = new Intl.DateTimeFormat('vi-VN', {
+                    weekday: 'short', day: '2-digit', month: '2-digit',
+                    hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Bangkok'
+                }).format(new Date(expertSession.starts_at));
+            } catch (_e) { /* giữ nguyên */ }
+
             card.innerHTML = `
-                <div style="padding:14px 18px 8px;font-size:0.85rem;font-weight:700;border-bottom:1px solid var(--kraft-light);">
-                    🩺 Phiên tư vấn sắp tới
+                <div style="padding:14px 18px 8px;font-size:0.85rem;font-weight:700;border-bottom:1px solid var(--kraft-light);display:flex;align-items:center;justify-content:space-between;gap:8px;">
+                    <span>🩺 Phiên tư vấn sắp tới</span>
+                    <span style="padding:3px 9px;border-radius:999px;font-size:0.66rem;font-weight:800;color:${status.color};background:${status.bg};">${status.label}</span>
                 </div>
                 <div class="expert-mini-card">
                     <div class="expert-avatar">👩‍⚕️</div>
                     <div class="expert-info">
                         <div class="expert-name">${this.escapeHtml(expertSession.expert_name)}</div>
-                        <div class="expert-type">${this.escapeHtml(expertSession.session_type || 'Tư vấn trực tuyến')}</div>
-                        <div class="expert-time">${this.escapeHtml(expertSession.starts_at)}</div>
+                        <div class="expert-type">${this.escapeHtml(typeLabel)}</div>
+                        <div class="expert-time">${this.escapeHtml(timeLabel)}</div>
                     </div>
                     <a class="btn-outline" style="font-size:0.72rem;padding:6px 12px;" href="experts.html">Xem</a>
                 </div>
