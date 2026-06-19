@@ -5,21 +5,15 @@ import { mountAdminShell, setAdminBadge } from './shell.js';
 mountAdminShell({ active: 'dashboard' });
 
 const headerEl = document.getElementById('ovHeader');
-const alertsEl = document.getElementById('ovAlerts');
-const kpisEl = document.getElementById('ovKpis');
-const chartsEl = document.getElementById('ovCharts');
-const tasksEl = document.getElementById('ovTasks');
+const alertEl = document.getElementById('ovAlert');
 const actionsEl = document.getElementById('ovActions');
+const opsEl = document.getElementById('ovOps');
+const financeEl = document.getElementById('ovFinance');
+const communityEl = document.getElementById('ovCommunity');
+const bookingChartEl = document.getElementById('ovBookingChart');
 
 function num(v) { return Number(v || 0).toLocaleString('vi-VN'); }
 function money(v) { return `${Number(v || 0).toLocaleString('vi-VN')}đ`; }
-function moneyShort(v) {
-    const n = Number(v || 0);
-    if (n >= 1e9) return `${(n / 1e9).toFixed(1)}tỷ`;
-    if (n >= 1e6) return `${(n / 1e6).toFixed(1)}tr`;
-    if (n >= 1e3) return `${Math.round(n / 1e3)}k`;
-    return `${n}`;
-}
 
 function deltaBadge(cur, prev, goodWhenUp = true) {
     const diff = Number(cur || 0) - Number(prev || 0);
@@ -42,7 +36,17 @@ function stat({ label, value, hint, ico, variant }) {
     `;
 }
 
-// ===== SVG charts (vanilla, không thư viện) =====
+function quick({ ico, title, count, href }) {
+    return `
+        <a class="admin-quick" href="${href}">
+            <span class="admin-quick-ico" aria-hidden="true">${ico}</span>
+            <span class="admin-quick-title">${title}</span>
+            <span class="admin-quick-count">${count}</span>
+        </a>
+    `;
+}
+
+// ===== SVG charts =====
 function areaChart(series, color) {
     const w = 600, h = 150, pad = 8;
     if (!series.length) return '';
@@ -69,59 +73,23 @@ function barChart(series, color) {
         return `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${bw.toFixed(1)}" height="${Math.max(0, bh).toFixed(1)}" rx="1.5" fill="${color}" fill-opacity="0.85"/>`;
     }).join('')}</svg>`;
 }
-function chartCard(title, total, series, type, color) {
-    const sum = series.reduce((a, s) => a + s.value, 0);
-    const svg = type === 'bar' ? barChart(series, color) : areaChart(series, color);
-    return `
-        <section class="admin-card admin-chart-card">
-            <div class="admin-chart-head">
-                <div>
-                    <p class="admin-stat-label">${title}</p>
-                    <p class="admin-chart-total">${total}</p>
-                </div>
-                <span class="admin-chart-range">30 ngày · tổng ${typeof sum === 'number' ? num(sum) : sum}</span>
-            </div>
-            <div class="admin-chart-body">${svg || '<div class="admin-empty" style="padding:20px;">Chưa có dữ liệu</div>'}</div>
-        </section>
-    `;
+function dayLabel(iso) {
+    if (!iso) return '';
+    const [, m, d] = String(iso).split('-');
+    return `${d}/${m}`;
 }
 
-// ===== Alert center =====
-function alertCard({ ico, num: n, label, cta, href, variant }) {
-    const inner = `
-        <span class="admin-alert-ico">${ico}</span>
-        <div class="admin-alert-body">
-            <span class="admin-alert-num">${n}</span>
-            <span class="admin-alert-label">${label}</span>
-        </div>
-        ${cta ? `<span class="admin-alert-cta">${cta} →</span>` : ''}`;
-    return href
-        ? `<a class="admin-alert admin-alert--${variant}" href="${href}">${inner}</a>`
-        : `<div class="admin-alert admin-alert--${variant}">${inner}</div>`;
-}
+async function load() {
+    if (headerEl) headerEl.innerHTML = '<p class="admin-page-sub">Đang tải số liệu...</p>';
 
-// ===== Task inbox =====
-function task({ ico, title, sub, cta, href, variant }) {
-    return `
-        <a class="admin-task admin-task--${variant}" href="${href}">
-            <span class="admin-task-ico">${ico}</span>
-            <div class="admin-task-body">
-                <span class="admin-task-title">${title}</span>
-                <span class="admin-task-sub">${sub}</span>
-            </div>
-            <span class="admin-task-cta">${cta} →</span>
-        </a>
-    `;
-}
-
-async function loadOverview() {
-    if (kpisEl) kpisEl.innerHTML = '<div class="admin-card admin-empty">Đang tải số liệu...</div>';
-
-    let o;
+    let o, t;
     try {
-        o = await apiClient.get('/admin/overview', { noCache: true });
+        [o, t] = await Promise.all([
+            apiClient.get('/admin/overview', { noCache: true }),
+            apiClient.get('/admin/overview/trends', { noCache: true }).catch(() => ({ revenue: [], bookings: [], signups: [] }))
+        ]);
     } catch (error) {
-        if (kpisEl) kpisEl.innerHTML = `<div class="admin-card admin-empty" style="color:var(--coral);">${error.message || 'Không tải được tổng quan admin.'}</div>`;
+        if (headerEl) headerEl.innerHTML = `<div class="admin-card admin-empty" style="color:var(--coral);">${error.message || 'Không tải được tổng quan admin.'}</div>`;
         return;
     }
 
@@ -131,145 +99,141 @@ async function loadOverview() {
 
     const name = (auth.getUser()?.display_name || auth.getUser()?.full_name || 'Admin').split(' ').slice(-1)[0];
 
-    // ---- Header kể chuyện ----
+    // ---- Header (lời chào + ngày giờ + làm mới) ----
     if (headerEl) {
-        const issues = [];
-        if (o.high_risk_users_7d > 0) issues.push(`<strong>${num(o.high_risk_users_7d)}</strong> người dùng nguy cơ cao`);
-        if (o.pending_payment_bookings > 0) issues.push(`<strong>${num(o.pending_payment_bookings)}</strong> booking chờ đối soát`);
-        if (o.pending_payout_experts > 0) issues.push(`<strong>${num(o.pending_payout_experts)}</strong> payout chờ xử lý`);
-        if (o.pending_expert_applications > 0) issues.push(`<strong>${num(o.pending_expert_applications)}</strong> hồ sơ chờ duyệt`);
-        if (o.reported_community_posts > 0) issues.push(`<strong>${num(o.reported_community_posts)}</strong> bài bị báo cáo`);
-        const sub = issues.length
-            ? `Hôm nay cần chú ý: ${issues.slice(0, 3).join(' · ')}.`
-            : 'Hôm nay chưa có việc nào cần xử lý gấp. 🎉';
+        let stamp = '';
+        try { stamp = new Date().toLocaleString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }); } catch (_e) { stamp = ''; }
         headerEl.innerHTML = `
-            <p class="admin-page-kicker">PeaceFlow Admin</p>
-            <h1 class="admin-page-title">Xin chào, ${name} 👋</h1>
-            <p class="admin-page-sub">${sub}</p>
+            <div class="admin-ov-header-row">
+                <div>
+                    <p class="admin-page-kicker">PeaceFlow Admin</p>
+                    <h1 class="admin-page-title">Xin chào, ${name} 👋</h1>
+                </div>
+                <div class="admin-ov-header-meta">
+                    <span>${stamp}</span>
+                    <button type="button" id="ovRefreshBtn" class="admin-ov-refresh" aria-label="Làm mới">↻</button>
+                </div>
+            </div>
+        `;
+        document.getElementById('ovRefreshBtn')?.addEventListener('click', load);
+    }
+
+    // ---- Alert banner (1 tín hiệu ưu tiên nhất) ----
+    if (alertEl) {
+        let a = null;
+        if (o.high_risk_users_7d > 0) a = { variant: 'critical', ico: '⚠️', title: `${num(o.high_risk_users_7d)} người dùng nguy cơ cao`, sub: `7 ngày · mức high/critical · ${deltaText(o.high_risk_users_7d, o.high_risk_users_prev_7d)}`, cta: 'Xem chi tiết', href: 'app.html?page=users.html' };
+        else if (o.emergencies_7d > 0) a = { variant: 'critical', ico: '🆘', title: `${num(o.emergencies_7d)} lượt khẩn cấp`, sub: '7 ngày qua', cta: 'Xem', href: 'app.html?page=users.html' };
+        else if (o.pending_payment_bookings > 0) a = { variant: 'warn', ico: '💰', title: `${num(o.pending_payment_bookings)} booking chờ đối soát`, sub: 'Cần xác nhận tiền vào', cta: 'Đối soát', href: 'app.html?page=payments.html' };
+        else a = { variant: 'ok', ico: '✅', title: 'Mọi thứ đang ổn', sub: 'Không có việc nào cần xử lý gấp hôm nay.', cta: '', href: '' };
+
+        alertEl.innerHTML = `
+            <div class="admin-alert-banner admin-alert-banner--${a.variant}">
+                <span class="admin-alert-banner-ico">${a.ico}</span>
+                <div class="admin-alert-banner-body">
+                    <span class="admin-alert-banner-title">${a.title}</span>
+                    <span class="admin-alert-banner-sub">${a.sub}</span>
+                </div>
+                ${a.cta ? `<a class="admin-alert-banner-cta" href="${a.href}">${a.cta} →</a>` : ''}
+            </div>
         `;
     }
 
-    // ---- Alert center ----
-    if (alertsEl) {
-        const alerts = [];
-        if (o.high_risk_users_7d > 0) {
-            alerts.push(alertCard({ ico: '🚨', num: num(o.high_risk_users_7d), label: `người dùng nguy cơ cao (7n) ${deltaBadge(o.high_risk_users_7d, o.high_risk_users_prev_7d, false)}`, variant: 'critical' }));
-        }
-        if (o.emergencies_7d > 0) {
-            alerts.push(alertCard({ ico: '🆘', num: num(o.emergencies_7d), label: 'lượt khẩn cấp (7 ngày)', variant: 'critical' }));
-        }
-        if (o.pending_payment_bookings > 0) {
-            alerts.push(alertCard({ ico: '💰', num: num(o.pending_payment_bookings), label: 'booking chờ đối soát', cta: 'Đối soát', href: 'app.html?page=payments.html', variant: 'warn' }));
-        }
-        if (o.pending_payout_experts > 0) {
-            alerts.push(alertCard({ ico: '💸', num: num(o.pending_payout_experts), label: 'payout chờ chi trả', cta: 'Chi trả', href: 'app.html?page=payments.html', variant: 'warn' }));
-        }
-        if (o.pending_expert_applications > 0) {
-            alerts.push(alertCard({ ico: '🧑‍⚕️', num: num(o.pending_expert_applications), label: 'hồ sơ chờ duyệt', cta: 'Duyệt', href: 'app.html?page=experts.html', variant: 'info' }));
-        }
-        if (o.reported_community_posts > 0) {
-            alerts.push(alertCard({ ico: '🚩', num: num(o.reported_community_posts), label: 'bài bị báo cáo', cta: 'Kiểm duyệt', href: 'app.html?page=community.html', variant: 'warn' }));
-        }
-        alertsEl.innerHTML = alerts.length
-            ? alerts.join('')
-            : alertCard({ ico: '✅', num: '', label: 'Mọi thứ đang ổn — không có việc gấp', variant: 'ok' });
+    // ---- Thao tác nhanh (kèm số việc chờ) ----
+    if (actionsEl) {
+        actionsEl.innerHTML = `
+            <h3 class="admin-ov-h">⚡ Thao tác nhanh</h3>
+            <div class="admin-quick-grid">
+                ${quick({ ico: '🧑‍⚕️', title: 'Duyệt chuyên gia', count: `${num(o.pending_expert_applications)} chờ`, href: 'app.html?page=experts.html' })}
+                ${quick({ ico: '💸', title: 'Thanh toán & payout', count: `${num(o.pending_payment_bookings)} chờ`, href: 'app.html?page=payments.html' })}
+                ${quick({ ico: '🛡️', title: 'Kiểm duyệt cộng đồng', count: `${num(o.reported_community_posts)} báo cáo`, href: 'app.html?page=community.html' })}
+                ${quick({ ico: '👥', title: 'Quản lý người dùng', count: `${num(o.total_users)} tổng`, href: 'app.html?page=users.html' })}
+            </div>
+        `;
     }
 
-    // ---- KPI nhóm ----
-    if (kpisEl) {
-        kpisEl.innerHTML = `
-            <div class="admin-ov-section">
-                <h3 class="admin-ov-h">💵 Tài chính</h3>
-                <div class="admin-ov-grid">
-                    ${stat({ label: 'Doanh thu nền tảng', value: money(o.platform_revenue), hint: 'Phí 25% từ buổi đã đối soát', ico: '🏦', variant: 'hero' })}
-                    ${stat({ label: 'Doanh thu tháng này', value: money(o.platform_revenue_month), hint: 'Phí nền tảng trong tháng', ico: '📈', variant: 'finance' })}
-                    ${stat({ label: 'Tổng GMV', value: money(o.gmv), hint: 'Tổng giá trị giao dịch', ico: '💳', variant: 'finance' })}
-                    ${stat({ label: 'Đã chi trả chuyên gia', value: money(o.total_paid_experts), hint: 'Cộng dồn các đợt payout', ico: '✅', variant: 'finance' })}
-                    ${stat({ label: 'Số dư ví đang giữ', value: money(o.total_wallet_balance), hint: 'Nghĩa vụ hoàn cho người dùng', ico: '👛', variant: 'finance' })}
-                    ${stat({ label: 'Số dư chờ payout', value: money(o.pending_payout_amount), hint: `${num(o.pending_payout_experts)} chuyên gia đang chờ`, ico: '⏳', variant: 'finance' })}
-                </div>
-            </div>
+    // ---- Vận hành ----
+    if (opsEl) {
+        opsEl.innerHTML = `
             <div class="admin-ov-section">
                 <h3 class="admin-ov-h">📊 Vận hành</h3>
                 <div class="admin-ov-grid">
-                    ${stat({ label: 'Tổng người dùng', value: `${num(o.total_users)} <span class="admin-stat-sup">${deltaBadge(o.new_users_7d, o.new_users_prev_7d, true)}</span>`, hint: `+${num(o.new_users_today)} hôm nay`, ico: '👥', variant: 'ops' })}
-                    ${stat({ label: 'Chuyên gia hoạt động', value: num(o.active_experts), hint: `${num(o.active_experts)}/${num(o.total_experts)} tổng số`, ico: '🧑‍⚕️', variant: 'ops' })}
-                    ${stat({ label: 'Lịch hẹn', value: num(o.bookings_total), hint: `Hôm nay ${num(o.bookings_today)} · Hoàn thành ${num(o.bookings_completed)}`, ico: '📅', variant: 'ops' })}
+                    ${stat({ label: 'Tổng người dùng', value: num(o.total_users), hint: `${deltaText(o.new_users_7d, o.new_users_prev_7d)} · +${num(o.new_users_today)} hôm nay`, ico: '👥', variant: 'ops' })}
+                    ${stat({ label: 'Chuyên gia hoạt động', value: `${num(o.active_experts)}<span class="admin-stat-frac">/${num(o.total_experts)}</span>`, hint: `${o.total_experts ? Math.round((o.active_experts / o.total_experts) * 100) : 0}% hoạt động`, ico: '🧑‍⚕️', variant: 'ops' })}
+                    ${stat({ label: 'Lịch hẹn', value: num(o.bookings_total), hint: `Hôm nay ${num(o.bookings_today)} · hoàn thành ${num(o.bookings_completed)}`, ico: '📅', variant: 'ops' })}
                     ${stat({ label: 'Lịch sắp tới', value: num(o.bookings_upcoming), hint: `${num(o.bookings_awaiting_expert)} chờ chuyên gia nhận`, ico: '🕒', variant: 'ops' })}
                 </div>
             </div>
+        `;
+    }
+
+    // ---- Tài chính (doanh thu hero + chart nhúng + 3 thẻ) ----
+    if (financeEl) {
+        const rev = t.revenue || [];
+        const revSum = rev.reduce((acc, s) => acc + s.value, 0);
+        const chart = revSum > 0
+            ? areaChart(rev, '#4a9e8e')
+            : '<div class="admin-finance-empty">Chưa có doanh thu. Biểu đồ sẽ hiện khi có giao dịch đầu tiên.</div>';
+        financeEl.innerHTML = `
             <div class="admin-ov-section">
-                <h3 class="admin-ov-h">🛡️ An toàn & kiểm duyệt</h3>
+                <h3 class="admin-ov-h">💵 Tài chính</h3>
+                <div class="admin-card admin-finance-hero">
+                    <div class="admin-finance-hero-head">
+                        <div>
+                            <span class="admin-stat-label">Doanh thu nền tảng</span>
+                            <div class="admin-finance-hero-value">${money(o.platform_revenue)}</div>
+                            <div class="admin-stat-hint">Phí 25% từ buổi đã đối soát · tháng này ${money(o.platform_revenue_month)}</div>
+                        </div>
+                        <span class="admin-chart-range">30 ngày qua</span>
+                    </div>
+                    <div class="admin-finance-hero-chart">${chart}</div>
+                </div>
                 <div class="admin-ov-grid">
-                    ${stat({ label: 'Người dùng nguy cơ cao', value: num(o.high_risk_users_7d), hint: `7 ngày · mức high/critical ${deltaBadge(o.high_risk_users_7d, o.high_risk_users_prev_7d, false)}`, ico: '🚨', variant: o.high_risk_users_7d > 0 ? 'alert' : 'warn' })}
-                    ${stat({ label: 'Lượt khẩn cấp', value: num(o.emergencies_7d), hint: '7 ngày qua', ico: '🆘', variant: o.emergencies_7d > 0 ? 'alert' : 'warn' })}
-                    ${stat({ label: 'Bài bị báo cáo', value: num(o.reported_community_posts), hint: `${num(o.hidden_community_posts)} đang ẩn`, ico: '🚩', variant: 'warn' })}
-                    ${stat({ label: 'Bài cộng đồng', value: num(o.total_community_posts), hint: `+${num(o.community_posts_today)} hôm nay`, ico: '💬', variant: 'ops' })}
+                    ${stat({ label: 'Tổng GMV', value: money(o.gmv), hint: 'Tổng giá trị giao dịch', ico: '💳', variant: 'finance' })}
+                    ${stat({ label: 'Đã chi trả chuyên gia', value: money(o.total_paid_experts), hint: 'Cộng dồn các đợt payout', ico: '✅', variant: 'finance' })}
+                    ${stat({ label: 'Số dư ví đang giữ', value: money(o.total_wallet_balance), hint: 'Nghĩa vụ hoàn cho người dùng', ico: '👛', variant: 'finance' })}
+                    ${stat({ label: 'Chờ payout', value: money(o.pending_payout_amount), hint: `${num(o.pending_payout_experts)} chuyên gia đang chờ`, ico: '⏳', variant: 'finance' })}
                 </div>
             </div>
         `;
     }
 
-    // ---- Quick actions ----
-    if (actionsEl) {
-        actionsEl.innerHTML = `
-            <h2 class="admin-list-title">Thao tác nhanh</h2>
-            <div class="admin-actions-grid">
-                <a class="admin-action-btn" href="app.html?page=experts.html"><span>🧑‍⚕️</span> Duyệt chuyên gia</a>
-                <a class="admin-action-btn" href="app.html?page=payments.html"><span>💸</span> Thanh toán & payout</a>
-                <a class="admin-action-btn" href="app.html?page=community.html"><span>🛡️</span> Kiểm duyệt cộng đồng</a>
-                <a class="admin-action-btn" href="app.html?page=users.html"><span>👥</span> Quản lý người dùng</a>
+    // ---- Cộng đồng ----
+    if (communityEl) {
+        communityEl.innerHTML = `
+            <div class="admin-ov-section">
+                <h3 class="admin-ov-h">💬 Cộng đồng</h3>
+                <div class="admin-ov-grid">
+                    ${stat({ label: 'Bài cộng đồng', value: num(o.total_community_posts), hint: `+${num(o.community_posts_today)} hôm nay`, ico: '📝', variant: 'ops' })}
+                    ${stat({ label: 'Bài bị báo cáo', value: num(o.reported_community_posts), hint: `${num(o.hidden_community_posts)} đang ẩn`, ico: '🚩', variant: o.reported_community_posts > 0 ? 'alert' : 'warn' })}
+                </div>
             </div>
         `;
     }
 
-    // ---- Task inbox ----
-    if (tasksEl) {
-        let updatedAt = '';
-        try { updatedAt = new Date().toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' }); } catch (_e) { updatedAt = ''; }
-        const items = [];
-        if (o.high_risk_users_7d > 0 || o.emergencies_7d > 0) {
-            items.push(task({ ico: '⚠️', title: 'An toàn người dùng', sub: `${num(o.high_risk_users_7d)} nguy cơ cao · ${num(o.emergencies_7d)} lượt khẩn cấp (7 ngày)`, cta: 'Theo dõi', href: 'app.html?page=users.html', variant: 'critical' }));
-        }
-        if (o.pending_payment_bookings > 0) {
-            items.push(task({ ico: '💰', title: 'Đối soát thanh toán', sub: `${num(o.pending_payment_bookings)} booking chờ xác nhận tiền vào`, cta: 'Đối soát', href: 'app.html?page=payments.html', variant: 'warn' }));
-        }
-        if (o.pending_payout_experts > 0) {
-            items.push(task({ ico: '💸', title: 'Chi trả chuyên gia', sub: `${num(o.pending_payout_experts)} chuyên gia · ${money(o.pending_payout_amount)} chờ chi trả`, cta: 'Chi trả', href: 'app.html?page=payments.html', variant: 'warn' }));
-        }
-        if (o.pending_expert_applications > 0) {
-            items.push(task({ ico: '🧑‍⚕️', title: 'Hồ sơ chuyên gia', sub: `${num(o.pending_expert_applications)} hồ sơ chờ xét duyệt`, cta: 'Mở danh sách', href: 'app.html?page=experts.html', variant: 'info' }));
-        }
-        if (o.reported_community_posts > 0) {
-            items.push(task({ ico: '🚩', title: 'Kiểm duyệt cộng đồng', sub: `${num(o.reported_community_posts)} bài bị báo cáo`, cta: 'Kiểm duyệt', href: 'app.html?page=community.html', variant: 'warn' }));
-        }
-        tasksEl.innerHTML = `
-            <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
-                <h2 class="admin-list-title">Việc cần xử lý</h2>
-                ${updatedAt ? `<span style="font-size:.74rem;color:var(--text-light,#a89585);">Cập nhật ${updatedAt}</span>` : ''}
+    // ---- Booking 30 ngày (chart full width) ----
+    if (bookingChartEl) {
+        const bk = t.bookings || [];
+        const sum = bk.reduce((acc, s) => acc + s.value, 0);
+        bookingChartEl.innerHTML = `
+            <div class="admin-ov-section">
+                <h3 class="admin-ov-h">📅 Booking 30 ngày</h3>
+                <div class="admin-card admin-chart-card">
+                    <div class="admin-chart-head">
+                        <p class="admin-chart-total">${num(sum)} lượt</p>
+                        <span class="admin-chart-range">Tổng ${num(sum)}</span>
+                    </div>
+                    <div class="admin-chart-body">${barChart(bk, '#e0955a') || '<div class="admin-empty" style="padding:20px;">Chưa có dữ liệu</div>'}</div>
+                    ${bk.length ? `<div class="admin-chart-xaxis"><span>${dayLabel(bk[0].day)}</span><span>${dayLabel(bk[bk.length - 1].day)}</span></div>` : ''}
+                </div>
             </div>
-            ${items.length ? `<div class="admin-task-list">${items.join('')}</div>` : '<p class="admin-note" style="margin-top:10px;">Không có việc nào cần xử lý ngay. 🎉</p>'}
         `;
     }
-
-    loadTrends();
 }
 
-async function loadTrends() {
-    if (!chartsEl) return;
-    chartsEl.innerHTML = '<div class="admin-card admin-empty">Đang tải biểu đồ...</div>';
-    let t;
-    try {
-        t = await apiClient.get('/admin/overview/trends', { noCache: true });
-    } catch (_e) {
-        chartsEl.innerHTML = '';
-        return;
-    }
-    const revTotal = (t.revenue || []).reduce((a, s) => a + s.value, 0);
-    chartsEl.innerHTML = [
-        chartCard('Doanh thu nền tảng (30 ngày)', money(revTotal), t.revenue || [], 'area', '#4a9e8e'),
-        chartCard('Booking theo ngày (30 ngày)', `${num((t.bookings || []).reduce((a, s) => a + s.value, 0))} lượt`, t.bookings || [], 'bar', '#e0955a')
-    ].join('');
+function deltaText(cur, prev) {
+    const diff = Number(cur || 0) - Number(prev || 0);
+    if (diff === 0) return '±0 vs tuần trước';
+    return `${diff > 0 ? '+' : '−'}${Math.abs(diff)} vs tuần trước`;
 }
 
-loadOverview();
+load();

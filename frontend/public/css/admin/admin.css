@@ -724,3 +724,86 @@ a.admin-alert:hover { transform: translateY(-1px); box-shadow: var(--shadow-pape
   .admin-stat--hero { grid-column: span 1; }
   .admin-actions-grid { grid-template-columns: 1fr; }
 }
+
+/* ============================================================
+   TỔNG QUAN v2 — header / banner / quick actions / finance hero
+============================================================ */
+.admin-ov-header { margin-bottom: 8px; }
+.admin-ov-header-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.admin-ov-header-meta { display: flex; align-items: center; gap: 10px; color: var(--text-light, #a89585); font-size: 0.82rem; padding-top: 6px; }
+.admin-ov-refresh {
+  width: 34px; height: 34px;
+  display: grid; place-items: center;
+  border: 1.5px solid var(--kraft-light, #e8cba7);
+  background: var(--warm-white, #fffdf7);
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 1rem;
+  color: var(--text-secondary, #7a6555);
+  transition: var(--transition, all 0.2s ease);
+}
+.admin-ov-refresh:hover { background: var(--mint-light, #c5e8d2); transform: rotate(90deg); }
+
+/* --- Alert banner (1 dòng, full width) --- */
+.admin-alert-banner {
+  display: flex; align-items: center; gap: 14px;
+  padding: 14px 18px;
+  border-radius: 14px;
+  border: 1.5px solid;
+  margin: 16px 0 24px;
+}
+.admin-alert-banner-ico { font-size: 1.5rem; line-height: 1; }
+.admin-alert-banner-body { display: flex; flex-direction: column; min-width: 0; }
+.admin-alert-banner-title { font-weight: 800; font-size: 1rem; }
+.admin-alert-banner-sub { font-size: 0.82rem; opacity: 0.85; }
+.admin-alert-banner-cta {
+  margin-left: auto; white-space: nowrap;
+  font-weight: 800; font-size: 0.84rem;
+  padding: 8px 14px; border-radius: 10px;
+  text-decoration: none;
+  background: rgba(255,255,255,0.55);
+  border: 1.5px solid currentColor;
+}
+.admin-alert-banner--critical { background: #fdeceb; border-color: #f3b4b0; color: #b42318; }
+.admin-alert-banner--warn     { background: #fff5e6; border-color: #f3cd8e; color: #b5791b; }
+.admin-alert-banner--ok       { background: #e9f6ee; border-color: #a8d5ba; color: #2f7d52; }
+
+/* --- Quick actions (thẻ có số việc chờ) --- */
+.admin-quick-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; margin-bottom: 24px; }
+.admin-quick {
+  display: flex; flex-direction: column; gap: 8px;
+  padding: 16px;
+  border: 1.5px solid var(--kraft-light, #e8cba7);
+  border-radius: 16px;
+  background: var(--warm-white, #fffdf7);
+  box-shadow: var(--shadow-paper-sm, 2px 2px 0 rgba(74, 55, 40, 0.08));
+  text-decoration: none;
+  color: var(--text-primary, #4a3728);
+  transition: var(--transition, all 0.2s ease);
+}
+.admin-quick:hover { border-color: var(--mint, #a8d5ba); transform: translateY(-2px); box-shadow: var(--shadow-paper, 3px 3px 0 rgba(74,55,40,.1)); }
+.admin-quick-ico {
+  width: 42px; height: 42px;
+  display: grid; place-items: center;
+  border-radius: 12px;
+  background: var(--mint-light, #c5e8d2);
+  font-size: 1.3rem;
+}
+.admin-quick-title { font-weight: 800; font-size: 0.95rem; }
+.admin-quick-count { font-size: 0.82rem; font-weight: 700; color: var(--mint-dark, #2f7d52); }
+
+/* --- Finance hero --- */
+.admin-finance-hero { padding: 18px 20px; }
+.admin-finance-hero-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.admin-finance-hero-value { font-size: 2.1rem; font-weight: 800; line-height: 1.1; margin: 4px 0 2px; color: var(--mint-dark, #2f7d52); }
+.admin-finance-hero-chart { margin-top: 12px; }
+.admin-finance-empty {
+  padding: 28px 16px; text-align: center;
+  color: var(--text-light, #a89585); font-size: 0.85rem;
+  border: 1.5px dashed var(--kraft-light, #e8cba7);
+  border-radius: 12px;
+}
+
+.admin-stat-frac { font-size: 1rem; font-weight: 700; color: var(--text-light, #a89585); }
+
+.admin-chart-xaxis { display: flex; justify-content: space-between; margin-top: 6px; font-size: 0.72rem; color: var(--text-light, #a89585); }
