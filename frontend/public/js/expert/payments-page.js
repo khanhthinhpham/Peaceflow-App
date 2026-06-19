@@ -104,18 +104,37 @@ function renderSummary() {
         return;
     }
 
+    const qrBlock = paymentMethodState.payout_qr_url
+        ? `
+            <div class="expert-payment-state-card expert-payment-qr-card">
+                <span class="expert-payment-state-label">QR tài khoản chuyên gia</span>
+                <img src="${escapeHtml(paymentMethodState.payout_qr_url)}" alt="QR tài khoản chuyên gia" class="expert-payment-qr-image">
+                <p class="expert-payment-state-sub">Bạn có thể dùng mã này để chia sẻ nhanh thông tin tài khoản nhận tiền khi cần.</p>
+            </div>
+        `
+        : `
+            <div class="expert-payment-state-card">
+                <span class="expert-payment-state-label">QR tài khoản chuyên gia</span>
+                <div class="expert-payment-state-value">Chưa tạo được QR</div>
+                <p class="expert-payment-state-sub">Cần lưu tài khoản với ngân hàng từ danh sách để hệ thống tạo ảnh QR VietQR.</p>
+            </div>
+        `;
+
     el.innerHTML = `
-        <div class="expert-payment-state">
-            <div class="expert-payment-state-card">
-                <span class="expert-payment-state-label">Ngân hàng hiện tại</span>
-                <div class="expert-payment-state-value">${escapeHtml(paymentMethodState.payout_bank_name || 'Chưa cập nhật')}</div>
-                <p class="expert-payment-state-sub">Chủ tài khoản: <strong>${escapeHtml(paymentMethodState.payout_account_name || 'Chưa có')}</strong></p>
+        <div class="expert-payment-state expert-payment-state-with-qr">
+            <div class="expert-payment-state-main">
+                <div class="expert-payment-state-card">
+                    <span class="expert-payment-state-label">Ngân hàng hiện tại</span>
+                    <div class="expert-payment-state-value">${escapeHtml(paymentMethodState.payout_bank_name || 'Chưa cập nhật')}</div>
+                    <p class="expert-payment-state-sub">Chủ tài khoản: <strong>${escapeHtml(paymentMethodState.payout_account_name || 'Chưa có')}</strong></p>
+                </div>
+                <div class="expert-payment-state-card">
+                    <span class="expert-payment-state-label">Số tài khoản hiển thị</span>
+                    <div class="expert-payment-state-value">${escapeHtml(paymentMethodState.payout_account_masked || 'Chưa có')}</div>
+                    <p class="expert-payment-state-sub">Hệ thống chỉ hiển thị số đã che để tránh lộ đầy đủ thông tin nhạy cảm.</p>
+                </div>
             </div>
-            <div class="expert-payment-state-card">
-                <span class="expert-payment-state-label">Số tài khoản hiển thị</span>
-                <div class="expert-payment-state-value">${escapeHtml(paymentMethodState.payout_account_masked || 'Chưa có')}</div>
-                <p class="expert-payment-state-sub">Hệ thống chỉ hiển thị số đã che để tránh lộ đầy đủ thông tin nhạy cảm.</p>
-            </div>
+            ${qrBlock}
         </div>
     `;
 }

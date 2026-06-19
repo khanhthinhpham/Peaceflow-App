@@ -23,6 +23,16 @@
   gap: 14px;
 }
 
+.expert-payment-state-with-qr {
+  grid-template-columns: minmax(0, 1.25fr) minmax(220px, 0.8fr);
+  align-items: start;
+}
+
+.expert-payment-state-main {
+  display: grid;
+  gap: 14px;
+}
+
 .expert-payment-state-card {
   border: 1.5px solid rgba(62, 52, 40, 0.08);
   border-radius: 18px;
@@ -51,6 +61,21 @@
   color: var(--expert-muted);
   line-height: 1.55;
   font-size: 0.9rem;
+}
+
+.expert-payment-qr-card {
+  text-align: center;
+}
+
+.expert-payment-qr-image {
+  width: min(100%, 220px);
+  aspect-ratio: 1 / 1;
+  object-fit: contain;
+  margin: 12px auto 0;
+  padding: 10px;
+  border-radius: 18px;
+  background: var(--warm-white);
+  border: 1px solid rgba(62, 52, 40, 0.08);
 }
 
 .expert-payment-form {
@@ -188,6 +213,7 @@
     padding: 18px 18px 22px;
   }
 
+  .expert-payment-state-with-qr,
   .expert-payment-grid,
   .expert-payment-summary-grid {
     grid-template-columns: 1fr;

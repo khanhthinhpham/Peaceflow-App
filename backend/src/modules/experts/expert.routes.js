@@ -1334,6 +1334,14 @@ function maskAccount(num) {
   return s.length <= 4 ? s : `${'•'.repeat(Math.min(s.length - 4, 8))}${s.slice(-4)}`;
 }
 
+function buildExpertPayoutQrUrl(bankBin, accountNumber, accountName) {
+  const bin = String(bankBin || '').trim();
+  const account = String(accountNumber || '').trim();
+  if (!bin || !account) return null;
+  const name = encodeURIComponent(String(accountName || '').trim());
+  return `https://img.vietqr.io/image/${encodeURIComponent(bin)}-${encodeURIComponent(account)}-compact2.png?accountName=${name}`;
+}
+
 // Phương thức nhận thanh toán của chuyên gia (để nền tảng chi trả payout).
 // Trả về số tài khoản đã che — không lộ full cho chính chủ trên UI.
 router.get('/expert-portal/payment-method', requireAuth, async (req, res) => {
@@ -1352,6 +1360,7 @@ router.get('/expert-portal/payment-method', requireAuth, async (req, res) => {
         payout_bank_bin: row.payout_bank_bin,
         payout_account_name: row.payout_account_name,
         payout_account_masked: maskAccount(row.payout_account_number),
+        payout_qr_url: buildExpertPayoutQrUrl(row.payout_bank_bin, row.payout_account_number, row.payout_account_name),
         has_method: Boolean(row.payout_account_number),
         lookup_enabled: isVietqrLookupEnabled()
       }
@@ -1401,8 +1410,10 @@ router.put('/expert-portal/payment-method', requireAuth, async (req, res) => {
       success: true,
       data: {
         payout_bank_name: r.rows[0].payout_bank_name,
+        payout_bank_bin: p.payout_bank_bin || null,
         payout_account_name: r.rows[0].payout_account_name,
         payout_account_masked: maskAccount(r.rows[0].payout_account_number),
+        payout_qr_url: buildExpertPayoutQrUrl(p.payout_bank_bin, r.rows[0].payout_account_number, r.rows[0].payout_account_name),
         has_method: true
       }
     });
