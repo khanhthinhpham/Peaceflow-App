@@ -18,39 +18,32 @@ router.get('/progress', requireAuth, async (req, res) => {
   const userId = req.user.sub;
 
   // --- Streak check-in: chi can vao app la tinh streak (khong can lam nhiem vu) ---
-  const now = new Date();
-  const todayIso = now.toLocaleDateString('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' });
-  const yesterdayIso = new Date(now - 864e5).toLocaleDateString('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' });
-
-  const existing = await db.query(
-    `select current_streak, longest_streak, last_activity_date
-     from user_progress where user_id = $1 limit 1`,
+  // So sanh ngay HOAN TOAN trong Postgres theo gio Viet Nam de tranh lech timezone
+  // giua luc ghi (en-CA gio VN) va luc doc (timezone runtime cua Node).
+  await db.query(
+    `insert into user_progress (user_id, current_streak, longest_streak, last_activity_date)
+     values ($1, 1, 1, (now() at time zone 'Asia/Ho_Chi_Minh')::date)
+     on conflict (user_id) do update set
+       current_streak = case
+         when user_progress.last_activity_date = (now() at time zone 'Asia/Ho_Chi_Minh')::date
+           then user_progress.current_streak
+         when user_progress.last_activity_date = ((now() at time zone 'Asia/Ho_Chi_Minh')::date - 1)
+           then user_progress.current_streak + 1
+         else 1
+       end,
+       longest_streak = greatest(
+         user_progress.longest_streak,
+         case
+           when user_progress.last_activity_date = (now() at time zone 'Asia/Ho_Chi_Minh')::date
+             then user_progress.current_streak
+           when user_progress.last_activity_date = ((now() at time zone 'Asia/Ho_Chi_Minh')::date - 1)
+             then user_progress.current_streak + 1
+           else 1
+         end
+       ),
+       last_activity_date = (now() at time zone 'Asia/Ho_Chi_Minh')::date`,
     [userId]
-  ).catch((e) => { console.error('[PROGRESS_CHECKIN] read:', e.message); return { rows: [] }; });
-
-  const prev = existing.rows[0];
-  const lastActivity = formatDateOnly(prev?.last_activity_date);
-
-  if (lastActivity !== todayIso) {
-    let nextStreak;
-    if (lastActivity === yesterdayIso) {
-      nextStreak = (prev?.current_streak || 0) + 1;
-    } else {
-      nextStreak = 1;
-    }
-    const longestStreak = Math.max(prev?.longest_streak || 0, nextStreak);
-
-    await db.query(
-      `insert into user_progress (user_id, current_streak, longest_streak, last_activity_date)
-       values ($1, $2, $3, $4)
-       on conflict (user_id)
-       do update set
-         current_streak = excluded.current_streak,
-         longest_streak = excluded.longest_streak,
-         last_activity_date = excluded.last_activity_date`,
-      [userId, nextStreak, longestStreak, todayIso]
-    ).catch((e) => { console.error('[PROGRESS_CHECKIN] write:', e.message); });
-  }
+  ).catch((e) => { console.error('[PROGRESS_CHECKIN] write:', e.message); });
   // --- het phan check-in ---
 
   const result = await db.query(

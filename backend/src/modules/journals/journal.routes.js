@@ -76,7 +76,8 @@ router.post('/journal', requireAuth, async (req, res) => {
     );
 
     const progressResult = await client.query(
-      `select total_xp, current_level, current_streak, longest_streak, last_activity_date
+      `select total_xp, current_level, current_streak, longest_streak,
+              to_char(last_activity_date, 'YYYY-MM-DD') as last_activity_iso
        from user_progress
        where user_id = $1
        limit 1`,
@@ -88,15 +89,17 @@ router.post('/journal', requireAuth, async (req, res) => {
       current_level: 1,
       current_streak: 0,
       longest_streak: 0,
-      last_activity_date: null
+      last_activity_iso: null
     };
 
-    const now = new Date();
-    const todayIso = now.toLocaleDateString('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' });
-    const yesterdayIso = new Date(now - 864e5).toLocaleDateString('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' });
-    const lastActivityDate = currentProgress.last_activity_date
-      ? formatDateOnly(currentProgress.last_activity_date)
-      : null;
+    // Ngay hom nay / hom qua tinh trong Postgres theo gio VN (tranh lech timezone Node).
+    const dateRes = await client.query(
+      `select (now() at time zone 'Asia/Ho_Chi_Minh')::date::text as today,
+              ((now() at time zone 'Asia/Ho_Chi_Minh')::date - 1)::text as yesterday`
+    );
+    const todayIso = dateRes.rows[0].today;
+    const yesterdayIso = dateRes.rows[0].yesterday;
+    const lastActivityDate = currentProgress.last_activity_iso || null;
 
     let nextStreak = currentProgress.current_streak || 0;
     if (lastActivityDate === todayIso) {

@@ -232,6 +232,33 @@ router.get('/dashboard', requireAuth, async (req, res) => {
   try {
     const userId = req.user.sub;
 
+    // Check-in streak: chi can mo app (vao dashboard) la tinh streak.
+    // So sanh ngay trong Postgres theo gio VN de tranh lech timezone.
+    await db.query(
+      `insert into user_progress (user_id, current_streak, longest_streak, last_activity_date)
+       values ($1, 1, 1, (now() at time zone 'Asia/Ho_Chi_Minh')::date)
+       on conflict (user_id) do update set
+         current_streak = case
+           when user_progress.last_activity_date = (now() at time zone 'Asia/Ho_Chi_Minh')::date
+             then user_progress.current_streak
+           when user_progress.last_activity_date = ((now() at time zone 'Asia/Ho_Chi_Minh')::date - 1)
+             then user_progress.current_streak + 1
+           else 1
+         end,
+         longest_streak = greatest(
+           user_progress.longest_streak,
+           case
+             when user_progress.last_activity_date = (now() at time zone 'Asia/Ho_Chi_Minh')::date
+               then user_progress.current_streak
+             when user_progress.last_activity_date = ((now() at time zone 'Asia/Ho_Chi_Minh')::date - 1)
+               then user_progress.current_streak + 1
+             else 1
+           end
+         ),
+         last_activity_date = (now() at time zone 'Asia/Ho_Chi_Minh')::date`,
+      [userId]
+    ).catch((e) => { console.error('[DASHBOARD_CHECKIN] streak:', e.message); });
+
     const recommendations = await RecommendationEngineService.recommendTasks(userId).catch((error) => {
       console.error('Dashboard recommendation error:', error);
       return {
