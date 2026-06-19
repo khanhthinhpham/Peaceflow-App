@@ -1372,28 +1372,12 @@ router.put('/expert-portal/payment-method', requireAuth, async (req, res) => {
       payout_account_name: z.string().trim().max(255).min(1, 'Thiếu tên chủ tài khoản.')
     });
     const p = schema.parse(req.body);
-    let payoutAccountName = p.payout_account_name;
-
-    if (p.payout_bank_bin && isVietqrLookupEnabled()) {
-      const lookup = await lookupBankAccount({
-        bin: p.payout_bank_bin,
-        accountNumber: p.payout_account_number
-      });
-      if (!lookup.ok || !lookup.accountName) {
-        return res.status(422).json({
-          success: false,
-          message: lookup.message || 'Không tra cứu được tên chủ tài khoản.'
-        });
-      }
-      payoutAccountName = lookup.accountName;
-    }
-
     const r = await db.query(
       `update experts
        set payout_bank_name = $2, payout_bank_bin = $3, payout_account_number = $4, payout_account_name = $5, updated_at = now()
        where user_id = $1
        returning id, payout_bank_name, payout_account_number, payout_account_name`,
-      [req.user.sub, p.payout_bank_name, p.payout_bank_bin || null, p.payout_account_number, payoutAccountName]
+      [req.user.sub, p.payout_bank_name, p.payout_bank_bin || null, p.payout_account_number, p.payout_account_name]
     );
     if (!r.rows[0]) return res.status(404).json({ success: false, message: 'Expert profile not found' });
 
