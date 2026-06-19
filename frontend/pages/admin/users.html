@@ -17,16 +17,29 @@
         <div class="admin-page-head">
             <p class="admin-page-kicker">PeaceFlow Admin</p>
             <h1 class="admin-page-title">Người dùng</h1>
-            <p class="admin-page-sub">Tổng hợp nhanh số lượng tài khoản và định hướng các thao tác quản trị tiếp theo.</p>
+            <p class="admin-page-sub">Tìm kiếm, khoá/mở tài khoản, đổi vai trò và xem số dư ví.</p>
         </div>
-        <div class="admin-card" id="adminUsersSummary"></div>
-        <div class="admin-placeholder admin-card">
-            <div class="ph-icon">👥</div>
-            <h2 style="margin:0 0 6px;">Bước kế tiếp cho tab này</h2>
-            <p style="margin:0;">
-                Bổ sung danh sách người dùng, tìm kiếm theo email hoặc tên, xem trạng thái tài khoản, vai trò và số dư ví.
-            </p>
+
+        <div class="admin-card" style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+            <input id="userSearch" type="search" placeholder="Tìm theo email hoặc tên..." class="admin-input" style="flex:1;min-width:220px;">
+            <select id="userRoleFilter" class="admin-input" aria-label="Lọc theo vai trò" title="Lọc theo vai trò" style="max-width:170px;">
+                <option value="">Mọi vai trò</option>
+                <option value="user">Người dùng</option>
+                <option value="expert">Chuyên gia</option>
+                <option value="admin">Quản trị</option>
+            </select>
+            <button id="userSearchBtn" type="button" class="btn-primary">Tìm</button>
         </div>
+
+        <div class="admin-tabs" id="userStatusTabs">
+            <button type="button" class="admin-tab active" data-status="">Tất cả</button>
+            <button type="button" class="admin-tab" data-status="active">Hoạt động</button>
+            <button type="button" class="admin-tab" data-status="suspended">Đã khoá</button>
+        </div>
+
+        <div id="adminUsersMeta" style="font-size:.82rem;color:var(--text-light);margin-bottom:10px;"></div>
+        <div id="adminUsersList"></div>
+        <div id="adminUsersMore" style="text-align:center;margin-top:6px;"></div>
     </main>
     <script type="module" src="../../public/js/admin/users-page.js"></script>
 </body>

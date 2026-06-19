@@ -953,6 +953,98 @@ router.post('/admin/expert-applications/:id/reject', requireAuth, async (req, re
   }
 });
 
+// ===== Admin: quản lý người dùng =====
+
+// Danh sách user. ?search= (email/tên), ?role=, ?status=, ?limit=&offset= (phân trang).
+router.get('/admin/users', requireAuth, async (req, res) => {
+  try {
+    if (req.user.role !== 'admin') return res.status(403).json({ success: false, message: 'Admin only' });
+
+    const limit = Math.min(Math.max(parseInt(req.query.limit, 10) || 25, 1), 100);
+    const offset = Math.max(parseInt(req.query.offset, 10) || 0, 0);
+    const conditions = [];
+    const params = [];
+
+    const search = (req.query.search || '').trim();
+    if (search) {
+      params.push(`%${search}%`);
+      conditions.push(`(u.email ilike $${params.length} or u.full_name ilike $${params.length} or u.display_name ilike $${params.length})`);
+    }
+    if (['user', 'expert', 'admin'].includes(req.query.role)) {
+      params.push(req.query.role);
+      conditions.push(`u.role = $${params.length}`);
+    }
+    if (['active', 'inactive', 'suspended', 'deleted', 'pending'].includes(req.query.status)) {
+      params.push(req.query.status);
+      conditions.push(`u.status = $${params.length}`);
+    }
+    const where = conditions.length ? `where ${conditions.join(' and ')}` : '';
+
+    const countRes = await db.query(`select count(*)::int as total from users u ${where}`, params);
+    params.push(limit, offset);
+    const rowsRes = await db.query(
+      `select u.id, u.email, u.full_name, u.display_name, u.role, u.status,
+              u.wallet_balance, u.email_verified, u.last_login_at, u.created_at,
+              exists(select 1 from experts e where e.user_id = u.id) as is_expert
+       from users u
+       ${where}
+       order by u.created_at desc
+       limit $${params.length - 1} offset $${params.length}`,
+      params
+    );
+
+    return res.json({
+      success: true,
+      data: { total: countRes.rows[0]?.total || 0, limit, offset, users: rowsRes.rows }
+    });
+  } catch (error) {
+    console.error('Admin list users error:', error);
+    return res.status(500).json({ success: false, message: 'Could not fetch users' });
+  }
+});
+
+// Cập nhật trạng thái / vai trò user. Body: { status?, role? }.
+router.patch('/admin/users/:id', requireAuth, async (req, res) => {
+  try {
+    if (req.user.role !== 'admin') return res.status(403).json({ success: false, message: 'Admin only' });
+    if (req.params.id === req.user.sub) {
+      return res.status(400).json({ success: false, message: 'Không thể tự thay đổi tài khoản của chính mình.' });
+    }
+
+    const sets = [];
+    const params = [req.params.id];
+
+    if (req.body.status !== undefined) {
+      if (!['active', 'inactive', 'suspended', 'deleted'].includes(req.body.status)) {
+        return res.status(400).json({ success: false, message: 'Trạng thái không hợp lệ.' });
+      }
+      params.push(req.body.status);
+      sets.push(`status = $${params.length}`);
+    }
+    if (req.body.role !== undefined) {
+      if (!['user', 'expert', 'admin'].includes(req.body.role)) {
+        return res.status(400).json({ success: false, message: 'Vai trò không hợp lệ.' });
+      }
+      params.push(req.body.role);
+      sets.push(`role = $${params.length}`);
+    }
+    if (!sets.length) {
+      return res.status(400).json({ success: false, message: 'Không có thay đổi nào.' });
+    }
+
+    const r = await db.query(
+      `update users set ${sets.join(', ')}, updated_at = now() where id = $1
+       returning id, email, full_name, display_name, role, status, wallet_balance`,
+      params
+    );
+    if (!r.rows[0]) return res.status(404).json({ success: false, message: 'Không tìm thấy người dùng.' });
+    return res.json({ success: true, data: r.rows[0] });
+  } catch (error) {
+    console.error('Admin update user error:', error);
+    return res.status(500).json({ success: false, message: 'Could not update user' });
+  }
+});
+
 // Danh sách lịch đã báo chuyển khoản, chờ admin đối chiếu sao kê.
 router.get('/admin/bookings/pending-payment', requireAuth, async (req, res) => {
   try {

@@ -1,38 +1,165 @@
 import { apiClient } from '../api-client.js';
+import { auth } from '../auth.js';
 import { mountAdminShell } from './shell.js';
 
 mountAdminShell({ active: 'users' });
 
-const summaryEl = document.getElementById('adminUsersSummary');
+const listEl = document.getElementById('adminUsersList');
+const metaEl = document.getElementById('adminUsersMeta');
+const moreEl = document.getElementById('adminUsersMore');
+const searchEl = document.getElementById('userSearch');
+const roleFilterEl = document.getElementById('userRoleFilter');
+const statusTabsEl = document.getElementById('userStatusTabs');
 
-async function loadUsersSummary() {
-    if (!summaryEl) return;
-    summaryEl.innerHTML = '<div class="admin-empty">Đang tải...</div>';
+const myId = auth.getUser()?.id || null;
+const LIMIT = 25;
+const state = { search: '', role: '', status: '', offset: 0, total: 0, loaded: 0 };
 
+function esc(v) {
+    return String(v ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+function money(v) { return `${Number(v || 0).toLocaleString('vi-VN')}đ`; }
+function dt(v) {
+    if (!v) return '—';
     try {
-        const overview = await apiClient.get('/admin/overview', { noCache: true });
-        summaryEl.innerHTML = `
-            <h2 class="admin-list-title">Tình hình tài khoản</h2>
-            <div class="admin-list">
-                <div class="admin-list-item">
-                    <div>
-                        <p class="admin-list-title">Tổng số người dùng</p>
-                        <p class="admin-list-sub">${Number(overview.total_users || 0).toLocaleString('vi-VN')} tài khoản hiện có trên nền tảng.</p>
+        return new Intl.DateTimeFormat('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'Asia/Bangkok' }).format(new Date(v));
+    } catch (_e) { return v; }
+}
+function initials(name) {
+    return String(name || '').trim().split(/\s+/).slice(0, 2).map((p) => p.charAt(0).toUpperCase()).join('') || '?';
+}
+
+const ROLE_LABEL = { user: 'Người dùng', expert: 'Chuyên gia', admin: 'Quản trị' };
+function roleChip(role) {
+    const map = {
+        user: ['var(--cream,#fff8f0)', 'var(--text-secondary,#7a6555)', 'var(--kraft-light,#e8cba7)'],
+        expert: ['var(--mint-light,#c5e8d2)', 'var(--mint-dark,#4a9e8e)', 'var(--mint,#a8d5ba)'],
+        admin: ['rgba(255,139,139,.14)', 'var(--coral-dark,#e05555)', 'var(--coral,#ff8b8b)']
+    };
+    const [bg, color, border] = map[role] || map.user;
+    return `<span style="font-size:.7rem;font-weight:800;padding:1px 8px;border-radius:6px;background:${bg};color:${color};border:1px solid ${border};white-space:nowrap;">${ROLE_LABEL[role] || role}</span>`;
+}
+function statusChip(status) {
+    const map = {
+        active: ['Hoạt động', 'var(--mint-light,#c5e8d2)', 'var(--mint-dark,#4a9e8e)'],
+        suspended: ['Đã khoá', 'rgba(255,139,139,.14)', 'var(--coral-dark,#e05555)'],
+        inactive: ['Ngừng', 'var(--cream,#fff8f0)', 'var(--text-light,#a89585)'],
+        deleted: ['Đã xoá', 'var(--cream,#fff8f0)', 'var(--text-light,#a89585)'],
+        pending: ['Chờ duyệt', 'rgba(245,176,65,.16)', '#b5791b']
+    };
+    const [label, bg, color] = map[status] || [status, 'var(--cream)', 'var(--text-light)'];
+    return `<span style="font-size:.7rem;font-weight:800;padding:1px 8px;border-radius:6px;background:${bg};color:${color};white-space:nowrap;">${label}</span>`;
+}
+
+function card(u) {
+    const self = u.id === myId;
+    const locked = u.status === 'suspended';
+    const roleOpts = ['user', 'expert', 'admin'].map((r) => `<option value="${r}"${u.role === r ? ' selected' : ''}>${ROLE_LABEL[r]}</option>`).join('');
+    return `
+        <div class="admin-card" data-user="${u.id}">
+            <div style="display:flex;gap:14px;align-items:flex-start;flex-wrap:wrap;justify-content:space-between;">
+                <div style="display:flex;gap:12px;min-width:0;">
+                    <div class="admin-user-bubble">${esc(initials(u.display_name || u.full_name))}</div>
+                    <div style="min-width:0;">
+                        <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap;">
+                            <span style="font-weight:800;">${esc(u.display_name || u.full_name || 'Ẩn danh')}</span>
+                            ${roleChip(u.role)} ${statusChip(u.status)}
+                            ${self ? '<span style="font-size:.68rem;color:var(--text-light);">(bạn)</span>' : ''}
+                        </div>
+                        <div style="color:var(--text-secondary);font-size:.84rem;margin-top:3px;">${esc(u.email)}${u.email_verified ? '' : ' · <span style="color:var(--coral-dark);">chưa xác thực</span>'}</div>
+                        <div style="color:var(--text-light);font-size:.78rem;margin-top:3px;">Ví: <strong>${money(u.wallet_balance)}</strong> · Tạo: ${dt(u.created_at)} · Đăng nhập: ${dt(u.last_login_at)}</div>
                     </div>
-                    <span class="admin-pill">${Number(overview.total_users || 0).toLocaleString('vi-VN')} user</span>
                 </div>
-                <div class="admin-list-item">
-                    <div>
-                        <p class="admin-list-title">Liên quan lịch hẹn</p>
-                        <p class="admin-list-sub">Hôm nay có ${Number(overview.bookings_today || 0).toLocaleString('vi-VN')} lịch hẹn. Tab users nên là nơi tra cứu nhanh user phát sinh booking hoặc ví.</p>
-                    </div>
-                    <span class="admin-pill">Booking</span>
+                <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                    <select class="admin-input" data-role-select aria-label="Đổi vai trò" title="Đổi vai trò" ${self ? 'disabled' : ''} style="padding:6px 10px;font-size:.82rem;">${roleOpts}</select>
+                    <button type="button" class="${locked ? 'btn-primary' : 'btn-outline'}" data-lock ${self ? 'disabled' : ''} style="font-size:.82rem;">${locked ? 'Mở khoá' : 'Khoá'}</button>
                 </div>
             </div>
-        `;
-    } catch (error) {
-        summaryEl.innerHTML = `<div class="admin-empty" style="color:var(--coral);">${error.message || 'Không tải được dữ liệu người dùng.'}</div>`;
+        </div>
+    `;
+}
+
+async function load(reset = true) {
+    if (reset) {
+        state.offset = 0;
+        state.loaded = 0;
+        listEl.innerHTML = '<div class="admin-card admin-empty">Đang tải...</div>';
+        moreEl.innerHTML = '';
+    }
+    let data;
+    try {
+        const qs = new URLSearchParams({ limit: String(LIMIT), offset: String(state.offset) });
+        if (state.search) qs.set('search', state.search);
+        if (state.role) qs.set('role', state.role);
+        if (state.status) qs.set('status', state.status);
+        data = await apiClient.get(`/admin/users?${qs.toString()}`, { noCache: true });
+    } catch (_e) {
+        listEl.innerHTML = '<div class="admin-card admin-empty" style="color:var(--coral);">Không tải được danh sách (cần quyền admin).</div>';
+        return;
+    }
+    const users = data?.users || [];
+    state.total = data?.total || 0;
+    state.loaded += users.length;
+
+    if (reset) {
+        listEl.innerHTML = users.length ? users.map(card).join('') : '<div class="admin-card admin-empty">Không tìm thấy người dùng nào.</div>';
+    } else {
+        listEl.insertAdjacentHTML('beforeend', users.map(card).join(''));
+    }
+    metaEl.textContent = `Hiển thị ${state.loaded} / ${state.total} người dùng`;
+    bindRows();
+
+    moreEl.innerHTML = state.loaded < state.total
+        ? '<button type="button" id="loadMoreUsers" class="btn-outline">Tải thêm</button>'
+        : '';
+    document.getElementById('loadMoreUsers')?.addEventListener('click', () => {
+        state.offset += LIMIT;
+        load(false);
+    });
+}
+
+function bindRows() {
+    listEl.querySelectorAll('[data-user]').forEach((row) => {
+        const id = row.getAttribute('data-user');
+        row.querySelector('[data-role-select]')?.addEventListener('change', (e) => {
+            patch(id, { role: e.target.value }, e.target);
+        });
+        row.querySelector('[data-lock]')?.addEventListener('click', (e) => {
+            const locked = e.target.textContent.trim() === 'Mở khoá';
+            const nextStatus = locked ? 'active' : 'suspended';
+            const msg = locked ? 'Mở khoá tài khoản này?' : 'Khoá tài khoản này? Người dùng sẽ không đăng nhập được.';
+            if (!window.confirm(msg)) return;
+            patch(id, { status: nextStatus }, e.target);
+        });
+    });
+}
+
+async function patch(id, body, ctrl) {
+    if (ctrl) ctrl.disabled = true;
+    try {
+        await apiClient.patch(`/admin/users/${id}`, body);
+        await load(true);
+    } catch (e) {
+        alert(e.message || 'Cập nhật thất bại.');
+        if (ctrl) ctrl.disabled = false;
     }
 }
 
-loadUsersSummary();
+function applySearch() {
+    state.search = (searchEl.value || '').trim();
+    state.role = roleFilterEl.value || '';
+    load(true);
+}
+
+document.getElementById('userSearchBtn')?.addEventListener('click', applySearch);
+searchEl?.addEventListener('keydown', (e) => { if (e.key === 'Enter') applySearch(); });
+roleFilterEl?.addEventListener('change', applySearch);
+statusTabsEl?.addEventListener('click', (e) => {
+    const tab = e.target.closest('.admin-tab');
+    if (!tab) return;
+    statusTabsEl.querySelectorAll('.admin-tab').forEach((t) => t.classList.toggle('active', t === tab));
+    state.status = tab.getAttribute('data-status') || '';
+    load(true);
+});
+
+load(true);
