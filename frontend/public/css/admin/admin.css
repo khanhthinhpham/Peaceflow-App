@@ -166,7 +166,9 @@ body.admin-body {
 .admin-page-head {
   margin-bottom: 22px;
 }
-
+.ovActions{
+  padding: 30px;
+}
 .admin-page-kicker {
   margin: 0;
   font-size: 0.72rem;
@@ -533,6 +535,14 @@ body.admin-body {
   display: inline-block;
 }
 
+.admin-inline-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  vertical-align: -0.12em;
+  margin-right: 6px;
+}
+
 @media (max-width: 860px) {
   .admin-shell {
     display: block;
@@ -624,7 +634,7 @@ a.admin-alert:hover { transform: translateY(-1px); box-shadow: var(--shadow-pape
 .admin-ov-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 14px;
+  gap: 50px;
 }
 .admin-stat {
   background: var(--warm-white, #fffdf7);
@@ -672,6 +682,17 @@ a.admin-alert:hover { transform: translateY(-1px); box-shadow: var(--shadow-pape
 .admin-chart-range { font-size: 0.74rem; color: var(--text-light, #a89585); white-space: nowrap; }
 .admin-chart-body { flex: 1; }
 .admin-chart-svg { width: 100%; height: 150px; display: block; }
+
+.admin-mobile-menu-btn .adm-ic,
+.admin-mobile-notif-icon .adm-ic {
+  width: 1.2em;
+  height: 1.2em;
+}
+
+.admin-mobile-logo-icon .adm-ic {
+  width: 1.05em;
+  height: 1.05em;
+}
 
 /* --- Quick actions --- */
 .admin-actions-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
@@ -769,7 +790,7 @@ a.admin-alert:hover { transform: translateY(-1px); box-shadow: var(--shadow-pape
 .admin-alert-banner--ok       { background: #e9f6ee; border-color: #a8d5ba; color: #2f7d52; }
 
 /* --- Quick actions (thẻ có số việc chờ) --- */
-.admin-quick-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; margin-bottom: 24px; }
+.admin-quick-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 50px; margin-bottom: 24px; }
 .admin-quick {
   display: flex; flex-direction: column; gap: 8px;
   padding: 16px;
@@ -793,10 +814,22 @@ a.admin-alert:hover { transform: translateY(-1px); box-shadow: var(--shadow-pape
 .admin-quick-count { font-size: 0.82rem; font-weight: 700; color: var(--mint-dark, #2f7d52); }
 
 /* --- Finance hero --- */
+.admin-finance-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.9fr) minmax(280px, 0.9fr);
+  gap: 14px;
+  align-items: stretch;
+}
+
 .admin-finance-hero { padding: 18px 20px; }
 .admin-finance-hero-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
 .admin-finance-hero-value { font-size: 2.1rem; font-weight: 800; line-height: 1.1; margin: 4px 0 2px; color: var(--mint-dark, #2f7d52); }
 .admin-finance-hero-chart { margin-top: 12px; }
+.admin-finance-side {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+}
 .admin-finance-empty {
   padding: 28px 16px; text-align: center;
   color: var(--text-light, #a89585); font-size: 0.85rem;
@@ -807,3 +840,27 @@ a.admin-alert:hover { transform: translateY(-1px); box-shadow: var(--shadow-pape
 .admin-stat-frac { font-size: 1rem; font-weight: 700; color: var(--text-light, #a89585); }
 
 .admin-chart-xaxis { display: flex; justify-content: space-between; margin-top: 6px; font-size: 0.72rem; color: var(--text-light, #a89585); }
+
+/* Icon đơn sắc (line) — kế thừa màu chữ theo ngữ cảnh */
+.adm-ic { width: 1em; height: 1em; display: inline-block; vertical-align: -0.15em; flex-shrink: 0; }
+.admin-stat-ico .adm-ic { width: 20px; height: 20px; }
+.admin-stat-ico { opacity: 0.75; }
+.admin-quick-ico .adm-ic { width: 22px; height: 22px; color: var(--mint-dark, #2f7d52); }
+.admin-alert-banner-ico .adm-ic { width: 24px; height: 24px; }
+.admin-ov-h .adm-ic { width: 17px; height: 17px; vertical-align: -0.22em; }
+
+@media (max-width: 980px) {
+  .admin-finance-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-finance-side {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .admin-finance-side {
+    grid-template-columns: 1fr;
+  }
+}

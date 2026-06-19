@@ -1,5 +1,5 @@
 import { auth } from '../auth.js';
-import { mountExpertShell, requireExpertUser, showExpertBanner, loadExpertData, invalidateExpertData } from './shell.js';
+import { mountExpertShell, requireExpertUser, showExpertBanner, loadExpertData, invalidateExpertData, setExpertNavLock } from './shell.js';
 
 let applicationState = null;
 let overviewState = null;
@@ -18,6 +18,7 @@ async function init() {
 
     try {
         ({ application: applicationState, overview: overviewState } = await loadExpertData());
+        setExpertNavLock(!overviewState?.expert);
         renderState();
         wireSubmit();
     } catch (error) {

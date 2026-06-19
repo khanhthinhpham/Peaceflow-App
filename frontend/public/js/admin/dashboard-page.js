@@ -1,6 +1,7 @@
 import { apiClient } from '../api-client.js';
 import { auth } from '../auth.js';
 import { mountAdminShell, setAdminBadge } from './shell.js';
+import { icon } from './icons.js';
 
 mountAdminShell({ active: 'dashboard' });
 
@@ -20,7 +21,7 @@ function deltaBadge(cur, prev, goodWhenUp = true) {
     if (diff === 0) return '<span class="admin-delta">±0 vs tuần trước</span>';
     const up = diff > 0;
     const good = goodWhenUp ? up : !up;
-    return `<span class="admin-delta admin-delta--${good ? 'up' : 'down'}">${up ? '▲' : '▼'} ${Math.abs(diff)} vs tuần trước</span>`;
+    return `<span class="admin-delta admin-delta--${good ? 'up' : 'down'}">${up ? icon('arrow-up') : icon('arrow-down')} ${Math.abs(diff)} vs tuần trước</span>`;
 }
 
 function stat({ label, value, hint, ico, variant }) {
@@ -107,11 +108,11 @@ async function load() {
             <div class="admin-ov-header-row">
                 <div>
                     <p class="admin-page-kicker">PeaceFlow Admin</p>
-                    <h1 class="admin-page-title">Xin chào, ${name} 👋</h1>
+                    <h1 class="admin-page-title">Xin chào, ${name}</h1>
                 </div>
                 <div class="admin-ov-header-meta">
                     <span>${stamp}</span>
-                    <button type="button" id="ovRefreshBtn" class="admin-ov-refresh" aria-label="Làm mới">↻</button>
+                    <button type="button" id="ovRefreshBtn" class="admin-ov-refresh" aria-label="Làm mới">${icon('refresh')}</button>
                 </div>
             </div>
         `;
@@ -121,10 +122,10 @@ async function load() {
     // ---- Alert banner (1 tín hiệu ưu tiên nhất) ----
     if (alertEl) {
         let a = null;
-        if (o.high_risk_users_7d > 0) a = { variant: 'critical', ico: '⚠️', title: `${num(o.high_risk_users_7d)} người dùng nguy cơ cao`, sub: `7 ngày · mức high/critical · ${deltaText(o.high_risk_users_7d, o.high_risk_users_prev_7d)}`, cta: 'Xem chi tiết', href: 'app.html?page=users.html' };
-        else if (o.emergencies_7d > 0) a = { variant: 'critical', ico: '🆘', title: `${num(o.emergencies_7d)} lượt khẩn cấp`, sub: '7 ngày qua', cta: 'Xem', href: 'app.html?page=users.html' };
-        else if (o.pending_payment_bookings > 0) a = { variant: 'warn', ico: '💰', title: `${num(o.pending_payment_bookings)} booking chờ đối soát`, sub: 'Cần xác nhận tiền vào', cta: 'Đối soát', href: 'app.html?page=payments.html' };
-        else a = { variant: 'ok', ico: '✅', title: 'Mọi thứ đang ổn', sub: 'Không có việc nào cần xử lý gấp hôm nay.', cta: '', href: '' };
+        if (o.high_risk_users_7d > 0) a = { variant: 'critical', ico: icon('alert'), title: `${num(o.high_risk_users_7d)} người dùng nguy cơ cao`, sub: `7 ngày · mức high/critical · ${deltaText(o.high_risk_users_7d, o.high_risk_users_prev_7d)}`, cta: 'Xem chi tiết', href: 'app.html?page=users.html' };
+        else if (o.emergencies_7d > 0) a = { variant: 'critical', ico: icon('alert'), title: `${num(o.emergencies_7d)} lượt khẩn cấp`, sub: '7 ngày qua', cta: 'Xem', href: 'app.html?page=users.html' };
+        else if (o.pending_payment_bookings > 0) a = { variant: 'warn', ico: icon('wallet'), title: `${num(o.pending_payment_bookings)} booking chờ đối soát`, sub: 'Cần xác nhận tiền vào', cta: 'Đối soát', href: 'app.html?page=payments.html' };
+        else a = { variant: 'ok', ico: icon('check'), title: 'Mọi thứ đang ổn', sub: 'Không có việc nào cần xử lý gấp hôm nay.', cta: '', href: '' };
 
         alertEl.innerHTML = `
             <div class="admin-alert-banner admin-alert-banner--${a.variant}">
@@ -141,12 +142,12 @@ async function load() {
     // ---- Thao tác nhanh (kèm số việc chờ) ----
     if (actionsEl) {
         actionsEl.innerHTML = `
-            <h3 class="admin-ov-h">⚡ Thao tác nhanh</h3>
+            <h3 class="admin-ov-h">${icon('bolt')} Thao tác nhanh</h3>
             <div class="admin-quick-grid">
-                ${quick({ ico: '🧑‍⚕️', title: 'Duyệt chuyên gia', count: `${num(o.pending_expert_applications)} chờ`, href: 'app.html?page=experts.html' })}
-                ${quick({ ico: '💸', title: 'Thanh toán & payout', count: `${num(o.pending_payment_bookings)} chờ`, href: 'app.html?page=payments.html' })}
-                ${quick({ ico: '🛡️', title: 'Kiểm duyệt cộng đồng', count: `${num(o.reported_community_posts)} báo cáo`, href: 'app.html?page=community.html' })}
-                ${quick({ ico: '👥', title: 'Quản lý người dùng', count: `${num(o.total_users)} tổng`, href: 'app.html?page=users.html' })}
+                ${quick({ ico: icon('clipboard-check'), title: 'Duyệt chuyên gia', count: `${num(o.pending_expert_applications)} chờ`, href: 'app.html?page=experts.html' })}
+                ${quick({ ico: icon('card'), title: 'Thanh toán & payout', count: `${num(o.pending_payment_bookings)} chờ`, href: 'app.html?page=payments.html' })}
+                ${quick({ ico: icon('shield'), title: 'Kiểm duyệt cộng đồng', count: `${num(o.reported_community_posts)} báo cáo`, href: 'app.html?page=community.html' })}
+                ${quick({ ico: icon('users'), title: 'Quản lý người dùng', count: `${num(o.total_users)} tổng`, href: 'app.html?page=users.html' })}
             </div>
         `;
     }
@@ -155,12 +156,12 @@ async function load() {
     if (opsEl) {
         opsEl.innerHTML = `
             <div class="admin-ov-section">
-                <h3 class="admin-ov-h">📊 Vận hành</h3>
+                <h3 class="admin-ov-h">${icon('chart')} Vận hành</h3>
                 <div class="admin-ov-grid">
-                    ${stat({ label: 'Tổng người dùng', value: num(o.total_users), hint: `${deltaText(o.new_users_7d, o.new_users_prev_7d)} · +${num(o.new_users_today)} hôm nay`, ico: '👥', variant: 'ops' })}
-                    ${stat({ label: 'Chuyên gia hoạt động', value: `${num(o.active_experts)}<span class="admin-stat-frac">/${num(o.total_experts)}</span>`, hint: `${o.total_experts ? Math.round((o.active_experts / o.total_experts) * 100) : 0}% hoạt động`, ico: '🧑‍⚕️', variant: 'ops' })}
-                    ${stat({ label: 'Lịch hẹn', value: num(o.bookings_total), hint: `Hôm nay ${num(o.bookings_today)} · hoàn thành ${num(o.bookings_completed)}`, ico: '📅', variant: 'ops' })}
-                    ${stat({ label: 'Lịch sắp tới', value: num(o.bookings_upcoming), hint: `${num(o.bookings_awaiting_expert)} chờ chuyên gia nhận`, ico: '🕒', variant: 'ops' })}
+                    ${stat({ label: 'Tổng người dùng', value: num(o.total_users), hint: `${deltaText(o.new_users_7d, o.new_users_prev_7d)} · +${num(o.new_users_today)} hôm nay`, ico: icon('users'), variant: 'ops' })}
+                    ${stat({ label: 'Chuyên gia hoạt động', value: `${num(o.active_experts)}<span class="admin-stat-frac">/${num(o.total_experts)}</span>`, hint: `${o.total_experts ? Math.round((o.active_experts / o.total_experts) * 100) : 0}% hoạt động`, ico: icon('badge'), variant: 'ops' })}
+                    ${stat({ label: 'Lịch hẹn', value: num(o.bookings_total), hint: `Hôm nay ${num(o.bookings_today)} · hoàn thành ${num(o.bookings_completed)}`, ico: icon('calendar'), variant: 'ops' })}
+                    ${stat({ label: 'Lịch sắp tới', value: num(o.bookings_upcoming), hint: `${num(o.bookings_awaiting_expert)} chờ chuyên gia nhận`, ico: icon('clock'), variant: 'ops' })}
                 </div>
             </div>
         `;
@@ -175,23 +176,25 @@ async function load() {
             : '<div class="admin-finance-empty">Chưa có doanh thu. Biểu đồ sẽ hiện khi có giao dịch đầu tiên.</div>';
         financeEl.innerHTML = `
             <div class="admin-ov-section">
-                <h3 class="admin-ov-h">💵 Tài chính</h3>
-                <div class="admin-card admin-finance-hero">
-                    <div class="admin-finance-hero-head">
-                        <div>
-                            <span class="admin-stat-label">Doanh thu nền tảng</span>
-                            <div class="admin-finance-hero-value">${money(o.platform_revenue)}</div>
-                            <div class="admin-stat-hint">Phí 25% từ buổi đã đối soát · tháng này ${money(o.platform_revenue_month)}</div>
+                <h3 class="admin-ov-h">${icon('money')} Tài chính</h3>
+                <div class="admin-finance-layout">
+                    <div class="admin-card admin-finance-hero">
+                        <div class="admin-finance-hero-head">
+                            <div>
+                                <span class="admin-stat-label">Doanh thu nền tảng</span>
+                                <div class="admin-finance-hero-value">${money(o.platform_revenue)}</div>
+                                <div class="admin-stat-hint">Phí 25% từ buổi đã đối soát · tháng này ${money(o.platform_revenue_month)}</div>
+                            </div>
+                            <span class="admin-chart-range">30 ngày qua</span>
                         </div>
-                        <span class="admin-chart-range">30 ngày qua</span>
+                        <div class="admin-finance-hero-chart">${chart}</div>
                     </div>
-                    <div class="admin-finance-hero-chart">${chart}</div>
-                </div>
-                <div class="admin-ov-grid">
-                    ${stat({ label: 'Tổng GMV', value: money(o.gmv), hint: 'Tổng giá trị giao dịch', ico: '💳', variant: 'finance' })}
-                    ${stat({ label: 'Đã chi trả chuyên gia', value: money(o.total_paid_experts), hint: 'Cộng dồn các đợt payout', ico: '✅', variant: 'finance' })}
-                    ${stat({ label: 'Số dư ví đang giữ', value: money(o.total_wallet_balance), hint: 'Nghĩa vụ hoàn cho người dùng', ico: '👛', variant: 'finance' })}
-                    ${stat({ label: 'Chờ payout', value: money(o.pending_payout_amount), hint: `${num(o.pending_payout_experts)} chuyên gia đang chờ`, ico: '⏳', variant: 'finance' })}
+                    <div class="admin-finance-side">
+                        ${stat({ label: 'Tổng GMV', value: money(o.gmv), hint: 'Tổng giá trị giao dịch', ico: icon('card'), variant: 'finance' })}
+                        ${stat({ label: 'Đã chi trả chuyên gia', value: money(o.total_paid_experts), hint: 'Cộng dồn các đợt payout', ico: icon('check'), variant: 'finance' })}
+                        ${stat({ label: 'Số dư ví đang giữ', value: money(o.total_wallet_balance), hint: 'Nghĩa vụ hoàn cho người dùng', ico: icon('wallet'), variant: 'finance' })}
+                        ${stat({ label: 'Chờ payout', value: money(o.pending_payout_amount), hint: `${num(o.pending_payout_experts)} chuyên gia đang chờ`, ico: icon('clock'), variant: 'finance' })}
+                    </div>
                 </div>
             </div>
         `;
@@ -201,10 +204,10 @@ async function load() {
     if (communityEl) {
         communityEl.innerHTML = `
             <div class="admin-ov-section">
-                <h3 class="admin-ov-h">💬 Cộng đồng</h3>
+                <h3 class="admin-ov-h">${icon('message')} Cộng đồng</h3>
                 <div class="admin-ov-grid">
-                    ${stat({ label: 'Bài cộng đồng', value: num(o.total_community_posts), hint: `+${num(o.community_posts_today)} hôm nay`, ico: '📝', variant: 'ops' })}
-                    ${stat({ label: 'Bài bị báo cáo', value: num(o.reported_community_posts), hint: `${num(o.hidden_community_posts)} đang ẩn`, ico: '🚩', variant: o.reported_community_posts > 0 ? 'alert' : 'warn' })}
+                    ${stat({ label: 'Bài cộng đồng', value: num(o.total_community_posts), hint: `+${num(o.community_posts_today)} hôm nay`, ico: icon('message'), variant: 'ops' })}
+                    ${stat({ label: 'Bài bị báo cáo', value: num(o.reported_community_posts), hint: `${num(o.hidden_community_posts)} đang ẩn`, ico: icon('flag'), variant: o.reported_community_posts > 0 ? 'alert' : 'warn' })}
                 </div>
             </div>
         `;
@@ -216,7 +219,7 @@ async function load() {
         const sum = bk.reduce((acc, s) => acc + s.value, 0);
         bookingChartEl.innerHTML = `
             <div class="admin-ov-section">
-                <h3 class="admin-ov-h">📅 Booking 30 ngày</h3>
+                <h3 class="admin-ov-h">${icon('calendar')} Booking 30 ngày</h3>
                 <div class="admin-card admin-chart-card">
                     <div class="admin-chart-head">
                         <p class="admin-chart-total">${num(sum)} lượt</p>

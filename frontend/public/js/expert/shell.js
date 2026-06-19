@@ -113,7 +113,7 @@ export function mountExpertShell({ active, title, subtitle, badgeText }) {
                     style="margin-bottom:8px; border:1.5px solid var(--kraft-light); background:var(--warm-white);"
                 >
                     <span class="ni">🏠</span>
-                    <span>Về dashboard người dùng</span>
+                    <span>Về app người dùng</span>
                 </a>
 
                 <button
@@ -153,6 +153,21 @@ export function mountExpertShell({ active, title, subtitle, badgeText }) {
     ensureExpertMobileShell();
     closeExpertSidebar();
     window.NotificationManager?.renderBell?.();
+}
+
+// Khi chuyên gia CHƯA được duyệt: chỉ chừa mục "Gửi hồ sơ" trên sidebar,
+// ẩn Tổng quan / Thanh toán / Lịch sử để người mới chỉ thấy form nạp hồ sơ.
+// Link "Về app người dùng" + Đăng xuất (không có data-nav-key) luôn hiển thị.
+export function setExpertNavLock(locked) {
+    const sidebar = document.getElementById('expertSidebar');
+    if (!sidebar) return;
+    sidebar.querySelectorAll('.sidebar-nav .expert-shell-link[data-nav-key]').forEach((link) => {
+        const key = link.getAttribute('data-nav-key');
+        const alwaysShow = key === 'application';
+        link.style.display = (locked && !alwaysShow) ? 'none' : '';
+    });
+    const label = sidebar.querySelector('.sidebar-nav .nav-section-label');
+    if (label) label.textContent = locked ? 'Đăng ký chuyên gia' : 'Quản lý';
 }
 
 export async function requireExpertUser() {

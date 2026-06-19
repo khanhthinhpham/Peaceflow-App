@@ -1,5 +1,6 @@
 import { apiClient } from '../api-client.js';
 import { mountAdminShell, setAdminBadge } from './shell.js';
+import { icon } from './icons.js';
 
 mountAdminShell({ active: 'community' });
 
@@ -70,7 +71,7 @@ async function load(filter = currentFilter) {
     const posts = data?.posts || [];
     metaEl.textContent = posts.length ? `${posts.length}${(data?.total || 0) > posts.length ? ' / ' + data.total : ''} bài viết` : '';
     if (!posts.length) {
-        const msg = filter === 'hidden' ? 'Không có bài nào đang bị ẩn.' : 'Không có bài viết nào bị báo cáo. 🎉';
+        const msg = filter === 'hidden' ? 'Không có bài nào đang bị ẩn.' : `${icon('star')} Không có bài viết nào bị báo cáo.`;
         listEl.innerHTML = `<div class="admin-card admin-empty">${msg}</div>`;
         return;
     }

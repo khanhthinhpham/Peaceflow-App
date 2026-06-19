@@ -1,5 +1,5 @@
 import { apiClient } from '../api-client.js';
-import { mountExpertShell, requireExpertUser, showExpertBanner, loadExpertData } from './shell.js';
+import { mountExpertShell, requireExpertUser, showExpertBanner, loadExpertData, setExpertNavLock } from './shell.js';
 import { escapeHtml, formatCurrency, formatDateTime } from './utils.js';
 
 const SESSION_TYPE_LABELS = {
@@ -57,6 +57,7 @@ async function init() {
             return;
         }
 
+        setExpertNavLock(false);
         renderDashboard(applicationState, overview);
         setupExpertOperations(overview);
     } catch (error) {

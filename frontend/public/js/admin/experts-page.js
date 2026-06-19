@@ -1,5 +1,6 @@
 import { apiClient, API_BASE_URL } from '../api-client.js';
 import { mountAdminShell, setAdminBadge } from './shell.js';
+import { icon } from './icons.js';
 
 mountAdminShell({ active: 'experts' });
 
@@ -21,6 +22,10 @@ function specialties(v) {
 }
 function chip(text) {
     return `<span style="font-size:.74rem;font-weight:700;padding:2px 9px;border-radius:999px;background:var(--cream,#fff8f0);border:1px solid var(--kraft-light,#e8cba7);color:var(--text-secondary,#7a6555);">${esc(text)}</span>`;
+}
+
+function monoIcon(name) {
+    return `<span class="admin-inline-icon">${icon(name)}</span>`;
 }
 
 // ===== Hồ sơ đăng ký =====
@@ -62,12 +67,12 @@ function appCard(a) {
             ${a.bio ? `<div style="margin-top:10px;font-size:.86rem;color:var(--text-secondary);line-height:1.55;">${esc(a.bio)}</div>` : ''}
             <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-top:14px;">
                 <div>
-                    ${credHref ? `<a href="${credHref}" target="_blank" rel="noopener" class="btn-outline" style="font-size:.82rem;">📄 Xem bằng cấp${a.credential_filename ? ` (${esc(a.credential_filename)})` : ''}</a>` : '<span style="color:var(--text-light);font-size:.82rem;">Không có file bằng cấp</span>'}
+                    ${credHref ? `<a href="${credHref}" target="_blank" rel="noopener" class="btn-outline" style="font-size:.82rem;">${monoIcon('file-text')} Xem bằng cấp${a.credential_filename ? ` (${esc(a.credential_filename)})` : ''}</a>` : '<span style="color:var(--text-light);font-size:.82rem;">Không có file bằng cấp</span>'}
                 </div>
                 ${a.status === 'pending' ? `
                     <div style="display:flex;gap:10px;">
-                        <button type="button" class="btn-outline" data-reject="${a.id}">Từ chối</button>
-                        <button type="button" class="btn-primary" data-approve="${a.id}">✓ Duyệt hồ sơ</button>
+                        <button type="button" class="btn-outline" data-reject="${a.id}">${monoIcon('alert')} Từ chối</button>
+                        <button type="button" class="btn-primary" data-approve="${a.id}">${monoIcon('check')} Duyệt hồ sơ</button>
                     </div>
                 ` : ''}
             </div>
@@ -86,7 +91,7 @@ async function loadApplications(status = currentStatus) {
         return;
     }
     if (!Array.isArray(rows) || !rows.length) {
-        listEl.innerHTML = `<div class="admin-card admin-empty">${status === 'pending' ? '✅ Không có hồ sơ nào đang chờ duyệt.' : 'Không có hồ sơ nào.'}</div>`;
+    listEl.innerHTML = `<div class="admin-card admin-empty">${status === 'pending' ? `${monoIcon('check')} Không có hồ sơ nào đang chờ duyệt.` : 'Không có hồ sơ nào.'}</div>`;
         if (status === 'pending') setAdminBadge('experts', 0);
         return;
     }
@@ -136,7 +141,7 @@ function expertCard(e) {
         <div class="admin-card" data-expert="${e.id}">
             <div style="display:flex;gap:14px;align-items:flex-start;flex-wrap:wrap;justify-content:space-between;">
                 <div style="display:flex;gap:12px;min-width:0;">
-                    <div class="admin-user-bubble" style="background:var(--mint-light,#c5e8d2);">${esc(e.avatar_emoji || '🧑‍⚕️')}</div>
+                    <div class="admin-user-bubble" style="background:var(--mint-light,#c5e8d2);">${icon('user')}</div>
                     <div style="min-width:0;">
                         <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap;">
                             <span style="font-weight:800;">${esc(e.full_name)}</span>
@@ -144,7 +149,7 @@ function expertCard(e) {
                             <span style="font-size:.7rem;color:var(--text-light);font-family:monospace;">${esc(e.code || '')}</span>
                         </div>
                         <div style="color:var(--text-secondary);font-size:.84rem;margin-top:3px;">${esc(e.email || '')}</div>
-                        <div style="color:var(--text-light);font-size:.78rem;margin-top:3px;">⭐ ${Number(e.rating || 0).toFixed(1)} · ${Number(e.sessions_count || 0)} buổi · Giá: ${money(e.base_price)} · Số dư: <strong>${money(e.balance)}</strong></div>
+                        <div style="color:var(--text-light);font-size:.78rem;margin-top:3px;">${monoIcon('star')} ${Number(e.rating || 0).toFixed(1)} · ${Number(e.sessions_count || 0)} buổi · Giá: ${money(e.base_price)} · Số dư: <strong>${money(e.balance)}</strong></div>
                     </div>
                 </div>
                 <button type="button" class="${active ? 'btn-outline' : 'btn-primary'}" data-toggle="${active ? '0' : '1'}" style="font-size:.82rem;">${active ? 'Tắt hoạt động' : 'Bật hoạt động'}</button>
@@ -154,7 +159,7 @@ function expertCard(e) {
                 ${hasBank
                     ? `
                         <div class="admin-expert-payout-info">
-                            <div class="admin-expert-payout-line">🏦 <strong>${esc(e.payout_bank_name || '')}</strong></div>
+                            <div class="admin-expert-payout-line">${monoIcon('card')} <strong>${esc(e.payout_bank_name || '')}</strong></div>
                             <div class="admin-expert-payout-line">Số tài khoản: <span class="admin-expert-payout-mono">${esc(e.payout_account_number)}</span></div>
                             <div class="admin-expert-payout-line">Chủ tài khoản: <strong>${esc(e.payout_account_name || 'Chưa cập nhật')}</strong></div>
                         </div>
@@ -169,7 +174,7 @@ function expertCard(e) {
                             </div>
                         `}
                     `
-                    : '<span style="color:var(--coral-dark);">⚠️ Chưa cập nhật phương thức nhận thanh toán</span>'}
+                    : `<span style="color:var(--coral-dark);">${monoIcon('alert')} Chưa cập nhật phương thức nhận thanh toán</span>`}
             </div>
         </div>
     `;

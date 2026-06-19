@@ -1,5 +1,6 @@
 import { auth } from '../auth.js';
 import { apiClient } from '../api-client.js';
+import { icon } from './icons.js';
 
 const NAV_ITEMS = [
     { page: 'dashboard.html', key: 'dashboard', icon: '📊', label: 'Tổng quan' },
@@ -41,16 +42,16 @@ function ensureAdminMobileShell() {
         topbar.id = 'adminMobileTopbar';
         topbar.className = 'mobile-topbar admin-mobile-topbar';
         topbar.innerHTML = `
-            <button type="button" class="mobile-menu-btn admin-mobile-menu-btn" id="adminMobileMenuBtn" aria-label="Mở menu quản trị">☰</button>
+            <button type="button" class="mobile-menu-btn admin-mobile-menu-btn" id="adminMobileMenuBtn" aria-label="Mở menu quản trị">${icon('menu')}</button>
             <a href="app.html?page=dashboard.html" class="admin-mobile-brand" aria-label="Về tổng quan admin">
-                <div class="logo-icon admin-mobile-logo-icon">🌿</div>
+                <div class="logo-icon admin-mobile-logo-icon">${icon('spark')}</div>
                 <div class="admin-mobile-brand-text">
                     <span class="admin-mobile-brand-name">Peace<span>Flow</span></span>
                     <span class="admin-mobile-brand-role">Admin Portal</span>
                 </div>
             </a>
             <button type="button" id="adminMobileNotifBtn" class="admin-mobile-notif-btn" data-notification-bell aria-label="Mở thông báo admin">
-                <span class="admin-mobile-notif-icon" aria-hidden="true">🔔<span id="notifBadgeDesktop" class="admin-bell-badge admin-mobile-bell-badge"></span></span>
+                <span class="admin-mobile-notif-icon" aria-hidden="true">${icon('bell')}<span id="notifBadgeDesktop" class="admin-bell-badge admin-mobile-bell-badge"></span></span>
             </button>
         `;
         shell.insertBefore(topbar, shell.firstChild);
@@ -120,7 +121,7 @@ export function mountAdminShell({ active } = {}) {
                     data-notification-bell
                     onclick="window.NotificationManager?.togglePanel()"
                 >
-                    <span class="ni admin-notif-ico" aria-hidden="true">🔔<span id="notifBadge" class="admin-bell-badge"></span></span>
+                    <span class="ni admin-notif-ico" aria-hidden="true">${icon('bell')}<span id="notifBadge" class="admin-bell-badge"></span></span>
                     <span>Thông báo</span>
                 </button>
 
@@ -136,11 +137,11 @@ export function mountAdminShell({ active } = {}) {
                 </div>
 
                 <a class="nav-item admin-footer-link admin-footer-link-dashboard" href="../dashboard.html">
-                    <span class="ni" aria-hidden="true">🏠</span>
+                    <span class="ni" aria-hidden="true">${icon('home')}</span>
                     <span>Về app người dùng</span>
                 </a>
                 <button type="button" class="nav-item admin-footer-link admin-footer-link-danger" id="adminLogoutBtn">
-                    <span class="ni" aria-hidden="true">🚪</span>
+                    <span class="ni" aria-hidden="true">${icon('logout')}</span>
                     <span>Đăng xuất</span>
                 </button>
             </div>
