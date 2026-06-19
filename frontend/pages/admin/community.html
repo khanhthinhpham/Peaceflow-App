@@ -14,19 +14,23 @@
 </head>
 <body class="admin-body">
     <main class="admin-main">
-        <div class="admin-page-head">
-            <p class="admin-page-kicker">PeaceFlow Admin</p>
-            <h1 class="admin-page-title">Kiểm duyệt cộng đồng</h1>
-            <p class="admin-page-sub">Theo dõi nội dung bị báo cáo và các bài viết đã bị ẩn tự động.</p>
+        <div class="admin-page-head" style="display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+            <div>
+                <p class="admin-page-kicker">PeaceFlow Admin</p>
+                <h1 class="admin-page-title">Kiểm duyệt cộng đồng</h1>
+                <p class="admin-page-sub">Bài tự ẩn khi ≥ 5 báo cáo. Xem lại, ẩn/hiện, bỏ qua báo cáo hoặc gỡ bài.</p>
+            </div>
+            <button id="reloadBtn" class="btn-outline" type="button">↻ Tải lại</button>
         </div>
-        <div class="admin-card" id="adminCommunitySummary"></div>
-        <div class="admin-placeholder admin-card">
-            <div class="ph-icon">🛡️</div>
-            <h2 style="margin:0 0 6px;">Bước kế tiếp cho tab này</h2>
-            <p style="margin:0;">
-                Bổ sung danh sách bài viết bị report, cho phép ẩn, hiện lại hoặc gỡ bài ngay trong giao diện admin.
-            </p>
+
+        <div class="admin-tabs" id="communityTabs">
+            <button type="button" class="admin-tab active" data-filter="reported">Bị báo cáo</button>
+            <button type="button" class="admin-tab" data-filter="hidden">Đã ẩn</button>
+            <button type="button" class="admin-tab" data-filter="all">Tất cả</button>
         </div>
+
+        <div id="adminCommunityMeta" style="font-size:.82rem;color:var(--text-light);margin-bottom:10px;"></div>
+        <div id="adminCommunityList"></div>
     </main>
     <script type="module" src="../../public/js/admin/community-page.js"></script>
 </body>

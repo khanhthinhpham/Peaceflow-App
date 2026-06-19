@@ -1045,6 +1045,95 @@ router.patch('/admin/users/:id', requireAuth, async (req, res) => {
   }
 });
 
+// ===== Admin: kiểm duyệt cộng đồng =====
+
+// Danh sách bài cần kiểm duyệt. ?filter=reported|hidden|all (mặc định reported).
+router.get('/admin/community/reports', requireAuth, async (req, res) => {
+  try {
+    if (req.user.role !== 'admin') return res.status(403).json({ success: false, message: 'Admin only' });
+
+    const limit = Math.min(Math.max(parseInt(req.query.limit, 10) || 50, 1), 100);
+    const offset = Math.max(parseInt(req.query.offset, 10) || 0, 0);
+    const filter = ['reported', 'hidden', 'all'].includes(req.query.filter) ? req.query.filter : 'reported';
+    let where = 'p.reports_count > 0';
+    if (filter === 'hidden') where = 'p.is_hidden = true';
+    else if (filter === 'all') where = '(p.reports_count > 0 or p.is_hidden = true)';
+
+    const countRes = await db.query(`select count(*)::int as total from community_posts p where ${where}`);
+    const rowsRes = await db.query(
+      `select p.id, p.content, p.category, p.author_name, p.is_anonymous, p.is_hidden,
+              p.reports_count, p.created_at, u.email as author_email,
+              (select json_agg(json_build_object('reason', r.reason, 'created_at', r.created_at) order by r.created_at desc)
+                 from community_reports r where r.post_id = p.id) as reports
+       from community_posts p
+       left join users u on u.id = p.user_id
+       where ${where}
+       order by p.is_hidden desc, p.reports_count desc, p.created_at desc
+       limit $1 offset $2`,
+      [limit, offset]
+    );
+
+    return res.json({
+      success: true,
+      data: { total: countRes.rows[0]?.total || 0, limit, offset, posts: rowsRes.rows }
+    });
+  } catch (error) {
+    console.error('Admin community reports error:', error);
+    return res.status(500).json({ success: false, message: 'Could not fetch reported posts' });
+  }
+});
+
+// Ẩn / hiện lại bài. Body: { is_hidden: boolean }.
+router.patch('/admin/community/posts/:id', requireAuth, async (req, res) => {
+  try {
+    if (req.user.role !== 'admin') return res.status(403).json({ success: false, message: 'Admin only' });
+    if (typeof req.body.is_hidden !== 'boolean') {
+      return res.status(400).json({ success: false, message: 'Thiếu trường is_hidden.' });
+    }
+    const r = await db.query(
+      `update community_posts set is_hidden = $2, updated_at = now() where id = $1
+       returning id, is_hidden, reports_count`,
+      [req.params.id, req.body.is_hidden]
+    );
+    if (!r.rows[0]) return res.status(404).json({ success: false, message: 'Không tìm thấy bài viết.' });
+    return res.json({ success: true, data: r.rows[0] });
+  } catch (error) {
+    console.error('Admin hide post error:', error);
+    return res.status(500).json({ success: false, message: 'Could not update post' });
+  }
+});
+
+// Bỏ qua báo cáo (xem như hợp lệ): xoá report, reset count & hiện lại bài.
+router.post('/admin/community/posts/:id/dismiss-reports', requireAuth, async (req, res) => {
+  try {
+    if (req.user.role !== 'admin') return res.status(403).json({ success: false, message: 'Admin only' });
+    await db.query(`delete from community_reports where post_id = $1`, [req.params.id]);
+    const r = await db.query(
+      `update community_posts set reports_count = 0, is_hidden = false, updated_at = now() where id = $1
+       returning id`,
+      [req.params.id]
+    );
+    if (!r.rows[0]) return res.status(404).json({ success: false, message: 'Không tìm thấy bài viết.' });
+    return res.json({ success: true });
+  } catch (error) {
+    console.error('Admin dismiss reports error:', error);
+    return res.status(500).json({ success: false, message: 'Could not dismiss reports' });
+  }
+});
+
+// Gỡ hẳn bài viết (cascade xoá comment/reaction/report).
+router.delete('/admin/community/posts/:id', requireAuth, async (req, res) => {
+  try {
+    if (req.user.role !== 'admin') return res.status(403).json({ success: false, message: 'Admin only' });
+    const r = await db.query(`delete from community_posts where id = $1 returning id`, [req.params.id]);
+    if (!r.rows[0]) return res.status(404).json({ success: false, message: 'Không tìm thấy bài viết.' });
+    return res.json({ success: true });
+  } catch (error) {
+    console.error('Admin delete post error:', error);
+    return res.status(500).json({ success: false, message: 'Could not delete post' });
+  }
+});
+
 // Danh sách lịch đã báo chuyển khoản, chờ admin đối chiếu sao kê.
 router.get('/admin/bookings/pending-payment', requireAuth, async (req, res) => {
   try {

@@ -10,9 +10,10 @@ const pagerEl = document.getElementById('adminUsersPager');
 const searchEl = document.getElementById('userSearch');
 const roleFilterEl = document.getElementById('userRoleFilter');
 const statusTabsEl = document.getElementById('userStatusTabs');
+const pageSizeEl = document.getElementById('userPageSize');
 
 const myId = auth.getUser()?.id || null;
-const LIMIT = 25;
+let LIMIT = parseInt(pageSizeEl?.value, 10) || 10;
 const state = { search: '', role: '', status: '', page: 0, total: 0 };
 
 function esc(v) {
@@ -54,7 +55,6 @@ function statusChip(status) {
 function card(u) {
     const self = u.id === myId;
     const locked = u.status === 'suspended';
-    const roleOpts = ['user', 'expert', 'admin'].map((r) => `<option value="${r}"${u.role === r ? ' selected' : ''}>${ROLE_LABEL[r]}</option>`).join('');
     return `
         <div class="admin-card" data-user="${u.id}">
             <div style="display:flex;gap:14px;align-items:flex-start;flex-wrap:wrap;justify-content:space-between;">
@@ -71,7 +71,6 @@ function card(u) {
                     </div>
                 </div>
                 <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-                    <select class="admin-input" data-role-select aria-label="Đổi vai trò" title="Đổi vai trò" ${self ? 'disabled' : ''} style="padding:6px 10px;font-size:.82rem;">${roleOpts}</select>
                     <button type="button" class="${locked ? 'btn-primary' : 'btn-outline'}" data-lock ${self ? 'disabled' : ''} style="font-size:.82rem;">${locked ? 'Mở khoá' : 'Khoá'}</button>
                 </div>
             </div>
@@ -124,7 +123,9 @@ function pageWindow(current, total) {
 function renderPager(totalPages) {
     if (totalPages <= 1) { pagerEl.innerHTML = ''; return; }
     const cur = state.page;
+    const last = totalPages - 1;
     const parts = [];
+    parts.push(`<button type="button" class="admin-page-btn" data-page="0" ${cur === 0 ? 'disabled' : ''} title="Trang đầu">« Đầu</button>`);
     parts.push(`<button type="button" class="admin-page-btn" data-page="${cur - 1}" ${cur === 0 ? 'disabled' : ''}>‹ Trước</button>`);
     for (const p of pageWindow(cur, totalPages)) {
         if (p === '…') {
@@ -133,7 +134,8 @@ function renderPager(totalPages) {
             parts.push(`<button type="button" class="admin-page-btn${p === cur ? ' active' : ''}" data-page="${p}">${p + 1}</button>`);
         }
     }
-    parts.push(`<button type="button" class="admin-page-btn" data-page="${cur + 1}" ${cur >= totalPages - 1 ? 'disabled' : ''}>Sau ›</button>`);
+    parts.push(`<button type="button" class="admin-page-btn" data-page="${cur + 1}" ${cur >= last ? 'disabled' : ''}>Sau ›</button>`);
+    parts.push(`<button type="button" class="admin-page-btn" data-page="${last}" ${cur >= last ? 'disabled' : ''} title="Trang cuối">Cuối »</button>`);
     pagerEl.innerHTML = parts.join('');
 
     pagerEl.querySelectorAll('.admin-page-btn[data-page]').forEach((btn) => {
@@ -151,9 +153,6 @@ function renderPager(totalPages) {
 function bindRows() {
     listEl.querySelectorAll('[data-user]').forEach((row) => {
         const id = row.getAttribute('data-user');
-        row.querySelector('[data-role-select]')?.addEventListener('change', (e) => {
-            patch(id, { role: e.target.value }, e.target);
-        });
         row.querySelector('[data-lock]')?.addEventListener('click', (e) => {
             const locked = e.target.textContent.trim() === 'Mở khoá';
             const nextStatus = locked ? 'active' : 'suspended';
@@ -184,6 +183,10 @@ function applySearch() {
 document.getElementById('userSearchBtn')?.addEventListener('click', applySearch);
 searchEl?.addEventListener('keydown', (e) => { if (e.key === 'Enter') applySearch(); });
 roleFilterEl?.addEventListener('change', applySearch);
+pageSizeEl?.addEventListener('change', () => {
+    LIMIT = parseInt(pageSizeEl.value, 10) || 10;
+    load(0);
+});
 statusTabsEl?.addEventListener('click', (e) => {
     const tab = e.target.closest('.admin-tab');
     if (!tab) return;

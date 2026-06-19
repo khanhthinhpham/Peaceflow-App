@@ -3,38 +3,128 @@ import { mountAdminShell, setAdminBadge } from './shell.js';
 
 mountAdminShell({ active: 'community' });
 
-const summaryEl = document.getElementById('adminCommunitySummary');
+const listEl = document.getElementById('adminCommunityList');
+const metaEl = document.getElementById('adminCommunityMeta');
+const tabsEl = document.getElementById('communityTabs');
+let currentFilter = 'reported';
 
-async function loadCommunitySummary() {
-    if (!summaryEl) return;
-    summaryEl.innerHTML = '<div class="admin-empty">Đang tải...</div>';
-
+function esc(v) {
+    return String(v ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+function dt(v) {
+    if (!v) return '';
     try {
-        const overview = await apiClient.get('/admin/overview', { noCache: true });
-        setAdminBadge('community', overview.reported_community_posts);
+        return new Intl.DateTimeFormat('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Bangkok' }).format(new Date(v));
+    } catch (_e) { return v; }
+}
 
-        summaryEl.innerHTML = `
-            <h2 class="admin-list-title">Tình hình kiểm duyệt</h2>
-            <div class="admin-list">
-                <div class="admin-list-item">
-                    <div>
-                        <p class="admin-list-title">Bài viết bị báo cáo</p>
-                        <p class="admin-list-sub">${Number(overview.reported_community_posts || 0).toLocaleString('vi-VN')} bài viết đang có ít nhất một report.</p>
-                    </div>
-                    <span class="admin-pill">${Number(overview.reported_community_posts || 0).toLocaleString('vi-VN')} report</span>
+const CATEGORY = { gratitude: 'Biết ơn', story: 'Câu chuyện', milestone: 'Cột mốc', question: 'Hỏi đáp', tip: 'Mẹo' };
+const REASON = { inappropriate: 'Không phù hợp', spam: 'Spam', harassment: 'Quấy rối', misinformation: 'Sai sự thật', other: 'Khác' };
+
+function reasonsSummary(reports) {
+    if (!Array.isArray(reports) || !reports.length) return '';
+    const counts = {};
+    reports.forEach((r) => { const k = r.reason || 'other'; counts[k] = (counts[k] || 0) + 1; });
+    return Object.entries(counts)
+        .map(([k, n]) => `<span style="font-size:.72rem;font-weight:700;padding:2px 9px;border-radius:999px;background:var(--cream,#fff8f0);border:1px solid var(--kraft-light,#e8cba7);color:var(--text-secondary,#7a6555);">${esc(REASON[k] || k)} ×${n}</span>`)
+        .join('');
+}
+
+function card(p) {
+    const author = p.is_anonymous ? 'Ẩn danh' : (p.author_name || p.author_email || 'Ẩn danh');
+    return `
+        <div class="admin-card" data-post="${p.id}">
+            <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:flex-start;">
+                <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                    <span style="font-weight:800;">${esc(author)}</span>
+                    <span style="font-size:.72rem;font-weight:700;padding:1px 8px;border-radius:6px;background:var(--cream,#fff8f0);border:1px solid var(--kraft-light,#e8cba7);color:var(--text-secondary,#7a6555);">${esc(CATEGORY[p.category] || p.category)}</span>
+                    <span style="font-size:.72rem;font-weight:800;padding:1px 8px;border-radius:999px;background:rgba(255,139,139,.14);color:var(--coral-dark,#e05555);border:1px solid var(--coral,#ff8b8b);">⚑ ${Number(p.reports_count || 0)} báo cáo</span>
+                    ${p.is_hidden ? '<span style="font-size:.72rem;font-weight:800;padding:1px 8px;border-radius:999px;background:rgba(74,55,40,.1);color:var(--text-secondary,#7a6555);">Đang ẩn</span>' : ''}
                 </div>
-                <div class="admin-list-item">
-                    <div>
-                        <p class="admin-list-title">Bài viết đang bị ẩn</p>
-                        <p class="admin-list-sub">${Number(overview.hidden_community_posts || 0).toLocaleString('vi-VN')} bài đã bị ẩn tự động hoặc bởi moderation.</p>
-                    </div>
-                    <span class="admin-pill">${Number(overview.hidden_community_posts || 0).toLocaleString('vi-VN')} hidden</span>
-                </div>
+                <span style="font-size:.78rem;color:var(--text-light);white-space:nowrap;">${dt(p.created_at)}</span>
             </div>
-        `;
-    } catch (error) {
-        summaryEl.innerHTML = `<div class="admin-empty" style="color:var(--coral);">${error.message || 'Không tải được dữ liệu cộng đồng.'}</div>`;
+
+            <div style="margin-top:10px;font-size:.9rem;color:var(--text-primary);line-height:1.6;white-space:pre-wrap;background:var(--cream,#fff8f0);border:1px solid var(--kraft-light,#e8cba7);border-radius:var(--radius-sm,10px);padding:12px 14px;">${esc(p.content)}</div>
+
+            ${reasonsSummary(p.reports) ? `<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;">${reasonsSummary(p.reports)}</div>` : ''}
+
+            <div style="display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;margin-top:14px;">
+                <button type="button" class="btn-outline" data-dismiss style="font-size:.82rem;">Bỏ qua báo cáo</button>
+                <button type="button" class="${p.is_hidden ? 'btn-primary' : 'btn-outline'}" data-hide="${p.is_hidden ? '0' : '1'}" style="font-size:.82rem;">${p.is_hidden ? 'Hiện lại' : 'Ẩn bài'}</button>
+                <button type="button" class="btn-outline" data-delete style="font-size:.82rem;color:var(--coral-dark);border-color:var(--coral);">Gỡ bài</button>
+            </div>
+        </div>
+    `;
+}
+
+async function load(filter = currentFilter) {
+    currentFilter = filter;
+    listEl.innerHTML = '<div class="admin-card admin-empty">Đang tải...</div>';
+    let data;
+    try {
+        data = await apiClient.get(`/admin/community/reports?filter=${encodeURIComponent(filter)}`, { noCache: true });
+    } catch (_e) {
+        listEl.innerHTML = '<div class="admin-card admin-empty" style="color:var(--coral);">Không tải được danh sách (cần quyền admin).</div>';
+        return;
+    }
+    const posts = data?.posts || [];
+    metaEl.textContent = posts.length ? `${posts.length}${(data?.total || 0) > posts.length ? ' / ' + data.total : ''} bài viết` : '';
+    if (!posts.length) {
+        const msg = filter === 'hidden' ? 'Không có bài nào đang bị ẩn.' : 'Không có bài viết nào bị báo cáo. 🎉';
+        listEl.innerHTML = `<div class="admin-card admin-empty">${msg}</div>`;
+        return;
+    }
+    listEl.innerHTML = posts.map(card).join('');
+    bindRows();
+}
+
+function bindRows() {
+    listEl.querySelectorAll('[data-post]').forEach((row) => {
+        const id = row.getAttribute('data-post');
+        row.querySelector('[data-hide]')?.addEventListener('click', (e) => {
+            const hide = e.currentTarget.getAttribute('data-hide') === '1';
+            patch(`/admin/community/posts/${id}`, { is_hidden: hide }, e.currentTarget, 'patch');
+        });
+        row.querySelector('[data-dismiss]')?.addEventListener('click', (e) => {
+            if (!window.confirm('Bỏ qua báo cáo của bài này (xem như hợp lệ) và hiện lại?')) return;
+            patch(`/admin/community/posts/${id}/dismiss-reports`, {}, e.currentTarget, 'post');
+        });
+        row.querySelector('[data-delete]')?.addEventListener('click', (e) => {
+            if (!window.confirm('Gỡ hẳn bài viết này? Hành động không thể hoàn tác (xoá cả bình luận & cảm xúc).')) return;
+            patch(`/admin/community/posts/${id}`, null, e.currentTarget, 'delete');
+        });
+    });
+}
+
+async function patch(url, body, ctrl, method) {
+    if (ctrl) ctrl.disabled = true;
+    try {
+        if (method === 'delete') await apiClient.delete(url);
+        else if (method === 'post') await apiClient.post(url, body);
+        else await apiClient.patch(url, body);
+        await load(currentFilter);
+        refreshBadge();
+    } catch (e) {
+        alert(e.message || 'Thao tác thất bại.');
+        if (ctrl) ctrl.disabled = false;
     }
 }
 
-loadCommunitySummary();
+async function refreshBadge() {
+    try {
+        const o = await apiClient.get('/admin/overview', { noCache: true });
+        setAdminBadge('community', o.reported_community_posts);
+    } catch (_e) { /* ignore */ }
+}
+
+tabsEl?.addEventListener('click', (e) => {
+    const tab = e.target.closest('.admin-tab');
+    if (!tab) return;
+    tabsEl.querySelectorAll('.admin-tab').forEach((t) => t.classList.toggle('active', t === tab));
+    load(tab.getAttribute('data-filter'));
+});
+
+document.getElementById('reloadBtn')?.addEventListener('click', () => load(currentFilter));
+
+load('reported');
+refreshBadge();
