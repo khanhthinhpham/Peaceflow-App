@@ -258,6 +258,77 @@ body.admin-body {
   border: 2px solid var(--kraft, #d4a574);
 }
 
+.admin-expert-payout-card {
+  display: flex;
+  align-items: stretch;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 12px;
+  font-size: 0.84rem;
+  color: var(--text-secondary, #7a6555);
+  background: var(--cream, #fff8f0);
+  border: 1px solid var(--kraft-light, #e8cba7);
+  border-radius: var(--radius-sm, 10px);
+}
+
+.admin-expert-payout-info {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.admin-expert-payout-line {
+  line-height: 1.5;
+  word-break: break-word;
+}
+
+.admin-expert-payout-mono {
+  font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
+}
+
+.admin-expert-qr-card {
+  flex-shrink: 0;
+  width: 116px;
+  min-height: 116px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px;
+  text-decoration: none;
+  color: var(--text-secondary, #7a6555);
+  background: var(--warm-white, #fffdf7);
+  border: 1px solid var(--kraft-light, #e8cba7);
+  border-radius: 12px;
+  transition: var(--transition, all 0.2s ease);
+}
+
+.admin-expert-qr-card:hover {
+  border-color: var(--mint-dark, #7bbf95);
+  box-shadow: var(--shadow-paper-sm, 2px 2px 0 rgba(74, 55, 40, 0.08));
+  transform: translateY(-1px);
+}
+
+.admin-expert-qr-empty {
+  text-align: center;
+}
+
+.admin-expert-qr-image {
+  width: 88px;
+  height: 88px;
+  object-fit: contain;
+  border-radius: 8px;
+  background: #fff;
+  border: 1px solid rgba(232, 203, 167, 0.8);
+}
+
+.admin-expert-qr-caption {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-align: center;
+}
+
 .admin-pager {
   display: flex;
   flex-wrap: wrap;
@@ -432,5 +503,15 @@ body.admin-body {
 
   .admin-grid-two {
     grid-template-columns: 1fr;
+  }
+
+  .admin-expert-payout-card {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .admin-expert-qr-card {
+    width: 100%;
+    max-width: 180px;
   }
 }

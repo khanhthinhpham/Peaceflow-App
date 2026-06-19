@@ -131,6 +131,7 @@ function expertCard(e) {
     const sp = specialties(e.specialties);
     const active = e.active;
     const hasBank = !!e.payout_account_number;
+    const hasQr = !!e.payout_qr_url;
     return `
         <div class="admin-card" data-expert="${e.id}">
             <div style="display:flex;gap:14px;align-items:flex-start;flex-wrap:wrap;justify-content:space-between;">
@@ -149,9 +150,25 @@ function expertCard(e) {
                 <button type="button" class="${active ? 'btn-outline' : 'btn-primary'}" data-toggle="${active ? '0' : '1'}" style="font-size:.82rem;">${active ? 'Tắt hoạt động' : 'Bật hoạt động'}</button>
             </div>
             ${sp.length ? `<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;">${sp.map(chip).join('')}</div>` : ''}
-            <div style="margin-top:12px;font-size:.84rem;color:var(--text-secondary);background:var(--cream,#fff8f0);border:1px solid var(--kraft-light,#e8cba7);border-radius:var(--radius-sm,10px);padding:10px 12px;">
+            <div class="admin-expert-payout-card" style="margin-top:12px;">
                 ${hasBank
-                    ? `🏦 <strong>${esc(e.payout_bank_name || '')}</strong> · <span style="font-family:monospace;">${esc(e.payout_account_number)}</span>${e.payout_account_name ? ' · ' + esc(e.payout_account_name) : ''}`
+                    ? `
+                        <div class="admin-expert-payout-info">
+                            <div class="admin-expert-payout-line">🏦 <strong>${esc(e.payout_bank_name || '')}</strong></div>
+                            <div class="admin-expert-payout-line">Số tài khoản: <span class="admin-expert-payout-mono">${esc(e.payout_account_number)}</span></div>
+                            <div class="admin-expert-payout-line">Chủ tài khoản: <strong>${esc(e.payout_account_name || 'Chưa cập nhật')}</strong></div>
+                        </div>
+                        ${hasQr ? `
+                            <a class="admin-expert-qr-card" href="${esc(e.payout_qr_url)}" target="_blank" rel="noopener" aria-label="Xem mã QR nhận tiền của ${esc(e.full_name)}">
+                                <img class="admin-expert-qr-image" src="${esc(e.payout_qr_url)}" alt="QR nhận tiền của ${esc(e.full_name)}">
+                                <span class="admin-expert-qr-caption">Mã QR nhận tiền</span>
+                            </a>
+                        ` : `
+                            <div class="admin-expert-qr-card admin-expert-qr-empty">
+                                <span class="admin-expert-qr-caption">Chưa tạo được mã QR</span>
+                            </div>
+                        `}
+                    `
                     : '<span style="color:var(--coral-dark);">⚠️ Chưa cập nhật phương thức nhận thanh toán</span>'}
             </div>
         </div>

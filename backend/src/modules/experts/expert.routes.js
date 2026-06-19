@@ -980,7 +980,7 @@ router.get('/admin/experts', requireAuth, async (req, res) => {
       `select e.id, e.code, e.full_name, e.avatar_emoji, e.status, e.active, e.rating, e.sessions_count,
               e.base_price, e.location, e.specialties, e.experience_years,
               coalesce(e.balance, 0)::int as balance,
-              e.payout_bank_name, e.payout_account_number, e.payout_account_name,
+              e.payout_bank_name, e.payout_bank_bin, e.payout_account_number, e.payout_account_name,
               u.email
        from experts e
        left join users u on u.id = e.user_id
@@ -992,7 +992,15 @@ router.get('/admin/experts', requireAuth, async (req, res) => {
 
     return res.json({
       success: true,
-      data: { total: countRes.rows[0]?.total || 0, limit, offset, experts: rowsRes.rows }
+      data: {
+        total: countRes.rows[0]?.total || 0,
+        limit,
+        offset,
+        experts: rowsRes.rows.map((row) => ({
+          ...row,
+          payout_qr_url: buildExpertPayoutQrUrl(row.payout_bank_bin, row.payout_account_number, row.payout_account_name)
+        }))
+      }
     });
   } catch (error) {
     console.error('Admin list experts error:', error);
