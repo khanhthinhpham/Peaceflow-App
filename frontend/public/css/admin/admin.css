@@ -258,6 +258,52 @@ body.admin-body {
   border: 2px solid var(--kraft, #d4a574);
 }
 
+.admin-pager {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  justify-content: center;
+  margin-top: 14px;
+}
+
+.admin-page-btn {
+  min-width: 38px;
+  padding: 7px 11px;
+  border: 1.5px solid var(--kraft-light, #e8cba7);
+  background: var(--warm-white, #fffdf7);
+  color: var(--text-secondary, #7a6555);
+  font-family: inherit;
+  font-weight: 700;
+  font-size: 0.85rem;
+  border-radius: var(--radius-sm, 10px);
+  cursor: pointer;
+  transition: var(--transition, all 0.2s ease);
+}
+
+.admin-page-btn:hover:not(:disabled):not(.active) {
+  background: var(--mint-light, #c5e8d2);
+  color: var(--text-primary, #4a3728);
+}
+
+.admin-page-btn.active {
+  background: var(--mint, #a8d5ba);
+  color: var(--text-primary, #4a3728);
+  border-color: var(--mint-dark, #7bbf95);
+  cursor: default;
+}
+
+.admin-page-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.admin-page-ellipsis {
+  padding: 0 4px;
+  color: var(--text-light, #a89585);
+  font-weight: 800;
+}
+
 .admin-kpi-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));

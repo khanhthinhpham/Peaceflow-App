@@ -6,14 +6,14 @@ mountAdminShell({ active: 'users' });
 
 const listEl = document.getElementById('adminUsersList');
 const metaEl = document.getElementById('adminUsersMeta');
-const moreEl = document.getElementById('adminUsersMore');
+const pagerEl = document.getElementById('adminUsersPager');
 const searchEl = document.getElementById('userSearch');
 const roleFilterEl = document.getElementById('userRoleFilter');
 const statusTabsEl = document.getElementById('userStatusTabs');
 
 const myId = auth.getUser()?.id || null;
 const LIMIT = 25;
-const state = { search: '', role: '', status: '', offset: 0, total: 0, loaded: 0 };
+const state = { search: '', role: '', status: '', page: 0, total: 0 };
 
 function esc(v) {
     return String(v ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -79,16 +79,13 @@ function card(u) {
     `;
 }
 
-async function load(reset = true) {
-    if (reset) {
-        state.offset = 0;
-        state.loaded = 0;
-        listEl.innerHTML = '<div class="admin-card admin-empty">Đang tải...</div>';
-        moreEl.innerHTML = '';
-    }
+async function load(page = state.page) {
+    state.page = Math.max(0, page);
+    listEl.innerHTML = '<div class="admin-card admin-empty">Đang tải...</div>';
+    pagerEl.innerHTML = '';
     let data;
     try {
-        const qs = new URLSearchParams({ limit: String(LIMIT), offset: String(state.offset) });
+        const qs = new URLSearchParams({ limit: String(LIMIT), offset: String(state.page * LIMIT) });
         if (state.search) qs.set('search', state.search);
         if (state.role) qs.set('role', state.role);
         if (state.status) qs.set('status', state.status);
@@ -99,22 +96,55 @@ async function load(reset = true) {
     }
     const users = data?.users || [];
     state.total = data?.total || 0;
-    state.loaded += users.length;
 
-    if (reset) {
-        listEl.innerHTML = users.length ? users.map(card).join('') : '<div class="admin-card admin-empty">Không tìm thấy người dùng nào.</div>';
-    } else {
-        listEl.insertAdjacentHTML('beforeend', users.map(card).join(''));
-    }
-    metaEl.textContent = `Hiển thị ${state.loaded} / ${state.total} người dùng`;
+    listEl.innerHTML = users.length ? users.map(card).join('') : '<div class="admin-card admin-empty">Không tìm thấy người dùng nào.</div>';
     bindRows();
 
-    moreEl.innerHTML = state.loaded < state.total
-        ? '<button type="button" id="loadMoreUsers" class="btn-outline">Tải thêm</button>'
-        : '';
-    document.getElementById('loadMoreUsers')?.addEventListener('click', () => {
-        state.offset += LIMIT;
-        load(false);
+    const totalPages = Math.max(1, Math.ceil(state.total / LIMIT));
+    const from = state.total ? state.page * LIMIT + 1 : 0;
+    const to = state.page * LIMIT + users.length;
+    metaEl.textContent = `${from}–${to} trong ${state.total} người dùng · Trang ${state.page + 1}/${totalPages}`;
+    renderPager(totalPages);
+}
+
+// Tính dải số trang cần hiển thị (luôn có trang đầu/cuối, dấu … khi xa).
+function pageWindow(current, total) {
+    const pages = new Set([0, total - 1, current, current - 1, current + 1]);
+    const sorted = [...pages].filter((p) => p >= 0 && p < total).sort((a, b) => a - b);
+    const out = [];
+    let prev = null;
+    for (const p of sorted) {
+        if (prev !== null && p - prev > 1) out.push('…');
+        out.push(p);
+        prev = p;
+    }
+    return out;
+}
+
+function renderPager(totalPages) {
+    if (totalPages <= 1) { pagerEl.innerHTML = ''; return; }
+    const cur = state.page;
+    const parts = [];
+    parts.push(`<button type="button" class="admin-page-btn" data-page="${cur - 1}" ${cur === 0 ? 'disabled' : ''}>‹ Trước</button>`);
+    for (const p of pageWindow(cur, totalPages)) {
+        if (p === '…') {
+            parts.push('<span class="admin-page-ellipsis">…</span>');
+        } else {
+            parts.push(`<button type="button" class="admin-page-btn${p === cur ? ' active' : ''}" data-page="${p}">${p + 1}</button>`);
+        }
+    }
+    parts.push(`<button type="button" class="admin-page-btn" data-page="${cur + 1}" ${cur >= totalPages - 1 ? 'disabled' : ''}>Sau ›</button>`);
+    pagerEl.innerHTML = parts.join('');
+
+    pagerEl.querySelectorAll('.admin-page-btn[data-page]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+            if (btn.disabled) return;
+            const p = parseInt(btn.getAttribute('data-page'), 10);
+            if (!Number.isNaN(p) && p !== state.page) {
+                load(p);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        });
     });
 }
 
@@ -138,7 +168,7 @@ async function patch(id, body, ctrl) {
     if (ctrl) ctrl.disabled = true;
     try {
         await apiClient.patch(`/admin/users/${id}`, body);
-        await load(true);
+        await load(state.page);
     } catch (e) {
         alert(e.message || 'Cập nhật thất bại.');
         if (ctrl) ctrl.disabled = false;
@@ -148,7 +178,7 @@ async function patch(id, body, ctrl) {
 function applySearch() {
     state.search = (searchEl.value || '').trim();
     state.role = roleFilterEl.value || '';
-    load(true);
+    load(0);
 }
 
 document.getElementById('userSearchBtn')?.addEventListener('click', applySearch);
@@ -159,7 +189,7 @@ statusTabsEl?.addEventListener('click', (e) => {
     if (!tab) return;
     statusTabsEl.querySelectorAll('.admin-tab').forEach((t) => t.classList.toggle('active', t === tab));
     state.status = tab.getAttribute('data-status') || '';
-    load(true);
+    load(0);
 });
 
-load(true);
+load(0);
