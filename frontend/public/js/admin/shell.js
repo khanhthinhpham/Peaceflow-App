@@ -1,4 +1,5 @@
 import { auth } from '../auth.js';
+import { apiClient } from '../api-client.js';
 
 const NAV_ITEMS = [
     { page: 'dashboard.html', key: 'dashboard', icon: '📊', label: 'Tổng quan' },
@@ -32,43 +33,57 @@ export function mountAdminShell({ active } = {}) {
     const user = auth.getUser() || {};
     const sidebar = document.getElementById('adminSidebar');
     if (!sidebar) return;
+    sidebar.classList.add('sidebar');
 
     if (!sidebarBuilt) {
         const name = user.display_name || user.full_name || 'Quản trị viên';
 
         sidebar.innerHTML = `
-            <div class="admin-brand">
-                <div class="admin-brand-mark">🌿</div>
-                <div>
-                    <p class="admin-brand-eyebrow">PeaceFlow</p>
-                    <p class="admin-brand-title">Trang quản trị</p>
-                </div>
-            </div>
+            <a href="app.html?page=dashboard.html" class="sidebar-logo">
+                <div class="logo-icon">🌿</div>
+                <div class="logo-text">Peace<span>Flow</span></div>
+            </a>
 
-            <nav class="admin-nav">
+            <nav class="sidebar-nav">
+                <div class="nav-section-label">Quản trị</div>
                 ${NAV_ITEMS.map((item) => `
-                    <a class="admin-nav-link" data-nav-key="${item.key}" href="app.html?page=${item.page}">
-                        <span class="admin-nav-ico" aria-hidden="true">${item.icon}</span>
+                    <a class="nav-item admin-shell-link" data-nav-key="${item.key}" href="app.html?page=${item.page}">
+                        <span class="ni" aria-hidden="true">${item.icon}</span>
                         <span>${item.label}</span>
                         ${item.badge ? `<span class="admin-nav-badge" data-badge="${item.badge}"></span>` : ''}
                     </a>
                 `).join('')}
             </nav>
 
-            <div class="admin-sidebar-footer">
-                <div class="admin-user-card">
-                    <div class="admin-user-avatar">${escapeHtml(getInitials(name))}</div>
-                    <div class="admin-user-meta">
-                        <div class="admin-user-name">${escapeHtml(name)}</div>
-                        <div class="admin-user-email">${escapeHtml(user.email || '')}</div>
+            <div class="sidebar-bottom admin-sidebar-bottom">
+                <button
+                    type="button"
+                    class="nav-item admin-footer-link admin-notif-btn"
+                    id="adminNotifBtn"
+                    data-notification-bell
+                    onclick="window.NotificationManager?.togglePanel()"
+                >
+                    <span class="ni admin-notif-ico" aria-hidden="true">🔔<span id="notifBadge" class="admin-bell-badge"></span></span>
+                    <span>Thông báo</span>
+                </button>
+
+                <div class="user-card-mini admin-user-card">
+                    <div class="user-avatar-mini admin-user-avatar">${escapeHtml(getInitials(name))}</div>
+                    <div class="user-info-mini admin-user-meta">
+                        <div class="admin-user-heading">
+                            <div class="user-name admin-user-name">${escapeHtml(name)}</div>
+                            <span class="admin-role-chip">Admin</span>
+                        </div>
+                        <div class="user-level admin-user-email">${escapeHtml(user.email || '')}</div>
                     </div>
                 </div>
-                <a class="admin-footer-link" href="../dashboard.html">
-                    <span class="admin-nav-ico" aria-hidden="true">🏠</span>
+
+                <a class="nav-item admin-footer-link admin-footer-link-dashboard" href="../dashboard.html">
+                    <span class="ni" aria-hidden="true">🏠</span>
                     <span>Về app người dùng</span>
                 </a>
-                <button type="button" class="admin-footer-link admin-footer-link-danger" id="adminLogoutBtn">
-                    <span class="admin-nav-ico" aria-hidden="true">🚪</span>
+                <button type="button" class="nav-item admin-footer-link admin-footer-link-danger" id="adminLogoutBtn">
+                    <span class="ni" aria-hidden="true">🚪</span>
                     <span>Đăng xuất</span>
                 </button>
             </div>
@@ -80,9 +95,31 @@ export function mountAdminShell({ active } = {}) {
         });
     }
 
-    sidebar.querySelectorAll('.admin-nav-link[data-nav-key]').forEach((link) => {
+    sidebar.querySelectorAll('.admin-shell-link[data-nav-key]').forEach((link) => {
         link.classList.toggle('active', link.getAttribute('data-nav-key') === active);
     });
+
+    // Đồng bộ badge chuông (số chưa đọc) sau khi chuông đã được dựng trong sidebar.
+    window.NotificationManager?.renderBell?.();
+    ensureAdminLiveBadges();
+}
+
+// Cập nhật badge nav (chờ duyệt / chờ thanh toán / báo cáo) realtime.
+async function refreshAdminBadges() {
+    try {
+        const o = await apiClient.get('/admin/overview', { noCache: true });
+        setAdminBadge('experts', o.pending_expert_applications);
+        setAdminBadge('payments', o.pending_payment_bookings);
+        setAdminBadge('community', o.reported_community_posts);
+    } catch (_e) { /* im lặng nếu lỗi mạng */ }
+}
+
+let liveBadgesBound = false;
+function ensureAdminLiveBadges() {
+    if (liveBadgesBound) return;
+    liveBadgesBound = true;
+    // Khi có thông báo booking realtime (vd thân chủ báo đã chuyển khoản) → làm mới badge.
+    window.addEventListener('peaceflow:booking-changed', () => refreshAdminBadges());
 }
 
 export function setAdminBadge(key, count) {

@@ -30,6 +30,7 @@ export const NotificationManager = {
             // Hiện toast ngay lập tức theo đúng loại thông báo
             const meta = this._toastMetaFor(notif);
             this._showToast({
+                type: notif.type,
                 icon: meta.icon,
                 title: meta.title,
                 body: notif.message,
@@ -57,6 +58,24 @@ export const NotificationManager = {
             default:
                 return { icon: '❤️', title: 'Cảm xúc mới', action: 'community.html' };
         }
+    },
+
+    // Đích điều hướng khi bấm toast/thông báo. Trong khu admin, action mặc định
+    // (kiểu user/expert) không hợp lệ → ghi đè về đúng tab admin tương ứng.
+    _actionFor(notif) {
+        if (window.location.pathname.includes('/admin/')) {
+            switch (notif?.type) {
+                case 'booking_new':
+                case 'booking_update':
+                    return 'app.html?page=payments.html';
+                case 'comment':
+                case 'community':
+                    return 'app.html?page=community.html';
+                default:
+                    return 'app.html?page=dashboard.html';
+            }
+        }
+        return notif?.action || '#';
     },
 
     _maybePromptPush() {
@@ -175,7 +194,8 @@ export const NotificationManager = {
 
         toast.addEventListener('click', (e) => {
             if (e.target.tagName === 'BUTTON') return;
-            if (notif.action) window.location.href = notif.action;
+            const dest = NotificationManager._actionFor(notif);
+            if (dest && dest !== '#') window.location.href = dest;
             toast.remove();
         });
 
@@ -240,7 +260,7 @@ export const NotificationManager = {
                     Thông báo
                 </div>
                 ${this._notifications.map((n) => `
-                    <a href="${n.action || '#'}" onclick="document.getElementById('notifPanel')?.remove()"
+                    <a href="${this._actionFor(n)}" onclick="document.getElementById('notifPanel')?.remove()"
                        style="display:flex;gap:12px;padding:12px 16px;border-bottom:1px solid var(--kraft-light);
                               text-decoration:none;color:inherit;transition:background 0.2s;"
                        onmouseover="this.style.background='var(--cream)'"

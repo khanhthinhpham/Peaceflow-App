@@ -5,6 +5,7 @@ import { z } from 'zod';
 import { env } from '../../config/env.js';
 import { sendBookingRequestEmail, sendBookingStatusEmail } from '../../common/services/email.service.js';
 import { generateOrderCode, transferContent, buildTransferContent, buildVietQrUrl, platformBankInfo, computeFee, isPayosEnabled, createPayosPayment, qrImageFromString, verifyPayosWebhook } from '../../common/services/payment.service.js';
+import { approveExpertApplication, rejectExpertApplication } from '../auth/auth.service.js';
 
 const router = Router();
 
@@ -877,6 +878,78 @@ router.get('/admin/overview', requireAuth, async (req, res) => {
   } catch (error) {
     console.error('Admin overview error:', error);
     return res.status(500).json({ success: false, message: 'Could not fetch admin overview' });
+  }
+});
+
+// ===== Admin: duyệt hồ sơ chuyên gia =====
+
+// Danh sách hồ sơ đăng ký chuyên gia. ?status=pending|approved|rejected|all (mặc định pending).
+router.get('/admin/expert-applications', requireAuth, async (req, res) => {
+  try {
+    if (req.user.role !== 'admin') return res.status(403).json({ success: false, message: 'Admin only' });
+
+    const allowed = ['pending', 'approved', 'rejected', 'all'];
+    const filter = allowed.includes(req.query.status) ? req.query.status : 'pending';
+    const params = [];
+    let where = '';
+    if (filter !== 'all') {
+      where = 'where a.status = $1';
+      params.push(filter);
+    }
+
+    const r = await db.query(
+      `select a.id, a.full_name, a.phone, a.degree, a.specialties, a.experience_years,
+              a.location, a.bio, a.status, a.created_at, a.reviewed_at,
+              a.credential_filename, a.credential_mime, a.approval_token,
+              u.email
+       from expert_applications a
+       join users u on u.id = a.user_id
+       ${where}
+       order by (a.status = 'pending') desc, a.created_at desc
+       limit 100`,
+      params
+    );
+
+    return res.json({
+      success: true,
+      data: r.rows.map(({ approval_token, ...rest }) => ({
+        ...rest,
+        // Đường dẫn (tương đối API_BASE_URL) để xem file bằng cấp; FE tự nối origin backend.
+        credential_path: `/auth/expert-application/credential?token=${encodeURIComponent(approval_token)}`
+      }))
+    });
+  } catch (error) {
+    console.error('Admin list expert applications error:', error);
+    return res.status(500).json({ success: false, message: 'Could not fetch expert applications' });
+  }
+});
+
+// Duyệt / từ chối hồ sơ ngay trên web (tái dùng logic + email của luồng duyệt qua link).
+router.post('/admin/expert-applications/:id/approve', requireAuth, async (req, res) => {
+  try {
+    if (req.user.role !== 'admin') return res.status(403).json({ success: false, message: 'Admin only' });
+    const tokenRes = await db.query(`select approval_token from expert_applications where id = $1 limit 1`, [req.params.id]);
+    const token = tokenRes.rows[0]?.approval_token;
+    if (!token) return res.status(404).json({ success: false, message: 'Không tìm thấy hồ sơ.' });
+    const result = await approveExpertApplication(token);
+    return res.json({ success: true, data: result });
+  } catch (error) {
+    console.error('Admin approve application error:', error);
+    return res.status(error.status || 500).json({ success: false, message: error.message || 'Could not approve application' });
+  }
+});
+
+router.post('/admin/expert-applications/:id/reject', requireAuth, async (req, res) => {
+  try {
+    if (req.user.role !== 'admin') return res.status(403).json({ success: false, message: 'Admin only' });
+    const tokenRes = await db.query(`select approval_token from expert_applications where id = $1 limit 1`, [req.params.id]);
+    const token = tokenRes.rows[0]?.approval_token;
+    if (!token) return res.status(404).json({ success: false, message: 'Không tìm thấy hồ sơ.' });
+    const result = await rejectExpertApplication(token);
+    return res.json({ success: true, data: result });
+  } catch (error) {
+    console.error('Admin reject application error:', error);
+    return res.status(error.status || 500).json({ success: false, message: error.message || 'Could not reject application' });
   }
 });
 
