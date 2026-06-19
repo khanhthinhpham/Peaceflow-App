@@ -831,18 +831,39 @@ router.get('/admin/overview', requireAuth, async (req, res) => {
     const [
       usersRes,
       expertsRes,
-      bookingsTodayRes,
+      bookingsRes,
       pendingPaymentsRes,
       payoutsRes,
       applicationsRes,
-      communityRes
+      communityRes,
+      revenueRes,
+      payoutPaidRes,
+      walletRes,
+      riskRes,
+      emergencyRes
     ] = await Promise.all([
-      db.query(`select count(*)::int as total from users`),
-      db.query(`select count(*)::int as total from experts where active = true`),
       db.query(
-        `select count(*)::int as total
-         from expert_bookings
-         where date_trunc('day', starts_at) = date_trunc('day', now())`
+        `select
+           count(*)::int as total,
+           count(*) filter (where (created_at at time zone 'Asia/Ho_Chi_Minh')::date = (now() at time zone 'Asia/Ho_Chi_Minh')::date)::int as new_today,
+           count(*) filter (where created_at >= now() - interval '7 days')::int as new_7d,
+           count(*) filter (where status = 'suspended')::int as suspended
+         from users`
+      ),
+      db.query(
+        `select
+           count(*) filter (where active = true)::int as active_total,
+           count(*)::int as total
+         from experts`
+      ),
+      db.query(
+        `select
+           count(*)::int as total,
+           count(*) filter (where (starts_at at time zone 'Asia/Ho_Chi_Minh')::date = (now() at time zone 'Asia/Ho_Chi_Minh')::date)::int as today,
+           count(*) filter (where status = 'completed')::int as completed,
+           count(*) filter (where status = 'awaiting_expert')::int as awaiting_expert,
+           count(*) filter (where status = 'confirmed' and starts_at >= now())::int as upcoming
+         from expert_bookings`
       ),
       db.query(`select count(*)::int as total from expert_bookings where status = 'pending'`),
       db.query(
@@ -856,23 +877,64 @@ router.get('/admin/overview', requireAuth, async (req, res) => {
       db.query(
         `select
            count(*) filter (where coalesce(reports_count, 0) > 0)::int as reported_posts,
-           count(*) filter (where is_hidden = true)::int as hidden_posts
+           count(*) filter (where is_hidden = true)::int as hidden_posts,
+           count(*)::int as total_posts,
+           count(*) filter (where created_at >= now() - interval '1 day')::int as posts_today
          from community_posts`
-      )
+      ),
+      db.query(
+        `select
+           coalesce(sum(platform_fee) filter (where status in ('payable', 'settled')), 0)::int as platform_revenue,
+           coalesce(sum(platform_fee) filter (where status in ('payable', 'settled') and date_trunc('month', created_at) = date_trunc('month', now())), 0)::int as platform_revenue_month,
+           coalesce(sum(gross) filter (where status <> 'reversed'), 0)::int as gmv
+         from expert_ledger`
+      ),
+      db.query(`select coalesce(sum(amount), 0)::int as total_paid from expert_payouts where status = 'paid'`),
+      db.query(`select coalesce(sum(wallet_balance), 0)::int as total_wallet from users`),
+      db.query(
+        `select count(distinct user_id)::int as high_risk_7d
+         from risk_snapshots
+         where crisis_risk_level in ('high', 'critical') and calculated_at >= now() - interval '7 days'`
+      ),
+      db.query(`select count(*)::int as total from emergency_logs where created_at >= now() - interval '7 days'`)
     ]);
 
     return res.json({
       success: true,
       data: {
+        // Người dùng & tăng trưởng
         total_users: usersRes.rows[0]?.total || 0,
-        active_experts: expertsRes.rows[0]?.total || 0,
-        bookings_today: bookingsTodayRes.rows[0]?.total || 0,
+        new_users_today: usersRes.rows[0]?.new_today || 0,
+        new_users_7d: usersRes.rows[0]?.new_7d || 0,
+        suspended_users: usersRes.rows[0]?.suspended || 0,
+        active_experts: expertsRes.rows[0]?.active_total || 0,
+        total_experts: expertsRes.rows[0]?.total || 0,
+        // Lịch hẹn
+        bookings_today: bookingsRes.rows[0]?.today || 0,
+        bookings_total: bookingsRes.rows[0]?.total || 0,
+        bookings_completed: bookingsRes.rows[0]?.completed || 0,
+        bookings_awaiting_expert: bookingsRes.rows[0]?.awaiting_expert || 0,
+        bookings_upcoming: bookingsRes.rows[0]?.upcoming || 0,
+        // Tài chính
+        platform_revenue: revenueRes.rows[0]?.platform_revenue || 0,
+        platform_revenue_month: revenueRes.rows[0]?.platform_revenue_month || 0,
+        gmv: revenueRes.rows[0]?.gmv || 0,
+        total_paid_experts: payoutPaidRes.rows[0]?.total_paid || 0,
+        total_wallet_balance: walletRes.rows[0]?.total_wallet || 0,
+        // Thanh toán / payout
         pending_payment_bookings: pendingPaymentsRes.rows[0]?.total || 0,
         pending_payout_experts: payoutsRes.rows[0]?.total_experts || 0,
         pending_payout_amount: payoutsRes.rows[0]?.total_balance || 0,
+        // Duyệt chuyên gia
         pending_expert_applications: applicationsRes.rows[0]?.total || 0,
+        // An toàn / rủi ro
+        high_risk_users_7d: riskRes.rows[0]?.high_risk_7d || 0,
+        emergencies_7d: emergencyRes.rows[0]?.total || 0,
+        // Cộng đồng
         reported_community_posts: communityRes.rows[0]?.reported_posts || 0,
-        hidden_community_posts: communityRes.rows[0]?.hidden_posts || 0
+        hidden_community_posts: communityRes.rows[0]?.hidden_posts || 0,
+        total_community_posts: communityRes.rows[0]?.total_posts || 0,
+        community_posts_today: communityRes.rows[0]?.posts_today || 0
       }
     });
   } catch (error) {
