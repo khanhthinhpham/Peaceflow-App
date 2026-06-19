@@ -170,6 +170,7 @@ function renderForm() {
     const currentName = paymentMethodState?.payout_bank_name || '';
     const selectedValue = bankOptions.some((item) => item.bin === currentBin) ? currentBin : '__custom__';
     const customVisible = selectedValue === '__custom__';
+    const lookupEnabled = !!paymentMethodState?.lookup_enabled;
 
     el.innerHTML = `
         <form id="expertPaymentForm" class="expert-payment-form">
@@ -186,11 +187,15 @@ function renderForm() {
                 </div>
                 <div class="expert-payment-field">
                     <label class="expert-payment-label" for="payoutAccountNumber">Số tài khoản</label>
-                    <input id="payoutAccountNumber" class="expert-payment-input" type="text" inputmode="numeric" maxlength="40" placeholder="Chỉ gồm chữ số">
+                    <div style="display:flex;gap:8px;">
+                        <input id="payoutAccountNumber" class="expert-payment-input" type="text" inputmode="numeric" maxlength="40" placeholder="Chỉ gồm chữ số" style="flex:1;min-width:0;">
+                        ${lookupEnabled ? '<button type="button" id="lookupBtn" class="btn-outline" style="white-space:nowrap;">Tra cứu tên</button>' : ''}
+                    </div>
+                    ${lookupEnabled ? '<div class="expert-payment-help">Chọn ngân hàng + nhập số tài khoản rồi bấm <strong>Tra cứu tên</strong> để tự điền tên chủ tài khoản.</div>' : ''}
                 </div>
                 <div class="expert-payment-field">
                     <label class="expert-payment-label" for="payoutAccountName">Tên chủ tài khoản</label>
-                    <input id="payoutAccountName" class="expert-payment-input" type="text" maxlength="255" placeholder="Tên chủ tài khoản trên sao kê">
+                    <input id="payoutAccountName" class="expert-payment-input" type="text" maxlength="255" placeholder="${lookupEnabled ? 'Tự điền sau khi tra cứu (có thể sửa)' : 'Tên chủ tài khoản trên sao kê'}">
                 </div>
             </div>
             <div class="expert-payment-inline">
@@ -205,6 +210,39 @@ function renderForm() {
 
     document.getElementById('payoutBankSelect')?.addEventListener('change', handleBankModeChange);
     document.getElementById('expertPaymentForm')?.addEventListener('submit', savePaymentMethod);
+    document.getElementById('lookupBtn')?.addEventListener('click', lookupAccountName);
+}
+
+// Tra cứu tên chủ tài khoản qua VietQR (nếu admin đã cấu hình key).
+async function lookupAccountName() {
+    const bank = resolveSelectedBank();
+    const accountNumber = document.getElementById('payoutAccountNumber')?.value.trim() || '';
+    const btn = document.getElementById('lookupBtn');
+
+    if (!bank.bin) {
+        setMessage('Chọn ngân hàng trong danh sách để tra cứu (ngân hàng nhập tay không tra cứu được).', 'error');
+        return;
+    }
+    if (!/^[0-9]+$/.test(accountNumber)) {
+        setMessage('Nhập số tài khoản hợp lệ trước khi tra cứu.', 'error');
+        return;
+    }
+
+    if (btn) btn.disabled = true;
+    setMessage('Đang tra cứu tên chủ tài khoản...', 'muted');
+    try {
+        const res = await apiClient.post('/expert-portal/payment-method/lookup', {
+            bin: bank.bin,
+            account_number: accountNumber
+        });
+        const nameInput = document.getElementById('payoutAccountName');
+        if (nameInput && res?.account_name) nameInput.value = res.account_name;
+        setMessage('✓ Đã tra cứu tên chủ tài khoản.', 'success');
+    } catch (error) {
+        setMessage(error.message || 'Không tra cứu được. Bạn có thể nhập tên thủ công.', 'error');
+    } finally {
+        if (btn) btn.disabled = false;
+    }
 }
 
 function handleBankModeChange() {

@@ -29,11 +29,68 @@ function getInitials(value) {
         .join('') || 'AD';
 }
 
+function ensureAdminMobileShell() {
+    const shell = document.querySelector('.admin-shell');
+    const sidebar = document.getElementById('adminSidebar');
+    const pageHost = document.getElementById('adminPageHost');
+    if (!shell || !sidebar || !pageHost) return;
+
+    let topbar = document.getElementById('adminMobileTopbar');
+    if (!topbar) {
+        topbar = document.createElement('div');
+        topbar.id = 'adminMobileTopbar';
+        topbar.className = 'mobile-topbar admin-mobile-topbar';
+        topbar.innerHTML = `
+            <button type="button" class="mobile-menu-btn admin-mobile-menu-btn" id="adminMobileMenuBtn" aria-label="M? menu qu?n tr?">?</button>
+            <a href="app.html?page=dashboard.html" class="admin-mobile-brand" aria-label="V? t?ng quan admin">
+                <div class="logo-icon admin-mobile-logo-icon">🌿</div>
+                <div class="admin-mobile-brand-text">
+                    <span class="admin-mobile-brand-name">Peace<span>Flow</span></span>
+                    <span class="admin-mobile-brand-role">Admin Portal</span>
+                </div>
+            </a>
+            <button type="button" id="adminMobileNotifBtn" class="admin-mobile-notif-btn" data-notification-bell aria-label="M? th�ng b�o admin">
+                <span class="admin-mobile-notif-icon" aria-hidden="true">🔔<span id="notifBadgeDesktop" class="admin-bell-badge admin-mobile-bell-badge"></span></span>
+            </button>
+        `;
+        shell.insertBefore(topbar, shell.firstChild);
+        document.getElementById('adminMobileMenuBtn')?.addEventListener('click', () => toggleAdminSidebar());
+        document.getElementById('adminMobileNotifBtn')?.addEventListener('click', () => {
+            window.NotificationManager?.togglePanel?.();
+        });
+    }
+
+    let overlay = document.getElementById('adminSidebarOverlay');
+    if (!overlay) {
+        overlay = document.createElement('div');
+        overlay.id = 'adminSidebarOverlay';
+        overlay.className = 'sidebar-overlay admin-sidebar-overlay';
+        overlay.addEventListener('click', closeAdminSidebar);
+        shell.insertBefore(overlay, pageHost);
+    }
+}
+
+export function toggleAdminSidebar(forceOpen) {
+    const sidebar = document.getElementById('adminSidebar');
+    const overlay = document.getElementById('adminSidebarOverlay');
+    if (!sidebar || !overlay) return;
+
+    const nextOpen = typeof forceOpen === 'boolean' ? forceOpen : !sidebar.classList.contains('open');
+    sidebar.classList.toggle('open', nextOpen);
+    overlay.classList.toggle('open', nextOpen);
+    document.body.style.overflow = nextOpen ? 'hidden' : '';
+}
+
+export function closeAdminSidebar() {
+    toggleAdminSidebar(false);
+}
+
 export function mountAdminShell({ active } = {}) {
     const user = auth.getUser() || {};
     const sidebar = document.getElementById('adminSidebar');
     if (!sidebar) return;
     sidebar.classList.add('sidebar');
+    ensureAdminMobileShell();
 
     if (!sidebarBuilt) {
         const name = user.display_name || user.full_name || 'Quản trị viên';
@@ -99,26 +156,25 @@ export function mountAdminShell({ active } = {}) {
         link.classList.toggle('active', link.getAttribute('data-nav-key') === active);
     });
 
-    // Đồng bộ badge chuông (số chưa đọc) sau khi chuông đã được dựng trong sidebar.
+    closeAdminSidebar();
+
     window.NotificationManager?.renderBell?.();
     ensureAdminLiveBadges();
 }
 
-// Cập nhật badge nav (chờ duyệt / chờ thanh toán / báo cáo) realtime.
 async function refreshAdminBadges() {
     try {
         const o = await apiClient.get('/admin/overview', { noCache: true });
         setAdminBadge('experts', o.pending_expert_applications);
         setAdminBadge('payments', o.pending_payment_bookings);
         setAdminBadge('community', o.reported_community_posts);
-    } catch (_e) { /* im lặng nếu lỗi mạng */ }
+    } catch (_e) { }
 }
 
 let liveBadgesBound = false;
 function ensureAdminLiveBadges() {
     if (liveBadgesBound) return;
     liveBadgesBound = true;
-    // Khi có thông báo booking realtime (vd thân chủ báo đã chuyển khoản) → làm mới badge.
     window.addEventListener('peaceflow:booking-changed', () => refreshAdminBadges());
 }
 
@@ -148,3 +204,6 @@ export async function requireAdmin() {
     }
     return user;
 }
+
+window.toggleAdminSidebar = toggleAdminSidebar;
+window.closeAdminSidebar = closeAdminSidebar;
