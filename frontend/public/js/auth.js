@@ -71,7 +71,13 @@ export const auth = {
         // Người dùng đăng xuất khỏi ứng dụng
         EventLogger.log('auth', 'logout:request');
         await apiClient.logout();
-        window.location.href = 'login.html';
+        // login.html nằm ở thư mục pages/. Các khu lồng sâu hơn (pages/expert, pages/admin)
+        // cần trỏ về đúng pages/login.html thay vì login.html tương đối (gây 404).
+        const path = window.location.pathname;
+        const idx = path.indexOf('/pages/');
+        window.location.href = idx >= 0
+            ? `${path.slice(0, idx + 7)}login.html`
+            : 'login.html';
     },
 
     setSession(data) {

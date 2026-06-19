@@ -92,7 +92,11 @@ function redirectToLogin() {
             'peaceflow_post_login_redirect',
             `${window.location.pathname}${window.location.search}${window.location.hash}`
         );
-        window.location.replace('login.html');
+        // Trỏ về pages/login.html (không dùng đường dẫn tương đối — khu lồng sâu
+        // như pages/expert, pages/admin sẽ thành expert/login.html gây 404).
+        const path = window.location.pathname;
+        const idx = path.indexOf('/pages/');
+        window.location.replace(idx >= 0 ? `${path.slice(0, idx + 7)}login.html` : 'login.html');
     }
 }
 
