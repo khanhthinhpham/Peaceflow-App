@@ -15,6 +15,58 @@ let expertDataCache = null;
 let expertDataCachedAt = 0;
 const EXPERT_DATA_TTL_MS = 20_000;
 
+// Tạo topbar + overlay cho mobile (drawer trượt từ trái, giống app user/admin).
+function ensureExpertMobileShell() {
+    const portal = document.querySelector('.expert-portal');
+    const sidebar = document.getElementById('expertSidebar');
+    const host = document.getElementById('expertPageHost');
+    if (!portal || !sidebar) return;
+
+    if (!document.getElementById('expertMobileTopbar')) {
+        const topbar = document.createElement('div');
+        topbar.id = 'expertMobileTopbar';
+        topbar.className = 'mobile-topbar expert-mobile-topbar';
+        topbar.innerHTML = `
+            <button type="button" class="mobile-menu-btn" id="expertMobileMenuBtn" aria-label="Mở menu chuyên gia">☰</button>
+            <a href="dashboard.html" class="expert-mobile-brand" aria-label="Về tổng quan chuyên gia">
+                <div class="logo-icon">🌿</div>
+                <div class="expert-mobile-brand-text">
+                    <span class="expert-mobile-brand-name">Peace<span>Flow</span></span>
+                    <span class="expert-mobile-brand-role">Chuyên gia</span>
+                </div>
+            </a>
+            <button type="button" id="expertMobileNotifBtn" class="expert-mobile-notif-btn" data-notification-bell aria-label="Mở thông báo">
+                <span class="expert-mobile-notif-icon" aria-hidden="true">🔔<span id="notifBadgeDesktop" class="expert-mobile-bell-badge"></span></span>
+            </button>
+        `;
+        portal.insertBefore(topbar, portal.firstChild);
+        document.getElementById('expertMobileMenuBtn')?.addEventListener('click', () => toggleExpertSidebar());
+        document.getElementById('expertMobileNotifBtn')?.addEventListener('click', () => window.NotificationManager?.togglePanel?.());
+    }
+
+    if (!document.getElementById('expertSidebarOverlay')) {
+        const overlay = document.createElement('div');
+        overlay.id = 'expertSidebarOverlay';
+        overlay.className = 'sidebar-overlay expert-sidebar-overlay';
+        overlay.addEventListener('click', closeExpertSidebar);
+        portal.insertBefore(overlay, host || null);
+    }
+}
+
+export function toggleExpertSidebar(forceOpen) {
+    const sidebar = document.getElementById('expertSidebar');
+    const overlay = document.getElementById('expertSidebarOverlay');
+    if (!sidebar || !overlay) return;
+    const nextOpen = typeof forceOpen === 'boolean' ? forceOpen : !sidebar.classList.contains('open');
+    sidebar.classList.toggle('open', nextOpen);
+    overlay.classList.toggle('open', nextOpen);
+    document.body.style.overflow = nextOpen ? 'hidden' : '';
+}
+
+export function closeExpertSidebar() {
+    toggleExpertSidebar(false);
+}
+
 export function mountExpertShell({ active, title, subtitle, badgeText }) {
     const user = auth.getUser() || {};
     const sidebar = document.getElementById('expertSidebar');
@@ -98,6 +150,8 @@ export function mountExpertShell({ active, title, subtitle, badgeText }) {
         avatarChip.textContent = getInitials(user.display_name || user.full_name || 'Expert');
     }
 
+    ensureExpertMobileShell();
+    closeExpertSidebar();
     window.NotificationManager?.renderBell?.();
 }
 

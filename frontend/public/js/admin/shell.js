@@ -41,15 +41,15 @@ function ensureAdminMobileShell() {
         topbar.id = 'adminMobileTopbar';
         topbar.className = 'mobile-topbar admin-mobile-topbar';
         topbar.innerHTML = `
-            <button type="button" class="mobile-menu-btn admin-mobile-menu-btn" id="adminMobileMenuBtn" aria-label="M? menu qu?n tr?">?</button>
-            <a href="app.html?page=dashboard.html" class="admin-mobile-brand" aria-label="V? t?ng quan admin">
+            <button type="button" class="mobile-menu-btn admin-mobile-menu-btn" id="adminMobileMenuBtn" aria-label="Mở menu quản trị">☰</button>
+            <a href="app.html?page=dashboard.html" class="admin-mobile-brand" aria-label="Về tổng quan admin">
                 <div class="logo-icon admin-mobile-logo-icon">🌿</div>
                 <div class="admin-mobile-brand-text">
                     <span class="admin-mobile-brand-name">Peace<span>Flow</span></span>
                     <span class="admin-mobile-brand-role">Admin Portal</span>
                 </div>
             </a>
-            <button type="button" id="adminMobileNotifBtn" class="admin-mobile-notif-btn" data-notification-bell aria-label="M? th�ng b�o admin">
+            <button type="button" id="adminMobileNotifBtn" class="admin-mobile-notif-btn" data-notification-bell aria-label="Mở thông báo admin">
                 <span class="admin-mobile-notif-icon" aria-hidden="true">🔔<span id="notifBadgeDesktop" class="admin-bell-badge admin-mobile-bell-badge"></span></span>
             </button>
         `;
