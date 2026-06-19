@@ -847,6 +847,7 @@ router.get('/admin/overview', requireAuth, async (req, res) => {
            count(*)::int as total,
            count(*) filter (where (created_at at time zone 'Asia/Ho_Chi_Minh')::date = (now() at time zone 'Asia/Ho_Chi_Minh')::date)::int as new_today,
            count(*) filter (where created_at >= now() - interval '7 days')::int as new_7d,
+           count(*) filter (where created_at >= now() - interval '14 days' and created_at < now() - interval '7 days')::int as new_prev_7d,
            count(*) filter (where status = 'suspended')::int as suspended
          from users`
       ),
@@ -892,9 +893,11 @@ router.get('/admin/overview', requireAuth, async (req, res) => {
       db.query(`select coalesce(sum(amount), 0)::int as total_paid from expert_payouts where status = 'paid'`),
       db.query(`select coalesce(sum(wallet_balance), 0)::int as total_wallet from users`),
       db.query(
-        `select count(distinct user_id)::int as high_risk_7d
+        `select
+           count(distinct user_id) filter (where calculated_at >= now() - interval '7 days')::int as high_risk_7d,
+           count(distinct user_id) filter (where calculated_at >= now() - interval '14 days' and calculated_at < now() - interval '7 days')::int as high_risk_prev_7d
          from risk_snapshots
-         where crisis_risk_level in ('high', 'critical') and calculated_at >= now() - interval '7 days'`
+         where crisis_risk_level in ('high', 'critical')`
       ),
       db.query(`select count(*)::int as total from emergency_logs where created_at >= now() - interval '7 days'`)
     ]);
@@ -906,6 +909,7 @@ router.get('/admin/overview', requireAuth, async (req, res) => {
         total_users: usersRes.rows[0]?.total || 0,
         new_users_today: usersRes.rows[0]?.new_today || 0,
         new_users_7d: usersRes.rows[0]?.new_7d || 0,
+        new_users_prev_7d: usersRes.rows[0]?.new_prev_7d || 0,
         suspended_users: usersRes.rows[0]?.suspended || 0,
         active_experts: expertsRes.rows[0]?.active_total || 0,
         total_experts: expertsRes.rows[0]?.total || 0,
@@ -929,6 +933,7 @@ router.get('/admin/overview', requireAuth, async (req, res) => {
         pending_expert_applications: applicationsRes.rows[0]?.total || 0,
         // An toàn / rủi ro
         high_risk_users_7d: riskRes.rows[0]?.high_risk_7d || 0,
+        high_risk_users_prev_7d: riskRes.rows[0]?.high_risk_prev_7d || 0,
         emergencies_7d: emergencyRes.rows[0]?.total || 0,
         // Cộng đồng
         reported_community_posts: communityRes.rows[0]?.reported_posts || 0,
@@ -940,6 +945,69 @@ router.get('/admin/overview', requireAuth, async (req, res) => {
   } catch (error) {
     console.error('Admin overview error:', error);
     return res.status(500).json({ success: false, message: 'Could not fetch admin overview' });
+  }
+});
+
+// Chuỗi thời gian 30 ngày (giờ VN) cho biểu đồ: doanh thu, booking, đăng ký.
+router.get('/admin/overview/trends', requireAuth, async (req, res) => {
+  try {
+    if (req.user.role !== 'admin') return res.status(403).json({ success: false, message: 'Admin only' });
+
+    const days = `generate_series(
+      (now() at time zone 'Asia/Ho_Chi_Minh')::date - 29,
+      (now() at time zone 'Asia/Ho_Chi_Minh')::date,
+      interval '1 day'
+    )`;
+
+    const [revenueRes, bookingsRes, signupsRes] = await Promise.all([
+      db.query(
+        `select d::date as day, coalesce(x.value, 0)::int as value
+         from ${days} d
+         left join (
+           select (created_at at time zone 'Asia/Ho_Chi_Minh')::date as day, sum(platform_fee)::int as value
+           from expert_ledger
+           where status in ('payable', 'settled') and created_at >= now() - interval '31 days'
+           group by 1
+         ) x on x.day = d::date
+         order by day`
+      ),
+      db.query(
+        `select d::date as day, coalesce(x.value, 0)::int as value
+         from ${days} d
+         left join (
+           select (created_at at time zone 'Asia/Ho_Chi_Minh')::date as day, count(*)::int as value
+           from expert_bookings
+           where created_at >= now() - interval '31 days'
+           group by 1
+         ) x on x.day = d::date
+         order by day`
+      ),
+      db.query(
+        `select d::date as day, coalesce(x.value, 0)::int as value
+         from ${days} d
+         left join (
+           select (created_at at time zone 'Asia/Ho_Chi_Minh')::date as day, count(*)::int as value
+           from users
+           where created_at >= now() - interval '31 days'
+           group by 1
+         ) x on x.day = d::date
+         order by day`
+      )
+    ]);
+
+    const fmt = (rows) => rows.map((r) => ({ day: r.day instanceof Date ? r.day.toISOString().slice(0, 10) : String(r.day).slice(0, 10), value: r.value }));
+
+    return res.json({
+      success: true,
+      data: {
+        revenue: fmt(revenueRes.rows),
+        bookings: fmt(bookingsRes.rows),
+        signups: fmt(signupsRes.rows)
+      }
+    });
+  } catch (error) {
+    console.error('Admin trends error:', error);
+    return res.status(500).json({ success: false, message: 'Could not fetch trends' });
   }
 });
 

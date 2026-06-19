@@ -14,21 +14,13 @@
 </head>
 <body class="admin-body">
     <main class="admin-main">
-        <div class="admin-page-head">
-            <p class="admin-page-kicker">PeaceFlow Admin</p>
-            <h1 class="admin-page-title">Tổng quan</h1>
-            <p class="admin-page-sub">Theo dõi nhanh vận hành booking, thanh toán, duyệt chuyên gia và kiểm duyệt cộng đồng.</p>
-        </div>
-        <section class="admin-kpi-grid" id="adminOverviewKpis"></section>
-        <div class="admin-grid-two">
-            <section class="admin-card" id="adminOverviewExtra"></section>
-            <section class="admin-card">
-                <h2 class="admin-list-title">Gợi ý bước tiếp theo</h2>
-                <p class="admin-note">
-                    Dùng tab thanh toán để xác nhận các booking đã chuyển khoản, tab duyệt chuyên gia để xử lý hồ sơ mới,
-                    và tab cộng đồng để theo dõi nội dung bị báo cáo.
-                </p>
-            </section>
+        <div id="ovHeader"></div>
+        <section id="ovAlerts" class="admin-alert-center"></section>
+        <div id="ovKpis"></div>
+        <div id="ovCharts" class="admin-grid-two"></div>
+        <div class="admin-grid-two admin-ov-bottom">
+            <section id="ovTasks" class="admin-card"></section>
+            <section id="ovActions" class="admin-card"></section>
         </div>
     </main>
     <script type="module" src="../../public/js/admin/dashboard-page.js"></script>
