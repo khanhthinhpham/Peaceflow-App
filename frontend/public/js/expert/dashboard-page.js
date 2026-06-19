@@ -133,9 +133,10 @@ function setupExpertOperations(overview) {
     const pendingSection = document.getElementById('expertPending')?.closest('section');
     const availabilitySection = document.getElementById('expertAvailabilitySection');
     const earningsSection = document.getElementById('expertEarnings')?.closest('section');
+    const payoutSection = document.getElementById('expertPayout')?.closest('section');
 
     if (!hasProfile) {
-        [toggle, kpiRow, bookingsSection, pendingSection, availabilitySection, earningsSection].forEach((node) => {
+        [toggle, kpiRow, bookingsSection, pendingSection, availabilitySection, earningsSection, payoutSection].forEach((node) => {
             if (node) node.style.display = 'none';
         });
         return;
@@ -145,6 +146,61 @@ function setupExpertOperations(overview) {
     loadBookingManagement();
     loadAvailabilityEditor();
     loadEarnings();
+    loadPaymentMethod();
+}
+
+async function loadPaymentMethod() {
+    const el = document.getElementById('expertPayout');
+    if (!el) return;
+    let data = {};
+    try {
+        data = await apiClient.get('/expert-portal/payment-method', { noCache: true }) || {};
+    } catch (_error) {
+        el.innerHTML = '<p style="color:var(--text-secondary);margin:16px 20px;">Không tải được phương thức thanh toán.</p>';
+        return;
+    }
+    const inputStyle = 'width:100%;padding:9px 12px;border:1.5px solid var(--kraft-light);border-radius:10px;font-family:inherit;font-size:0.9rem;background:var(--warm-white);color:var(--text-primary);box-sizing:border-box;';
+    const labelStyle = 'display:block;font-size:0.78rem;font-weight:800;color:var(--text-secondary);margin-bottom:4px;';
+    el.innerHTML = `
+        <div style="margin:16px 20px;display:flex;flex-direction:column;gap:12px;">
+            <div>
+                <label for="payoutBank" style="${labelStyle}">Ngân hàng</label>
+                <input id="payoutBank" type="text" placeholder="VD: Vietcombank" maxlength="120" style="${inputStyle}" value="${escapeHtml(data.payout_bank_name || '')}">
+            </div>
+            <div>
+                <label for="payoutAcc" style="${labelStyle}">Số tài khoản</label>
+                <input id="payoutAcc" type="text" inputmode="numeric" placeholder="Chỉ gồm chữ số" maxlength="40" style="${inputStyle}" value="${escapeHtml(data.payout_account_number || '')}">
+            </div>
+            <div>
+                <label for="payoutName" style="${labelStyle}">Chủ tài khoản</label>
+                <input id="payoutName" type="text" placeholder="Tên in trên thẻ/sao kê" maxlength="255" style="${inputStyle}" value="${escapeHtml(data.payout_account_name || '')}">
+            </div>
+            <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+                <button type="button" id="savePayoutBtn" class="btn-primary" style="font-size:0.85rem;">Lưu phương thức</button>
+                <span id="payoutMsg" style="font-size:0.82rem;"></span>
+            </div>
+        </div>
+    `;
+    document.getElementById('savePayoutBtn')?.addEventListener('click', (e) => savePaymentMethod(e.currentTarget));
+}
+
+async function savePaymentMethod(btn) {
+    const msg = document.getElementById('payoutMsg');
+    const payload = {
+        payout_bank_name: document.getElementById('payoutBank')?.value.trim() || '',
+        payout_account_number: document.getElementById('payoutAcc')?.value.trim() || '',
+        payout_account_name: document.getElementById('payoutName')?.value.trim() || ''
+    };
+    btn.disabled = true;
+    if (msg) { msg.textContent = 'Đang lưu...'; msg.style.color = 'var(--text-secondary)'; }
+    try {
+        await apiClient.put('/expert-portal/payment-method', payload);
+        if (msg) { msg.textContent = '✓ Đã lưu phương thức nhận thanh toán.'; msg.style.color = 'var(--mint-dark)'; }
+    } catch (error) {
+        if (msg) { msg.textContent = error.message || 'Lưu thất bại.'; msg.style.color = 'var(--coral)'; }
+    } finally {
+        btn.disabled = false;
+    }
 }
 
 async function loadEarnings() {

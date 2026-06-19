@@ -115,6 +115,9 @@ async function loadPayouts() {
             <div>
                 <div style="font-weight:800;">${esc(expert.full_name)}</div>
                 <div style="font-size:0.82rem;color:var(--text-secondary);">${esc(expert.email || '')}</div>
+                ${expert.payout_account_number
+                    ? `<div style="font-size:0.82rem;color:var(--text-secondary);margin-top:4px;">🏦 ${esc(expert.payout_bank_name || '')} · <strong style="font-family:monospace;">${esc(expert.payout_account_number)}</strong>${expert.payout_account_name ? ' · ' + esc(expert.payout_account_name) : ''}</div>`
+                    : '<div style="font-size:0.82rem;color:var(--coral-dark);margin-top:4px;">⚠️ Chưa cập nhật tài khoản nhận tiền</div>'}
             </div>
             <div style="text-align:right;">
                 <div style="font-size:1.2rem;font-weight:800;color:var(--mint-dark,#7BBF95);">${money(expert.balance)}</div>

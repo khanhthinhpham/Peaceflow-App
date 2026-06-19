@@ -953,6 +953,72 @@ router.post('/admin/expert-applications/:id/reject', requireAuth, async (req, re
   }
 });
 
+// Danh sách chuyên gia (đã được duyệt). ?search=&active=true|false&limit=&offset=
+router.get('/admin/experts', requireAuth, async (req, res) => {
+  try {
+    if (req.user.role !== 'admin') return res.status(403).json({ success: false, message: 'Admin only' });
+
+    const limit = Math.min(Math.max(parseInt(req.query.limit, 10) || 25, 1), 100);
+    const offset = Math.max(parseInt(req.query.offset, 10) || 0, 0);
+    const conditions = [];
+    const params = [];
+
+    const search = (req.query.search || '').trim();
+    if (search) {
+      params.push(`%${search}%`);
+      conditions.push(`(e.full_name ilike $${params.length} or e.code ilike $${params.length} or u.email ilike $${params.length})`);
+    }
+    if (req.query.active === 'true' || req.query.active === 'false') {
+      params.push(req.query.active === 'true');
+      conditions.push(`e.active = $${params.length}`);
+    }
+    const where = conditions.length ? `where ${conditions.join(' and ')}` : '';
+
+    const countRes = await db.query(`select count(*)::int as total from experts e left join users u on u.id = e.user_id ${where}`, params);
+    params.push(limit, offset);
+    const rowsRes = await db.query(
+      `select e.id, e.code, e.full_name, e.avatar_emoji, e.status, e.active, e.rating, e.sessions_count,
+              e.base_price, e.location, e.specialties, e.experience_years,
+              coalesce(e.balance, 0)::int as balance,
+              e.payout_bank_name, e.payout_account_number, e.payout_account_name,
+              u.email
+       from experts e
+       left join users u on u.id = e.user_id
+       ${where}
+       order by e.created_at desc
+       limit $${params.length - 1} offset $${params.length}`,
+      params
+    );
+
+    return res.json({
+      success: true,
+      data: { total: countRes.rows[0]?.total || 0, limit, offset, experts: rowsRes.rows }
+    });
+  } catch (error) {
+    console.error('Admin list experts error:', error);
+    return res.status(500).json({ success: false, message: 'Could not fetch experts' });
+  }
+});
+
+// Bật / tắt hoạt động của chuyên gia. Body: { active: boolean }.
+router.patch('/admin/experts/:id', requireAuth, async (req, res) => {
+  try {
+    if (req.user.role !== 'admin') return res.status(403).json({ success: false, message: 'Admin only' });
+    if (typeof req.body.active !== 'boolean') {
+      return res.status(400).json({ success: false, message: 'Thiếu trường active.' });
+    }
+    const r = await db.query(
+      `update experts set active = $2, updated_at = now() where id = $1 returning id, active`,
+      [req.params.id, req.body.active]
+    );
+    if (!r.rows[0]) return res.status(404).json({ success: false, message: 'Không tìm thấy chuyên gia.' });
+    return res.json({ success: true, data: r.rows[0] });
+  } catch (error) {
+    console.error('Admin toggle expert error:', error);
+    return res.status(500).json({ success: false, message: 'Could not update expert' });
+  }
+});
+
 // ===== Admin: quản lý người dùng =====
 
 // Danh sách user. ?search= (email/tên), ?role=, ?status=, ?limit=&offset= (phân trang).
@@ -1261,6 +1327,47 @@ router.post('/bookings/:id/pay-wallet', requireAuth, async (req, res) => {
 });
 
 // ===== DOANH THU / SỐ DƯ CHUYÊN GIA =====
+// Phương thức nhận thanh toán của chuyên gia (để nền tảng chi trả payout).
+router.get('/expert-portal/payment-method', requireAuth, async (req, res) => {
+  try {
+    if (req.user.role !== 'expert') return res.status(403).json({ success: false, message: 'Expert access required' });
+    const r = await db.query(
+      `select payout_bank_name, payout_account_number, payout_account_name from experts where user_id = $1 limit 1`,
+      [req.user.sub]
+    );
+    if (!r.rows[0]) return res.status(404).json({ success: false, message: 'Expert profile not found' });
+    return res.json({ success: true, data: r.rows[0] });
+  } catch (error) {
+    console.error('Get payment method error:', error);
+    return res.status(500).json({ success: false, message: 'Could not fetch payment method' });
+  }
+});
+
+router.put('/expert-portal/payment-method', requireAuth, async (req, res) => {
+  try {
+    if (req.user.role !== 'expert') return res.status(403).json({ success: false, message: 'Expert access required' });
+    const schema = z.object({
+      payout_bank_name: z.string().trim().max(120).optional().nullable(),
+      payout_account_number: z.string().trim().max(40).regex(/^[0-9\s-]*$/, 'Số tài khoản chỉ gồm chữ số.').optional().nullable(),
+      payout_account_name: z.string().trim().max(255).optional().nullable()
+    });
+    const p = schema.parse(req.body);
+    const r = await db.query(
+      `update experts
+       set payout_bank_name = $2, payout_account_number = $3, payout_account_name = $4, updated_at = now()
+       where user_id = $1
+       returning payout_bank_name, payout_account_number, payout_account_name`,
+      [req.user.sub, p.payout_bank_name || null, p.payout_account_number || null, p.payout_account_name || null]
+    );
+    if (!r.rows[0]) return res.status(404).json({ success: false, message: 'Expert profile not found' });
+    return res.json({ success: true, data: r.rows[0] });
+  } catch (error) {
+    if (error?.issues) return res.status(400).json({ success: false, message: error.issues[0]?.message || 'Dữ liệu không hợp lệ.' });
+    console.error('Update payment method error:', error);
+    return res.status(500).json({ success: false, message: 'Could not update payment method' });
+  }
+});
+
 router.get('/expert-portal/earnings', requireAuth, async (req, res) => {
   try {
     if (req.user.role !== 'expert') return res.status(403).json({ success: false, message: 'Expert access required' });
@@ -1297,7 +1404,8 @@ router.get('/admin/payouts/pending', requireAuth, async (req, res) => {
   try {
     if (req.user.role !== 'admin') return res.status(403).json({ success: false, message: 'Admin only' });
     const r = await db.query(
-      `select e.id, e.full_name, coalesce(e.balance, 0)::int as balance, u.email
+      `select e.id, e.full_name, coalesce(e.balance, 0)::int as balance, u.email,
+              e.payout_bank_name, e.payout_account_number, e.payout_account_name
        from experts e left join users u on u.id = e.user_id
        where coalesce(e.balance, 0) > 0 order by e.balance desc`
     );

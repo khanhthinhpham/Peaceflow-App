@@ -3,10 +3,7 @@ import { mountAdminShell, setAdminBadge } from './shell.js';
 
 mountAdminShell({ active: 'experts' });
 
-const listEl = document.getElementById('adminApplicationsList');
-const tabsEl = document.getElementById('adminApplicationsTabs');
-let currentStatus = 'pending';
-
+// ===== chung =====
 function esc(v) {
     return String(v ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
@@ -16,28 +13,32 @@ function dt(v) {
         return new Intl.DateTimeFormat('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Bangkok' }).format(new Date(v));
     } catch (_e) { return v; }
 }
+function money(v) { return `${Number(v || 0).toLocaleString('vi-VN')}đ`; }
 function specialties(v) {
     let arr = v;
     if (typeof v === 'string') { try { arr = JSON.parse(v); } catch (_e) { arr = []; } }
     return Array.isArray(arr) ? arr : [];
 }
+function chip(text) {
+    return `<span style="font-size:.74rem;font-weight:700;padding:2px 9px;border-radius:999px;background:var(--cream,#fff8f0);border:1px solid var(--kraft-light,#e8cba7);color:var(--text-secondary,#7a6555);">${esc(text)}</span>`;
+}
+
+// ===== Hồ sơ đăng ký =====
+const listEl = document.getElementById('adminApplicationsList');
+const appTabsEl = document.getElementById('adminApplicationsTabs');
+let currentStatus = 'pending';
 
 const STATUS_BADGE = {
     pending: { label: 'Chờ duyệt', bg: 'rgba(245,176,65,.16)', color: '#b5791b', border: 'rgba(245,176,65,.5)' },
     approved: { label: 'Đã duyệt', bg: 'var(--mint-light,#c5e8d2)', color: 'var(--mint-dark,#4a9e8e)', border: 'var(--mint,#a8d5ba)' },
     rejected: { label: 'Từ chối', bg: 'rgba(255,139,139,.14)', color: 'var(--coral-dark,#e05555)', border: 'var(--coral,#ff8b8b)' }
 };
-
 function badge(status) {
     const s = STATUS_BADGE[status] || STATUS_BADGE.pending;
     return `<span style="font-size:.72rem;font-weight:800;padding:2px 9px;border-radius:999px;background:${s.bg};color:${s.color};border:1px solid ${s.border};white-space:nowrap;">${s.label}</span>`;
 }
 
-function chip(text) {
-    return `<span style="font-size:.74rem;font-weight:700;padding:2px 9px;border-radius:999px;background:var(--cream,#fff8f0);border:1px solid var(--kraft-light,#e8cba7);color:var(--text-secondary,#7a6555);">${esc(text)}</span>`;
-}
-
-function card(a) {
+function appCard(a) {
     const sp = specialties(a.specialties);
     const credHref = a.credential_path ? `${API_BASE_URL}${a.credential_path}` : null;
     return `
@@ -52,16 +53,13 @@ function card(a) {
                 </div>
                 <div style="font-size:.78rem;color:var(--text-light);text-align:right;white-space:nowrap;">Gửi: ${dt(a.created_at)}${a.reviewed_at ? `<br>Xử lý: ${dt(a.reviewed_at)}` : ''}</div>
             </div>
-
             <div style="display:flex;gap:14px;flex-wrap:wrap;margin-top:12px;font-size:.86rem;color:var(--text-secondary);">
                 <span><strong>Bằng cấp:</strong> ${esc(a.degree || '—')}</span>
                 <span><strong>Kinh nghiệm:</strong> ${Number(a.experience_years || 0)} năm</span>
                 ${a.location ? `<span><strong>Khu vực:</strong> ${esc(a.location)}</span>` : ''}
             </div>
-
             ${sp.length ? `<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;">${sp.map(chip).join('')}</div>` : ''}
             ${a.bio ? `<div style="margin-top:10px;font-size:.86rem;color:var(--text-secondary);line-height:1.55;">${esc(a.bio)}</div>` : ''}
-
             <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-top:14px;">
                 <div>
                     ${credHref ? `<a href="${credHref}" target="_blank" rel="noopener" class="btn-outline" style="font-size:.82rem;">📄 Xem bằng cấp${a.credential_filename ? ` (${esc(a.credential_filename)})` : ''}</a>` : '<span style="color:var(--text-light);font-size:.82rem;">Không có file bằng cấp</span>'}
@@ -77,7 +75,7 @@ function card(a) {
     `;
 }
 
-async function load(status = currentStatus) {
+async function loadApplications(status = currentStatus) {
     currentStatus = status;
     listEl.innerHTML = '<div class="admin-card admin-empty">Đang tải...</div>';
     let rows = [];
@@ -88,29 +86,27 @@ async function load(status = currentStatus) {
         return;
     }
     if (!Array.isArray(rows) || !rows.length) {
-        const msg = status === 'pending' ? '✅ Không có hồ sơ nào đang chờ duyệt.' : 'Không có hồ sơ nào.';
-        listEl.innerHTML = `<div class="admin-card admin-empty">${msg}</div>`;
+        listEl.innerHTML = `<div class="admin-card admin-empty">${status === 'pending' ? '✅ Không có hồ sơ nào đang chờ duyệt.' : 'Không có hồ sơ nào.'}</div>`;
         if (status === 'pending') setAdminBadge('experts', 0);
         return;
     }
     if (status === 'pending') setAdminBadge('experts', rows.length);
-    listEl.innerHTML = rows.map(card).join('');
-
+    listEl.innerHTML = rows.map(appCard).join('');
     listEl.querySelectorAll('[data-approve]').forEach((btn) => {
-        btn.addEventListener('click', () => act(`/admin/expert-applications/${btn.getAttribute('data-approve')}/approve`, btn, 'Duyệt hồ sơ này và mở quyền chuyên gia?'));
+        btn.addEventListener('click', () => appAct(`/admin/expert-applications/${btn.getAttribute('data-approve')}/approve`, btn, 'Duyệt hồ sơ này và mở quyền chuyên gia?'));
     });
     listEl.querySelectorAll('[data-reject]').forEach((btn) => {
-        btn.addEventListener('click', () => act(`/admin/expert-applications/${btn.getAttribute('data-reject')}/reject`, btn, 'Từ chối hồ sơ này?'));
+        btn.addEventListener('click', () => appAct(`/admin/expert-applications/${btn.getAttribute('data-reject')}/reject`, btn, 'Từ chối hồ sơ này?'));
     });
 }
 
-async function act(url, btn, confirmMsg) {
+async function appAct(url, btn, confirmMsg) {
     if (!window.confirm(confirmMsg)) return;
     btn.disabled = true;
     try {
         await apiClient.post(url, {});
-        await load(currentStatus);
-        await refreshPendingBadge();
+        await loadApplications(currentStatus);
+        refreshPendingBadge();
     } catch (e) {
         alert(e.message || 'Thao tác thất bại.');
         btn.disabled = false;
@@ -124,13 +120,130 @@ async function refreshPendingBadge() {
     } catch (_e) { /* ignore */ }
 }
 
-tabsEl?.addEventListener('click', (e) => {
+// ===== Danh sách chuyên gia =====
+const expertsListEl = document.getElementById('adminExpertsList');
+const expertsMetaEl = document.getElementById('adminExpertsMeta');
+const expertSearchEl = document.getElementById('expertSearch');
+const expertActiveTabsEl = document.getElementById('expertActiveTabs');
+const expertState = { search: '', active: '' };
+
+function expertCard(e) {
+    const sp = specialties(e.specialties);
+    const active = e.active;
+    const hasBank = !!e.payout_account_number;
+    return `
+        <div class="admin-card" data-expert="${e.id}">
+            <div style="display:flex;gap:14px;align-items:flex-start;flex-wrap:wrap;justify-content:space-between;">
+                <div style="display:flex;gap:12px;min-width:0;">
+                    <div class="admin-user-bubble" style="background:var(--mint-light,#c5e8d2);">${esc(e.avatar_emoji || '🧑‍⚕️')}</div>
+                    <div style="min-width:0;">
+                        <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap;">
+                            <span style="font-weight:800;">${esc(e.full_name)}</span>
+                            <span style="font-size:.7rem;font-weight:800;padding:1px 8px;border-radius:6px;background:${active ? 'var(--mint-light,#c5e8d2)' : 'rgba(74,55,40,.1)'};color:${active ? 'var(--mint-dark,#4a9e8e)' : 'var(--text-secondary,#7a6555)'};">${active ? 'Đang hoạt động' : 'Đã tắt'}</span>
+                            <span style="font-size:.7rem;color:var(--text-light);font-family:monospace;">${esc(e.code || '')}</span>
+                        </div>
+                        <div style="color:var(--text-secondary);font-size:.84rem;margin-top:3px;">${esc(e.email || '')}</div>
+                        <div style="color:var(--text-light);font-size:.78rem;margin-top:3px;">⭐ ${Number(e.rating || 0).toFixed(1)} · ${Number(e.sessions_count || 0)} buổi · Giá: ${money(e.base_price)} · Số dư: <strong>${money(e.balance)}</strong></div>
+                    </div>
+                </div>
+                <button type="button" class="${active ? 'btn-outline' : 'btn-primary'}" data-toggle="${active ? '0' : '1'}" style="font-size:.82rem;">${active ? 'Tắt hoạt động' : 'Bật hoạt động'}</button>
+            </div>
+            ${sp.length ? `<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;">${sp.map(chip).join('')}</div>` : ''}
+            <div style="margin-top:12px;font-size:.84rem;color:var(--text-secondary);background:var(--cream,#fff8f0);border:1px solid var(--kraft-light,#e8cba7);border-radius:var(--radius-sm,10px);padding:10px 12px;">
+                ${hasBank
+                    ? `🏦 <strong>${esc(e.payout_bank_name || '')}</strong> · <span style="font-family:monospace;">${esc(e.payout_account_number)}</span>${e.payout_account_name ? ' · ' + esc(e.payout_account_name) : ''}`
+                    : '<span style="color:var(--coral-dark);">⚠️ Chưa cập nhật phương thức nhận thanh toán</span>'}
+            </div>
+        </div>
+    `;
+}
+
+async function loadExperts() {
+    expertsListEl.innerHTML = '<div class="admin-card admin-empty">Đang tải...</div>';
+    let data;
+    try {
+        const qs = new URLSearchParams();
+        if (expertState.search) qs.set('search', expertState.search);
+        if (expertState.active) qs.set('active', expertState.active);
+        qs.set('limit', '100');
+        data = await apiClient.get(`/admin/experts?${qs.toString()}`, { noCache: true });
+    } catch (_e) {
+        expertsListEl.innerHTML = '<div class="admin-card admin-empty" style="color:var(--coral);">Không tải được danh sách chuyên gia.</div>';
+        return;
+    }
+    const experts = data?.experts || [];
+    expertsMetaEl.textContent = experts.length ? `${experts.length}${(data?.total || 0) > experts.length ? ' / ' + data.total : ''} chuyên gia` : '';
+    if (!experts.length) {
+        expertsListEl.innerHTML = '<div class="admin-card admin-empty">Không có chuyên gia nào.</div>';
+        return;
+    }
+    expertsListEl.innerHTML = experts.map(expertCard).join('');
+    expertsListEl.querySelectorAll('[data-expert]').forEach((row) => {
+        const id = row.getAttribute('data-expert');
+        row.querySelector('[data-toggle]')?.addEventListener('click', async (ev) => {
+            const next = ev.currentTarget.getAttribute('data-toggle') === '1';
+            if (!window.confirm(next ? 'Bật hoạt động cho chuyên gia này?' : 'Tắt hoạt động? Chuyên gia sẽ không nhận lịch mới.')) return;
+            ev.currentTarget.disabled = true;
+            try {
+                await apiClient.patch(`/admin/experts/${id}`, { active: next });
+                loadExperts();
+            } catch (e) {
+                alert(e.message || 'Cập nhật thất bại.');
+                ev.currentTarget.disabled = false;
+            }
+        });
+    });
+}
+
+function applyExpertSearch() {
+    expertState.search = (expertSearchEl.value || '').trim();
+    loadExperts();
+}
+
+// ===== chuyển chế độ =====
+const applicationsView = document.getElementById('applicationsView');
+const expertsView = document.getElementById('expertsView');
+let mode = 'applications';
+let expertsLoaded = false;
+
+function switchMode(next) {
+    mode = next;
+    applicationsView.style.display = next === 'applications' ? '' : 'none';
+    expertsView.style.display = next === 'experts' ? '' : 'none';
+    if (next === 'experts' && !expertsLoaded) {
+        expertsLoaded = true;
+        loadExperts();
+    }
+}
+
+document.getElementById('expertsModeTabs')?.addEventListener('click', (e) => {
     const tab = e.target.closest('.admin-tab');
     if (!tab) return;
-    tabsEl.querySelectorAll('.admin-tab').forEach((t) => t.classList.toggle('active', t === tab));
-    load(tab.getAttribute('data-status'));
+    document.querySelectorAll('#expertsModeTabs .admin-tab').forEach((t) => t.classList.toggle('active', t === tab));
+    switchMode(tab.getAttribute('data-mode'));
 });
 
-document.getElementById('reloadBtn')?.addEventListener('click', () => load(currentStatus));
+appTabsEl?.addEventListener('click', (e) => {
+    const tab = e.target.closest('.admin-tab');
+    if (!tab) return;
+    appTabsEl.querySelectorAll('.admin-tab').forEach((t) => t.classList.toggle('active', t === tab));
+    loadApplications(tab.getAttribute('data-status'));
+});
 
-load('pending');
+expertActiveTabsEl?.addEventListener('click', (e) => {
+    const tab = e.target.closest('.admin-tab');
+    if (!tab) return;
+    expertActiveTabsEl.querySelectorAll('.admin-tab').forEach((t) => t.classList.toggle('active', t === tab));
+    expertState.active = tab.getAttribute('data-active') || '';
+    loadExperts();
+});
+
+document.getElementById('expertSearchBtn')?.addEventListener('click', applyExpertSearch);
+expertSearchEl?.addEventListener('keydown', (e) => { if (e.key === 'Enter') applyExpertSearch(); });
+
+document.getElementById('reloadBtn')?.addEventListener('click', () => {
+    if (mode === 'applications') loadApplications(currentStatus);
+    else loadExperts();
+});
+
+loadApplications('pending');

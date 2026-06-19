@@ -8,7 +8,7 @@
             window.location.replace('app.html?page=' + window.location.pathname.split('/').pop());
         }
     </script>
-    <title>Duyệt chuyên gia - Quản trị PeaceFlow</title>
+    <title>Chuyên gia - Quản trị PeaceFlow</title>
     <link rel="stylesheet" href="../../public/css/style.css">
     <link rel="stylesheet" href="../../public/css/admin/admin.css">
 </head>
@@ -17,20 +17,42 @@
         <div class="admin-page-head" style="display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap;">
             <div>
                 <p class="admin-page-kicker">PeaceFlow Admin</p>
-                <h1 class="admin-page-title">Duyệt chuyên gia</h1>
-                <p class="admin-page-sub">Xét duyệt hồ sơ đăng ký ngay trên web — duyệt sẽ mở quyền chuyên gia & tạo profile.</p>
+                <h1 class="admin-page-title">Chuyên gia</h1>
+                <p class="admin-page-sub">Xét duyệt hồ sơ đăng ký & quản lý đội ngũ chuyên gia đang hoạt động.</p>
             </div>
             <button id="reloadBtn" class="btn-outline" type="button">↻ Tải lại</button>
         </div>
 
-        <div class="admin-tabs" id="adminApplicationsTabs">
-            <button type="button" class="admin-tab active" data-status="pending">Chờ duyệt</button>
-            <button type="button" class="admin-tab" data-status="approved">Đã duyệt</button>
-            <button type="button" class="admin-tab" data-status="rejected">Từ chối</button>
-            <button type="button" class="admin-tab" data-status="all">Tất cả</button>
+        <div class="admin-tabs" id="expertsModeTabs">
+            <button type="button" class="admin-tab active" data-mode="applications">Hồ sơ đăng ký</button>
+            <button type="button" class="admin-tab" data-mode="experts">Danh sách chuyên gia</button>
         </div>
 
-        <div id="adminApplicationsList"></div>
+        <!-- Hồ sơ đăng ký -->
+        <div id="applicationsView">
+            <div class="admin-tabs" id="adminApplicationsTabs">
+                <button type="button" class="admin-tab active" data-status="pending">Chờ duyệt</button>
+                <button type="button" class="admin-tab" data-status="approved">Đã duyệt</button>
+                <button type="button" class="admin-tab" data-status="rejected">Từ chối</button>
+                <button type="button" class="admin-tab" data-status="all">Tất cả</button>
+            </div>
+            <div id="adminApplicationsList"></div>
+        </div>
+
+        <!-- Danh sách chuyên gia -->
+        <div id="expertsView" style="display:none;">
+            <div class="admin-card" style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+                <input id="expertSearch" type="search" placeholder="Tìm theo tên, mã hoặc email..." class="admin-input" style="flex:1;min-width:220px;">
+                <button id="expertSearchBtn" type="button" class="btn-primary">Tìm</button>
+            </div>
+            <div class="admin-tabs" id="expertActiveTabs">
+                <button type="button" class="admin-tab active" data-active="">Tất cả</button>
+                <button type="button" class="admin-tab" data-active="true">Đang hoạt động</button>
+                <button type="button" class="admin-tab" data-active="false">Đã tắt</button>
+            </div>
+            <div id="adminExpertsMeta" style="font-size:.82rem;color:var(--text-light);margin-bottom:10px;"></div>
+            <div id="adminExpertsList"></div>
+        </div>
     </main>
     <script type="module" src="../../public/js/admin/experts-page.js"></script>
 </body>
