@@ -227,3 +227,28 @@ function ensureResendConfigured() {
     throw new Error('RESEND_API_KEY is not configured.');
   }
 }
+
+// Cảnh báo bảo mật: phương thức nhận thanh toán (payout) vừa thay đổi.
+export async function sendPayoutMethodChangedEmail({ to, name, bankName, accountMasked }) {
+  ensureResendConfigured();
+  await resend.emails.send({
+    from: FROM,
+    to,
+    subject: '🔔 Phương thức nhận thanh toán đã thay đổi — PeaceFlow',
+    html: `
+      <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:32px 24px;">
+        <h2 style="color:#2D6A4F;margin-bottom:8px;">Xin chào ${name || 'bạn'}</h2>
+        <p style="color:#555;line-height:1.6;">
+          Tài khoản nhận thanh toán (payout) trên PeaceFlow của bạn vừa được cập nhật:
+        </p>
+        <div style="background:#F6F4EF;border:1px solid #E8CBA7;border-radius:10px;padding:14px 16px;margin:14px 0;color:#4A3728;">
+          🏦 <strong>${bankName || ''}</strong><br>Số tài khoản: <strong>${accountMasked || ''}</strong>
+        </div>
+        <p style="color:#999;font-size:0.85rem;line-height:1.6;">
+          Nếu <strong>không phải bạn</strong> thực hiện thay đổi này, hãy đổi mật khẩu ngay và liên hệ đội ngũ PeaceFlow —
+          đây có thể là dấu hiệu tài khoản bị xâm nhập.
+        </p>
+      </div>
+    `
+  });
+}

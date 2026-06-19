@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script>
+        if (!window.location.pathname.endsWith('/app.html')) {
+            window.location.replace('app.html?page=' + window.location.pathname.split('/').pop());
+        }
+    </script>
+    <title>Thanh toán - PeaceFlow Expert</title>
+    <link rel="icon" href="../../public/favicon.jpg" type="image/svg+xml">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Patrick+Hand&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../../public/css/style.css">
+    <link rel="stylesheet" href="../../public/css/expert/portal.css">
+    <link rel="stylesheet" href="../../public/css/expert/payments.css">
+</head>
+<body class="expert-portal-body">
+    <div class="expert-portal">
+        <aside class="expert-sidebar" id="expertSidebar"></aside>
+        <main class="expert-main expert-payments-main">
+            <header class="expert-topbar">
+                <div>
+                    <p class="expert-page-kicker">PeaceFlow Expert</p>
+                    <h1 class="expert-page-title" id="expertPageTitle"></h1>
+                    <p class="expert-page-subtitle" id="expertPageSubtitle"></p>
+                </div>
+                <div class="expert-badge" id="expertPageBadge"></div>
+            </header>
+
+            <div class="expert-status-banner" id="expertStatusBanner"></div>
+
+            <section class="expert-payments-grid">
+                <section class="expert-panel expert-section">
+                    <div class="expert-section-head">
+                        <div>
+                            <h2 class="expert-section-title">Tài khoản nhận payout</h2>
+                            <p class="expert-section-copy">PeaceFlow sẽ dùng thông tin này để đối soát và chi trả thu nhập cho bạn.</p>
+                        </div>
+                    </div>
+                    <div id="paymentMethodSummary" class="expert-payment-block"></div>
+                    <div id="paymentMethodForm" class="expert-payment-block"></div>
+                </section>
+
+                <aside class="expert-payments-side">
+                    <section class="expert-panel expert-section">
+                        <div class="expert-section-head">
+                            <div>
+                                <h2 class="expert-section-title">Số dư chờ chi trả</h2>
+                                <p class="expert-section-copy">Theo dõi tiền khả dụng, tổng đã nhận và phần còn chờ hoàn tất phiên.</p>
+                            </div>
+                        </div>
+                        <div id="paymentEarningsSummary" class="expert-payment-block"></div>
+                    </section>
+
+                    <section class="expert-panel expert-section">
+                        <div class="expert-section-head">
+                            <div>
+                                <h2 class="expert-section-title">Lưu ý vận hành</h2>
+                                <p class="expert-section-copy">Các điểm tối thiểu để payout an toàn hơn khi chạy production.</p>
+                            </div>
+                        </div>
+                        <div class="expert-payment-block">
+                            <ul class="expert-payment-note-list">
+                                <li>Đổi tài khoản nhận tiền sẽ gửi email thông báo cho chính bạn.</li>
+                                <li>UI chỉ hiển thị số tài khoản đã che, tránh lộ toàn bộ thông tin nhạy cảm.</li>
+                                <li>Nếu hệ thống có cấu hình VietQR, tên chủ tài khoản sẽ được tra cứu tự động thay vì nhập tay.</li>
+                            </ul>
+                        </div>
+                    </section>
+                </aside>
+            </section>
+        </main>
+    </div>
+
+    <script type="module" src="../../public/js/expert/payments-page.js"></script>
+</body>
+</html>

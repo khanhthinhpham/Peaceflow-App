@@ -101,3 +101,37 @@ export function computeFee(amount) {
   const fee = Math.round((Number(amount) || 0) * env.platformFeePercent / 100);
   return { gross: Number(amount) || 0, platform_fee: fee, expert_earning: (Number(amount) || 0) - fee };
 }
+
+// ===== VietQR: tra cứu tên chủ tài khoản =====
+export function isVietqrLookupEnabled() {
+  return Boolean(env.vietqrClientId && env.vietqrApiKey);
+}
+
+// Trả về { ok, accountName } hoặc { ok:false, message }.
+export async function lookupBankAccount({ bin, accountNumber }) {
+  if (!isVietqrLookupEnabled()) {
+    return { ok: false, configured: false, message: 'Tra cứu tên tài khoản chưa được cấu hình.' };
+  }
+  if (!bin || !accountNumber) {
+    return { ok: false, configured: true, message: 'Thiếu ngân hàng hoặc số tài khoản.' };
+  }
+  try {
+    const res = await fetch('https://api.vietqr.io/v2/lookup', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-client-id': env.vietqrClientId,
+        'x-api-key': env.vietqrApiKey
+      },
+      body: JSON.stringify({ bin: String(bin), accountNumber: String(accountNumber) })
+    });
+    const json = await res.json().catch(() => ({}));
+    if (json?.code === '00' && json?.data?.accountName) {
+      return { ok: true, configured: true, accountName: json.data.accountName };
+    }
+    return { ok: false, configured: true, message: json?.desc || 'Không tra cứu được tên tài khoản. Kiểm tra lại số tài khoản & ngân hàng.' };
+  } catch (error) {
+    console.error('VietQR lookup error:', error.message);
+    return { ok: false, configured: true, message: 'Lỗi kết nối dịch vụ tra cứu.' };
+  }
+}

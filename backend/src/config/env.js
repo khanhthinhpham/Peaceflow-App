@@ -50,5 +50,9 @@ export const env = {
   // PayOS — tự động xác nhận thanh toán qua webhook
   payosClientId: process.env.PAYOS_CLIENT_ID,
   payosApiKey: process.env.PAYOS_API_KEY,
-  payosChecksumKey: process.env.PAYOS_CHECKSUM_KEY
+  payosChecksumKey: process.env.PAYOS_CHECKSUM_KEY,
+
+  // VietQR — tra cứu tên chủ tài khoản (lookup). Đăng ký tại my.vietqr.io
+  vietqrClientId: process.env.VIETQR_CLIENT_ID,
+  vietqrApiKey: process.env.VIETQR_API_KEY
 };

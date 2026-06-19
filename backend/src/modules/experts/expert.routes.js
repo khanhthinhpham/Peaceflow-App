@@ -3,8 +3,8 @@ import { requireAuth } from '../../common/middleware/auth.middleware.js';
 import { db } from '../../config/db.js';
 import { z } from 'zod';
 import { env } from '../../config/env.js';
-import { sendBookingRequestEmail, sendBookingStatusEmail } from '../../common/services/email.service.js';
-import { generateOrderCode, transferContent, buildTransferContent, buildVietQrUrl, platformBankInfo, computeFee, isPayosEnabled, createPayosPayment, qrImageFromString, verifyPayosWebhook } from '../../common/services/payment.service.js';
+import { sendBookingRequestEmail, sendBookingStatusEmail, sendPayoutMethodChangedEmail } from '../../common/services/email.service.js';
+import { generateOrderCode, transferContent, buildTransferContent, buildVietQrUrl, platformBankInfo, computeFee, isPayosEnabled, createPayosPayment, qrImageFromString, verifyPayosWebhook, lookupBankAccount, isVietqrLookupEnabled } from '../../common/services/payment.service.js';
 import { approveExpertApplication, rejectExpertApplication } from '../auth/auth.service.js';
 
 const router = Router();
@@ -1327,16 +1327,35 @@ router.post('/bookings/:id/pay-wallet', requireAuth, async (req, res) => {
 });
 
 // ===== DOANH THU / SỐ DƯ CHUYÊN GIA =====
+// Che số tài khoản: chỉ hiện 4 số cuối.
+function maskAccount(num) {
+  const s = String(num || '').replace(/\s/g, '');
+  if (!s) return '';
+  return s.length <= 4 ? s : `${'•'.repeat(Math.min(s.length - 4, 8))}${s.slice(-4)}`;
+}
+
 // Phương thức nhận thanh toán của chuyên gia (để nền tảng chi trả payout).
+// Trả về số tài khoản đã che — không lộ full cho chính chủ trên UI.
 router.get('/expert-portal/payment-method', requireAuth, async (req, res) => {
   try {
     if (req.user.role !== 'expert') return res.status(403).json({ success: false, message: 'Expert access required' });
     const r = await db.query(
-      `select payout_bank_name, payout_account_number, payout_account_name from experts where user_id = $1 limit 1`,
+      `select payout_bank_name, payout_bank_bin, payout_account_number, payout_account_name from experts where user_id = $1 limit 1`,
       [req.user.sub]
     );
     if (!r.rows[0]) return res.status(404).json({ success: false, message: 'Expert profile not found' });
-    return res.json({ success: true, data: r.rows[0] });
+    const row = r.rows[0];
+    return res.json({
+      success: true,
+      data: {
+        payout_bank_name: row.payout_bank_name,
+        payout_bank_bin: row.payout_bank_bin,
+        payout_account_name: row.payout_account_name,
+        payout_account_masked: maskAccount(row.payout_account_number),
+        has_method: Boolean(row.payout_account_number),
+        lookup_enabled: isVietqrLookupEnabled()
+      }
+    });
   } catch (error) {
     console.error('Get payment method error:', error);
     return res.status(500).json({ success: false, message: 'Could not fetch payment method' });
@@ -1347,24 +1366,84 @@ router.put('/expert-portal/payment-method', requireAuth, async (req, res) => {
   try {
     if (req.user.role !== 'expert') return res.status(403).json({ success: false, message: 'Expert access required' });
     const schema = z.object({
-      payout_bank_name: z.string().trim().max(120).optional().nullable(),
-      payout_account_number: z.string().trim().max(40).regex(/^[0-9\s-]*$/, 'Số tài khoản chỉ gồm chữ số.').optional().nullable(),
-      payout_account_name: z.string().trim().max(255).optional().nullable()
+      payout_bank_name: z.string().trim().max(120).min(1, 'Vui lòng chọn ngân hàng.'),
+      payout_bank_bin: z.string().trim().max(20).optional().nullable(),
+      payout_account_number: z.string().trim().max(40).regex(/^[0-9]+$/, 'Số tài khoản chỉ gồm chữ số.'),
+      payout_account_name: z.string().trim().max(255).min(1, 'Thiếu tên chủ tài khoản.')
     });
     const p = schema.parse(req.body);
+    let payoutAccountName = p.payout_account_name;
+
+    if (p.payout_bank_bin && isVietqrLookupEnabled()) {
+      const lookup = await lookupBankAccount({
+        bin: p.payout_bank_bin,
+        accountNumber: p.payout_account_number
+      });
+      if (!lookup.ok || !lookup.accountName) {
+        return res.status(422).json({
+          success: false,
+          message: lookup.message || 'Không tra cứu được tên chủ tài khoản.'
+        });
+      }
+      payoutAccountName = lookup.accountName;
+    }
+
     const r = await db.query(
       `update experts
-       set payout_bank_name = $2, payout_account_number = $3, payout_account_name = $4, updated_at = now()
+       set payout_bank_name = $2, payout_bank_bin = $3, payout_account_number = $4, payout_account_name = $5, updated_at = now()
        where user_id = $1
-       returning payout_bank_name, payout_account_number, payout_account_name`,
-      [req.user.sub, p.payout_bank_name || null, p.payout_account_number || null, p.payout_account_name || null]
+       returning id, payout_bank_name, payout_account_number, payout_account_name`,
+      [req.user.sub, p.payout_bank_name, p.payout_bank_bin || null, p.payout_account_number, payoutAccountName]
     );
     if (!r.rows[0]) return res.status(404).json({ success: false, message: 'Expert profile not found' });
-    return res.json({ success: true, data: r.rows[0] });
+
+    // Cảnh báo bảo mật: gửi email cho chính chủ (best-effort).
+    try {
+      const uRes = await db.query(`select email, coalesce(display_name, full_name) as name from users where id = $1`, [req.user.sub]);
+      const u = uRes.rows[0];
+      if (u?.email) {
+        await sendPayoutMethodChangedEmail({
+          to: u.email,
+          name: u.name,
+          bankName: p.payout_bank_name,
+          accountMasked: maskAccount(p.payout_account_number)
+        });
+      }
+    } catch (e) {
+      console.error('Payout method change email failed:', e.message);
+    }
+
+    return res.json({
+      success: true,
+      data: {
+        payout_bank_name: r.rows[0].payout_bank_name,
+        payout_account_name: r.rows[0].payout_account_name,
+        payout_account_masked: maskAccount(r.rows[0].payout_account_number),
+        has_method: true
+      }
+    });
   } catch (error) {
     if (error?.issues) return res.status(400).json({ success: false, message: error.issues[0]?.message || 'Dữ liệu không hợp lệ.' });
     console.error('Update payment method error:', error);
     return res.status(500).json({ success: false, message: 'Could not update payment method' });
+  }
+});
+
+// Tra cứu tên chủ tài khoản qua VietQR. Body: { bin, account_number }.
+router.post('/expert-portal/payment-method/lookup', requireAuth, async (req, res) => {
+  try {
+    if (req.user.role !== 'expert') return res.status(403).json({ success: false, message: 'Expert access required' });
+    const bin = String(req.body?.bin || '').trim();
+    const accountNumber = String(req.body?.account_number || '').trim();
+    if (!/^[0-9]+$/.test(accountNumber)) {
+      return res.status(400).json({ success: false, message: 'Số tài khoản chỉ gồm chữ số.' });
+    }
+    const result = await lookupBankAccount({ bin, accountNumber });
+    if (result.ok) return res.json({ success: true, data: { account_name: result.accountName } });
+    return res.status(result.configured === false ? 503 : 422).json({ success: false, message: result.message });
+  } catch (error) {
+    console.error('Lookup bank account error:', error);
+    return res.status(500).json({ success: false, message: 'Could not lookup account' });
   }
 });
 
