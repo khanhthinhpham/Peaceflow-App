@@ -24,7 +24,6 @@ const FALLBACK_BANKS = [
 let bankOptions = [...FALLBACK_BANKS];
 let paymentMethodState = null;
 let earningsState = null;
-let lookedUpAccountName = '';
 
 async function init() {
     const user = await requireExpertUser();
@@ -33,7 +32,7 @@ async function init() {
     mountExpertShell({
         active: 'payments',
         title: 'Thanh toán & payout',
-        subtitle: 'Cập nhật tài khoản nhận tiền, tra cứu tên chủ tài khoản và theo dõi số dư chờ chi trả.',
+        subtitle: 'Cập nhật thủ công tài khoản nhận tiền và theo dõi số dư chờ chi trả của bạn.',
         badgeText: 'Payout settings'
     });
 
@@ -152,8 +151,6 @@ function renderForm() {
     const currentName = paymentMethodState?.payout_bank_name || '';
     const selectedValue = bankOptions.some((item) => item.bin === currentBin) ? currentBin : '__custom__';
     const customVisible = selectedValue === '__custom__';
-    const lookupReady = Boolean(paymentMethodState?.lookup_enabled);
-    const accountNameReadonly = lookupReady && !customVisible;
 
     el.innerHTML = `
         <form id="expertPaymentForm" class="expert-payment-form">
@@ -166,7 +163,7 @@ function renderForm() {
                         <option value="__custom__" ${customVisible ? 'selected' : ''}>Khác / nhập tay</option>
                     </select>
                     <input id="payoutBankCustom" class="expert-payment-input" type="text" maxlength="120" placeholder="Nhập tên ngân hàng" value="${escapeHtml(customVisible ? currentName : '')}" style="${customVisible ? '' : 'display:none;'}">
-                    <div class="expert-payment-help">Nếu ngân hàng không có trong danh sách, bạn vẫn có thể nhập tay tên ngân hàng ở chế độ dự phòng.</div>
+                    <div class="expert-payment-help">Nếu ngân hàng không có trong danh sách, bạn vẫn có thể nhập tay tên ngân hàng.</div>
                 </div>
                 <div class="expert-payment-field">
                     <label class="expert-payment-label" for="payoutAccountNumber">Số tài khoản</label>
@@ -174,40 +171,28 @@ function renderForm() {
                 </div>
                 <div class="expert-payment-field">
                     <label class="expert-payment-label" for="payoutAccountName">Tên chủ tài khoản</label>
-                    <input id="payoutAccountName" class="expert-payment-input" type="text" placeholder="${accountNameReadonly ? 'Bấm tra cứu để tự điền' : 'Tên chủ tài khoản trên sao kê'}" value="" ${accountNameReadonly ? 'readonly' : ''}>
+                    <input id="payoutAccountName" class="expert-payment-input" type="text" maxlength="255" placeholder="Tên chủ tài khoản trên sao kê">
                 </div>
             </div>
             <div class="expert-payment-inline">
-                <button type="button" id="lookupAccountBtn" class="btn-outline">Tra cứu tên tài khoản</button>
                 <button type="submit" id="savePaymentBtn" class="btn-primary">Lưu tài khoản nhận tiền</button>
                 <span id="paymentMethodMsg" class="expert-payment-message is-muted"></span>
             </div>
             <div class="expert-payment-help">
-                ${lookupReady
-                    ? 'Khi server đã cấu hình VietQR, tên chủ tài khoản sẽ được backend xác minh lại trước khi lưu.'
-                    : 'Server chưa cấu hình VietQR lookup. Bạn vẫn có thể lưu theo chế độ dự phòng, nhưng nên bật lookup trên production.'}
+                Điền thủ công đúng tên chủ tài khoản như trên sao kê ngân hàng. Sau khi thay đổi, hệ thống sẽ gửi email thông báo cho bạn.
             </div>
         </form>
     `;
 
     document.getElementById('payoutBankSelect')?.addEventListener('change', handleBankModeChange);
-    document.getElementById('lookupAccountBtn')?.addEventListener('click', lookupAccountName);
     document.getElementById('expertPaymentForm')?.addEventListener('submit', savePaymentMethod);
 }
 
 function handleBankModeChange() {
     const select = document.getElementById('payoutBankSelect');
     const custom = document.getElementById('payoutBankCustom');
-    const accountName = document.getElementById('payoutAccountName');
     const isCustom = select?.value === '__custom__';
-    const shouldReadonly = Boolean(paymentMethodState?.lookup_enabled) && !isCustom;
     if (custom) custom.style.display = isCustom ? '' : 'none';
-    if (accountName) {
-        accountName.value = '';
-        accountName.readOnly = shouldReadonly;
-        accountName.placeholder = shouldReadonly ? 'Bấm tra cứu để tự điền' : 'Tên chủ tài khoản trên sao kê';
-    }
-    lookedUpAccountName = '';
     setMessage('');
 }
 
@@ -230,47 +215,6 @@ function resolveSelectedBank() {
     };
 }
 
-async function lookupAccountName() {
-    const accountInput = document.getElementById('payoutAccountNumber');
-    const accountName = document.getElementById('payoutAccountName');
-    const lookupBtn = document.getElementById('lookupAccountBtn');
-    const bank = resolveSelectedBank();
-    const accountNumber = accountInput?.value.trim() || '';
-
-    if (!bank.name) {
-        setMessage('Vui lòng chọn ngân hàng trước khi tra cứu.', 'error');
-        return;
-    }
-    if (!bank.bin) {
-        setMessage('Ngân hàng nhập tay không hỗ trợ tra cứu tự động. Bạn có thể lưu theo chế độ dự phòng.', 'error');
-        return;
-    }
-    if (!/^[0-9]+$/.test(accountNumber)) {
-        setMessage('Số tài khoản chỉ gồm chữ số.', 'error');
-        return;
-    }
-
-    lookupBtn.disabled = true;
-    setMessage('Đang tra cứu tên chủ tài khoản...', 'muted');
-    try {
-        const result = await apiClient.post('/expert-portal/payment-method/lookup', {
-            bin: bank.bin,
-            account_number: accountNumber
-        });
-        lookedUpAccountName = result.account_name || '';
-        if (accountName) {
-            accountName.value = lookedUpAccountName;
-        }
-        setMessage('Đã tra cứu thành công. Bạn có thể lưu tài khoản này.', 'success');
-    } catch (error) {
-        lookedUpAccountName = '';
-        if (accountName) accountName.value = '';
-        setMessage(error.message || 'Không tra cứu được tên tài khoản.', 'error');
-    } finally {
-        lookupBtn.disabled = false;
-    }
-}
-
 async function savePaymentMethod(event) {
     event.preventDefault();
     const saveBtn = document.getElementById('savePaymentBtn');
@@ -278,7 +222,7 @@ async function savePaymentMethod(event) {
     const accountNameInput = document.getElementById('payoutAccountName');
     const bank = resolveSelectedBank();
     const accountNumber = accountInput?.value.trim() || '';
-    const accountName = (accountNameInput?.value || lookedUpAccountName || '').trim();
+    const accountName = (accountNameInput?.value || '').trim();
 
     if (!bank.name) {
         setMessage('Vui lòng chọn hoặc nhập tên ngân hàng.', 'error');
@@ -289,7 +233,7 @@ async function savePaymentMethod(event) {
         return;
     }
     if (!accountName) {
-        setMessage('Vui lòng tra cứu hoặc nhập tên chủ tài khoản.', 'error');
+        setMessage('Vui lòng nhập tên chủ tài khoản.', 'error');
         return;
     }
 
@@ -304,7 +248,6 @@ async function savePaymentMethod(event) {
         });
 
         await loadPageData();
-        lookedUpAccountName = '';
         renderPage();
         setMessage('Đã lưu tài khoản nhận tiền. Hệ thống cũng đã gửi email thông báo thay đổi.', 'success');
         showExpertBanner('Đã cập nhật phương thức nhận thanh toán.', 'success');
