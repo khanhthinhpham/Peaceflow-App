@@ -53,7 +53,13 @@ async function init() {
         if (!overview?.expert) {
             const status = applicationState?.application?.status;
             const target = status === 'pending' ? 'review-status.html' : 'application.html';
-            window.location.replace(`app.html?page=${target}`);
+            // Điều hướng SPA (không reload cả trang) để tránh vòng lặp full-load.
+            const router = window.ExpertRouter;
+            if (router?.navigate && !router.navigating) {
+                router.navigate(target, { history: 'replace' });
+            } else {
+                window.location.replace(`app.html?page=${target}`);
+            }
             return;
         }
 
