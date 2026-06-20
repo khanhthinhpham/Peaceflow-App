@@ -18,7 +18,11 @@ async function init() {
 
     try {
         ({ application: applicationState, overview: overviewState } = await loadExpertData());
-        setExpertNavLock(!overviewState?.expert);
+        if (!overviewState?.expert) {
+            window.location.replace('apply.html');
+            return;
+        }
+        setExpertNavLock(false);
         renderHistory();
         wireResubmit();
     } catch (error) {

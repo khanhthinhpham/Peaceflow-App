@@ -39,14 +39,7 @@ async function init() {
     try {
         const { application, overview } = await loadExpertData();
         if (!overview?.expert) {
-            const status = application?.application?.status;
-            const target = status === 'pending' ? 'review-status.html' : 'application.html';
-            const router = window.ExpertRouter;
-            if (router?.navigate && !router.navigating) {
-                router.navigate(target, { history: 'replace' });
-            } else {
-                window.location.replace(`app.html?page=${target}`);
-            }
+            window.location.replace('apply.html');
             return;
         }
 

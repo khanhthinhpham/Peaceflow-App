@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gửi hồ sơ chuyên gia — PeaceFlow</title>
+    <link rel="icon" href="../../public/favicon.jpg" type="image/svg+xml">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../../public/css/style.css">
+    <link rel="stylesheet" href="../../public/css/expert/portal.css">
+    <style>
+        body.apply-body {
+            margin: 0;
+            min-height: 100vh;
+            background:
+                radial-gradient(circle at top left, rgba(255, 203, 164, 0.2), transparent 28%),
+                radial-gradient(circle at bottom right, rgba(168, 213, 186, 0.2), transparent 32%),
+                var(--cream);
+            color: var(--text-primary);
+        }
+        .apply-topbar {
+            display: flex; align-items: center; justify-content: space-between;
+            gap: 12px; flex-wrap: wrap;
+            padding: 14px 24px;
+            background: var(--warm-white);
+            border-bottom: 2px solid var(--kraft-light);
+        }
+        .apply-brand { display: flex; align-items: center; gap: 10px; font-size: 1.2rem; font-weight: 800; }
+        .apply-brand .logo-icon { width: 34px; height: 34px; display: grid; place-items: center; background: var(--mint); border-radius: 10px; box-shadow: 2px 2px 0 var(--mint-dark); }
+        .apply-brand span { color: var(--mint-dark); }
+        .apply-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+        .apply-wrap { max-width: 760px; margin: 0 auto; padding: 28px 18px 60px; }
+        .apply-card {
+            background: var(--warm-white);
+            border: 2px solid var(--kraft-light);
+            border-radius: 18px;
+            box-shadow: 4px 4px 0 rgba(74, 55, 40, 0.1);
+            padding: 26px 28px;
+        }
+        .apply-kicker { margin: 0; font-size: 0.72rem; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-light); }
+        .apply-title { margin: 6px 0 4px; font-size: 1.8rem; font-weight: 800; }
+        .apply-sub { margin: 0 0 18px; color: var(--text-secondary); line-height: 1.6; }
+        .apply-banner { display: none; margin-bottom: 16px; padding: 12px 16px; border-radius: 12px; font-weight: 700; font-size: 0.9rem; }
+        .apply-banner.show { display: block; }
+        .apply-banner.info { background: #eef3fb; color: #2b5b9e; }
+        .apply-banner.success { background: #e9f6ee; color: #2f7d52; }
+        .apply-banner.error { background: #fdeceb; color: #b42318; }
+        .apply-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+        .apply-grid .full { grid-column: 1 / -1; }
+        .apply-done { text-align: center; padding: 24px 12px; }
+        .apply-done .done-ico { font-size: 2.6rem; }
+        @media (max-width: 560px) { .apply-grid { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body class="apply-body">
+    <header class="apply-topbar">
+        <div class="apply-brand">
+            <span class="logo-icon">🌿</span> Peace<span>Flow</span>
+        </div>
+        <div class="apply-actions">
+            <a href="../dashboard.html" class="btn-outline">🏠 Về app người dùng</a>
+            <button type="button" id="applyLogout" class="btn-outline">Đăng xuất</button>
+        </div>
+    </header>
+
+    <main class="apply-wrap">
+        <div class="apply-card">
+            <p class="apply-kicker">PeaceFlow Expert</p>
+            <h1 class="apply-title">Gửi hồ sơ chuyên gia</h1>
+            <p class="apply-sub">Hoàn tất hồ sơ chuyên môn và tải lên bằng cấp để admin xét duyệt. Sau khi được duyệt, bạn mới vào được khu chuyên gia.</p>
+
+            <div id="applyBanner" class="apply-banner"></div>
+
+            <form id="expertApplicationForm">
+                <div class="apply-grid">
+                    <div class="form-group full">
+                        <label class="form-label" for="fullName">Họ tên chuyên gia</label>
+                        <input type="text" id="fullName" class="form-input" placeholder="Nhập họ tên đầy đủ" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="phone">Số điện thoại</label>
+                        <input type="text" id="phone" class="form-input" placeholder="Số điện thoại liên hệ" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="experienceYears">Số năm kinh nghiệm</label>
+                        <input type="number" id="experienceYears" class="form-input" min="0" max="80" placeholder="0" required>
+                    </div>
+                    <div class="form-group full">
+                        <label class="form-label" for="degree">Bằng cấp</label>
+                        <input type="text" id="degree" class="form-input" placeholder="Ví dụ: Thạc sĩ Tâm lý lâm sàng" required>
+                    </div>
+                    <div class="form-group full">
+                        <label class="form-label" for="specialties">Chuyên môn</label>
+                        <input type="text" id="specialties" class="form-input" placeholder="Ví dụ: trị liệu cá nhân, CBT, sang chấn">
+                        <div class="field-hint">Ngăn cách bằng dấu phẩy.</div>
+                    </div>
+                    <div class="form-group full">
+                        <label class="form-label" for="location">Nơi công tác</label>
+                        <input type="text" id="location" class="form-input" placeholder="Bệnh viện, phòng khám, trung tâm...">
+                    </div>
+                    <div class="form-group full">
+                        <label class="form-label" for="bio">Giới thiệu ngắn</label>
+                        <textarea id="bio" class="form-input" rows="5" placeholder="Kinh nghiệm, thế mạnh chuyên môn, cách bạn hỗ trợ thân chủ..."></textarea>
+                    </div>
+                    <div class="form-group full" id="credentialFileGroup">
+                        <label class="form-label" for="credentialFile">File bằng cấp</label>
+                        <input type="file" id="credentialFile" class="form-input" accept=".pdf,image/*,.doc,.docx,application/pdf" required>
+                        <div class="field-hint">Hỗ trợ PDF hoặc ảnh, tối đa 10MB.</div>
+                    </div>
+                </div>
+
+                <div class="expert-form-actions" style="margin-top:16px;">
+                    <p id="expertFormHelper" style="margin:0;color:var(--text-secondary);font-size:0.85rem;"></p>
+                    <button type="submit" id="submitBtn" class="btn-primary">Gửi hồ sơ chuyên gia</button>
+                </div>
+            </form>
+
+            <div id="applyDone" class="apply-done" style="display:none;"></div>
+        </div>
+    </main>
+
+    <script type="module" src="../../public/js/expert/apply-page.js"></script>
+</body>
+</html>

@@ -180,18 +180,14 @@
         if (user?.role === 'expert') {
           try {
             const expertState = await auth.getMyExpertApplication();
-            if (expertState?.application?.status === 'pending') {
-              window.location.replace('expert/app.html?page=review-status.html');
-              return;
-            }
-            if (expertState?.application?.status === 'approved') {
+            // Đã được duyệt (có profile) → vào khu chuyên gia.
+            if (expertState?.has_expert_profile || expertState?.application?.status === 'approved') {
               window.location.replace('expert/app.html?page=dashboard.html');
               return;
             }
-            if (!expertState?.application || expertState?.application?.status === 'rejected') {
-              window.location.replace('expert/app.html?page=application.html');
-              return;
-            }
+            // Chưa duyệt (chưa nộp / chờ duyệt / bị từ chối) → màn nộp hồ sơ RIÊNG, ngoài khu expert.
+            window.location.replace('expert/apply.html');
+            return;
           } catch (e) {
             console.error('Expert application check failed:', e.message);
           }

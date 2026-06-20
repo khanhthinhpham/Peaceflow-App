@@ -51,15 +51,8 @@ async function init() {
         // Cổng duyệt: chỉ chuyên gia ĐÃ ĐƯỢC DUYỆT (có profile) mới vào được dashboard chính.
         // Chưa duyệt thì đưa về trang nộp hồ sơ / theo dõi xét duyệt.
         if (!overview?.expert) {
-            const status = applicationState?.application?.status;
-            const target = status === 'pending' ? 'review-status.html' : 'application.html';
-            // Điều hướng SPA (không reload cả trang) để tránh vòng lặp full-load.
-            const router = window.ExpertRouter;
-            if (router?.navigate && !router.navigating) {
-                router.navigate(target, { history: 'replace' });
-            } else {
-                window.location.replace(`app.html?page=${target}`);
-            }
+            // Chưa được duyệt → màn nộp hồ sơ riêng (ngoài khu expert, không sidebar).
+            window.location.replace('apply.html');
             return;
         }
 

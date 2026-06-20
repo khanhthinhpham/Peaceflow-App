@@ -18,7 +18,12 @@ async function init() {
 
     try {
         ({ application: applicationState, overview: overviewState } = await loadExpertData());
-        setExpertNavLock(!overviewState?.expert);
+        // Chưa được duyệt → nộp hồ sơ ở màn riêng (ngoài portal), không dùng trang trong khu expert.
+        if (!overviewState?.expert) {
+            window.location.replace('apply.html');
+            return;
+        }
+        setExpertNavLock(false);
         renderState();
         wireSubmit();
     } catch (error) {
