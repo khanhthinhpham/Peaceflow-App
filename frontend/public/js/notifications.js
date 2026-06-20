@@ -55,6 +55,10 @@ export const NotificationManager = {
                 return { icon: '📅', title: 'Cập nhật lịch hẹn', action: 'experts.html' };
             case 'comment':
                 return { icon: '💬', title: 'Bình luận mới', action: 'community.html' };
+            case 'expert_approved':
+                return { icon: '✅', title: 'Hồ sơ đã được duyệt', action: 'expert/app.html?page=dashboard.html' };
+            case 'expert_rejected':
+                return { icon: '📋', title: 'Kết quả hồ sơ chuyên gia', action: 'expert/apply.html' };
             default:
                 return { icon: '❤️', title: 'Cảm xúc mới', action: 'community.html' };
         }

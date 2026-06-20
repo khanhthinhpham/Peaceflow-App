@@ -121,6 +121,20 @@ router.get('/notifications', requireAuth, async (req, res) => {
 
     // Tương tác cộng đồng từ bảng notifications (đã gộp theo group_key)
     communityNotifsRes.rows.forEach((row) => {
+      // Kết quả duyệt hồ sơ chuyên gia
+      if (row.type === 'expert_approved' || row.type === 'expert_rejected') {
+        const approved = row.type === 'expert_approved';
+        notifications.push({
+          id: `expert-${row.group_key || new Date(row.latest).getTime()}`,
+          type: 'expert',
+          icon: approved ? '✅' : '📋',
+          title: approved ? 'Hồ sơ đã được duyệt' : 'Kết quả hồ sơ chuyên gia',
+          body: row.message,
+          action: approved ? 'expert/app.html?page=dashboard.html' : 'expert/apply.html',
+          created_at: row.latest
+        });
+        return;
+      }
       // Thông báo lịch hẹn chuyên gia
       if (row.type === 'booking_new' || row.type === 'booking_update') {
         notifications.push({

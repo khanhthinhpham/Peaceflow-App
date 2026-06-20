@@ -191,6 +191,16 @@ export async function approveExpertApplication(token) {
 
   await approveApplication(application);
 
+  // Thông báo in-app (chuông) cho chuyên gia.
+  try {
+    await db.query(
+      `insert into notifications (recipient_id, actor_name, type, message) values ($1, $2, $3, $4)`,
+      [application.user_id, 'PeaceFlow', 'expert_approved', 'Hồ sơ chuyên gia của bạn đã được duyệt! Bạn có thể vào khu chuyên gia ngay.']
+    );
+  } catch (e) {
+    console.error('Failed to create approval notification:', e.message);
+  }
+
   try {
     await sendExpertApprovedEmail({
       email: application.email,
@@ -214,6 +224,16 @@ export async function rejectExpertApplication(token) {
   }
 
   await rejectApplication(application);
+
+  // Thông báo in-app (chuông) cho người nộp.
+  try {
+    await db.query(
+      `insert into notifications (recipient_id, actor_name, type, message) values ($1, $2, $3, $4)`,
+      [application.user_id, 'PeaceFlow', 'expert_rejected', 'Hồ sơ chuyên gia của bạn chưa được duyệt. Bạn có thể cập nhật và gửi lại.']
+    );
+  } catch (e) {
+    console.error('Failed to create rejection notification:', e.message);
+  }
 
   try {
     await sendExpertRejectedEmail({

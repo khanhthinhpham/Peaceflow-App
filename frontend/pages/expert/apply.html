@@ -26,8 +26,8 @@
             background: var(--warm-white);
             border-bottom: 2px solid var(--kraft-light);
         }
-        .apply-brand { display: flex; align-items: center; gap: 10px; font-size: 1.2rem; font-weight: 800; }
-        .apply-brand .logo-icon { width: 34px; height: 34px; display: grid; place-items: center; background: var(--mint); border-radius: 10px; box-shadow: 2px 2px 0 var(--mint-dark); }
+        .apply-brand { display: flex; align-items: center; font-size: 1.2rem; font-weight: 800; }
+        .apply-brand .logo-icon { width: 34px; height: 34px; display: grid; place-items: center; background: var(--mint); border-radius: 10px; box-shadow: 2px 2px 0 var(--mint-dark); margin: 14px}
         .apply-brand span { color: var(--mint-dark); }
         .apply-actions { display: flex; gap: 10px; flex-wrap: wrap; }
         .apply-wrap { max-width: 760px; margin: 0 auto; padding: 28px 18px 60px; }
@@ -72,7 +72,9 @@
 
             <div id="applyBanner" class="apply-banner"></div>
 
-            <form id="expertApplicationForm">
+            <div id="applyLoading" style="padding:30px 12px;text-align:center;color:var(--text-light);">Đang tải trạng thái hồ sơ…</div>
+
+            <form id="expertApplicationForm" style="display:none;">
                 <div class="apply-grid">
                     <div class="form-group full">
                         <label class="form-label" for="fullName">Họ tên chuyên gia</label>
@@ -120,6 +122,6 @@
         </div>
     </main>
 
-    <script type="module" src="../../public/js/expert/apply-page.js"></script>
+    <script type="module" src="../../public/js/expert/apply-page.js?v=2"></script>
 </body>
 </html>

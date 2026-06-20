@@ -5,6 +5,9 @@ const bannerEl = document.getElementById('applyBanner');
 const doneEl = document.getElementById('applyDone');
 const submitBtn = document.getElementById('submitBtn');
 const helperEl = document.getElementById('expertFormHelper');
+const loadingEl = document.getElementById('applyLoading');
+
+function hideLoading() { if (loadingEl) loadingEl.style.display = 'none'; }
 
 function banner(message, type = 'info') {
     if (!bannerEl) return;
@@ -13,6 +16,7 @@ function banner(message, type = 'info') {
 }
 
 function showWaiting(message) {
+    hideLoading();
     if (form) form.style.display = 'none';
     banner('');
     if (doneEl) {
@@ -100,6 +104,7 @@ async function init() {
     try {
         state = await auth.getMyExpertApplication();
     } catch (_e) {
+        hideLoading();
         banner('Không tải được trạng thái hồ sơ. Vui lòng tải lại trang.', 'error');
         if (form) form.style.display = 'none';
         return;
@@ -112,6 +117,7 @@ async function init() {
     }
 
     if (!state?.email_verified) {
+        hideLoading();
         banner('Bạn cần xác minh email trước khi gửi hồ sơ chuyên gia.', 'info');
         if (form) form.style.display = 'none';
         return;
@@ -123,6 +129,9 @@ async function init() {
         return;
     }
 
+    // Các trường hợp còn lại (chưa nộp / bị từ chối) → hiện form.
+    hideLoading();
+    if (form) form.style.display = '';
     if (status === 'rejected') {
         prefill(state.application);
         banner('Hồ sơ trước đó chưa được duyệt. Bạn có thể cập nhật và gửi lại.', 'error');

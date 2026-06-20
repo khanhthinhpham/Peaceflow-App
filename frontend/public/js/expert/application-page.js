@@ -37,6 +37,9 @@ function renderState() {
     const form = document.getElementById('expertApplicationForm');
     const status = applicationState?.application?.status;
 
+    // Mặc định form ẩn (tránh flash); hiện lại ở các nhánh hợp lệ, các nhánh ẩn sẽ tự set 'none'.
+    if (form) form.style.display = '';
+
     if (!applicationState?.email_verified) {
         showExpertBanner('Bạn cần xác minh email trước khi nộp hoặc cập nhật hồ sơ chuyên gia.', 'info');
         form.style.display = 'none';
