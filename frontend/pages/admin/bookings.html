@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script>
+        if (!window.location.pathname.endsWith('/app.html')) {
+            window.location.replace('app.html?page=' + window.location.pathname.split('/').pop());
+        }
+    </script>
+    <title>Quản lý lịch hẹn - Quản trị PeaceFlow</title>
+    <link rel="stylesheet" href="../../public/css/style.css">
+    <link rel="stylesheet" href="../../public/css/admin/admin.css">
+</head>
+<body class="admin-body">
+    <main class="admin-main">
+        <div class="admin-page-head" style="display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+            <div>
+                <p class="admin-page-kicker">PeaceFlow Admin</p>
+                <h1 class="admin-page-title">Quản lý lịch hẹn</h1>
+                <p class="admin-page-sub">Quan sát toàn bộ lịch hẹn giữa thân chủ và chuyên gia trên nền tảng.</p>
+            </div>
+            <button id="reloadBtn" class="btn-outline" type="button">↻ Tải lại</button>
+        </div>
+
+        <div class="admin-card" style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+            <input id="bookingSearch" type="search" placeholder="Tìm theo thân chủ / chuyên gia / email..." class="admin-input" style="flex:1;min-width:240px;">
+            <button id="bookingSearchBtn" type="button" class="btn-primary">Tìm</button>
+        </div>
+
+        <div class="admin-tabs" id="bookingStatusTabs"></div>
+
+        <div id="adminBookingsMeta" style="font-size:.82rem;color:var(--text-light);margin-bottom:10px;"></div>
+        <div id="adminBookingsList"></div>
+        <div id="adminBookingsPager" class="admin-pager"></div>
+    </main>
+    <script type="module" src="../../public/js/admin/bookings-page.js"></script>
+</body>
+</html>

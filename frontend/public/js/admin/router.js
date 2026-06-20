@@ -3,6 +3,7 @@ import { requireAdmin } from './shell.js';
 const ADMIN_PAGES = new Set([
     'dashboard.html',
     'experts.html',
+    'bookings.html',
     'payments.html',
     'users.html',
     'community.html'

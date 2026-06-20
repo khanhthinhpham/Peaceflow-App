@@ -1338,6 +1338,66 @@ router.delete('/admin/community/posts/:id', requireAuth, async (req, res) => {
   }
 });
 
+// ===== Admin: quản lý lịch hẹn (quan sát toàn bộ) =====
+router.get('/admin/bookings', requireAuth, async (req, res) => {
+  try {
+    if (req.user.role !== 'admin') return res.status(403).json({ success: false, message: 'Admin only' });
+
+    const STATUSES = ['pending_payment', 'pending', 'awaiting_expert', 'confirmed', 'completed', 'cancelled', 'expired'];
+    const limit = Math.min(Math.max(parseInt(req.query.limit, 10) || 20, 1), 100);
+    const offset = Math.max(parseInt(req.query.offset, 10) || 0, 0);
+    const conditions = [];
+    const params = [];
+
+    if (STATUSES.includes(req.query.status)) {
+      params.push(req.query.status);
+      conditions.push(`b.status = $${params.length}`);
+    }
+    const search = (req.query.search || '').trim();
+    if (search) {
+      params.push(`%${search}%`);
+      conditions.push(`(u.full_name ilike $${params.length} or u.email ilike $${params.length} or e.full_name ilike $${params.length})`);
+    }
+    const where = conditions.length ? `where ${conditions.join(' and ')}` : '';
+
+    const countRes = await db.query(
+      `select count(*)::int as total
+       from expert_bookings b join users u on u.id = b.user_id join experts e on e.id = b.expert_id ${where}`,
+      params
+    );
+
+    const summaryRes = await db.query(`select status, count(*)::int as c from expert_bookings group by status`);
+    const summary = {};
+    summaryRes.rows.forEach((r) => { summary[r.status] = r.c; });
+
+    params.push(limit, offset);
+    const rowsRes = await db.query(
+      `select b.id, b.session_type, b.starts_at, b.duration_minutes,
+              coalesce(b.amount, b.price, 0)::int as amount, b.status, b.notes,
+              b.created_at, b.paid_at, b.cancelled_at, b.cancel_reason,
+              u.full_name as client_name, u.email as client_email,
+              e.full_name as expert_name, e.code as expert_code,
+              p.order_code, p.content as payment_content, p.status as payment_status
+       from expert_bookings b
+       join users u on u.id = b.user_id
+       join experts e on e.id = b.expert_id
+       left join payments p on p.booking_id = b.id
+       ${where}
+       order by b.starts_at desc
+       limit $${params.length - 1} offset $${params.length}`,
+      params
+    );
+
+    return res.json({
+      success: true,
+      data: { total: countRes.rows[0]?.total || 0, limit, offset, summary, bookings: rowsRes.rows }
+    });
+  } catch (error) {
+    console.error('Admin list bookings error:', error);
+    return res.status(500).json({ success: false, message: 'Could not fetch bookings' });
+  }
+});
+
 // Danh sách lịch đã báo chuyển khoản, chờ admin đối chiếu sao kê.
 router.get('/admin/bookings/pending-payment', requireAuth, async (req, res) => {
   try {

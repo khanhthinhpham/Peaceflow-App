@@ -5,6 +5,7 @@ import { icon } from './icons.js';
 const NAV_ITEMS = [
     { page: 'dashboard.html', key: 'dashboard', icon: '📊', label: 'Tổng quan' },
     { page: 'experts.html', key: 'experts', icon: '🧑‍⚕️', label: 'Duyệt chuyên gia', badge: 'experts' },
+    { page: 'bookings.html', key: 'bookings', icon: '📅', label: 'Quản lý lịch hẹn' },
     { page: 'payments.html', key: 'payments', icon: '💳', label: 'Thanh toán & payout', badge: 'payments' },
     { page: 'users.html', key: 'users', icon: '👥', label: 'Người dùng' },
     { page: 'community.html', key: 'community', icon: '🛡️', label: 'Kiểm duyệt cộng đồng', badge: 'community' }
