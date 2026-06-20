@@ -143,9 +143,8 @@ export async function submitExpertApplication(userId, data, file) {
     approval_token: approvalToken
   });
 
-  if (!existingExpert) {
-    await updateUserStatus(user.id, 'pending');
-  }
+  // Giữ status = 'active' để chuyên gia chưa duyệt vẫn đăng nhập & dùng app user
+  // bình thường. Trạng thái duyệt được theo dõi qua expert_applications + bảng experts.
 
   try {
     await sendExpertApplicationToAdmin({
@@ -330,11 +329,9 @@ export async function login(data) {
     throw createAuthError('EMAIL_NOT_VERIFIED', 403);
   }
 
-  if (user.status === 'pending') {
-    throw createAuthError('Hồ sơ chuyên gia của bạn đang chờ admin duyệt.', 403);
-  }
-
-  if (user.status !== 'active') {
+  // Cho phép 'active' và 'pending' (chuyên gia chờ duyệt vẫn dùng app user bình thường).
+  // Chỉ chặn tài khoản bị khoá/vô hiệu hoá.
+  if (['suspended', 'deleted', 'inactive'].includes(user.status)) {
     throw createAuthError('Tài khoản hiện đang bị vô hiệu hóa.', 403);
   }
 

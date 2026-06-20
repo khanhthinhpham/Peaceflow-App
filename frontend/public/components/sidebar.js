@@ -38,7 +38,7 @@
     const templateUrl = scriptUrl
         ? new URL('./sidebar.html', scriptUrl).href
         : '../public/components/sidebar.html';
-    const SIDEBAR_TEMPLATE_CACHE_KEY = 'peaceflow_sidebar_template_v6';
+    const SIDEBAR_TEMPLATE_CACHE_KEY = 'peaceflow_sidebar_template_v7';
     const _spaHtmlCache = new Map(); // url -> { html, cachedAt }
     const SPA_HTML_CACHE_MS = 300_000; // 5 phút
     const SPA_SESSION_VERSION = Date.now();
@@ -157,13 +157,21 @@
     // Phần tử [data-expert-only] / [data-admin-only] cũng được bật/tắt theo.
     function syncExpertUi() {
         const user = getStoredUser();
-        const expert = Boolean(user && user.is_expert);
+        const expert = Boolean(user && user.is_expert);                       // đã được duyệt (có profile)
+        const expertRole = Boolean(user && (user.is_expert || user.role === 'expert')); // applicant hoặc đã duyệt
         const isAdmin = Boolean(user && user.role === 'admin');
 
         const tag = document.getElementById('sidebarExpertTag');
         const portalLink = document.getElementById('sidebarExpertPortal');
+        // Tag "Chuyên gia" cạnh tên chỉ hiện khi ĐÃ được duyệt.
         if (tag) tag.style.display = expert ? '' : 'none';
-        if (portalLink) portalLink.style.display = expert ? '' : 'none';
+        // Tab điều hướng hiện cho cả người đang chờ duyệt; đã duyệt → portal, chưa → màn nộp hồ sơ.
+        if (portalLink) {
+            portalLink.style.display = expertRole ? '' : 'none';
+            portalLink.setAttribute('href', expert ? 'expert/app.html?page=dashboard.html' : 'expert/apply.html');
+            const labelSpan = portalLink.querySelector('[data-expert-label]');
+            if (labelSpan) labelSpan.textContent = expert ? 'Quản lý chuyên gia' : 'Hồ sơ chuyên gia';
+        }
         document.querySelectorAll('[data-expert-only]').forEach((el) => {
             el.style.display = expert ? '' : 'none';
         });
@@ -408,7 +416,7 @@
             if (!html) {
                 // Gắn version vào URL: force-cache chỉ so theo URL, nên khi template đổi
                 // (bump version) URL mới sẽ không khớp cache cũ → fetch lại bản mới.
-                const versionedUrl = `${templateUrl}${templateUrl.includes('?') ? '&' : '?'}v=6`;
+                const versionedUrl = `${templateUrl}${templateUrl.includes('?') ? '&' : '?'}v=7`;
                 const response = await fetch(versionedUrl, { cache: 'force-cache' });
                 if (!response.ok) {
                     throw new Error(`Sidebar template load failed: ${response.status}`);

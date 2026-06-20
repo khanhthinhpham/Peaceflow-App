@@ -185,9 +185,8 @@
               window.location.replace('expert/app.html?page=dashboard.html');
               return;
             }
-            // Chưa duyệt (chưa nộp / chờ duyệt / bị từ chối) → màn nộp hồ sơ RIÊNG, ngoài khu expert.
-            window.location.replace('expert/apply.html');
-            return;
+            // Chưa duyệt → vào app user bình thường (tab "Quản lý chuyên gia" ở sidebar
+            // sẽ dẫn tới màn nộp hồ sơ / chờ duyệt). Bỏ qua, để chạy tiếp luồng user.
           } catch (e) {
             console.error('Expert application check failed:', e.message);
           }
