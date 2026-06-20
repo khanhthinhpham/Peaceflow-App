@@ -1,6 +1,7 @@
 import { apiClient } from '../api-client.js';
 import { auth } from '../auth.js';
 import { mountAdminShell } from './shell.js';
+import { icon } from './icons.js';
 
 mountAdminShell({ active: 'users' });
 
@@ -18,6 +19,13 @@ const state = { search: '', role: '', status: '', page: 0, total: 0 };
 
 function esc(v) {
     return String(v ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+// Sang tab Quản lý lịch hẹn, lọc sẵn theo người này.
+function goToBookings(filter) {
+    sessionStorage.setItem('admin_bookings_filter', filter || '');
+    if (window.AdminRouter?.navigate) window.AdminRouter.navigate('bookings.html');
+    else window.location.href = 'app.html?page=bookings.html';
 }
 function money(v) { return `${Number(v || 0).toLocaleString('vi-VN')}đ`; }
 function dt(v) {
@@ -71,6 +79,7 @@ function card(u) {
                     </div>
                 </div>
                 <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                    <button type="button" class="btn-outline" data-bookings="${esc(u.email || '')}" style="font-size:.82rem;">${icon('calendar')} Lịch hẹn</button>
                     <button type="button" class="${locked ? 'btn-primary' : 'btn-outline'}" data-lock ${self ? 'disabled' : ''} style="font-size:.82rem;">${locked ? 'Mở khoá' : 'Khoá'}</button>
                 </div>
             </div>
@@ -153,6 +162,9 @@ function renderPager(totalPages) {
 function bindRows() {
     listEl.querySelectorAll('[data-user]').forEach((row) => {
         const id = row.getAttribute('data-user');
+        row.querySelector('[data-bookings]')?.addEventListener('click', (e) => {
+            goToBookings(e.currentTarget.getAttribute('data-bookings'));
+        });
         row.querySelector('[data-lock]')?.addEventListener('click', (e) => {
             const locked = e.target.textContent.trim() === 'Mở khoá';
             const nextStatus = locked ? 'active' : 'suspended';

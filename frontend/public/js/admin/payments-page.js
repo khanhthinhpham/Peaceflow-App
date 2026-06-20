@@ -1,11 +1,19 @@
 import { apiClient } from '../api-client.js';
 import { mountAdminShell, setAdminBadge } from './shell.js';
 import { icon } from './icons.js';
+import { renderPager } from './pager.js';
 
 mountAdminShell({ active: 'payments' });
 
 const listEl = document.getElementById('adminPaymentsList');
 const payoutsEl = document.getElementById('adminPayoutsList');
+const payMetaEl = document.getElementById('adminPaymentsMeta');
+const payPagerEl = document.getElementById('adminPaymentsPager');
+const poMetaEl = document.getElementById('adminPayoutsMeta');
+const poPagerEl = document.getElementById('adminPayoutsPager');
+const PAY_LIMIT = 20;
+const payState = { page: 0, total: 0 };
+const poState = { page: 0, total: 0 };
 
 function esc(value) {
     return String(value ?? '')
@@ -41,24 +49,34 @@ const TYPE = {
     inperson: 'Gặp trực tiếp'
 };
 
-async function loadPayments() {
+async function loadPayments(page = payState.page) {
     if (!listEl) return;
+    payState.page = Math.max(0, page);
     listEl.innerHTML = '<div class="admin-card admin-empty">Đang tải...</div>';
+    if (payPagerEl) payPagerEl.innerHTML = '';
 
-    let rows = [];
+    let data;
     try {
-        rows = await apiClient.get('/admin/bookings/pending-payment', { noCache: true });
+        const qs = new URLSearchParams({ limit: String(PAY_LIMIT), offset: String(payState.page * PAY_LIMIT) });
+        data = await apiClient.get(`/admin/bookings/pending-payment?${qs.toString()}`, { noCache: true });
     } catch (_error) {
         listEl.innerHTML = '<div class="admin-card admin-empty" style="color:var(--coral);">Không tải được danh sách chờ xác nhận thanh toán.</div>';
         return;
     }
 
-    setAdminBadge('payments', Array.isArray(rows) ? rows.length : 0);
+    const rows = data?.bookings || [];
+    payState.total = data?.total || 0;
+    setAdminBadge('payments', payState.total);
 
-    if (!Array.isArray(rows) || !rows.length) {
+    if (!rows.length) {
         listEl.innerHTML = '<div class="admin-card admin-empty">Không có booking nào đang chờ xác nhận thanh toán.</div>';
+        if (payMetaEl) payMetaEl.textContent = '';
+        if (payPagerEl) payPagerEl.innerHTML = '';
         return;
     }
+
+    const totalPages = Math.max(1, Math.ceil(payState.total / PAY_LIMIT));
+    if (payMetaEl) payMetaEl.textContent = `${payState.page * PAY_LIMIT + 1}–${payState.page * PAY_LIMIT + rows.length} trong ${payState.total} đơn · Trang ${payState.page + 1}/${totalPages}`;
 
     listEl.innerHTML = rows.map((booking) => `
         <div class="admin-card">
@@ -92,24 +110,37 @@ async function loadPayments() {
             }
         });
     });
+
+    renderPager(payPagerEl, { page: payState.page, totalPages: Math.max(1, Math.ceil(payState.total / PAY_LIMIT)), onGo: (p) => loadPayments(p) });
 }
 
-async function loadPayouts() {
+async function loadPayouts(page = poState.page) {
     if (!payoutsEl) return;
+    poState.page = Math.max(0, page);
     payoutsEl.innerHTML = '<div class="admin-card admin-empty">Đang tải...</div>';
+    if (poPagerEl) poPagerEl.innerHTML = '';
 
-    let rows = [];
+    let data;
     try {
-        rows = await apiClient.get('/admin/payouts/pending', { noCache: true });
+        const qs = new URLSearchParams({ limit: String(PAY_LIMIT), offset: String(poState.page * PAY_LIMIT) });
+        data = await apiClient.get(`/admin/payouts/pending?${qs.toString()}`, { noCache: true });
     } catch (_error) {
         payoutsEl.innerHTML = '<div class="admin-card admin-empty" style="color:var(--coral);">Không tải được danh sách payout.</div>';
         return;
     }
 
-    if (!Array.isArray(rows) || !rows.length) {
+    const rows = data?.experts || [];
+    poState.total = data?.total || 0;
+
+    if (!rows.length) {
         payoutsEl.innerHTML = '<div class="admin-card admin-empty">Không có số dư nào cần chi trả.</div>';
+        if (poMetaEl) poMetaEl.textContent = '';
+        if (poPagerEl) poPagerEl.innerHTML = '';
         return;
     }
+
+    const totalPages = Math.max(1, Math.ceil(poState.total / PAY_LIMIT));
+    if (poMetaEl) poMetaEl.textContent = `${poState.page * PAY_LIMIT + 1}–${poState.page * PAY_LIMIT + rows.length} trong ${poState.total} chuyên gia · Trang ${poState.page + 1}/${totalPages}`;
 
     payoutsEl.innerHTML = rows.map((expert) => `
         <div class="admin-card" style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
@@ -134,6 +165,8 @@ async function loadPayouts() {
             }
         });
     });
+
+    renderPager(poPagerEl, { page: poState.page, totalPages: Math.max(1, Math.ceil(poState.total / PAY_LIMIT)), onGo: (p) => loadPayouts(p) });
 }
 
 async function act(url, button) {

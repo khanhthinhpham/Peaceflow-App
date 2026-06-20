@@ -59,9 +59,9 @@ function card(b) {
             <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:flex-start;">
                 <div style="min-width:0;">
                     <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-                        <span style="font-weight:800;">${esc(b.client_name || 'Thân chủ')}</span>
+                        <span class="bk-link" data-search="${esc(b.client_email || b.client_name || '')}" title="Chỉ xem lịch của người này" style="font-weight:800;cursor:pointer;text-decoration:underline dotted;">${esc(b.client_name || 'Thân chủ')}</span>
                         <span style="color:var(--text-light);">→</span>
-                        <span style="font-weight:800;color:var(--mint-dark,#2f7d52);">${esc(b.expert_name || 'Chuyên gia')}</span>
+                        <span class="bk-link" data-search="${esc(b.expert_name || '')}" title="Chỉ xem lịch của chuyên gia này" style="font-weight:800;color:var(--mint-dark,#2f7d52);cursor:pointer;text-decoration:underline dotted;">${esc(b.expert_name || 'Chuyên gia')}</span>
                         ${statusBadge(b.status)}
                     </div>
                     <div style="color:var(--text-secondary);font-size:.84rem;margin-top:4px;">
@@ -107,7 +107,14 @@ async function load(page = state.page) {
     const totalPages = Math.max(1, Math.ceil(state.total / LIMIT));
     const from = state.total ? state.page * LIMIT + 1 : 0;
     const to = state.page * LIMIT + rows.length;
-    metaEl.textContent = `${from}–${to} trong ${state.total} lịch hẹn · Trang ${state.page + 1}/${totalPages}`;
+    metaEl.innerHTML = `${from}–${to} trong ${state.total} lịch hẹn · Trang ${state.page + 1}/${totalPages}`
+        + (state.search ? ` · <a href="#" id="bkClear" style="color:var(--coral-dark,#e05555);font-weight:700;">✕ Bỏ lọc "${esc(state.search)}"</a>` : '');
+    document.getElementById('bkClear')?.addEventListener('click', (e) => {
+        e.preventDefault();
+        state.search = '';
+        if (searchEl) searchEl.value = '';
+        load(0);
+    });
     renderPager(totalPages);
 }
 
@@ -153,6 +160,18 @@ tabsEl?.addEventListener('click', (e) => {
     load(0);
 });
 
+// Bấm tên thân chủ/chuyên gia → chỉ xem lịch của riêng người đó.
+listEl?.addEventListener('click', (e) => {
+    const link = e.target.closest('.bk-link[data-search]');
+    if (!link) return;
+    const value = link.getAttribute('data-search') || '';
+    if (!value) return;
+    if (searchEl) searchEl.value = value;
+    state.search = value;
+    load(0);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+});
+
 function applySearch() {
     state.search = (searchEl.value || '').trim();
     load(0);
@@ -160,5 +179,13 @@ function applySearch() {
 document.getElementById('bookingSearchBtn')?.addEventListener('click', applySearch);
 searchEl?.addEventListener('keydown', (e) => { if (e.key === 'Enter') applySearch(); });
 document.getElementById('reloadBtn')?.addEventListener('click', () => load(state.page));
+
+// Bộ lọc đặt sẵn khi điều hướng từ tab Người dùng / Chuyên gia.
+const preset = sessionStorage.getItem('admin_bookings_filter');
+if (preset) {
+    sessionStorage.removeItem('admin_bookings_filter');
+    state.search = preset;
+    if (searchEl) searchEl.value = preset;
+}
 
 load(0);

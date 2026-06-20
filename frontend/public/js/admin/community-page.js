@@ -1,13 +1,17 @@
 import { apiClient } from '../api-client.js';
 import { mountAdminShell, setAdminBadge } from './shell.js';
 import { icon } from './icons.js';
+import { renderPager } from './pager.js';
 
 mountAdminShell({ active: 'community' });
 
 const listEl = document.getElementById('adminCommunityList');
 const metaEl = document.getElementById('adminCommunityMeta');
+const pagerEl = document.getElementById('adminCommunityPager');
 const tabsEl = document.getElementById('communityTabs');
 let currentFilter = 'reported';
+const CM_LIMIT = 20;
+const cmState = { page: 0, total: 0 };
 
 function esc(v) {
     return String(v ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -58,25 +62,34 @@ function card(p) {
     `;
 }
 
-async function load(filter = currentFilter) {
+async function load(filter = currentFilter, page = cmState.page) {
+    if (filter !== currentFilter) page = 0;
     currentFilter = filter;
+    cmState.page = Math.max(0, page);
     listEl.innerHTML = '<div class="admin-card admin-empty">Đang tải...</div>';
+    if (pagerEl) pagerEl.innerHTML = '';
     let data;
     try {
-        data = await apiClient.get(`/admin/community/reports?filter=${encodeURIComponent(filter)}`, { noCache: true });
+        const qs = new URLSearchParams({ filter, limit: String(CM_LIMIT), offset: String(cmState.page * CM_LIMIT) });
+        data = await apiClient.get(`/admin/community/reports?${qs.toString()}`, { noCache: true });
     } catch (_e) {
         listEl.innerHTML = '<div class="admin-card admin-empty" style="color:var(--coral);">Không tải được danh sách (cần quyền admin).</div>';
         return;
     }
     const posts = data?.posts || [];
-    metaEl.textContent = posts.length ? `${posts.length}${(data?.total || 0) > posts.length ? ' / ' + data.total : ''} bài viết` : '';
+    cmState.total = data?.total || 0;
     if (!posts.length) {
         const msg = filter === 'hidden' ? 'Không có bài nào đang bị ẩn.' : `${icon('star')} Không có bài viết nào bị báo cáo.`;
         listEl.innerHTML = `<div class="admin-card admin-empty">${msg}</div>`;
+        metaEl.textContent = '';
+        if (pagerEl) pagerEl.innerHTML = '';
         return;
     }
+    const totalPages = Math.max(1, Math.ceil(cmState.total / CM_LIMIT));
+    metaEl.textContent = `${cmState.page * CM_LIMIT + 1}–${cmState.page * CM_LIMIT + posts.length} trong ${cmState.total} bài viết · Trang ${cmState.page + 1}/${totalPages}`;
     listEl.innerHTML = posts.map(card).join('');
     bindRows();
+    renderPager(pagerEl, { page: cmState.page, totalPages, onGo: (p) => load(currentFilter, p) });
 }
 
 function bindRows() {
@@ -103,7 +116,7 @@ async function patch(url, body, ctrl, method) {
         if (method === 'delete') await apiClient.delete(url);
         else if (method === 'post') await apiClient.post(url, body);
         else await apiClient.patch(url, body);
-        await load(currentFilter);
+        await load(currentFilter, cmState.page);
         refreshBadge();
     } catch (e) {
         alert(e.message || 'Thao tác thất bại.');

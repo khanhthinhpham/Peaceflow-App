@@ -1,8 +1,16 @@
 import { apiClient, API_BASE_URL } from '../api-client.js';
 import { mountAdminShell, setAdminBadge } from './shell.js';
 import { icon } from './icons.js';
+import { renderPager } from './pager.js';
 
 mountAdminShell({ active: 'experts' });
+
+// Sang tab Quản lý lịch hẹn, lọc sẵn theo chuyên gia này.
+function goToBookings(filter) {
+    sessionStorage.setItem('admin_bookings_filter', filter || '');
+    if (window.AdminRouter?.navigate) window.AdminRouter.navigate('bookings.html');
+    else window.location.href = 'app.html?page=bookings.html';
+}
 
 // ===== chung =====
 function esc(v) {
@@ -80,22 +88,35 @@ function appCard(a) {
     `;
 }
 
-async function loadApplications(status = currentStatus) {
+const APP_LIMIT = 20;
+const appState = { page: 0, total: 0 };
+const appMetaEl = document.getElementById('adminApplicationsMeta');
+const appPagerEl = document.getElementById('adminApplicationsPager');
+
+async function loadApplications(status = currentStatus, page = appState.page) {
+    if (status !== currentStatus) page = 0;
     currentStatus = status;
+    appState.page = Math.max(0, page);
     listEl.innerHTML = '<div class="admin-card admin-empty">Đang tải...</div>';
-    let rows = [];
+    if (appPagerEl) appPagerEl.innerHTML = '';
+    let data;
     try {
-        rows = await apiClient.get(`/admin/expert-applications?status=${encodeURIComponent(status)}`, { noCache: true });
+        const qs = new URLSearchParams({ status, limit: String(APP_LIMIT), offset: String(appState.page * APP_LIMIT) });
+        data = await apiClient.get(`/admin/expert-applications?${qs.toString()}`, { noCache: true });
     } catch (_e) {
         listEl.innerHTML = '<div class="admin-card admin-empty" style="color:var(--coral);">Không tải được danh sách (cần quyền admin).</div>';
         return;
     }
-    if (!Array.isArray(rows) || !rows.length) {
-    listEl.innerHTML = `<div class="admin-card admin-empty">${status === 'pending' ? `${monoIcon('check')} Không có hồ sơ nào đang chờ duyệt.` : 'Không có hồ sơ nào.'}</div>`;
-        if (status === 'pending') setAdminBadge('experts', 0);
+    const rows = data?.applications || [];
+    appState.total = data?.total || 0;
+    if (status === 'pending') setAdminBadge('experts', appState.total);
+
+    if (!rows.length) {
+        listEl.innerHTML = `<div class="admin-card admin-empty">${status === 'pending' ? `${monoIcon('check')} Không có hồ sơ nào đang chờ duyệt.` : 'Không có hồ sơ nào.'}</div>`;
+        if (appMetaEl) appMetaEl.textContent = '';
+        if (appPagerEl) appPagerEl.innerHTML = '';
         return;
     }
-    if (status === 'pending') setAdminBadge('experts', rows.length);
     listEl.innerHTML = rows.map(appCard).join('');
     listEl.querySelectorAll('[data-approve]').forEach((btn) => {
         btn.addEventListener('click', () => appAct(`/admin/expert-applications/${btn.getAttribute('data-approve')}/approve`, btn, 'Duyệt hồ sơ này và mở quyền chuyên gia?'));
@@ -103,6 +124,10 @@ async function loadApplications(status = currentStatus) {
     listEl.querySelectorAll('[data-reject]').forEach((btn) => {
         btn.addEventListener('click', () => appAct(`/admin/expert-applications/${btn.getAttribute('data-reject')}/reject`, btn, 'Từ chối hồ sơ này?'));
     });
+
+    const totalPages = Math.max(1, Math.ceil(appState.total / APP_LIMIT));
+    if (appMetaEl) appMetaEl.textContent = `${appState.page * APP_LIMIT + 1}–${appState.page * APP_LIMIT + rows.length} trong ${appState.total} hồ sơ · Trang ${appState.page + 1}/${totalPages}`;
+    renderPager(appPagerEl, { page: appState.page, totalPages, onGo: (p) => loadApplications(currentStatus, p) });
 }
 
 async function appAct(url, btn, confirmMsg) {
@@ -110,7 +135,7 @@ async function appAct(url, btn, confirmMsg) {
     btn.disabled = true;
     try {
         await apiClient.post(url, {});
-        await loadApplications(currentStatus);
+        await loadApplications(currentStatus, appState.page);
         refreshPendingBadge();
     } catch (e) {
         alert(e.message || 'Thao tác thất bại.');
@@ -120,8 +145,8 @@ async function appAct(url, btn, confirmMsg) {
 
 async function refreshPendingBadge() {
     try {
-        const rows = await apiClient.get('/admin/expert-applications?status=pending', { noCache: true });
-        setAdminBadge('experts', Array.isArray(rows) ? rows.length : 0);
+        const data = await apiClient.get('/admin/expert-applications?status=pending&limit=1', { noCache: true });
+        setAdminBadge('experts', data?.total || 0);
     } catch (_e) { /* ignore */ }
 }
 
@@ -130,7 +155,9 @@ const expertsListEl = document.getElementById('adminExpertsList');
 const expertsMetaEl = document.getElementById('adminExpertsMeta');
 const expertSearchEl = document.getElementById('expertSearch');
 const expertActiveTabsEl = document.getElementById('expertActiveTabs');
-const expertState = { search: '', active: '' };
+const expertsPagerEl = document.getElementById('adminExpertsPager');
+const EXP_LIMIT = 20;
+const expertState = { search: '', active: '', page: 0, total: 0 };
 
 function expertCard(e) {
     const sp = specialties(e.specialties);
@@ -152,7 +179,10 @@ function expertCard(e) {
                         <div style="color:var(--text-light);font-size:.78rem;margin-top:3px;">${monoIcon('star')} ${Number(e.rating || 0).toFixed(1)} · ${Number(e.sessions_count || 0)} buổi · Giá: ${money(e.base_price)} · Số dư: <strong>${money(e.balance)}</strong></div>
                     </div>
                 </div>
-                <button type="button" class="${active ? 'btn-outline' : 'btn-primary'}" data-toggle="${active ? '0' : '1'}" style="font-size:.82rem;">${active ? 'Tắt hoạt động' : 'Bật hoạt động'}</button>
+                <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                    <button type="button" class="btn-outline" data-bookings="${esc(e.full_name || '')}" style="font-size:.82rem;">${icon('calendar')} Lịch hẹn</button>
+                    <button type="button" class="${active ? 'btn-outline' : 'btn-primary'}" data-toggle="${active ? '0' : '1'}" style="font-size:.82rem;">${active ? 'Tắt hoạt động' : 'Bật hoạt động'}</button>
+                </div>
             </div>
             ${sp.length ? `<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;">${sp.map(chip).join('')}</div>` : ''}
             <div class="admin-expert-payout-card" style="margin-top:12px;">
@@ -180,46 +210,56 @@ function expertCard(e) {
     `;
 }
 
-async function loadExperts() {
+async function loadExperts(page = expertState.page) {
+    expertState.page = Math.max(0, page);
     expertsListEl.innerHTML = '<div class="admin-card admin-empty">Đang tải...</div>';
+    if (expertsPagerEl) expertsPagerEl.innerHTML = '';
     let data;
     try {
-        const qs = new URLSearchParams();
+        const qs = new URLSearchParams({ limit: String(EXP_LIMIT), offset: String(expertState.page * EXP_LIMIT) });
         if (expertState.search) qs.set('search', expertState.search);
         if (expertState.active) qs.set('active', expertState.active);
-        qs.set('limit', '100');
         data = await apiClient.get(`/admin/experts?${qs.toString()}`, { noCache: true });
     } catch (_e) {
         expertsListEl.innerHTML = '<div class="admin-card admin-empty" style="color:var(--coral);">Không tải được danh sách chuyên gia.</div>';
         return;
     }
     const experts = data?.experts || [];
-    expertsMetaEl.textContent = experts.length ? `${experts.length}${(data?.total || 0) > experts.length ? ' / ' + data.total : ''} chuyên gia` : '';
+    expertState.total = data?.total || 0;
     if (!experts.length) {
         expertsListEl.innerHTML = '<div class="admin-card admin-empty">Không có chuyên gia nào.</div>';
+        expertsMetaEl.textContent = '';
+        if (expertsPagerEl) expertsPagerEl.innerHTML = '';
         return;
     }
+    const totalPages = Math.max(1, Math.ceil(expertState.total / EXP_LIMIT));
+    expertsMetaEl.textContent = `${expertState.page * EXP_LIMIT + 1}–${expertState.page * EXP_LIMIT + experts.length} trong ${expertState.total} chuyên gia · Trang ${expertState.page + 1}/${totalPages}`;
     expertsListEl.innerHTML = experts.map(expertCard).join('');
     expertsListEl.querySelectorAll('[data-expert]').forEach((row) => {
         const id = row.getAttribute('data-expert');
+        row.querySelector('[data-bookings]')?.addEventListener('click', (ev) => {
+            goToBookings(ev.currentTarget.getAttribute('data-bookings'));
+        });
         row.querySelector('[data-toggle]')?.addEventListener('click', async (ev) => {
             const next = ev.currentTarget.getAttribute('data-toggle') === '1';
             if (!window.confirm(next ? 'Bật hoạt động cho chuyên gia này?' : 'Tắt hoạt động? Chuyên gia sẽ không nhận lịch mới.')) return;
             ev.currentTarget.disabled = true;
             try {
                 await apiClient.patch(`/admin/experts/${id}`, { active: next });
-                loadExperts();
+                loadExperts(expertState.page);
             } catch (e) {
                 alert(e.message || 'Cập nhật thất bại.');
                 ev.currentTarget.disabled = false;
             }
         });
     });
+
+    renderPager(expertsPagerEl, { page: expertState.page, totalPages: Math.max(1, Math.ceil(expertState.total / EXP_LIMIT)), onGo: (p) => loadExperts(p) });
 }
 
 function applyExpertSearch() {
     expertState.search = (expertSearchEl.value || '').trim();
-    loadExperts();
+    loadExperts(0);
 }
 
 // ===== chuyển chế độ =====
@@ -257,7 +297,7 @@ expertActiveTabsEl?.addEventListener('click', (e) => {
     if (!tab) return;
     expertActiveTabsEl.querySelectorAll('.admin-tab').forEach((t) => t.classList.toggle('active', t === tab));
     expertState.active = tab.getAttribute('data-active') || '';
-    loadExperts();
+    loadExperts(0);
 });
 
 document.getElementById('expertSearchBtn')?.addEventListener('click', applyExpertSearch);

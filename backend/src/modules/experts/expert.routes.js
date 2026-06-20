@@ -1020,6 +1020,8 @@ router.get('/admin/expert-applications', requireAuth, async (req, res) => {
 
     const allowed = ['pending', 'approved', 'rejected', 'all'];
     const filter = allowed.includes(req.query.status) ? req.query.status : 'pending';
+    const limit = Math.min(Math.max(parseInt(req.query.limit, 10) || 20, 1), 100);
+    const offset = Math.max(parseInt(req.query.offset, 10) || 0, 0);
     const params = [];
     let where = '';
     if (filter !== 'all') {
@@ -1027,6 +1029,9 @@ router.get('/admin/expert-applications', requireAuth, async (req, res) => {
       params.push(filter);
     }
 
+    const countRes = await db.query(`select count(*)::int as total from expert_applications a ${where}`, params);
+
+    params.push(limit, offset);
     const r = await db.query(
       `select a.id, a.full_name, a.phone, a.degree, a.specialties, a.experience_years,
               a.location, a.bio, a.status, a.created_at, a.reviewed_at,
@@ -1036,17 +1041,22 @@ router.get('/admin/expert-applications', requireAuth, async (req, res) => {
        join users u on u.id = a.user_id
        ${where}
        order by (a.status = 'pending') desc, a.created_at desc
-       limit 100`,
+       limit $${params.length - 1} offset $${params.length}`,
       params
     );
 
     return res.json({
       success: true,
-      data: r.rows.map(({ approval_token, ...rest }) => ({
-        ...rest,
-        // Đường dẫn (tương đối API_BASE_URL) để xem file bằng cấp; FE tự nối origin backend.
-        credential_path: `/auth/expert-application/credential?token=${encodeURIComponent(approval_token)}`
-      }))
+      data: {
+        total: countRes.rows[0]?.total || 0,
+        limit,
+        offset,
+        applications: r.rows.map(({ approval_token, ...rest }) => ({
+          ...rest,
+          // Đường dẫn (tương đối API_BASE_URL) để xem file bằng cấp; FE tự nối origin backend.
+          credential_path: `/auth/expert-application/credential?token=${encodeURIComponent(approval_token)}`
+        }))
+      }
     });
   } catch (error) {
     console.error('Admin list expert applications error:', error);
@@ -1402,6 +1412,9 @@ router.get('/admin/bookings', requireAuth, async (req, res) => {
 router.get('/admin/bookings/pending-payment', requireAuth, async (req, res) => {
   try {
     if (req.user.role !== 'admin') return res.status(403).json({ success: false, message: 'Admin only' });
+    const limit = Math.min(Math.max(parseInt(req.query.limit, 10) || 20, 1), 100);
+    const offset = Math.max(parseInt(req.query.offset, 10) || 0, 0);
+    const countRes = await db.query(`select count(*)::int as total from expert_bookings where status = 'pending'`);
     const r = await db.query(
       `select b.id, b.amount, b.starts_at, b.session_type, b.notes, b.created_at,
               u.full_name as client_name, u.email as client_email,
@@ -1412,11 +1425,18 @@ router.get('/admin/bookings/pending-payment', requireAuth, async (req, res) => {
        join experts e on e.id = b.expert_id
        left join payments p on p.booking_id = b.id
        where b.status = 'pending'
-       order by b.created_at desc`
+       order by b.created_at desc
+       limit $1 offset $2`,
+      [limit, offset]
     );
     return res.json({
       success: true,
-      data: r.rows.map((row) => ({ ...row, content: row.content || (row.order_code ? transferContent(row.order_code) : null) }))
+      data: {
+        total: countRes.rows[0]?.total || 0,
+        limit,
+        offset,
+        bookings: r.rows.map((row) => ({ ...row, content: row.content || (row.order_code ? transferContent(row.order_code) : null) }))
+      }
     });
   } catch (error) {
     console.error('Admin pending payments error:', error);
@@ -1675,13 +1695,18 @@ router.get('/expert-portal/earnings', requireAuth, async (req, res) => {
 router.get('/admin/payouts/pending', requireAuth, async (req, res) => {
   try {
     if (req.user.role !== 'admin') return res.status(403).json({ success: false, message: 'Admin only' });
+    const limit = Math.min(Math.max(parseInt(req.query.limit, 10) || 20, 1), 100);
+    const offset = Math.max(parseInt(req.query.offset, 10) || 0, 0);
+    const countRes = await db.query(`select count(*)::int as total from experts where coalesce(balance, 0) > 0`);
     const r = await db.query(
       `select e.id, e.full_name, coalesce(e.balance, 0)::int as balance, u.email,
               e.payout_bank_name, e.payout_account_number, e.payout_account_name
        from experts e left join users u on u.id = e.user_id
-       where coalesce(e.balance, 0) > 0 order by e.balance desc`
+       where coalesce(e.balance, 0) > 0 order by e.balance desc
+       limit $1 offset $2`,
+      [limit, offset]
     );
-    return res.json({ success: true, data: r.rows });
+    return res.json({ success: true, data: { total: countRes.rows[0]?.total || 0, limit, offset, experts: r.rows } });
   } catch (error) {
     console.error('Admin payouts pending error:', error);
     return res.status(500).json({ success: false, message: 'Could not fetch payouts' });
