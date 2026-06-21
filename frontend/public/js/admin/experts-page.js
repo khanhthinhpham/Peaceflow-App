@@ -88,7 +88,8 @@ function appCard(a) {
     `;
 }
 
-const APP_LIMIT = 20;
+const appPageSizeEl = document.getElementById('appPageSize');
+let APP_LIMIT = parseInt(appPageSizeEl?.value, 10) || 10;
 const appState = { page: 0, total: 0 };
 const appMetaEl = document.getElementById('adminApplicationsMeta');
 const appPagerEl = document.getElementById('adminApplicationsPager');
@@ -156,7 +157,8 @@ const expertsMetaEl = document.getElementById('adminExpertsMeta');
 const expertSearchEl = document.getElementById('expertSearch');
 const expertActiveTabsEl = document.getElementById('expertActiveTabs');
 const expertsPagerEl = document.getElementById('adminExpertsPager');
-const EXP_LIMIT = 20;
+const expertPageSizeEl = document.getElementById('expertPageSize');
+let EXP_LIMIT = parseInt(expertPageSizeEl?.value, 10) || 10;
 const expertState = { search: '', active: '', page: 0, total: 0 };
 
 function expertCard(e) {
@@ -289,8 +291,9 @@ appTabsEl?.addEventListener('click', (e) => {
     const tab = e.target.closest('.admin-tab');
     if (!tab) return;
     appTabsEl.querySelectorAll('.admin-tab').forEach((t) => t.classList.toggle('active', t === tab));
-    loadApplications(tab.getAttribute('data-status'));
+    loadApplications(tab.getAttribute('data-status'), 0);
 });
+appPageSizeEl?.addEventListener('change', () => { APP_LIMIT = parseInt(appPageSizeEl.value, 10) || 10; loadApplications(currentStatus, 0); });
 
 expertActiveTabsEl?.addEventListener('click', (e) => {
     const tab = e.target.closest('.admin-tab');
@@ -302,6 +305,7 @@ expertActiveTabsEl?.addEventListener('click', (e) => {
 
 document.getElementById('expertSearchBtn')?.addEventListener('click', applyExpertSearch);
 expertSearchEl?.addEventListener('keydown', (e) => { if (e.key === 'Enter') applyExpertSearch(); });
+expertPageSizeEl?.addEventListener('change', () => { EXP_LIMIT = parseInt(expertPageSizeEl.value, 10) || 10; loadExperts(0); });
 
 document.getElementById('reloadBtn')?.addEventListener('click', () => {
     if (mode === 'applications') loadApplications(currentStatus);

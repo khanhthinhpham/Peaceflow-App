@@ -26,6 +26,12 @@
         <div class="admin-card" style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
             <input id="bookingSearch" type="search" placeholder="Tìm theo thân chủ / chuyên gia / email..." class="admin-input" style="flex:1;min-width:240px;">
             <button id="bookingSearchBtn" type="button" class="btn-primary">Tìm</button>
+            <select id="bookingPageSize" class="admin-input" aria-label="Số lịch hẹn mỗi trang" title="Số lịch hẹn mỗi trang" style="max-width:130px;">
+                <option value="10" selected>10 / trang</option>
+                <option value="25">25 / trang</option>
+                <option value="50">50 / trang</option>
+                <option value="100">100 / trang</option>
+            </select>
         </div>
 
         <div class="admin-tabs" id="bookingStatusTabs"></div>

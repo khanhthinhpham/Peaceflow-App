@@ -10,7 +10,8 @@ const metaEl = document.getElementById('adminCommunityMeta');
 const pagerEl = document.getElementById('adminCommunityPager');
 const tabsEl = document.getElementById('communityTabs');
 let currentFilter = 'reported';
-const CM_LIMIT = 20;
+const cmPageSizeEl = document.getElementById('communityPageSize');
+let CM_LIMIT = parseInt(cmPageSizeEl?.value, 10) || 10;
 const cmState = { page: 0, total: 0 };
 
 function esc(v) {
@@ -138,6 +139,7 @@ tabsEl?.addEventListener('click', (e) => {
     load(tab.getAttribute('data-filter'));
 });
 
+cmPageSizeEl?.addEventListener('change', () => { CM_LIMIT = parseInt(cmPageSizeEl.value, 10) || 10; load(currentFilter, 0); });
 document.getElementById('reloadBtn')?.addEventListener('click', () => load(currentFilter));
 
 load('reported');

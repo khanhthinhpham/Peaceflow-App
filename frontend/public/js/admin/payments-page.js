@@ -11,7 +11,8 @@ const payMetaEl = document.getElementById('adminPaymentsMeta');
 const payPagerEl = document.getElementById('adminPaymentsPager');
 const poMetaEl = document.getElementById('adminPayoutsMeta');
 const poPagerEl = document.getElementById('adminPayoutsPager');
-const PAY_LIMIT = 20;
+const payPageSizeEl = document.getElementById('payPageSize');
+let PAY_LIMIT = parseInt(payPageSizeEl?.value, 10) || 10;
 const payState = { page: 0, total: 0 };
 const poState = { page: 0, total: 0 };
 
@@ -185,6 +186,11 @@ function refreshAll() {
     loadPayouts();
 }
 
+payPageSizeEl?.addEventListener('change', () => {
+    PAY_LIMIT = parseInt(payPageSizeEl.value, 10) || 10;
+    loadPayments(0);
+    loadPayouts(0);
+});
 document.getElementById('reloadBtn')?.addEventListener('click', refreshAll);
 
 refreshAll();

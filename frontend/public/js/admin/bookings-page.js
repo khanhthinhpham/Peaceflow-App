@@ -9,7 +9,8 @@ const pagerEl = document.getElementById('adminBookingsPager');
 const tabsEl = document.getElementById('bookingStatusTabs');
 const searchEl = document.getElementById('bookingSearch');
 
-const LIMIT = 20;
+const pageSizeEl = document.getElementById('bookingPageSize');
+let LIMIT = parseInt(pageSizeEl?.value, 10) || 10;
 const state = { status: '', search: '', page: 0, total: 0 };
 
 function esc(v) {
@@ -178,6 +179,7 @@ function applySearch() {
 }
 document.getElementById('bookingSearchBtn')?.addEventListener('click', applySearch);
 searchEl?.addEventListener('keydown', (e) => { if (e.key === 'Enter') applySearch(); });
+pageSizeEl?.addEventListener('change', () => { LIMIT = parseInt(pageSizeEl.value, 10) || 10; load(0); });
 document.getElementById('reloadBtn')?.addEventListener('click', () => load(state.page));
 
 // Bộ lọc đặt sẵn khi điều hướng từ tab Người dùng / Chuyên gia.

@@ -35,6 +35,15 @@
             <button type="button" class="admin-tab" data-filter="all">Tất cả</button>
         </div>
 
+        <div style="display:flex;justify-content:flex-end;margin-bottom:10px;">
+            <select id="communityPageSize" class="admin-input" aria-label="Số bài mỗi trang" title="Số bài mỗi trang" style="max-width:130px;">
+                <option value="10" selected>10 / trang</option>
+                <option value="25">25 / trang</option>
+                <option value="50">50 / trang</option>
+                <option value="100">100 / trang</option>
+            </select>
+        </div>
+
         <div id="adminCommunityMeta" style="font-size:.82rem;color:var(--text-light);margin-bottom:10px;"></div>
         <div id="adminCommunityList"></div>
         <div id="adminCommunityPager" class="admin-pager"></div>

@@ -9,6 +9,15 @@ import { approveExpertApplication, rejectExpertApplication } from '../auth/auth.
 
 const router = Router();
 
+// Thông tin tài khoản nhận ủng hộ (donate) — công khai, dùng để dựng QR VietQR.
+router.get('/donate/info', (req, res) => {
+  const info = platformBankInfo();
+  return res.json({
+    success: true,
+    data: { bank_id: info.bankId, account_no: info.accountNo, account_name: info.accountName }
+  });
+});
+
 router.get('/expert-portal/overview', requireAuth, async (req, res) => {
   try {
     if (req.user.role !== 'expert') {

@@ -42,6 +42,14 @@
                 <button type="button" class="admin-tab" data-status="rejected">Từ chối</button>
                 <button type="button" class="admin-tab" data-status="all">Tất cả</button>
             </div>
+            <div style="display:flex;justify-content:flex-end;margin-bottom:10px;">
+                <select id="appPageSize" class="admin-input" aria-label="Số hồ sơ mỗi trang" title="Số hồ sơ mỗi trang" style="max-width:130px;">
+                    <option value="10" selected>10 / trang</option>
+                    <option value="25">25 / trang</option>
+                    <option value="50">50 / trang</option>
+                    <option value="100">100 / trang</option>
+                </select>
+            </div>
             <div id="adminApplicationsMeta" style="font-size:.82rem;color:var(--text-light);margin-bottom:10px;"></div>
             <div id="adminApplicationsList"></div>
             <div id="adminApplicationsPager" class="admin-pager"></div>
@@ -52,6 +60,12 @@
             <div class="admin-card" style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
                 <input id="expertSearch" type="search" placeholder="Tìm theo tên, mã hoặc email..." class="admin-input" style="flex:1;min-width:220px;">
                 <button id="expertSearchBtn" type="button" class="btn-primary">Tìm</button>
+                <select id="expertPageSize" class="admin-input" aria-label="Số chuyên gia mỗi trang" title="Số chuyên gia mỗi trang" style="max-width:130px;">
+                    <option value="10" selected>10 / trang</option>
+                    <option value="25">25 / trang</option>
+                    <option value="50">50 / trang</option>
+                    <option value="100">100 / trang</option>
+                </select>
             </div>
             <div class="admin-tabs" id="expertActiveTabs">
                 <button type="button" class="admin-tab active" data-active="">Tất cả</button>
