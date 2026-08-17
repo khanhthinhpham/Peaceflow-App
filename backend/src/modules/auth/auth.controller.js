@@ -142,8 +142,14 @@ export async function googleLogin(req, res) {
 export async function verifyEmail(req, res) {
   try {
     const { token } = z.object({ token: z.string().min(1) }).parse(req.query);
-    await authService.verifyEmail(token);
-    return res.json({ success: true, data: { message: 'Email đã được xác nhận.' } });
+    const result = await authService.verifyEmail(token);
+    return res.json({
+      success: true,
+      data: {
+        message: 'Email đã được xác nhận.',
+        already_verified: !!result?.alreadyVerified
+      }
+    });
   } catch (error) {
     return sendAuthError(res, error, 400);
   }

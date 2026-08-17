@@ -63,20 +63,28 @@ export async function findUserByGoogleEmail(email) {
 }
 
 export async function createEmailVerificationToken(userId, token) {
+  // Vô hiệu hoá token cũ chưa dùng để mỗi lúc chỉ có một link còn sống,
+  // tránh việc người dùng bấm nhầm link cũ trong hộp thư.
+  await db.query(
+    `update email_verification_tokens set used_at = now()
+     where user_id = $1 and used_at is null`,
+    [userId]
+  );
   await db.query(
     `insert into email_verification_tokens (user_id, token) values ($1, $2)`,
     [userId, token]
   );
 }
 
-export async function findEmailVerificationToken(token) {
+// Lấy token bất kể đã dùng hay hết hạn, để tầng service phân biệt được
+// từng nguyên nhân và trả về thông báo đúng cho người dùng.
+export async function findEmailVerificationTokenAny(token) {
   const result = await db.query(
-    `select evt.*, u.email, u.display_name, u.full_name
+    `select evt.*, u.email, u.display_name, u.full_name,
+            u.email_verified as user_email_verified
      from email_verification_tokens evt
      join users u on u.id = evt.user_id
      where evt.token = $1
-       and evt.used_at is null
-       and evt.expires_at > now()
      limit 1`,
     [token]
   );

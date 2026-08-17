@@ -10,7 +10,7 @@ import {
   revokeRefreshTokenById,
   saveRefreshToken,
   createEmailVerificationToken,
-  findEmailVerificationToken,
+  findEmailVerificationTokenAny,
   markEmailVerified,
   createPasswordResetToken,
   findPasswordResetToken,
@@ -45,6 +45,12 @@ export async function register(data) {
 
   const existing = await findUserByEmail(normalizedEmail);
   if (existing) {
+    // Tài khoản tồn tại nhưng chưa xác minh email: không chặn cụt, báo mã riêng
+    // để UI mời gửi lại email xác nhận. Không cho đăng ký đè lên tài khoản cũ
+    // vì như vậy người lạ có thể ghi đè mật khẩu của email chưa kịp xác minh.
+    if (!existing.email_verified) {
+      throw createAuthError('EMAIL_UNVERIFIED', 409);
+    }
     throw createAuthError('Email đã được đăng ký.', 409);
   }
 
@@ -77,6 +83,9 @@ export async function registerExpert(data) {
 
   const existing = await findUserByEmail(normalizedEmail);
   if (existing) {
+    if (!existing.email_verified) {
+      throw createAuthError('EMAIL_UNVERIFIED', 409);
+    }
     throw createAuthError('Email đã được đăng ký.', 409);
   }
 
@@ -302,11 +311,22 @@ export async function loginWithGoogle(idToken) {
 }
 
 export async function verifyEmail(token) {
-  const record = await findEmailVerificationToken(token);
+  const record = await findEmailVerificationTokenAny(token);
   if (!record) {
-    throw createAuthError('Link xác nhận không hợp lệ hoặc đã hết hạn.', 400);
+    throw createAuthError('TOKEN_INVALID', 400);
+  }
+  // Bấm lại link đã xác nhận thành công thì coi như thành công, không báo lỗi.
+  if (record.user_email_verified) {
+    return { alreadyVerified: true, email: record.email };
+  }
+  if (record.used_at) {
+    throw createAuthError('TOKEN_USED', 400);
+  }
+  if (new Date(record.expires_at) <= new Date()) {
+    throw createAuthError('TOKEN_EXPIRED', 400);
   }
   await markEmailVerified(record.user_id, record.id);
+  return { verified: true, email: record.email };
 }
 
 export async function resendVerificationEmail(email) {

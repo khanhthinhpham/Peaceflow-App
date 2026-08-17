@@ -287,6 +287,40 @@
             backendSignupMessage.textContent = message || '';
         }
 
+        // Email đã đăng ký nhưng chưa xác minh: cho người dùng lấy link mới ngay tại chỗ,
+        // thay vì để họ kẹt giữa "chưa kích hoạt" và "không đăng ký lại được".
+        function renderResendVerification(email) {
+            const wrap = document.createElement('div');
+            wrap.style.marginTop = '10px';
+
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'btn-primary';
+            btn.style.padding = '8px 18px';
+            btn.textContent = 'Gửi lại email xác nhận';
+
+            const note = document.createElement('p');
+            note.style.cssText = 'font-size:0.85rem;margin:8px 0 0;';
+
+            btn.addEventListener('click', async () => {
+                btn.disabled = true;
+                btn.textContent = 'Đang gửi...';
+                note.textContent = '';
+                try {
+                    await apiClient.post('/auth/resend-verification', { email });
+                    note.textContent = `Đã gửi link xác nhận mới tới ${email}. Hãy kiểm tra cả hộp thư rác.`;
+                    btn.remove();
+                } catch (err) {
+                    note.textContent = err?.message || 'Không gửi được email. Vui lòng thử lại sau.';
+                    btn.disabled = false;
+                    btn.textContent = 'Gửi lại email xác nhận';
+                }
+            });
+
+            wrap.append(btn, note);
+            backendSignupMessage.appendChild(wrap);
+        }
+
         function setSignupMode(mode) {
             signupMode = mode === 'expert' ? 'expert' : 'user';
             const isExpert = signupMode === 'expert';
@@ -307,6 +341,9 @@
             const message = String(error?.message || '').trim();
 
             if (!message) return 'Đăng ký thất bại.';
+            if (message === 'EMAIL_UNVERIFIED') {
+                return 'Email này đã đăng ký nhưng chưa xác minh.';
+            }
             if (message === 'Email already registered' || message === 'Email đã được đăng ký.') {
                 return 'Email đã được đăng ký.';
             }
@@ -427,6 +464,9 @@
                 );
             } catch (error) {
                 showBackendMessage(getSignupErrorMessage(error), 'error');
+                if (String(error?.message || '').trim() === 'EMAIL_UNVERIFIED') {
+                    renderResendVerification(email);
+                }
             } finally {
                 backendSignupBtn.disabled = false;
                 backendSignupBtn.textContent = 'Đăng Ký';

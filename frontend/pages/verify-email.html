@@ -37,25 +37,73 @@
             if (!token) {
                 icon.textContent = '❌';
                 title.textContent = 'Link không hợp lệ';
-                desc.textContent = 'Không tìm thấy token xác nhận trong link này.';
-                action.innerHTML = '<a href="login.html" class="btn-primary" style="display:inline-block;padding:10px 24px;">Về trang đăng nhập</a>';
+                desc.textContent = 'Không tìm thấy token xác nhận trong link này. Hãy nhập email để nhận link mới.';
+                renderResendForm();
                 return;
             }
 
             try {
-                await apiClient.get(`/auth/verify-email?token=${encodeURIComponent(token)}`, { noCache: true });
+                const data = await apiClient.get(`/auth/verify-email?token=${encodeURIComponent(token)}`, { noCache: true });
                 icon.textContent = '✅';
-                title.textContent = 'Email đã được xác nhận!';
+                title.textContent = data?.already_verified
+                    ? 'Email đã được xác nhận trước đó'
+                    : 'Email đã được xác nhận!';
                 desc.textContent = 'Tài khoản đã kích hoạt. Hãy đăng nhập để bắt đầu hành trình.';
                 action.innerHTML = '<a href="login.html?verified=1" class="btn-primary" style="display:inline-block;padding:10px 24px;">Đăng nhập ngay →</a>';
             } catch (err) {
-                icon.textContent = '❌';
-                title.textContent = 'Xác nhận thất bại';
-                desc.textContent = err.message?.includes('hết hạn')
-                    ? 'Link xác nhận đã hết hạn (24 giờ). Vui lòng đăng ký lại hoặc liên hệ hỗ trợ.'
-                    : 'Link xác nhận không hợp lệ hoặc đã được sử dụng.';
-                action.innerHTML = '<a href="signup.html" class="btn-primary" style="display:inline-block;padding:10px 24px;">Đăng ký lại</a>';
+                showFailure(String(err?.message || ''));
             }
+        }
+
+        // Backend trả về mã lỗi cụ thể thay vì một câu chung, nhờ đó mỗi tình huống
+        // có hướng dẫn riêng và người dùng luôn có lối đi tiếp.
+        const FAILURE_TEXT = {
+            TOKEN_EXPIRED: 'Link xác nhận đã hết hạn (24 giờ). Hãy nhập email để nhận link mới.',
+            TOKEN_USED: 'Link này đã được dùng rồi. Nếu bạn chưa kích hoạt được, hãy nhập email để nhận link mới.',
+            TOKEN_INVALID: 'Link xác nhận không hợp lệ. Hãy kiểm tra lại hoặc nhập email để nhận link mới.'
+        };
+
+        function showFailure(code) {
+            icon.textContent = '❌';
+            title.textContent = 'Xác nhận thất bại';
+            desc.textContent = FAILURE_TEXT[code]
+                || 'Không xác nhận được email. Hãy nhập email để nhận link mới.';
+            renderResendForm();
+        }
+
+        function renderResendForm() {
+            action.innerHTML = `
+                <form id="resendForm" style="display:flex;flex-direction:column;gap:10px;">
+                    <input type="email" id="resendEmail" required placeholder="Email bạn đã đăng ký"
+                           style="padding:10px 14px;border:1px solid var(--mint-light);border-radius:8px;font:inherit;">
+                    <button type="submit" id="resendBtn" class="btn-primary" style="padding:10px 24px;">
+                        Gửi lại email xác nhận
+                    </button>
+                    <p id="resendMsg" style="font-size:0.85rem;color:var(--text-secondary);margin:0;"></p>
+                    <a href="login.html" style="font-size:0.85rem;">Về trang đăng nhập</a>
+                </form>`;
+
+            const form = document.getElementById('resendForm');
+            const btn = document.getElementById('resendBtn');
+            const msg = document.getElementById('resendMsg');
+
+            form.addEventListener('submit', async (event) => {
+                event.preventDefault();
+                const email = document.getElementById('resendEmail').value.trim().toLowerCase();
+                btn.disabled = true;
+                btn.textContent = 'Đang gửi...';
+                msg.textContent = '';
+                try {
+                    await apiClient.post('/auth/resend-verification', { email });
+                    // Backend cố tình luôn trả success để không lộ email nào đã tồn tại.
+                    msg.textContent = `Nếu ${email} đã đăng ký và chưa xác minh, link mới đã được gửi. Hãy kiểm tra cả hộp thư rác.`;
+                } catch (err) {
+                    msg.textContent = err?.message || 'Không gửi được email. Vui lòng thử lại sau.';
+                } finally {
+                    btn.disabled = false;
+                    btn.textContent = 'Gửi lại email xác nhận';
+                }
+            });
         }
 
         verify();
