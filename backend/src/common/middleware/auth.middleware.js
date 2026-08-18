@@ -1,5 +1,6 @@
 import { findUserById } from '../../modules/auth/auth.repository.js';
 import { verifyAccessToken } from '../utils/jwt.js';
+import { isUsableStatus } from '../utils/user-status.js';
 
 export async function requireAuth(req, res, next) {
   try {
@@ -18,7 +19,7 @@ export async function requireAuth(req, res, next) {
     const payload = verifyAccessToken(token);
     const user = await findUserById(payload.sub);
 
-    if (!user || user.status !== 'active') {
+    if (!user || !isUsableStatus(user.status)) {
       return res.status(401).json({
         success: false,
         message: 'Invalid or expired token'

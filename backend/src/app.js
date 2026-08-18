@@ -7,6 +7,11 @@ import routes from './routes/index.js';
 import { env } from './config/env.js';
 
 const app = express();
+
+// Vercel đặt app sau proxy của nó. Không khai báo thì req.ip là IP của proxy, mọi
+// người dùng dùng chung một khoá và rate limit sẽ chặn nhầm toàn bộ khách.
+// Dùng số 1 (tin đúng một lớp proxy) thay vì true, để không ai giả được X-Forwarded-For.
+app.set('trust proxy', 1);
 const allowAllOrigins = env.appUrls.includes('*');
 const allowedOrigins = new Set(env.appUrls);
 const LOG_LEVEL = (process.env.LOG_LEVEL || 'info').toLowerCase();

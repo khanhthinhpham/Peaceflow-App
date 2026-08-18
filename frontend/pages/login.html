@@ -156,6 +156,9 @@
         if (message === 'EMAIL_NOT_VERIFIED') {
           return '__EMAIL_NOT_VERIFIED__';
         }
+        if (message === 'GOOGLE_ACCOUNT') {
+          return '__GOOGLE_ACCOUNT__';
+        }
         if (message === 'Hồ sơ chuyên gia của bạn đang chờ admin duyệt.') {
           return '__EXPERT_PENDING__';
         }
@@ -287,7 +290,17 @@
           setTimeout(() => redirectAfterLogin(), 700);
         } catch (err) {
           const errMsg = getLoginErrorMessage(err);
-          if (errMsg === '__EMAIL_NOT_VERIFIED__') {
+          if (errMsg === '__GOOGLE_ACCOUNT__') {
+            // Tài khoản tạo qua Google không có mật khẩu. Nói rõ cả hai lối vào,
+            // vì người dùng thường không nhớ mình đã đăng ký bằng cách nào.
+            msg.innerHTML = [
+              'Email này đăng ký bằng Google.<br>',
+              '<span style="font-size:0.85rem;">Hãy bấm nút "Đăng nhập với Google" bên dưới. ',
+              'Nếu muốn dùng mật khẩu, hãy chọn "Quên mật khẩu?" để đặt mật khẩu mới.</span>'
+            ].join('');
+            msg.className = 'auth-message info';
+            msg.style.display = 'block';
+          } else if (errMsg === '__EMAIL_NOT_VERIFIED__') {
             msg.innerHTML = `
               📧 Email chưa được xác nhận.<br>
               <span style="font-size:0.85rem;">Kiểm tra hộp thư của bạn và nhấn vào liên kết xác nhận.

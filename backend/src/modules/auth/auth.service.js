@@ -30,6 +30,7 @@ import crypto from 'crypto';
 import { db } from '../../config/db.js';
 import { env } from '../../config/env.js';
 import { hashPassword, verifyPassword } from '../../common/utils/hash.js';
+import { isUsableStatus, describeBlockedStatus } from '../../common/utils/user-status.js';
 import { signAccessToken, signRefreshToken, verifyRefreshToken } from '../../common/utils/jwt.js';
 import {
   sendVerificationEmail,
@@ -298,8 +299,8 @@ export async function loginWithGoogle(idToken) {
     });
     await createDefaultProfile(user.id);
     await createDefaultProgress(user.id);
-  } else if (user.status !== 'active') {
-    throw createAuthError('Tài khoản hiện đang bị vô hiệu hóa.', 403);
+  } else if (!isUsableStatus(user.status)) {
+    throw createAuthError(describeBlockedStatus(user.status), 403);
   }
 
   await db.query(`update users set last_login_at = now() where id = $1`, [user.id]);
@@ -365,14 +366,20 @@ export async function login(data) {
     throw createAuthError('Không tìm thấy tài khoản.', 404);
   }
 
+  // Tài khoản tạo qua Google không có mật khẩu. Không chặn ở đây thì argon2.verify(null, ...)
+  // ném TypeError và người dùng nhận nguyên văn 'pchstr must be a non-empty string'.
+  if (!user.password_hash) {
+    throw createAuthError('GOOGLE_ACCOUNT', 400);
+  }
+
   if (!user.email_verified) {
     throw createAuthError('EMAIL_NOT_VERIFIED', 403);
   }
 
-  // Cho phép 'active' và 'pending' (chuyên gia chờ duyệt vẫn dùng app user bình thường).
-  // Chỉ chặn tài khoản bị khoá/vô hiệu hoá.
-  if (['suspended', 'deleted', 'inactive'].includes(user.status)) {
-    throw createAuthError('Tài khoản hiện đang bị vô hiệu hóa.', 403);
+  // Dùng chung nguồn trạng thái với requireAuth và refreshSession, nếu không người dùng
+  // sẽ đăng nhập được rồi bị 401 ngay ở request kế tiếp và bị đá về trang login.
+  if (!isUsableStatus(user.status)) {
+    throw createAuthError(describeBlockedStatus(user.status), 403);
   }
 
   const passwordMatches = await verifyPassword(user.password_hash, password);
@@ -401,7 +408,7 @@ export async function refreshSession(refreshToken) {
   }
 
   const user = await findUserById(payload.sub);
-  if (!user || user.status !== 'active') {
+  if (!user || !isUsableStatus(user.status)) {
     await revokeRefreshTokenById(storedToken.id);
     throw new Error('Invalid or expired refresh token');
   }
