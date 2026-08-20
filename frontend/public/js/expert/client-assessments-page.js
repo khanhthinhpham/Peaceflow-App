@@ -542,6 +542,56 @@ function csvEscape(value) {
     return /[",\n]/.test(str) ? `"${str.replace(/"/g, '""')}"` : str;
 }
 
+function downloadCsv(filename, lines) {
+    const csvContent = '﻿' + lines.join('\r\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
+
+// Xuất TOÀN BỘ danh sách người đã tự làm test (mọi bài, mọi người) ra 1 file CSV/Excel
+// duy nhất — mỗi dòng là 1 câu hỏi của 1 người, kèm đầy đủ tên/tuổi/ghi chú/điểm/xếp loại
+// để có thể lọc/sắp xếp trực tiếp trong Excel.
+window.caExportAllSelfTests = function () {
+    if (!state.selfTestResults.length) {
+        showExpertBanner('Chưa có ai tự làm test để xuất.', 'error');
+        return;
+    }
+
+    const header = ['STT', 'Họ tên', 'Tuổi', 'Ghi chú', 'Bài test', 'Điểm tổng', 'Xếp loại', 'Thời gian', 'Câu số', 'Câu hỏi / Mục', 'Trả lời', 'Điểm câu'];
+    const lines = [header.map(csvEscape).join(',')];
+
+    state.selfTestResults.forEach((item, personIndex) => {
+        const rows = Array.isArray(item.raw_answers) ? item.raw_answers.map(normalizeAnswerRow) : [];
+        const baseCols = [
+            personIndex + 1,
+            item.respondent_name || '',
+            item.respondent_age || '',
+            item.note || '',
+            item.name,
+            item.total_score,
+            item.severity || '',
+            formatDateTime(item.created_at)
+        ];
+        if (!rows.length) {
+            lines.push([...baseCols, '', '', '', ''].map(csvEscape).join(','));
+            return;
+        }
+        rows.forEach((r) => {
+            lines.push([...baseCols, r.no, r.question, r.answer, r.score].map(csvEscape).join(','));
+        });
+    });
+
+    downloadCsv(`danh-sach-tu-test-${new Date().toISOString().slice(0, 10)}.csv`, lines);
+    showExpertBanner(`Đã xuất Excel cho ${state.selfTestResults.length} lượt test.`, 'success');
+};
+
 window.caExportCsv = function () {
     if (!detailContext) return;
     const { item, client } = detailContext;
@@ -559,16 +609,7 @@ window.caExportCsv = function () {
     lines.push(['#', 'Câu hỏi / Mục', 'Trả lời', 'Điểm'].map(csvEscape).join(','));
     rows.forEach((r) => lines.push([r.no, r.question, r.answer, r.score].map(csvEscape).join(',')));
 
-    const csvContent = '﻿' + lines.join('\r\n');
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${(item.name || 'ket-qua').replace(/\s+/g, '-')}-${item.id.slice(0, 8)}.csv`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    downloadCsv(`${(item.name || 'ket-qua').replace(/\s+/g, '-')}-${item.id.slice(0, 8)}.csv`, lines);
 };
 
 window.caExportPdf = function () {
