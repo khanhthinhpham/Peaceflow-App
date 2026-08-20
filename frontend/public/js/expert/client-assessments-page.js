@@ -613,9 +613,68 @@ function sanitizeSheetName(raw, usedNames) {
     return candidate;
 }
 
-// Xuất TOÀN BỘ danh sách người đã tự làm test ra 1 file Excel (.xlsx) nhiều sheet:
-// sheet đầu là danh sách chung kèm diễn giải kết quả, các sheet sau là chi tiết từng
-// người (từng câu hỏi/đáp án) — dùng SheetJS tải động, không cần cài thêm gói vào dự án.
+const XLS_COLORS = {
+    header: 'FF7BBF95',
+    headerText: 'FFFFFFFF',
+    section: 'FFE8CBA7',
+    subHeader: 'FFC5E8F5',
+    borderLine: 'FFD4A574',
+    zebra: 'FFFFF8F0',
+    darkText: 'FF4A3728'
+};
+
+function xlsThinBorder() {
+    const style = { style: 'thin', color: { argb: XLS_COLORS.borderLine } };
+    return { top: style, left: style, bottom: style, right: style };
+}
+
+function xlsStyleHeaderRow(row, fillArgb = XLS_COLORS.header, fontArgb = XLS_COLORS.headerText) {
+    row.eachCell({ includeEmpty: true }, (cell) => {
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: fillArgb } };
+        cell.font = { bold: true, color: { argb: fontArgb } };
+        cell.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
+        cell.border = xlsThinBorder();
+    });
+}
+
+function xlsStyleDataRow(row, zebra) {
+    row.eachCell({ includeEmpty: true }, (cell) => {
+        cell.border = xlsThinBorder();
+        cell.alignment = { vertical: 'top', wrapText: true };
+        if (zebra) cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: XLS_COLORS.zebra } };
+    });
+}
+
+function xlsStyleSectionRow(row, span) {
+    row.font = { bold: true, color: { argb: XLS_COLORS.darkText } };
+    row.eachCell({ includeEmpty: true }, (cell) => {
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: XLS_COLORS.section } };
+    });
+    if (span) row.worksheet.mergeCells(`A${row.number}:${span}${row.number}`);
+}
+
+// Gộp mọi lượt test của CÙNG 1 người (theo tên+tuổi) lại với nhau, sắp theo hoạt
+// động gần nhất trước — để sheet "Danh sách chung" merge được ô tên/tuổi liền kề,
+// và mỗi người chỉ có đúng 1 sheet chi tiết dù đã làm nhiều bài khác nhau.
+function groupSelfTestResultsByPerson(results) {
+    const groups = new Map();
+    results.forEach((item) => {
+        const name = (item.respondent_name || '').trim() || 'Chưa rõ tên';
+        const key = `${name.toLowerCase()}|${item.respondent_age || ''}`;
+        if (!groups.has(key)) groups.set(key, { name, age: item.respondent_age || '', tests: [] });
+        groups.get(key).tests.push(item);
+    });
+    return Array.from(groups.values()).sort((a, b) => {
+        const aMax = Math.max(...a.tests.map((t) => new Date(t.created_at).getTime()));
+        const bMax = Math.max(...b.tests.map((t) => new Date(t.created_at).getTime()));
+        return bMax - aMax;
+    });
+}
+
+// Xuất TOÀN BỘ danh sách người đã tự làm test ra 1 file Excel (.xlsx) nhiều sheet có
+// tô màu/viền/gộp ô (dùng ExcelJS tải động — SheetJS bản miễn phí không ghi được style):
+// sheet đầu là danh sách chung (gộp ô tên/tuổi nếu 1 người làm nhiều bài), các sheet
+// sau mỗi người 1 sheet, trình bày dạng bảng tổng hợp + chi tiết từng câu hỏi.
 window.caExportAllSelfTests = async function () {
     if (!state.selfTestResults.length) {
         showExpertBanner('Chưa có ai tự làm test để xuất.', 'error');
@@ -626,74 +685,117 @@ window.caExportAllSelfTests = async function () {
     if (btn) { btn.disabled = true; btn.textContent = '⏳ Đang tạo file...'; }
 
     try {
-        const XLSX = await import('https://cdn.jsdelivr.net/npm/xlsx@0.18.5/+esm');
+        const mod = await import('https://cdn.jsdelivr.net/npm/exceljs@4.4.0/+esm');
+        const ExcelJS = mod.default || mod;
+        const wb = new ExcelJS.Workbook();
+        const groupList = groupSelfTestResultsByPerson(state.selfTestResults);
 
-        const summaryHeader = ['STT', 'Họ tên', 'Tuổi', 'Ghi chú', 'Bài test', 'Điểm tổng', 'Xếp loại', 'Diễn giải kết quả', 'Thời gian'];
-        const summaryRows = state.selfTestResults.map((item, index) => [
-            index + 1,
-            item.respondent_name || '',
-            item.respondent_age || '',
-            item.note || '',
-            item.name,
-            item.total_score,
-            item.severity || '',
-            buildInterpretation(item),
-            formatDateTime(item.created_at)
-        ]);
+        // ===== Sheet 1: Danh sách chung =====
+        const summarySheet = wb.addWorksheet('Danh sách chung');
+        summarySheet.columns = [
+            { header: 'STT', key: 'stt', width: 6 },
+            { header: 'Họ tên', key: 'name', width: 22 },
+            { header: 'Tuổi', key: 'age', width: 8 },
+            { header: 'Ghi chú', key: 'note', width: 24 },
+            { header: 'Bài test', key: 'test', width: 28 },
+            { header: 'Điểm tổng', key: 'score', width: 10 },
+            { header: 'Xếp loại', key: 'severity', width: 16 },
+            { header: 'Diễn giải kết quả', key: 'interp', width: 60 },
+            { header: 'Thời gian', key: 'time', width: 20 }
+        ];
+        xlsStyleHeaderRow(summarySheet.getRow(1));
+        summarySheet.views = [{ state: 'frozen', ySplit: 1 }];
 
-        const wb = XLSX.utils.book_new();
-        const summarySheet = XLSX.utils.aoa_to_sheet([summaryHeader, ...summaryRows]);
-        summarySheet['!cols'] = [{ wch: 5 }, { wch: 20 }, { wch: 8 }, { wch: 24 }, { wch: 28 }, { wch: 10 }, { wch: 16 }, { wch: 60 }, { wch: 20 }];
-        XLSX.utils.book_append_sheet(wb, summarySheet, 'Danh sách chung');
-
-        // Gộp theo NGƯỜI (tên + tuổi) — 1 người có thể đã làm nhiều bài test khác nhau,
-        // nên mỗi người chỉ chiếm đúng 1 sheet, trình bày dạng bảng: bảng tổng hợp các
-        // bài đã làm ở trên, bảng chi tiết từng câu hỏi/đáp án của từng bài ở dưới.
-        const groups = new Map();
-        state.selfTestResults.forEach((item) => {
-            const name = (item.respondent_name || '').trim() || 'Chưa rõ tên';
-            const key = `${name.toLowerCase()}|${item.respondent_age || ''}`;
-            if (!groups.has(key)) groups.set(key, { name, age: item.respondent_age || '', tests: [] });
-            groups.get(key).tests.push(item);
+        let stt = 0;
+        groupList.forEach((group) => {
+            const startRow = summarySheet.rowCount + 1;
+            group.tests.forEach((t, i) => {
+                stt += 1;
+                const row = summarySheet.addRow({
+                    stt,
+                    name: group.name,
+                    age: group.age,
+                    note: t.note || '',
+                    test: t.name,
+                    score: t.total_score,
+                    severity: t.severity || '',
+                    interp: buildInterpretation(t),
+                    time: formatDateTime(t.created_at)
+                });
+                xlsStyleDataRow(row, i % 2 === 1);
+            });
+            const endRow = summarySheet.rowCount;
+            if (endRow > startRow) {
+                summarySheet.mergeCells(`B${startRow}:B${endRow}`);
+                summarySheet.mergeCells(`C${startRow}:C${endRow}`);
+                summarySheet.getCell(`B${startRow}`).alignment = { vertical: 'middle', horizontal: 'center' };
+                summarySheet.getCell(`C${startRow}`).alignment = { vertical: 'middle', horizontal: 'center' };
+            }
         });
 
+        // ===== Sheet sau: 1 người / 1 sheet =====
         const usedNames = new Set(['Danh sách chung']);
         let personIndex = 0;
-        groups.forEach((group) => {
+        groupList.forEach((group) => {
             personIndex += 1;
-            const sheetData = [
-                ['Họ tên', group.name],
-                ['Tuổi', group.age],
-                ['Số bài đã làm', group.tests.length],
-                []
-            ];
+            const sheetName = sanitizeSheetName(`${personIndex}. ${group.name}`, usedNames);
+            const sheet = wb.addWorksheet(sheetName);
+            sheet.columns = [{ key: 'c1', width: 28 }, { key: 'c2', width: 42 }, { key: 'c3', width: 22 }, { key: 'c4', width: 18 }];
 
-            sheetData.push(['Bài test', 'Điểm', 'Xếp loại', 'Diễn giải kết quả', 'Thời gian', 'Ghi chú']);
-            group.tests.forEach((t) => {
-                sheetData.push([t.name, t.total_score, t.severity || '', buildInterpretation(t), formatDateTime(t.created_at), t.note || '']);
+            const titleRow = sheet.addRow([`Họ tên: ${group.name}`]);
+            xlsStyleSectionRow(titleRow, 'D');
+            titleRow.font = { bold: true, size: 13, color: { argb: XLS_COLORS.darkText } };
+
+            const infoRow = sheet.addRow([`Tuổi: ${group.age || 'Không rõ'}    |    Số bài đã làm: ${group.tests.length}`]);
+            sheet.mergeCells(`A${infoRow.number}:D${infoRow.number}`);
+            infoRow.font = { italic: true };
+
+            sheet.addRow([]);
+
+            const summaryTitleRow = sheet.addRow(['Bảng tổng hợp các bài đã làm']);
+            xlsStyleSectionRow(summaryTitleRow, 'D');
+
+            const summaryHeaderRow = sheet.addRow(['Bài test', 'Điểm / Xếp loại', 'Thời gian', 'Ghi chú']);
+            xlsStyleHeaderRow(summaryHeaderRow, XLS_COLORS.subHeader, XLS_COLORS.darkText);
+            group.tests.forEach((t, i) => {
+                const row = sheet.addRow([t.name, `${t.total_score} — ${t.severity || ''}`, formatDateTime(t.created_at), t.note || '']);
+                xlsStyleDataRow(row, i % 2 === 1);
             });
-            sheetData.push([]);
+
+            sheet.addRow([]);
 
             group.tests.forEach((t) => {
                 const rows = Array.isArray(t.raw_answers) ? t.raw_answers.map(normalizeAnswerRow) : [];
-                sheetData.push([`Chi tiết: ${t.name} — ${formatDateTime(t.created_at)}`]);
-                sheetData.push(['#', 'Câu hỏi / Mục', 'Trả lời', 'Điểm']);
-                if (rows.length) {
-                    rows.forEach((r) => sheetData.push([r.no, r.question, r.answer, r.score]));
-                } else {
-                    sheetData.push(['', 'Không có dữ liệu chi tiết từng câu.', '', '']);
-                }
-                sheetData.push([]);
-            });
+                const sectionRow = sheet.addRow([`Chi tiết: ${t.name} — ${formatDateTime(t.created_at)}`]);
+                xlsStyleSectionRow(sectionRow, 'D');
 
-            const sheet = XLSX.utils.aoa_to_sheet(sheetData);
-            sheet['!cols'] = [{ wch: 30 }, { wch: 22 }, { wch: 16 }, { wch: 55 }, { wch: 20 }, { wch: 22 }];
-            const sheetName = sanitizeSheetName(`${personIndex}. ${group.name}`, usedNames);
-            XLSX.utils.book_append_sheet(wb, sheet, sheetName);
+                const qHeaderRow = sheet.addRow(['#', 'Câu hỏi / Mục', 'Trả lời', 'Điểm']);
+                xlsStyleHeaderRow(qHeaderRow, XLS_COLORS.subHeader, XLS_COLORS.darkText);
+
+                if (rows.length) {
+                    rows.forEach((r, i) => {
+                        const row = sheet.addRow([r.no, r.question, r.answer, r.score]);
+                        xlsStyleDataRow(row, i % 2 === 1);
+                    });
+                } else {
+                    xlsStyleDataRow(sheet.addRow(['', 'Không có dữ liệu chi tiết từng câu.', '', '']));
+                }
+                sheet.addRow([]);
+            });
         });
 
-        XLSX.writeFile(wb, `danh-sach-tu-test-${new Date().toISOString().slice(0, 10)}.xlsx`);
-        showExpertBanner(`Đã xuất Excel cho ${state.selfTestResults.length} lượt test của ${groups.size} người (${groups.size + 1} sheet).`, 'success');
+        const buffer = await wb.xlsx.writeBuffer();
+        const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `danh-sach-tu-test-${new Date().toISOString().slice(0, 10)}.xlsx`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+
+        showExpertBanner(`Đã xuất Excel cho ${state.selfTestResults.length} lượt test của ${groupList.length} người (${groupList.length + 1} sheet).`, 'success');
     } catch (error) {
         console.error('Export all self-tests failed:', error);
         showExpertBanner('Không thể tạo file Excel. Vui lòng thử lại.', 'error');
