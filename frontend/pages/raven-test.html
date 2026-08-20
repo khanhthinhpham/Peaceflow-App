@@ -249,10 +249,10 @@
         </div>
 
         <div class="rv-card" id="rvIntroCard">
-            <h3 style="margin-top:0;">👋 Trước khi bắt đầu</h3>
-            <p style="color:var(--text-secondary);font-size:0.85rem;">Vui lòng cho biết ai là người sẽ làm bài test này để lưu đúng vào hồ sơ.</p>
+            <h3 style="margin-top:0;">📝 Thông tin người làm test</h3>
+            <p style="color:var(--text-secondary);font-size:0.85rem;">Điền tên của <strong>người sẽ làm bài</strong> (khách hàng, học sinh, người thân...) — không phải tên tài khoản đang đăng nhập.</p>
             <div class="rv-field">
-                <label for="rvRespName">Họ và tên *</label>
+                <label for="rvRespName">Họ và tên người làm bài *</label>
                 <input type="text" id="rvRespName" placeholder="Nguyễn Văn A">
             </div>
             <div class="rv-field">
@@ -312,9 +312,19 @@
             image: `../public/assets/raven/${set.prefix}${i + 1}.png`
         })));
 
+        const RESPONDENT_STORAGE_KEY = 'peaceflow_respondent_info';
+
         let index = 0;
         const answers = new Array(ITEMS.length).fill(null);
         let respondentInfo = { name: '', age: '', note: '' };
+
+        function getSavedRespondentInfo() {
+            try {
+                return JSON.parse(sessionStorage.getItem(RESPONDENT_STORAGE_KEY) || 'null');
+            } catch (_error) {
+                return null;
+            }
+        }
 
         function renderItem() {
             const item = ITEMS[index];
@@ -385,6 +395,12 @@
             }
         }
 
+        function beginRavenTest() {
+            document.getElementById('rvIntroCard').style.display = 'none';
+            document.getElementById('rvTestCard').style.display = 'block';
+            renderItem();
+        }
+
         window.rvConfirmIntro = function () {
             const nameInput = document.getElementById('rvRespName');
             const name = nameInput.value.trim();
@@ -397,9 +413,8 @@
                 age: document.getElementById('rvRespAge').value.trim(),
                 note: document.getElementById('rvRespNote').value.trim()
             };
-            document.getElementById('rvIntroCard').style.display = 'none';
-            document.getElementById('rvTestCard').style.display = 'block';
-            renderItem();
+            sessionStorage.setItem(RESPONDENT_STORAGE_KEY, JSON.stringify(respondentInfo));
+            beginRavenTest();
         };
 
         async function init() {
@@ -407,6 +422,14 @@
             if (!authenticated) {
                 window.location.replace('login.html');
                 return;
+            }
+
+            // Nếu đã điền thông tin người làm bài ở trang Bài test (hoặc một bài Raven
+            // trước đó trong cùng phiên), dùng lại luôn — không hỏi lại.
+            const saved = getSavedRespondentInfo();
+            if (saved && saved.name) {
+                respondentInfo = saved;
+                beginRavenTest();
             }
         }
 

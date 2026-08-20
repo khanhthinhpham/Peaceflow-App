@@ -1228,31 +1228,45 @@
             font-size: 0.8rem;
         }
 
-        .respondent-popup {
+        .respondent-card {
             background: var(--warm-white);
-            border-radius: 24px;
-            border: 3px solid var(--mint-dark);
-            padding: 28px;
-            max-width: 420px;
-            width: 100%;
-            box-shadow: 6px 6px 0px rgba(123, 191, 149, 0.25);
-            animation: pop-in 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            border: 2px solid var(--mint-dark);
+            border-radius: var(--border-radius);
+            padding: 20px 22px;
+            box-shadow: var(--shadow-paper);
+            margin-bottom: 24px;
         }
 
-        .respondent-popup h3 {
+        .respondent-card h3 {
             margin: 0 0 4px;
-            font-size: 1.15rem;
+            font-size: 1.05rem;
         }
 
-        .respondent-popup .rp-sub {
+        .respondent-card .rc-sub {
             font-size: 0.82rem;
             color: var(--text-secondary);
-            margin-bottom: 16px;
+            margin-bottom: 14px;
             line-height: 1.5;
         }
 
+        .respondent-card.rc-error {
+            border-color: var(--coral);
+            box-shadow: 0 0 0 3px rgba(255, 139, 139, 0.25);
+        }
+
+        .rc-fields {
+            display: grid;
+            grid-template-columns: 1fr 120px 1fr;
+            gap: 14px;
+        }
+
+        .rc-field-note {
+            grid-column: 3;
+            grid-row: 1;
+        }
+
         .rp-field {
-            margin-bottom: 12px;
+            margin-bottom: 0;
         }
 
         .rp-field label {
@@ -1278,36 +1292,19 @@
 
         .rp-field textarea {
             resize: vertical;
-            min-height: 60px;
+            min-height: 42px;
+            height: 42px;
         }
 
-        .rp-actions {
-            display: flex;
-            gap: 8px;
-            margin-top: 16px;
-        }
+        @media(max-width:700px) {
+            .rc-fields {
+                grid-template-columns: 1fr;
+            }
 
-        .rp-actions button {
-            flex: 1;
-            padding: 11px;
-            border-radius: 50px;
-            font-family: 'Nunito', sans-serif;
-            font-size: 0.88rem;
-            font-weight: 700;
-            cursor: pointer;
-            border: 2px solid;
-        }
-
-        .rp-btn-cancel {
-            background: transparent;
-            color: var(--text-light);
-            border-color: var(--kraft-light);
-        }
-
-        .rp-btn-confirm {
-            background: var(--mint-dark);
-            color: white;
-            border-color: var(--mint-dark);
+            .rc-field-note {
+                grid-column: 1;
+                grid-row: auto;
+            }
         }
 
         /* ===== RESPONSIVE ===== */
@@ -1399,30 +1396,6 @@
         </div>
     </div>
 
-    <!-- Respondent Info Modal -->
-    <div class="emergency-overlay" id="respondentModal">
-        <div class="respondent-popup">
-            <h3>👋 Trước khi bắt đầu</h3>
-            <p class="rp-sub">Vui lòng cho biết ai là người sẽ làm bài test này để lưu đúng vào hồ sơ.</p>
-            <div class="rp-field">
-                <label for="respondentName">Họ và tên *</label>
-                <input type="text" id="respondentName" placeholder="Nguyễn Văn A">
-            </div>
-            <div class="rp-field">
-                <label for="respondentAge">Tuổi</label>
-                <input type="number" id="respondentAge" min="0" max="120" placeholder="VD: 15">
-            </div>
-            <div class="rp-field">
-                <label for="respondentNote">Ghi chú</label>
-                <textarea id="respondentNote" placeholder="Ghi chú thêm (nếu có)..."></textarea>
-            </div>
-            <div class="rp-actions">
-                <button type="button" class="rp-btn-cancel" onclick="closeRespondentModal()">Huỷ</button>
-                <button type="button" class="rp-btn-confirm" onclick="confirmRespondentAndStart()">Bắt đầu làm bài</button>
-            </div>
-        </div>
-    </div>
-
     <!-- Sidebar Overlay -->
 
     <!-- Shared Sidebar -->
@@ -1453,6 +1426,25 @@
                         khảo</strong>, không phải chẩn đoán y khoa. Kết quả chỉ mang tính định hướng. Nếu điểm số ở mức
                     cao, hãy tham khảo ý kiến chuyên gia tâm lý lâm sàng. Ứng dụng này <strong>không thay thế</strong>
                     dịch vụ y tế chuyên nghiệp.</div>
+            </div>
+
+            <div class="respondent-card" id="respondentCard">
+                <h3>📝 Thông tin người làm test</h3>
+                <p class="rc-sub">Điền tên của <strong>người sẽ làm bài</strong> (khách hàng, học sinh, người thân...) — không phải tên tài khoản đang đăng nhập. Thông tin này dùng chung cho mọi bài test bên dưới, chỉ cần điền một lần.</p>
+                <div class="rc-fields">
+                    <div class="rp-field">
+                        <label for="respondentName">Họ và tên người làm bài *</label>
+                        <input type="text" id="respondentName" placeholder="Nguyễn Văn A">
+                    </div>
+                    <div class="rp-field">
+                        <label for="respondentAge">Tuổi</label>
+                        <input type="number" id="respondentAge" min="0" max="120" placeholder="VD: 15">
+                    </div>
+                    <div class="rp-field rc-field-note">
+                        <label for="respondentNote">Ghi chú</label>
+                        <textarea id="respondentNote" placeholder="Ghi chú thêm (nếu có)..."></textarea>
+                    </div>
+                </div>
             </div>
 
             <div class="test-grid" id="assessmentTestGrid">
@@ -2026,36 +2018,53 @@
         let currentTestId = null;
         let currentQIndex = 0;
         let answers = [];
-        let pendingTestId = null;
-        let respondentInfo = { name: '', age: '', note: '' };
+        const RESPONDENT_STORAGE_KEY = 'peaceflow_respondent_info';
 
-        function startTest(testId) {
-            pendingTestId = testId;
-            document.getElementById('respondentName').value = '';
-            document.getElementById('respondentAge').value = '';
-            document.getElementById('respondentNote').value = '';
-            document.getElementById('respondentModal').classList.add('show');
+        function loadRespondentIntoForm() {
+            try {
+                const saved = JSON.parse(sessionStorage.getItem(RESPONDENT_STORAGE_KEY) || 'null');
+                if (saved) {
+                    document.getElementById('respondentName').value = saved.name || '';
+                    document.getElementById('respondentAge').value = saved.age || '';
+                    document.getElementById('respondentNote').value = saved.note || '';
+                }
+            } catch (_error) { /* ignore corrupted storage */ }
         }
 
-        function closeRespondentModal() {
-            document.getElementById('respondentModal').classList.remove('show');
-            pendingTestId = null;
-        }
-
-        function confirmRespondentAndStart() {
-            const nameInput = document.getElementById('respondentName');
-            const name = nameInput.value.trim();
-            if (!name) {
-                nameInput.focus();
-                return;
-            }
-            respondentInfo = {
-                name,
+        function readRespondentInfo() {
+            return {
+                name: document.getElementById('respondentName').value.trim(),
                 age: document.getElementById('respondentAge').value.trim(),
                 note: document.getElementById('respondentNote').value.trim()
             };
-            document.getElementById('respondentModal').classList.remove('show');
-            beginTestFlow(pendingTestId);
+        }
+
+        function saveRespondentInfo(info) {
+            sessionStorage.setItem(RESPONDENT_STORAGE_KEY, JSON.stringify(info));
+        }
+
+        loadRespondentIntoForm();
+        ['respondentName', 'respondentAge', 'respondentNote'].forEach((id) => {
+            document.getElementById(id)?.addEventListener('input', () => {
+                document.getElementById('respondentCard').classList.remove('rc-error');
+                saveRespondentInfo(readRespondentInfo());
+            });
+        });
+
+        // Thông tin người làm bài dùng chung cho MỌI bài test trong trang này — chỉ
+        // cần điền một lần ở thẻ đầu trang, không hỏi lại mỗi khi bắt đầu bài mới.
+        function startTest(testId) {
+            const info = readRespondentInfo();
+            const card = document.getElementById('respondentCard');
+            if (!info.name) {
+                card.classList.add('rc-error');
+                card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                document.getElementById('respondentName').focus();
+                return;
+            }
+            card.classList.remove('rc-error');
+            saveRespondentInfo(info);
+            beginTestFlow(testId);
         }
 
         function beginTestFlow(testId) {
@@ -2698,15 +2707,16 @@
             if (!meta) return;
 
             try {
+                const savedRespondent = JSON.parse(sessionStorage.getItem(RESPONDENT_STORAGE_KEY) || 'null') || {};
                 await apiClient.post(`/assessments/${meta.apiCode}/submit`, {
                     raw_answers: payload.rawAnswers,
                     total_score: payload.totalScore,
                     severity: payload.severity,
                     dimension_scores: payload.dimensionScores,
                     interpreted_result: payload.interpretedResult,
-                    respondent_name: respondentInfo.name || null,
-                    respondent_age: respondentInfo.age ? Number(respondentInfo.age) : null,
-                    note: respondentInfo.note || null
+                    respondent_name: savedRespondent.name || null,
+                    respondent_age: savedRespondent.age ? Number(savedRespondent.age) : null,
+                    note: savedRespondent.note || null
                 });
 
                 if (refs.resultSubtitle) {
