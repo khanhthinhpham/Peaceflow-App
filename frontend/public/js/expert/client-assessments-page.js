@@ -653,18 +653,41 @@ function xlsStyleSectionRow(row, span) {
     if (span) row.worksheet.mergeCells(`A${row.number}:${span}${row.number}`);
 }
 
-// Gộp mọi lượt test của CÙNG 1 người (theo tên+tuổi) lại với nhau, sắp theo hoạt
-// động gần nhất trước — để sheet "Danh sách chung" merge được ô tên/tuổi liền kề,
-// và mỗi người chỉ có đúng 1 sheet chi tiết dù đã làm nhiều bài khác nhau.
+// Gộp các lượt test làm CÙNG 1 người: khớp CẢ tên (đã chuẩn hoá Unicode) VÀ tuổi mới
+// coi là cùng 1 người. Chỉ cần tuổi khác nhau — kể cả khi một lượt bỏ trống tuổi —
+// đã coi là 2 người khác nhau và tách sheet riêng (không đoán/gộp bừa). Việc thêm
+// hậu tố tuổi vào tên sheet chỉ áp dụng khi CÙNG tên xuất hiện ở nhiều tuổi khác
+// nhau, để tránh 2 sheet trông giống hệt nhau mà không rõ vì sao lại tách.
 function groupSelfTestResultsByPerson(results) {
     const groups = new Map();
     results.forEach((item) => {
-        const name = (item.respondent_name || '').trim() || 'Chưa rõ tên';
-        const key = `${name.toLowerCase()}|${item.respondent_age || ''}`;
-        if (!groups.has(key)) groups.set(key, { name, age: item.respondent_age || '', tests: [] });
+        const rawName = (item.respondent_name || '').trim() || 'Chưa rõ tên';
+        const normName = rawName.normalize('NFC').toLowerCase();
+        const hasAge = item.respondent_age !== null && item.respondent_age !== undefined && item.respondent_age !== '';
+        const ageKey = hasAge ? String(item.respondent_age) : '__unknown__';
+        const key = `${normName}|${ageKey}`;
+        if (!groups.has(key)) {
+            groups.set(key, { name: rawName, age: hasAge ? ageKey : '', tests: [] });
+        }
         groups.get(key).tests.push(item);
     });
-    return Array.from(groups.values()).sort((a, b) => {
+
+    // Tên nào xuất hiện ở nhiều hơn 1 nhóm (tức nhiều tuổi khác nhau) mới cần thêm
+    // hậu tố tuổi vào tên sheet để phân biệt.
+    const nameOccurrence = new Map();
+    groups.forEach((group) => {
+        const key = group.name.normalize('NFC').toLowerCase();
+        nameOccurrence.set(key, (nameOccurrence.get(key) || 0) + 1);
+    });
+
+    const finalGroups = Array.from(groups.values()).map((group) => {
+        const key = group.name.normalize('NFC').toLowerCase();
+        const needsSuffix = nameOccurrence.get(key) > 1;
+        const sheetSuffix = needsSuffix ? (group.age ? ` (${group.age} tuổi)` : ' (chưa rõ tuổi)') : '';
+        return { ...group, sheetSuffix };
+    });
+
+    return finalGroups.sort((a, b) => {
         const aMax = Math.max(...a.tests.map((t) => new Date(t.created_at).getTime()));
         const bMax = Math.max(...b.tests.map((t) => new Date(t.created_at).getTime()));
         return bMax - aMax;
@@ -738,7 +761,7 @@ window.caExportAllSelfTests = async function () {
         let personIndex = 0;
         groupList.forEach((group) => {
             personIndex += 1;
-            const sheetName = sanitizeSheetName(`${personIndex}. ${group.name}`, usedNames);
+            const sheetName = sanitizeSheetName(`${personIndex}. ${group.name}${group.sheetSuffix}`, usedNames);
             const sheet = wb.addWorksheet(sheetName);
             sheet.columns = [{ key: 'c1', width: 28 }, { key: 'c2', width: 42 }, { key: 'c3', width: 22 }, { key: 'c4', width: 18 }];
 
@@ -746,7 +769,10 @@ window.caExportAllSelfTests = async function () {
             xlsStyleSectionRow(titleRow, 'D');
             titleRow.font = { bold: true, size: 13, color: { argb: XLS_COLORS.darkText } };
 
-            const infoRow = sheet.addRow([`Tuổi: ${group.age || 'Không rõ'}    |    Số bài đã làm: ${group.tests.length}`]);
+            const infoText = group.sheetSuffix
+                ? `Tuổi: ${group.age || 'Không rõ'}    |    Số bài đã làm: ${group.tests.length}    |    ⚠️ Có người khác trùng tên nhưng khác tuổi — đã tách riêng sheet.`
+                : `Tuổi: ${group.age || 'Không rõ'}    |    Số bài đã làm: ${group.tests.length}`;
+            const infoRow = sheet.addRow([infoText]);
             sheet.mergeCells(`A${infoRow.number}:D${infoRow.number}`);
             infoRow.font = { italic: true };
 
