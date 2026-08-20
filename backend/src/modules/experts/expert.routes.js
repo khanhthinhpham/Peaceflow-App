@@ -829,6 +829,154 @@ router.patch('/expert-portal/bookings/:id', requireAuth, async (req, res) => {
   }
 });
 
+// ===== EXPERT PORTAL: đánh giá lâm sàng cho client (CARS, SDQ25 bản quan sát) =====
+
+const EXPERT_ADMINISTERED_ASSESSMENT_CODES = ['CARS', 'SDQ25_OBS'];
+
+// Danh sách client mà chuyên gia có quan hệ booking (đã xác nhận/hoàn thành) — để chọn khi đánh giá.
+router.get('/expert-portal/clients', requireAuth, async (req, res) => {
+  try {
+    if (req.user.role !== 'expert') {
+      return res.status(403).json({ success: false, message: 'Expert access required' });
+    }
+    const eRes = await db.query(`select id from experts where user_id = $1 limit 1`, [req.user.sub]);
+    if (!eRes.rows[0]) {
+      return res.json({ success: true, data: [] });
+    }
+
+    const r = await db.query(
+      `select distinct on (u.id)
+         u.id as user_id,
+         coalesce(u.display_name, u.full_name) as full_name,
+         u.email,
+         eb.starts_at as last_booking_at
+       from expert_bookings eb
+       join users u on u.id = eb.user_id
+       where eb.expert_id = $1
+         and eb.status in ('confirmed', 'completed')
+       order by u.id, eb.starts_at desc`,
+      [eRes.rows[0].id]
+    );
+    return res.json({ success: true, data: r.rows });
+  } catch (error) {
+    console.error('Expert clients list error:', error);
+    return res.status(500).json({ success: false, message: 'Could not fetch clients' });
+  }
+});
+
+// Lịch sử đánh giá lâm sàng (CARS/SDQ quan sát) mà CHÍNH chuyên gia này đã ghi cho một client.
+router.get('/expert-portal/clients/:userId/assessments', requireAuth, async (req, res) => {
+  try {
+    if (req.user.role !== 'expert') {
+      return res.status(403).json({ success: false, message: 'Expert access required' });
+    }
+    const eRes = await db.query(`select id from experts where user_id = $1 limit 1`, [req.user.sub]);
+    const expert = eRes.rows[0];
+    if (!expert) {
+      return res.status(404).json({ success: false, message: 'Expert profile not found' });
+    }
+
+    const relation = await db.query(
+      `select 1 from expert_bookings
+       where expert_id = $1 and user_id = $2 and status in ('confirmed', 'completed')
+       limit 1`,
+      [expert.id, req.params.userId]
+    );
+    if (!relation.rows[0]) {
+      return res.status(403).json({ success: false, message: 'Client không thuộc danh sách của bạn' });
+    }
+
+    const r = await db.query(
+      `select ar.id, a.code, a.name, ar.total_score, ar.severity, ar.dimension_scores, ar.interpreted_result, ar.created_at
+       from assessment_results ar
+       join assessments a on a.id = ar.assessment_id
+       where ar.user_id = $1 and ar.administered_by = $2
+       order by ar.created_at desc`,
+      [req.params.userId, req.user.sub]
+    );
+    return res.json({
+      success: true,
+      data: r.rows.map((row) => ({ ...row, total_score: Number(row.total_score || 0) }))
+    });
+  } catch (error) {
+    console.error('Expert client assessments error:', error);
+    return res.status(500).json({ success: false, message: 'Could not fetch client assessments' });
+  }
+});
+
+// Chuyên gia nộp kết quả đánh giá lâm sàng thay cho client (CARS, SDQ25 bản quan sát).
+// Chỉ cho phép với các mã trong EXPERT_ADMINISTERED_ASSESSMENT_CODES và khi có quan hệ booking hợp lệ.
+router.post('/expert-portal/clients/:userId/assessments/:code/submit', requireAuth, async (req, res) => {
+  try {
+    if (req.user.role !== 'expert') {
+      return res.status(403).json({ success: false, message: 'Expert access required' });
+    }
+    const code = String(req.params.code || '').trim().toUpperCase();
+    if (!EXPERT_ADMINISTERED_ASSESSMENT_CODES.includes(code)) {
+      return res.status(400).json({ success: false, message: 'Bài đánh giá này không dành cho chuyên gia nhập điểm' });
+    }
+
+    const eRes = await db.query(`select id from experts where user_id = $1 limit 1`, [req.user.sub]);
+    const expert = eRes.rows[0];
+    if (!expert) {
+      return res.status(404).json({ success: false, message: 'Expert profile not found' });
+    }
+
+    const relation = await db.query(
+      `select 1 from expert_bookings
+       where expert_id = $1 and user_id = $2 and status in ('confirmed', 'completed')
+       limit 1`,
+      [expert.id, req.params.userId]
+    );
+    if (!relation.rows[0]) {
+      return res.status(403).json({ success: false, message: 'Client không thuộc danh sách của bạn' });
+    }
+
+    const { raw_answers, total_score, severity, dimension_scores, interpreted_result } = req.body;
+    if (typeof total_score !== 'number' || Number.isNaN(total_score)) {
+      return res.status(400).json({ success: false, message: 'total_score must be a valid number' });
+    }
+
+    const assessmentRes = await db.query(
+      `select id, code, name from assessments where upper(code) = $1 and active = true limit 1`,
+      [code]
+    );
+    const assessment = assessmentRes.rows[0];
+    if (!assessment) {
+      return res.status(404).json({ success: false, message: 'Assessment not found' });
+    }
+
+    const insertRes = await db.query(
+      `insert into assessment_results (
+         user_id, assessment_id, raw_answers, total_score, severity, dimension_scores, interpreted_result, administered_by
+       ) values ($1, $2, $3::jsonb, $4, $5, $6::jsonb, $7::jsonb, $8)
+       returning *`,
+      [
+        req.params.userId,
+        assessment.id,
+        JSON.stringify(raw_answers || []),
+        Number(total_score),
+        severity || null,
+        JSON.stringify(dimension_scores || {}),
+        JSON.stringify(interpreted_result || {}),
+        req.user.sub
+      ]
+    );
+
+    return res.status(201).json({
+      success: true,
+      data: {
+        ...insertRes.rows[0],
+        total_score: Number(insertRes.rows[0].total_score || 0),
+        assessment: { id: assessment.id, code: assessment.code, name: assessment.name }
+      }
+    });
+  } catch (error) {
+    console.error('Expert client assessment submit error:', error);
+    return res.status(500).json({ success: false, message: 'Could not submit assessment result' });
+  }
+});
+
 // ===== ADMIN: xác nhận thanh toán (tiền về tài khoản nền tảng) =====
 
 router.get('/admin/overview', requireAuth, async (req, res) => {

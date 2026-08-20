@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="../public/favicon.jpg" type="image/svg+xml">
+    <title>PeaceFlow — Coloured Progressive Matrices (Raven)</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Patrick+Hand&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --cream: #FFF8F0;
+            --warm-white: #FFFDF7;
+            --kraft: #D4A574;
+            --kraft-light: #E8CBA7;
+            --kraft-dark: #B8895A;
+            --mint: #A8D5BA;
+            --mint-light: #C5E8D2;
+            --mint-dark: #7BBF95;
+            --peach: #FFCBA4;
+            --peach-light: #FFE0C4;
+            --sky: #A8D8EA;
+            --sky-light: #C5E8F5;
+            --lavender: #C3AED6;
+            --coral: #FF8B8B;
+            --text-primary: #4A3728;
+            --text-secondary: #7A6555;
+            --shadow-paper: 3px 3px 0px rgba(74, 55, 40, 0.1);
+            --shadow-paper-hover: 5px 5px 0px rgba(74, 55, 40, 0.15);
+            --border-radius: 16px;
+            --border-radius-sm: 10px;
+            --transition: all 0.2s ease;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            font-family: 'Nunito', sans-serif;
+            background: var(--cream);
+            color: var(--text-primary);
+        }
+
+        .rv-wrap {
+            max-width: 760px;
+            margin: 0 auto;
+            padding: 24px 16px 60px;
+        }
+
+        .rv-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 18px;
+        }
+
+        .rv-title {
+            font-size: 1.3rem;
+            font-weight: 800;
+        }
+
+        .rv-back {
+            text-decoration: none;
+            color: var(--text-secondary);
+            font-weight: 700;
+            padding: 8px 14px;
+            border-radius: 999px;
+            border: 1.5px solid var(--kraft-light);
+            background: var(--warm-white);
+        }
+
+        .rv-disclaimer {
+            background: var(--peach-light);
+            border: 1.5px solid var(--peach);
+            border-radius: var(--border-radius);
+            padding: 14px 16px;
+            font-size: 0.88rem;
+            line-height: 1.5;
+            margin-bottom: 20px;
+        }
+
+        .rv-card {
+            background: var(--warm-white);
+            border: 2px solid var(--kraft-light);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-paper);
+            padding: 18px;
+        }
+
+        .rv-progress-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .rv-progress-bar {
+            height: 8px;
+            border-radius: 999px;
+            background: var(--kraft-light);
+            overflow: hidden;
+            margin-bottom: 18px;
+        }
+
+        .rv-progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--mint-dark), var(--sky));
+            transition: width 0.25s ease;
+        }
+
+        .rv-image-box {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 18px;
+        }
+
+        .rv-image-box img {
+            max-width: 100%;
+            border-radius: var(--border-radius-sm);
+            border: 1.5px solid var(--kraft-light);
+        }
+
+        .rv-options {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 8px;
+            margin-bottom: 18px;
+        }
+
+        .rv-opt {
+            padding: 14px 0;
+            text-align: center;
+            font-weight: 800;
+            font-size: 1.05rem;
+            border-radius: var(--border-radius-sm);
+            border: 2px solid var(--kraft-light);
+            background: var(--cream);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .rv-opt:hover {
+            border-color: var(--mint-dark);
+        }
+
+        .rv-opt.selected {
+            background: var(--mint);
+            border-color: var(--mint-dark);
+            color: white;
+        }
+
+        .rv-nav {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .rv-btn {
+            font-family: inherit;
+            font-weight: 800;
+            font-size: 0.95rem;
+            padding: 10px 20px;
+            border-radius: 999px;
+            border: 1.5px solid var(--kraft-light);
+            background: var(--warm-white);
+            cursor: pointer;
+        }
+
+        .rv-btn.primary {
+            background: var(--mint-dark);
+            border-color: var(--mint-dark);
+            color: white;
+        }
+
+        .rv-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .rv-result {
+            display: none;
+            text-align: center;
+            padding: 30px 18px;
+        }
+
+        .rv-result.active { display: block; }
+        .rv-result .emoji { font-size: 3rem; margin-bottom: 10px; }
+
+        .rv-result h2 {
+            margin: 0 0 8px;
+        }
+
+        .rv-result p {
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        @media (max-width: 480px) {
+            .rv-options { grid-template-columns: repeat(3, 1fr); }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="rv-wrap">
+        <div class="rv-top">
+            <div class="rv-title">🧩 Coloured Progressive Matrices</div>
+            <a class="rv-back" href="mood-assessment.html">← Quay lại</a>
+        </div>
+
+        <div class="rv-disclaimer">
+            <strong>Lưu ý:</strong> Đây là trắc nghiệm phi ngôn ngữ (Raven), cần <strong>chuyên gia đối chiếu đáp án gốc</strong>
+            để chấm điểm và đưa ra kết luận. Ứng dụng chỉ ghi nhận lựa chọn của bạn ở từng câu, không tự động tính điểm.
+        </div>
+
+        <div class="rv-card" id="rvTestCard">
+            <div class="rv-progress-row">
+                <span id="rvProgressLabel">Câu 1 / 36</span>
+                <span id="rvProgressPct">0%</span>
+            </div>
+            <div class="rv-progress-bar"><div class="rv-progress-fill" id="rvProgressFill" style="width:0%"></div></div>
+
+            <div class="rv-image-box">
+                <img id="rvImage" src="" alt="Câu hỏi Raven">
+            </div>
+
+            <div class="rv-options" id="rvOptions"></div>
+
+            <div class="rv-nav">
+                <button class="rv-btn" id="rvPrevBtn" onclick="rvPrev()">← Câu trước</button>
+                <button class="rv-btn primary" id="rvNextBtn" onclick="rvNext()" disabled>Câu tiếp →</button>
+            </div>
+        </div>
+
+        <div class="rv-result" id="rvResult">
+            <div class="emoji">✅</div>
+            <h2>Đã ghi nhận bài làm</h2>
+            <p>
+                Bạn đã hoàn thành cả 36 câu. Kết quả đã được lưu vào hồ sơ và đang chờ chuyên gia
+                đối chiếu đáp án gốc để chấm điểm, xếp loại năng lực tư duy phi ngôn ngữ.
+            </p>
+            <p id="rvSaveStatus" style="font-style: italic;"></p>
+            <a class="rv-btn primary" href="mood-assessment.html">Về danh sách bài test</a>
+        </div>
+    </div>
+
+    <script type="module">
+        import { apiClient } from '../public/js/api-client.js';
+        import { auth } from '../public/js/auth.js';
+
+        const SETS = [
+            { prefix: 'A', count: 12 },
+            { prefix: 'AB', count: 12 },
+            { prefix: 'B', count: 12 }
+        ];
+
+        const ITEMS = SETS.flatMap((set) => Array.from({ length: set.count }, (_, i) => ({
+            key: `${set.prefix}${i + 1}`,
+            image: `../public/assets/raven/${set.prefix}${i + 1}.png`
+        })));
+
+        let index = 0;
+        const answers = new Array(ITEMS.length).fill(null);
+
+        function renderItem() {
+            const item = ITEMS[index];
+            document.getElementById('rvImage').src = item.image;
+            document.getElementById('rvImage').alt = `Câu ${item.key}`;
+            document.getElementById('rvProgressLabel').textContent = `Câu ${index + 1} / ${ITEMS.length}`;
+            const pct = Math.round((index / ITEMS.length) * 100);
+            document.getElementById('rvProgressPct').textContent = `${pct}%`;
+            document.getElementById('rvProgressFill').style.width = `${pct}%`;
+
+            const optsWrap = document.getElementById('rvOptions');
+            optsWrap.innerHTML = Array.from({ length: 6 }, (_, i) => i + 1).map((n) => `
+                <div class="rv-opt ${answers[index] === n ? 'selected' : ''}" data-opt="${n}">${n}</div>
+            `).join('');
+            optsWrap.querySelectorAll('[data-opt]').forEach((el) => {
+                el.addEventListener('click', () => selectOption(Number(el.getAttribute('data-opt'))));
+            });
+
+            document.getElementById('rvPrevBtn').disabled = index === 0;
+            document.getElementById('rvNextBtn').disabled = answers[index] === null;
+            document.getElementById('rvNextBtn').textContent = index === ITEMS.length - 1 ? 'Hoàn thành' : 'Câu tiếp →';
+        }
+
+        function selectOption(n) {
+            answers[index] = n;
+            renderItem();
+        }
+
+        window.rvNext = function () {
+            if (answers[index] === null) return;
+            if (index === ITEMS.length - 1) {
+                finish();
+                return;
+            }
+            index += 1;
+            renderItem();
+        };
+
+        window.rvPrev = function () {
+            if (index === 0) return;
+            index -= 1;
+            renderItem();
+        };
+
+        async function finish() {
+            document.getElementById('rvTestCard').style.display = 'none';
+            document.getElementById('rvResult').classList.add('active');
+
+            const statusEl = document.getElementById('rvSaveStatus');
+            try {
+                await apiClient.post('/assessments/RAVEN_CPM/submit', {
+                    raw_answers: ITEMS.map((item, i) => ({ item: item.key, choice: answers[i] })),
+                    total_score: 0,
+                    severity: null,
+                    dimension_scores: {},
+                    interpreted_result: {
+                        scored: false,
+                        note: 'Cần chuyên gia đối chiếu đáp án gốc từ manual bản quyền để chấm điểm'
+                    }
+                });
+                statusEl.textContent = 'Đã lưu vào hồ sơ.';
+            } catch (error) {
+                console.error('Raven submit failed:', error);
+                statusEl.textContent = 'Chưa lưu được vào hồ sơ, vui lòng thử lại sau.';
+            }
+        }
+
+        async function init() {
+            const authenticated = await auth.waitForAuth();
+            if (!authenticated) {
+                window.location.replace('login.html');
+                return;
+            }
+            renderItem();
+        }
+
+        init();
+    </script>
+</body>
+
+</html>

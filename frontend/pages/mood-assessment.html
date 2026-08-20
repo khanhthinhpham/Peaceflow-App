@@ -433,6 +433,14 @@
             background: linear-gradient(90deg, var(--kraft), var(--peach));
         }
 
+        .test-select-card.pss::before {
+            background: linear-gradient(90deg, var(--coral), var(--peach));
+        }
+
+        .test-select-card.sdq::before {
+            background: linear-gradient(90deg, var(--sky), var(--lavender));
+        }
+
         .test-select-card:hover {
             box-shadow: var(--shadow-paper-hover);
             transform: translateY(-3px);
@@ -1747,6 +1755,160 @@
                     sleep: { indices: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9], multiplier: 1, levels: [{ max: 4, 'label': 'Rất tốt', 'class': 'level-0' }, { max: 7, 'label': 'Đạt tiêu chuẩn', 'class': 'level-1' }, { max: 14, 'label': 'Nguy cơ Mất ngủ', 'class': 'level-2' }, { max: 20, 'label': 'Mất ngủ trầm trọng', 'class': 'level-3' }, { max: 999, 'label': 'Đặc biệt nghiêm trọng', 'class': 'level-4' }] }
                 },
                 prevScores: null
+            },
+            pss: {
+                name: 'PSS', fullname: 'Perceived Stress Scale — Thang đo stress cảm nhận',
+                icon: '😣', iconBg: 'var(--coral-light)', iconBorder: 'var(--coral)',
+                timeRef: '1 tháng qua', totalQ: 10, maxScore: 40,
+                subscales: ['stress'],
+                questions: [
+                    { text: 'Bạn có thường xuyên buồn phiền vì điều gì đó bất ngờ xảy ra không?', cat: 'stress', catLabel: 'Căng thẳng' },
+                    { text: 'Bạn có thường cảm thấy mình không thể kiểm soát được những việc quan trọng trong cuộc sống của mình không?', cat: 'stress', catLabel: 'Căng thẳng' },
+                    { text: 'Bạn có thường xuyên cảm thấy lo lắng và căng thẳng không?', cat: 'stress', catLabel: 'Căng thẳng' },
+                    {
+                        text: 'Bạn cảm thấy tự tin về khả năng xử lý các vấn đề cá nhân của mình như thế nào?', cat: 'stress', catLabel: 'Căng thẳng',
+                        likertOptions: [
+                            { emoji: '❌', label: 'Không bao giờ', score: 4 },
+                            { emoji: '🔹', label: 'Hầu như không bao giờ', score: 3 },
+                            { emoji: '🔸', label: 'Thỉnh thoảng', score: 2 },
+                            { emoji: '🔶', label: 'Khá thường xuyên', score: 1 },
+                            { emoji: '🔴', label: 'Rất thường xuyên', score: 0 }
+                        ]
+                    },
+                    {
+                        text: 'Bạn cảm thấy mọi việc diễn ra theo ý mình ở mức nào?', cat: 'stress', catLabel: 'Căng thẳng',
+                        likertOptions: [
+                            { emoji: '❌', label: 'Không bao giờ', score: 4 },
+                            { emoji: '🔹', label: 'Hầu như không bao giờ', score: 3 },
+                            { emoji: '🔸', label: 'Thỉnh thoảng', score: 2 },
+                            { emoji: '🔶', label: 'Khá thường xuyên', score: 1 },
+                            { emoji: '🔴', label: 'Rất thường xuyên', score: 0 }
+                        ]
+                    },
+                    { text: 'Bạn có thấy rằng mình không thể đương đầu với tất cả những việc phải làm không?', cat: 'stress', catLabel: 'Căng thẳng' },
+                    {
+                        text: 'Bạn có thường xuyên kiểm soát được những cơn cáu gắt trong cuộc sống của bạn không?', cat: 'stress', catLabel: 'Căng thẳng',
+                        likertOptions: [
+                            { emoji: '❌', label: 'Không bao giờ', score: 4 },
+                            { emoji: '🔹', label: 'Hầu như không bao giờ', score: 3 },
+                            { emoji: '🔸', label: 'Thỉnh thoảng', score: 2 },
+                            { emoji: '🔶', label: 'Khá thường xuyên', score: 1 },
+                            { emoji: '🔴', label: 'Rất thường xuyên', score: 0 }
+                        ]
+                    },
+                    {
+                        text: 'Bao lâu rồi bạn cảm thấy rằng mình đang ở trên đỉnh của mọi thứ?', cat: 'stress', catLabel: 'Căng thẳng',
+                        likertOptions: [
+                            { emoji: '❌', label: 'Không bao giờ', score: 4 },
+                            { emoji: '🔹', label: 'Hầu như không bao giờ', score: 3 },
+                            { emoji: '🔸', label: 'Thỉnh thoảng', score: 2 },
+                            { emoji: '🔶', label: 'Khá thường xuyên', score: 1 },
+                            { emoji: '🔴', label: 'Rất thường xuyên', score: 0 }
+                        ]
+                    },
+                    { text: 'Bạn có thường tức giận vì những việc xảy ra ngoài tầm kiểm soát của mình không?', cat: 'stress', catLabel: 'Căng thẳng' },
+                    { text: 'Bạn có thường cảm thấy khó khăn chồng chất đến mức không thể vượt qua được?', cat: 'stress', catLabel: 'Căng thẳng' }
+                ],
+                likertOptions: [
+                    { emoji: '❌', label: 'Không bao giờ', score: 0 },
+                    { emoji: '🔹', label: 'Hầu như không bao giờ', score: 1 },
+                    { emoji: '🔸', label: 'Thỉnh thoảng', score: 2 },
+                    { emoji: '🔶', label: 'Khá thường xuyên', score: 3 },
+                    { emoji: '🔴', label: 'Rất thường xuyên', score: 4 }
+                ],
+                scoring: {
+                    stress: { indices: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9], multiplier: 1, levels: [{ max: 13, 'label': 'Thấp', 'class': 'level-0' }, { max: 26, 'label': 'Trung bình', 'class': 'level-2' }, { max: 999, 'label': 'Nghiêm trọng', 'class': 'level-3' }] }
+                },
+                prevScores: null
+            },
+            sdq25: {
+                name: 'SDQ-25', fullname: 'Bảng hỏi Điểm mạnh & Khó khăn (Tự đánh giá)',
+                icon: '🧒', iconBg: 'var(--sky-light)', iconBorder: 'var(--lavender)',
+                timeRef: '2 tuần qua', totalQ: 25, maxScore: 40,
+                subscales: ['emotional', 'conduct', 'hyperactivity', 'peer', 'prosocial'],
+                questions: [
+                    { text: 'Em đối xử tốt với người khác, quan tâm đến cảm xúc của họ', cat: 'prosocial', catLabel: 'Xã hội tích cực' },
+                    { text: 'Em hay bồn chồn, quá hiếu động, không thể ngồi yên một chỗ lâu', cat: 'hyperactivity', catLabel: 'Tăng động' },
+                    { text: 'Em hay than phiền đau đầu, đau bụng hoặc cảm thấy ốm mệt', cat: 'emotional', catLabel: 'Cảm xúc' },
+                    { text: 'Em sẵn lòng chia sẻ với các bạn khác (đồ chơi, đồ ăn, bút...)', cat: 'prosocial', catLabel: 'Xã hội tích cực' },
+                    { text: 'Em hay nổi cơn cáu giận hoặc tức giận', cat: 'conduct', catLabel: 'Hành vi' },
+                    { text: 'Em khá đơn độc, thường thích chơi một mình', cat: 'peer', catLabel: 'Bạn bè' },
+                    {
+                        text: 'Nhìn chung em khá ngoan, thường làm theo lời người lớn chỉ bảo', cat: 'conduct', catLabel: 'Hành vi',
+                        likertOptions: [
+                            { emoji: '🔲', label: 'Không đúng', score: 2 },
+                            { emoji: '➖', label: 'Đúng một phần', score: 1 },
+                            { emoji: '✔️', label: 'Chắc chắn đúng', score: 0 }
+                        ]
+                    },
+                    { text: 'Em có nhiều điều lo lắng, thường tỏ ra lo lắng', cat: 'emotional', catLabel: 'Cảm xúc' },
+                    { text: 'Em sẵn sàng giúp đỡ nếu có ai đó bị đau, buồn hoặc ốm', cat: 'prosocial', catLabel: 'Xã hội tích cực' },
+                    { text: 'Em luôn bồn chồn, ngọ nguậy tay chân liên tục, khó ngồi yên', cat: 'hyperactivity', catLabel: 'Tăng động' },
+                    {
+                        text: 'Em có ít nhất một người bạn thân', cat: 'peer', catLabel: 'Bạn bè',
+                        likertOptions: [
+                            { emoji: '🔲', label: 'Không đúng', score: 2 },
+                            { emoji: '➖', label: 'Đúng một phần', score: 1 },
+                            { emoji: '✔️', label: 'Chắc chắn đúng', score: 0 }
+                        ]
+                    },
+                    { text: 'Em thường đánh nhau với bạn khác hoặc bắt ép bạn làm theo ý mình', cat: 'conduct', catLabel: 'Hành vi' },
+                    { text: 'Em thường không vui, hay buồn bã hoặc dễ khóc', cat: 'emotional', catLabel: 'Cảm xúc' },
+                    {
+                        text: 'Nhìn chung các bạn khác thích chơi cùng em', cat: 'peer', catLabel: 'Bạn bè',
+                        likertOptions: [
+                            { emoji: '🔲', label: 'Không đúng', score: 2 },
+                            { emoji: '➖', label: 'Đúng một phần', score: 1 },
+                            { emoji: '✔️', label: 'Chắc chắn đúng', score: 0 }
+                        ]
+                    },
+                    { text: 'Em dễ bị sao nhãng, khó tập trung chú ý', cat: 'hyperactivity', catLabel: 'Tăng động' },
+                    { text: 'Em hồi hộp, dễ mất tự tin trong những tình huống mới', cat: 'emotional', catLabel: 'Cảm xúc' },
+                    { text: 'Em tử tế, thân thiện với các em nhỏ tuổi hơn', cat: 'prosocial', catLabel: 'Xã hội tích cực' },
+                    { text: 'Em thường bị nói là hay nói dối hoặc gian lận', cat: 'conduct', catLabel: 'Hành vi' },
+                    { text: 'Em hay bị bạn khác trêu chọc hoặc bắt nạt', cat: 'peer', catLabel: 'Bạn bè' },
+                    { text: 'Em thường tự nguyện giúp đỡ người khác (bố mẹ, thầy cô, bạn bè...)', cat: 'prosocial', catLabel: 'Xã hội tích cực' },
+                    {
+                        text: 'Em suy nghĩ kỹ hoặc cân nhắc trước khi làm một việc gì đó', cat: 'hyperactivity', catLabel: 'Tăng động',
+                        likertOptions: [
+                            { emoji: '🔲', label: 'Không đúng', score: 2 },
+                            { emoji: '➖', label: 'Đúng một phần', score: 1 },
+                            { emoji: '✔️', label: 'Chắc chắn đúng', score: 0 }
+                        ]
+                    },
+                    { text: 'Em hay lấy những thứ không phải của mình ở nhà, trường học hoặc nơi khác', cat: 'conduct', catLabel: 'Hành vi' },
+                    {
+                        text: 'Em dễ hòa đồng với người lớn hơn là với các bạn cùng lứa', cat: 'peer', catLabel: 'Bạn bè',
+                        likertOptions: [
+                            { emoji: '🔲', label: 'Không đúng', score: 2 },
+                            { emoji: '➖', label: 'Đúng một phần', score: 1 },
+                            { emoji: '✔️', label: 'Chắc chắn đúng', score: 0 }
+                        ]
+                    },
+                    { text: 'Em hay sợ hãi, dễ hoảng sợ', cat: 'emotional', catLabel: 'Cảm xúc' },
+                    {
+                        text: 'Em làm việc được giao đến nơi đến chốn, tập trung chú ý tốt', cat: 'hyperactivity', catLabel: 'Tăng động',
+                        likertOptions: [
+                            { emoji: '🔲', label: 'Không đúng', score: 2 },
+                            { emoji: '➖', label: 'Đúng một phần', score: 1 },
+                            { emoji: '✔️', label: 'Chắc chắn đúng', score: 0 }
+                        ]
+                    }
+                ],
+                likertOptions: [
+                    { emoji: '🔲', label: 'Không đúng', score: 0 },
+                    { emoji: '➖', label: 'Đúng một phần', score: 1 },
+                    { emoji: '✔️', label: 'Chắc chắn đúng', score: 2 }
+                ],
+                scoring: {
+                    emotional: { indices: [2, 7, 12, 15, 23], multiplier: 1, levels: [{ max: 3, 'label': 'Bình thường', 'class': 'level-0' }, { max: 10, 'label': 'Cần chú ý', 'class': 'level-2' }] },
+                    conduct: { indices: [4, 6, 11, 17, 21], multiplier: 1, levels: [{ max: 2, 'label': 'Bình thường', 'class': 'level-0' }, { max: 10, 'label': 'Cần chú ý', 'class': 'level-2' }] },
+                    hyperactivity: { indices: [1, 9, 14, 20, 24], multiplier: 1, levels: [{ max: 5, 'label': 'Bình thường', 'class': 'level-0' }, { max: 10, 'label': 'Cần chú ý', 'class': 'level-2' }] },
+                    peer: { indices: [5, 10, 13, 18, 22], multiplier: 1, levels: [{ max: 2, 'label': 'Bình thường', 'class': 'level-0' }, { max: 10, 'label': 'Cần chú ý', 'class': 'level-2' }] },
+                    prosocial: { indices: [0, 3, 8, 16, 19], multiplier: 1, levels: [{ max: 4, 'label': 'Cần hỗ trợ thêm kỹ năng xã hội', 'class': 'level-2' }, { max: 10, 'label': 'Tốt', 'class': 'level-0' }] },
+                    total: { indices: [2, 7, 12, 15, 23, 4, 6, 11, 17, 21, 1, 9, 14, 20, 24, 5, 10, 13, 18, 22], multiplier: 1, levels: [{ max: 15, 'label': 'Bình thường', 'class': 'level-0' }, { max: 19, 'label': 'Ranh giới', 'class': 'level-1' }, { max: 999, 'label': 'Bất thường', 'class': 'level-3' }] }
+                },
+                prevScores: null
             }
         };
 
@@ -2162,6 +2324,34 @@
                     { className: 'badge-mint', label: '~5 phút' },
                     { style: 'background:var(--kraft-light);color:var(--kraft-dark);border:1.5px solid var(--kraft);', label: 'Hàng tháng' }
                 ]
+            },
+            pss: {
+                apiCode: 'PSS',
+                name: 'PSS',
+                fullname: 'Perceived Stress Scale',
+                icon: '😣',
+                cardClass: 'pss',
+                iconStyle: 'background:var(--coral-light);border-color:var(--coral);',
+                desc: 'Đánh giá mức độ stress cảm nhận được trong 1 tháng gần đây.',
+                badges: [
+                    { className: 'badge-peach', label: '10 câu hỏi' },
+                    { className: 'badge-mint', label: '~4 phút' },
+                    { style: 'background:var(--kraft-light);color:var(--kraft-dark);border:1.5px solid var(--kraft);', label: 'Hàng tháng' }
+                ]
+            },
+            sdq25: {
+                apiCode: 'SDQ25',
+                name: 'SDQ-25',
+                fullname: 'Bảng hỏi Điểm mạnh & Khó khăn (Tự đánh giá)',
+                icon: '🧒',
+                cardClass: 'sdq',
+                iconStyle: 'background:var(--sky-light);border-color:var(--lavender);',
+                desc: 'Sàng lọc điểm mạnh và khó khăn về cảm xúc, hành vi dành cho thanh thiếu niên.',
+                badges: [
+                    { className: 'badge-sky', label: '25 câu hỏi' },
+                    { className: 'badge-mint', label: '~10 phút' },
+                    { className: 'badge-lavender', label: 'Thanh thiếu niên' }
+                ]
             }
         };
 
@@ -2250,7 +2440,20 @@
                         <div class="tsc-last">🕐 Lần cuối: ${escapeHtml(latestLabel)}</div>
                     </div>
                 `;
-            }).join('');
+            }).join('') + `
+                <div class="test-select-card sdq" onclick="location.href='raven-test.html'">
+                    <div class="tsc-icon" style="background:var(--sky-light);border-color:var(--lavender);">🧩</div>
+                    <div class="tsc-name">Raven CPM</div>
+                    <div class="tsc-fullname">Coloured Progressive Matrices</div>
+                    <div class="tsc-desc">Trắc nghiệm phi ngôn ngữ đo tư duy logic bằng hình ảnh. Chuyên gia sẽ chấm điểm theo đáp án gốc.</div>
+                    <div class="tsc-meta">
+                        <span class="badge-pill badge-sky">36 câu hỏi</span>
+                        <span class="badge-pill badge-mint">~20 phút</span>
+                        <span class="badge-pill" style="background:var(--lavender-light);color:#8a6aaa;border:1.5px solid var(--lavender);">Chuyên gia chấm</span>
+                    </div>
+                    <div class="tsc-last">🕐 Xem trong lịch sử sau khi có kết quả chấm</div>
+                </div>
+            `;
         }
 
         function renderHistory() {

@@ -4,6 +4,7 @@ import { escapeHtml } from './utils.js';
 
 const NAV_ITEMS = [
     { href: 'dashboard.html', key: 'dashboard', icon: '🏡', label: 'Tổng quan' },
+    { href: 'client-assessments.html', key: 'client-assessments', icon: '🩺', label: 'Đánh giá lâm sàng' },
     { href: 'payments.html', key: 'payments', icon: '💳', label: 'Thanh toán' },
     { href: 'application.html', key: 'application', icon: '📋', label: 'Hồ sơ chuyên gia' },
     { href: 'review-status.html', key: 'review-status', icon: '🧾', label: 'Lịch sử xét duyệt' }

@@ -2,7 +2,7 @@ import { requireExpertUser } from './shell.js';
 
 // Các trang nội dung của khu expert. Router chỉ chặn click trong phạm vi /expert/
 // nên không đụng tới route trùng tên (vd dashboard.html của app người dùng).
-const EXPERT_PAGES = new Set(['dashboard.html', 'payments.html', 'application.html', 'review-status.html']);
+const EXPERT_PAGES = new Set(['dashboard.html', 'payments.html', 'application.html', 'review-status.html', 'client-assessments.html']);
 
 // Cố định trong session — reload trang (sau deploy mới) sẽ đổi version.
 const SESSION_VERSION = Date.now();
