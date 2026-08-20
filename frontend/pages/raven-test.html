@@ -332,7 +332,7 @@
 
         function getSavedRespondentInfo() {
             try {
-                return JSON.parse(sessionStorage.getItem(RESPONDENT_STORAGE_KEY) || 'null');
+                return JSON.parse(localStorage.getItem(RESPONDENT_STORAGE_KEY) || 'null');
             } catch (_error) {
                 return null;
             }
@@ -458,7 +458,7 @@
                 age: document.getElementById('rvRespAge').value.trim(),
                 note: document.getElementById('rvRespNote').value.trim()
             };
-            sessionStorage.setItem(RESPONDENT_STORAGE_KEY, JSON.stringify(respondentInfo));
+            localStorage.setItem(RESPONDENT_STORAGE_KEY, JSON.stringify(respondentInfo));
             beginRavenTest();
         };
 
