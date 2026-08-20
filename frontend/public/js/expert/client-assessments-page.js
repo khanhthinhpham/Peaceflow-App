@@ -487,8 +487,18 @@ function renderHistory() {
 let detailContext = null;
 
 function normalizeAnswerRow(entry, index) {
-    const question = entry.question || entry.domain || entry.item || `Mục ${index + 1}`;
-    const answer = entry.answer ?? (entry.choice !== undefined ? `Đáp án ${entry.choice}` : '');
+    // Dữ liệu cũ (làm trước khi lưu kèm nội dung câu hỏi) có thể là null, số, hoặc
+    // object thiếu field — luôn trả về dạng hiển thị được, không để trang bị vỡ.
+    if (entry === null || typeof entry !== 'object') {
+        return {
+            no: index + 1,
+            question: `Câu ${index + 1}`,
+            answer: entry === null || entry === undefined ? '(không có dữ liệu)' : String(entry),
+            score: ''
+        };
+    }
+    const question = entry.question || entry.domain || entry.item || `Câu ${index + 1}`;
+    const answer = entry.answer ?? (entry.choice !== undefined && entry.choice !== null ? `Đáp án ${entry.choice}` : '');
     const score = entry.score ?? entry.choice ?? '';
     return { no: index + 1, question, answer, score };
 }
