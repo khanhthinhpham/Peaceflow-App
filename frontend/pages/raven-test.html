@@ -203,6 +203,36 @@
         @media (max-width: 480px) {
             .rv-options { grid-template-columns: repeat(3, 1fr); }
         }
+
+        .rv-field {
+            margin-bottom: 12px;
+        }
+
+        .rv-field label {
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+        }
+
+        .rv-field input,
+        .rv-field textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border-radius: var(--border-radius-sm);
+            border: 1.5px solid var(--kraft-light);
+            font-family: 'Nunito', sans-serif;
+            font-size: 0.9rem;
+            background: var(--cream);
+            color: var(--text-primary);
+            box-sizing: border-box;
+        }
+
+        .rv-field textarea {
+            resize: vertical;
+            min-height: 60px;
+        }
     </style>
 </head>
 
@@ -218,7 +248,25 @@
             để chấm điểm và đưa ra kết luận. Ứng dụng chỉ ghi nhận lựa chọn của bạn ở từng câu, không tự động tính điểm.
         </div>
 
-        <div class="rv-card" id="rvTestCard">
+        <div class="rv-card" id="rvIntroCard">
+            <h3 style="margin-top:0;">👋 Trước khi bắt đầu</h3>
+            <p style="color:var(--text-secondary);font-size:0.85rem;">Vui lòng cho biết ai là người sẽ làm bài test này để lưu đúng vào hồ sơ.</p>
+            <div class="rv-field">
+                <label for="rvRespName">Họ và tên *</label>
+                <input type="text" id="rvRespName" placeholder="Nguyễn Văn A">
+            </div>
+            <div class="rv-field">
+                <label for="rvRespAge">Tuổi</label>
+                <input type="number" id="rvRespAge" min="0" max="120" placeholder="VD: 10">
+            </div>
+            <div class="rv-field">
+                <label for="rvRespNote">Ghi chú</label>
+                <textarea id="rvRespNote" placeholder="Ghi chú thêm (nếu có)..."></textarea>
+            </div>
+            <button class="rv-btn primary" style="width:100%;" onclick="rvConfirmIntro()">Bắt đầu làm bài</button>
+        </div>
+
+        <div class="rv-card" id="rvTestCard" style="display:none;">
             <div class="rv-progress-row">
                 <span id="rvProgressLabel">Câu 1 / 36</span>
                 <span id="rvProgressPct">0%</span>
@@ -266,6 +314,7 @@
 
         let index = 0;
         const answers = new Array(ITEMS.length).fill(null);
+        let respondentInfo = { name: '', age: '', note: '' };
 
         function renderItem() {
             const item = ITEMS[index];
@@ -324,7 +373,10 @@
                     interpreted_result: {
                         scored: false,
                         note: 'Cần chuyên gia đối chiếu đáp án gốc từ manual bản quyền để chấm điểm'
-                    }
+                    },
+                    respondent_name: respondentInfo.name || null,
+                    respondent_age: respondentInfo.age ? Number(respondentInfo.age) : null,
+                    note: respondentInfo.note || null
                 });
                 statusEl.textContent = 'Đã lưu vào hồ sơ.';
             } catch (error) {
@@ -333,13 +385,29 @@
             }
         }
 
+        window.rvConfirmIntro = function () {
+            const nameInput = document.getElementById('rvRespName');
+            const name = nameInput.value.trim();
+            if (!name) {
+                nameInput.focus();
+                return;
+            }
+            respondentInfo = {
+                name,
+                age: document.getElementById('rvRespAge').value.trim(),
+                note: document.getElementById('rvRespNote').value.trim()
+            };
+            document.getElementById('rvIntroCard').style.display = 'none';
+            document.getElementById('rvTestCard').style.display = 'block';
+            renderItem();
+        };
+
         async function init() {
             const authenticated = await auth.waitForAuth();
             if (!authenticated) {
                 window.location.replace('login.html');
                 return;
             }
-            renderItem();
         }
 
         init();

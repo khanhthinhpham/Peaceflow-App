@@ -1228,6 +1228,88 @@
             font-size: 0.8rem;
         }
 
+        .respondent-popup {
+            background: var(--warm-white);
+            border-radius: 24px;
+            border: 3px solid var(--mint-dark);
+            padding: 28px;
+            max-width: 420px;
+            width: 100%;
+            box-shadow: 6px 6px 0px rgba(123, 191, 149, 0.25);
+            animation: pop-in 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .respondent-popup h3 {
+            margin: 0 0 4px;
+            font-size: 1.15rem;
+        }
+
+        .respondent-popup .rp-sub {
+            font-size: 0.82rem;
+            color: var(--text-secondary);
+            margin-bottom: 16px;
+            line-height: 1.5;
+        }
+
+        .rp-field {
+            margin-bottom: 12px;
+        }
+
+        .rp-field label {
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+        }
+
+        .rp-field input,
+        .rp-field textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border-radius: var(--border-radius-sm);
+            border: 1.5px solid var(--kraft-light);
+            font-family: 'Nunito', sans-serif;
+            font-size: 0.9rem;
+            background: var(--cream);
+            color: var(--text-primary);
+            box-sizing: border-box;
+        }
+
+        .rp-field textarea {
+            resize: vertical;
+            min-height: 60px;
+        }
+
+        .rp-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 16px;
+        }
+
+        .rp-actions button {
+            flex: 1;
+            padding: 11px;
+            border-radius: 50px;
+            font-family: 'Nunito', sans-serif;
+            font-size: 0.88rem;
+            font-weight: 700;
+            cursor: pointer;
+            border: 2px solid;
+        }
+
+        .rp-btn-cancel {
+            background: transparent;
+            color: var(--text-light);
+            border-color: var(--kraft-light);
+        }
+
+        .rp-btn-confirm {
+            background: var(--mint-dark);
+            color: white;
+            border-color: var(--mint-dark);
+        }
+
         /* ===== RESPONSIVE ===== */
         @media(max-width:1100px) {
             .test-grid {
@@ -1313,6 +1395,30 @@
                 <a href="tel:1800599920" class="ep-btn ep-btn-red">📞 Gọi ngay hotline</a>
                 <a href="experts.html" class="ep-btn ep-btn-green">💬 Kết nối chuyên gia</a>
                 <button class="ep-btn ep-btn-ghost" onclick="closeEmergency()">Tôi hiểu, đóng lại</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Respondent Info Modal -->
+    <div class="emergency-overlay" id="respondentModal">
+        <div class="respondent-popup">
+            <h3>👋 Trước khi bắt đầu</h3>
+            <p class="rp-sub">Vui lòng cho biết ai là người sẽ làm bài test này để lưu đúng vào hồ sơ.</p>
+            <div class="rp-field">
+                <label for="respondentName">Họ và tên *</label>
+                <input type="text" id="respondentName" placeholder="Nguyễn Văn A">
+            </div>
+            <div class="rp-field">
+                <label for="respondentAge">Tuổi</label>
+                <input type="number" id="respondentAge" min="0" max="120" placeholder="VD: 15">
+            </div>
+            <div class="rp-field">
+                <label for="respondentNote">Ghi chú</label>
+                <textarea id="respondentNote" placeholder="Ghi chú thêm (nếu có)..."></textarea>
+            </div>
+            <div class="rp-actions">
+                <button type="button" class="rp-btn-cancel" onclick="closeRespondentModal()">Huỷ</button>
+                <button type="button" class="rp-btn-confirm" onclick="confirmRespondentAndStart()">Bắt đầu làm bài</button>
             </div>
         </div>
     </div>
@@ -1920,8 +2026,39 @@
         let currentTestId = null;
         let currentQIndex = 0;
         let answers = [];
+        let pendingTestId = null;
+        let respondentInfo = { name: '', age: '', note: '' };
 
         function startTest(testId) {
+            pendingTestId = testId;
+            document.getElementById('respondentName').value = '';
+            document.getElementById('respondentAge').value = '';
+            document.getElementById('respondentNote').value = '';
+            document.getElementById('respondentModal').classList.add('show');
+        }
+
+        function closeRespondentModal() {
+            document.getElementById('respondentModal').classList.remove('show');
+            pendingTestId = null;
+        }
+
+        function confirmRespondentAndStart() {
+            const nameInput = document.getElementById('respondentName');
+            const name = nameInput.value.trim();
+            if (!name) {
+                nameInput.focus();
+                return;
+            }
+            respondentInfo = {
+                name,
+                age: document.getElementById('respondentAge').value.trim(),
+                note: document.getElementById('respondentNote').value.trim()
+            };
+            document.getElementById('respondentModal').classList.remove('show');
+            beginTestFlow(pendingTestId);
+        }
+
+        function beginTestFlow(testId) {
             currentTestId = testId;
             currentQIndex = 0;
             answers = [];
@@ -2220,7 +2357,7 @@
         }
 
         function retakeTest() {
-            startTest(currentTestId);
+            beginTestFlow(currentTestId);
             document.getElementById('resultPanel').classList.remove('active');
         }
 
@@ -2566,7 +2703,10 @@
                     total_score: payload.totalScore,
                     severity: payload.severity,
                     dimension_scores: payload.dimensionScores,
-                    interpreted_result: payload.interpretedResult
+                    interpreted_result: payload.interpretedResult,
+                    respondent_name: respondentInfo.name || null,
+                    respondent_age: respondentInfo.age ? Number(respondentInfo.age) : null,
+                    note: respondentInfo.note || null
                 });
 
                 if (refs.resultSubtitle) {

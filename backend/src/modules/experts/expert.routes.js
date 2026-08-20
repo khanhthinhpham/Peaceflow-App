@@ -829,6 +829,45 @@ router.patch('/expert-portal/bookings/:id', requireAuth, async (req, res) => {
   }
 });
 
+// Danh sách kết quả TỰ TEST được thực hiện ngay trên tài khoản của chuyên gia đang đăng nhập
+// (khách hàng dùng máy/tài khoản của chuyên gia để tự làm test, không có tài khoản riêng).
+router.get('/expert-portal/self-test-results', requireAuth, async (req, res) => {
+  try {
+    if (req.user.role !== 'expert') {
+      return res.status(403).json({ success: false, message: 'Expert access required' });
+    }
+
+    const r = await db.query(
+      `select
+         ar.id,
+         a.code,
+         a.name,
+         ar.total_score,
+         ar.severity,
+         ar.dimension_scores,
+         ar.interpreted_result,
+         ar.respondent_name,
+         ar.respondent_age,
+         ar.note,
+         ar.created_at
+       from assessment_results ar
+       join assessments a on a.id = ar.assessment_id
+       where ar.user_id = $1
+       order by ar.created_at desc
+       limit 100`,
+      [req.user.sub]
+    );
+
+    return res.json({
+      success: true,
+      data: r.rows.map((row) => ({ ...row, total_score: Number(row.total_score || 0) }))
+    });
+  } catch (error) {
+    console.error('Expert self-test results error:', error);
+    return res.status(500).json({ success: false, message: 'Could not fetch self-test results' });
+  }
+});
+
 // ===== EXPERT PORTAL: đánh giá lâm sàng cho client (CARS, SDQ25 bản quan sát) =====
 
 const EXPERT_ADMINISTERED_ASSESSMENT_CODES = ['CARS', 'SDQ25_OBS'];

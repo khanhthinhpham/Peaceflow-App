@@ -169,7 +169,35 @@ async function init() {
         badgeText: 'CARS · SDQ-25'
     });
 
-    await loadClients();
+    await Promise.all([loadClients(), loadSelfTestResults()]);
+}
+
+async function loadSelfTestResults() {
+    const el = document.getElementById('caSelfTestList');
+    el.innerHTML = '<p class="ca-empty">Đang tải...</p>';
+    let results = [];
+    try {
+        results = await apiClient.get('/expert-portal/self-test-results', { noCache: true });
+    } catch (error) {
+        el.innerHTML = '<p class="ca-empty">Không tải được danh sách.</p>';
+        return;
+    }
+
+    if (!results.length) {
+        el.innerHTML = '<p class="ca-empty">Chưa có ai tự làm test trên tài khoản này.</p>';
+        return;
+    }
+
+    el.innerHTML = results.map((item) => `
+        <div class="ca-selftest-item">
+            <div class="ca-selftest-main">
+                <div class="ca-selftest-name">${escapeHtml(item.respondent_name || 'Chưa rõ tên')}${item.respondent_age ? ` — ${item.respondent_age} tuổi` : ''}</div>
+                <div class="ca-selftest-meta">${escapeHtml(item.name)} · ${formatDateTime(item.created_at)}</div>
+                ${item.note ? `<div class="ca-selftest-note">Ghi chú: ${escapeHtml(item.note)}</div>` : ''}
+            </div>
+            <div class="ca-selftest-score">${escapeHtml(item.severity || 'Đã hoàn thành')}<br>${item.total_score}</div>
+        </div>
+    `).join('');
 }
 
 async function loadClients() {

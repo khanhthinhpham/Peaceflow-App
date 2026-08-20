@@ -81,6 +81,9 @@ router.get('/assessments/history', requireAuth, async (req, res) => {
          ar.severity,
          ar.dimension_scores,
          ar.interpreted_result,
+         ar.respondent_name,
+         ar.respondent_age,
+         ar.note,
          ar.created_at
        from assessment_results ar
        join assessments a on a.id = ar.assessment_id
@@ -115,7 +118,10 @@ router.post('/assessments/:code/submit', requireAuth, async (req, res) => {
       total_score,
       severity,
       dimension_scores,
-      interpreted_result
+      interpreted_result,
+      respondent_name,
+      respondent_age,
+      note
     } = req.body;
 
     if (!assessmentCode) {
@@ -157,9 +163,12 @@ router.post('/assessments/:code/submit', requireAuth, async (req, res) => {
          total_score,
          severity,
          dimension_scores,
-         interpreted_result
+         interpreted_result,
+         respondent_name,
+         respondent_age,
+         note
        )
-       values ($1, $2, $3::jsonb, $4, $5, $6::jsonb, $7::jsonb)
+       values ($1, $2, $3::jsonb, $4, $5, $6::jsonb, $7::jsonb, $8, $9, $10)
        returning *`,
       [
         userId,
@@ -168,7 +177,10 @@ router.post('/assessments/:code/submit', requireAuth, async (req, res) => {
         Number(total_score),
         severity || null,
         JSON.stringify(dimension_scores || {}),
-        JSON.stringify(interpreted_result || {})
+        JSON.stringify(interpreted_result || {}),
+        respondent_name ? String(respondent_name).slice(0, 255) : null,
+        Number.isFinite(Number(respondent_age)) ? Math.round(Number(respondent_age)) : null,
+        note ? String(note).slice(0, 2000) : null
       ]
     );
 
@@ -181,6 +193,9 @@ router.post('/assessments/:code/submit', requireAuth, async (req, res) => {
          ar.severity,
          ar.dimension_scores,
          ar.interpreted_result,
+         ar.respondent_name,
+         ar.respondent_age,
+         ar.note,
          ar.created_at
        from assessment_results ar
        join assessments a on a.id = ar.assessment_id
