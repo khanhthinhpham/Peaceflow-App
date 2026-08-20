@@ -555,41 +555,107 @@ function downloadCsv(filename, lines) {
     URL.revokeObjectURL(url);
 }
 
-// Xuất TOÀN BỘ danh sách người đã tự làm test (mọi bài, mọi người) ra 1 file CSV/Excel
-// duy nhất — mỗi dòng là 1 câu hỏi của 1 người, kèm đầy đủ tên/tuổi/ghi chú/điểm/xếp loại
-// để có thể lọc/sắp xếp trực tiếp trong Excel.
-window.caExportAllSelfTests = function () {
+function stripHtml(html) {
+    const div = document.createElement('div');
+    div.innerHTML = html;
+    return (div.textContent || div.innerText || '').replace(/\s+/g, ' ').trim();
+}
+
+// Diễn giải kết quả dạng chữ, ưu tiên lấy phần tóm tắt đã có sẵn (summary_html của bài
+// tự làm, note của Raven...), rơi về liệt kê điểm từng nhóm, cuối cùng mới chỉ ghi điểm/xếp loại.
+function buildInterpretation(item) {
+    const ir = item.interpreted_result;
+    if (ir && typeof ir === 'object') {
+        if (ir.summary_html) return stripHtml(ir.summary_html);
+        if (ir.note) return ir.note;
+    }
+    if (item.dimension_scores && typeof item.dimension_scores === 'object' && Object.keys(item.dimension_scores).length) {
+        return Object.entries(item.dimension_scores)
+            .map(([key, value]) => `${key}: ${value?.severity || value?.score || ''}`)
+            .join('; ');
+    }
+    return `Điểm ${item.total_score} — ${item.severity || 'Đã hoàn thành'}`;
+}
+
+function sanitizeSheetName(raw, usedNames) {
+    let base = String(raw).replace(/[\\/?*[\]:]/g, ' ').trim().slice(0, 31) || 'Sheet';
+    let candidate = base;
+    let counter = 2;
+    while (usedNames.has(candidate)) {
+        const suffix = ` (${counter})`;
+        candidate = base.slice(0, 31 - suffix.length) + suffix;
+        counter += 1;
+    }
+    usedNames.add(candidate);
+    return candidate;
+}
+
+// Xuất TOÀN BỘ danh sách người đã tự làm test ra 1 file Excel (.xlsx) nhiều sheet:
+// sheet đầu là danh sách chung kèm diễn giải kết quả, các sheet sau là chi tiết từng
+// người (từng câu hỏi/đáp án) — dùng SheetJS tải động, không cần cài thêm gói vào dự án.
+window.caExportAllSelfTests = async function () {
     if (!state.selfTestResults.length) {
         showExpertBanner('Chưa có ai tự làm test để xuất.', 'error');
         return;
     }
 
-    const header = ['STT', 'Họ tên', 'Tuổi', 'Ghi chú', 'Bài test', 'Điểm tổng', 'Xếp loại', 'Thời gian', 'Câu số', 'Câu hỏi / Mục', 'Trả lời', 'Điểm câu'];
-    const lines = [header.map(csvEscape).join(',')];
+    const btn = document.getElementById('caExportAllBtn');
+    if (btn) { btn.disabled = true; btn.textContent = '⏳ Đang tạo file...'; }
 
-    state.selfTestResults.forEach((item, personIndex) => {
-        const rows = Array.isArray(item.raw_answers) ? item.raw_answers.map(normalizeAnswerRow) : [];
-        const baseCols = [
-            personIndex + 1,
+    try {
+        const XLSX = await import('https://cdn.jsdelivr.net/npm/xlsx@0.18.5/+esm');
+
+        const summaryHeader = ['STT', 'Họ tên', 'Tuổi', 'Ghi chú', 'Bài test', 'Điểm tổng', 'Xếp loại', 'Diễn giải kết quả', 'Thời gian'];
+        const summaryRows = state.selfTestResults.map((item, index) => [
+            index + 1,
             item.respondent_name || '',
             item.respondent_age || '',
             item.note || '',
             item.name,
             item.total_score,
             item.severity || '',
+            buildInterpretation(item),
             formatDateTime(item.created_at)
-        ];
-        if (!rows.length) {
-            lines.push([...baseCols, '', '', '', ''].map(csvEscape).join(','));
-            return;
-        }
-        rows.forEach((r) => {
-            lines.push([...baseCols, r.no, r.question, r.answer, r.score].map(csvEscape).join(','));
-        });
-    });
+        ]);
 
-    downloadCsv(`danh-sach-tu-test-${new Date().toISOString().slice(0, 10)}.csv`, lines);
-    showExpertBanner(`Đã xuất Excel cho ${state.selfTestResults.length} lượt test.`, 'success');
+        const wb = XLSX.utils.book_new();
+        const summarySheet = XLSX.utils.aoa_to_sheet([summaryHeader, ...summaryRows]);
+        summarySheet['!cols'] = [{ wch: 5 }, { wch: 20 }, { wch: 8 }, { wch: 24 }, { wch: 28 }, { wch: 10 }, { wch: 16 }, { wch: 60 }, { wch: 20 }];
+        XLSX.utils.book_append_sheet(wb, summarySheet, 'Danh sách chung');
+
+        const usedNames = new Set(['Danh sách chung']);
+        state.selfTestResults.forEach((item, index) => {
+            const rows = Array.isArray(item.raw_answers) ? item.raw_answers.map(normalizeAnswerRow) : [];
+            const detailHeader = ['Họ tên', item.respondent_name || 'Chưa rõ tên'];
+            const infoRows = [
+                ['Bài test', item.name],
+                ['Tuổi', item.respondent_age || ''],
+                ['Điểm tổng', item.total_score],
+                ['Xếp loại', item.severity || ''],
+                ['Ghi chú', item.note || ''],
+                ['Thời gian', formatDateTime(item.created_at)],
+                []
+            ];
+            const questionHeader = ['#', 'Câu hỏi / Mục', 'Trả lời', 'Điểm'];
+            const questionRows = rows.length
+                ? rows.map((r) => [r.no, r.question, r.answer, r.score])
+                : [['', 'Không có dữ liệu chi tiết từng câu.', '', '']];
+
+            const sheetData = [detailHeader, ...infoRows, questionHeader, ...questionRows];
+            const sheet = XLSX.utils.aoa_to_sheet(sheetData);
+            sheet['!cols'] = [{ wch: 6 }, { wch: 45 }, { wch: 22 }, { wch: 8 }];
+            const sheetName = sanitizeSheetName(`${index + 1}. ${item.respondent_name || 'Chua ro ten'}`, usedNames);
+            XLSX.utils.book_append_sheet(wb, sheet, sheetName);
+        });
+
+        XLSX.writeFile(wb, `danh-sach-tu-test-${new Date().toISOString().slice(0, 10)}.xlsx`);
+        showExpertBanner(`Đã xuất Excel cho ${state.selfTestResults.length} lượt test (${state.selfTestResults.length + 1} sheet).`, 'success');
+    } catch (error) {
+        console.error('Export all self-tests failed:', error);
+        showExpertBanner('Không thể tạo file Excel. Vui lòng thử lại.', 'error');
+    } finally {
+        if (btn) { btn.disabled = false; btn.textContent = '📊 Xuất Excel toàn bộ'; }
+    }
 };
 
 window.caExportCsv = function () {

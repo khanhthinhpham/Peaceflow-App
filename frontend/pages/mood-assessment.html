@@ -2067,10 +2067,15 @@
             beginTestFlow(testId);
         }
 
+        let isAdvancing = false;
+        let hasFinishedCurrentTest = false;
+
         function beginTestFlow(testId) {
             currentTestId = testId;
             currentQIndex = 0;
             answers = [];
+            isAdvancing = false;
+            hasFinishedCurrentTest = false;
             const testData = TESTS[testId];
 
             // UI Views
@@ -2131,6 +2136,11 @@
         }
 
         function selectAnswer(score) {
+            // Chặn bấm liên tục/nhiều lần trong lúc đang chuyển câu — tránh xếp chồng
+            // nhiều setTimeout(finishTest) dẫn đến nộp bài trùng lặp ở câu cuối.
+            if (isAdvancing) return;
+            isAdvancing = true;
+
             answers[currentQIndex] = score;
 
             // EMERGENCY TRIGGER: PHQ-9 Question 9 (Suicidal thoughts)
@@ -2146,6 +2156,7 @@
             setTimeout(() => {
                 if (currentQIndex < TESTS[currentTestId].totalQ - 1) {
                     nextQuestion();
+                    isAdvancing = false;
                 } else {
                     // Completed -> ensure Progress hits 100%
                     document.getElementById('testProgressBar').style.width = '100%';
@@ -2164,6 +2175,11 @@
         }
 
         function finishTest() {
+            // Chốt chặn cuối: dù có gọi finishTest() nhiều lần do race-condition nào khác,
+            // chỉ xử lý và nộp bài đúng 1 lần cho mỗi lượt làm test.
+            if (hasFinishedCurrentTest) return;
+            hasFinishedCurrentTest = true;
+
             // UI Views
             document.getElementById('testArea').style.display = 'none';
             document.getElementById('resultPanel').classList.add('active');
