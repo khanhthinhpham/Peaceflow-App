@@ -1249,11 +1249,6 @@
             line-height: 1.5;
         }
 
-        .respondent-card.rc-error {
-            border-color: var(--coral);
-            box-shadow: 0 0 0 3px rgba(255, 139, 139, 0.25);
-        }
-
         .rc-fields {
             display: grid;
             grid-template-columns: 1fr 120px 1fr;
@@ -2047,23 +2042,29 @@
         loadRespondentIntoForm();
         ['respondentName', 'respondentAge', 'respondentNote'].forEach((id) => {
             document.getElementById(id)?.addEventListener('input', () => {
-                document.getElementById('respondentCard').classList.remove('rc-error');
                 saveRespondentInfo(readRespondentInfo());
             });
         });
 
+        function getAccountOwnerName() {
+            try {
+                const user = JSON.parse(localStorage.getItem('user') || 'null');
+                return (user && (user.display_name || user.full_name)) || 'Chủ tài khoản';
+            } catch (_error) {
+                return 'Chủ tài khoản';
+            }
+        }
+
         // Thông tin người làm bài dùng chung cho MỌI bài test trong trang này — chỉ
         // cần điền một lần ở thẻ đầu trang, không hỏi lại mỗi khi bắt đầu bài mới.
+        // Nếu chưa điền, KHÔNG chặn làm bài — mặc định lấy tên chủ tài khoản đang
+        // đăng nhập, người dùng có thể sửa lại bất cứ lúc nào ở thẻ này.
         function startTest(testId) {
-            const info = readRespondentInfo();
-            const card = document.getElementById('respondentCard');
+            let info = readRespondentInfo();
             if (!info.name) {
-                card.classList.add('rc-error');
-                card.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                document.getElementById('respondentName').focus();
-                return;
+                info = { ...info, name: getAccountOwnerName() };
+                document.getElementById('respondentName').value = info.name;
             }
-            card.classList.remove('rc-error');
             saveRespondentInfo(info);
             beginTestFlow(testId);
         }

@@ -248,25 +248,6 @@
             để chấm điểm và đưa ra kết luận. Ứng dụng chỉ ghi nhận lựa chọn của bạn ở từng câu, không tự động tính điểm.
         </div>
 
-        <div class="rv-card" id="rvIntroCard">
-            <h3 style="margin-top:0;">📝 Thông tin người làm test</h3>
-            <p style="color:var(--text-secondary);font-size:0.85rem;">Điền tên của <strong>người sẽ làm bài</strong> (khách hàng, học sinh, người thân...) — không phải tên tài khoản đang đăng nhập.
-                <br>⚠️ Nếu <strong>2 người khác nhau trùng cả tên lẫn tuổi</strong>, hãy thêm ký hiệu phân biệt vào tên để tránh bị gộp nhầm khi chuyên gia xuất báo cáo. Khác tuổi thì hệ thống đã tự tách riêng.</p>
-            <div class="rv-field">
-                <label for="rvRespName">Họ và tên người làm bài *</label>
-                <input type="text" id="rvRespName" placeholder="Nguyễn Văn A">
-            </div>
-            <div class="rv-field">
-                <label for="rvRespAge">Tuổi</label>
-                <input type="number" id="rvRespAge" min="0" max="120" placeholder="VD: 10">
-            </div>
-            <div class="rv-field">
-                <label for="rvRespNote">Ghi chú</label>
-                <textarea id="rvRespNote" placeholder="Ghi chú thêm (nếu có)..."></textarea>
-            </div>
-            <button class="rv-btn primary" style="width:100%;" onclick="rvConfirmIntro()">Bắt đầu làm bài</button>
-        </div>
-
         <div class="rv-card" id="rvTestCard" style="display:none;">
             <div class="rv-progress-row">
                 <span id="rvProgressLabel">Câu 1 / 36</span>
@@ -441,26 +422,18 @@
         };
 
         function beginRavenTest() {
-            document.getElementById('rvIntroCard').style.display = 'none';
             document.getElementById('rvTestCard').style.display = 'block';
             renderItem();
         }
 
-        window.rvConfirmIntro = function () {
-            const nameInput = document.getElementById('rvRespName');
-            const name = nameInput.value.trim();
-            if (!name) {
-                nameInput.focus();
-                return;
+        function getAccountOwnerName() {
+            try {
+                const user = JSON.parse(localStorage.getItem('user') || 'null');
+                return (user && (user.display_name || user.full_name)) || 'Chủ tài khoản';
+            } catch (_error) {
+                return 'Chủ tài khoản';
             }
-            respondentInfo = {
-                name,
-                age: document.getElementById('rvRespAge').value.trim(),
-                note: document.getElementById('rvRespNote').value.trim()
-            };
-            localStorage.setItem(RESPONDENT_STORAGE_KEY, JSON.stringify(respondentInfo));
-            beginRavenTest();
-        };
+        }
 
         async function init() {
             const authenticated = await auth.waitForAuth();
@@ -469,13 +442,14 @@
                 return;
             }
 
-            // Nếu đã điền thông tin người làm bài ở trang Bài test (hoặc một bài Raven
-            // trước đó trong cùng phiên), dùng lại luôn — không hỏi lại.
+            // Trang này KHÔNG có form riêng — thông tin người làm bài chỉ được điền
+            // ở trang Bài test (mood-assessment.html), dùng chung qua localStorage.
+            // Chưa điền ở đó thì KHÔNG chặn — mặc định lấy tên chủ tài khoản đang
+            // đăng nhập rồi cho làm bài luôn.
             const saved = getSavedRespondentInfo();
-            if (saved && saved.name) {
-                respondentInfo = saved;
-                beginRavenTest();
-            }
+            respondentInfo = (saved && saved.name) ? saved : { name: getAccountOwnerName(), age: '', note: '' };
+            localStorage.setItem(RESPONDENT_STORAGE_KEY, JSON.stringify(respondentInfo));
+            beginRavenTest();
         }
 
         init();
