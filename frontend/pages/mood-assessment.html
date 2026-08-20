@@ -2340,10 +2340,18 @@
             window.onAssessmentFinished?.({
                 testId: currentTestId,
                 testName: testData.name,
-                rawAnswers: answers.map((score, index) => ({
-                    question: index + 1,
-                    score
-                })),
+                rawAnswers: answers.map((score, index) => {
+                    const q = testData.questions[index];
+                    const opts = q.likertOptions || testData.likertOptions;
+                    const chosen = opts.find((opt) => opt.score === score);
+                    return {
+                        question_no: index + 1,
+                        question: q.text,
+                        category: q.catLabel || null,
+                        answer: chosen ? chosen.label : null,
+                        score
+                    };
+                }),
                 totalScore: subScores.total
                     ? subScores.total.score
                     : keys.reduce((sum, key) => sum + (subScores[key]?.score || 0), 0),

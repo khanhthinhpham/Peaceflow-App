@@ -155,7 +155,8 @@ const state = {
     testType: 'CARS',
     carsAnswers: {},
     sdqAnswers: {},
-    history: []
+    history: [],
+    selfTestResults: []
 };
 
 async function init() {
@@ -175,21 +176,21 @@ async function init() {
 async function loadSelfTestResults() {
     const el = document.getElementById('caSelfTestList');
     el.innerHTML = '<p class="ca-empty">Đang tải...</p>';
-    let results = [];
     try {
-        results = await apiClient.get('/expert-portal/self-test-results', { noCache: true });
+        state.selfTestResults = await apiClient.get('/expert-portal/self-test-results', { noCache: true });
     } catch (error) {
+        state.selfTestResults = [];
         el.innerHTML = '<p class="ca-empty">Không tải được danh sách.</p>';
         return;
     }
 
-    if (!results.length) {
+    if (!state.selfTestResults.length) {
         el.innerHTML = '<p class="ca-empty">Chưa có ai tự làm test trên tài khoản này.</p>';
         return;
     }
 
-    el.innerHTML = results.map((item) => `
-        <div class="ca-selftest-item">
+    el.innerHTML = state.selfTestResults.map((item) => `
+        <div class="ca-selftest-item" data-selftest-id="${item.id}">
             <div class="ca-selftest-main">
                 <div class="ca-selftest-name">${escapeHtml(item.respondent_name || 'Chưa rõ tên')}${item.respondent_age ? ` — ${item.respondent_age} tuổi` : ''}</div>
                 <div class="ca-selftest-meta">${escapeHtml(item.name)} · ${formatDateTime(item.created_at)}</div>
@@ -198,6 +199,13 @@ async function loadSelfTestResults() {
             <div class="ca-selftest-score">${escapeHtml(item.severity || 'Đã hoàn thành')}<br>${item.total_score}</div>
         </div>
     `).join('');
+
+    el.querySelectorAll('[data-selftest-id]').forEach((row) => {
+        row.addEventListener('click', () => {
+            const item = state.selfTestResults.find((r) => r.id === row.getAttribute('data-selftest-id'));
+            if (item) openDetailModal(item);
+        });
+    });
 }
 
 async function loadClients() {
@@ -310,13 +318,15 @@ function renderCarsForm() {
     document.getElementById('caSubmitBtn')?.addEventListener('click', submitCars);
 }
 
+const SDQ_OBS_OPTIONS = [
+    { label: 'Không đúng', normal: 0, reverse: 2 },
+    { label: 'Đúng một phần', normal: 1, reverse: 1 },
+    { label: 'Chắc chắn đúng', normal: 2, reverse: 0 }
+];
+
 function renderSdqObsForm() {
     const el = document.getElementById('caFormBody');
-    const options = [
-        { label: 'Không đúng', normal: 0, reverse: 2 },
-        { label: 'Đúng một phần', normal: 1, reverse: 1 },
-        { label: 'Chắc chắn đúng', normal: 2, reverse: 0 }
-    ];
+    const options = SDQ_OBS_OPTIONS;
 
     el.innerHTML = SDQ_OBS_ITEMS.map((item) => {
         const selected = state.sdqAnswers[item.n];
@@ -364,7 +374,14 @@ async function submitCars() {
 
     try {
         await apiClient.post(`/expert-portal/clients/${state.selectedClient.user_id}/assessments/CARS/submit`, {
-            raw_answers: CARS_DOMAINS.map((d) => ({ domain: d.key, score: state.carsAnswers[d.key] })),
+            raw_answers: CARS_DOMAINS.map((d) => {
+                const score = state.carsAnswers[d.key];
+                return {
+                    question: d.label,
+                    answer: Number.isInteger(score) ? (d.levels[score] || String(score)) : String(score),
+                    score
+                };
+            }),
             total_score: total,
             severity: band.label,
             dimension_scores: {},
@@ -407,7 +424,15 @@ async function submitSdqObs() {
 
     try {
         await apiClient.post(`/expert-portal/clients/${state.selectedClient.user_id}/assessments/SDQ25_OBS/submit`, {
-            raw_answers: SDQ_OBS_ITEMS.map((it) => ({ question: it.n, score: state.sdqAnswers[it.n] })),
+            raw_answers: SDQ_OBS_ITEMS.map((it) => {
+                const score = state.sdqAnswers[it.n];
+                const opt = SDQ_OBS_OPTIONS.find((o) => (it.reverse ? o.reverse : o.normal) === score);
+                return {
+                    question: `${it.n}. ${it.text}`,
+                    answer: opt ? opt.label : String(score),
+                    score
+                };
+            }),
             total_score: total,
             severity: band.label,
             dimension_scores: dimensionResult,
@@ -443,11 +468,156 @@ function renderHistory() {
         return;
     }
     el.innerHTML = state.history.map((item) => `
-        <div class="ca-history-item">
+        <div class="ca-history-item" data-history-id="${item.id}">
             <span><strong>${escapeHtml(item.name)}</strong> — ${escapeHtml(item.severity || 'Đã hoàn thành')} (${item.total_score})</span>
             <span>${formatDateTime(item.created_at)}</span>
         </div>
     `).join('');
+
+    el.querySelectorAll('[data-history-id]').forEach((row) => {
+        row.addEventListener('click', () => {
+            const item = state.history.find((r) => r.id === row.getAttribute('data-history-id'));
+            if (item) openDetailModal(item, state.selectedClient);
+        });
+    });
 }
+
+// ===== Detail modal + export =====
+
+let detailContext = null;
+
+function normalizeAnswerRow(entry, index) {
+    const question = entry.question || entry.domain || entry.item || `Mục ${index + 1}`;
+    const answer = entry.answer ?? (entry.choice !== undefined ? `Đáp án ${entry.choice}` : '');
+    const score = entry.score ?? entry.choice ?? '';
+    return { no: index + 1, question, answer, score };
+}
+
+function openDetailModal(item, client) {
+    detailContext = { item, client };
+
+    document.getElementById('caDetailTitle').textContent = item.name;
+    const parts = [];
+    if (client) parts.push(`Client: ${client.full_name || client.email}`);
+    if (item.respondent_name) parts.push(`Người làm bài: ${item.respondent_name}${item.respondent_age ? ` (${item.respondent_age} tuổi)` : ''}`);
+    parts.push(`Điểm: ${item.total_score}`);
+    parts.push(`Xếp loại: ${item.severity || 'Đã hoàn thành'}`);
+    parts.push(formatDateTime(item.created_at));
+    if (item.note) parts.push(`Ghi chú: ${item.note}`);
+    document.getElementById('caDetailMeta').textContent = parts.join(' · ');
+
+    const rows = Array.isArray(item.raw_answers) ? item.raw_answers.map(normalizeAnswerRow) : [];
+    const tbody = document.getElementById('caDetailRows');
+    tbody.innerHTML = rows.length
+        ? rows.map((r) => `
+            <tr>
+                <td>${r.no}</td>
+                <td>${escapeHtml(String(r.question))}</td>
+                <td>${escapeHtml(String(r.answer))}</td>
+                <td>${escapeHtml(String(r.score))}</td>
+            </tr>
+        `).join('')
+        : '<tr><td colspan="4" style="color:var(--text-secondary);">Không có dữ liệu chi tiết từng câu.</td></tr>';
+
+    document.getElementById('caDetailModal').classList.add('show');
+}
+
+window.caCloseDetail = function () {
+    document.getElementById('caDetailModal').classList.remove('show');
+    detailContext = null;
+};
+
+function csvEscape(value) {
+    const str = String(value ?? '');
+    return /[",\n]/.test(str) ? `"${str.replace(/"/g, '""')}"` : str;
+}
+
+window.caExportCsv = function () {
+    if (!detailContext) return;
+    const { item, client } = detailContext;
+    const rows = Array.isArray(item.raw_answers) ? item.raw_answers.map(normalizeAnswerRow) : [];
+
+    const lines = [];
+    lines.push(['Bài test', item.name].map(csvEscape).join(','));
+    if (client) lines.push(['Client', client.full_name || client.email].map(csvEscape).join(','));
+    if (item.respondent_name) lines.push(['Người làm bài', `${item.respondent_name}${item.respondent_age ? ` (${item.respondent_age} tuổi)` : ''}`].map(csvEscape).join(','));
+    lines.push(['Điểm', item.total_score].map(csvEscape).join(','));
+    lines.push(['Xếp loại', item.severity || ''].map(csvEscape).join(','));
+    lines.push(['Ngày', formatDateTime(item.created_at)].map(csvEscape).join(','));
+    if (item.note) lines.push(['Ghi chú', item.note].map(csvEscape).join(','));
+    lines.push('');
+    lines.push(['#', 'Câu hỏi / Mục', 'Trả lời', 'Điểm'].map(csvEscape).join(','));
+    rows.forEach((r) => lines.push([r.no, r.question, r.answer, r.score].map(csvEscape).join(',')));
+
+    const csvContent = '﻿' + lines.join('\r\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${(item.name || 'ket-qua').replace(/\s+/g, '-')}-${item.id.slice(0, 8)}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+};
+
+window.caExportPdf = function () {
+    if (!detailContext) return;
+    const { item, client } = detailContext;
+    const rows = Array.isArray(item.raw_answers) ? item.raw_answers.map(normalizeAnswerRow) : [];
+
+    const metaLines = [];
+    if (client) metaLines.push(`Client: ${escapeHtml(client.full_name || client.email)}`);
+    if (item.respondent_name) metaLines.push(`Người làm bài: ${escapeHtml(item.respondent_name)}${item.respondent_age ? ` (${item.respondent_age} tuổi)` : ''}`);
+    metaLines.push(`Điểm: ${escapeHtml(String(item.total_score))}`);
+    metaLines.push(`Xếp loại: ${escapeHtml(item.severity || 'Đã hoàn thành')}`);
+    metaLines.push(`Ngày: ${escapeHtml(formatDateTime(item.created_at))}`);
+    if (item.note) metaLines.push(`Ghi chú: ${escapeHtml(item.note)}`);
+
+    const tableRows = rows.map((r) => `
+        <tr>
+            <td>${r.no}</td>
+            <td>${escapeHtml(String(r.question))}</td>
+            <td>${escapeHtml(String(r.answer))}</td>
+            <td>${escapeHtml(String(r.score))}</td>
+        </tr>
+    `).join('');
+
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) {
+        showExpertBanner('Trình duyệt đã chặn cửa sổ in. Vui lòng cho phép popup để xuất PDF.', 'error');
+        return;
+    }
+    printWindow.document.write(`
+        <!DOCTYPE html>
+        <html lang="vi">
+        <head>
+            <meta charset="UTF-8">
+            <title>${escapeHtml(item.name)}</title>
+            <style>
+                body { font-family: Arial, sans-serif; padding: 24px; color: #333; }
+                h1 { font-size: 20px; margin-bottom: 4px; }
+                .meta { font-size: 13px; color: #555; margin-bottom: 16px; line-height: 1.6; }
+                table { width: 100%; border-collapse: collapse; font-size: 13px; }
+                th, td { border: 1px solid #ccc; padding: 6px 8px; text-align: left; vertical-align: top; }
+                th { background: #f2f2f2; }
+            </style>
+        </head>
+        <body>
+            <h1>${escapeHtml(item.name)}</h1>
+            <div class="meta">${metaLines.join('<br>')}</div>
+            <table>
+                <thead><tr><th>#</th><th>Câu hỏi / Mục</th><th>Trả lời</th><th>Điểm</th></tr></thead>
+                <tbody>${tableRows || '<tr><td colspan="4">Không có dữ liệu chi tiết.</td></tr>'}</tbody>
+            </table>
+        </body>
+        </html>
+    `);
+    printWindow.document.close();
+    printWindow.onload = () => {
+        printWindow.focus();
+        printWindow.print();
+    };
+};
 
 init();

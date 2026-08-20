@@ -235,3 +235,114 @@
 .ca-history-item:last-child {
     border-bottom: none;
 }
+
+.ca-selftest-item,
+.ca-history-item {
+    cursor: pointer;
+}
+
+.ca-selftest-item:hover,
+.ca-history-item:hover {
+    background: var(--cream, #fff8f0);
+    border-radius: 10px;
+}
+
+/* ===== Detail modal ===== */
+.ca-detail-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(74, 55, 40, .5);
+    z-index: 2000;
+    display: none;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 40px 16px;
+    overflow-y: auto;
+}
+
+.ca-detail-overlay.show {
+    display: flex;
+}
+
+.ca-detail-box {
+    background: var(--warm-white, #fffdf7);
+    border-radius: 20px;
+    border: 2px solid var(--kraft-light, #e8cba7);
+    max-width: 720px;
+    width: 100%;
+    padding: 24px;
+}
+
+.ca-detail-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 6px;
+}
+
+.ca-detail-title {
+    font-weight: 800;
+    font-size: 1.1rem;
+}
+
+.ca-detail-meta {
+    font-size: .82rem;
+    color: var(--text-secondary);
+    margin-bottom: 16px;
+}
+
+.ca-detail-close {
+    border: none;
+    background: transparent;
+    font-size: 1.3rem;
+    cursor: pointer;
+    line-height: 1;
+    color: var(--text-secondary);
+}
+
+.ca-detail-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: .85rem;
+    margin-bottom: 18px;
+}
+
+.ca-detail-table th,
+.ca-detail-table td {
+    text-align: left;
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--kraft-light, #e8cba7);
+    vertical-align: top;
+}
+
+.ca-detail-table th {
+    background: var(--cream, #fff8f0);
+    font-size: .75rem;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    color: var(--text-secondary);
+}
+
+.ca-detail-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.ca-detail-actions button {
+    font-family: inherit;
+    font-weight: 700;
+    font-size: .85rem;
+    padding: 9px 16px;
+    border-radius: 999px;
+    border: 1.5px solid var(--kraft-light, #e8cba7);
+    background: var(--cream, #fff8f0);
+    cursor: pointer;
+}
+
+.ca-detail-actions .ca-export-btn {
+    background: var(--mint-dark, #7bbf95);
+    border-color: var(--mint-dark, #7bbf95);
+    color: white;
+}

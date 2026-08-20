@@ -846,6 +846,7 @@ router.get('/expert-portal/self-test-results', requireAuth, async (req, res) => 
          ar.severity,
          ar.dimension_scores,
          ar.interpreted_result,
+         ar.raw_answers,
          ar.respondent_name,
          ar.respondent_age,
          ar.note,
@@ -926,7 +927,7 @@ router.get('/expert-portal/clients/:userId/assessments', requireAuth, async (req
     }
 
     const r = await db.query(
-      `select ar.id, a.code, a.name, ar.total_score, ar.severity, ar.dimension_scores, ar.interpreted_result, ar.created_at
+      `select ar.id, a.code, a.name, ar.total_score, ar.severity, ar.dimension_scores, ar.interpreted_result, ar.raw_answers, ar.created_at
        from assessment_results ar
        join assessments a on a.id = ar.assessment_id
        where ar.user_id = $1 and ar.administered_by = $2

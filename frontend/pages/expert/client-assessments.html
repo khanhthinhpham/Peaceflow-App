@@ -88,6 +88,34 @@
         </main>
     </div>
 
+    <div class="ca-detail-overlay" id="caDetailModal">
+        <div class="ca-detail-box">
+            <div class="ca-detail-head">
+                <div>
+                    <div class="ca-detail-title" id="caDetailTitle"></div>
+                    <div class="ca-detail-meta" id="caDetailMeta"></div>
+                </div>
+                <button type="button" class="ca-detail-close" onclick="window.caCloseDetail()">✕</button>
+            </div>
+            <table class="ca-detail-table">
+                <thead>
+                    <tr>
+                        <th style="width:36px;">#</th>
+                        <th>Câu hỏi / Mục</th>
+                        <th>Trả lời</th>
+                        <th style="width:60px;">Điểm</th>
+                    </tr>
+                </thead>
+                <tbody id="caDetailRows"></tbody>
+            </table>
+            <div class="ca-detail-actions">
+                <button type="button" class="ca-export-btn" onclick="window.caExportCsv()">📊 Xuất Excel (CSV)</button>
+                <button type="button" class="ca-export-btn" onclick="window.caExportPdf()">📄 Xuất PDF</button>
+                <button type="button" onclick="window.caCloseDetail()">Đóng</button>
+            </div>
+        </div>
+    </div>
+
     <script type="module" src="../../public/js/expert/client-assessments-page.js"></script>
 </body>
 </html>
