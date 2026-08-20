@@ -1,8 +1,20 @@
 import { Router } from 'express';
+import multer from 'multer';
 import { requireAuth } from '../../common/middleware/auth.middleware.js';
 import { db } from '../../config/db.js';
 
 const router = Router();
+
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 8 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    if (!file.mimetype.startsWith('image/')) {
+      return cb(new Error('Chỉ chấp nhận file ảnh'));
+    }
+    cb(null, true);
+  }
+});
 
 const ASSESSMENT_ORDER = ['DASS21', 'GAD7', 'HARS', 'PHQ9', 'PSQI'];
 
@@ -84,6 +96,7 @@ router.get('/assessments/history', requireAuth, async (req, res) => {
          ar.respondent_name,
          ar.respondent_age,
          ar.note,
+         (ar.attachment_file is not null) as has_attachment,
          ar.created_at
        from assessment_results ar
        join assessments a on a.id = ar.assessment_id
@@ -227,6 +240,68 @@ router.post('/assessments/:code/submit', requireAuth, async (req, res) => {
       success: false,
       message: 'Could not submit assessment result'
     });
+  }
+});
+
+// Đính kèm 1 ảnh vào kết quả đã nộp (vd ảnh phiếu trả lời giấy của bài Raven) để
+// chuyên gia xem lại khi chấm điểm thủ công. Chỉ chủ sở hữu kết quả mới được đính kèm.
+router.post('/assessments/results/:id/attachment', requireAuth, upload.single('image'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: 'Thiếu file ảnh' });
+    }
+
+    const ownerRes = await db.query(
+      `select id from assessment_results where id = $1 and user_id = $2 limit 1`,
+      [req.params.id, req.user.sub]
+    );
+    if (!ownerRes.rows[0]) {
+      return res.status(404).json({ success: false, message: 'Không tìm thấy kết quả này' });
+    }
+
+    await db.query(
+      `update assessment_results
+       set attachment_file = $2, attachment_filename = $3, attachment_mime = $4
+       where id = $1`,
+      [req.params.id, req.file.buffer, req.file.originalname || 'anh-dinh-kem', req.file.mimetype]
+    );
+
+    return res.json({ success: true, data: { attached: true } });
+  } catch (error) {
+    if (error.message === 'Chỉ chấp nhận file ảnh') {
+      return res.status(400).json({ success: false, message: error.message });
+    }
+    console.error('Assessment attachment upload error:', error);
+    return res.status(500).json({ success: false, message: 'Could not upload attachment' });
+  }
+});
+
+// Xem ảnh đính kèm — chủ sở hữu kết quả, hoặc chuyên gia đã là người chấm (administered_by).
+router.get('/assessments/results/:id/attachment', requireAuth, async (req, res) => {
+  try {
+    const r = await db.query(
+      `select attachment_file, attachment_filename, attachment_mime, user_id, administered_by
+       from assessment_results
+       where id = $1
+       limit 1`,
+      [req.params.id]
+    );
+    const row = r.rows[0];
+    if (!row || !row.attachment_file) {
+      return res.status(404).json({ success: false, message: 'Không có ảnh đính kèm' });
+    }
+    const isOwner = row.user_id === req.user.sub;
+    const isAdministeringExpert = req.user.role === 'expert' && row.administered_by === req.user.sub;
+    if (!isOwner && !isAdministeringExpert) {
+      return res.status(403).json({ success: false, message: 'Không có quyền xem ảnh này' });
+    }
+
+    res.set('Content-Type', row.attachment_mime || 'application/octet-stream');
+    res.set('Content-Disposition', `inline; filename="${encodeURIComponent(row.attachment_filename || 'anh-dinh-kem')}"`);
+    return res.send(row.attachment_file);
+  } catch (error) {
+    console.error('Assessment attachment fetch error:', error);
+    return res.status(500).json({ success: false, message: 'Could not fetch attachment' });
   }
 });
 

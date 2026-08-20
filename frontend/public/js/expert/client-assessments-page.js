@@ -503,6 +503,19 @@ function normalizeAnswerRow(entry, index) {
     return { no: index + 1, question, answer, score };
 }
 
+async function loadAttachmentImage(resultId) {
+    const attachEl = document.getElementById('caDetailAttachment');
+    attachEl.innerHTML = '<p style="color:var(--text-secondary);">Đang tải ảnh...</p>';
+    try {
+        const blob = await apiClient.getBlob(`/assessments/results/${resultId}/attachment`);
+        const url = URL.createObjectURL(blob);
+        attachEl.innerHTML = `<img src="${url}" alt="Ảnh đính kèm" style="max-width:100%;border-radius:12px;border:1.5px solid var(--kraft-light);">`;
+    } catch (error) {
+        console.error('Load attachment failed:', error);
+        attachEl.innerHTML = '<p style="color:var(--coral);">Không tải được ảnh đính kèm.</p>';
+    }
+}
+
 function openDetailModal(item, client) {
     detailContext = { item, client };
 
@@ -515,6 +528,16 @@ function openDetailModal(item, client) {
     parts.push(formatDateTime(item.created_at));
     if (item.note) parts.push(`Ghi chú: ${item.note}`);
     document.getElementById('caDetailMeta').textContent = parts.join(' · ');
+
+    const attachEl = document.getElementById('caDetailAttachment');
+    if (item.has_attachment) {
+        attachEl.style.display = 'block';
+        attachEl.innerHTML = `<button type="button" class="ca-export-btn" id="caViewAttachmentBtn">🖼️ Xem ảnh đính kèm</button>`;
+        document.getElementById('caViewAttachmentBtn').addEventListener('click', () => loadAttachmentImage(item.id));
+    } else {
+        attachEl.style.display = 'none';
+        attachEl.innerHTML = '';
+    }
 
     const rows = Array.isArray(item.raw_answers) ? item.raw_answers.map(normalizeAnswerRow) : [];
     const tbody = document.getElementById('caDetailRows');
@@ -623,33 +646,54 @@ window.caExportAllSelfTests = async function () {
         summarySheet['!cols'] = [{ wch: 5 }, { wch: 20 }, { wch: 8 }, { wch: 24 }, { wch: 28 }, { wch: 10 }, { wch: 16 }, { wch: 60 }, { wch: 20 }];
         XLSX.utils.book_append_sheet(wb, summarySheet, 'Danh sách chung');
 
+        // Gộp theo NGƯỜI (tên + tuổi) — 1 người có thể đã làm nhiều bài test khác nhau,
+        // nên mỗi người chỉ chiếm đúng 1 sheet, trình bày dạng bảng: bảng tổng hợp các
+        // bài đã làm ở trên, bảng chi tiết từng câu hỏi/đáp án của từng bài ở dưới.
+        const groups = new Map();
+        state.selfTestResults.forEach((item) => {
+            const name = (item.respondent_name || '').trim() || 'Chưa rõ tên';
+            const key = `${name.toLowerCase()}|${item.respondent_age || ''}`;
+            if (!groups.has(key)) groups.set(key, { name, age: item.respondent_age || '', tests: [] });
+            groups.get(key).tests.push(item);
+        });
+
         const usedNames = new Set(['Danh sách chung']);
-        state.selfTestResults.forEach((item, index) => {
-            const rows = Array.isArray(item.raw_answers) ? item.raw_answers.map(normalizeAnswerRow) : [];
-            const detailHeader = ['Họ tên', item.respondent_name || 'Chưa rõ tên'];
-            const infoRows = [
-                ['Bài test', item.name],
-                ['Tuổi', item.respondent_age || ''],
-                ['Điểm tổng', item.total_score],
-                ['Xếp loại', item.severity || ''],
-                ['Ghi chú', item.note || ''],
-                ['Thời gian', formatDateTime(item.created_at)],
+        let personIndex = 0;
+        groups.forEach((group) => {
+            personIndex += 1;
+            const sheetData = [
+                ['Họ tên', group.name],
+                ['Tuổi', group.age],
+                ['Số bài đã làm', group.tests.length],
                 []
             ];
-            const questionHeader = ['#', 'Câu hỏi / Mục', 'Trả lời', 'Điểm'];
-            const questionRows = rows.length
-                ? rows.map((r) => [r.no, r.question, r.answer, r.score])
-                : [['', 'Không có dữ liệu chi tiết từng câu.', '', '']];
 
-            const sheetData = [detailHeader, ...infoRows, questionHeader, ...questionRows];
+            sheetData.push(['Bài test', 'Điểm', 'Xếp loại', 'Diễn giải kết quả', 'Thời gian', 'Ghi chú']);
+            group.tests.forEach((t) => {
+                sheetData.push([t.name, t.total_score, t.severity || '', buildInterpretation(t), formatDateTime(t.created_at), t.note || '']);
+            });
+            sheetData.push([]);
+
+            group.tests.forEach((t) => {
+                const rows = Array.isArray(t.raw_answers) ? t.raw_answers.map(normalizeAnswerRow) : [];
+                sheetData.push([`Chi tiết: ${t.name} — ${formatDateTime(t.created_at)}`]);
+                sheetData.push(['#', 'Câu hỏi / Mục', 'Trả lời', 'Điểm']);
+                if (rows.length) {
+                    rows.forEach((r) => sheetData.push([r.no, r.question, r.answer, r.score]));
+                } else {
+                    sheetData.push(['', 'Không có dữ liệu chi tiết từng câu.', '', '']);
+                }
+                sheetData.push([]);
+            });
+
             const sheet = XLSX.utils.aoa_to_sheet(sheetData);
-            sheet['!cols'] = [{ wch: 6 }, { wch: 45 }, { wch: 22 }, { wch: 8 }];
-            const sheetName = sanitizeSheetName(`${index + 1}. ${item.respondent_name || 'Chua ro ten'}`, usedNames);
+            sheet['!cols'] = [{ wch: 30 }, { wch: 22 }, { wch: 16 }, { wch: 55 }, { wch: 20 }, { wch: 22 }];
+            const sheetName = sanitizeSheetName(`${personIndex}. ${group.name}`, usedNames);
             XLSX.utils.book_append_sheet(wb, sheet, sheetName);
         });
 
         XLSX.writeFile(wb, `danh-sach-tu-test-${new Date().toISOString().slice(0, 10)}.xlsx`);
-        showExpertBanner(`Đã xuất Excel cho ${state.selfTestResults.length} lượt test (${state.selfTestResults.length + 1} sheet).`, 'success');
+        showExpertBanner(`Đã xuất Excel cho ${state.selfTestResults.length} lượt test của ${groups.size} người (${groups.size + 1} sheet).`, 'success');
     } catch (error) {
         console.error('Export all self-tests failed:', error);
         showExpertBanner('Không thể tạo file Excel. Vui lòng thử lại.', 'error');

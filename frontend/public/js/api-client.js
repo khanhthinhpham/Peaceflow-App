@@ -354,6 +354,19 @@ export const apiClient = {
         });
     },
 
+    // Tải file nhị phân (ảnh...) có xác thực — request()/get() luôn parse JSON nên
+    // không dùng được cho response dạng binary như ảnh đính kèm kết quả test.
+    async getBlob(endpoint) {
+        const token = getStoredAccessToken();
+        const headers = {};
+        if (token) headers.Authorization = `Bearer ${token}`;
+        const response = await fetch(`${API_BASE_URL}${endpoint}`, { headers });
+        if (!response.ok) {
+            throw new Error(`Không tải được file (HTTP ${response.status})`);
+        }
+        return response.blob();
+    },
+
     put(endpoint, data) {
         this._invalidateRelated(endpoint);
         return this.request(endpoint, {

@@ -293,6 +293,17 @@
                 đối chiếu đáp án gốc để chấm điểm, xếp loại năng lực tư duy phi ngôn ngữ.
             </p>
             <p id="rvSaveStatus" style="font-style: italic;"></p>
+
+            <div class="rv-card" id="rvAttachCard" style="text-align:left;margin:20px 0;">
+                <h3 style="margin-top:0;">📷 Đính kèm ảnh (nếu có)</h3>
+                <p style="color:var(--text-secondary);font-size:0.85rem;">Nếu bạn làm bài trên phiếu giấy gốc, hãy chụp/tải ảnh phiếu trả lời lên đây để chuyên gia xem khi chấm điểm.</p>
+                <div class="rv-field">
+                    <input type="file" id="rvAttachInput" accept="image/*">
+                </div>
+                <button class="rv-btn primary" id="rvAttachBtn" onclick="rvUploadAttachment()">Tải ảnh lên</button>
+                <p id="rvAttachStatus" style="font-style: italic; font-size: 0.85rem;"></p>
+            </div>
+
             <a class="rv-btn primary" href="mood-assessment.html">Về danh sách bài test</a>
         </div>
     </div>
@@ -369,13 +380,15 @@
             renderItem();
         };
 
+        let savedResultId = null;
+
         async function finish() {
             document.getElementById('rvTestCard').style.display = 'none';
             document.getElementById('rvResult').classList.add('active');
 
             const statusEl = document.getElementById('rvSaveStatus');
             try {
-                await apiClient.post('/assessments/RAVEN_CPM/submit', {
+                const saved = await apiClient.post('/assessments/RAVEN_CPM/submit', {
                     raw_answers: ITEMS.map((item, i) => ({ item: item.key, choice: answers[i] })),
                     total_score: 0,
                     severity: null,
@@ -388,12 +401,43 @@
                     respondent_age: respondentInfo.age ? Number(respondentInfo.age) : null,
                     note: respondentInfo.note || null
                 });
+                savedResultId = saved?.id || null;
                 statusEl.textContent = 'Đã lưu vào hồ sơ.';
             } catch (error) {
                 console.error('Raven submit failed:', error);
                 statusEl.textContent = 'Chưa lưu được vào hồ sơ, vui lòng thử lại sau.';
+                document.getElementById('rvAttachCard').style.display = 'none';
             }
         }
+
+        window.rvUploadAttachment = async function () {
+            const input = document.getElementById('rvAttachInput');
+            const statusEl = document.getElementById('rvAttachStatus');
+            const file = input.files?.[0];
+            if (!file) {
+                statusEl.textContent = 'Vui lòng chọn 1 ảnh trước.';
+                return;
+            }
+            if (!savedResultId) {
+                statusEl.textContent = 'Chưa nộp được bài nên chưa thể đính kèm ảnh. Vui lòng thử lại.';
+                return;
+            }
+
+            const btn = document.getElementById('rvAttachBtn');
+            btn.disabled = true;
+            statusEl.textContent = 'Đang tải ảnh lên...';
+            try {
+                const formData = new FormData();
+                formData.set('image', file);
+                await apiClient.postForm(`/assessments/results/${savedResultId}/attachment`, formData);
+                statusEl.textContent = '✅ Đã gửi ảnh cho chuyên gia.';
+            } catch (error) {
+                console.error('Raven attachment upload failed:', error);
+                statusEl.textContent = 'Không tải được ảnh, vui lòng thử lại.';
+            } finally {
+                btn.disabled = false;
+            }
+        };
 
         function beginRavenTest() {
             document.getElementById('rvIntroCard').style.display = 'none';
