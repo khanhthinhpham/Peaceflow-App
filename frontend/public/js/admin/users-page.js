@@ -79,6 +79,11 @@ function card(u) {
                     </div>
                 </div>
                 <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                    <select data-role-select data-current="${u.role}" ${self ? 'disabled title="Không thể tự đổi vai trò của chính mình"' : ''} style="font-size:.82rem;padding:6px 10px;border-radius:8px;border:1.5px solid var(--kraft-light);background:var(--warm-white,#fffdf7);font-family:inherit;">
+                        <option value="user" ${u.role === 'user' ? 'selected' : ''}>Người dùng</option>
+                        <option value="expert" ${u.role === 'expert' ? 'selected' : ''}>Chuyên gia</option>
+                        <option value="admin" ${u.role === 'admin' ? 'selected' : ''}>Quản trị</option>
+                    </select>
                     <button type="button" class="btn-outline" data-bookings="${esc(u.email || '')}" style="font-size:.82rem;">${icon('calendar')} Lịch hẹn</button>
                     <button type="button" class="${locked ? 'btn-primary' : 'btn-outline'}" data-lock ${self ? 'disabled' : ''} style="font-size:.82rem;">${locked ? 'Mở khoá' : 'Khoá'}</button>
                 </div>
@@ -172,7 +177,31 @@ function bindRows() {
             if (!window.confirm(msg)) return;
             patch(id, { status: nextStatus }, e.target);
         });
+        row.querySelector('[data-role-select]')?.addEventListener('change', (e) => {
+            const select = e.target;
+            const newRole = select.value;
+            const prevRole = select.getAttribute('data-current');
+            if (newRole === prevRole) return;
+            const warn = newRole === 'admin' ? ' Người này sẽ có toàn quyền quản trị hệ thống.' : '';
+            if (!window.confirm(`Đổi vai trò thành "${ROLE_LABEL[newRole]}"?${warn}`)) {
+                select.value = prevRole;
+                return;
+            }
+            changeRole(id, newRole, select, prevRole);
+        });
     });
+}
+
+async function changeRole(id, newRole, selectEl, prevRole) {
+    selectEl.disabled = true;
+    try {
+        await apiClient.patch(`/admin/users/${id}`, { role: newRole });
+        await load(state.page);
+    } catch (e) {
+        alert(e.message || 'Đổi vai trò thất bại.');
+        selectEl.value = prevRole;
+        selectEl.disabled = false;
+    }
 }
 
 async function patch(id, body, ctrl) {
