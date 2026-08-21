@@ -441,6 +441,22 @@
             background: linear-gradient(90deg, var(--sky), var(--lavender));
         }
 
+        .test-select-card.mmse::before {
+            background: linear-gradient(90deg, var(--lavender), var(--sky));
+        }
+
+        .test-select-card.isi::before {
+            background: linear-gradient(90deg, var(--peach), var(--kraft));
+        }
+
+        .test-select-card.iat::before {
+            background: linear-gradient(90deg, var(--sky), var(--mint));
+        }
+
+        .test-select-card.audit::before {
+            background: linear-gradient(90deg, var(--kraft), var(--coral));
+        }
+
         .test-select-card:hover {
             box-shadow: var(--shadow-paper-hover);
             transform: translateY(-3px);
@@ -659,6 +675,14 @@
 
         .likert-wrap.cols-3 {
             grid-template-columns: repeat(3, 1fr);
+        }
+
+        .likert-wrap.cols-2 {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .likert-wrap.cols-6 {
+            grid-template-columns: repeat(6, 1fr);
         }
 
         .likert-option {
@@ -1352,7 +1376,8 @@
             }
 
             .likert-wrap.cols-4,
-            .likert-wrap.cols-5 {
+            .likert-wrap.cols-5,
+            .likert-wrap.cols-6 {
                 grid-template-columns: repeat(2, 1fr);
             }
 
@@ -2003,6 +2028,227 @@
                     total: { indices: [2, 7, 12, 15, 23, 4, 6, 11, 17, 21, 1, 9, 14, 20, 24, 5, 10, 13, 18, 22], multiplier: 1, levels: [{ max: 15, 'label': 'Bình thường', 'class': 'level-0' }, { max: 19, 'label': 'Ranh giới', 'class': 'level-1' }, { max: 999, 'label': 'Bất thường', 'class': 'level-3' }] }
                 },
                 prevScores: null
+            },
+            mmse: {
+                name: 'MMSE', fullname: 'Mini-Mental State Exam — Trạng thái tâm thần tối thiểu',
+                icon: '🧠', iconBg: 'var(--lavender-light)', iconBorder: 'var(--lavender)',
+                timeRef: 'Hiện tại', totalQ: 19, maxScore: 30,
+                subscales: ['total'],
+                questions: [
+                    { text: 'Hôm nay là thứ mấy?', cat: 'total', catLabel: 'Định hướng', likertOptions: [{ emoji: '❌', label: 'Sai', score: 0 }, { emoji: '✅', label: 'Đúng', score: 1 }] },
+                    { text: 'Hôm nay là ngày bao nhiêu?', cat: 'total', catLabel: 'Định hướng', likertOptions: [{ emoji: '❌', label: 'Sai', score: 0 }, { emoji: '✅', label: 'Đúng', score: 1 }] },
+                    { text: 'Tháng này là tháng mấy?', cat: 'total', catLabel: 'Định hướng', likertOptions: [{ emoji: '❌', label: 'Sai', score: 0 }, { emoji: '✅', label: 'Đúng', score: 1 }] },
+                    { text: 'Năm nay là năm nào?', cat: 'total', catLabel: 'Định hướng', likertOptions: [{ emoji: '❌', label: 'Sai', score: 0 }, { emoji: '✅', label: 'Đúng', score: 1 }] },
+                    { text: 'Mùa này là mùa gì?', cat: 'total', catLabel: 'Định hướng', likertOptions: [{ emoji: '❌', label: 'Sai', score: 0 }, { emoji: '✅', label: 'Đúng', score: 1 }] },
+                    { text: 'Chỗ này là chỗ nào? (tên nơi đang ở)', cat: 'total', catLabel: 'Định hướng', likertOptions: [{ emoji: '❌', label: 'Sai', score: 0 }, { emoji: '✅', label: 'Đúng', score: 1 }] },
+                    { text: 'Khoa gì? Tầng mấy?', cat: 'total', catLabel: 'Định hướng', likertOptions: [{ emoji: '❌', label: 'Sai', score: 0 }, { emoji: '✅', label: 'Đúng', score: 1 }] },
+                    { text: 'Tỉnh, thành phố nào?', cat: 'total', catLabel: 'Định hướng', likertOptions: [{ emoji: '❌', label: 'Sai', score: 0 }, { emoji: '✅', label: 'Đúng', score: 1 }] },
+                    { text: 'Miền nào? (Bắc/Trung/Nam)', cat: 'total', catLabel: 'Định hướng', likertOptions: [{ emoji: '❌', label: 'Sai', score: 0 }, { emoji: '✅', label: 'Đúng', score: 1 }] },
+                    { text: 'Nước nào?', cat: 'total', catLabel: 'Định hướng', likertOptions: [{ emoji: '❌', label: 'Sai', score: 0 }, { emoji: '✅', label: 'Đúng', score: 1 }] },
+                    {
+                        text: 'Nói to, rõ 3 từ (con mèo, cây lúa, đồng xu), yêu cầu nhắc lại ngay — nhắc đúng mấy từ?', cat: 'total', catLabel: 'Ghi nhận',
+                        likertOptions: [0, 1, 2, 3].map((n) => ({ emoji: '🔢', label: `Đúng ${n} từ`, score: n }))
+                    },
+                    {
+                        text: 'Làm phép trừ 7 liên tiếp từ 100 (100-93-86-79-72-65) — đúng mấy phép?', cat: 'total', catLabel: 'Chú ý & tính toán',
+                        likertOptions: [0, 1, 2, 3, 4, 5].map((n) => ({ emoji: '🔢', label: `Đúng ${n} phép`, score: n }))
+                    },
+                    {
+                        text: 'Yêu cầu nhớ lại 3 từ đã ghi nhận ở trên (không cần đúng thứ tự) — nhớ đúng mấy từ?', cat: 'total', catLabel: 'Nhớ lại',
+                        likertOptions: [0, 1, 2, 3].map((n) => ({ emoji: '🔢', label: `Nhớ đúng ${n} từ`, score: n }))
+                    },
+                    {
+                        text: 'Đưa và yêu cầu gọi tên 2 đồ vật (đồng hồ, cây viết) — gọi đúng mấy đồ vật?', cat: 'total', catLabel: 'Ngôn ngữ',
+                        likertOptions: [0, 1, 2].map((n) => ({ emoji: '🔢', label: `Đúng ${n} đồ vật`, score: n }))
+                    },
+                    { text: 'Yêu cầu nhắc lại câu: "Không có nếu và hoặc nhưng mãi"', cat: 'total', catLabel: 'Ngôn ngữ', likertOptions: [{ emoji: '❌', label: 'Sai', score: 0 }, { emoji: '✅', label: 'Đúng', score: 1 }] },
+                    {
+                        text: 'Yêu cầu thực hiện mệnh lệnh 3 bước: "Cầm tờ giấy bằng tay phải, gấp đôi lại, rồi đưa cho tôi" — đúng mấy bước?', cat: 'total', catLabel: 'Ngôn ngữ',
+                        likertOptions: [0, 1, 2, 3].map((n) => ({ emoji: '🔢', label: `Đúng ${n} bước`, score: n }))
+                    },
+                    { text: 'Yêu cầu đọc thầm và làm theo mệnh lệnh viết sẵn: "Hãy nhắm mắt lại"', cat: 'total', catLabel: 'Ngôn ngữ', likertOptions: [{ emoji: '❌', label: 'Sai', score: 0 }, { emoji: '✅', label: 'Đúng', score: 1 }] },
+                    { text: 'Yêu cầu viết một câu tuỳ ý (có nghĩa, đủ chủ ngữ - vị ngữ)', cat: 'total', catLabel: 'Ngôn ngữ', likertOptions: [{ emoji: '❌', label: 'Sai', score: 0 }, { emoji: '✅', label: 'Đúng', score: 1 }] },
+                    { text: 'Yêu cầu vẽ lại 2 hình ngũ giác giao nhau', cat: 'total', catLabel: 'Thị giác không gian', likertOptions: [{ emoji: '❌', label: 'Sai', score: 0 }, { emoji: '✅', label: 'Đúng', score: 1 }] }
+                ],
+                likertOptions: [
+                    { emoji: '❌', label: 'Sai', score: 0 },
+                    { emoji: '✅', label: 'Đúng', score: 1 }
+                ],
+                scoring: {
+                    total: {
+                        indices: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18], multiplier: 1,
+                        levels: [
+                            { max: 13, 'label': 'Suy giảm nặng', 'class': 'level-3' },
+                            { max: 19, 'label': 'Suy giảm vừa', 'class': 'level-2' },
+                            { max: 23, 'label': 'Suy giảm nhẹ', 'class': 'level-1' },
+                            { max: 999, 'label': 'Không suy giảm nhận thức', 'class': 'level-0' }
+                        ]
+                    }
+                },
+                prevScores: null
+            },
+            isi: {
+                name: 'ISI', fullname: 'Insomnia Severity Index — Mức độ mất ngủ',
+                icon: '😴', iconBg: 'var(--peach-light)', iconBorder: 'var(--peach)',
+                timeRef: '1 tháng qua', totalQ: 7, maxScore: 28,
+                subscales: ['total'],
+                questions: [
+                    { text: 'Khó vào giấc', cat: 'total', catLabel: 'Mất ngủ' },
+                    { text: 'Khó duy trì giấc', cat: 'total', catLabel: 'Mất ngủ' },
+                    { text: 'Tỉnh giấc quá sớm', cat: 'total', catLabel: 'Mất ngủ' },
+                    {
+                        text: 'Bạn hài lòng/không hài lòng với giấc ngủ hiện tại của mình ở mức độ nào?', cat: 'total', catLabel: 'Mất ngủ',
+                        likertOptions: [
+                            { emoji: '😀', label: 'Rất hài lòng', score: 0 },
+                            { emoji: '🙂', label: 'Hài lòng', score: 1 },
+                            { emoji: '😐', label: 'Hài lòng vừa phải', score: 2 },
+                            { emoji: '😟', label: 'Không hài lòng', score: 3 },
+                            { emoji: '😣', label: 'Rất không hài lòng', score: 4 }
+                        ]
+                    },
+                    {
+                        text: 'Người khác nhận thấy vấn đề giấc ngủ ảnh hưởng đến chất lượng cuộc sống của bạn ở mức độ nào?', cat: 'total', catLabel: 'Mất ngủ',
+                        likertOptions: [
+                            { emoji: '✅', label: 'Không dễ nhận thấy chút nào', score: 0 },
+                            { emoji: '🟡', label: 'Dễ nhận thấy một chút', score: 1 },
+                            { emoji: '🟠', label: 'Dễ nhận thấy vừa phải', score: 2 },
+                            { emoji: '🔴', label: 'Rất dễ nhận thấy', score: 3 },
+                            { emoji: '🚨', label: 'Cực kỳ dễ nhận thấy', score: 4 }
+                        ]
+                    },
+                    {
+                        text: 'Bạn cảm thấy lo lắng/căng thẳng với vấn đề giấc ngủ hiện tại ở mức độ nào?', cat: 'total', catLabel: 'Mất ngủ',
+                        likertOptions: [
+                            { emoji: '✅', label: 'Không lo lắng chút nào', score: 0 },
+                            { emoji: '🟡', label: 'Lo lắng một chút', score: 1 },
+                            { emoji: '🟠', label: 'Lo lắng vừa phải', score: 2 },
+                            { emoji: '🔴', label: 'Rất lo lắng', score: 3 },
+                            { emoji: '🚨', label: 'Cực kỳ lo lắng', score: 4 }
+                        ]
+                    },
+                    {
+                        text: 'Vấn đề giấc ngủ đang ảnh hưởng đến hoạt động hằng ngày của bạn (mệt mỏi, giảm tập trung...) ở mức độ nào?', cat: 'total', catLabel: 'Mất ngủ',
+                        likertOptions: [
+                            { emoji: '✅', label: 'Không ảnh hưởng chút nào', score: 0 },
+                            { emoji: '🟡', label: 'Ảnh hưởng một chút', score: 1 },
+                            { emoji: '🟠', label: 'Ảnh hưởng vừa phải', score: 2 },
+                            { emoji: '🔴', label: 'Ảnh hưởng rất nhiều', score: 3 },
+                            { emoji: '🚨', label: 'Ảnh hưởng cực kỳ nhiều', score: 4 }
+                        ]
+                    }
+                ],
+                likertOptions: [
+                    { emoji: '✅', label: 'Không', score: 0 },
+                    { emoji: '🟡', label: 'Nhẹ', score: 1 },
+                    { emoji: '🟠', label: 'Vừa', score: 2 },
+                    { emoji: '🔴', label: 'Nặng', score: 3 },
+                    { emoji: '🚨', label: 'Rất nặng', score: 4 }
+                ],
+                scoring: {
+                    total: { indices: [0, 1, 2, 3, 4, 5, 6], multiplier: 1, levels: [{ max: 7, 'label': 'Không có mất ngủ', 'class': 'level-0' }, { max: 14, 'label': 'Mất ngủ nhẹ', 'class': 'level-1' }, { max: 21, 'label': 'Mất ngủ trung bình', 'class': 'level-2' }, { max: 999, 'label': 'Mất ngủ nghiêm trọng', 'class': 'level-3' }] }
+                },
+                prevScores: null
+            },
+            iat: {
+                name: 'IAT', fullname: 'Internet Addiction Test — Mức độ nghiện Internet',
+                icon: '📱', iconBg: 'var(--sky-light)', iconBorder: 'var(--sky)',
+                timeRef: '1 tháng qua', totalQ: 20, maxScore: 100,
+                subscales: ['total'],
+                questions: [
+                    { text: 'Bạn thường thấy rằng mình sử dụng internet nhiều hơn dự định', cat: 'total', catLabel: 'Internet' },
+                    { text: 'Bạn thường bỏ bê công việc gia đình để dành nhiều thời gian hơn sử dụng internet', cat: 'total', catLabel: 'Internet' },
+                    { text: 'Bạn thường thích thú với internet hơn là thân thiết với bạn bè', cat: 'total', catLabel: 'Internet' },
+                    { text: 'Bạn thường có các mối quan hệ mới với những người sử dụng internet khác', cat: 'total', catLabel: 'Internet' },
+                    { text: 'Những người xung quanh bạn thường xuyên phàn nàn về thời lượng bạn sử dụng internet', cat: 'total', catLabel: 'Internet' },
+                    { text: 'Điểm số hoặc công việc của bạn thường xuyên bị ảnh hưởng vì lượng thời gian bạn dành cho internet', cat: 'total', catLabel: 'Internet' },
+                    { text: 'Bạn thường kiểm tra email trước khi làm việc khác', cat: 'total', catLabel: 'Internet' },
+                    { text: 'Hiệu suất và năng suất công việc của bạn thường xuyên bị ảnh hưởng vì internet', cat: 'total', catLabel: 'Internet' },
+                    { text: 'Bạn thường đề phòng hoặc bí mật khi ai đó hỏi bạn đã làm những gì trên internet', cat: 'total', catLabel: 'Internet' },
+                    { text: 'Bạn thường loại bỏ những suy nghĩ buồn phiền trong cuộc sống bằng những suy nghĩ nhẹ nhàng về internet', cat: 'total', catLabel: 'Internet' },
+                    { text: 'Bạn thường mong chờ đến lúc được sử dụng internet lại', cat: 'total', catLabel: 'Internet' },
+                    { text: 'Bạn thường lo sợ rằng cuộc sống không có internet sẽ buồn chán, trống rỗng và không có niềm vui', cat: 'total', catLabel: 'Internet' },
+                    { text: 'Bạn thường cáu kỉnh, la hét hoặc tỏ ra khó chịu khi có ai đó làm phiền lúc bạn đang sử dụng internet', cat: 'total', catLabel: 'Internet' },
+                    { text: 'Bạn thường xuyên bị mất ngủ vì sử dụng internet', cat: 'total', catLabel: 'Internet' },
+                    { text: 'Bạn thường cảm thấy suy nghĩ nhiều về internet khi không online, hoặc tưởng tượng về việc đang sử dụng internet', cat: 'total', catLabel: 'Internet' },
+                    { text: 'Bạn thường tự nói "chỉ vài phút nữa thôi" khi đang sử dụng internet', cat: 'total', catLabel: 'Internet' },
+                    { text: 'Bạn thường cố gắng cắt giảm thời gian sử dụng internet và thất bại', cat: 'total', catLabel: 'Internet' },
+                    { text: 'Bạn thường cố giấu việc mình đã sử dụng internet bao lâu', cat: 'total', catLabel: 'Internet' },
+                    { text: 'Bạn thường chọn dành thời gian sử dụng internet nhiều hơn là đi chơi với người khác', cat: 'total', catLabel: 'Internet' },
+                    { text: 'Bạn thường cảm thấy chán nản, ủ rũ hoặc lo lắng khi không sử dụng internet, và cảm giác này biến mất khi dùng internet trở lại', cat: 'total', catLabel: 'Internet' }
+                ],
+                likertOptions: [
+                    { emoji: '✅', label: 'Không bao giờ', score: 0 },
+                    { emoji: '🔹', label: 'Hiếm khi', score: 1 },
+                    { emoji: '🔸', label: 'Thỉnh thoảng', score: 2 },
+                    { emoji: '🟠', label: 'Thường xuyên', score: 3 },
+                    { emoji: '🔴', label: 'Rất thường xuyên', score: 4 },
+                    { emoji: '🚨', label: 'Luôn luôn', score: 5 }
+                ],
+                scoring: {
+                    total: { indices: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19], multiplier: 1, levels: [{ max: 30, 'label': 'Sử dụng internet bình thường', 'class': 'level-0' }, { max: 49, 'label': 'Phụ thuộc nhẹ vào internet', 'class': 'level-1' }, { max: 79, 'label': 'Phụ thuộc vừa vào internet', 'class': 'level-2' }, { max: 999, 'label': 'Phụ thuộc nghiêm trọng vào internet', 'class': 'level-3' }] }
+                },
+                prevScores: null
+            },
+            audit: {
+                name: 'AUDIT', fullname: 'Alcohol Use Disorders Identification Test — Mức độ sử dụng rượu bia',
+                icon: '🍺', iconBg: 'var(--kraft-light)', iconBorder: 'var(--kraft)',
+                timeRef: '12 tháng qua', totalQ: 10, maxScore: 36,
+                subscales: ['total'],
+                questions: [
+                    {
+                        text: 'Mức độ uống rượu/bia của bạn trong 12 tháng vừa qua?', cat: 'total', catLabel: 'Rượu bia',
+                        likertOptions: [
+                            { emoji: '✅', label: 'Chưa bao giờ', score: 0 },
+                            { emoji: '🔹', label: 'Ít hơn 1 lần/tháng', score: 1 },
+                            { emoji: '🔸', label: '2-4 lần/tháng', score: 2 },
+                            { emoji: '🟠', label: '2-3 lần/tuần', score: 3 },
+                            { emoji: '🔴', label: '≥4 lần/tuần', score: 4 }
+                        ]
+                    },
+                    {
+                        text: 'Trong một ngày có uống rượu/bia, bạn thường uống bao nhiêu đơn vị? (1 đơn vị = 1 lon/chai bia, 1 cốc rượu vang 120ml, hay 1 chén rượu mạnh 30ml)', cat: 'total', catLabel: 'Rượu bia',
+                        likertOptions: [
+                            { emoji: '✅', label: '1-2 đơn vị', score: 0 },
+                            { emoji: '🔹', label: '3-4 đơn vị', score: 1 },
+                            { emoji: '🔸', label: '5-6 đơn vị', score: 2 },
+                            { emoji: '🟠', label: '7-9 đơn vị', score: 3 },
+                            { emoji: '🔴', label: '≥10 đơn vị', score: 4 }
+                        ]
+                    },
+                    { text: 'Tần suất uống từ 6 đơn vị rượu/bia trở lên trong 1 lần uống', cat: 'total', catLabel: 'Rượu bia' },
+                    { text: 'Tần suất bạn nhận thấy mình không thể tự dừng uống khi đã bắt đầu', cat: 'total', catLabel: 'Rượu bia' },
+                    { text: 'Tần suất bạn không làm được những việc đã dự định làm vì uống rượu/bia', cat: 'total', catLabel: 'Rượu bia' },
+                    { text: 'Tần suất buổi sáng ngay sau khi thức dậy bạn cần uống ngay một cốc rượu/bia trước khi nghĩ đến việc khác', cat: 'total', catLabel: 'Rượu bia' },
+                    { text: 'Tần suất bạn cảm thấy mắc lỗi hoặc áy náy/day dứt/lo lắng về việc uống rượu/bia của bản thân', cat: 'total', catLabel: 'Rượu bia' },
+                    { text: 'Tần suất bạn ở trong trạng thái sau khi uống rượu/bia không thể nhớ được chuyện gì đã xảy ra trước đó', cat: 'total', catLabel: 'Rượu bia' },
+                    {
+                        text: 'Từ trước đến nay, bạn đã bao giờ bị thương do uống rượu/bia chưa?', cat: 'total', catLabel: 'Rượu bia',
+                        likertOptions: [
+                            { emoji: '✅', label: 'Chưa bao giờ', score: 0 },
+                            { emoji: '🟡', label: 'Có, nhưng không phải trong năm vừa qua', score: 1 },
+                            { emoji: '🔴', label: 'Có, trong năm vừa qua', score: 2 }
+                        ]
+                    },
+                    {
+                        text: 'Từ trước đến nay, có người thân/bạn bè/bác sĩ nào lo ngại về việc sử dụng rượu/bia của bạn và đề nghị bạn giảm uống không?', cat: 'total', catLabel: 'Rượu bia',
+                        likertOptions: [
+                            { emoji: '✅', label: 'Chưa bao giờ', score: 0 },
+                            { emoji: '🟡', label: 'Có, nhưng không phải trong năm vừa qua', score: 1 },
+                            { emoji: '🔴', label: 'Có, trong năm vừa qua', score: 2 }
+                        ]
+                    }
+                ],
+                likertOptions: [
+                    { emoji: '✅', label: 'Không bao giờ', score: 0 },
+                    { emoji: '🔹', label: 'Ít hơn 1 lần/tháng', score: 1 },
+                    { emoji: '🔸', label: 'Hàng tháng', score: 2 },
+                    { emoji: '🟠', label: 'Hàng tuần', score: 3 },
+                    { emoji: '🔴', label: 'Hàng ngày hoặc gần như hàng ngày', score: 4 }
+                ],
+                scoring: {
+                    total: { indices: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9], multiplier: 1, levels: [{ max: 7, 'label': 'Uống rượu bia hợp lý, nguy cơ thấp', 'class': 'level-0' }, { max: 15, 'label': 'Uống rượu bia ở mức nguy cơ', 'class': 'level-1' }, { max: 19, 'label': 'Uống rượu bia ở mức có hại', 'class': 'level-2' }, { max: 999, 'label': 'Nghiện hoặc lệ thuộc rượu bia', 'class': 'level-3' }] }
+                },
+                prevScores: null
             }
         };
 
@@ -2523,6 +2769,62 @@
                     { className: 'badge-sky', label: '25 câu hỏi' },
                     { className: 'badge-mint', label: '~10 phút' },
                     { className: 'badge-lavender', label: 'Thanh thiếu niên' }
+                ]
+            },
+            mmse: {
+                apiCode: 'MMSE',
+                name: 'MMSE',
+                fullname: 'Mini-Mental State Exam',
+                icon: '🧠',
+                cardClass: 'mmse',
+                iconStyle: 'background:var(--lavender-light);border-color:var(--lavender);',
+                desc: 'Đánh giá chức năng nhận thức: định hướng, trí nhớ, chú ý, ngôn ngữ — thường dùng cho người lớn tuổi.',
+                badges: [
+                    { className: 'badge-lavender', label: '19 câu hỏi' },
+                    { className: 'badge-mint', label: '~10 phút' },
+                    { style: 'background:var(--lavender-light);color:#8a6aaa;border:1.5px solid var(--lavender);', label: 'Người lớn tuổi' }
+                ]
+            },
+            isi: {
+                apiCode: 'ISI',
+                name: 'ISI',
+                fullname: 'Insomnia Severity Index',
+                icon: '😴',
+                cardClass: 'isi',
+                iconStyle: 'background:var(--peach-light);border-color:var(--peach);',
+                desc: 'Đánh giá mức độ nghiêm trọng và tác động của chứng mất ngủ trong 1 tháng qua.',
+                badges: [
+                    { className: 'badge-peach', label: '7 câu hỏi' },
+                    { className: 'badge-mint', label: '~3 phút' },
+                    { className: 'badge-peach', label: 'Hàng tháng' }
+                ]
+            },
+            iat: {
+                apiCode: 'IAT',
+                name: 'IAT',
+                fullname: 'Internet Addiction Test',
+                icon: '📱',
+                cardClass: 'iat',
+                iconStyle: 'background:var(--sky-light);border-color:var(--sky);',
+                desc: 'Đánh giá mức độ nghiện Internet trong tháng qua.',
+                badges: [
+                    { className: 'badge-sky', label: '20 câu hỏi' },
+                    { className: 'badge-mint', label: '~7 phút' },
+                    { className: 'badge-sky', label: 'Hàng tháng' }
+                ]
+            },
+            audit: {
+                apiCode: 'AUDIT',
+                name: 'AUDIT',
+                fullname: 'Alcohol Use Disorders Identification Test',
+                icon: '🍺',
+                cardClass: 'audit',
+                iconStyle: 'background:var(--kraft-light);border-color:var(--kraft);',
+                desc: 'Sàng lọc mức độ sử dụng rượu bia trong 12 tháng qua (WHO).',
+                badges: [
+                    { className: 'badge-peach', label: '10 câu hỏi' },
+                    { className: 'badge-mint', label: '~5 phút' },
+                    { style: 'background:var(--kraft-light);color:var(--kraft-dark);border:1.5px solid var(--kraft);', label: '12 tháng/lần' }
                 ]
             }
         };

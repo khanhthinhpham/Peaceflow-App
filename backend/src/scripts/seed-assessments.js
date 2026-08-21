@@ -6,7 +6,8 @@ import { db } from '../config/db.js';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const sqlPaths = [
   path.resolve(__dirname, '../../db/seed/0002_assessments.sql'),
-  path.resolve(__dirname, '../../db/seed/0003_assessments_extra.sql')
+  path.resolve(__dirname, '../../db/seed/0003_assessments_extra.sql'),
+  path.resolve(__dirname, '../../db/seed/0004_assessments_extra2.sql')
 ];
 
 async function seedAssessments() {
