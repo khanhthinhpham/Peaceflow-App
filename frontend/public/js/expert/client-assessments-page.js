@@ -669,6 +669,16 @@ function buildInterpretation(item) {
     const ir = item.interpreted_result;
     if (ir && typeof ir === 'object') {
         if (ir.summary_html) return stripHtml(ir.summary_html);
+        // Raven CPM: hiển thị đủ điểm thô + chỉ số chuẩn hoá/IQ thay vì chỉ mỗi ghi chú.
+        if (ir.scored && ir.standard_score !== undefined) {
+            const parts = [`Điểm thô: ${ir.raw_total}/36`];
+            if (ir.standard_score !== null) {
+                parts.push(`SS: ${ir.standard_score}`, `Percentile: ${ir.percentile}`, `Xếp loại: ${ir.iq_label}`);
+            } else if (ir.note) {
+                parts.push(ir.note);
+            }
+            return parts.join(' — ');
+        }
         if (ir.note) return ir.note;
     }
     if (item.dimension_scores && typeof item.dimension_scores === 'object' && Object.keys(item.dimension_scores).length) {

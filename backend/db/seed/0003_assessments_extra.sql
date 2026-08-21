@@ -145,13 +145,25 @@ values
 (
   'RAVEN_CPM',
   'Coloured Progressive Matrices',
-  '1.0',
-  'Trắc nghiệm ma trận tiến bộ màu (Raven) — 36 câu, chưa hỗ trợ tự chấm điểm tự động',
+  '1.1',
+  'Trắc nghiệm ma trận tiến bộ màu (Raven) — 36 câu, tự chấm điểm thô và quy đổi IQ theo tuổi (4-11 tuổi) dựa trên Bảng khoá điểm Raven màu - Trẻ em - 2008',
   '[
     {"key":"raven_36_items","type":"image_choice","count":36,"note":"Xem question_schema chi tiết ở phía frontend (frontend/public/assets/raven)"}
   ]'::jsonb,
-  '{"method":"none","note":"Cần chuyên gia đối chiếu đáp án gốc từ manual bản quyền để chấm điểm"}'::jsonb,
-  '{"scored":false}'::jsonb,
+  '{"method":"raven_key_and_age_norm","answer_key":{"A":[4,5,1,2,6,3,6,2,1,3,5,4],"AB":[4,5,1,6,2,1,3,4,6,3,5,2],"B":[2,6,1,2,1,3,5,6,4,3,4,5]},"note":"Chuyên gia vẫn nên đối chiếu lại kết quả, đặc biệt ngoài phạm vi chuẩn hoá 4-11 tuổi"}'::jsonb,
+  '{
+    "iq_bands":[
+      {"max":69,"label":"có khuyết tật trí tuệ"},
+      {"max":79,"label":"trạng thái ranh giới"},
+      {"max":89,"label":"chỉ số dưới trung bình"},
+      {"max":109,"label":"chỉ số trung bình"},
+      {"max":119,"label":"chỉ số thông minh"},
+      {"max":129,"label":"chỉ số xuất sắc"},
+      {"max":999,"label":"chỉ số rất xuất sắc"}
+    ],
+    "normed_age_range":"4y0m-11y11m",
+    "scored":true
+  }'::jsonb,
   true
 )
 on conflict (code) do update
