@@ -1,4 +1,5 @@
 import { auth } from '../auth.js';
+import { apiClient } from '../api-client.js';
 import { mountExpertShell, requireExpertUser, showExpertBanner, loadExpertData, invalidateExpertData, setExpertNavLock } from './shell.js';
 
 let applicationState = null;
@@ -26,6 +27,7 @@ async function init() {
         setExpertNavLock(false);
         renderState();
         wireSubmit();
+        wireAvatarPhoto();
     } catch (error) {
         console.error('Expert application load failed:', error);
         showExpertBanner('Không thể tải trạng thái hồ sơ chuyên gia.', 'error');
@@ -84,6 +86,7 @@ function hydrateFromLatestApplication(application) {
     document.getElementById('phone').value = application?.phone || '';
     document.getElementById('experienceYears').value = String(application?.experience_years ?? 0);
     document.getElementById('avatarEmoji').value = '👩‍⚕️';
+    document.getElementById('avatarPhotoGroup').style.display = 'none';
     document.getElementById('expertStatus').value = 'offline';
     document.getElementById('degree').value = application?.degree || '';
     document.getElementById('specialties').value = Array.isArray(application?.specialties) ? application.specialties.join(', ') : '';
@@ -100,6 +103,8 @@ function hydrateFromExpertProfile(expert) {
     document.getElementById('phone').value = expert?.phone || '';
     document.getElementById('experienceYears').value = String(expert?.experience_years ?? 0);
     document.getElementById('avatarEmoji').value = expert?.avatar_emoji || '👩‍⚕️';
+    document.getElementById('avatarPhotoGroup').style.display = '';
+    renderAvatarPhotoPreview(expert);
     document.getElementById('expertStatus').value = expert?.status || 'offline';
     document.getElementById('degree').value = expert?.degree || '';
     document.getElementById('specialties').value = Array.isArray(expert?.specialties) ? expert.specialties.join(', ') : '';
@@ -198,6 +203,70 @@ function wireSubmit() {
         } finally {
             submitBtn.disabled = false;
             submitBtn.textContent = mode === 'profile' ? 'Cập nhật hồ sơ chuyên gia' : 'Gửi hồ sơ chuyên gia';
+        }
+    });
+}
+
+async function renderAvatarPhotoPreview(expert) {
+    const preview = document.getElementById('avatarPhotoPreview');
+    const removeBtn = document.getElementById('avatarPhotoRemoveBtn');
+    if (!preview) return;
+    removeBtn.style.display = expert?.has_avatar_photo ? '' : 'none';
+    if (!expert?.has_avatar_photo) {
+        preview.textContent = document.getElementById('avatarEmoji').value || '👩‍⚕️';
+        return;
+    }
+    try {
+        const blob = await apiClient.getBlob(`/experts/${expert.id}/avatar`);
+        const url = URL.createObjectURL(blob);
+        preview.innerHTML = `<img src="${url}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:block;">`;
+    } catch (_e) {
+        preview.textContent = document.getElementById('avatarEmoji').value || '👩‍⚕️';
+    }
+}
+
+function wireAvatarPhoto() {
+    const uploadBtn = document.getElementById('avatarPhotoUploadBtn');
+    const removeBtn = document.getElementById('avatarPhotoRemoveBtn');
+    const fileInput = document.getElementById('avatarPhotoInput');
+
+    uploadBtn?.addEventListener('click', () => fileInput.click());
+
+    fileInput?.addEventListener('change', async () => {
+        const file = fileInput.files[0];
+        if (!file) return;
+        uploadBtn.disabled = true;
+        try {
+            const formData = new FormData();
+            formData.set('image', file);
+            await apiClient.postForm('/expert-portal/avatar', formData);
+            invalidateExpertData();
+            const { overview } = await loadExpertData();
+            overviewState = overview;
+            renderAvatarPhotoPreview(overview.expert);
+            showExpertBanner('Đã cập nhật ảnh đại diện.', 'success');
+        } catch (error) {
+            showExpertBanner(error.message || 'Không thể tải ảnh lên.', 'error');
+        } finally {
+            uploadBtn.disabled = false;
+            fileInput.value = '';
+        }
+    });
+
+    removeBtn?.addEventListener('click', async () => {
+        if (!window.confirm('Xoá ảnh đại diện thật, quay về avatar emoji?')) return;
+        removeBtn.disabled = true;
+        try {
+            await apiClient.delete('/expert-portal/avatar');
+            invalidateExpertData();
+            const { overview } = await loadExpertData();
+            overviewState = overview;
+            renderAvatarPhotoPreview(overview.expert);
+            showExpertBanner('Đã xoá ảnh đại diện.', 'success');
+        } catch (error) {
+            showExpertBanner(error.message || 'Không thể xoá ảnh.', 'error');
+        } finally {
+            removeBtn.disabled = false;
         }
     });
 }

@@ -170,7 +170,7 @@ function expertCard(e) {
         <div class="admin-card" data-expert="${e.id}">
             <div style="display:flex;gap:14px;align-items:flex-start;flex-wrap:wrap;justify-content:space-between;">
                 <div style="display:flex;gap:12px;min-width:0;">
-                    <div class="admin-user-bubble" style="background:var(--mint-light,#c5e8d2);">${icon('user')}</div>
+                    <div class="admin-user-bubble" data-avatar-bubble="${e.id}" style="background:var(--mint-light,#c5e8d2);overflow:hidden;">${e.has_avatar_photo ? '' : icon('user')}</div>
                     <div style="min-width:0;">
                         <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap;">
                             <span style="font-weight:800;">${esc(e.full_name)}</span>
@@ -183,6 +183,9 @@ function expertCard(e) {
                 </div>
                 <div style="display:flex;gap:8px;flex-wrap:wrap;">
                     <button type="button" class="btn-outline" data-bookings="${esc(e.full_name || '')}" style="font-size:.82rem;">${icon('calendar')} Lịch hẹn</button>
+                    <button type="button" class="btn-outline" data-avatar-upload style="font-size:.82rem;">${e.has_avatar_photo ? 'Đổi ảnh đại diện' : 'Tải ảnh đại diện'}</button>
+                    ${e.has_avatar_photo ? `<button type="button" class="btn-outline" data-avatar-remove style="font-size:.82rem;">Xoá ảnh</button>` : ''}
+                    <input type="file" accept="image/*" data-avatar-input style="display:none;">
                     <button type="button" class="${active ? 'btn-outline' : 'btn-primary'}" data-toggle="${active ? '0' : '1'}" style="font-size:.82rem;">${active ? 'Tắt hoạt động' : 'Bật hoạt động'}</button>
                 </div>
             </div>
@@ -212,6 +215,16 @@ function expertCard(e) {
     `;
 }
 
+async function loadAvatarThumb(id) {
+    const bubble = expertsListEl.querySelector(`[data-avatar-bubble="${id}"]`);
+    if (!bubble) return;
+    try {
+        const blob = await apiClient.getBlob(`/experts/${id}/avatar`);
+        const url = URL.createObjectURL(blob);
+        bubble.innerHTML = `<img src="${url}" alt="" style="width:100%;height:100%;object-fit:cover;">`;
+    } catch (_e) { /* giữ nguyên emoji mặc định nếu tải lỗi */ }
+}
+
 async function loadExperts(page = expertState.page) {
     expertState.page = Math.max(0, page);
     expertsListEl.innerHTML = '<div class="admin-card admin-empty">Đang tải...</div>';
@@ -237,10 +250,34 @@ async function loadExperts(page = expertState.page) {
     const totalPages = Math.max(1, Math.ceil(expertState.total / EXP_LIMIT));
     expertsMetaEl.textContent = `${expertState.page * EXP_LIMIT + 1}–${expertState.page * EXP_LIMIT + experts.length} trong ${expertState.total} chuyên gia · Trang ${expertState.page + 1}/${totalPages}`;
     expertsListEl.innerHTML = experts.map(expertCard).join('');
+    experts.filter((e) => e.has_avatar_photo).forEach((e) => loadAvatarThumb(e.id));
     expertsListEl.querySelectorAll('[data-expert]').forEach((row) => {
         const id = row.getAttribute('data-expert');
         row.querySelector('[data-bookings]')?.addEventListener('click', (ev) => {
             goToBookings(ev.currentTarget.getAttribute('data-bookings'));
+        });
+        const avatarInput = row.querySelector('[data-avatar-input]');
+        row.querySelector('[data-avatar-upload]')?.addEventListener('click', () => avatarInput?.click());
+        avatarInput?.addEventListener('change', async () => {
+            const file = avatarInput.files[0];
+            if (!file) return;
+            const fd = new FormData();
+            fd.append('image', file);
+            try {
+                await apiClient.postForm(`/admin/experts/${id}/avatar`, fd);
+                loadExperts(expertState.page);
+            } catch (e) {
+                alert(e.message || 'Tải ảnh thất bại.');
+            }
+        });
+        row.querySelector('[data-avatar-remove]')?.addEventListener('click', async () => {
+            if (!window.confirm('Xoá ảnh đại diện thật, quay về emoji mặc định?')) return;
+            try {
+                await apiClient.delete(`/admin/experts/${id}/avatar`);
+                loadExperts(expertState.page);
+            } catch (e) {
+                alert(e.message || 'Xoá ảnh thất bại.');
+            }
         });
         row.querySelector('[data-toggle]')?.addEventListener('click', async (ev) => {
             const next = ev.currentTarget.getAttribute('data-toggle') === '1';

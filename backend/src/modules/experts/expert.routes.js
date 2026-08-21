@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import multer from 'multer';
 import { requireAuth } from '../../common/middleware/auth.middleware.js';
 import { db } from '../../config/db.js';
 import { z } from 'zod';
@@ -8,6 +9,17 @@ import { generateOrderCode, transferContent, buildTransferContent, buildVietQrUr
 import { approveExpertApplication, rejectExpertApplication } from '../auth/auth.service.js';
 
 const router = Router();
+
+const avatarUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 5 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    if (!file.mimetype.startsWith('image/')) {
+      return cb(new Error('Chỉ chấp nhận file ảnh'));
+    }
+    cb(null, true);
+  }
+});
 
 // Thông tin tài khoản nhận ủng hộ (donate) — công khai, dùng để dựng QR VietQR.
 router.get('/donate/info', (req, res) => {
@@ -25,7 +37,8 @@ router.get('/expert-portal/overview', requireAuth, async (req, res) => {
     }
 
     const expertProfileRes = await db.query(
-      `select id, code, full_name, degree, phone, avatar_emoji, status, rating, sessions_count, satisfaction_rate,
+      `select id, code, full_name, degree, phone, avatar_emoji, (avatar_photo is not null) as has_avatar_photo,
+              status, rating, sessions_count, satisfaction_rate,
               base_price, location, experience_years, specialties, bio, credentials, approaches, next_slot_label,
               active, created_at
        from experts
@@ -148,7 +161,8 @@ router.put('/expert-portal/profile', requireAuth, async (req, res) => {
            next_slot_label = $14,
            updated_at = now()
        where id = $1
-       returning id, code, full_name, degree, phone, avatar_emoji, status, rating, sessions_count,
+       returning id, code, full_name, degree, phone, avatar_emoji, (avatar_photo is not null) as has_avatar_photo,
+                 status, rating, sessions_count,
                  satisfaction_rate, base_price, location, experience_years, specialties, bio,
                  credentials, approaches, next_slot_label, active, created_at, updated_at`,
       [
@@ -198,6 +212,49 @@ router.put('/expert-portal/profile', requireAuth, async (req, res) => {
 
     console.error('Expert portal profile update error:', error);
     return res.status(500).json({ success: false, message: 'Could not update expert profile' });
+  }
+});
+
+// Chuyên gia tự tải lên ảnh đại diện thật cho hồ sơ của chính mình.
+router.post('/expert-portal/avatar', requireAuth, avatarUpload.single('image'), async (req, res) => {
+  try {
+    if (req.user.role !== 'expert') {
+      return res.status(403).json({ success: false, message: 'Expert access required' });
+    }
+    if (!req.file) return res.status(400).json({ success: false, message: 'Thiếu file ảnh' });
+
+    const r = await db.query(
+      `update experts set avatar_photo = $2, avatar_photo_mime = $3, updated_at = now()
+       where user_id = $1 returning id`,
+      [req.user.sub, req.file.buffer, req.file.mimetype]
+    );
+    if (!r.rows[0]) return res.status(404).json({ success: false, message: 'Không tìm thấy hồ sơ chuyên gia của bạn.' });
+    return res.json({ success: true, data: { uploaded: true } });
+  } catch (error) {
+    if (error.message === 'Chỉ chấp nhận file ảnh') {
+      return res.status(400).json({ success: false, message: error.message });
+    }
+    console.error('Expert self avatar upload error:', error);
+    return res.status(500).json({ success: false, message: 'Could not upload avatar' });
+  }
+});
+
+// Chuyên gia tự xoá ảnh đại diện thật, quay về avatar_emoji.
+router.delete('/expert-portal/avatar', requireAuth, async (req, res) => {
+  try {
+    if (req.user.role !== 'expert') {
+      return res.status(403).json({ success: false, message: 'Expert access required' });
+    }
+    const r = await db.query(
+      `update experts set avatar_photo = null, avatar_photo_mime = null, updated_at = now()
+       where user_id = $1 returning id`,
+      [req.user.sub]
+    );
+    if (!r.rows[0]) return res.status(404).json({ success: false, message: 'Không tìm thấy hồ sơ chuyên gia của bạn.' });
+    return res.json({ success: true, data: { removed: true } });
+  } catch (error) {
+    console.error('Expert self avatar delete error:', error);
+    return res.status(500).json({ success: false, message: 'Could not remove avatar' });
   }
 });
 
@@ -1331,7 +1388,8 @@ router.get('/admin/experts', requireAuth, async (req, res) => {
     const countRes = await db.query(`select count(*)::int as total from experts e left join users u on u.id = e.user_id ${where}`, params);
     params.push(limit, offset);
     const rowsRes = await db.query(
-      `select e.id, e.code, e.full_name, e.avatar_emoji, e.status, e.active, e.rating, e.sessions_count,
+      `select e.id, e.code, e.full_name, e.avatar_emoji, (e.avatar_photo is not null) as has_avatar_photo,
+              e.status, e.active, e.rating, e.sessions_count,
               e.base_price, e.location, e.specialties, e.experience_years,
               coalesce(e.balance, 0)::int as balance,
               e.payout_bank_name, e.payout_bank_bin, e.payout_account_number, e.payout_account_name,
@@ -1378,6 +1436,60 @@ router.patch('/admin/experts/:id', requireAuth, async (req, res) => {
   } catch (error) {
     console.error('Admin toggle expert error:', error);
     return res.status(500).json({ success: false, message: 'Could not update expert' });
+  }
+});
+
+// Admin tải lên ảnh đại diện thật cho chuyên gia (thay cho avatar_emoji mặc định).
+router.post('/admin/experts/:id/avatar', requireAuth, avatarUpload.single('image'), async (req, res) => {
+  try {
+    if (req.user.role !== 'admin') return res.status(403).json({ success: false, message: 'Admin only' });
+    if (!req.file) return res.status(400).json({ success: false, message: 'Thiếu file ảnh' });
+
+    const r = await db.query(
+      `update experts set avatar_photo = $2, avatar_photo_mime = $3, updated_at = now() where id = $1 returning id`,
+      [req.params.id, req.file.buffer, req.file.mimetype]
+    );
+    if (!r.rows[0]) return res.status(404).json({ success: false, message: 'Không tìm thấy chuyên gia.' });
+    return res.json({ success: true, data: { uploaded: true } });
+  } catch (error) {
+    if (error.message === 'Chỉ chấp nhận file ảnh') {
+      return res.status(400).json({ success: false, message: error.message });
+    }
+    console.error('Admin upload expert avatar error:', error);
+    return res.status(500).json({ success: false, message: 'Could not upload avatar' });
+  }
+});
+
+// Xoá ảnh đại diện thật, quay về avatar_emoji mặc định.
+router.delete('/admin/experts/:id/avatar', requireAuth, async (req, res) => {
+  try {
+    if (req.user.role !== 'admin') return res.status(403).json({ success: false, message: 'Admin only' });
+    const r = await db.query(
+      `update experts set avatar_photo = null, avatar_photo_mime = null, updated_at = now() where id = $1 returning id`,
+      [req.params.id]
+    );
+    if (!r.rows[0]) return res.status(404).json({ success: false, message: 'Không tìm thấy chuyên gia.' });
+    return res.json({ success: true, data: { removed: true } });
+  } catch (error) {
+    console.error('Admin delete expert avatar error:', error);
+    return res.status(500).json({ success: false, message: 'Could not remove avatar' });
+  }
+});
+
+// Ảnh đại diện thật của chuyên gia (yêu cầu đăng nhập, dùng trong danh sách chuyên gia).
+router.get('/experts/:id/avatar', requireAuth, async (req, res) => {
+  try {
+    const r = await db.query(`select avatar_photo, avatar_photo_mime from experts where id = $1 limit 1`, [req.params.id]);
+    const row = r.rows[0];
+    if (!row || !row.avatar_photo) {
+      return res.status(404).json({ success: false, message: 'Chưa có ảnh đại diện' });
+    }
+    res.set('Content-Type', row.avatar_photo_mime || 'image/jpeg');
+    res.set('Cache-Control', 'private, max-age=3600');
+    return res.send(row.avatar_photo);
+  } catch (error) {
+    console.error('Expert avatar fetch error:', error);
+    return res.status(500).json({ success: false, message: 'Could not fetch avatar' });
   }
 });
 
@@ -2177,6 +2289,7 @@ function mapExpert(row, matchingTags) {
     id: row.id,
     code: row.code,
     avatar: row.avatar_emoji || '👩‍⚕️',
+    has_avatar_photo: !!row.avatar_photo,
     name: row.full_name,
     degree: row.degree,
     status: row.status,

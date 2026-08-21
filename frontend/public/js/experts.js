@@ -206,7 +206,7 @@ function renderExperts(data) {
                 ${expert.matched ? '<div class="ec-match-badge">✨ PeaceCat khuyên dùng</div>' : ''}
                 <div class="ec-header">
                     <div class="ec-avatar">
-                        ${escapeHtml(expert.avatar)}
+                        <span data-avatar-slot="${expert.id}">${escapeHtml(expert.avatar)}</span>
                         <div class="ec-status-dot ${escapeHtml(expert.status)}"></div>
                     </div>
                     <div class="ec-info">
@@ -241,6 +241,28 @@ function renderExperts(data) {
             </div>
         </div>
     `).join('');
+
+    data.filter((expert) => expert.has_avatar_photo).forEach((expert) => {
+        applyAvatarPhoto(refs.grid.querySelector(`[data-avatar-slot="${expert.id}"]`), expert);
+    });
+}
+
+const avatarUrlCache = new Map();
+async function getAvatarObjectUrl(id) {
+    if (avatarUrlCache.has(id)) return avatarUrlCache.get(id);
+    const blob = await apiClient.getBlob(`/experts/${id}/avatar`);
+    const url = URL.createObjectURL(blob);
+    avatarUrlCache.set(id, url);
+    return url;
+}
+
+// Thay emoji bằng ảnh đại diện thật (nếu chuyên gia đã có), giữ nguyên emoji khi tải lỗi.
+async function applyAvatarPhoto(el, expert) {
+    if (!el || !expert.has_avatar_photo) return;
+    try {
+        const url = await getAvatarObjectUrl(expert.id);
+        el.innerHTML = `<img src="${url}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:block;">`;
+    } catch (_e) { /* giữ nguyên emoji mặc định */ }
 }
 
 function applyFilters() {
@@ -293,6 +315,7 @@ function renderProfileModal(expert) {
     if (!expert) return;
 
     refs.pmAvatar.textContent = expert.avatar;
+    applyAvatarPhoto(refs.pmAvatar, expert);
     refs.pmName.textContent = expert.name;
     refs.pmDegree.textContent = expert.degree;
     refs.pmTags.innerHTML = expert.specialties.map((specialty) => `<span class="badge-pill badge-mint">${escapeHtml(specialty)}</span>`).join('');
@@ -480,6 +503,7 @@ function openBookingModal(id) {
     };
 
     refs.bmAvatar.textContent = expert.avatar;
+    applyAvatarPhoto(refs.bmAvatar, expert);
     refs.bmName.textContent = `Đặt lịch với ${expert.name}`;
     refs.bmDegree.textContent = expert.degree;
     refs.bsExpert.textContent = expert.name;
