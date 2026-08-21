@@ -837,6 +837,16 @@ router.get('/expert-portal/self-test-results', requireAuth, async (req, res) => 
       return res.status(403).json({ success: false, message: 'Expert access required' });
     }
 
+    // limit=0 (dùng khi xuất Excel toàn bộ) nghĩa là lấy hết, không phân trang.
+    const wantAll = req.query.limit === '0';
+    const limit = wantAll ? 1000 : Math.min(Math.max(parseInt(req.query.limit, 10) || 10, 1), 100);
+    const offset = wantAll ? 0 : Math.max(parseInt(req.query.offset, 10) || 0, 0);
+
+    const countRes = await db.query(
+      `select count(*)::int as total from assessment_results where user_id = $1`,
+      [req.user.sub]
+    );
+
     const r = await db.query(
       `select
          ar.id,
@@ -856,13 +866,18 @@ router.get('/expert-portal/self-test-results', requireAuth, async (req, res) => 
        join assessments a on a.id = ar.assessment_id
        where ar.user_id = $1
        order by ar.created_at desc
-       limit 100`,
-      [req.user.sub]
+       limit $2 offset $3`,
+      [req.user.sub, limit, offset]
     );
 
     return res.json({
       success: true,
-      data: r.rows.map((row) => ({ ...row, total_score: Number(row.total_score || 0) }))
+      data: {
+        total: countRes.rows[0]?.total || 0,
+        limit,
+        offset,
+        items: r.rows.map((row) => ({ ...row, total_score: Number(row.total_score || 0) }))
+      }
     });
   } catch (error) {
     console.error('Expert self-test results error:', error);

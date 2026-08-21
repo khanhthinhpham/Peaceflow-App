@@ -4,6 +4,47 @@
     padding: 18px 24px 24px;
 }
 
+.ca-pager {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    align-items: center;
+    padding: 0 24px 20px;
+}
+
+.ca-page-btn {
+    font-family: inherit;
+    font-weight: 700;
+    font-size: .8rem;
+    padding: 6px 12px;
+    border-radius: 8px;
+    border: 1.5px solid var(--kraft-light, #e8cba7);
+    background: var(--cream, #fff8f0);
+    cursor: pointer;
+}
+
+.ca-page-btn.active {
+    background: var(--mint-dark, #7bbf95);
+    border-color: var(--mint-dark, #7bbf95);
+    color: white;
+}
+
+.ca-page-btn:disabled {
+    opacity: .4;
+    cursor: not-allowed;
+}
+
+.ca-page-ellipsis {
+    padding: 0 4px;
+    color: var(--text-secondary);
+}
+
+.ca-pager-meta {
+    font-size: .78rem;
+    color: var(--text-secondary);
+    margin-right: 8px;
+}
+
 .ca-selftest-item {
     display: flex;
     justify-content: space-between;

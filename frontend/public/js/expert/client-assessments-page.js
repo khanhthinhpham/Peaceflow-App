@@ -156,8 +156,70 @@ const state = {
     carsAnswers: {},
     sdqAnswers: {},
     history: [],
-    selfTestResults: []
+    selfTestResults: [],
+    selfTestPage: 0,
+    selfTestLimit: 10,
+    selfTestTotal: 0
 };
+
+// Cửa sổ trang hiển thị (luôn có trang đầu/cuối, dấu … khi xa) — cùng kiểu pager
+// đã dùng ở trang Quản lý user trong admin.
+function pageWindow(current, total) {
+    const pages = new Set([0, total - 1, current, current - 1, current + 1]);
+    const sorted = [...pages].filter((p) => p >= 0 && p < total).sort((a, b) => a - b);
+    const out = [];
+    let prev = null;
+    for (const p of sorted) {
+        if (prev !== null && p - prev > 1) out.push('…');
+        out.push(p);
+        prev = p;
+    }
+    return out;
+}
+
+function renderSelfTestPager() {
+    const el = document.getElementById('caSelfTestPager');
+    if (!el) return;
+    const totalPages = Math.max(1, Math.ceil(state.selfTestTotal / state.selfTestLimit));
+    const cur = state.selfTestPage;
+
+    if (state.selfTestTotal === 0) {
+        el.innerHTML = '';
+        return;
+    }
+
+    const from = cur * state.selfTestLimit + 1;
+    const to = Math.min(state.selfTestTotal, (cur + 1) * state.selfTestLimit);
+    const metaHtml = `<span class="ca-pager-meta">${from}–${to} trong ${state.selfTestTotal}</span>`;
+
+    if (totalPages <= 1) {
+        el.innerHTML = metaHtml;
+        return;
+    }
+
+    const last = totalPages - 1;
+    const parts = [metaHtml];
+    parts.push(`<button type="button" class="ca-page-btn" data-page="0" ${cur === 0 ? 'disabled' : ''} title="Trang đầu">« Đầu</button>`);
+    parts.push(`<button type="button" class="ca-page-btn" data-page="${cur - 1}" ${cur === 0 ? 'disabled' : ''}>‹ Trước</button>`);
+    for (const p of pageWindow(cur, totalPages)) {
+        parts.push(p === '…'
+            ? '<span class="ca-page-ellipsis">…</span>'
+            : `<button type="button" class="ca-page-btn${p === cur ? ' active' : ''}" data-page="${p}">${p + 1}</button>`);
+    }
+    parts.push(`<button type="button" class="ca-page-btn" data-page="${cur + 1}" ${cur >= last ? 'disabled' : ''}>Sau ›</button>`);
+    parts.push(`<button type="button" class="ca-page-btn" data-page="${last}" ${cur >= last ? 'disabled' : ''} title="Trang cuối">Cuối »</button>`);
+    el.innerHTML = parts.join('');
+
+    el.querySelectorAll('.ca-page-btn[data-page]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+            if (btn.disabled) return;
+            const p = parseInt(btn.getAttribute('data-page'), 10);
+            if (!Number.isNaN(p) && p !== state.selfTestPage) {
+                loadSelfTestResults(p);
+            }
+        });
+    });
+}
 
 async function init() {
     const user = await requireExpertUser();
@@ -173,19 +235,34 @@ async function init() {
     await Promise.all([loadClients(), loadSelfTestResults()]);
 }
 
-async function loadSelfTestResults() {
+async function loadSelfTestResults(page = 0) {
     const el = document.getElementById('caSelfTestList');
+    const pagerEl = document.getElementById('caSelfTestPager');
     el.innerHTML = '<p class="ca-empty">Đang tải...</p>';
+    if (pagerEl) pagerEl.innerHTML = '';
+    state.selfTestPage = Math.max(0, page);
+
+    let data;
     try {
-        state.selfTestResults = await apiClient.get('/expert-portal/self-test-results', { noCache: true });
+        data = await apiClient.get(
+            `/expert-portal/self-test-results?limit=${state.selfTestLimit}&offset=${state.selfTestPage * state.selfTestLimit}`,
+            { noCache: true }
+        );
     } catch (error) {
         state.selfTestResults = [];
+        state.selfTestTotal = 0;
         el.innerHTML = '<p class="ca-empty">Không tải được danh sách.</p>';
         return;
     }
 
+    state.selfTestResults = data?.items || [];
+    state.selfTestTotal = data?.total || 0;
+
     if (!state.selfTestResults.length) {
-        el.innerHTML = '<p class="ca-empty">Chưa có ai tự làm test trên tài khoản này.</p>';
+        el.innerHTML = state.selfTestTotal
+            ? '<p class="ca-empty">Không có kết quả ở trang này.</p>'
+            : '<p class="ca-empty">Chưa có ai tự làm test trên tài khoản này.</p>';
+        renderSelfTestPager();
         return;
     }
 
@@ -206,6 +283,8 @@ async function loadSelfTestResults() {
             if (item) openDetailModal(item);
         });
     });
+
+    renderSelfTestPager();
 }
 
 async function loadClients() {
@@ -699,7 +778,7 @@ function groupSelfTestResultsByPerson(results) {
 // sheet đầu là danh sách chung (gộp ô tên/tuổi nếu 1 người làm nhiều bài), các sheet
 // sau mỗi người 1 sheet, trình bày dạng bảng tổng hợp + chi tiết từng câu hỏi.
 window.caExportAllSelfTests = async function () {
-    if (!state.selfTestResults.length) {
+    if (!state.selfTestTotal) {
         showExpertBanner('Chưa có ai tự làm test để xuất.', 'error');
         return;
     }
@@ -708,10 +787,19 @@ window.caExportAllSelfTests = async function () {
     if (btn) { btn.disabled = true; btn.textContent = '⏳ Đang tạo file...'; }
 
     try {
+        // Danh sách hiển thị đang phân trang — xuất Excel cần TOÀN BỘ, không chỉ trang
+        // đang xem, nên gọi riêng với limit=0 (backend hiểu là lấy hết, không phân trang).
+        const allData = await apiClient.get('/expert-portal/self-test-results?limit=0', { noCache: true });
+        const allResults = allData?.items || [];
+        if (!allResults.length) {
+            showExpertBanner('Chưa có ai tự làm test để xuất.', 'error');
+            return;
+        }
+
         const mod = await import('https://cdn.jsdelivr.net/npm/exceljs@4.4.0/+esm');
         const ExcelJS = mod.default || mod;
         const wb = new ExcelJS.Workbook();
-        const groupList = groupSelfTestResultsByPerson(state.selfTestResults);
+        const groupList = groupSelfTestResultsByPerson(allResults);
 
         // ===== Sheet 1: Danh sách chung =====
         const summarySheet = wb.addWorksheet('Danh sách chung');
@@ -821,7 +909,7 @@ window.caExportAllSelfTests = async function () {
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
 
-        showExpertBanner(`Đã xuất Excel cho ${state.selfTestResults.length} lượt test của ${groupList.length} người (${groupList.length + 1} sheet).`, 'success');
+        showExpertBanner(`Đã xuất Excel cho ${allResults.length} lượt test của ${groupList.length} người (${groupList.length + 1} sheet).`, 'success');
     } catch (error) {
         console.error('Export all self-tests failed:', error);
         showExpertBanner('Không thể tạo file Excel. Vui lòng thử lại.', 'error');
