@@ -253,21 +253,49 @@
             .replace(/(\bimport\s*[\(\s]*['"])([^'"]+)(['"]\s*[\)]?)/g, replacer);
     }
 
+    function isModuleScriptNode(scriptNode) {
+        return (scriptNode.getAttribute('type') || '').toLowerCase() === 'module';
+    }
+
     async function executeExternalScript(scriptNode, baseUrl) {
         const srcUrl = new URL(scriptNode.getAttribute('src'), baseUrl);
-        srcUrl.searchParams.set('__v', String(SPA_SESSION_VERSION));
-        await import(srcUrl.href);
+        if (isModuleScriptNode(scriptNode)) {
+            srcUrl.searchParams.set('__v', String(SPA_SESSION_VERSION));
+            await import(srcUrl.href);
+            return;
+        }
+        // Script thường (không phải module): nạp qua thẻ <script> thật để các khai báo
+        // function/var top-level gắn vào window (global scope) — import() luôn coi nội
+        // dung là ES module (scope riêng), làm "biến mất" các hàm global kiểu startTest().
+        await new Promise((resolve, reject) => {
+            const el = document.createElement('script');
+            el.src = srcUrl.href;
+            el.onload = () => resolve();
+            el.onerror = () => reject(new Error(`Failed to load script ${srcUrl.href}`));
+            document.body.appendChild(el);
+        });
     }
 
     async function executeInlineScript(scriptNode, baseUrl) {
-        const moduleSource = rewriteModuleImports(String(scriptNode.textContent || ''), baseUrl);
-        const blob = new Blob([`${moduleSource}\n//# sourceURL=spa-inline.mjs`], { type: 'text/javascript' });
-        const blobUrl = URL.createObjectURL(blob);
-        try {
-            await import(blobUrl);
-        } finally {
-            URL.revokeObjectURL(blobUrl);
+        if (isModuleScriptNode(scriptNode)) {
+            const moduleSource = rewriteModuleImports(String(scriptNode.textContent || ''), baseUrl);
+            const blob = new Blob([`${moduleSource}\n//# sourceURL=spa-inline.mjs`], { type: 'text/javascript' });
+            const blobUrl = URL.createObjectURL(blob);
+            try {
+                await import(blobUrl);
+            } finally {
+                URL.revokeObjectURL(blobUrl);
+            }
+            return;
         }
+        // Script thường (không phải module, vd TESTS/startTest trong mood-assessment.html):
+        // chạy qua thẻ <script> thật để giữ đúng ngữ nghĩa global scope như load trang
+        // bình thường — KHÔNG dùng import(), vì import() luôn ép nội dung thành module
+        // (scope riêng), khiến "function startTest(){}" không còn là window.startTest nữa.
+        const el = document.createElement('script');
+        el.textContent = String(scriptNode.textContent || '');
+        document.body.appendChild(el);
+        el.remove();
     }
 
     async function executePageScripts(parsedDocument, baseUrl) {
