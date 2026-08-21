@@ -195,7 +195,10 @@ function bindRows() {
 async function changeRole(id, newRole, selectEl, prevRole) {
     selectEl.disabled = true;
     try {
-        await apiClient.patch(`/admin/users/${id}`, { role: newRole });
+        const updated = await apiClient.patch(`/admin/users/${id}`, { role: newRole });
+        if (updated?.expert_profile_created) {
+            alert('Đã đổi vai trò và tự tạo hồ sơ chuyên gia — tài khoản này vào thẳng được dashboard chuyên gia (cần đăng xuất/đăng nhập lại để cập nhật).');
+        }
         await load(state.page);
     } catch (e) {
         alert(e.message || 'Đổi vai trò thất bại.');

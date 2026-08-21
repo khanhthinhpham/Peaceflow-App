@@ -1465,8 +1465,28 @@ router.patch('/admin/users/:id', requireAuth, async (req, res) => {
        returning id, email, full_name, display_name, role, status, wallet_balance`,
       params
     );
-    if (!r.rows[0]) return res.status(404).json({ success: false, message: 'Không tìm thấy người dùng.' });
-    return res.json({ success: true, data: r.rows[0] });
+    const updatedUser = r.rows[0];
+    if (!updatedUser) return res.status(404).json({ success: false, message: 'Không tìm thấy người dùng.' });
+
+    // Set role = expert qua admin thì coi như đã duyệt luôn — tự tạo hồ sơ trong bảng
+    // experts nếu chưa có, để tài khoản vào thẳng dashboard chuyên gia thay vì bị kẹt ở
+    // màn "Hồ sơ chuyên gia" (chưa duyệt) chờ tự nộp đơn.
+    let expertProfileCreated = false;
+    if (req.body.role === 'expert') {
+      const existing = await db.query(`select id from experts where user_id = $1 limit 1`, [updatedUser.id]);
+      if (!existing.rows[0]) {
+        const codeRes = await db.query(`select 'EXP-' || substr(md5(random()::text), 1, 6) as code`);
+        const fullName = updatedUser.display_name || updatedUser.full_name || updatedUser.email;
+        await db.query(
+          `insert into experts (user_id, code, full_name, degree, active, status)
+           values ($1, $2, $3, 'Chuyên gia tâm lý', true, 'offline')`,
+          [updatedUser.id, codeRes.rows[0].code, fullName]
+        );
+        expertProfileCreated = true;
+      }
+    }
+
+    return res.json({ success: true, data: { ...updatedUser, expert_profile_created: expertProfileCreated } });
   } catch (error) {
     console.error('Admin update user error:', error);
     return res.status(500).json({ success: false, message: 'Could not update user' });
