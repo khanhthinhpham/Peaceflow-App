@@ -200,7 +200,6 @@
 
 .ca-selftest-item {
     display: flex;
-    justify-content: space-between;
     align-items: center;
     gap: 12px;
     flex-wrap: wrap;
@@ -213,7 +212,8 @@
 }
 
 .ca-selftest-main {
-    min-width: 220px;
+    flex: 1 1 220px;
+    min-width: 0;
 }
 
 .ca-selftest-name {
@@ -238,6 +238,7 @@
     font-size: .85rem;
     font-weight: 700;
     white-space: nowrap;
+    flex-shrink: 0;
 }
 
 .ca-flag-btn {
