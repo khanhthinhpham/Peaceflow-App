@@ -1452,11 +1452,16 @@
                 <h3>📝 Thông tin người làm test</h3>
                 <p class="rc-sub">Điền tên của <strong>người sẽ làm bài</strong> (khách hàng, học sinh, người thân...) — không phải tên tài khoản đang đăng nhập. Thông tin này dùng chung cho mọi bài test bên dưới, chỉ cần điền một lần.
                     <br>⚠️ Nếu <strong>2 người khác nhau trùng cả tên lẫn tuổi</strong>, hãy thêm ký hiệu phân biệt vào tên (VD: "Nguyễn Văn A - lớp 5A") để tránh bị gộp nhầm khi chuyên gia xuất báo cáo. Khác tuổi thì hệ thống đã tự tách riêng.
-                    <br>ℹ️ "Tháng lẻ" chỉ cần điền khi làm bài <strong>Raven CPM</strong> cho trẻ 4-11 tuổi — dùng để tính điểm chuẩn (IQ) đúng theo mốc tuổi tháng. Các bài khác không cần.</p>
+                    <br>ℹ️ "Tháng lẻ" chỉ cần điền khi làm bài <strong>Raven CPM</strong> cho trẻ 4-11 tuổi — dùng để tính điểm chuẩn (IQ) đúng theo mốc tuổi tháng. Các bài khác không cần.
+                    <br>📅 Có thể điền <strong>Ngày sinh</strong> để hệ thống tự tính Tuổi/Tháng lẻ, hoặc bỏ qua và điền trực tiếp Tuổi/Tháng lẻ — chọn 1 trong 2 cách đều được.</p>
                 <div class="rc-fields">
                     <div class="rp-field">
                         <label for="respondentName">Họ và tên người làm bài *</label>
                         <input type="text" id="respondentName" placeholder="Nguyễn Văn A">
+                    </div>
+                    <div class="rp-field">
+                        <label for="respondentDob" title="Điền ngày sinh để tự tính Tuổi/Tháng lẻ, hoặc bỏ trống và điền trực tiếp Tuổi/Tháng lẻ bên cạnh">Ngày sinh (tuỳ chọn)</label>
+                        <input type="date" id="respondentDob">
                     </div>
                     <div class="rp-field">
                         <label for="respondentAge">Tuổi</label>
@@ -2272,6 +2277,7 @@
                 const saved = JSON.parse(localStorage.getItem(RESPONDENT_STORAGE_KEY) || 'null');
                 if (saved) {
                     document.getElementById('respondentName').value = saved.name || '';
+                    document.getElementById('respondentDob').value = saved.dob || '';
                     document.getElementById('respondentAge').value = saved.age || '';
                     document.getElementById('respondentAgeMonths').value = saved.ageMonths || '';
                     document.getElementById('respondentNote').value = saved.note || '';
@@ -2282,6 +2288,7 @@
         function readRespondentInfo() {
             return {
                 name: document.getElementById('respondentName').value.trim(),
+                dob: document.getElementById('respondentDob').value.trim(),
                 age: document.getElementById('respondentAge').value.trim(),
                 ageMonths: document.getElementById('respondentAgeMonths').value.trim(),
                 note: document.getElementById('respondentNote').value.trim()
@@ -2292,11 +2299,33 @@
             localStorage.setItem(RESPONDENT_STORAGE_KEY, JSON.stringify(info));
         }
 
+        // Tính tuổi (năm + tháng lẻ) từ ngày sinh, dùng để tự điền 2 ô Tuổi/Tháng lẻ
+        // khi người dùng chọn cách điền ngày sinh thay vì điền tuổi trực tiếp.
+        function calcAgeFromDob(dobStr) {
+            const dob = new Date(dobStr);
+            if (Number.isNaN(dob.getTime())) return null;
+            const today = new Date();
+            let years = today.getFullYear() - dob.getFullYear();
+            let months = today.getMonth() - dob.getMonth();
+            if (today.getDate() < dob.getDate()) months -= 1;
+            if (months < 0) { years -= 1; months += 12; }
+            if (years < 0) return null;
+            return { years, months };
+        }
+
         loadRespondentIntoForm();
         ['respondentName', 'respondentAge', 'respondentAgeMonths', 'respondentNote'].forEach((id) => {
             document.getElementById(id)?.addEventListener('input', () => {
                 saveRespondentInfo(readRespondentInfo());
             });
+        });
+        document.getElementById('respondentDob')?.addEventListener('input', (event) => {
+            const computed = calcAgeFromDob(event.target.value);
+            if (computed) {
+                document.getElementById('respondentAge').value = String(computed.years);
+                document.getElementById('respondentAgeMonths').value = String(computed.months);
+            }
+            saveRespondentInfo(readRespondentInfo());
         });
 
         function getAccountOwnerName() {
