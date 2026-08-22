@@ -160,7 +160,9 @@ const state = {
     selfTestPage: 0,
     selfTestLimit: 10,
     selfTestTotal: 0,
-    selfTestFilters: { search: '', code: '', ageMin: '', ageMax: '' }
+    selfTestFilters: { search: '', code: '', ageMin: '', ageMax: '', flaggedOnly: false },
+    patientViewActive: false,
+    colleagues: null
 };
 
 // Danh mục bài test tự làm — dùng để đổ vào ô lọc "Bài test" ở khu tìm kiếm.
@@ -260,15 +262,20 @@ function wireSelfTestSearch() {
             + SELF_TEST_CODES.map((t) => `<option value="${t.code}">${t.label}</option>`).join('');
     }
 
-    document.getElementById('caSearchBtn')?.addEventListener('click', () => {
+    const runSearch = () => {
         state.selfTestFilters = {
             search: document.getElementById('caSearchName').value.trim(),
             code: document.getElementById('caSearchCode').value,
             ageMin: document.getElementById('caSearchAgeMin').value.trim(),
-            ageMax: document.getElementById('caSearchAgeMax').value.trim()
+            ageMax: document.getElementById('caSearchAgeMax').value.trim(),
+            flaggedOnly: document.getElementById('caSearchFlagged').checked
         };
-        loadSelfTestResults(0);
-    });
+        if (state.patientViewActive) loadPatientSummaryView();
+        else loadSelfTestResults(0);
+    };
+
+    document.getElementById('caSearchBtn')?.addEventListener('click', runSearch);
+    document.getElementById('caSearchFlagged')?.addEventListener('change', runSearch);
 
     document.getElementById('caSearchName')?.addEventListener('keydown', (ev) => {
         if (ev.key === 'Enter') document.getElementById('caSearchBtn').click();
@@ -279,9 +286,22 @@ function wireSelfTestSearch() {
         document.getElementById('caSearchCode').value = '';
         document.getElementById('caSearchAgeMin').value = '';
         document.getElementById('caSearchAgeMax').value = '';
-        state.selfTestFilters = { search: '', code: '', ageMin: '', ageMax: '' };
-        loadSelfTestResults(0);
+        document.getElementById('caSearchFlagged').checked = false;
+        state.selfTestFilters = { search: '', code: '', ageMin: '', ageMax: '', flaggedOnly: false };
+        if (state.patientViewActive) loadPatientSummaryView();
+        else loadSelfTestResults(0);
     });
+
+    document.getElementById('caPatientViewBtn')?.addEventListener('click', togglePatientView);
+}
+
+function togglePatientView() {
+    state.patientViewActive = !state.patientViewActive;
+    const btn = document.getElementById('caPatientViewBtn');
+    if (btn) btn.textContent = state.patientViewActive ? '📋 Xem theo lần test' : '👤 Xem theo bệnh nhân';
+    document.getElementById('caSelfTestPager').style.display = state.patientViewActive ? 'none' : '';
+    if (state.patientViewActive) loadPatientSummaryView();
+    else loadSelfTestResults(0);
 }
 
 async function loadSelfTestResults(page = 0) {
@@ -300,6 +320,7 @@ async function loadSelfTestResults(page = 0) {
     if (f.code) qs.set('code', f.code);
     if (f.ageMin) qs.set('age_min', f.ageMin);
     if (f.ageMax) qs.set('age_max', f.ageMax);
+    if (f.flaggedOnly) qs.set('flagged', 'true');
 
     let data;
     try {
@@ -328,26 +349,126 @@ async function loadSelfTestResults(page = 0) {
         return;
     }
 
+    renderSelfTestList();
+    renderSelfTestPager();
+}
+
+// Vẽ lại danh sách từ state hiện có (không gọi lại API) — dùng sau khi đổi cờ đánh dấu.
+function renderSelfTestList() {
+    const el = document.getElementById('caSelfTestList');
+    if (!el) return;
     el.innerHTML = state.selfTestResults.map((item) => `
         <div class="ca-selftest-item" data-selftest-id="${item.id}">
+            <button type="button" class="ca-flag-btn${item.flagged ? ' active' : ''}" data-flag-btn title="${item.flagged ? 'Bỏ đánh dấu' : 'Đánh dấu'}">${item.flagged ? '⭐' : '☆'}</button>
             <div class="ca-selftest-main">
-                <div class="ca-selftest-name">${escapeHtml(item.respondent_name || 'Chưa rõ tên')}${item.respondent_age ? ` — ${item.respondent_age} tuổi` : ''}</div>
+                <div class="ca-selftest-name">${escapeHtml(item.respondent_name || 'Chưa rõ tên')}${item.respondent_age ? ` — ${item.respondent_age} tuổi` : ''}${!item.is_owner ? ' <span class="ca-shared-badge">🔗 Được chia sẻ</span>' : ''}</div>
                 <div class="ca-selftest-meta">${escapeHtml(item.name)} · ${formatDateTime(item.created_at)}</div>
                 ${item.note ? `<div class="ca-selftest-note">Ghi chú: ${escapeHtml(item.note)}</div>` : ''}
             </div>
             <div class="ca-selftest-score">${escapeHtml(item.severity || 'Đã hoàn thành')}<br>${item.total_score}</div>
         </div>
     `).join('');
-
     el.querySelectorAll('[data-selftest-id]').forEach((row) => {
-        row.addEventListener('click', () => {
+        row.addEventListener('click', (ev) => {
+            if (ev.target.closest('[data-flag-btn]')) return;
             const item = state.selfTestResults.find((r) => r.id === row.getAttribute('data-selftest-id'));
             if (item) openDetailModal(item);
         });
+        row.querySelector('[data-flag-btn]')?.addEventListener('click', async (ev) => {
+            ev.stopPropagation();
+            const item = state.selfTestResults.find((r) => r.id === row.getAttribute('data-selftest-id'));
+            if (!item) return;
+            try {
+                const updated = await apiClient.patch(`/assessments/results/${item.id}/flag`, { flagged: !item.flagged });
+                item.flagged = updated.flagged;
+                renderSelfTestList();
+            } catch (error) {
+                showExpertBanner(error.message || 'Không thể đánh dấu.', 'error');
+            }
+        });
     });
-
-    renderSelfTestPager();
 }
+
+// Xem theo bệnh nhân: gộp toàn bộ kết quả (theo đúng bộ lọc đang chọn) theo tên+tuổi —
+// cùng logic gộp dùng khi xuất Excel — để bác sĩ thấy tổng số lần 1 người đã làm test,
+// tiện khi muốn xem lại trước khi cho làm thêm bài mới.
+let patientGroupsCache = [];
+async function loadPatientSummaryView() {
+    const el = document.getElementById('caSelfTestList');
+    el.innerHTML = '<p class="ca-empty">Đang tải...</p>';
+
+    const qs = new URLSearchParams({ limit: '0' });
+    const f = state.selfTestFilters;
+    if (f.search) qs.set('search', f.search);
+    if (f.code) qs.set('code', f.code);
+    if (f.ageMin) qs.set('age_min', f.ageMin);
+    if (f.ageMax) qs.set('age_max', f.ageMax);
+    if (f.flaggedOnly) qs.set('flagged', 'true');
+
+    let data;
+    try {
+        data = await apiClient.get(`/expert-portal/self-test-results?${qs.toString()}`, { noCache: true });
+    } catch (error) {
+        el.innerHTML = '<p class="ca-empty">Không tải được danh sách.</p>';
+        return;
+    }
+
+    const results = data?.items || [];
+    if (!results.length) {
+        el.innerHTML = '<p class="ca-empty">Không có bệnh nhân nào khớp với bộ lọc.</p>';
+        return;
+    }
+
+    patientGroupsCache = groupSelfTestResultsByPerson(results);
+    el.innerHTML = patientGroupsCache.map((g, idx) => `
+        <div class="ca-patient-card" data-patient-idx="${idx}">
+            <div>
+                <div class="ca-patient-name">${escapeHtml(g.name)}${g.age ? ` — ${g.age} tuổi` : ''}</div>
+                <div class="ca-patient-meta">Lần gần nhất: ${formatDateTime(g.tests[0].created_at)}</div>
+            </div>
+            <div class="ca-patient-count">${g.tests.length} lần test</div>
+        </div>
+    `).join('');
+
+    el.querySelectorAll('[data-patient-idx]').forEach((card) => {
+        card.addEventListener('click', () => {
+            const g = patientGroupsCache[Number(card.getAttribute('data-patient-idx'))];
+            if (g) openPatientModal(g);
+        });
+    });
+}
+
+function openPatientModal(group) {
+    document.getElementById('caPatientModalTitle').textContent = group.name;
+    document.getElementById('caPatientModalMeta').textContent = `${group.age ? `${group.age} tuổi · ` : ''}${group.tests.length} lần test`;
+    const listEl = document.getElementById('caPatientModalList');
+    listEl.innerHTML = group.tests
+        .slice()
+        .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+        .map((t) => `
+            <div class="ca-patient-test-row" data-test-id="${t.id}">
+                <div>
+                    <div class="ca-selftest-name">${escapeHtml(t.name)}</div>
+                    <div class="ca-selftest-meta">${formatDateTime(t.created_at)}</div>
+                </div>
+                <div class="ca-selftest-score">${escapeHtml(t.severity || 'Đã hoàn thành')}<br>${t.total_score}</div>
+            </div>
+        `).join('');
+    listEl.querySelectorAll('[data-test-id]').forEach((row) => {
+        row.addEventListener('click', () => {
+            const t = group.tests.find((x) => x.id === row.getAttribute('data-test-id'));
+            if (t) {
+                document.getElementById('caPatientModal').classList.remove('show');
+                openDetailModal(t);
+            }
+        });
+    });
+    document.getElementById('caPatientModal').classList.add('show');
+}
+
+document.getElementById('caPatientModalClose')?.addEventListener('click', () => {
+    document.getElementById('caPatientModal').classList.remove('show');
+});
 
 async function loadClients() {
     const el = document.getElementById('caClientList');
@@ -768,10 +889,14 @@ function renderDetailRows(rows, editing, testCode, catalog) {
     recomputeTotal();
 }
 
-// Chỉ chuyên gia mới sửa được, và chỉ với kết quả nằm dưới chính tài khoản của họ
-// (tự nhập cho khách khi khám trực tiếp) — không sửa được kết quả của client đã có
-// tài khoản riêng (item đi kèm `client` là kết quả tự làm của chính client đó).
-function canEditResult(item, client) {
+// Chỉ chủ sở hữu (chuyên gia đã tự nhập cho khách) mới sửa/xoá/chia sẻ được — không áp
+// dụng cho kết quả của client đã có tài khoản riêng (item đi kèm `client`), và không áp
+// dụng cho kết quả người khác chia sẻ cho mình (is_owner === false).
+function isOwnedResult(item, client) {
+    return !client && item?.is_owner !== false;
+}
+// Đánh dấu thì cả chủ sở hữu và người được chia sẻ đều bấm được.
+function canFlagResult(item, client) {
     return !client && !!item?.id;
 }
 
@@ -794,9 +919,17 @@ function openDetailModal(item, client) {
     renderDetailRows(detailContext.rows, false);
     document.getElementById('caEditPanel').style.display = 'none';
     document.getElementById('caEditSaveBtn').style.display = 'none';
+    document.getElementById('caSharePanel').style.display = 'none';
     const toggleBtn = document.getElementById('caEditToggleBtn');
     toggleBtn.textContent = '✏️ Sửa kết quả';
-    toggleBtn.style.display = canEditResult(item, client) ? '' : 'none';
+    const owned = isOwnedResult(item, client);
+    toggleBtn.style.display = owned ? '' : 'none';
+    document.getElementById('caDeleteBtn').style.display = owned ? '' : 'none';
+    document.getElementById('caShareToggleBtn').style.display = owned ? '' : 'none';
+
+    const flagBtn = document.getElementById('caFlagToggleBtn');
+    flagBtn.style.display = canFlagResult(item, client) ? '' : 'none';
+    flagBtn.textContent = item.flagged ? '⭐ Đã đánh dấu' : '☆ Đánh dấu';
 
     document.getElementById('caDetailModal').classList.add('show');
 }
@@ -817,6 +950,103 @@ window.caCloseDetail = function () {
     document.getElementById('caDetailModal').classList.remove('show');
     detailContext = null;
 };
+
+document.getElementById('caFlagToggleBtn')?.addEventListener('click', async () => {
+    if (!detailContext) return;
+    const { item } = detailContext;
+    try {
+        const updated = await apiClient.patch(`/assessments/results/${item.id}/flag`, { flagged: !item.flagged });
+        item.flagged = updated.flagged;
+        const flagBtn = document.getElementById('caFlagToggleBtn');
+        flagBtn.textContent = item.flagged ? '⭐ Đã đánh dấu' : '☆ Đánh dấu';
+        const listed = state.selfTestResults.find((r) => r.id === item.id);
+        if (listed) { listed.flagged = item.flagged; renderSelfTestList(); }
+    } catch (error) {
+        showExpertBanner(error.message || 'Không thể đánh dấu.', 'error');
+    }
+});
+
+document.getElementById('caDeleteBtn')?.addEventListener('click', async () => {
+    if (!detailContext) return;
+    const { item } = detailContext;
+    if (!window.confirm(`Xoá kết quả "${item.name}" của ${item.respondent_name || 'người này'}? Không thể hoàn tác.`)) return;
+    try {
+        await apiClient.delete(`/assessments/results/${item.id}`);
+        showExpertBanner('Đã xoá kết quả.', 'success');
+        window.caCloseDetail();
+        if (state.patientViewActive) loadPatientSummaryView();
+        else loadSelfTestResults(state.selfTestPage);
+    } catch (error) {
+        showExpertBanner(error.message || 'Không thể xoá kết quả.', 'error');
+    }
+});
+
+async function ensureColleaguesLoaded() {
+    if (state.colleagues) return state.colleagues;
+    try {
+        state.colleagues = await apiClient.get('/expert-portal/colleagues', { noCache: true });
+    } catch (_error) {
+        state.colleagues = [];
+    }
+    return state.colleagues;
+}
+
+async function refreshShareList(resultId) {
+    const listEl = document.getElementById('caShareList');
+    listEl.innerHTML = 'Đang tải...';
+    try {
+        const shares = await apiClient.get(`/assessments/results/${resultId}/shares`, { noCache: true });
+        if (!shares.length) {
+            listEl.innerHTML = '<span style="color:var(--text-secondary);">Chưa chia sẻ với ai.</span>';
+            return;
+        }
+        listEl.innerHTML = `<strong>Đã chia sẻ với:</strong><ul style="margin:6px 0 0;padding-left:18px;">${shares.map((s) => `
+            <li>${escapeHtml(s.full_name || s.email)} <button type="button" class="ca-unshare-btn" data-target="${s.shared_with_user_id}" style="border:none;background:none;color:var(--coral);cursor:pointer;font-size:.78rem;">Gỡ</button></li>
+        `).join('')}</ul>`;
+        listEl.querySelectorAll('[data-target]').forEach((btn) => {
+            btn.addEventListener('click', async () => {
+                try {
+                    await apiClient.delete(`/assessments/results/${resultId}/share/${btn.getAttribute('data-target')}`);
+                    refreshShareList(resultId);
+                } catch (error) {
+                    showExpertBanner(error.message || 'Không thể gỡ chia sẻ.', 'error');
+                }
+            });
+        });
+    } catch (_error) {
+        listEl.innerHTML = '<span style="color:var(--coral);">Không tải được danh sách chia sẻ.</span>';
+    }
+}
+
+document.getElementById('caShareToggleBtn')?.addEventListener('click', async () => {
+    if (!detailContext) return;
+    const panel = document.getElementById('caSharePanel');
+    const opening = panel.style.display === 'none';
+    panel.style.display = opening ? '' : 'none';
+    if (!opening) return;
+
+    const colleagues = await ensureColleaguesLoaded();
+    const select = document.getElementById('caShareTarget');
+    select.innerHTML = '<option value="">Chọn chuyên gia...</option>'
+        + colleagues.map((c) => `<option value="${c.user_id}">${escapeHtml(c.full_name)}${c.degree ? ` — ${escapeHtml(c.degree)}` : ''}</option>`).join('');
+    refreshShareList(detailContext.item.id);
+});
+
+document.getElementById('caShareConfirmBtn')?.addEventListener('click', async () => {
+    if (!detailContext) return;
+    const targetUserId = document.getElementById('caShareTarget').value;
+    if (!targetUserId) {
+        showExpertBanner('Vui lòng chọn chuyên gia cần chia sẻ.', 'error');
+        return;
+    }
+    try {
+        await apiClient.post(`/assessments/results/${detailContext.item.id}/share`, { target_user_id: targetUserId });
+        showExpertBanner('Đã chia sẻ kết quả.', 'success');
+        refreshShareList(detailContext.item.id);
+    } catch (error) {
+        showExpertBanner(error.message || 'Không thể chia sẻ.', 'error');
+    }
+});
 
 window.caToggleEdit = async function () {
     if (!detailContext) return;

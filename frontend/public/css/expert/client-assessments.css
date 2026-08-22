@@ -105,6 +105,73 @@
     min-width: 90px;
 }
 
+.ca-search-flagged {
+    justify-content: flex-end;
+}
+
+.ca-flag-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 700;
+    font-size: .85rem;
+    cursor: pointer;
+    white-space: nowrap;
+    padding: 10px 4px;
+}
+
+.ca-patient-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 0;
+    border-bottom: 1px dashed var(--kraft-light, #e8cba7);
+    cursor: pointer;
+}
+
+.ca-patient-card:last-child {
+    border-bottom: none;
+}
+
+.ca-patient-card:hover {
+    background: var(--cream, #fff8f0);
+}
+
+.ca-patient-name {
+    font-weight: 800;
+}
+
+.ca-patient-meta {
+    font-size: .8rem;
+    color: var(--text-secondary);
+    margin-top: 2px;
+}
+
+.ca-patient-count {
+    font-size: .85rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.ca-patient-test-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 0;
+    border-bottom: 1px dashed var(--kraft-light, #e8cba7);
+    cursor: pointer;
+}
+
+.ca-patient-test-row:last-child {
+    border-bottom: none;
+}
+
+.ca-patient-test-row:hover {
+    background: var(--cream, #fff8f0);
+}
+
 .ca-search-actions {
     display: flex;
     gap: 8px;
@@ -170,6 +237,37 @@
     text-align: right;
     font-size: .85rem;
     font-weight: 700;
+    white-space: nowrap;
+}
+
+.ca-flag-btn {
+    border: none;
+    background: none;
+    font-size: 1.3rem;
+    line-height: 1;
+    cursor: pointer;
+    padding: 2px 4px;
+    flex-shrink: 0;
+    opacity: .55;
+    transition: var(--transition, .2s ease);
+}
+
+.ca-flag-btn:hover {
+    opacity: 1;
+    transform: scale(1.1);
+}
+
+.ca-flag-btn.active {
+    opacity: 1;
+}
+
+.ca-shared-badge {
+    font-size: .72rem;
+    font-weight: 700;
+    color: var(--mint-dark, #4a9e8e);
+    background: var(--mint-light, #c5e8d2);
+    padding: 1px 8px;
+    border-radius: 6px;
     white-space: nowrap;
 }
 

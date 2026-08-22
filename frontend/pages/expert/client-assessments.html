@@ -73,9 +73,16 @@
                         <label for="caSearchAgeMax">đến</label>
                         <input type="number" id="caSearchAgeMax" class="form-input" min="0" max="120" placeholder="VD: 12">
                     </div>
+                    <div class="ca-search-field ca-search-flagged">
+                        <label for="caSearchFlagged">&nbsp;</label>
+                        <label class="ca-flag-checkbox">
+                            <input type="checkbox" id="caSearchFlagged"> ⭐ Đã đánh dấu
+                        </label>
+                    </div>
                     <div class="ca-search-actions">
                         <button type="button" class="btn-primary" id="caSearchBtn">🔍 Tìm</button>
                         <button type="button" class="btn-outline" id="caSearchResetBtn">Xoá lọc</button>
+                        <button type="button" class="btn-outline" id="caPatientViewBtn">👤 Xem theo bệnh nhân</button>
                     </div>
                 </div>
                 <div id="caSelfTestList"></div>
@@ -158,13 +165,38 @@
                         </thead>
                         <tbody id="caDetailRows"></tbody>
                     </table>
+                    <div id="caSharePanel" class="ca-edit-panel" style="display:none;">
+                        <div id="caShareList" style="margin-bottom:10px;font-size:.85rem;"></div>
+                        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+                            <select id="caShareTarget" class="form-input" style="max-width:280px;">
+                                <option value="">Chọn chuyên gia...</option>
+                            </select>
+                            <button type="button" class="btn-primary" id="caShareConfirmBtn">Chia sẻ</button>
+                        </div>
+                    </div>
                     <div class="ca-detail-actions">
+                        <button type="button" class="ca-export-btn" id="caFlagToggleBtn">☆ Đánh dấu</button>
                         <button type="button" class="ca-export-btn" id="caEditToggleBtn" onclick="window.caToggleEdit()">✏️ Sửa kết quả</button>
                         <button type="button" class="ca-export-btn" id="caEditSaveBtn" style="display:none;" onclick="window.caSaveEdit()">💾 Lưu thay đổi</button>
+                        <button type="button" class="ca-export-btn" id="caShareToggleBtn">🔗 Chia sẻ cho đồng nghiệp</button>
                         <button type="button" class="ca-export-btn" onclick="window.caExportCsv()">📊 Xuất Excel (CSV)</button>
                         <button type="button" class="ca-export-btn" onclick="window.caExportPdf()">📄 Xuất PDF</button>
+                        <button type="button" class="btn-danger" id="caDeleteBtn">🗑️ Xoá kết quả</button>
                         <button type="button" onclick="window.caCloseDetail()">Đóng</button>
                     </div>
+                </div>
+            </div>
+
+            <div class="ca-detail-overlay" id="caPatientModal">
+                <div class="ca-detail-box">
+                    <div class="ca-detail-head">
+                        <div>
+                            <div class="ca-detail-title" id="caPatientModalTitle"></div>
+                            <div class="ca-detail-meta" id="caPatientModalMeta"></div>
+                        </div>
+                        <button type="button" class="ca-detail-close" id="caPatientModalClose">✕</button>
+                    </div>
+                    <div id="caPatientModalList"></div>
                 </div>
             </div>
         </main>

@@ -374,4 +374,129 @@ router.patch('/assessments/results/:id', requireAuth, async (req, res) => {
   }
 });
 
+// Xoá 1 kết quả — chỉ chủ sở hữu (chuyên gia đã tự nhập cho khách) mới xoá được.
+router.delete('/assessments/results/:id', requireAuth, async (req, res) => {
+  try {
+    if (req.user.role !== 'expert') {
+      return res.status(403).json({ success: false, message: 'Chỉ chuyên gia mới có thể xoá kết quả.' });
+    }
+    const r = await db.query(
+      `delete from assessment_results where id = $1 and user_id = $2 returning id`,
+      [req.params.id, req.user.sub]
+    );
+    if (!r.rows[0]) return res.status(404).json({ success: false, message: 'Không tìm thấy kết quả này.' });
+    return res.json({ success: true, data: { deleted: true } });
+  } catch (error) {
+    console.error('Delete assessment result error:', error);
+    return res.status(500).json({ success: false, message: 'Could not delete result' });
+  }
+});
+
+// Đánh dấu / bỏ đánh dấu 1 kết quả — chủ sở hữu hoặc người được chia sẻ đều bấm được.
+router.patch('/assessments/results/:id/flag', requireAuth, async (req, res) => {
+  try {
+    if (typeof req.body.flagged !== 'boolean') {
+      return res.status(400).json({ success: false, message: 'Thiếu trường flagged.' });
+    }
+    const access = await db.query(
+      `select ar.id from assessment_results ar
+       where ar.id = $1
+         and (ar.user_id = $2 or exists (
+           select 1 from assessment_result_shares s where s.result_id = ar.id and s.shared_with_user_id = $2
+         ))`,
+      [req.params.id, req.user.sub]
+    );
+    if (!access.rows[0]) return res.status(404).json({ success: false, message: 'Không tìm thấy kết quả này.' });
+
+    const r = await db.query(
+      `update assessment_results set flagged = $2 where id = $1 returning id, flagged`,
+      [req.params.id, req.body.flagged]
+    );
+    return res.json({ success: true, data: r.rows[0] });
+  } catch (error) {
+    console.error('Flag assessment result error:', error);
+    return res.status(500).json({ success: false, message: 'Could not update flag' });
+  }
+});
+
+// Chia sẻ 1 kết quả cho 1 chuyên gia khác cùng xem — cả 2 bên đều giữ quyền xem, chỉ chủ
+// sở hữu mới được chia sẻ/gỡ chia sẻ (tránh việc người được chia sẻ lại đi chia sẻ tiếp).
+router.post('/assessments/results/:id/share', requireAuth, async (req, res) => {
+  try {
+    if (req.user.role !== 'expert') {
+      return res.status(403).json({ success: false, message: 'Chỉ chuyên gia mới có thể chia sẻ kết quả.' });
+    }
+    const targetUserId = req.body.target_user_id;
+    if (!targetUserId) {
+      return res.status(400).json({ success: false, message: 'Thiếu người nhận chia sẻ.' });
+    }
+    if (targetUserId === req.user.sub) {
+      return res.status(400).json({ success: false, message: 'Không thể tự chia sẻ cho chính mình.' });
+    }
+
+    const ownerRes = await db.query(
+      `select id from assessment_results where id = $1 and user_id = $2 limit 1`,
+      [req.params.id, req.user.sub]
+    );
+    if (!ownerRes.rows[0]) return res.status(404).json({ success: false, message: 'Không tìm thấy kết quả này.' });
+
+    const targetRes = await db.query(`select id from users where id = $1 and role = 'expert' limit 1`, [targetUserId]);
+    if (!targetRes.rows[0]) return res.status(404).json({ success: false, message: 'Không tìm thấy chuyên gia này.' });
+
+    await db.query(
+      `insert into assessment_result_shares (result_id, shared_with_user_id, shared_by_user_id)
+       values ($1, $2, $3)
+       on conflict (result_id, shared_with_user_id) do nothing`,
+      [req.params.id, targetUserId, req.user.sub]
+    );
+    return res.json({ success: true, data: { shared: true } });
+  } catch (error) {
+    console.error('Share assessment result error:', error);
+    return res.status(500).json({ success: false, message: 'Could not share result' });
+  }
+});
+
+// Xem đang chia sẻ với ai + gỡ chia sẻ.
+router.get('/assessments/results/:id/shares', requireAuth, async (req, res) => {
+  try {
+    const ownerRes = await db.query(
+      `select id from assessment_results where id = $1 and user_id = $2 limit 1`,
+      [req.params.id, req.user.sub]
+    );
+    if (!ownerRes.rows[0]) return res.status(404).json({ success: false, message: 'Không tìm thấy kết quả này.' });
+
+    const r = await db.query(
+      `select s.shared_with_user_id, coalesce(u.display_name, u.full_name) as full_name, u.email, s.created_at
+       from assessment_result_shares s
+       join users u on u.id = s.shared_with_user_id
+       where s.result_id = $1
+       order by s.created_at desc`,
+      [req.params.id]
+    );
+    return res.json({ success: true, data: r.rows });
+  } catch (error) {
+    console.error('List assessment result shares error:', error);
+    return res.status(500).json({ success: false, message: 'Could not fetch shares' });
+  }
+});
+
+router.delete('/assessments/results/:id/share/:targetUserId', requireAuth, async (req, res) => {
+  try {
+    const ownerRes = await db.query(
+      `select id from assessment_results where id = $1 and user_id = $2 limit 1`,
+      [req.params.id, req.user.sub]
+    );
+    if (!ownerRes.rows[0]) return res.status(404).json({ success: false, message: 'Không tìm thấy kết quả này.' });
+
+    await db.query(
+      `delete from assessment_result_shares where result_id = $1 and shared_with_user_id = $2`,
+      [req.params.id, req.params.targetUserId]
+    );
+    return res.json({ success: true, data: { removed: true } });
+  } catch (error) {
+    console.error('Unshare assessment result error:', error);
+    return res.status(500).json({ success: false, message: 'Could not remove share' });
+  }
+});
+
 export default router;

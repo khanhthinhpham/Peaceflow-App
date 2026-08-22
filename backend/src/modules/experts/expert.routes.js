@@ -899,9 +899,14 @@ router.get('/expert-portal/self-test-results', requireAuth, async (req, res) => 
     const limit = wantAll ? 1000 : Math.min(Math.max(parseInt(req.query.limit, 10) || 10, 1), 100);
     const offset = wantAll ? 0 : Math.max(parseInt(req.query.offset, 10) || 0, 0);
 
-    // Bộ lọc: tìm theo tên người làm bài, theo mã bài test, theo khoảng tuổi —
-    // giúp chuyên gia lần lại đúng bệnh nhân đã khám giữa hàng trăm kết quả.
-    const conditions = ['ar.user_id = $1'];
+    // Bộ lọc: tìm theo tên người làm bài, theo mã bài test, theo khoảng tuổi, theo đã
+    // đánh dấu — giúp chuyên gia lần lại đúng bệnh nhân đã khám giữa hàng trăm kết quả.
+    // Thấy cả kết quả của chính mình VÀ kết quả đồng nghiệp đã chia sẻ cho mình.
+    const conditions = [
+      `(ar.user_id = $1 or exists (
+        select 1 from assessment_result_shares s where s.result_id = ar.id and s.shared_with_user_id = $1
+      ))`
+    ];
     const params = [req.user.sub];
 
     const search = (req.query.search || '').trim();
@@ -923,6 +928,9 @@ router.get('/expert-portal/self-test-results', requireAuth, async (req, res) => 
     if (Number.isFinite(ageMax)) {
       params.push(ageMax);
       conditions.push(`ar.respondent_age <= $${params.length}`);
+    }
+    if (req.query.flagged === 'true') {
+      conditions.push(`ar.flagged = true`);
     }
     const where = conditions.join(' and ');
 
@@ -948,6 +956,8 @@ router.get('/expert-portal/self-test-results', requireAuth, async (req, res) => 
          ar.respondent_name,
          ar.respondent_age,
          ar.note,
+         ar.flagged,
+         (ar.user_id = $1) as is_owner,
          (ar.attachment_file is not null) as has_attachment,
          ar.edited_at,
          ar.created_at
@@ -971,6 +981,28 @@ router.get('/expert-portal/self-test-results', requireAuth, async (req, res) => 
   } catch (error) {
     console.error('Expert self-test results error:', error);
     return res.status(500).json({ success: false, message: 'Could not fetch self-test results' });
+  }
+});
+
+// Danh sách đồng nghiệp (chuyên gia khác, đang hoạt động) — dùng để chọn người nhận khi
+// chia sẻ 1 kết quả khám cho bác sĩ khác.
+router.get('/expert-portal/colleagues', requireAuth, async (req, res) => {
+  try {
+    if (req.user.role !== 'expert') {
+      return res.status(403).json({ success: false, message: 'Expert access required' });
+    }
+    const r = await db.query(
+      `select e.user_id, e.full_name, e.degree, u.email
+       from experts e
+       join users u on u.id = e.user_id
+       where e.active = true and e.user_id != $1
+       order by e.full_name asc`,
+      [req.user.sub]
+    );
+    return res.json({ success: true, data: r.rows });
+  } catch (error) {
+    console.error('List colleagues error:', error);
+    return res.status(500).json({ success: false, message: 'Could not fetch colleagues' });
   }
 });
 
