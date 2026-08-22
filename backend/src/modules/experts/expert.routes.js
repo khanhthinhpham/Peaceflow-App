@@ -918,6 +918,7 @@ router.get('/expert-portal/self-test-results', requireAuth, async (req, res) => 
          ar.respondent_age,
          ar.note,
          (ar.attachment_file is not null) as has_attachment,
+         ar.edited_at,
          ar.created_at
        from assessment_results ar
        join assessments a on a.id = ar.assessment_id

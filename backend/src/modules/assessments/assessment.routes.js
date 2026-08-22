@@ -305,4 +305,73 @@ router.get('/assessments/results/:id/attachment', requireAuth, async (req, res) 
   }
 });
 
+// Chuyên gia sửa lại kết quả đã nộp (đánh nhầm câu trả lời, sai điểm, sai tên/tuổi...).
+// Chỉ được sửa kết quả nằm dưới chính tài khoản của mình (kết quả tự nhập cho khách khi
+// khám trực tiếp). Ghi lại người sửa + thời điểm sửa để có dấu vết trên hồ sơ.
+router.patch('/assessments/results/:id', requireAuth, async (req, res) => {
+  try {
+    if (req.user.role !== 'expert') {
+      return res.status(403).json({ success: false, message: 'Chỉ chuyên gia mới có thể sửa kết quả.' });
+    }
+
+    const ownerRes = await db.query(
+      `select id from assessment_results where id = $1 and user_id = $2 limit 1`,
+      [req.params.id, req.user.sub]
+    );
+    if (!ownerRes.rows[0]) {
+      return res.status(404).json({ success: false, message: 'Không tìm thấy kết quả này.' });
+    }
+
+    const sets = [];
+    const params = [req.params.id];
+    const pushSet = (col, value) => { params.push(value); sets.push(`${col} = $${params.length}`); };
+
+    if (req.body.respondent_name !== undefined) {
+      pushSet('respondent_name', req.body.respondent_name ? String(req.body.respondent_name).slice(0, 255) : null);
+    }
+    if (req.body.respondent_age !== undefined) {
+      const age = Number(req.body.respondent_age);
+      pushSet('respondent_age', req.body.respondent_age === null || req.body.respondent_age === '' || !Number.isFinite(age) ? null : Math.round(age));
+    }
+    if (req.body.note !== undefined) {
+      pushSet('note', req.body.note ? String(req.body.note).slice(0, 2000) : null);
+    }
+    if (req.body.total_score !== undefined) {
+      const score = Number(req.body.total_score);
+      if (!Number.isFinite(score)) {
+        return res.status(400).json({ success: false, message: 'Điểm tổng không hợp lệ.' });
+      }
+      pushSet('total_score', score);
+    }
+    if (req.body.severity !== undefined) {
+      pushSet('severity', req.body.severity ? String(req.body.severity).slice(0, 255) : null);
+    }
+    if (req.body.raw_answers !== undefined) {
+      if (!Array.isArray(req.body.raw_answers)) {
+        return res.status(400).json({ success: false, message: 'raw_answers phải là một danh sách.' });
+      }
+      params.push(JSON.stringify(req.body.raw_answers));
+      sets.push(`raw_answers = $${params.length}::jsonb`);
+    }
+
+    if (!sets.length) {
+      return res.status(400).json({ success: false, message: 'Không có thay đổi nào.' });
+    }
+
+    params.push(req.user.sub);
+    sets.push(`edited_by = $${params.length}`);
+    sets.push(`edited_at = now()`);
+
+    const r = await db.query(
+      `update assessment_results set ${sets.join(', ')} where id = $1
+       returning id, total_score, severity, respondent_name, respondent_age, note, raw_answers, edited_at`,
+      params
+    );
+    return res.json({ success: true, data: r.rows[0] });
+  } catch (error) {
+    console.error('Edit assessment result error:', error);
+    return res.status(500).json({ success: false, message: 'Could not update result' });
+  }
+});
+
 export default router;

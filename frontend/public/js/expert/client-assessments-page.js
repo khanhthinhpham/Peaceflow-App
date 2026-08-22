@@ -595,18 +595,38 @@ async function loadAttachmentImage(resultId) {
     }
 }
 
+function renderDetailRows(rows, editing) {
+    const tbody = document.getElementById('caDetailRows');
+    if (!rows.length) {
+        tbody.innerHTML = '<tr><td colspan="4" style="color:var(--text-secondary);">Không có dữ liệu chi tiết từng câu.</td></tr>';
+        return;
+    }
+    tbody.innerHTML = rows.map((r) => `
+        <tr>
+            <td>${r.no}</td>
+            <td>${escapeHtml(String(r.question))}</td>
+            <td>${editing
+                ? `<input type="text" data-row-answer="${r.no}" value="${escapeHtml(String(r.answer))}" class="admin-input" style="width:100%;">`
+                : escapeHtml(String(r.answer))}</td>
+            <td>${editing
+                ? `<input type="number" step="0.5" data-row-score="${r.no}" value="${escapeHtml(String(r.score))}" class="admin-input" style="width:100%;">`
+                : escapeHtml(String(r.score))}</td>
+        </tr>
+    `).join('');
+}
+
+// Chỉ chuyên gia mới sửa được, và chỉ với kết quả nằm dưới chính tài khoản của họ
+// (tự nhập cho khách khi khám trực tiếp) — không sửa được kết quả của client đã có
+// tài khoản riêng (item đi kèm `client` là kết quả tự làm của chính client đó).
+function canEditResult(item, client) {
+    return !client && !!item?.id;
+}
+
 function openDetailModal(item, client) {
-    detailContext = { item, client };
+    detailContext = { item, client, editing: false, rows: Array.isArray(item.raw_answers) ? item.raw_answers.map(normalizeAnswerRow) : [] };
 
     document.getElementById('caDetailTitle').textContent = item.name;
-    const parts = [];
-    if (client) parts.push(`Client: ${client.full_name || client.email}`);
-    if (item.respondent_name) parts.push(`Người làm bài: ${item.respondent_name}${item.respondent_age ? ` (${item.respondent_age} tuổi)` : ''}`);
-    parts.push(`Điểm: ${item.total_score}`);
-    parts.push(`Xếp loại: ${item.severity || 'Đã hoàn thành'}`);
-    parts.push(formatDateTime(item.created_at));
-    if (item.note) parts.push(`Ghi chú: ${item.note}`);
-    document.getElementById('caDetailMeta').textContent = parts.join(' · ');
+    renderDetailMeta(item, client);
 
     const attachEl = document.getElementById('caDetailAttachment');
     if (item.has_attachment) {
@@ -618,25 +638,100 @@ function openDetailModal(item, client) {
         attachEl.innerHTML = '';
     }
 
-    const rows = Array.isArray(item.raw_answers) ? item.raw_answers.map(normalizeAnswerRow) : [];
-    const tbody = document.getElementById('caDetailRows');
-    tbody.innerHTML = rows.length
-        ? rows.map((r) => `
-            <tr>
-                <td>${r.no}</td>
-                <td>${escapeHtml(String(r.question))}</td>
-                <td>${escapeHtml(String(r.answer))}</td>
-                <td>${escapeHtml(String(r.score))}</td>
-            </tr>
-        `).join('')
-        : '<tr><td colspan="4" style="color:var(--text-secondary);">Không có dữ liệu chi tiết từng câu.</td></tr>';
+    renderDetailRows(detailContext.rows, false);
+    document.getElementById('caEditPanel').style.display = 'none';
+    document.getElementById('caEditSaveBtn').style.display = 'none';
+    const toggleBtn = document.getElementById('caEditToggleBtn');
+    toggleBtn.textContent = '✏️ Sửa kết quả';
+    toggleBtn.style.display = canEditResult(item, client) ? '' : 'none';
 
     document.getElementById('caDetailModal').classList.add('show');
+}
+
+function renderDetailMeta(item, client) {
+    const parts = [];
+    if (client) parts.push(`Client: ${client.full_name || client.email}`);
+    if (item.respondent_name) parts.push(`Người làm bài: ${item.respondent_name}${item.respondent_age ? ` (${item.respondent_age} tuổi)` : ''}`);
+    parts.push(`Điểm: ${item.total_score}`);
+    parts.push(`Xếp loại: ${item.severity || 'Đã hoàn thành'}`);
+    parts.push(formatDateTime(item.created_at));
+    if (item.note) parts.push(`Ghi chú: ${item.note}`);
+    if (item.edited_at) parts.push(`(đã sửa lúc ${formatDateTime(item.edited_at)})`);
+    document.getElementById('caDetailMeta').textContent = parts.join(' · ');
 }
 
 window.caCloseDetail = function () {
     document.getElementById('caDetailModal').classList.remove('show');
     detailContext = null;
+};
+
+window.caToggleEdit = function () {
+    if (!detailContext) return;
+    detailContext.editing = !detailContext.editing;
+    const { item, editing, rows } = detailContext;
+
+    document.getElementById('caEditPanel').style.display = editing ? '' : 'none';
+    document.getElementById('caEditSaveBtn').style.display = editing ? '' : 'none';
+    document.getElementById('caEditToggleBtn').textContent = editing ? 'Hủy sửa' : '✏️ Sửa kết quả';
+
+    if (editing) {
+        document.getElementById('caEditName').value = item.respondent_name || '';
+        document.getElementById('caEditAge').value = item.respondent_age ?? '';
+        document.getElementById('caEditScore').value = item.total_score ?? '';
+        document.getElementById('caEditSeverity').value = item.severity || '';
+        document.getElementById('caEditNote').value = item.note || '';
+    }
+    renderDetailRows(rows, editing);
+};
+
+window.caSaveEdit = async function () {
+    if (!detailContext) return;
+    const { item, rows } = detailContext;
+
+    const editedRows = rows.map((r) => {
+        const answerInput = document.querySelector(`[data-row-answer="${r.no}"]`);
+        const scoreInput = document.querySelector(`[data-row-score="${r.no}"]`);
+        return {
+            question: r.question,
+            answer: answerInput ? answerInput.value : r.answer,
+            score: scoreInput && scoreInput.value !== '' ? Number(scoreInput.value) : r.score
+        };
+    });
+
+    const payload = {
+        respondent_name: document.getElementById('caEditName').value.trim() || null,
+        respondent_age: document.getElementById('caEditAge').value.trim() || null,
+        total_score: Number(document.getElementById('caEditScore').value),
+        severity: document.getElementById('caEditSeverity').value.trim() || null,
+        note: document.getElementById('caEditNote').value.trim() || null,
+        raw_answers: editedRows
+    };
+
+    if (!Number.isFinite(payload.total_score)) {
+        showExpertBanner('Điểm tổng không hợp lệ.', 'error');
+        return;
+    }
+
+    const saveBtn = document.getElementById('caEditSaveBtn');
+    saveBtn.disabled = true;
+    try {
+        const updated = await apiClient.patch(`/assessments/results/${item.id}`, payload);
+        Object.assign(item, updated, { raw_answers: editedRows });
+        detailContext.rows = editedRows.map(normalizeAnswerRow);
+        detailContext.editing = false;
+
+        document.getElementById('caEditPanel').style.display = 'none';
+        saveBtn.style.display = 'none';
+        document.getElementById('caEditToggleBtn').textContent = '✏️ Sửa kết quả';
+        renderDetailMeta(item, detailContext.client);
+        renderDetailRows(detailContext.rows, false);
+        showExpertBanner('Đã lưu thay đổi kết quả.', 'success');
+        loadSelfTestResults(state.selfTestPage);
+    } catch (error) {
+        showExpertBanner(error.message || 'Không thể lưu thay đổi.', 'error');
+    } finally {
+        saveBtn.disabled = false;
+    }
 };
 
 function csvEscape(value) {

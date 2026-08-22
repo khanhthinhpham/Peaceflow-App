@@ -98,6 +98,31 @@
                         <button type="button" class="ca-detail-close" onclick="window.caCloseDetail()">✕</button>
                     </div>
                     <div id="caDetailAttachment" style="display:none;margin-bottom:14px;"></div>
+                    <div id="caEditPanel" style="display:none;margin-bottom:14px;padding:12px;border:1.5px solid var(--kraft-light);border-radius:12px;background:var(--paper-light,#fdfaf4);">
+                        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;">
+                            <div>
+                                <label style="font-size:.8rem;font-weight:700;" for="caEditName">Tên người làm bài</label>
+                                <input type="text" id="caEditName" class="admin-input" style="width:100%;">
+                            </div>
+                            <div>
+                                <label style="font-size:.8rem;font-weight:700;" for="caEditAge">Tuổi</label>
+                                <input type="number" id="caEditAge" class="admin-input" style="width:100%;">
+                            </div>
+                            <div>
+                                <label style="font-size:.8rem;font-weight:700;" for="caEditScore">Điểm tổng</label>
+                                <input type="number" id="caEditScore" class="admin-input" style="width:100%;" step="0.5">
+                            </div>
+                            <div>
+                                <label style="font-size:.8rem;font-weight:700;" for="caEditSeverity">Xếp loại</label>
+                                <input type="text" id="caEditSeverity" class="admin-input" style="width:100%;">
+                            </div>
+                        </div>
+                        <div style="margin-top:10px;">
+                            <label style="font-size:.8rem;font-weight:700;" for="caEditNote">Ghi chú</label>
+                            <textarea id="caEditNote" class="admin-input" style="width:100%;min-height:52px;"></textarea>
+                        </div>
+                        <p style="font-size:.78rem;color:var(--text-secondary);margin-top:8px;">Sửa trực tiếp câu trả lời/điểm từng câu ở bảng dưới. Điểm tổng ở trên không tự cộng lại — nhớ chỉnh cho đúng sau khi sửa từng câu.</p>
+                    </div>
                     <table class="ca-detail-table">
                         <thead>
                             <tr>
@@ -110,6 +135,8 @@
                         <tbody id="caDetailRows"></tbody>
                     </table>
                     <div class="ca-detail-actions">
+                        <button type="button" class="ca-export-btn" id="caEditToggleBtn" onclick="window.caToggleEdit()">✏️ Sửa kết quả</button>
+                        <button type="button" class="ca-export-btn" id="caEditSaveBtn" style="display:none;" onclick="window.caSaveEdit()">💾 Lưu thay đổi</button>
                         <button type="button" class="ca-export-btn" onclick="window.caExportCsv()">📊 Xuất Excel (CSV)</button>
                         <button type="button" class="ca-export-btn" onclick="window.caExportPdf()">📄 Xuất PDF</button>
                         <button type="button" onclick="window.caCloseDetail()">Đóng</button>
