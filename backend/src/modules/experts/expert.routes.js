@@ -899,11 +899,42 @@ router.get('/expert-portal/self-test-results', requireAuth, async (req, res) => 
     const limit = wantAll ? 1000 : Math.min(Math.max(parseInt(req.query.limit, 10) || 10, 1), 100);
     const offset = wantAll ? 0 : Math.max(parseInt(req.query.offset, 10) || 0, 0);
 
+    // Bộ lọc: tìm theo tên người làm bài, theo mã bài test, theo khoảng tuổi —
+    // giúp chuyên gia lần lại đúng bệnh nhân đã khám giữa hàng trăm kết quả.
+    const conditions = ['ar.user_id = $1'];
+    const params = [req.user.sub];
+
+    const search = (req.query.search || '').trim();
+    if (search) {
+      params.push(`%${search}%`);
+      conditions.push(`ar.respondent_name ilike $${params.length}`);
+    }
+    const code = (req.query.code || '').trim().toUpperCase();
+    if (code) {
+      params.push(code);
+      conditions.push(`a.code = $${params.length}`);
+    }
+    const ageMin = parseInt(req.query.age_min, 10);
+    if (Number.isFinite(ageMin)) {
+      params.push(ageMin);
+      conditions.push(`ar.respondent_age >= $${params.length}`);
+    }
+    const ageMax = parseInt(req.query.age_max, 10);
+    if (Number.isFinite(ageMax)) {
+      params.push(ageMax);
+      conditions.push(`ar.respondent_age <= $${params.length}`);
+    }
+    const where = conditions.join(' and ');
+
     const countRes = await db.query(
-      `select count(*)::int as total from assessment_results where user_id = $1`,
-      [req.user.sub]
+      `select count(*)::int as total
+       from assessment_results ar
+       join assessments a on a.id = ar.assessment_id
+       where ${where}`,
+      params
     );
 
+    params.push(limit, offset);
     const r = await db.query(
       `select
          ar.id,
@@ -922,10 +953,10 @@ router.get('/expert-portal/self-test-results', requireAuth, async (req, res) => 
          ar.created_at
        from assessment_results ar
        join assessments a on a.id = ar.assessment_id
-       where ar.user_id = $1
+       where ${where}
        order by ar.created_at desc
-       limit $2 offset $3`,
-      [req.user.sub, limit, offset]
+       limit $${params.length - 1} offset $${params.length}`,
+      params
     );
 
     return res.json({

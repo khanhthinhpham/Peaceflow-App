@@ -54,6 +54,28 @@
                     </div>
                     <button type="button" class="ca-export-btn" id="caExportAllBtn" onclick="window.caExportAllSelfTests()">📊 Xuất Excel toàn bộ</button>
                 </div>
+                <div class="admin-card" style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-bottom:14px;">
+                    <div style="flex:1;min-width:180px;">
+                        <label style="font-size:.8rem;font-weight:700;display:block;margin-bottom:4px;" for="caSearchName">Tên người làm bài</label>
+                        <input type="search" id="caSearchName" class="admin-input" placeholder="Nhập tên để tìm..." style="width:100%;">
+                    </div>
+                    <div style="min-width:170px;">
+                        <label style="font-size:.8rem;font-weight:700;display:block;margin-bottom:4px;" for="caSearchCode">Bài test</label>
+                        <select id="caSearchCode" class="admin-input" style="width:100%;">
+                            <option value="">Tất cả bài test</option>
+                        </select>
+                    </div>
+                    <div style="width:90px;">
+                        <label style="font-size:.8rem;font-weight:700;display:block;margin-bottom:4px;" for="caSearchAgeMin">Tuổi từ</label>
+                        <input type="number" id="caSearchAgeMin" class="admin-input" min="0" max="120" style="width:100%;">
+                    </div>
+                    <div style="width:90px;">
+                        <label style="font-size:.8rem;font-weight:700;display:block;margin-bottom:4px;" for="caSearchAgeMax">đến</label>
+                        <input type="number" id="caSearchAgeMax" class="admin-input" min="0" max="120" style="width:100%;">
+                    </div>
+                    <button type="button" class="btn-primary" id="caSearchBtn">🔍 Tìm</button>
+                    <button type="button" class="btn-outline" id="caSearchResetBtn">Xoá lọc</button>
+                </div>
                 <div id="caSelfTestList"></div>
                 <div id="caSelfTestPager" class="ca-pager"></div>
             </section>

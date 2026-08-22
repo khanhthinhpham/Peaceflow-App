@@ -159,8 +159,25 @@ const state = {
     selfTestResults: [],
     selfTestPage: 0,
     selfTestLimit: 10,
-    selfTestTotal: 0
+    selfTestTotal: 0,
+    selfTestFilters: { search: '', code: '', ageMin: '', ageMax: '' }
 };
+
+// Danh mục bài test tự làm — dùng để đổ vào ô lọc "Bài test" ở khu tìm kiếm.
+const SELF_TEST_CODES = [
+    { code: 'DASS21', label: 'DASS-21' },
+    { code: 'GAD7', label: 'GAD-7' },
+    { code: 'HARS', label: 'HARS' },
+    { code: 'PHQ9', label: 'PHQ-9' },
+    { code: 'PSQI', label: 'PSQI' },
+    { code: 'PSS', label: 'PSS' },
+    { code: 'SDQ25', label: 'SDQ-25' },
+    { code: 'MMSE', label: 'MMSE' },
+    { code: 'ISI', label: 'ISI' },
+    { code: 'IAT', label: 'IAT' },
+    { code: 'AUDIT', label: 'AUDIT' },
+    { code: 'RAVEN_CPM', label: 'Raven CPM' }
+];
 
 // Cửa sổ trang hiển thị (luôn có trang đầu/cuối, dấu … khi xa) — cùng kiểu pager
 // đã dùng ở trang Quản lý user trong admin.
@@ -232,7 +249,39 @@ async function init() {
         badgeText: 'CARS · SDQ-25'
     });
 
+    wireSelfTestSearch();
     await Promise.all([loadClients(), loadSelfTestResults()]);
+}
+
+function wireSelfTestSearch() {
+    const codeSel = document.getElementById('caSearchCode');
+    if (codeSel) {
+        codeSel.innerHTML = '<option value="">Tất cả bài test</option>'
+            + SELF_TEST_CODES.map((t) => `<option value="${t.code}">${t.label}</option>`).join('');
+    }
+
+    document.getElementById('caSearchBtn')?.addEventListener('click', () => {
+        state.selfTestFilters = {
+            search: document.getElementById('caSearchName').value.trim(),
+            code: document.getElementById('caSearchCode').value,
+            ageMin: document.getElementById('caSearchAgeMin').value.trim(),
+            ageMax: document.getElementById('caSearchAgeMax').value.trim()
+        };
+        loadSelfTestResults(0);
+    });
+
+    document.getElementById('caSearchName')?.addEventListener('keydown', (ev) => {
+        if (ev.key === 'Enter') document.getElementById('caSearchBtn').click();
+    });
+
+    document.getElementById('caSearchResetBtn')?.addEventListener('click', () => {
+        document.getElementById('caSearchName').value = '';
+        document.getElementById('caSearchCode').value = '';
+        document.getElementById('caSearchAgeMin').value = '';
+        document.getElementById('caSearchAgeMax').value = '';
+        state.selfTestFilters = { search: '', code: '', ageMin: '', ageMax: '' };
+        loadSelfTestResults(0);
+    });
 }
 
 async function loadSelfTestResults(page = 0) {
@@ -242,10 +291,20 @@ async function loadSelfTestResults(page = 0) {
     if (pagerEl) pagerEl.innerHTML = '';
     state.selfTestPage = Math.max(0, page);
 
+    const qs = new URLSearchParams({
+        limit: String(state.selfTestLimit),
+        offset: String(state.selfTestPage * state.selfTestLimit)
+    });
+    const f = state.selfTestFilters;
+    if (f.search) qs.set('search', f.search);
+    if (f.code) qs.set('code', f.code);
+    if (f.ageMin) qs.set('age_min', f.ageMin);
+    if (f.ageMax) qs.set('age_max', f.ageMax);
+
     let data;
     try {
         data = await apiClient.get(
-            `/expert-portal/self-test-results?limit=${state.selfTestLimit}&offset=${state.selfTestPage * state.selfTestLimit}`,
+            `/expert-portal/self-test-results?${qs.toString()}`,
             { noCache: true }
         );
     } catch (error) {
@@ -259,9 +318,12 @@ async function loadSelfTestResults(page = 0) {
     state.selfTestTotal = data?.total || 0;
 
     if (!state.selfTestResults.length) {
+        const hasFilter = Object.values(state.selfTestFilters).some(Boolean);
         el.innerHTML = state.selfTestTotal
             ? '<p class="ca-empty">Không có kết quả ở trang này.</p>'
-            : '<p class="ca-empty">Chưa có ai tự làm test trên tài khoản này.</p>';
+            : hasFilter
+                ? '<p class="ca-empty">Không tìm thấy kết quả khớp với bộ lọc.</p>'
+                : '<p class="ca-empty">Chưa có ai tự làm test trên tài khoản này.</p>';
         renderSelfTestPager();
         return;
     }
@@ -620,6 +682,10 @@ async function loadAttachmentImage(resultId) {
     }
 }
 
+// Khi bài test có sẵn danh mục đáp án (findCatalogOptions trả về khác null), cả 2 ô
+// "Trả lời" và "Điểm" đều là dropdown cùng trỏ vào 1 chỉ số (index) trong danh sách đáp
+// án — chọn ở ô nào thì ô kia tự nhảy theo, không thể lệch nhau. Bài không có danh mục
+// (Raven CPM, CARS...) vẫn dùng ô nhập tay tự do như trước.
 function renderDetailRows(rows, editing, testCode, catalog) {
     const tbody = document.getElementById('caDetailRows');
     if (!rows.length) {
@@ -629,20 +695,21 @@ function renderDetailRows(rows, editing, testCode, catalog) {
     tbody.innerHTML = rows.map((r) => {
         const options = editing ? findCatalogOptions(catalog, testCode, r) : null;
         let answerCell;
+        let scoreCell;
         if (!editing) {
             answerCell = escapeHtml(String(r.answer));
+            scoreCell = escapeHtml(String(r.score));
         } else if (options) {
-            answerCell = `<select data-row-answer="${r.no}" data-synced="1" class="admin-input" style="width:100%;">${options.map((opt) => `
-                <option value="${escapeHtml(opt.label)}" data-score="${opt.score}" ${opt.label === r.answer ? 'selected' : ''}>${escapeHtml(opt.label)}</option>
-            `).join('')}</select>`;
+            let selIdx = options.findIndex((opt) => opt.label === r.answer);
+            if (selIdx === -1) selIdx = options.findIndex((opt) => opt.score === r.score);
+            if (selIdx === -1) selIdx = 0;
+            const optionTags = (textFn) => options.map((opt, i) => `<option value="${i}" ${i === selIdx ? 'selected' : ''}>${escapeHtml(String(textFn(opt)))}</option>`).join('');
+            answerCell = `<select data-row-idx="${r.no}" data-role="answer" class="admin-input" style="width:100%;">${optionTags((opt) => opt.label)}</select>`;
+            scoreCell = `<select data-row-idx="${r.no}" data-role="score" class="admin-input" style="width:100%;">${optionTags((opt) => opt.score)}</select>`;
         } else {
             answerCell = `<input type="text" data-row-answer="${r.no}" value="${escapeHtml(String(r.answer))}" class="admin-input" style="width:100%;">`;
+            scoreCell = `<input type="number" step="0.5" data-row-score="${r.no}" value="${escapeHtml(String(r.score))}" class="admin-input" style="width:100%;">`;
         }
-        const scoreCell = !editing
-            ? escapeHtml(String(r.score))
-            : options
-                ? `<input type="number" step="0.5" data-row-score="${r.no}" value="${escapeHtml(String(r.score))}" class="admin-input" style="width:100%;" readonly title="Tự khớp theo đáp án đã chọn">`
-                : `<input type="number" step="0.5" data-row-score="${r.no}" value="${escapeHtml(String(r.score))}" class="admin-input" style="width:100%;">`;
         return `
         <tr>
             <td>${r.no}</td>
@@ -654,10 +721,12 @@ function renderDetailRows(rows, editing, testCode, catalog) {
     }).join('');
 
     if (editing) {
-        tbody.querySelectorAll('select[data-synced="1"]').forEach((sel) => {
+        tbody.querySelectorAll('select[data-role]').forEach((sel) => {
             sel.addEventListener('change', () => {
-                const scoreInput = tbody.querySelector(`[data-row-score="${sel.getAttribute('data-row-answer')}"]`);
-                if (scoreInput) scoreInput.value = sel.selectedOptions[0].getAttribute('data-score');
+                const rowNo = sel.getAttribute('data-row-idx');
+                const otherRole = sel.getAttribute('data-role') === 'answer' ? 'score' : 'answer';
+                const other = tbody.querySelector(`select[data-row-idx="${rowNo}"][data-role="${otherRole}"]`);
+                if (other) other.value = sel.value;
             });
         });
     }
@@ -732,14 +801,21 @@ window.caToggleEdit = async function () {
 
     const catalog = editing ? await loadAnswerCatalog() : null;
     if (!detailContext || detailContext.item !== item) return; // modal đã đóng/đổi trong lúc tải catalog
+    detailContext.catalog = catalog;
     renderDetailRows(rows, editing, item.code, catalog);
 };
 
 window.caSaveEdit = async function () {
     if (!detailContext) return;
-    const { item, rows } = detailContext;
+    const { item, rows, catalog } = detailContext;
 
     const editedRows = rows.map((r) => {
+        const options = findCatalogOptions(catalog, item.code, r);
+        if (options) {
+            const idxSelect = document.querySelector(`select[data-row-idx="${r.no}"][data-role="answer"]`);
+            const opt = idxSelect ? options[Number(idxSelect.value)] : null;
+            return { question: r.question, answer: opt ? opt.label : r.answer, score: opt ? opt.score : r.score };
+        }
         const answerInput = document.querySelector(`[data-row-answer="${r.no}"]`);
         const scoreInput = document.querySelector(`[data-row-score="${r.no}"]`);
         return {
