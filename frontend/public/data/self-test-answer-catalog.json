@@ -443,7 +443,45 @@
           }
         ]
       }
-    ]
+    ],
+    "scoring": {
+      "depression": {
+        "indices": [
+          0,
+          2,
+          4,
+          9,
+          12,
+          15,
+          16,
+          20
+        ],
+        "multiplier": 2
+      },
+      "anxiety": {
+        "indices": [
+          1,
+          3,
+          6,
+          8,
+          14,
+          18,
+          19
+        ],
+        "multiplier": 2
+      },
+      "stress": {
+        "indices": [
+          5,
+          7,
+          10,
+          11,
+          13,
+          17
+        ],
+        "multiplier": 2
+      }
+    }
   },
   "gad7": {
     "name": "GAD-7",
@@ -595,7 +633,21 @@
           }
         ]
       }
-    ]
+    ],
+    "scoring": {
+      "anxiety": {
+        "indices": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6
+        ],
+        "multiplier": 1
+      }
+    }
   },
   "hars": {
     "name": "HARS",
@@ -950,7 +1002,52 @@
           }
         ]
       }
-    ]
+    ],
+    "scoring": {
+      "psychic": {
+        "indices": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          13
+        ],
+        "multiplier": 1
+      },
+      "somatic": {
+        "indices": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "multiplier": 1
+      },
+      "total": {
+        "indices": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13
+        ],
+        "multiplier": 1
+      }
+    }
   },
   "phq9": {
     "name": "PHQ-9",
@@ -1144,7 +1241,23 @@
           }
         ]
       }
-    ]
+    ],
+    "scoring": {
+      "depression": {
+        "indices": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ],
+        "multiplier": 1
+      }
+    }
   },
   "psqi": {
     "name": "PSQI",
@@ -1359,7 +1472,24 @@
           }
         ]
       }
-    ]
+    ],
+    "scoring": {
+      "sleep": {
+        "indices": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9
+        ],
+        "multiplier": 1
+      }
+    }
   },
   "pss": {
     "name": "PSS",
@@ -1614,7 +1744,24 @@
           }
         ]
       }
-    ]
+    ],
+    "scoring": {
+      "stress": {
+        "indices": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9
+        ],
+        "multiplier": 1
+      }
+    }
   },
   "sdq25": {
     "name": "SDQ-25",
@@ -2044,7 +2191,84 @@
           }
         ]
       }
-    ]
+    ],
+    "scoring": {
+      "emotional": {
+        "indices": [
+          2,
+          7,
+          12,
+          15,
+          23
+        ],
+        "multiplier": 1
+      },
+      "conduct": {
+        "indices": [
+          4,
+          6,
+          11,
+          17,
+          21
+        ],
+        "multiplier": 1
+      },
+      "hyperactivity": {
+        "indices": [
+          1,
+          9,
+          14,
+          20,
+          24
+        ],
+        "multiplier": 1
+      },
+      "peer": {
+        "indices": [
+          5,
+          10,
+          13,
+          18,
+          22
+        ],
+        "multiplier": 1
+      },
+      "prosocial": {
+        "indices": [
+          0,
+          3,
+          8,
+          16,
+          19
+        ],
+        "multiplier": 1
+      },
+      "total": {
+        "indices": [
+          2,
+          7,
+          12,
+          15,
+          23,
+          4,
+          6,
+          11,
+          17,
+          21,
+          1,
+          9,
+          14,
+          20,
+          24,
+          5,
+          10,
+          13,
+          18,
+          22
+        ],
+        "multiplier": 1
+      }
+    }
   },
   "mmse": {
     "name": "MMSE",
@@ -2340,7 +2564,33 @@
           }
         ]
       }
-    ]
+    ],
+    "scoring": {
+      "total": {
+        "indices": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18
+        ],
+        "multiplier": 1
+      }
+    }
   },
   "isi": {
     "name": "ISI",
@@ -2520,7 +2770,21 @@
           }
         ]
       }
-    ]
+    ],
+    "scoring": {
+      "total": {
+        "indices": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6
+        ],
+        "multiplier": 1
+      }
+    }
   },
   "iat": {
     "name": "IAT",
@@ -3105,7 +3369,34 @@
           }
         ]
       }
-    ]
+    ],
+    "scoring": {
+      "total": {
+        "indices": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19
+        ],
+        "multiplier": 1
+      }
+    }
   },
   "audit": {
     "name": "AUDIT",
@@ -3344,6 +3635,23 @@
           }
         ]
       }
-    ]
+    ],
+    "scoring": {
+      "total": {
+        "indices": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9
+        ],
+        "multiplier": 1
+      }
+    }
   }
 }

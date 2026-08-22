@@ -652,6 +652,23 @@ function findCatalogOptions(catalog, testCode, row) {
     return byText ? byText.options : null;
 }
 
+// Tính lại điểm tổng từ điểm từng câu đang hiển thị trong bảng, theo đúng công thức
+// (nhóm chỉ số + hệ số nhân) của từng bài — giống hệt cách finishTest() tính khi làm bài
+// thật ở mood-assessment.html, để sửa 1 câu là điểm tổng tự nhảy đúng, không cần tính tay.
+// Trả về null nếu bài không có cấu hình tính điểm trong danh mục (Raven CPM, CARS...).
+function computeTotalFromRowScores(testCode, catalog, scoresByIndex) {
+    const test = catalog?.[String(testCode || '').toLowerCase()];
+    if (!test?.scoring) return null;
+    const subScores = {};
+    Object.entries(test.scoring).forEach(([key, sc]) => {
+        let sum = 0;
+        sc.indices.forEach((idx) => { sum += Number(scoresByIndex[idx]) || 0; });
+        subScores[key] = sum * sc.multiplier;
+    });
+    if (subScores.total !== undefined) return subScores.total;
+    return Object.values(subScores).reduce((a, b) => a + b, 0);
+}
+
 function normalizeAnswerRow(entry, index) {
     // Dữ liệu cũ (làm trước khi lưu kèm nội dung câu hỏi) có thể là null, số, hoặc
     // object thiếu field — luôn trả về dạng hiển thị được, không để trang bị vỡ.
@@ -704,11 +721,11 @@ function renderDetailRows(rows, editing, testCode, catalog) {
             if (selIdx === -1) selIdx = options.findIndex((opt) => opt.score === r.score);
             if (selIdx === -1) selIdx = 0;
             const optionTags = (textFn) => options.map((opt, i) => `<option value="${i}" ${i === selIdx ? 'selected' : ''}>${escapeHtml(String(textFn(opt)))}</option>`).join('');
-            answerCell = `<select data-row-idx="${r.no}" data-role="answer" class="admin-input" style="width:100%;">${optionTags((opt) => opt.label)}</select>`;
-            scoreCell = `<select data-row-idx="${r.no}" data-role="score" class="admin-input" style="width:100%;">${optionTags((opt) => opt.score)}</select>`;
+            answerCell = `<select data-row-idx="${r.no}" data-role="answer" class="form-input">${optionTags((opt) => opt.label)}</select>`;
+            scoreCell = `<select data-row-idx="${r.no}" data-role="score" class="form-input">${optionTags((opt) => opt.score)}</select>`;
         } else {
-            answerCell = `<input type="text" data-row-answer="${r.no}" value="${escapeHtml(String(r.answer))}" class="admin-input" style="width:100%;">`;
-            scoreCell = `<input type="number" step="0.5" data-row-score="${r.no}" value="${escapeHtml(String(r.score))}" class="admin-input" style="width:100%;">`;
+            answerCell = `<input type="text" data-row-answer="${r.no}" value="${escapeHtml(String(r.answer))}" class="form-input">`;
+            scoreCell = `<input type="number" step="0.5" data-row-score="${r.no}" value="${escapeHtml(String(r.score))}" class="form-input">`;
         }
         return `
         <tr>
@@ -720,16 +737,35 @@ function renderDetailRows(rows, editing, testCode, catalog) {
     `;
     }).join('');
 
-    if (editing) {
-        tbody.querySelectorAll('select[data-role]').forEach((sel) => {
-            sel.addEventListener('change', () => {
-                const rowNo = sel.getAttribute('data-row-idx');
-                const otherRole = sel.getAttribute('data-role') === 'answer' ? 'score' : 'answer';
-                const other = tbody.querySelector(`select[data-row-idx="${rowNo}"][data-role="${otherRole}"]`);
-                if (other) other.value = sel.value;
-            });
+    if (!editing) return;
+
+    // Điểm tổng ngoài panel tự tính lại mỗi khi 1 câu trong bảng đổi điểm — theo đúng
+    // công thức (nhóm chỉ số + hệ số nhân) của bài đó nếu có trong danh mục.
+    const recomputeTotal = () => {
+        const scoresByIndex = rows.map((r) => {
+            const sel = tbody.querySelector(`select[data-row-idx="${r.no}"][data-role="score"]`);
+            if (sel) return Number(sel.value);
+            const input = tbody.querySelector(`[data-row-score="${r.no}"]`);
+            return input ? Number(input.value) : r.score;
         });
-    }
+        const total = computeTotalFromRowScores(testCode, catalog, scoresByIndex);
+        if (total !== null) document.getElementById('caEditScore').value = total;
+    };
+
+    tbody.querySelectorAll('select[data-role]').forEach((sel) => {
+        sel.addEventListener('change', () => {
+            const rowNo = sel.getAttribute('data-row-idx');
+            const otherRole = sel.getAttribute('data-role') === 'answer' ? 'score' : 'answer';
+            const other = tbody.querySelector(`select[data-row-idx="${rowNo}"][data-role="${otherRole}"]`);
+            if (other) other.value = sel.value;
+            recomputeTotal();
+        });
+    });
+    tbody.querySelectorAll('[data-row-score]').forEach((input) => {
+        input.addEventListener('input', recomputeTotal);
+    });
+
+    recomputeTotal();
 }
 
 // Chỉ chuyên gia mới sửa được, và chỉ với kết quả nằm dưới chính tài khoản của họ

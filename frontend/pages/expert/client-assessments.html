@@ -54,27 +54,29 @@
                     </div>
                     <button type="button" class="ca-export-btn" id="caExportAllBtn" onclick="window.caExportAllSelfTests()">📊 Xuất Excel toàn bộ</button>
                 </div>
-                <div class="admin-card" style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-bottom:14px;">
-                    <div style="flex:1;min-width:180px;">
-                        <label style="font-size:.8rem;font-weight:700;display:block;margin-bottom:4px;" for="caSearchName">Tên người làm bài</label>
-                        <input type="search" id="caSearchName" class="admin-input" placeholder="Nhập tên để tìm..." style="width:100%;">
+                <div class="ca-search-bar">
+                    <div class="ca-search-field grow">
+                        <label for="caSearchName">Tên người làm bài</label>
+                        <input type="search" id="caSearchName" class="form-input" placeholder="Nhập tên để tìm...">
                     </div>
-                    <div style="min-width:170px;">
-                        <label style="font-size:.8rem;font-weight:700;display:block;margin-bottom:4px;" for="caSearchCode">Bài test</label>
-                        <select id="caSearchCode" class="admin-input" style="width:100%;">
+                    <div class="ca-search-field">
+                        <label for="caSearchCode">Bài test</label>
+                        <select id="caSearchCode" class="form-input">
                             <option value="">Tất cả bài test</option>
                         </select>
                     </div>
-                    <div style="width:90px;">
-                        <label style="font-size:.8rem;font-weight:700;display:block;margin-bottom:4px;" for="caSearchAgeMin">Tuổi từ</label>
-                        <input type="number" id="caSearchAgeMin" class="admin-input" min="0" max="120" style="width:100%;">
+                    <div class="ca-search-field ca-search-age">
+                        <label for="caSearchAgeMin">Tuổi từ</label>
+                        <input type="number" id="caSearchAgeMin" class="form-input" min="0" max="120" placeholder="VD: 5">
                     </div>
-                    <div style="width:90px;">
-                        <label style="font-size:.8rem;font-weight:700;display:block;margin-bottom:4px;" for="caSearchAgeMax">đến</label>
-                        <input type="number" id="caSearchAgeMax" class="admin-input" min="0" max="120" style="width:100%;">
+                    <div class="ca-search-field ca-search-age">
+                        <label for="caSearchAgeMax">đến</label>
+                        <input type="number" id="caSearchAgeMax" class="form-input" min="0" max="120" placeholder="VD: 12">
                     </div>
-                    <button type="button" class="btn-primary" id="caSearchBtn">🔍 Tìm</button>
-                    <button type="button" class="btn-outline" id="caSearchResetBtn">Xoá lọc</button>
+                    <div class="ca-search-actions">
+                        <button type="button" class="btn-primary" id="caSearchBtn">🔍 Tìm</button>
+                        <button type="button" class="btn-outline" id="caSearchResetBtn">Xoá lọc</button>
+                    </div>
                 </div>
                 <div id="caSelfTestList"></div>
                 <div id="caSelfTestPager" class="ca-pager"></div>
@@ -120,30 +122,30 @@
                         <button type="button" class="ca-detail-close" onclick="window.caCloseDetail()">✕</button>
                     </div>
                     <div id="caDetailAttachment" style="display:none;margin-bottom:14px;"></div>
-                    <div id="caEditPanel" style="display:none;margin-bottom:14px;padding:12px;border:1.5px solid var(--kraft-light);border-radius:12px;background:var(--paper-light,#fdfaf4);">
-                        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;">
-                            <div>
-                                <label style="font-size:.8rem;font-weight:700;" for="caEditName">Tên người làm bài</label>
-                                <input type="text" id="caEditName" class="admin-input" style="width:100%;">
+                    <div id="caEditPanel" class="ca-edit-panel" style="display:none;">
+                        <div class="ca-edit-grid">
+                            <div class="form-group">
+                                <label class="form-label" for="caEditName">Tên người làm bài</label>
+                                <input type="text" id="caEditName" class="form-input">
                             </div>
-                            <div>
-                                <label style="font-size:.8rem;font-weight:700;" for="caEditAge">Tuổi</label>
-                                <input type="number" id="caEditAge" class="admin-input" style="width:100%;">
+                            <div class="form-group">
+                                <label class="form-label" for="caEditAge">Tuổi</label>
+                                <input type="number" id="caEditAge" class="form-input">
                             </div>
-                            <div>
-                                <label style="font-size:.8rem;font-weight:700;" for="caEditScore">Điểm tổng</label>
-                                <input type="number" id="caEditScore" class="admin-input" style="width:100%;" step="0.5">
+                            <div class="form-group">
+                                <label class="form-label" for="caEditScore">Điểm tổng</label>
+                                <input type="number" id="caEditScore" class="form-input" step="0.5">
                             </div>
-                            <div>
-                                <label style="font-size:.8rem;font-weight:700;" for="caEditSeverity">Xếp loại</label>
-                                <input type="text" id="caEditSeverity" class="admin-input" style="width:100%;">
+                            <div class="form-group">
+                                <label class="form-label" for="caEditSeverity">Xếp loại</label>
+                                <input type="text" id="caEditSeverity" class="form-input">
                             </div>
                         </div>
-                        <div style="margin-top:10px;">
-                            <label style="font-size:.8rem;font-weight:700;" for="caEditNote">Ghi chú</label>
-                            <textarea id="caEditNote" class="admin-input" style="width:100%;min-height:52px;"></textarea>
+                        <div class="form-group">
+                            <label class="form-label" for="caEditNote">Ghi chú</label>
+                            <textarea id="caEditNote" class="form-input ca-edit-note"></textarea>
                         </div>
-                        <p style="font-size:.78rem;color:var(--text-secondary);margin-top:8px;">Sửa trực tiếp câu trả lời/điểm từng câu ở bảng dưới. Điểm tổng ở trên không tự cộng lại — nhớ chỉnh cho đúng sau khi sửa từng câu.</p>
+                        <p class="ca-edit-hint">Sửa câu trả lời/điểm từng câu ở bảng dưới — với các bài có trong danh mục, điểm tổng ở trên tự tính lại theo đúng công thức của bài đó. Bài không có công thức (Raven CPM, CARS...) thì tự nhập điểm tổng.</p>
                     </div>
                     <table class="ca-detail-table">
                         <thead>
