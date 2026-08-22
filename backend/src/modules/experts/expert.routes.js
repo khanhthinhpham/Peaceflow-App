@@ -1545,51 +1545,60 @@ router.get('/admin/users', requireAuth, async (req, res) => {
 
 // Cập nhật trạng thái / vai trò user. Body: { status?, role? }.
 router.patch('/admin/users/:id', requireAuth, async (req, res) => {
+  if (req.user.role !== 'admin') return res.status(403).json({ success: false, message: 'Admin only' });
+  if (req.params.id === req.user.sub) {
+    return res.status(400).json({ success: false, message: 'Không thể tự thay đổi tài khoản của chính mình.' });
+  }
+
+  const sets = [];
+  const params = [req.params.id];
+
+  if (req.body.status !== undefined) {
+    if (!['active', 'inactive', 'suspended', 'deleted'].includes(req.body.status)) {
+      return res.status(400).json({ success: false, message: 'Trạng thái không hợp lệ.' });
+    }
+    params.push(req.body.status);
+    sets.push(`status = $${params.length}`);
+  }
+  if (req.body.role !== undefined) {
+    if (!['user', 'expert', 'admin'].includes(req.body.role)) {
+      return res.status(400).json({ success: false, message: 'Vai trò không hợp lệ.' });
+    }
+    params.push(req.body.role);
+    sets.push(`role = $${params.length}`);
+  }
+  if (!sets.length) {
+    return res.status(400).json({ success: false, message: 'Không có thay đổi nào.' });
+  }
+
+  // Dùng transaction: đổi role = expert kèm tự tạo hồ sơ experts phải cùng thành công
+  // hoặc cùng thất bại — tránh để tài khoản kẹt ở trạng thái nửa vời (role=expert
+  // nhưng không có hồ sơ experts) nếu bước tạo hồ sơ lỗi giữa đường.
+  const client = await db.connect();
   try {
-    if (req.user.role !== 'admin') return res.status(403).json({ success: false, message: 'Admin only' });
-    if (req.params.id === req.user.sub) {
-      return res.status(400).json({ success: false, message: 'Không thể tự thay đổi tài khoản của chính mình.' });
-    }
+    await client.query('BEGIN');
 
-    const sets = [];
-    const params = [req.params.id];
-
-    if (req.body.status !== undefined) {
-      if (!['active', 'inactive', 'suspended', 'deleted'].includes(req.body.status)) {
-        return res.status(400).json({ success: false, message: 'Trạng thái không hợp lệ.' });
-      }
-      params.push(req.body.status);
-      sets.push(`status = $${params.length}`);
-    }
-    if (req.body.role !== undefined) {
-      if (!['user', 'expert', 'admin'].includes(req.body.role)) {
-        return res.status(400).json({ success: false, message: 'Vai trò không hợp lệ.' });
-      }
-      params.push(req.body.role);
-      sets.push(`role = $${params.length}`);
-    }
-    if (!sets.length) {
-      return res.status(400).json({ success: false, message: 'Không có thay đổi nào.' });
-    }
-
-    const r = await db.query(
+    const r = await client.query(
       `update users set ${sets.join(', ')}, updated_at = now() where id = $1
        returning id, email, full_name, display_name, role, status, wallet_balance`,
       params
     );
     const updatedUser = r.rows[0];
-    if (!updatedUser) return res.status(404).json({ success: false, message: 'Không tìm thấy người dùng.' });
+    if (!updatedUser) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ success: false, message: 'Không tìm thấy người dùng.' });
+    }
 
     // Set role = expert qua admin thì coi như đã duyệt luôn — tự tạo hồ sơ trong bảng
     // experts nếu chưa có, để tài khoản vào thẳng dashboard chuyên gia thay vì bị kẹt ở
     // màn "Hồ sơ chuyên gia" (chưa duyệt) chờ tự nộp đơn.
     let expertProfileCreated = false;
     if (req.body.role === 'expert') {
-      const existing = await db.query(`select id from experts where user_id = $1 limit 1`, [updatedUser.id]);
+      const existing = await client.query(`select id from experts where user_id = $1 limit 1`, [updatedUser.id]);
       if (!existing.rows[0]) {
-        const codeRes = await db.query(`select 'EXP-' || substr(md5(random()::text), 1, 6) as code`);
+        const codeRes = await client.query(`select 'EXP-' || substr(md5(random()::text), 1, 6) as code`);
         const fullName = updatedUser.display_name || updatedUser.full_name || updatedUser.email;
-        await db.query(
+        await client.query(
           `insert into experts (user_id, code, full_name, degree, active, status)
            values ($1, $2, $3, 'Chuyên gia tâm lý', true, 'offline')`,
           [updatedUser.id, codeRes.rows[0].code, fullName]
@@ -1598,10 +1607,14 @@ router.patch('/admin/users/:id', requireAuth, async (req, res) => {
       }
     }
 
+    await client.query('COMMIT');
     return res.json({ success: true, data: { ...updatedUser, expert_profile_created: expertProfileCreated } });
   } catch (error) {
+    await client.query('ROLLBACK').catch(() => {});
     console.error('Admin update user error:', error);
     return res.status(500).json({ success: false, message: 'Could not update user' });
+  } finally {
+    client.release();
   }
 });
 

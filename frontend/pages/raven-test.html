@@ -261,9 +261,11 @@
             </div>
 
             <div class="rv-options" id="rvOptions"></div>
+            <div id="rvSkippedNote" style="display:none;color:var(--text-secondary);font-style:italic;margin-top:8px;">Câu này đã được bỏ qua — không tính điểm.</div>
 
             <div class="rv-nav">
                 <button class="rv-btn" id="rvPrevBtn" onclick="rvPrev()">← Câu trước</button>
+                <button class="rv-btn" id="rvSkipBtn" onclick="rvSkip()">Bỏ qua câu này</button>
                 <button class="rv-btn primary" id="rvNextBtn" onclick="rvNext()" disabled>Câu tiếp →</button>
             </div>
         </div>
@@ -462,6 +464,9 @@
                 el.addEventListener('click', () => selectOption(Number(el.getAttribute('data-opt'))));
             });
 
+            const skippedNote = document.getElementById('rvSkippedNote');
+            if (skippedNote) skippedNote.style.display = answers[index] === 'skip' ? '' : 'none';
+
             document.getElementById('rvPrevBtn').disabled = index === 0;
             document.getElementById('rvNextBtn').disabled = answers[index] === null;
             document.getElementById('rvNextBtn').textContent = index === ITEMS.length - 1 ? 'Hoàn thành' : 'Câu tiếp →';
@@ -471,6 +476,16 @@
             answers[index] = n;
             renderItem();
         }
+
+        window.rvSkip = function () {
+            answers[index] = 'skip';
+            if (index === ITEMS.length - 1) {
+                finish();
+                return;
+            }
+            index += 1;
+            renderItem();
+        };
 
         window.rvNext = function () {
             if (answers[index] === null) return;
@@ -520,9 +535,12 @@
                         const itemIndex = Number(item.key.replace(/^\D+/, '')) - 1;
                         const correctAnswer = RAVEN_ANSWER_KEY[setKey][itemIndex];
                         const isCorrect = answers[i] === correctAnswer;
+                        const answerLabel = answers[i] === 'skip'
+                            ? `Bỏ qua (không tính điểm — đáp án đúng: ${correctAnswer})`
+                            : `Chọn ${answers[i]}${isCorrect ? ' (đúng)' : ` (sai — đáp án đúng: ${correctAnswer})`}`;
                         return {
                             question: item.key,
-                            answer: `Chọn ${answers[i]}${isCorrect ? ' (đúng)' : ` (sai — đáp án đúng: ${correctAnswer})`}`,
+                            answer: answerLabel,
                             score: isCorrect ? 1 : 0
                         };
                     }),
