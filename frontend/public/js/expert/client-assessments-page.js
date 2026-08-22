@@ -565,6 +565,31 @@ function renderHistory() {
 
 let detailContext = null;
 
+// Bảng câu hỏi/đáp án (nhãn + điểm) của các bài tự làm, trích từ đúng dữ liệu bài test
+// bên mood-assessment.html — dùng để hiện dropdown đáp án khi sửa kết quả, đảm bảo chọn
+// đáp án nào thì điểm tự khớp theo đúng quy định của bài đó, không để lệch tay như khi
+// gõ tự do. Bài không có trong bảng (Raven CPM, CARS, SDQ25 quan sát...) vẫn sửa được
+// bằng ô nhập tay như trước.
+let answerCatalogPromise = null;
+function loadAnswerCatalog() {
+    if (!answerCatalogPromise) {
+        answerCatalogPromise = fetch('../../public/data/self-test-answer-catalog.json')
+            .then((r) => (r.ok ? r.json() : {}))
+            .catch(() => ({}));
+    }
+    return answerCatalogPromise;
+}
+
+function findCatalogOptions(catalog, testCode, row) {
+    const test = catalog?.[String(testCode || '').toLowerCase()];
+    if (!test) return null;
+    const byIndex = test.questions[row.no - 1];
+    if (byIndex && byIndex.text === row.question) return byIndex.options;
+    // Câu hỏi bị lệch thứ tự (dữ liệu cũ) — thử tìm theo đúng nội dung câu hỏi.
+    const byText = test.questions.find((q) => q.text === row.question);
+    return byText ? byText.options : null;
+}
+
 function normalizeAnswerRow(entry, index) {
     // Dữ liệu cũ (làm trước khi lưu kèm nội dung câu hỏi) có thể là null, số, hoặc
     // object thiếu field — luôn trả về dạng hiển thị được, không để trang bị vỡ.
@@ -595,24 +620,47 @@ async function loadAttachmentImage(resultId) {
     }
 }
 
-function renderDetailRows(rows, editing) {
+function renderDetailRows(rows, editing, testCode, catalog) {
     const tbody = document.getElementById('caDetailRows');
     if (!rows.length) {
         tbody.innerHTML = '<tr><td colspan="4" style="color:var(--text-secondary);">Không có dữ liệu chi tiết từng câu.</td></tr>';
         return;
     }
-    tbody.innerHTML = rows.map((r) => `
+    tbody.innerHTML = rows.map((r) => {
+        const options = editing ? findCatalogOptions(catalog, testCode, r) : null;
+        let answerCell;
+        if (!editing) {
+            answerCell = escapeHtml(String(r.answer));
+        } else if (options) {
+            answerCell = `<select data-row-answer="${r.no}" data-synced="1" class="admin-input" style="width:100%;">${options.map((opt) => `
+                <option value="${escapeHtml(opt.label)}" data-score="${opt.score}" ${opt.label === r.answer ? 'selected' : ''}>${escapeHtml(opt.label)}</option>
+            `).join('')}</select>`;
+        } else {
+            answerCell = `<input type="text" data-row-answer="${r.no}" value="${escapeHtml(String(r.answer))}" class="admin-input" style="width:100%;">`;
+        }
+        const scoreCell = !editing
+            ? escapeHtml(String(r.score))
+            : options
+                ? `<input type="number" step="0.5" data-row-score="${r.no}" value="${escapeHtml(String(r.score))}" class="admin-input" style="width:100%;" readonly title="Tự khớp theo đáp án đã chọn">`
+                : `<input type="number" step="0.5" data-row-score="${r.no}" value="${escapeHtml(String(r.score))}" class="admin-input" style="width:100%;">`;
+        return `
         <tr>
             <td>${r.no}</td>
             <td>${escapeHtml(String(r.question))}</td>
-            <td>${editing
-                ? `<input type="text" data-row-answer="${r.no}" value="${escapeHtml(String(r.answer))}" class="admin-input" style="width:100%;">`
-                : escapeHtml(String(r.answer))}</td>
-            <td>${editing
-                ? `<input type="number" step="0.5" data-row-score="${r.no}" value="${escapeHtml(String(r.score))}" class="admin-input" style="width:100%;">`
-                : escapeHtml(String(r.score))}</td>
+            <td>${answerCell}</td>
+            <td>${scoreCell}</td>
         </tr>
-    `).join('');
+    `;
+    }).join('');
+
+    if (editing) {
+        tbody.querySelectorAll('select[data-synced="1"]').forEach((sel) => {
+            sel.addEventListener('change', () => {
+                const scoreInput = tbody.querySelector(`[data-row-score="${sel.getAttribute('data-row-answer')}"]`);
+                if (scoreInput) scoreInput.value = sel.selectedOptions[0].getAttribute('data-score');
+            });
+        });
+    }
 }
 
 // Chỉ chuyên gia mới sửa được, và chỉ với kết quả nằm dưới chính tài khoản của họ
@@ -665,7 +713,7 @@ window.caCloseDetail = function () {
     detailContext = null;
 };
 
-window.caToggleEdit = function () {
+window.caToggleEdit = async function () {
     if (!detailContext) return;
     detailContext.editing = !detailContext.editing;
     const { item, editing, rows } = detailContext;
@@ -681,7 +729,10 @@ window.caToggleEdit = function () {
         document.getElementById('caEditSeverity').value = item.severity || '';
         document.getElementById('caEditNote').value = item.note || '';
     }
-    renderDetailRows(rows, editing);
+
+    const catalog = editing ? await loadAnswerCatalog() : null;
+    if (!detailContext || detailContext.item !== item) return; // modal đã đóng/đổi trong lúc tải catalog
+    renderDetailRows(rows, editing, item.code, catalog);
 };
 
 window.caSaveEdit = async function () {
