@@ -54,7 +54,12 @@ function renderState() {
         return;
     }
 
-    if (status === 'approved' && overviewState?.expert) {
+    // Ưu tiên kiểm tra đã có hồ sơ thật trong bảng experts chưa (overviewState.expert) —
+    // không chỉ dựa vào trạng thái đơn xin duyệt (application), vì tài khoản được admin
+    // đổi role thẳng thành expert (không qua nộp đơn) sẽ có hồ sơ nhưng KHÔNG có bản ghi
+    // application nào, nếu chỉ check status thì sẽ rơi sai vào nhánh "nộp đơn mới" và bắt
+    // nhập lại từ đầu dù hồ sơ hiện tại vẫn còn.
+    if (overviewState?.expert) {
         mode = 'profile';
         hydrateFromExpertProfile(overviewState.expert);
         document.getElementById('credentialFileGroup').style.display = 'none';

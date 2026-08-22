@@ -1026,25 +1026,55 @@ document.getElementById('caShareToggleBtn')?.addEventListener('click', async () 
     if (!opening) return;
 
     const colleagues = await ensureColleaguesLoaded();
-    const select = document.getElementById('caShareTarget');
-    select.innerHTML = '<option value="">Chọn chuyên gia...</option>'
+    const optionsHtml = '<option value="">Chọn chuyên gia...</option>'
         + colleagues.map((c) => `<option value="${c.user_id}">${escapeHtml(c.full_name)}${c.degree ? ` — ${escapeHtml(c.degree)}` : ''}</option>`).join('');
+    document.getElementById('caTransferTarget').innerHTML = optionsHtml;
+    document.getElementById('caShareColleagues').innerHTML = colleagues.length
+        ? colleagues.map((c) => `
+            <label>
+                <input type="checkbox" value="${c.user_id}">
+                ${escapeHtml(c.full_name)}${c.degree ? ` — ${escapeHtml(c.degree)}` : ''}
+            </label>
+        `).join('')
+        : '<span style="color:var(--text-secondary);font-size:.85rem;">Chưa có đồng nghiệp nào khác trong hệ thống.</span>';
     refreshShareList(detailContext.item.id);
 });
 
 document.getElementById('caShareConfirmBtn')?.addEventListener('click', async () => {
     if (!detailContext) return;
-    const targetUserId = document.getElementById('caShareTarget').value;
-    if (!targetUserId) {
-        showExpertBanner('Vui lòng chọn chuyên gia cần chia sẻ.', 'error');
+    const targetUserIds = Array.from(document.querySelectorAll('#caShareColleagues input[type="checkbox"]:checked')).map((cb) => cb.value);
+    if (!targetUserIds.length) {
+        showExpertBanner('Vui lòng chọn ít nhất 1 chuyên gia cần chia sẻ.', 'error');
         return;
     }
     try {
-        await apiClient.post(`/assessments/results/${detailContext.item.id}/share`, { target_user_id: targetUserId });
-        showExpertBanner('Đã chia sẻ kết quả.', 'success');
+        await apiClient.post(`/assessments/results/${detailContext.item.id}/share`, { target_user_ids: targetUserIds });
+        showExpertBanner(`Đã chia sẻ cho ${targetUserIds.length} chuyên gia.`, 'success');
+        document.querySelectorAll('#caShareColleagues input[type="checkbox"]').forEach((cb) => { cb.checked = false; });
         refreshShareList(detailContext.item.id);
     } catch (error) {
         showExpertBanner(error.message || 'Không thể chia sẻ.', 'error');
+    }
+});
+
+document.getElementById('caTransferBtn')?.addEventListener('click', async () => {
+    if (!detailContext) return;
+    const targetUserId = document.getElementById('caTransferTarget').value;
+    if (!targetUserId) {
+        showExpertBanner('Vui lòng chọn chuyên gia cần chuyển hồ sơ.', 'error');
+        return;
+    }
+    const targetName = document.getElementById('caTransferTarget').selectedOptions[0]?.textContent || 'chuyên gia này';
+    if (!window.confirm(`Chuyển hẳn kết quả "${detailContext.item.name}" của ${detailContext.item.respondent_name || 'người này'} cho ${targetName}?\n\nBạn sẽ KHÔNG còn thấy kết quả này trong danh sách của mình nữa.`)) return;
+
+    try {
+        await apiClient.post(`/assessments/results/${detailContext.item.id}/transfer`, { target_user_id: targetUserId });
+        showExpertBanner('Đã chuyển hồ sơ cho chuyên gia khác.', 'success');
+        window.caCloseDetail();
+        if (state.patientViewActive) loadPatientSummaryView();
+        else loadSelfTestResults(state.selfTestPage);
+    } catch (error) {
+        showExpertBanner(error.message || 'Không thể chuyển hồ sơ.', 'error');
     }
 });
 

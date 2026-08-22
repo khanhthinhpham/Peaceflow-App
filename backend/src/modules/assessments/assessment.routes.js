@@ -421,17 +421,61 @@ router.patch('/assessments/results/:id/flag', requireAuth, async (req, res) => {
 
 // Chia sẻ 1 kết quả cho 1 chuyên gia khác cùng xem — cả 2 bên đều giữ quyền xem, chỉ chủ
 // sở hữu mới được chia sẻ/gỡ chia sẻ (tránh việc người được chia sẻ lại đi chia sẻ tiếp).
+// Chia sẻ cho 1 hoặc nhiều chuyên gia cùng lúc (target_user_ids: string[], hoặc
+// target_user_id: string cho tương thích cũ).
 router.post('/assessments/results/:id/share', requireAuth, async (req, res) => {
   try {
     if (req.user.role !== 'expert') {
       return res.status(403).json({ success: false, message: 'Chỉ chuyên gia mới có thể chia sẻ kết quả.' });
     }
-    const targetUserId = req.body.target_user_id;
-    if (!targetUserId) {
+    const targetUserIds = Array.isArray(req.body.target_user_ids)
+      ? req.body.target_user_ids
+      : (req.body.target_user_id ? [req.body.target_user_id] : []);
+    const uniqueTargets = [...new Set(targetUserIds)].filter((id) => id && id !== req.user.sub);
+    if (!uniqueTargets.length) {
       return res.status(400).json({ success: false, message: 'Thiếu người nhận chia sẻ.' });
     }
+
+    const ownerRes = await db.query(
+      `select id from assessment_results where id = $1 and user_id = $2 limit 1`,
+      [req.params.id, req.user.sub]
+    );
+    if (!ownerRes.rows[0]) return res.status(404).json({ success: false, message: 'Không tìm thấy kết quả này.' });
+
+    const validTargets = await db.query(
+      `select id from users where id = any($1::uuid[]) and role = 'expert'`,
+      [uniqueTargets]
+    );
+    if (!validTargets.rows.length) {
+      return res.status(404).json({ success: false, message: 'Không tìm thấy chuyên gia nào hợp lệ.' });
+    }
+
+    await Promise.all(validTargets.rows.map((row) => db.query(
+      `insert into assessment_result_shares (result_id, shared_with_user_id, shared_by_user_id)
+       values ($1, $2, $3)
+       on conflict (result_id, shared_with_user_id) do nothing`,
+      [req.params.id, row.id, req.user.sub]
+    )));
+    return res.json({ success: true, data: { shared: validTargets.rows.length } });
+  } catch (error) {
+    console.error('Share assessment result error:', error);
+    return res.status(500).json({ success: false, message: 'Could not share result' });
+  }
+});
+
+// Chuyển hẳn quyền sở hữu 1 kết quả cho chuyên gia khác — khác với chia sẻ (share), sau
+// khi chuyển thì chủ cũ KHÔNG còn thấy kết quả này trong danh sách của mình nữa.
+router.post('/assessments/results/:id/transfer', requireAuth, async (req, res) => {
+  try {
+    if (req.user.role !== 'expert') {
+      return res.status(403).json({ success: false, message: 'Chỉ chuyên gia mới có thể chuyển hồ sơ.' });
+    }
+    const targetUserId = req.body.target_user_id;
+    if (!targetUserId) {
+      return res.status(400).json({ success: false, message: 'Thiếu người nhận chuyển giao.' });
+    }
     if (targetUserId === req.user.sub) {
-      return res.status(400).json({ success: false, message: 'Không thể tự chia sẻ cho chính mình.' });
+      return res.status(400).json({ success: false, message: 'Không thể tự chuyển cho chính mình.' });
     }
 
     const ownerRes = await db.query(
@@ -443,16 +487,16 @@ router.post('/assessments/results/:id/share', requireAuth, async (req, res) => {
     const targetRes = await db.query(`select id from users where id = $1 and role = 'expert' limit 1`, [targetUserId]);
     if (!targetRes.rows[0]) return res.status(404).json({ success: false, message: 'Không tìm thấy chuyên gia này.' });
 
+    await db.query(`update assessment_results set user_id = $2 where id = $1`, [req.params.id, targetUserId]);
+    // Chủ mới giờ đã có toàn quyền, xoá bản ghi chia sẻ cũ tới đúng người này (nếu có) cho gọn.
     await db.query(
-      `insert into assessment_result_shares (result_id, shared_with_user_id, shared_by_user_id)
-       values ($1, $2, $3)
-       on conflict (result_id, shared_with_user_id) do nothing`,
-      [req.params.id, targetUserId, req.user.sub]
+      `delete from assessment_result_shares where result_id = $1 and shared_with_user_id = $2`,
+      [req.params.id, targetUserId]
     );
-    return res.json({ success: true, data: { shared: true } });
+    return res.json({ success: true, data: { transferred: true } });
   } catch (error) {
-    console.error('Share assessment result error:', error);
-    return res.status(500).json({ success: false, message: 'Could not share result' });
+    console.error('Transfer assessment result error:', error);
+    return res.status(500).json({ success: false, message: 'Could not transfer result' });
   }
 });
 

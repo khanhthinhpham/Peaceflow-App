@@ -166,12 +166,20 @@
                         <tbody id="caDetailRows"></tbody>
                     </table>
                     <div id="caSharePanel" class="ca-edit-panel" style="display:none;">
-                        <div id="caShareList" style="margin-bottom:10px;font-size:.85rem;"></div>
-                        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
-                            <select id="caShareTarget" class="form-input" style="max-width:280px;">
-                                <option value="">Chọn chuyên gia...</option>
-                            </select>
-                            <button type="button" class="btn-primary" id="caShareConfirmBtn">Chia sẻ</button>
+                        <div id="caShareList" class="ca-share-list"></div>
+
+                        <p class="form-label" style="margin-bottom:6px;">Chia sẻ cho (chọn nhiều được)</p>
+                        <div id="caShareColleagues" class="ca-share-checklist"></div>
+                        <button type="button" class="btn-primary" id="caShareConfirmBtn" style="margin-top:8px;">🔗 Chia sẻ cho những người đã chọn</button>
+
+                        <div class="ca-transfer-box">
+                            <p class="form-label" style="margin-bottom:6px;">Hoặc chuyển hẳn hồ sơ này cho (bạn sẽ không còn thấy nữa)</p>
+                            <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+                                <select id="caTransferTarget" class="form-input" style="max-width:280px;">
+                                    <option value="">Chọn chuyên gia...</option>
+                                </select>
+                                <button type="button" class="btn-danger" id="caTransferBtn">🔁 Chuyển hẳn</button>
+                            </div>
                         </div>
                     </div>
                     <div class="ca-detail-actions">
