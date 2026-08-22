@@ -430,9 +430,15 @@
 
 .ca-detail-table {
     width: 100%;
+    table-layout: fixed;
     border-collapse: collapse;
     font-size: .85rem;
     margin-bottom: 18px;
+}
+
+.ca-detail-table select.form-input,
+.ca-detail-table input.form-input {
+    min-width: 0;
 }
 
 .ca-detail-table th,
