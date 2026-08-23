@@ -543,4 +543,115 @@ router.delete('/assessments/results/:id/share/:targetUserId', requireAuth, async
   }
 });
 
+// ===== ADMIN: quản lý toàn bộ kết quả bài test trong hệ thống =====
+// Giống danh sách "Khách hàng tự làm test" bên portal chuyên gia, nhưng admin thấy TẤT
+// CẢ kết quả của mọi tài khoản, không chỉ của riêng mình — để rà soát/hỗ trợ khi cần.
+router.get('/admin/assessment-results', requireAuth, async (req, res) => {
+  try {
+    if (req.user.role !== 'admin') return res.status(403).json({ success: false, message: 'Admin only' });
+
+    const wantAll = req.query.limit === '0';
+    const limit = wantAll ? 2000 : Math.min(Math.max(parseInt(req.query.limit, 10) || 10, 1), 100);
+    const offset = wantAll ? 0 : Math.max(parseInt(req.query.offset, 10) || 0, 0);
+
+    const conditions = [];
+    const params = [];
+
+    const search = (req.query.search || '').trim();
+    if (search) {
+      params.push(`%${search}%`);
+      conditions.push(`ar.respondent_name ilike $${params.length}`);
+    }
+    const code = (req.query.code || '').trim().toUpperCase();
+    if (code) {
+      params.push(code);
+      conditions.push(`a.code = $${params.length}`);
+    }
+    const ageMin = parseInt(req.query.age_min, 10);
+    if (Number.isFinite(ageMin)) {
+      params.push(ageMin);
+      conditions.push(`ar.respondent_age >= $${params.length}`);
+    }
+    const ageMax = parseInt(req.query.age_max, 10);
+    if (Number.isFinite(ageMax)) {
+      params.push(ageMax);
+      conditions.push(`ar.respondent_age <= $${params.length}`);
+    }
+    if (req.query.flagged === 'true') {
+      conditions.push(`ar.flagged = true`);
+    }
+    const owner = (req.query.owner || '').trim();
+    if (owner) {
+      params.push(`%${owner}%`);
+      conditions.push(`(u.email ilike $${params.length} or coalesce(u.display_name, u.full_name) ilike $${params.length})`);
+    }
+    const where = conditions.length ? `where ${conditions.join(' and ')}` : '';
+
+    const countRes = await db.query(
+      `select count(*)::int as total
+       from assessment_results ar
+       join assessments a on a.id = ar.assessment_id
+       join users u on u.id = ar.user_id
+       ${where}`,
+      params
+    );
+
+    params.push(limit, offset);
+    const r = await db.query(
+      `select
+         ar.id,
+         a.code,
+         a.name,
+         ar.total_score,
+         ar.severity,
+         ar.dimension_scores,
+         ar.interpreted_result,
+         ar.raw_answers,
+         ar.respondent_name,
+         ar.respondent_age,
+         ar.note,
+         ar.flagged,
+         (ar.attachment_file is not null) as has_attachment,
+         ar.edited_at,
+         ar.created_at,
+         u.id as owner_user_id,
+         u.email as owner_email,
+         coalesce(u.display_name, u.full_name) as owner_name
+       from assessment_results ar
+       join assessments a on a.id = ar.assessment_id
+       join users u on u.id = ar.user_id
+       ${where}
+       order by ar.created_at desc
+       limit $${params.length - 1} offset $${params.length}`,
+      params
+    );
+
+    return res.json({
+      success: true,
+      data: {
+        total: countRes.rows[0]?.total || 0,
+        limit,
+        offset,
+        items: r.rows.map((row) => ({ ...row, total_score: Number(row.total_score || 0) }))
+      }
+    });
+  } catch (error) {
+    console.error('Admin list assessment results error:', error);
+    return res.status(500).json({ success: false, message: 'Could not fetch assessment results' });
+  }
+});
+
+// Admin xoá 1 kết quả bất kỳ trong hệ thống (kiểm duyệt/hỗ trợ) — không giới hạn theo chủ sở hữu.
+router.delete('/admin/assessment-results/:id', requireAuth, async (req, res) => {
+  try {
+    if (req.user.role !== 'admin') return res.status(403).json({ success: false, message: 'Admin only' });
+    const r = await db.query(`delete from assessment_results where id = $1 returning id`, [req.params.id]);
+    if (!r.rows[0]) return res.status(404).json({ success: false, message: 'Không tìm thấy kết quả này.' });
+    return res.json({ success: true, data: { deleted: true } });
+  } catch (error) {
+    console.error('Admin delete assessment result error:', error);
+    return res.status(500).json({ success: false, message: 'Could not delete result' });
+  }
+});
+
 export default router;

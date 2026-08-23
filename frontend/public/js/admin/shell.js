@@ -8,6 +8,7 @@ const NAV_ITEMS = [
     { page: 'bookings.html', key: 'bookings', icon: '📅', label: 'Quản lý lịch hẹn' },
     { page: 'payments.html', key: 'payments', icon: '💳', label: 'Thanh toán & payout', badge: 'payments' },
     { page: 'users.html', key: 'users', icon: '👥', label: 'Người dùng' },
+    { page: 'assessment-results.html', key: 'assessment-results', icon: '🧪', label: 'Bài test' },
     { page: 'community.html', key: 'community', icon: '🛡️', label: 'Kiểm duyệt cộng đồng', badge: 'community' }
 ];
 

@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script>
+        if (!window.location.pathname.endsWith('/app.html')) {
+            window.location.replace('app.html?page=' + window.location.pathname.split('/').pop());
+        }
+    </script>
+    <title>Bài test - Quản trị PeaceFlow</title>
+    <link rel="stylesheet" href="../../public/css/style.css">
+    <link rel="stylesheet" href="../../public/css/admin/admin.css">
+    <link rel="stylesheet" href="../../public/css/expert/client-assessments.css">
+</head>
+<body class="admin-body">
+    <main class="admin-main">
+        <div class="admin-page-head" style="display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+            <div>
+                <p class="admin-page-kicker">PeaceFlow Admin</p>
+                <h1 class="admin-page-title">Bài test</h1>
+                <p class="admin-page-sub">Toàn bộ kết quả bài test tự làm trong hệ thống, của mọi tài khoản (không riêng chuyên gia nào).</p>
+            </div>
+            <button id="reloadBtn" class="btn-outline" type="button">
+                <svg class="adm-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M20 11a8 8 0 1 0 2 5.3"></path>
+                    <path d="M20 7v4h-4"></path>
+                </svg>
+                Tải lại
+            </button>
+        </div>
+
+        <div class="admin-card" style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;">
+            <div style="flex:1;min-width:180px;">
+                <label style="font-size:.8rem;font-weight:700;display:block;margin-bottom:4px;" for="arSearchName">Tên người làm bài</label>
+                <input type="search" id="arSearchName" class="admin-input" placeholder="Nhập tên để tìm...">
+            </div>
+            <div style="flex:1;min-width:180px;">
+                <label style="font-size:.8rem;font-weight:700;display:block;margin-bottom:4px;" for="arSearchOwner">Tài khoản đã nhập (email/tên)</label>
+                <input type="search" id="arSearchOwner" class="admin-input" placeholder="Email hoặc tên chuyên gia...">
+            </div>
+            <div style="min-width:170px;">
+                <label style="font-size:.8rem;font-weight:700;display:block;margin-bottom:4px;" for="arSearchCode">Bài test</label>
+                <select id="arSearchCode" class="admin-input">
+                    <option value="">Tất cả bài test</option>
+                </select>
+            </div>
+            <div style="width:90px;">
+                <label style="font-size:.8rem;font-weight:700;display:block;margin-bottom:4px;" for="arSearchAgeMin">Tuổi từ</label>
+                <input type="number" id="arSearchAgeMin" class="admin-input" min="0" max="120">
+            </div>
+            <div style="width:90px;">
+                <label style="font-size:.8rem;font-weight:700;display:block;margin-bottom:4px;" for="arSearchAgeMax">đến</label>
+                <input type="number" id="arSearchAgeMax" class="admin-input" min="0" max="120">
+            </div>
+            <label style="display:flex;align-items:center;gap:6px;font-weight:700;font-size:.85rem;padding:10px 4px;white-space:nowrap;">
+                <input type="checkbox" id="arSearchFlagged"> ⭐ Đã đánh dấu
+            </label>
+            <button type="button" class="btn-primary" id="arSearchBtn">🔍 Tìm</button>
+            <button type="button" class="btn-outline" id="arSearchResetBtn">Xoá lọc</button>
+        </div>
+
+        <div id="arMeta" style="font-size:.82rem;color:var(--text-light);margin-bottom:10px;"></div>
+        <div id="arList"></div>
+        <div id="arPager" class="admin-pager"></div>
+
+        <div class="ca-detail-overlay" id="arDetailModal">
+            <div class="ca-detail-box">
+                <div class="ca-detail-head">
+                    <div>
+                        <div class="ca-detail-title" id="arDetailTitle"></div>
+                        <div class="ca-detail-meta" id="arDetailMeta"></div>
+                    </div>
+                    <button type="button" class="ca-detail-close" id="arDetailClose">✕</button>
+                </div>
+                <div id="arDetailAttachment" style="display:none;margin-bottom:14px;"></div>
+                <table class="ca-detail-table">
+                    <thead>
+                        <tr>
+                            <th style="width:36px;">#</th>
+                            <th>Câu hỏi / Mục</th>
+                            <th style="width:180px;">Trả lời</th>
+                            <th style="width:110px;">Điểm</th>
+                        </tr>
+                    </thead>
+                    <tbody id="arDetailRows"></tbody>
+                </table>
+                <div class="ca-detail-actions">
+                    <button type="button" class="btn-danger" id="arDeleteBtn">🗑️ Xoá kết quả</button>
+                    <button type="button" id="arDetailCloseBtn">Đóng</button>
+                </div>
+            </div>
+        </div>
+    </main>
+    <script type="module" src="../../public/js/admin/assessment-results-page.js"></script>
+</body>
+</html>
