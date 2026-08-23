@@ -6,7 +6,8 @@ const ADMIN_PAGES = new Set([
     'bookings.html',
     'payments.html',
     'users.html',
-    'community.html'
+    'community.html',
+    'assessment-results.html'
 ]);
 
 const SESSION_VERSION = Date.now();
