@@ -27,7 +27,7 @@ router.post('/emergency/log', requireAuth, async (req, res) => {
 
     // Nếu crisis_flag → log rõ để admin có thể theo dõi
     if (event_type === 'crisis_flag') {
-      console.warn(`[CRISIS_FLAG] user_id=${req.user.sub} payload=${JSON.stringify(payload)}`);
+      console.warn(`[CRISIS_FLAG] user_id=${req.user.sub} event_received=true`);
     }
 
     return res.status(201).json({ success: true, data: result.rows[0] });

@@ -1,1 +1,11 @@
-{"name": "peaceflow-frontend", "version": "1.0.0"}
+{
+  "name": "peaceflow-frontend",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build": "node scripts/build.mjs"
+  },
+  "devDependencies": {
+    "javascript-obfuscator": "^4.1.1"
+  }
+}

@@ -37,13 +37,11 @@
 const EventLogger = {
   log(category, action, data = {}) {
     const ts = new Date().toISOString();
-    const payload = Object.keys(data).length ? ' data=' + JSON.stringify(data) : '';
-    console.info(`[FE_EVENT] ts=${ts} category=${category} action=${action}${payload}`);
+    console.info(`[FE_EVENT] ts=${ts} category=${category} action=${action}`);
   },
   error(category, action, err, data = {}) {
     const ts = new Date().toISOString();
-    const payload = Object.keys(data).length ? ' data=' + JSON.stringify(data) : '';
-    console.error(`[FE_EVENT_ERR] ts=${ts} category=${category} action=${action} error="${err?.message || String(err)}"${payload}`);
+    console.error(`[FE_EVENT_ERR] ts=${ts} category=${category} action=${action} error="${err?.message || String(err)}"`);
   }
 };
 

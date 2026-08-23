@@ -12,17 +12,6 @@ function createTraceId() {
     return `fe-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 }
 
-function previewPayload(value, maxLength = 500) {
-    try {
-        if (value === undefined) return '';
-        const text = typeof value === 'string' ? value : JSON.stringify(value);
-        if (!text) return '';
-        return text.length > maxLength ? `${text.slice(0, maxLength)}...` : text;
-    } catch (_error) {
-        return '[unserializable]';
-    }
-}
-
 function isNgrokUrl(url) {
     return /\.ngrok(-free)?\.(app|dev)$/i.test(String(url || ''));
 }
@@ -251,7 +240,9 @@ export const apiClient = {
 
         try {
             if (isDebugEnabled()) {
-                console.info(`[FE_API] trace=${traceId} method=${options.method || 'GET'} endpoint=${endpoint} request_body=${previewPayload(options.body)}`);
+                // Never log request bodies: they may contain journals, assessments,
+                // crisis notes, passwords, or payment-related data.
+                console.info(`[FE_API] trace=${traceId} method=${options.method || 'GET'} endpoint=${endpoint}`);
             }
 
             const response = await fetch(url, {

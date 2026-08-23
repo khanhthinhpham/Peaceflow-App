@@ -17,16 +17,6 @@ const allowedOrigins = new Set(env.appUrls);
 const LOG_LEVEL = (process.env.LOG_LEVEL || 'info').toLowerCase();
 const DEBUG_ENABLED = LOG_LEVEL === 'debug';
 
-function safePreview(value, maxLength = 600) {
-  try {
-    const text = typeof value === 'string' ? value : JSON.stringify(value);
-    if (!text) return '';
-    return text.length > maxLength ? `${text.slice(0, maxLength)}...` : text;
-  } catch (_error) {
-    return '[unserializable]';
-  }
-}
-
 const corsOptionsDelegate = (req, callback) => {
   const requestOrigin = req.header('Origin');
 
@@ -35,7 +25,20 @@ const corsOptionsDelegate = (req, callback) => {
     return;
   }
 
-  if (allowAllOrigins || allowedOrigins.has(requestOrigin)) {
+  if (allowAllOrigins) {
+    // Wildcard CORS must never be combined with credentials. Authentication is
+    // sent via Authorization headers, so cookies do not need to be enabled here.
+    callback(null, {
+      origin: '*',
+      credentials: false,
+      methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+      allowedHeaders: ['Content-Type', 'Authorization', 'x-client-trace-id', 'ngrok-skip-browser-warning'],
+      optionsSuccessStatus: 204
+    });
+    return;
+  }
+
+  if (allowedOrigins.has(requestOrigin)) {
     callback(null, {
       origin: requestOrigin,
       credentials: true,
@@ -52,10 +55,20 @@ const corsOptionsDelegate = (req, callback) => {
 app.use(helmet({ crossOriginResourcePolicy: false }));
 app.use((req, res, next) => {
   const requestOrigin = req.header('Origin');
-  const isAllowedOrigin =
-    requestOrigin && (allowAllOrigins || allowedOrigins.has(requestOrigin));
+  const isAllowedOrigin = requestOrigin && allowedOrigins.has(requestOrigin);
 
-  if (isAllowedOrigin) {
+  if (allowAllOrigins) {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Vary', 'Origin');
+    res.setHeader(
+      'Access-Control-Allow-Headers',
+      'Content-Type, Authorization, x-client-trace-id, ngrok-skip-browser-warning'
+    );
+    res.setHeader(
+      'Access-Control-Allow-Methods',
+      'GET, POST, PUT, PATCH, DELETE, OPTIONS'
+    );
+  } else if (isAllowedOrigin) {
     res.setHeader('Access-Control-Allow-Origin', requestOrigin);
     res.setHeader('Vary', 'Origin');
     res.setHeader('Access-Control-Allow-Credentials', 'true');
@@ -77,7 +90,14 @@ app.use((req, res, next) => {
 });
 app.use(cors(corsOptionsDelegate));
 app.use(express.json({ limit: '2mb' }));
-app.use(morgan('dev'));
+// Do not include query strings in access logs. Several one-time links use
+// query tokens, and logging those URLs would turn a credential into a log leak.
+app.use(morgan((tokens, req, res) => [
+  tokens.method(req, res),
+  req.path,
+  tokens.status(req, res),
+  tokens["response-time"](req, res) ? `${tokens["response-time"](req, res)} ms` : ''
+].filter(Boolean).join(' ')));
 app.use((req, res, next) => {
   const reqId = req.header('x-request-id') || crypto.randomUUID();
   const startedAt = Date.now();
@@ -86,20 +106,19 @@ app.use((req, res, next) => {
   res.setHeader('x-request-id', reqId);
 
   console.info(
-    `[API_REQ] id=${reqId} method=${req.method} path=${req.originalUrl} ip=${req.ip}`
+    `[API_REQ] id=${reqId} method=${req.method} path=${req.path} ip=${req.ip}`
   );
 
   if (DEBUG_ENABLED) {
-    const queryPreview = safePreview(req.query);
-    const bodyPreview = safePreview(req.body);
-    console.debug(`[API_REQ_DEBUG] id=${reqId} query=${queryPreview}`);
-    console.debug(`[API_REQ_DEBUG] id=${reqId} body=${bodyPreview}`);
+    // Do not log query/body content. Requests can contain health records,
+    // journal entries, credentials, or payment data.
+    console.debug(`[API_REQ_DEBUG] id=${reqId} query_keys=${Object.keys(req.query || {}).join(',') || '-'} body_present=${Boolean(req.body && Object.keys(req.body).length)}`);
   }
 
   res.on('finish', () => {
     const durationMs = Date.now() - startedAt;
     console.info(
-      `[API_RES] id=${reqId} method=${req.method} path=${req.originalUrl} status=${res.statusCode} duration_ms=${durationMs}`
+      `[API_RES] id=${reqId} method=${req.method} path=${req.path} status=${res.statusCode} duration_ms=${durationMs}`
     );
   });
 
@@ -113,10 +132,18 @@ app.get('/health', (req, res) => {
   });
 });
 
-app.use(env.apiPrefix, routes);
+app.use(env.apiPrefix, (req, res, next) => {
+  // API responses include journals, assessments, profile and payment data.
+  // Prevent browser/proxy caches from retaining those responses.
+  res.setHeader('Cache-Control', 'no-store');
+  next();
+}, routes);
 
 if (env.apiPrefix !== '/api') {
-  app.use('/api', routes);
+  app.use('/api', (req, res, next) => {
+    res.setHeader('Cache-Control', 'no-store');
+    next();
+  }, routes);
 }
 
 app.use((err, req, res, next) => {
@@ -130,7 +157,7 @@ app.use((err, req, res, next) => {
   }
 
   console.error(
-    `[API_ERR] id=${reqId} method=${req.method} path=${req.originalUrl} message=${err?.message || 'unknown'}`
+    `[API_ERR] id=${reqId} method=${req.method} path=${req.path} message=${err?.message || 'unknown'}`
   );
   if (DEBUG_ENABLED && err?.stack) {
     console.error(err.stack);

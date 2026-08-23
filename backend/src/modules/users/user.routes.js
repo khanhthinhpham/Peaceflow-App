@@ -27,8 +27,6 @@ router.put('/me', requireAuth, async (req, res) => {
   try {
     const { display_name, phone, gender, avatar_url } = req.body;
     
-    console.log(`Updating user ${req.user.sub} with:`, { display_name, phone, gender, avatar_url });
-
     // Use NULLIF to treat empty strings as null so COALESCE picks the old value if needed
     // OR just use the values directly if we want to allow empty strings
     const result = await db.query(
@@ -48,7 +46,7 @@ router.put('/me', requireAuth, async (req, res) => {
       return res.status(404).json({ success: false, message: 'User not found' });
     }
 
-    console.log('Update successful, new data:', result.rows[0]);
+    console.info(`[USER_PROFILE] updated user_id=${req.user.sub}`);
 
     return res.json({
       success: true,
@@ -56,7 +54,7 @@ router.put('/me', requireAuth, async (req, res) => {
     });
   } catch (error) {
     console.error('Error updating user:', error);
-    return res.status(500).json({ success: false, message: error.message });
+    return res.status(500).json({ success: false, message: 'Could not update user profile' });
   }
 });
 
