@@ -21,13 +21,16 @@
                 <h1 class="admin-page-title">Bài test</h1>
                 <p class="admin-page-sub">Toàn bộ kết quả bài test tự làm trong hệ thống, của mọi tài khoản (không riêng chuyên gia nào).</p>
             </div>
-            <button id="reloadBtn" class="btn-outline" type="button">
-                <svg class="adm-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <path d="M20 11a8 8 0 1 0 2 5.3"></path>
-                    <path d="M20 7v4h-4"></path>
-                </svg>
-                Tải lại
-            </button>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                <button type="button" class="btn-primary" id="arExportAllBtn">📊 Xuất Excel toàn bộ</button>
+                <button id="reloadBtn" class="btn-outline" type="button">
+                    <svg class="adm-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M20 11a8 8 0 1 0 2 5.3"></path>
+                        <path d="M20 7v4h-4"></path>
+                    </svg>
+                    Tải lại
+                </button>
+            </div>
         </div>
 
         <div class="admin-card" style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;">
@@ -86,6 +89,8 @@
                     <tbody id="arDetailRows"></tbody>
                 </table>
                 <div class="ca-detail-actions">
+                    <button type="button" class="ca-export-btn" id="arExportCsvBtn">📊 Xuất Excel (CSV)</button>
+                    <button type="button" class="ca-export-btn" id="arExportPdfBtn">📄 Xuất PDF</button>
                     <button type="button" class="btn-danger" id="arDeleteBtn">🗑️ Xoá kết quả</button>
                     <button type="button" id="arDetailCloseBtn">Đóng</button>
                 </div>

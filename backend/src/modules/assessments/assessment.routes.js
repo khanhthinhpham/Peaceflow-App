@@ -551,7 +551,7 @@ router.get('/admin/assessment-results', requireAuth, async (req, res) => {
     if (req.user.role !== 'admin') return res.status(403).json({ success: false, message: 'Admin only' });
 
     const wantAll = req.query.limit === '0';
-    const limit = wantAll ? 2000 : Math.min(Math.max(parseInt(req.query.limit, 10) || 10, 1), 100);
+    const limit = wantAll ? 5000 : Math.min(Math.max(parseInt(req.query.limit, 10) || 10, 1), 100);
     const offset = wantAll ? 0 : Math.max(parseInt(req.query.offset, 10) || 0, 0);
 
     const conditions = [];
