@@ -1518,17 +1518,19 @@
         /* Giới thiệu + Cấu trúc phiên khám tiêu chuẩn */
         .session-structure-section {
             margin-bottom: 18px;
+            padding: 28px;
         }
 
         .sss-intro {
-            font-size: 1rem;
-            line-height: 1.6;
+            font-size: 1.02rem;
+            line-height: 1.65;
             color: var(--text-secondary);
-            margin: 0 0 18px;
+            margin: 0 0 22px;
+            max-width: 760px;
         }
 
         .sss-title {
-            font-size: 1.15rem;
+            font-size: 1.25rem;
             margin: 0 0 6px;
             color: var(--text-primary);
         }
@@ -1536,50 +1538,80 @@
         .sss-sub {
             font-size: 0.9rem;
             color: var(--text-secondary);
-            margin: 0 0 18px;
+            margin: 0 0 24px;
             line-height: 1.5;
+            max-width: 700px;
         }
 
         .sss-steps {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
-            gap: 16px;
+            gap: 20px;
         }
 
         .sss-step {
+            position: relative;
             border-radius: var(--radius-md);
             border: 2px solid var(--kraft-light);
             background: var(--warm-white);
-            padding: 18px;
+            box-shadow: var(--shadow-paper-sm);
+            padding: 22px 18px;
+            text-align: center;
+            transition: var(--transition);
         }
 
-        .sss-step-head {
+        .sss-step:hover {
+            box-shadow: var(--shadow-paper-hover);
+            transform: translateY(-3px);
+        }
+
+        /* Mũi tên nối giữa các bước — chỉ hiện ở layout 4 cột (desktop) */
+        .sss-step:not(:last-child)::after {
+            content: '→';
+            position: absolute;
+            top: 40px;
+            right: -22px;
+            font-size: 1.3rem;
+            font-weight: 800;
+            color: var(--kraft-light);
+            z-index: 1;
+        }
+
+        .sss-step-badge {
+            position: relative;
+            width: 64px;
+            height: 64px;
+            margin: 0 auto 16px;
+            border-radius: 50%;
             display: flex;
             align-items: center;
-            gap: 10px;
-            margin-bottom: 10px;
-        }
-
-        .sss-step-num {
-            display: inline-flex;
-            align-items: center;
             justify-content: center;
-            width: 26px;
-            height: 26px;
-            border-radius: 50%;
-            font-weight: 800;
-            font-size: 0.85rem;
-            color: white;
-            flex-shrink: 0;
+            box-shadow: var(--shadow-paper-sm);
         }
 
         .sss-step-icon {
-            font-size: 1.5rem;
+            font-size: 1.9rem;
+        }
+
+        .sss-step-num {
+            position: absolute;
+            top: -6px;
+            right: -6px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            border: 2px solid var(--warm-white);
+            font-weight: 800;
+            font-size: 0.78rem;
+            color: white;
         }
 
         .sss-step-title {
             font-weight: 800;
-            font-size: 1rem;
+            font-size: 1.02rem;
             margin-bottom: 2px;
         }
 
@@ -1587,7 +1619,7 @@
             font-size: 0.75rem;
             font-style: italic;
             color: var(--text-light);
-            margin-bottom: 10px;
+            margin-bottom: 12px;
         }
 
         .sss-step-desc {
@@ -1595,26 +1627,35 @@
             line-height: 1.55;
             color: var(--text-secondary);
             margin: 0;
+            text-align: left;
         }
 
-        .sss-step-mint { background: var(--mint-light); border-color: var(--mint); }
+        .sss-step-mint .sss-step-badge { background: var(--mint-light); }
         .sss-step-mint .sss-step-num { background: var(--mint-dark); }
-        .sss-step-sky { background: var(--sky-light); border-color: var(--sky); }
+        .sss-step-sky .sss-step-badge { background: var(--sky-light); }
         .sss-step-sky .sss-step-num { background: var(--sky-dark); }
-        .sss-step-lavender { background: var(--lavender-light); border-color: var(--lavender); }
+        .sss-step-lavender .sss-step-badge { background: var(--lavender-light); }
         .sss-step-lavender .sss-step-num { background: var(--lavender-dark); }
-        .sss-step-peach { background: var(--peach-light); border-color: var(--peach); }
+        .sss-step-peach .sss-step-badge { background: var(--peach-light); }
         .sss-step-peach .sss-step-num { background: var(--peach-dark); }
 
         @media (max-width: 900px) {
             .sss-steps {
                 grid-template-columns: repeat(2, 1fr);
             }
+
+            .sss-step:not(:last-child)::after {
+                content: none;
+            }
         }
 
         @media (max-width: 560px) {
             .sss-steps {
                 grid-template-columns: 1fr;
+            }
+
+            .session-structure-section {
+                padding: 20px;
             }
         }
     </style>
@@ -1924,36 +1965,36 @@ Ví dụ: Tôi đang gặp khó khăn với lo âu công việc và mất ngủ 
 
             <div class="sss-steps">
                 <div class="sss-step sss-step-mint">
-                    <div class="sss-step-head">
-                        <span class="sss-step-num">1</span>
+                    <div class="sss-step-badge">
                         <span class="sss-step-icon">🤝</span>
+                        <span class="sss-step-num">1</span>
                     </div>
                     <div class="sss-step-title">Lắng nghe &amp; Kết nối</div>
                     <div class="sss-step-en">Rapport Building</div>
                     <p class="sss-step-desc">Chuyên gia sẽ dành thời gian đầu để làm quen, xây dựng sự tin tưởng và nắm bắt tổng quan về tiền sử của bạn. Mục tiêu là tạo ra một không gian trò chuyện an toàn, giúp bạn hoàn toàn thoải mái mở lòng.</p>
                 </div>
                 <div class="sss-step sss-step-sky">
-                    <div class="sss-step-head">
-                        <span class="sss-step-num">2</span>
+                    <div class="sss-step-badge">
                         <span class="sss-step-icon">🔍</span>
+                        <span class="sss-step-num">2</span>
                     </div>
                     <div class="sss-step-title">Nhận diện vấn đề</div>
                     <div class="sss-step-en">Identifying Concerns</div>
                     <p class="sss-step-desc">Chuyên gia sẽ đặt các câu hỏi gợi mở để tìm hiểu sâu về lý do bạn tìm đến sự hỗ trợ, những lo âu hiện tại hoặc các sự kiện gần đây ảnh hưởng đến tâm trí và hành vi của bạn.</p>
                 </div>
                 <div class="sss-step sss-step-lavender">
-                    <div class="sss-step-head">
-                        <span class="sss-step-num">3</span>
+                    <div class="sss-step-badge">
                         <span class="sss-step-icon">📋</span>
+                        <span class="sss-step-num">3</span>
                     </div>
                     <div class="sss-step-title">Đánh giá chuyên sâu</div>
                     <div class="sss-step-en">Clinical Assessment</div>
                     <p class="sss-step-desc">Thông qua phỏng vấn lâm sàng và quan sát chi tiết, chuyên gia sẽ áp dụng các bài kiểm tra chuẩn hóa y khoa như DASS-21, GAD-7, PHQ-9 hoặc PSQI. Việc đánh giá có hệ thống này giúp đo lường chính xác mức độ triệu chứng.</p>
                 </div>
                 <div class="sss-step sss-step-peach">
-                    <div class="sss-step-head">
-                        <span class="sss-step-num">4</span>
+                    <div class="sss-step-badge">
                         <span class="sss-step-icon">🧭</span>
+                        <span class="sss-step-num">4</span>
                     </div>
                     <div class="sss-step-title">Thảo luận &amp; Hướng điều trị</div>
                     <div class="sss-step-en">Treatment Planning</div>
