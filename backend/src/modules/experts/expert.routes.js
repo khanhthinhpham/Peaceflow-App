@@ -1452,7 +1452,7 @@ router.get('/admin/experts', requireAuth, async (req, res) => {
     const countRes = await db.query(`select count(*)::int as total from experts e left join users u on u.id = e.user_id ${where}`, params);
     params.push(limit, offset);
     const rowsRes = await db.query(
-      `select e.id, e.code, e.full_name, e.avatar_emoji, (e.avatar_photo is not null) as has_avatar_photo,
+      `select e.id, e.user_id, e.code, e.full_name, e.avatar_emoji, (e.avatar_photo is not null) as has_avatar_photo,
               e.status, e.active, e.rating, e.sessions_count,
               e.base_price, e.location, e.specialties, e.experience_years,
               coalesce(e.balance, 0)::int as balance,

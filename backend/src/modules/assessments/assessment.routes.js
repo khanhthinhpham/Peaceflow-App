@@ -310,14 +310,15 @@ router.get('/assessments/results/:id/attachment', requireAuth, async (req, res) 
 // khám trực tiếp). Ghi lại người sửa + thời điểm sửa để có dấu vết trên hồ sơ.
 router.patch('/assessments/results/:id', requireAuth, async (req, res) => {
   try {
-    if (req.user.role !== 'expert') {
-      return res.status(403).json({ success: false, message: 'Chỉ chuyên gia mới có thể sửa kết quả.' });
+    if (req.user.role !== 'expert' && req.user.role !== 'admin') {
+      return res.status(403).json({ success: false, message: 'Chỉ chuyên gia hoặc admin mới có thể sửa kết quả.' });
     }
 
-    const ownerRes = await db.query(
-      `select id from assessment_results where id = $1 and user_id = $2 limit 1`,
-      [req.params.id, req.user.sub]
-    );
+    // Admin sửa được bất kỳ kết quả nào (kiểm duyệt/hỗ trợ); chuyên gia chỉ sửa được
+    // kết quả do chính mình nhập.
+    const ownerRes = req.user.role === 'admin'
+      ? await db.query(`select id from assessment_results where id = $1 limit 1`, [req.params.id])
+      : await db.query(`select id from assessment_results where id = $1 and user_id = $2 limit 1`, [req.params.id, req.user.sub]);
     if (!ownerRes.rows[0]) {
       return res.status(404).json({ success: false, message: 'Không tìm thấy kết quả này.' });
     }
@@ -398,14 +399,16 @@ router.patch('/assessments/results/:id/flag', requireAuth, async (req, res) => {
     if (typeof req.body.flagged !== 'boolean') {
       return res.status(400).json({ success: false, message: 'Thiếu trường flagged.' });
     }
-    const access = await db.query(
-      `select ar.id from assessment_results ar
-       where ar.id = $1
-         and (ar.user_id = $2 or exists (
-           select 1 from assessment_result_shares s where s.result_id = ar.id and s.shared_with_user_id = $2
-         ))`,
-      [req.params.id, req.user.sub]
-    );
+    const access = req.user.role === 'admin'
+      ? await db.query(`select id from assessment_results where id = $1 limit 1`, [req.params.id])
+      : await db.query(
+          `select ar.id from assessment_results ar
+           where ar.id = $1
+             and (ar.user_id = $2 or exists (
+               select 1 from assessment_result_shares s where s.result_id = ar.id and s.shared_with_user_id = $2
+             ))`,
+          [req.params.id, req.user.sub]
+        );
     if (!access.rows[0]) return res.status(404).json({ success: false, message: 'Không tìm thấy kết quả này.' });
 
     const r = await db.query(
@@ -423,10 +426,19 @@ router.patch('/assessments/results/:id/flag', requireAuth, async (req, res) => {
 // sở hữu mới được chia sẻ/gỡ chia sẻ (tránh việc người được chia sẻ lại đi chia sẻ tiếp).
 // Chia sẻ cho 1 hoặc nhiều chuyên gia cùng lúc (target_user_ids: string[], hoặc
 // target_user_id: string cho tương thích cũ).
+// Admin thao tác được trên bất kỳ kết quả nào (kiểm duyệt/hỗ trợ); chuyên gia chỉ thao
+// tác được trên kết quả do chính mình nhập.
+async function findOwnedResult(req) {
+  const r = req.user.role === 'admin'
+    ? await db.query(`select id from assessment_results where id = $1 limit 1`, [req.params.id])
+    : await db.query(`select id from assessment_results where id = $1 and user_id = $2 limit 1`, [req.params.id, req.user.sub]);
+  return r.rows[0] || null;
+}
+
 router.post('/assessments/results/:id/share', requireAuth, async (req, res) => {
   try {
-    if (req.user.role !== 'expert') {
-      return res.status(403).json({ success: false, message: 'Chỉ chuyên gia mới có thể chia sẻ kết quả.' });
+    if (req.user.role !== 'expert' && req.user.role !== 'admin') {
+      return res.status(403).json({ success: false, message: 'Chỉ chuyên gia hoặc admin mới có thể chia sẻ kết quả.' });
     }
     const targetUserIds = Array.isArray(req.body.target_user_ids)
       ? req.body.target_user_ids
@@ -436,11 +448,7 @@ router.post('/assessments/results/:id/share', requireAuth, async (req, res) => {
       return res.status(400).json({ success: false, message: 'Thiếu người nhận chia sẻ.' });
     }
 
-    const ownerRes = await db.query(
-      `select id from assessment_results where id = $1 and user_id = $2 limit 1`,
-      [req.params.id, req.user.sub]
-    );
-    if (!ownerRes.rows[0]) return res.status(404).json({ success: false, message: 'Không tìm thấy kết quả này.' });
+    if (!(await findOwnedResult(req))) return res.status(404).json({ success: false, message: 'Không tìm thấy kết quả này.' });
 
     const validTargets = await db.query(
       `select id from users where id = any($1::uuid[]) and role = 'expert'`,
@@ -467,8 +475,8 @@ router.post('/assessments/results/:id/share', requireAuth, async (req, res) => {
 // khi chuyển thì chủ cũ KHÔNG còn thấy kết quả này trong danh sách của mình nữa.
 router.post('/assessments/results/:id/transfer', requireAuth, async (req, res) => {
   try {
-    if (req.user.role !== 'expert') {
-      return res.status(403).json({ success: false, message: 'Chỉ chuyên gia mới có thể chuyển hồ sơ.' });
+    if (req.user.role !== 'expert' && req.user.role !== 'admin') {
+      return res.status(403).json({ success: false, message: 'Chỉ chuyên gia hoặc admin mới có thể chuyển hồ sơ.' });
     }
     const targetUserId = req.body.target_user_id;
     if (!targetUserId) {
@@ -478,11 +486,7 @@ router.post('/assessments/results/:id/transfer', requireAuth, async (req, res) =
       return res.status(400).json({ success: false, message: 'Không thể tự chuyển cho chính mình.' });
     }
 
-    const ownerRes = await db.query(
-      `select id from assessment_results where id = $1 and user_id = $2 limit 1`,
-      [req.params.id, req.user.sub]
-    );
-    if (!ownerRes.rows[0]) return res.status(404).json({ success: false, message: 'Không tìm thấy kết quả này.' });
+    if (!(await findOwnedResult(req))) return res.status(404).json({ success: false, message: 'Không tìm thấy kết quả này.' });
 
     const targetRes = await db.query(`select id from users where id = $1 and role = 'expert' limit 1`, [targetUserId]);
     if (!targetRes.rows[0]) return res.status(404).json({ success: false, message: 'Không tìm thấy chuyên gia này.' });
@@ -503,11 +507,7 @@ router.post('/assessments/results/:id/transfer', requireAuth, async (req, res) =
 // Xem đang chia sẻ với ai + gỡ chia sẻ.
 router.get('/assessments/results/:id/shares', requireAuth, async (req, res) => {
   try {
-    const ownerRes = await db.query(
-      `select id from assessment_results where id = $1 and user_id = $2 limit 1`,
-      [req.params.id, req.user.sub]
-    );
-    if (!ownerRes.rows[0]) return res.status(404).json({ success: false, message: 'Không tìm thấy kết quả này.' });
+    if (!(await findOwnedResult(req))) return res.status(404).json({ success: false, message: 'Không tìm thấy kết quả này.' });
 
     const r = await db.query(
       `select s.shared_with_user_id, coalesce(u.display_name, u.full_name) as full_name, u.email, s.created_at
@@ -526,11 +526,7 @@ router.get('/assessments/results/:id/shares', requireAuth, async (req, res) => {
 
 router.delete('/assessments/results/:id/share/:targetUserId', requireAuth, async (req, res) => {
   try {
-    const ownerRes = await db.query(
-      `select id from assessment_results where id = $1 and user_id = $2 limit 1`,
-      [req.params.id, req.user.sub]
-    );
-    if (!ownerRes.rows[0]) return res.status(404).json({ success: false, message: 'Không tìm thấy kết quả này.' });
+    if (!(await findOwnedResult(req))) return res.status(404).json({ success: false, message: 'Không tìm thấy kết quả này.' });
 
     await db.query(
       `delete from assessment_result_shares where result_id = $1 and shared_with_user_id = $2`,

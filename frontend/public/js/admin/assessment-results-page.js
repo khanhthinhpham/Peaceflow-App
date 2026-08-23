@@ -37,8 +37,12 @@ const state = {
     page: 0,
     limit: 20,
     total: 0,
-    filters: { search: '', owner: '', code: '', ageMin: '', ageMax: '', flaggedOnly: false }
+    filters: { search: '', owner: '', code: '', ageMin: '', ageMax: '', flaggedOnly: false },
+    patientViewActive: false,
+    colleagues: null
 };
+
+let detailContext = null;
 
 function normalizeAnswerRow(entry, index) {
     if (entry === null || typeof entry !== 'object') {
@@ -48,6 +52,40 @@ function normalizeAnswerRow(entry, index) {
     const answer = entry.answer ?? (entry.choice !== undefined && entry.choice !== null ? `Đáp án ${entry.choice}` : '');
     const score = entry.score ?? entry.choice ?? '';
     return { no: index + 1, question, answer, score };
+}
+
+// Danh mục đáp án (nhãn+điểm) của các bài tự làm — dùng để hiện dropdown đáp án khi sửa,
+// giống hệt cơ chế bên portal chuyên gia, đảm bảo chọn đáp án nào điểm tự khớp theo đó.
+let answerCatalogPromise = null;
+function loadAnswerCatalog() {
+    if (!answerCatalogPromise) {
+        answerCatalogPromise = fetch('../../public/data/self-test-answer-catalog.json')
+            .then((r) => (r.ok ? r.json() : {}))
+            .catch(() => ({}));
+    }
+    return answerCatalogPromise;
+}
+
+function findCatalogOptions(catalog, testCode, row) {
+    const test = catalog?.[String(testCode || '').toLowerCase()];
+    if (!test) return null;
+    const byIndex = test.questions[row.no - 1];
+    if (byIndex && byIndex.text === row.question) return byIndex.options;
+    const byText = test.questions.find((q) => q.text === row.question);
+    return byText ? byText.options : null;
+}
+
+function computeTotalFromRowScores(testCode, catalog, scoresByIndex) {
+    const test = catalog?.[String(testCode || '').toLowerCase()];
+    if (!test?.scoring) return null;
+    const subScores = {};
+    Object.entries(test.scoring).forEach(([key, sc]) => {
+        let sum = 0;
+        sc.indices.forEach((idx) => { sum += Number(scoresByIndex[idx]) || 0; });
+        subScores[key] = sum * sc.multiplier;
+    });
+    if (subScores.total !== undefined) return subScores.total;
+    return Object.values(subScores).reduce((a, b) => a + b, 0);
 }
 
 function init() {
@@ -66,7 +104,8 @@ function init() {
             ageMax: document.getElementById('arSearchAgeMax').value.trim(),
             flaggedOnly: document.getElementById('arSearchFlagged').checked
         };
-        load(0);
+        if (state.patientViewActive) loadPatientSummaryView();
+        else load(0);
     };
     document.getElementById('arSearchBtn')?.addEventListener('click', runSearch);
     document.getElementById('arSearchFlagged')?.addEventListener('change', runSearch);
@@ -81,7 +120,13 @@ function init() {
         document.getElementById('arSearchAgeMax').value = '';
         document.getElementById('arSearchFlagged').checked = false;
         state.filters = { search: '', owner: '', code: '', ageMin: '', ageMax: '', flaggedOnly: false };
-        load(0);
+        if (state.patientViewActive) loadPatientSummaryView();
+        else load(0);
+    });
+
+    document.getElementById('arPatientViewBtn')?.addEventListener('click', togglePatientView);
+    document.getElementById('arPatientModalClose')?.addEventListener('click', () => {
+        document.getElementById('arPatientModal').classList.remove('show');
     });
 
     document.getElementById('arDetailClose')?.addEventListener('click', closeDetail);
@@ -90,8 +135,96 @@ function init() {
     load(0);
 }
 
+function togglePatientView() {
+    state.patientViewActive = !state.patientViewActive;
+    const btn = document.getElementById('arPatientViewBtn');
+    if (btn) btn.textContent = state.patientViewActive ? '📋 Xem theo lần test' : '👤 Xem theo bệnh nhân';
+    document.getElementById('arPager').style.display = state.patientViewActive ? 'none' : '';
+    if (state.patientViewActive) loadPatientSummaryView();
+    else load(0);
+}
+
+let patientGroupsCache = [];
+async function loadPatientSummaryView() {
+    const listEl = document.getElementById('arList');
+    const metaEl = document.getElementById('arMeta');
+    listEl.innerHTML = '<div class="admin-card admin-empty">Đang tải...</div>';
+    metaEl.textContent = '';
+
+    const qs = new URLSearchParams({ limit: '0' });
+    const f = state.filters;
+    if (f.search) qs.set('search', f.search);
+    if (f.owner) qs.set('owner', f.owner);
+    if (f.code) qs.set('code', f.code);
+    if (f.ageMin) qs.set('age_min', f.ageMin);
+    if (f.ageMax) qs.set('age_max', f.ageMax);
+    if (f.flaggedOnly) qs.set('flagged', 'true');
+
+    let data;
+    try {
+        data = await apiClient.get(`/admin/assessment-results?${qs.toString()}`, { noCache: true });
+    } catch (_e) {
+        listEl.innerHTML = '<div class="admin-card admin-empty" style="color:var(--coral);">Không tải được danh sách.</div>';
+        return;
+    }
+
+    const results = data?.items || [];
+    if (!results.length) {
+        listEl.innerHTML = '<div class="admin-card admin-empty">Không có bệnh nhân nào khớp với bộ lọc.</div>';
+        return;
+    }
+
+    patientGroupsCache = groupResultsByPerson(results);
+    metaEl.textContent = `${patientGroupsCache.length} bệnh nhân · ${results.length} lượt test`;
+    listEl.innerHTML = patientGroupsCache.map((g, idx) => `
+        <div class="admin-card" data-patient-idx="${idx}" style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;cursor:pointer;">
+            <div>
+                <div style="font-weight:800;">${esc(g.name)}${g.age ? ` — ${g.age} tuổi` : ''}</div>
+                <div style="color:var(--text-secondary);font-size:.82rem;margin-top:3px;">Lần gần nhất: ${dt(g.tests[0].created_at)}</div>
+            </div>
+            <div style="font-weight:700;white-space:nowrap;">${g.tests.length} lần test</div>
+        </div>
+    `).join('');
+
+    listEl.querySelectorAll('[data-patient-idx]').forEach((card) => {
+        card.addEventListener('click', () => {
+            const g = patientGroupsCache[Number(card.getAttribute('data-patient-idx'))];
+            if (g) openPatientModal(g);
+        });
+    });
+}
+
+function openPatientModal(group) {
+    document.getElementById('arPatientModalTitle').textContent = group.name;
+    document.getElementById('arPatientModalMeta').textContent = `${group.age ? `${group.age} tuổi · ` : ''}${group.tests.length} lần test`;
+    const listEl = document.getElementById('arPatientModalList');
+    listEl.innerHTML = group.tests
+        .slice()
+        .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+        .map((t) => `
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 0;border-bottom:1px dashed var(--kraft-light);cursor:pointer;" data-test-id="${t.id}">
+                <div>
+                    <div style="font-weight:800;">${esc(t.name)}</div>
+                    <div style="color:var(--text-secondary);font-size:.82rem;">${dt(t.created_at)} · Tài khoản: ${esc(t.owner_name || t.owner_email)}</div>
+                </div>
+                <div style="font-weight:700;text-align:right;white-space:nowrap;">${esc(t.severity || 'Đã hoàn thành')}<br>${t.total_score}</div>
+            </div>
+        `).join('');
+    listEl.querySelectorAll('[data-test-id]').forEach((row) => {
+        row.addEventListener('click', () => {
+            const t = group.tests.find((x) => x.id === row.getAttribute('data-test-id'));
+            if (t) {
+                document.getElementById('arPatientModal').classList.remove('show');
+                openDetail(t);
+            }
+        });
+    });
+    document.getElementById('arPatientModal').classList.add('show');
+}
+
 function closeDetail() {
     document.getElementById('arDetailModal').classList.remove('show');
+    detailContext = null;
 }
 
 async function load(page = 0) {
@@ -132,31 +265,41 @@ async function load(page = 0) {
     metaEl.textContent = `${state.page * state.limit + 1}–${state.page * state.limit + state.items.length} trong ${state.total} kết quả · Trang ${state.page + 1}/${totalPages}`;
 
     listEl.innerHTML = state.items.map((item) => `
-        <div class="admin-card" data-result="${item.id}" style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;cursor:pointer;">
-            <div style="min-width:0;">
-                <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-                    <span style="font-weight:800;">${esc(item.respondent_name || 'Chưa rõ tên')}${item.respondent_age ? ` — ${item.respondent_age} tuổi` : ''}</span>
-                    ${item.flagged ? '<span style="font-size:.75rem;">⭐</span>' : ''}
-                </div>
+        <div class="admin-card" data-result="${item.id}" style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;cursor:pointer;">
+            <button type="button" class="ca-flag-btn${item.flagged ? ' active' : ''}" data-flag-btn title="${item.flagged ? 'Bỏ đánh dấu' : 'Đánh dấu'}">${item.flagged ? '⭐' : '☆'}</button>
+            <div style="flex:1 1 220px;min-width:0;">
+                <span style="font-weight:800;">${esc(item.respondent_name || 'Chưa rõ tên')}${item.respondent_age ? ` — ${item.respondent_age} tuổi` : ''}</span>
                 <div style="color:var(--text-secondary);font-size:.84rem;margin-top:3px;">${esc(item.name)} · ${dt(item.created_at)}</div>
                 <div style="color:var(--text-light);font-size:.78rem;margin-top:3px;">Tài khoản: ${esc(item.owner_name || item.owner_email)}</div>
             </div>
-            <div style="text-align:right;font-size:.85rem;font-weight:700;white-space:nowrap;">${esc(item.severity || 'Đã hoàn thành')}<br>${item.total_score}</div>
+            <div style="text-align:right;font-size:.85rem;font-weight:700;white-space:nowrap;flex-shrink:0;">${esc(item.severity || 'Đã hoàn thành')}<br>${item.total_score}</div>
         </div>
     `).join('');
 
     listEl.querySelectorAll('[data-result]').forEach((row) => {
-        row.addEventListener('click', () => {
+        row.addEventListener('click', (ev) => {
+            if (ev.target.closest('[data-flag-btn]')) return;
             const item = state.items.find((r) => r.id === row.getAttribute('data-result'));
             if (item) openDetail(item);
+        });
+        row.querySelector('[data-flag-btn]')?.addEventListener('click', async (ev) => {
+            ev.stopPropagation();
+            const item = state.items.find((r) => r.id === row.getAttribute('data-result'));
+            if (!item) return;
+            try {
+                const updated = await apiClient.patch(`/assessments/results/${item.id}/flag`, { flagged: !item.flagged });
+                item.flagged = updated.flagged;
+                load(state.page);
+            } catch (error) {
+                alert(error.message || 'Không thể đánh dấu.');
+            }
         });
     });
 
     renderPager(pagerEl, { page: state.page, totalPages, onGo: (p) => load(p) });
 }
 
-function openDetail(item) {
-    document.getElementById('arDetailTitle').textContent = item.name;
+function renderDetailMeta(item) {
     const parts = [];
     parts.push(`Tài khoản: ${item.owner_name || item.owner_email} (${item.owner_email})`);
     if (item.respondent_name) parts.push(`Người làm bài: ${item.respondent_name}${item.respondent_age ? ` (${item.respondent_age} tuổi)` : ''}`);
@@ -166,6 +309,70 @@ function openDetail(item) {
     if (item.note) parts.push(`Ghi chú: ${item.note}`);
     if (item.edited_at) parts.push(`(đã sửa lúc ${dt(item.edited_at)})`);
     document.getElementById('arDetailMeta').textContent = parts.join(' · ');
+}
+
+// Cả 2 ô "Trả lời" và "Điểm" đều là dropdown cùng trỏ vào 1 chỉ số trong danh mục đáp án
+// khi bài test có trong danh mục — chọn ở ô nào thì ô kia tự nhảy theo, không lệch nhau.
+function renderDetailRows(rows, editing, testCode, catalog) {
+    const tbody = document.getElementById('arDetailRows');
+    if (!rows.length) {
+        tbody.innerHTML = '<tr><td colspan="4" style="color:var(--text-secondary);">Không có dữ liệu chi tiết từng câu.</td></tr>';
+        return;
+    }
+    tbody.innerHTML = rows.map((r) => {
+        const options = editing ? findCatalogOptions(catalog, testCode, r) : null;
+        let answerCell;
+        let scoreCell;
+        if (!editing) {
+            answerCell = esc(String(r.answer));
+            scoreCell = esc(String(r.score));
+        } else if (options) {
+            let selIdx = options.findIndex((opt) => opt.label === r.answer);
+            if (selIdx === -1) selIdx = options.findIndex((opt) => opt.score === r.score);
+            if (selIdx === -1) selIdx = 0;
+            const optionTags = (textFn) => options.map((opt, i) => `<option value="${i}" ${i === selIdx ? 'selected' : ''}>${esc(String(textFn(opt)))}</option>`).join('');
+            answerCell = `<select data-row-idx="${r.no}" data-role="answer" class="form-input">${optionTags((opt) => opt.label)}</select>`;
+            scoreCell = `<select data-row-idx="${r.no}" data-role="score" class="form-input">${optionTags((opt) => opt.score)}</select>`;
+        } else {
+            answerCell = `<input type="text" data-row-answer="${r.no}" value="${esc(String(r.answer))}" class="form-input">`;
+            scoreCell = `<input type="number" step="0.5" data-row-score="${r.no}" value="${esc(String(r.score))}" class="form-input">`;
+        }
+        return `<tr><td>${r.no}</td><td>${esc(String(r.question))}</td><td>${answerCell}</td><td>${scoreCell}</td></tr>`;
+    }).join('');
+
+    if (!editing) return;
+
+    const recomputeTotal = () => {
+        const scoresByIndex = rows.map((r) => {
+            const sel = tbody.querySelector(`select[data-row-idx="${r.no}"][data-role="score"]`);
+            if (sel) return Number(sel.value);
+            const input = tbody.querySelector(`[data-row-score="${r.no}"]`);
+            return input ? Number(input.value) : r.score;
+        });
+        const total = computeTotalFromRowScores(testCode, catalog, scoresByIndex);
+        if (total !== null) document.getElementById('arEditScore').value = total;
+    };
+
+    tbody.querySelectorAll('select[data-role]').forEach((sel) => {
+        sel.addEventListener('change', () => {
+            const rowNo = sel.getAttribute('data-row-idx');
+            const otherRole = sel.getAttribute('data-role') === 'answer' ? 'score' : 'answer';
+            const other = tbody.querySelector(`select[data-row-idx="${rowNo}"][data-role="${otherRole}"]`);
+            if (other) other.value = sel.value;
+            recomputeTotal();
+        });
+    });
+    tbody.querySelectorAll('[data-row-score]').forEach((input) => {
+        input.addEventListener('input', recomputeTotal);
+    });
+    recomputeTotal();
+}
+
+function openDetail(item) {
+    detailContext = { item, editing: false, rows: Array.isArray(item.raw_answers) ? item.raw_answers.map(normalizeAnswerRow) : [], catalog: null };
+
+    document.getElementById('arDetailTitle').textContent = item.name;
+    renderDetailMeta(item);
 
     const attachEl = document.getElementById('arDetailAttachment');
     if (item.has_attachment) {
@@ -186,24 +393,208 @@ function openDetail(item) {
         attachEl.innerHTML = '';
     }
 
-    const rows = Array.isArray(item.raw_answers) ? item.raw_answers.map(normalizeAnswerRow) : [];
-    document.getElementById('arDetailRows').innerHTML = rows.length
-        ? rows.map((r) => `<tr><td>${r.no}</td><td>${esc(String(r.question))}</td><td>${esc(String(r.answer))}</td><td>${esc(String(r.score))}</td></tr>`).join('')
-        : '<tr><td colspan="4" style="color:var(--text-secondary);">Không có dữ liệu chi tiết từng câu.</td></tr>';
+    renderDetailRows(detailContext.rows, false);
+    document.getElementById('arEditPanel').style.display = 'none';
+    document.getElementById('arEditSaveBtn').style.display = 'none';
+    document.getElementById('arSharePanel').style.display = 'none';
+    document.getElementById('arEditToggleBtn').textContent = '✏️ Sửa kết quả';
+    const flagBtn = document.getElementById('arFlagToggleBtn');
+    flagBtn.textContent = item.flagged ? '⭐ Đã đánh dấu' : '☆ Đánh dấu';
 
-    currentItem = item;
     document.getElementById('arDetailModal').classList.add('show');
 }
 
-let currentItem = null;
+document.getElementById('arFlagToggleBtn')?.addEventListener('click', async () => {
+    if (!detailContext) return;
+    const { item } = detailContext;
+    try {
+        const updated = await apiClient.patch(`/assessments/results/${item.id}/flag`, { flagged: !item.flagged });
+        item.flagged = updated.flagged;
+        document.getElementById('arFlagToggleBtn').textContent = item.flagged ? '⭐ Đã đánh dấu' : '☆ Đánh dấu';
+        const listed = state.items.find((r) => r.id === item.id);
+        if (listed) listed.flagged = item.flagged;
+    } catch (error) {
+        alert(error.message || 'Không thể đánh dấu.');
+    }
+});
+
+document.getElementById('arEditToggleBtn')?.addEventListener('click', async () => {
+    if (!detailContext) return;
+    detailContext.editing = !detailContext.editing;
+    const { item, editing, rows } = detailContext;
+
+    document.getElementById('arEditPanel').style.display = editing ? '' : 'none';
+    document.getElementById('arEditSaveBtn').style.display = editing ? '' : 'none';
+    document.getElementById('arEditToggleBtn').textContent = editing ? 'Hủy sửa' : '✏️ Sửa kết quả';
+
+    if (editing) {
+        document.getElementById('arEditName').value = item.respondent_name || '';
+        document.getElementById('arEditAge').value = item.respondent_age ?? '';
+        document.getElementById('arEditScore').value = item.total_score ?? '';
+        document.getElementById('arEditSeverity').value = item.severity || '';
+        document.getElementById('arEditNote').value = item.note || '';
+    }
+
+    const catalog = editing ? await loadAnswerCatalog() : null;
+    if (!detailContext || detailContext.item !== item) return;
+    detailContext.catalog = catalog;
+    renderDetailRows(rows, editing, item.code, catalog);
+});
+
+document.getElementById('arEditSaveBtn')?.addEventListener('click', async () => {
+    if (!detailContext) return;
+    const { item, rows, catalog } = detailContext;
+
+    const editedRows = rows.map((r) => {
+        const options = findCatalogOptions(catalog, item.code, r);
+        if (options) {
+            const idxSelect = document.querySelector(`select[data-row-idx="${r.no}"][data-role="answer"]`);
+            const opt = idxSelect ? options[Number(idxSelect.value)] : null;
+            return { question: r.question, answer: opt ? opt.label : r.answer, score: opt ? opt.score : r.score };
+        }
+        const answerInput = document.querySelector(`[data-row-answer="${r.no}"]`);
+        const scoreInput = document.querySelector(`[data-row-score="${r.no}"]`);
+        return {
+            question: r.question,
+            answer: answerInput ? answerInput.value : r.answer,
+            score: scoreInput && scoreInput.value !== '' ? Number(scoreInput.value) : r.score
+        };
+    });
+
+    const payload = {
+        respondent_name: document.getElementById('arEditName').value.trim() || null,
+        respondent_age: document.getElementById('arEditAge').value.trim() || null,
+        total_score: Number(document.getElementById('arEditScore').value),
+        severity: document.getElementById('arEditSeverity').value.trim() || null,
+        note: document.getElementById('arEditNote').value.trim() || null,
+        raw_answers: editedRows
+    };
+    if (!Number.isFinite(payload.total_score)) {
+        alert('Điểm tổng không hợp lệ.');
+        return;
+    }
+
+    const saveBtn = document.getElementById('arEditSaveBtn');
+    saveBtn.disabled = true;
+    try {
+        const updated = await apiClient.patch(`/assessments/results/${item.id}`, payload);
+        Object.assign(item, updated, { raw_answers: editedRows });
+        detailContext.rows = editedRows.map(normalizeAnswerRow);
+        detailContext.editing = false;
+
+        document.getElementById('arEditPanel').style.display = 'none';
+        saveBtn.style.display = 'none';
+        document.getElementById('arEditToggleBtn').textContent = '✏️ Sửa kết quả';
+        renderDetailMeta(item);
+        renderDetailRows(detailContext.rows, false);
+        load(state.page);
+    } catch (error) {
+        alert(error.message || 'Không thể lưu thay đổi.');
+    } finally {
+        saveBtn.disabled = false;
+    }
+});
+
+async function ensureColleaguesLoaded() {
+    if (state.colleagues) return state.colleagues;
+    try {
+        const data = await apiClient.get('/admin/experts?limit=100&active=true', { noCache: true });
+        state.colleagues = (data?.experts || []).filter((e) => e.user_id);
+    } catch (_error) {
+        state.colleagues = [];
+    }
+    return state.colleagues;
+}
+
+async function refreshShareList(resultId) {
+    const listEl = document.getElementById('arShareList');
+    listEl.innerHTML = 'Đang tải...';
+    try {
+        const shares = await apiClient.get(`/assessments/results/${resultId}/shares`, { noCache: true });
+        if (!shares.length) {
+            listEl.innerHTML = '<span style="color:var(--text-secondary);">Chưa chia sẻ với ai.</span>';
+            return;
+        }
+        listEl.innerHTML = `<strong>Đã chia sẻ với:</strong><ul style="margin:6px 0 0;padding-left:18px;">${shares.map((s) => `
+            <li>${esc(s.full_name || s.email)} <button type="button" data-target="${s.shared_with_user_id}" style="border:none;background:none;color:var(--coral);cursor:pointer;font-size:.78rem;">Gỡ</button></li>
+        `).join('')}</ul>`;
+        listEl.querySelectorAll('[data-target]').forEach((btn) => {
+            btn.addEventListener('click', async () => {
+                try {
+                    await apiClient.delete(`/assessments/results/${resultId}/share/${btn.getAttribute('data-target')}`);
+                    refreshShareList(resultId);
+                } catch (error) {
+                    alert(error.message || 'Không thể gỡ chia sẻ.');
+                }
+            });
+        });
+    } catch (_error) {
+        listEl.innerHTML = '<span style="color:var(--coral);">Không tải được danh sách chia sẻ.</span>';
+    }
+}
+
+document.getElementById('arShareToggleBtn')?.addEventListener('click', async () => {
+    if (!detailContext) return;
+    const panel = document.getElementById('arSharePanel');
+    const opening = panel.style.display === 'none';
+    panel.style.display = opening ? '' : 'none';
+    if (!opening) return;
+
+    const colleagues = await ensureColleaguesLoaded();
+    const optionsHtml = '<option value="">Chọn chuyên gia...</option>'
+        + colleagues.map((c) => `<option value="${c.user_id}">${esc(c.full_name)}</option>`).join('');
+    document.getElementById('arTransferTarget').innerHTML = optionsHtml;
+    document.getElementById('arShareColleagues').innerHTML = colleagues.length
+        ? colleagues.map((c) => `<label><input type="checkbox" value="${c.user_id}"> ${esc(c.full_name)}</label>`).join('')
+        : '<span style="color:var(--text-secondary);font-size:.85rem;">Không có chuyên gia nào khác.</span>';
+    refreshShareList(detailContext.item.id);
+});
+
+document.getElementById('arShareConfirmBtn')?.addEventListener('click', async () => {
+    if (!detailContext) return;
+    const targetUserIds = Array.from(document.querySelectorAll('#arShareColleagues input[type="checkbox"]:checked')).map((cb) => cb.value);
+    if (!targetUserIds.length) {
+        alert('Vui lòng chọn ít nhất 1 chuyên gia cần chia sẻ.');
+        return;
+    }
+    try {
+        await apiClient.post(`/assessments/results/${detailContext.item.id}/share`, { target_user_ids: targetUserIds });
+        document.querySelectorAll('#arShareColleagues input[type="checkbox"]').forEach((cb) => { cb.checked = false; });
+        refreshShareList(detailContext.item.id);
+    } catch (error) {
+        alert(error.message || 'Không thể chia sẻ.');
+    }
+});
+
+document.getElementById('arTransferBtn')?.addEventListener('click', async () => {
+    if (!detailContext) return;
+    const targetUserId = document.getElementById('arTransferTarget').value;
+    if (!targetUserId) {
+        alert('Vui lòng chọn chuyên gia cần chuyển hồ sơ.');
+        return;
+    }
+    const targetName = document.getElementById('arTransferTarget').selectedOptions[0]?.textContent || 'chuyên gia này';
+    if (!window.confirm(`Chuyển hẳn kết quả "${detailContext.item.name}" của ${detailContext.item.respondent_name || 'người này'} sang tài khoản ${targetName}?`)) return;
+
+    try {
+        await apiClient.post(`/assessments/results/${detailContext.item.id}/transfer`, { target_user_id: targetUserId });
+        closeDetail();
+        if (state.patientViewActive) loadPatientSummaryView();
+        else load(state.page);
+    } catch (error) {
+        alert(error.message || 'Không thể chuyển hồ sơ.');
+    }
+});
 
 document.getElementById('arDeleteBtn')?.addEventListener('click', async () => {
-    if (!currentItem) return;
-    if (!window.confirm(`Xoá kết quả "${currentItem.name}" của ${currentItem.respondent_name || 'người này'}? Không thể hoàn tác.`)) return;
+    if (!detailContext) return;
+    const { item } = detailContext;
+    if (!window.confirm(`Xoá kết quả "${item.name}" của ${item.respondent_name || 'người này'}? Không thể hoàn tác.`)) return;
     try {
-        await apiClient.delete(`/admin/assessment-results/${currentItem.id}`);
+        await apiClient.delete(`/admin/assessment-results/${item.id}`);
         closeDetail();
-        load(state.page);
+        if (state.patientViewActive) loadPatientSummaryView();
+        else load(state.page);
     } catch (error) {
         alert(error.message || 'Không thể xoá kết quả.');
     }
@@ -228,8 +619,8 @@ function downloadCsv(filename, lines) {
 }
 
 document.getElementById('arExportCsvBtn')?.addEventListener('click', () => {
-    if (!currentItem) return;
-    const item = currentItem;
+    if (!detailContext) return;
+    const item = detailContext.item;
     const rows = Array.isArray(item.raw_answers) ? item.raw_answers.map(normalizeAnswerRow) : [];
     const lines = [];
     lines.push(['Bài test', item.name].map(csvEscape).join(','));
@@ -246,8 +637,8 @@ document.getElementById('arExportCsvBtn')?.addEventListener('click', () => {
 });
 
 document.getElementById('arExportPdfBtn')?.addEventListener('click', () => {
-    if (!currentItem) return;
-    const item = currentItem;
+    if (!detailContext) return;
+    const item = detailContext.item;
     const rows = Array.isArray(item.raw_answers) ? item.raw_answers.map(normalizeAnswerRow) : [];
 
     const metaLines = [];

@@ -61,6 +61,7 @@
             </label>
             <button type="button" class="btn-primary" id="arSearchBtn">🔍 Tìm</button>
             <button type="button" class="btn-outline" id="arSearchResetBtn">Xoá lọc</button>
+            <button type="button" class="btn-outline" id="arPatientViewBtn">👤 Xem theo bệnh nhân</button>
         </div>
 
         <div id="arMeta" style="font-size:.82rem;color:var(--text-light);margin-bottom:10px;"></div>
@@ -77,23 +78,80 @@
                     <button type="button" class="ca-detail-close" id="arDetailClose">✕</button>
                 </div>
                 <div id="arDetailAttachment" style="display:none;margin-bottom:14px;"></div>
+                <div id="arEditPanel" class="ca-edit-panel" style="display:none;">
+                    <div class="ca-edit-grid">
+                        <div class="form-group">
+                            <label class="form-label" for="arEditName">Tên người làm bài</label>
+                            <input type="text" id="arEditName" class="form-input">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="arEditAge">Tuổi</label>
+                            <input type="number" id="arEditAge" class="form-input">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="arEditScore">Điểm tổng</label>
+                            <input type="number" id="arEditScore" class="form-input" step="0.5">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="arEditSeverity">Xếp loại</label>
+                            <input type="text" id="arEditSeverity" class="form-input">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="arEditNote">Ghi chú</label>
+                        <textarea id="arEditNote" class="form-input ca-edit-note"></textarea>
+                    </div>
+                    <p class="ca-edit-hint">Sửa câu trả lời/điểm từng câu ở bảng dưới — với các bài có trong danh mục, điểm tổng ở trên tự tính lại theo đúng công thức của bài đó. Bài không có công thức (Raven CPM, CARS...) thì tự nhập điểm tổng.</p>
+                </div>
                 <table class="ca-detail-table">
                     <thead>
                         <tr>
                             <th style="width:36px;">#</th>
                             <th>Câu hỏi / Mục</th>
                             <th style="width:180px;">Trả lời</th>
-                            <th style="width:110px;">Điểm</th>
+                            <th style="width:180px;">Điểm</th>
                         </tr>
                     </thead>
                     <tbody id="arDetailRows"></tbody>
                 </table>
+                <div id="arSharePanel" class="ca-edit-panel" style="display:none;">
+                    <div id="arShareList" class="ca-share-list"></div>
+                    <p class="form-label" style="margin-bottom:6px;">Chia sẻ cho (chọn nhiều được)</p>
+                    <div id="arShareColleagues" class="ca-share-checklist"></div>
+                    <button type="button" class="btn-primary" id="arShareConfirmBtn" style="margin-top:8px;">🔗 Chia sẻ cho những người đã chọn</button>
+                    <div class="ca-transfer-box">
+                        <p class="form-label" style="margin-bottom:6px;">Hoặc chuyển hẳn hồ sơ này cho</p>
+                        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+                            <select id="arTransferTarget" class="form-input" style="max-width:280px;">
+                                <option value="">Chọn chuyên gia...</option>
+                            </select>
+                            <button type="button" class="btn-danger" id="arTransferBtn">🔁 Chuyển hẳn</button>
+                        </div>
+                    </div>
+                </div>
                 <div class="ca-detail-actions">
+                    <button type="button" class="ca-export-btn" id="arFlagToggleBtn">☆ Đánh dấu</button>
+                    <button type="button" class="ca-export-btn" id="arEditToggleBtn">✏️ Sửa kết quả</button>
+                    <button type="button" class="ca-export-btn" id="arEditSaveBtn" style="display:none;">💾 Lưu thay đổi</button>
+                    <button type="button" class="ca-export-btn" id="arShareToggleBtn">🔗 Chia sẻ / Chuyển</button>
                     <button type="button" class="ca-export-btn" id="arExportCsvBtn">📊 Xuất Excel (CSV)</button>
                     <button type="button" class="ca-export-btn" id="arExportPdfBtn">📄 Xuất PDF</button>
                     <button type="button" class="btn-danger" id="arDeleteBtn">🗑️ Xoá kết quả</button>
                     <button type="button" id="arDetailCloseBtn">Đóng</button>
                 </div>
+            </div>
+        </div>
+
+        <div class="ca-detail-overlay" id="arPatientModal">
+            <div class="ca-detail-box">
+                <div class="ca-detail-head">
+                    <div>
+                        <div class="ca-detail-title" id="arPatientModalTitle"></div>
+                        <div class="ca-detail-meta" id="arPatientModalMeta"></div>
+                    </div>
+                    <button type="button" class="ca-detail-close" id="arPatientModalClose">✕</button>
+                </div>
+                <div id="arPatientModalList"></div>
             </div>
         </div>
     </main>
