@@ -95,6 +95,25 @@
     font-weight: 600;
 }
 
+.ca-owner-tag.is-expert {
+    border-color: var(--mint-dark, #4a9e8e);
+}
+
+.ca-owner-role-badge {
+    font-size: .68rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: .03em;
+    padding: 1px 6px;
+    border-radius: 5px;
+    background: var(--mint-dark, #4a9e8e);
+    color: white;
+}
+
+.ca-owner-tag.active .ca-owner-role-badge {
+    background: var(--text-primary, #4a3728);
+}
+
 .ca-share-checklist {
     display: flex;
     flex-direction: column;

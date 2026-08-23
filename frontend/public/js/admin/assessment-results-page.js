@@ -819,11 +819,16 @@ document.getElementById('arExportAllBtn')?.addEventListener('click', async () =>
     try {
         const owners = await apiClient.get('/admin/assessment-results/owners', { noCache: true });
         listEl.innerHTML = owners.length
-            ? owners.map((o) => `
-                <button type="button" class="ca-owner-tag" data-owner="${o.owner_user_id}">
-                    🧑‍⚕️ ${esc(o.owner_name || o.owner_email)} <span class="ca-owner-tag-count">(${o.result_count})</span>
+            ? owners.map((o) => {
+                const isExpert = o.owner_role === 'expert';
+                return `
+                <button type="button" class="ca-owner-tag${isExpert ? ' is-expert' : ''}" data-owner="${o.owner_user_id}">
+                    ${isExpert ? '🧑‍⚕️' : '👤'} ${esc(o.owner_name || o.owner_email)}
+                    ${isExpert ? '<span class="ca-owner-role-badge">Chuyên gia</span>' : ''}
+                    <span class="ca-owner-tag-count">(${o.result_count})</span>
                 </button>
-            `).join('')
+            `;
+            }).join('')
             : '<span style="color:var(--text-secondary);">Chưa có tài khoản nào có kết quả.</span>';
         listEl.querySelectorAll('.ca-owner-tag').forEach((tag) => {
             tag.addEventListener('click', () => tag.classList.toggle('active'));

@@ -650,12 +650,12 @@ router.get('/admin/assessment-results/owners', requireAuth, async (req, res) => 
   try {
     if (req.user.role !== 'admin') return res.status(403).json({ success: false, message: 'Admin only' });
     const r = await db.query(
-      `select u.id as owner_user_id, u.email as owner_email,
+      `select u.id as owner_user_id, u.email as owner_email, u.role as owner_role,
               coalesce(u.display_name, u.full_name) as owner_name,
               count(*)::int as result_count
        from assessment_results ar
        join users u on u.id = ar.user_id
-       group by u.id, u.email, coalesce(u.display_name, u.full_name)
+       group by u.id, u.email, u.role, coalesce(u.display_name, u.full_name)
        order by owner_name asc`
     );
     return res.json({ success: true, data: r.rows });
