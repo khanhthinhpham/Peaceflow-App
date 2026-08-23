@@ -94,7 +94,14 @@ async function walk(directory) {
   }
 }
 
+async function writeEntryPoints() {
+  const redirect = (target) => `<!doctype html><html lang="vi"><head><meta charset="utf-8"><meta http-equiv="refresh" content="0;url=${target}"><title>PeaceFlow</title></head><body><script>location.replace(${JSON.stringify(target)});</script></body></html>`;
+  await fs.writeFile(path.join(output, 'index.html'), redirect('pages/index.html'), 'utf8');
+  await fs.writeFile(path.join(output, '404.html'), redirect('pages/404.html'), 'utf8');
+}
+
 await fs.rm(output, { recursive: true, force: true });
 await copySource(root, output);
 await walk(output);
+await writeEntryPoints();
 console.log(`PeaceFlow production build created at ${output}`);
