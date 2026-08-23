@@ -2419,7 +2419,8 @@ function mapExpert(row, matchingTags, isReturningClient = false) {
     // chuẩn) — is_returning_client cho biết user hiện tại đã từng hoàn thành 1 buổi
     // với đúng chuyên gia này chưa, để FE hiện đúng bảng giá trước khi đặt lịch.
     is_returning_client: isReturningClient,
-    session_pricing: SESSION_PRICING[isReturningClient ? 'returning_client' : 'new_client']
+    session_pricing: SESSION_PRICING[isReturningClient ? 'returning_client' : 'new_client'],
+    session_pricing_all: SESSION_PRICING
   };
 }
 

@@ -192,12 +192,21 @@ function getDurationTierOptions(expert) {
 }
 
 function getSessionPriceLabel(expert) {
-    const pricing = expert?.session_pricing;
-    if (!pricing) return 'Liên hệ';
-    const quick = Number(pricing.quick || 0);
-    const standard = Number(pricing.standard || 0);
-    if (quick === standard) return formatCurrency(quick);
-    return `${formatCurrency(quick)} - ${formatCurrency(standard)}`;
+    const allPricing = expert?.session_pricing_all || {
+        new_client: { quick: 300000, standard: 500000 },
+        returning_client: { quick: 150000, standard: 200000 }
+    };
+    const formatRange = (pricing) => {
+        const quick = Number(pricing?.quick || 0);
+        const standard = Number(pricing?.standard || 0);
+        return quick === standard
+            ? formatCurrency(quick)
+            : `${formatCurrency(quick)} - ${formatCurrency(standard)}`;
+    };
+    return {
+        newClient: formatRange(allPricing.new_client),
+        returningClient: formatRange(allPricing.returning_client)
+    };
 }
 
 function renderSummary() {
@@ -258,8 +267,8 @@ function renderExperts(data) {
                 </div>
                 <div class="ec-price-row">
                     <div>
-                        <div class="ec-price">${escapeHtml(getSessionPriceLabel(expert))}</div>
-                        <div class="ec-price-label">Giá tư vấn</div>
+                        <div class="ec-price">Khám mới: ${escapeHtml(getSessionPriceLabel(expert).newClient)}</div>
+                        <div class="ec-price-label">Tái khám: ${escapeHtml(getSessionPriceLabel(expert).returningClient)}</div>
                     </div>
                     <div class="ec-next">⏰ ${escapeHtml(expert.nextSlot || 'Chưa có lịch')}</div>
                 </div>
