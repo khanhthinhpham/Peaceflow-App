@@ -95,9 +95,17 @@ async function walk(directory) {
 }
 
 async function writeEntryPoints() {
+  // peaceflow.vn is served at the domain root. Absolute paths prevent a
+  // relative redirect from becoming /pages/pages/pages/... after a 404.
   const redirect = (target) => `<!doctype html><html lang="vi"><head><meta charset="utf-8"><meta http-equiv="refresh" content="0;url=${target}"><title>PeaceFlow</title></head><body><script>location.replace(${JSON.stringify(target)});</script></body></html>`;
-  await fs.writeFile(path.join(output, 'index.html'), redirect('pages/index.html'), 'utf8');
-  await fs.writeFile(path.join(output, '404.html'), redirect('pages/404.html'), 'utf8');
+  await fs.writeFile(path.join(output, 'index.html'), redirect('/pages/index.html'), 'utf8');
+  await fs.writeFile(path.join(output, '404.html'), redirect('/pages/404.html'), 'utf8');
+  try {
+    const cname = await fs.readFile(path.resolve(root, '..', 'CNAME'), 'utf8');
+    await fs.writeFile(path.join(output, 'CNAME'), cname.trim() + '\n', 'utf8');
+  } catch {
+    // A custom domain is optional for local builds.
+  }
 }
 
 await fs.rm(output, { recursive: true, force: true });
