@@ -2,11 +2,18 @@ import { apiClient } from './api-client.js';
 
 window.__expertsApiMode = true;
 
+// Hình thức tư vấn — chỉ ảnh hưởng cách kết nối, KHÔNG ảnh hưởng giá (giá do thời lượng
+// + khám mới/tái khám quyết định, xem DURATION_TIERS).
 const SESSION_CONFIG = {
-    chat: { label: 'Chat text', icon: '💬', multiplier: 0.57, duration: 30 },
-    voice: { label: 'Gọi thoại', icon: '📞', multiplier: 1, duration: 45 },
-    video: { label: 'Video call', icon: '📹', multiplier: 1.43, duration: 60 },
-    inperson: { label: 'Gặp trực tiếp', icon: '🏥', multiplier: 2, duration: 60 }
+    voice: { label: 'Gọi thoại', icon: '📞' },
+    video: { label: 'Video call', icon: '📹' }
+};
+
+// Thời lượng quyết định giá — cùng 1 bảng giá cho mọi chuyên gia. Giá thật lấy từ
+// expert.session_pricing (server trả về theo đúng khám mới/tái khám của user hiện tại).
+const DURATION_TIERS = {
+    quick: { label: 'Nhanh', icon: '⚡', durationLabel: 'Dưới 30 phút', minutes: 25 },
+    standard: { label: 'Tiêu chuẩn', icon: '🕐', durationLabel: '30 - 60 phút', minutes: 45 }
 };
 
 const TOPIC_OPTIONS = ['Lo âu', 'Trầm cảm', 'Stress công việc', 'Mất ngủ', 'Mối quan hệ', 'Sang chấn', 'Khác'];
@@ -25,9 +32,10 @@ const state = {
     bookingMonthOffset: 0,
     bookingData: {
         expertId: null,
-        sessionType: 'chat',
+        sessionType: 'voice',
+        durationTier: 'quick',
         price: 0,
-        duration: 30,
+        duration: DURATION_TIERS.quick.minutes,
         date: '',
         time: '',
         startsAt: '',
@@ -61,7 +69,9 @@ const refs = {
     pmBio: document.getElementById('pmBio'),
     pmCredentials: document.getElementById('pmCredentials'),
     pmApproaches: document.getElementById('pmApproaches'),
-    sessionTypes: document.querySelector('.session-types'),
+    sessionTypes: document.getElementById('sessionTypes'),
+    durationTiers: document.getElementById('durationTiers'),
+    clientTypeBanner: document.getElementById('bookingClientTypeBanner'),
     calendarGrid: document.getElementById('calendarGrid'),
     timeSlots: document.getElementById('timeSlots'),
     calMonthLabel: document.getElementById('calMonthLabel'),
@@ -157,18 +167,37 @@ function getExpertById(id) {
     return state.experts.find((expert) => expert.id === id) || null;
 }
 
-function getSessionOptions(expert) {
-    const basePrice = Number(expert?.price || 0);
-
+// Hình thức (voice/video) — không kèm giá, giá chỉ phụ thuộc thời lượng + khám mới/tái khám.
+function getSessionOptions() {
     return Object.entries(SESSION_CONFIG).map(([key, config]) => ({
         key,
         label: config.label,
-        icon: config.icon,
-        duration: config.duration,
-        durationLabel: `${config.duration} phút`,
-        price: Math.round(basePrice * config.multiplier),
-        priceLabel: formatCurrency(Math.round(basePrice * config.multiplier))
+        icon: config.icon
     }));
+}
+
+// Thời lượng (nhanh/tiêu chuẩn) — giá lấy từ expert.session_pricing (server tính sẵn theo
+// đúng khám mới/tái khám của user hiện tại với chuyên gia này).
+function getDurationTierOptions(expert) {
+    const pricing = expert?.session_pricing || { quick: 0, standard: 0 };
+    return Object.entries(DURATION_TIERS).map(([key, config]) => ({
+        key,
+        label: config.label,
+        icon: config.icon,
+        minutes: config.minutes,
+        durationLabel: config.durationLabel,
+        price: pricing[key] || 0,
+        priceLabel: formatCurrency(pricing[key] || 0)
+    }));
+}
+
+function getSessionPriceLabel(expert) {
+    const pricing = expert?.session_pricing;
+    if (!pricing) return 'Liên hệ';
+    const quick = Number(pricing.quick || 0);
+    const standard = Number(pricing.standard || 0);
+    if (quick === standard) return formatCurrency(quick);
+    return `${formatCurrency(quick)} - ${formatCurrency(standard)}`;
 }
 
 function renderSummary() {
@@ -229,8 +258,8 @@ function renderExperts(data) {
                 </div>
                 <div class="ec-price-row">
                     <div>
-                        <div class="ec-price">${formatCurrency(expert.price)}</div>
-                        <div class="ec-price-label">Giá từ / phiên</div>
+                        <div class="ec-price">${escapeHtml(getSessionPriceLabel(expert))}</div>
+                        <div class="ec-price-label">Giá tư vấn</div>
                     </div>
                     <div class="ec-next">⏰ ${escapeHtml(expert.nextSlot || 'Chưa có lịch')}</div>
                 </div>
@@ -338,19 +367,40 @@ function renderProfileModal(expert) {
     refs.pmApproaches.innerHTML = expert.approaches.map((approach) => `<span class="badge-pill badge-sky" style="margin-right:6px;margin-bottom:6px;">${escapeHtml(approach)}</span>`).join('');
 }
 
-function renderSessionTypeOptions(expert) {
-    const options = getSessionOptions(expert);
-    const selectedType = state.bookingData.sessionType || 'chat';
+function renderSessionTypeOptions() {
+    const options = getSessionOptions();
+    const selectedType = state.bookingData.sessionType || 'voice';
 
     refs.sessionTypes.innerHTML = options.map((option) => `
         <div class="session-type-card ${option.key === selectedType ? 'selected' : ''}"
-            onclick="selectSessionType(this,'${option.key}','${option.price}','${option.duration}')">
+            onclick="selectSessionType(this,'${option.key}')">
+            <div class="stc-icon">${option.icon}</div>
+            <div class="stc-name">${escapeHtml(option.label)}</div>
+        </div>
+    `).join('');
+}
+
+function renderDurationTierOptions(expert) {
+    const options = getDurationTierOptions(expert);
+    const selectedTier = state.bookingData.durationTier || 'quick';
+
+    refs.durationTiers.innerHTML = options.map((option) => `
+        <div class="session-type-card ${option.key === selectedTier ? 'selected' : ''}"
+            onclick="selectDurationTier(this,'${option.key}','${option.price}','${option.minutes}')">
             <div class="stc-icon">${option.icon}</div>
             <div class="stc-name">${escapeHtml(option.label)}</div>
             <div class="stc-price">${escapeHtml(option.priceLabel)}</div>
             <div class="stc-duration">${escapeHtml(option.durationLabel)}</div>
         </div>
     `).join('');
+
+    if (refs.clientTypeBanner) {
+        const isReturning = !!expert?.is_returning_client;
+        refs.clientTypeBanner.className = `bm-client-type-banner ${isReturning ? 'returning-client' : 'new-client'}`;
+        refs.clientTypeBanner.textContent = isReturning
+            ? '🔁 Tái khám — bạn đã từng hoàn thành 1 buổi với chuyên gia này, áp dụng giá tái khám.'
+            : '🆕 Khám mới — đây là lần đầu bạn đặt lịch với chuyên gia này.';
+    }
 }
 
 function renderCalendar() {
@@ -448,7 +498,8 @@ function renderBookingExtras() {
 
 function updateBookingSummary() {
     const expert = getExpertById(state.currentExpertId);
-    const session = SESSION_CONFIG[state.bookingData.sessionType] || SESSION_CONFIG.chat;
+    const session = SESSION_CONFIG[state.bookingData.sessionType] || SESSION_CONFIG.voice;
+    const tier = DURATION_TIERS[state.bookingData.durationTier] || DURATION_TIERS.quick;
     const startsAt = state.bookingData.date && state.bookingData.time
         ? `${state.bookingData.date}T${state.bookingData.time}:00+07:00`
         : '';
@@ -461,7 +512,7 @@ function updateBookingSummary() {
     state.bookingData.notes = [headerParts.join(' · '), freeText].filter(Boolean).join('\n');
 
     refs.bsExpert.textContent = expert?.name || '—';
-    refs.bsType.textContent = session.label;
+    refs.bsType.textContent = `${session.label} · ${expert?.is_returning_client ? 'Tái khám' : 'Khám mới'} (${tier.label})`;
     refs.bsDatetime.textContent = startsAt ? formatDateTime(startsAt) : 'Chưa chọn';
     refs.bsDuration.textContent = `${state.bookingData.duration} phút`;
     refs.bsPrice.textContent = formatCurrency(state.bookingData.price);
@@ -487,13 +538,14 @@ function openBookingModal(id) {
     if (!expert) return;
 
     state.currentExpertId = id;
-    const defaultOption = getSessionOptions(expert)[0];
+    const defaultTier = getDurationTierOptions(expert)[0];
     state.bookingMonthOffset = 0;
     state.bookingData = {
         expertId: id,
-        sessionType: defaultOption.key,
-        price: defaultOption.price,
-        duration: defaultOption.duration,
+        sessionType: 'voice',
+        durationTier: defaultTier.key,
+        price: defaultTier.price,
+        duration: defaultTier.minutes,
         date: '',
         time: '10:00',
         startsAt: '',
@@ -508,7 +560,8 @@ function openBookingModal(id) {
     refs.bmDegree.textContent = expert.degree;
     refs.bsExpert.textContent = expert.name;
     if (refs.notesTextarea) refs.notesTextarea.value = '';
-    renderSessionTypeOptions(expert);
+    renderSessionTypeOptions();
+    renderDurationTierOptions(expert);
     renderBookingExtras();
     renderCalendar();
     renderTimeSlots();
@@ -722,12 +775,18 @@ function goBookingStep(step) {
     }
 }
 
-function selectSessionType(element, type, price, duration) {
-    document.querySelectorAll('.session-type-card').forEach((card) => card.classList.remove('selected'));
+function selectSessionType(element, type) {
+    refs.sessionTypes.querySelectorAll('.session-type-card').forEach((card) => card.classList.remove('selected'));
     element.classList.add('selected');
     state.bookingData.sessionType = type;
+}
+
+function selectDurationTier(element, tier, price, minutes) {
+    refs.durationTiers.querySelectorAll('.session-type-card').forEach((card) => card.classList.remove('selected'));
+    element.classList.add('selected');
+    state.bookingData.durationTier = tier;
     state.bookingData.price = Number(price || 0);
-    state.bookingData.duration = Number(duration || 30);
+    state.bookingData.duration = Number(minutes || 25);
 }
 
 function selectBookingDate(isoDate, element) {
@@ -754,9 +813,8 @@ async function confirmBooking() {
     try {
         const booking = await apiClient.post(`/experts/${state.currentExpertId}/bookings`, {
             session_type: state.bookingData.sessionType,
+            duration_tier: state.bookingData.durationTier,
             starts_at: state.bookingData.startsAt,
-            duration_minutes: state.bookingData.duration,
-            price: state.bookingData.price,
             notes: state.bookingData.notes
         });
 
@@ -1007,6 +1065,7 @@ window.openBookingModal = openBookingModal;
 window.closeBookingModal = closeBookingModal;
 window.goBookingStep = goBookingStep;
 window.selectSessionType = selectSessionType;
+window.selectDurationTier = selectDurationTier;
 window.selectBookingDate = selectBookingDate;
 window.selectBookingTime = selectBookingTime;
 window.changeMonth = changeMonth;

@@ -948,6 +948,29 @@
             background: var(--cream);
         }
 
+        .bm-client-type-banner {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 14px;
+            border-radius: var(--border-radius-sm);
+            font-size: 0.82rem;
+            font-weight: 700;
+            margin-bottom: 14px;
+        }
+
+        .bm-client-type-banner.new-client {
+            background: var(--sky-light);
+            border: 1.5px solid var(--sky);
+            color: var(--text-primary);
+        }
+
+        .bm-client-type-banner.returning-client {
+            background: var(--mint-light);
+            border: 1.5px solid var(--mint);
+            color: var(--text-primary);
+        }
+
         .session-type-card:hover {
             border-color: var(--mint);
             background: var(--mint-light);
@@ -1703,38 +1726,14 @@
 
                 <!-- Step 1: Session Type -->
                 <div id="booking-step-1">
+                    <div id="bookingClientTypeBanner" class="bm-client-type-banner"></div>
                     <div class="bm-section">
                         <div class="bm-section-title">💬 Chọn hình thức tư vấn</div>
-                        <div class="session-types">
-                            <div class="session-type-card selected"
-                                onclick="selectSessionType(this,'chat','200.000đ','30 phút')">
-                                <div class="stc-icon">💬</div>
-                                <div class="stc-name">Chat text</div>
-                                <div class="stc-price">200.000đ</div>
-                                <div class="stc-duration">30 phút</div>
-                            </div>
-                            <div class="session-type-card"
-                                onclick="selectSessionType(this,'voice','350.000đ','45 phút')">
-                                <div class="stc-icon">📞</div>
-                                <div class="stc-name">Gọi thoại</div>
-                                <div class="stc-price">350.000đ</div>
-                                <div class="stc-duration">45 phút</div>
-                            </div>
-                            <div class="session-type-card"
-                                onclick="selectSessionType(this,'video','500.000đ','60 phút')">
-                                <div class="stc-icon">📹</div>
-                                <div class="stc-name">Video call</div>
-                                <div class="stc-price">500.000đ</div>
-                                <div class="stc-duration">60 phút</div>
-                            </div>
-                            <div class="session-type-card"
-                                onclick="selectSessionType(this,'inperson','700.000đ','60 phút')">
-                                <div class="stc-icon">🏥</div>
-                                <div class="stc-name">Gặp trực tiếp</div>
-                                <div class="stc-price">700.000đ</div>
-                                <div class="stc-duration">60 phút</div>
-                            </div>
-                        </div>
+                        <div class="session-types" id="sessionTypes"></div>
+                    </div>
+                    <div class="bm-section">
+                        <div class="bm-section-title">⏱️ Chọn thời lượng</div>
+                        <div class="session-types" id="durationTiers"></div>
                     </div>
                     <div style="display:flex;justify-content:flex-end;">
                         <button class="btn-primary" onclick="goBookingStep(2)">Tiếp theo →</button>

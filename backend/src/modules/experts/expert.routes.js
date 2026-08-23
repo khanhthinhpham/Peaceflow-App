@@ -10,6 +10,16 @@ import { approveExpertApplication, rejectExpertApplication } from '../auth/auth.
 
 const router = Router();
 
+// Bảng giá áp dụng CHUNG cho mọi chuyên gia (không còn tính theo base_price riêng từng
+// người) — khám mới hay tái khám do hệ thống tự xác định (đã có buổi "completed" với
+// đúng chuyên gia đó chưa), khách chỉ chọn thời lượng nhanh/tiêu chuẩn và hình thức gọi
+// thoại/video (không ảnh hưởng giá).
+const SESSION_PRICING = {
+  new_client: { quick: 300000, standard: 500000 },
+  returning_client: { quick: 150000, standard: 200000 }
+};
+const SESSION_DURATION_MINUTES = { quick: 25, standard: 45 };
+
 const avatarUpload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 5 * 1024 * 1024 },
@@ -262,7 +272,7 @@ router.get('/experts', requireAuth, async (req, res) => {
   try {
     const userId = req.user.sub;
 
-    const [expertsRes, latestMoodRes, latestAssessmentRes, upcomingBookingRes] = await Promise.all([
+    const [expertsRes, latestMoodRes, latestAssessmentRes, upcomingBookingRes, returningExpertsRes] = await Promise.all([
       db.query(
         `select *
          from experts
@@ -309,11 +319,18 @@ router.get('/experts', requireAuth, async (req, res) => {
          order by eb.starts_at asc
          limit 1`,
         [userId]
-      ).catch((e) => { console.error('[EXPERTS_QUERY] expert_bookings:', e.message); return { rows: [] }; })
+      ).catch((e) => { console.error('[EXPERTS_QUERY] expert_bookings:', e.message); return { rows: [] }; }),
+      // Chuyên gia nào user này đã "tái khám" (đã có buổi hoàn thành) — dùng để hiện
+      // đúng mức giá khám mới/tái khám mà không cần gọi API riêng cho từng chuyên gia.
+      db.query(
+        `select distinct expert_id from expert_bookings where user_id = $1 and status = 'completed'`,
+        [userId]
+      ).catch((e) => { console.error('[EXPERTS_QUERY] returning_experts:', e.message); return { rows: [] }; })
     ]);
 
     const matchingTags = buildMatchingTags(latestMoodRes.rows[0] || null, latestAssessmentRes.rows[0] || null);
-    const experts = expertsRes.rows.map((row) => mapExpert(row, matchingTags));
+    const returningExpertIds = new Set(returningExpertsRes.rows.map((row) => row.expert_id));
+    const experts = expertsRes.rows.map((row) => mapExpert(row, matchingTags, returningExpertIds.has(row.id)));
     const matchedExperts = experts.filter((expert) => expert.matched);
 
     const summary = {
@@ -353,9 +370,14 @@ router.get('/experts/:id', requireAuth, async (req, res) => {
       return res.status(404).json({ success: false, message: 'Expert not found' });
     }
 
+    const returningRes = await db.query(
+      `select 1 from expert_bookings where user_id = $1 and expert_id = $2 and status = 'completed' limit 1`,
+      [req.user.sub, req.params.id]
+    );
+
     return res.json({
       success: true,
-      data: mapExpert(result.rows[0], new Set())
+      data: mapExpert(result.rows[0], new Set(), !!returningRes.rows[0])
     });
   } catch (error) {
     console.error('Expert detail error:', error);
@@ -419,10 +441,9 @@ router.get('/expert-bookings/upcoming', requireAuth, async (req, res) => {
 });
 
 const bookingCreateSchema = z.object({
-  session_type: z.enum(['chat', 'voice', 'video', 'inperson']),
+  session_type: z.enum(['voice', 'video']),
+  duration_tier: z.enum(['quick', 'standard']),
   starts_at: z.coerce.date(),
-  duration_minutes: z.coerce.number().int().min(15).max(240),
-  price: z.coerce.number().int().min(0).optional().default(0),
   notes: z.string().max(1000).optional().nullable()
 });
 
@@ -451,9 +472,11 @@ router.post('/experts/:id/bookings', requireAuth, async (req, res) => {
       return res.status(404).json({ success: false, message: 'Expert not found' });
     }
 
+    const durationMinutes = SESSION_DURATION_MINUTES[payload.duration_tier];
+
     // Chống trùng giờ: không cho đặt nếu khoảng [starts_at, starts_at+duration) chồng lấn
     // một booking pending/confirmed khác của cùng chuyên gia.
-    const endsAt = new Date(payload.starts_at.getTime() + payload.duration_minutes * 60000);
+    const endsAt = new Date(payload.starts_at.getTime() + durationMinutes * 60000);
     const overlap = await db.query(
       `select 1 from expert_bookings
        where expert_id = $1
@@ -480,9 +503,18 @@ router.post('/experts/:id/bookings', requireAuth, async (req, res) => {
       return res.status(409).json({ success: false, message: 'Chuyên gia bận vào khung giờ này, vui lòng chọn giờ khác.' });
     }
 
+    // Giá tính HOÀN TOÀN ở server theo bảng giá chung (không tin giá client gửi lên) —
+    // khám mới hay tái khám tự xác định qua lịch sử đã có buổi "completed" với đúng
+    // chuyên gia này chưa.
+    const returningRes = await db.query(
+      `select 1 from expert_bookings where user_id = $1 and expert_id = $2 and status = 'completed' limit 1`,
+      [req.user.sub, expert.id]
+    );
+    const pricingTier = returningRes.rows[0] ? 'returning_client' : 'new_client';
+    const amount = SESSION_PRICING[pricingTier][payload.duration_tier];
+
     // Đặt lịch ở trạng thái CHỜ THANH TOÁN — sinh đơn + QR VietQR. Chỉ sau khi
     // thân chủ chuyển khoản (claim) lịch mới vào hàng "Cần xác nhận" của chuyên gia.
-    const amount = payload.price || 0;
     const bookingResult = await db.query(
       `insert into expert_bookings (user_id, expert_id, session_type, starts_at, duration_minutes, price, notes, status, amount)
        values ($1, $2, $3, $4, $5, $6, $7, 'pending_payment', $8)
@@ -492,7 +524,7 @@ router.post('/experts/:id/bookings', requireAuth, async (req, res) => {
         expert.id,
         payload.session_type,
         payload.starts_at.toISOString(),
-        payload.duration_minutes,
+        durationMinutes,
         amount,
         payload.notes || null,
         amount
@@ -2359,7 +2391,7 @@ router.post('/expert-bookings/:id/review', requireAuth, async (req, res) => {
   }
 });
 
-function mapExpert(row, matchingTags) {
+function mapExpert(row, matchingTags, isReturningClient = false) {
   const tags = ensureArray(row.tags);
 
   return {
@@ -2382,7 +2414,12 @@ function mapExpert(row, matchingTags) {
     matched: tags.some((tag) => matchingTags.has(tag)),
     nextSlot: row.next_slot_label || 'Chưa có lịch trống',
     credentials: ensureArray(row.credentials),
-    approaches: ensureArray(row.approaches)
+    approaches: ensureArray(row.approaches),
+    // Giá khám giờ áp dụng chung cho mọi chuyên gia (khám mới/tái khám × nhanh/tiêu
+    // chuẩn) — is_returning_client cho biết user hiện tại đã từng hoàn thành 1 buổi
+    // với đúng chuyên gia này chưa, để FE hiện đúng bảng giá trước khi đặt lịch.
+    is_returning_client: isReturningClient,
+    session_pricing: SESSION_PRICING[isReturningClient ? 'returning_client' : 'new_client']
   };
 }
 
