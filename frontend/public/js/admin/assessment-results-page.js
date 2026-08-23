@@ -820,12 +820,14 @@ document.getElementById('arExportAllBtn')?.addEventListener('click', async () =>
         const owners = await apiClient.get('/admin/assessment-results/owners', { noCache: true });
         listEl.innerHTML = owners.length
             ? owners.map((o) => `
-                <label>
-                    <input type="checkbox" value="${o.owner_user_id}">
-                    ${esc(o.owner_name || o.owner_email)} (${o.result_count})
-                </label>
+                <button type="button" class="ca-owner-tag" data-owner="${o.owner_user_id}">
+                    🧑‍⚕️ ${esc(o.owner_name || o.owner_email)} <span class="ca-owner-tag-count">(${o.result_count})</span>
+                </button>
             `).join('')
             : '<span style="color:var(--text-secondary);">Chưa có tài khoản nào có kết quả.</span>';
+        listEl.querySelectorAll('.ca-owner-tag').forEach((tag) => {
+            tag.addEventListener('click', () => tag.classList.toggle('active'));
+        });
     } catch (_e) {
         listEl.innerHTML = '<span style="color:var(--coral);">Không tải được danh sách tài khoản.</span>';
     }
@@ -838,14 +840,14 @@ document.getElementById('arExportOwnerCancelBtn')?.addEventListener('click', () 
     document.getElementById('arExportOwnerModal').classList.remove('show');
 });
 document.getElementById('arExportOwnerAllBtn')?.addEventListener('click', () => {
-    document.querySelectorAll('#arExportOwnerList input[type="checkbox"]').forEach((cb) => { cb.checked = true; });
+    document.querySelectorAll('#arExportOwnerList .ca-owner-tag').forEach((tag) => tag.classList.add('active'));
 });
 document.getElementById('arExportOwnerNoneBtn')?.addEventListener('click', () => {
-    document.querySelectorAll('#arExportOwnerList input[type="checkbox"]').forEach((cb) => { cb.checked = false; });
+    document.querySelectorAll('#arExportOwnerList .ca-owner-tag').forEach((tag) => tag.classList.remove('active'));
 });
 
 document.getElementById('arExportOwnerConfirmBtn')?.addEventListener('click', async () => {
-    const ownerIds = Array.from(document.querySelectorAll('#arExportOwnerList input[type="checkbox"]:checked')).map((cb) => cb.value);
+    const ownerIds = Array.from(document.querySelectorAll('#arExportOwnerList .ca-owner-tag.active')).map((tag) => tag.getAttribute('data-owner'));
     document.getElementById('arExportOwnerModal').classList.remove('show');
     await runExportAll(ownerIds);
 });
