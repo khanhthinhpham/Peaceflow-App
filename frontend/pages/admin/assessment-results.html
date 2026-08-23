@@ -154,6 +154,27 @@
                 <div id="arPatientModalList"></div>
             </div>
         </div>
+
+        <div class="ca-detail-overlay" id="arExportOwnerModal">
+            <div class="ca-detail-box" style="max-width:520px;">
+                <div class="ca-detail-head">
+                    <div>
+                        <div class="ca-detail-title">Chọn tài khoản để xuất Excel</div>
+                        <div class="ca-detail-meta">Không chọn tài khoản nào = xuất toàn bộ hệ thống.</div>
+                    </div>
+                    <button type="button" class="ca-detail-close" id="arExportOwnerModalClose">✕</button>
+                </div>
+                <div style="display:flex;gap:8px;margin-bottom:10px;">
+                    <button type="button" class="btn-outline" id="arExportOwnerAllBtn">Chọn tất cả</button>
+                    <button type="button" class="btn-outline" id="arExportOwnerNoneBtn">Bỏ chọn</button>
+                </div>
+                <div id="arExportOwnerList" class="ca-share-checklist" style="max-height:320px;"></div>
+                <div class="ca-detail-actions">
+                    <button type="button" class="btn-primary" id="arExportOwnerConfirmBtn">📊 Xuất Excel</button>
+                    <button type="button" id="arExportOwnerCancelBtn">Huỷ</button>
+                </div>
+            </div>
+        </div>
     </main>
     <script type="module" src="../../public/js/admin/assessment-results-page.js"></script>
 </body>

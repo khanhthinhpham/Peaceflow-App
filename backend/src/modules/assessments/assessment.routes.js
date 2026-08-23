@@ -581,6 +581,13 @@ router.get('/admin/assessment-results', requireAuth, async (req, res) => {
       params.push(`%${owner}%`);
       conditions.push(`(u.email ilike $${params.length} or coalesce(u.display_name, u.full_name) ilike $${params.length})`);
     }
+    // Chọn chính xác 1 hoặc nhiều tài khoản đã nhập — dùng khi admin muốn xuất Excel chỉ
+    // từ những tài khoản cụ thể thay vì toàn bộ hệ thống.
+    const ownerIds = (req.query.owner_ids || '').split(',').map((s) => s.trim()).filter(Boolean);
+    if (ownerIds.length) {
+      params.push(ownerIds);
+      conditions.push(`ar.user_id = any($${params.length}::uuid[])`);
+    }
     const where = conditions.length ? `where ${conditions.join(' and ')}` : '';
 
     const countRes = await db.query(
@@ -634,6 +641,27 @@ router.get('/admin/assessment-results', requireAuth, async (req, res) => {
   } catch (error) {
     console.error('Admin list assessment results error:', error);
     return res.status(500).json({ success: false, message: 'Could not fetch assessment results' });
+  }
+});
+
+// Danh sách các tài khoản đã từng nhập kết quả (kèm số lượng) — dùng để admin chọn chính
+// xác tài khoản nào muốn xuất Excel, thay vì luôn xuất toàn bộ hệ thống.
+router.get('/admin/assessment-results/owners', requireAuth, async (req, res) => {
+  try {
+    if (req.user.role !== 'admin') return res.status(403).json({ success: false, message: 'Admin only' });
+    const r = await db.query(
+      `select u.id as owner_user_id, u.email as owner_email,
+              coalesce(u.display_name, u.full_name) as owner_name,
+              count(*)::int as result_count
+       from assessment_results ar
+       join users u on u.id = ar.user_id
+       group by u.id, u.email, coalesce(u.display_name, u.full_name)
+       order by owner_name asc`
+    );
+    return res.json({ success: true, data: r.rows });
+  } catch (error) {
+    console.error('List assessment result owners error:', error);
+    return res.status(500).json({ success: false, message: 'Could not fetch owners' });
   }
 });
 

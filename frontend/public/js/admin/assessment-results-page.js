@@ -809,13 +809,56 @@ function groupResultsByPerson(results) {
     });
 }
 
+// Bấm "Xuất Excel toàn bộ" mở bảng chọn tài khoản trước — không chọn ai thì xuất hết,
+// chọn 1 vài tài khoản thì chỉ xuất đúng kết quả của những tài khoản đó.
 document.getElementById('arExportAllBtn')?.addEventListener('click', async () => {
+    const modal = document.getElementById('arExportOwnerModal');
+    const listEl = document.getElementById('arExportOwnerList');
+    listEl.innerHTML = 'Đang tải...';
+    modal.classList.add('show');
+    try {
+        const owners = await apiClient.get('/admin/assessment-results/owners', { noCache: true });
+        listEl.innerHTML = owners.length
+            ? owners.map((o) => `
+                <label>
+                    <input type="checkbox" value="${o.owner_user_id}">
+                    ${esc(o.owner_name || o.owner_email)} (${o.result_count})
+                </label>
+            `).join('')
+            : '<span style="color:var(--text-secondary);">Chưa có tài khoản nào có kết quả.</span>';
+    } catch (_e) {
+        listEl.innerHTML = '<span style="color:var(--coral);">Không tải được danh sách tài khoản.</span>';
+    }
+});
+
+document.getElementById('arExportOwnerModalClose')?.addEventListener('click', () => {
+    document.getElementById('arExportOwnerModal').classList.remove('show');
+});
+document.getElementById('arExportOwnerCancelBtn')?.addEventListener('click', () => {
+    document.getElementById('arExportOwnerModal').classList.remove('show');
+});
+document.getElementById('arExportOwnerAllBtn')?.addEventListener('click', () => {
+    document.querySelectorAll('#arExportOwnerList input[type="checkbox"]').forEach((cb) => { cb.checked = true; });
+});
+document.getElementById('arExportOwnerNoneBtn')?.addEventListener('click', () => {
+    document.querySelectorAll('#arExportOwnerList input[type="checkbox"]').forEach((cb) => { cb.checked = false; });
+});
+
+document.getElementById('arExportOwnerConfirmBtn')?.addEventListener('click', async () => {
+    const ownerIds = Array.from(document.querySelectorAll('#arExportOwnerList input[type="checkbox"]:checked')).map((cb) => cb.value);
+    document.getElementById('arExportOwnerModal').classList.remove('show');
+    await runExportAll(ownerIds);
+});
+
+async function runExportAll(ownerIds) {
     const btn = document.getElementById('arExportAllBtn');
     btn.disabled = true;
     btn.textContent = '⏳ Đang tạo file...';
 
     try {
-        const allData = await apiClient.get('/admin/assessment-results?limit=0', { noCache: true });
+        const qs = new URLSearchParams({ limit: '0' });
+        if (ownerIds && ownerIds.length) qs.set('owner_ids', ownerIds.join(','));
+        const allData = await apiClient.get(`/admin/assessment-results?${qs.toString()}`, { noCache: true });
         const allResults = allData?.items || [];
         if (!allResults.length) {
             alert('Chưa có kết quả nào để xuất.');
@@ -941,6 +984,6 @@ document.getElementById('arExportAllBtn')?.addEventListener('click', async () =>
         btn.disabled = false;
         btn.textContent = '📊 Xuất Excel toàn bộ';
     }
-});
+}
 
 init();
