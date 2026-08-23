@@ -362,7 +362,11 @@
             if (cached && (Date.now() - cached.cachedAt) < SPA_HTML_CACHE_MS) {
                 html = cached.html;
             } else {
-                const response = await fetch(url, { credentials: 'same-origin' });
+                // cache: 'no-store' — không cache-bust thì CDN/trình duyệt có thể trả về
+                // bản HTML cũ của trang trong khi script bên trong (đã cache-bust riêng
+                // qua __v) là bản mới nhất, gây lệch DOM (getElementById trả về null) ngay
+                // sau khi vừa deploy.
+                const response = await fetch(url, { credentials: 'same-origin', cache: 'no-store' });
                 if (!response.ok) {
                     throw new Error(`Failed to load page ${url}: ${response.status}`);
                 }

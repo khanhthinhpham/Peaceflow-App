@@ -72,8 +72,12 @@ const ExpertRouter = {
                 window.history.pushState({ page }, '', shellUrl);
             }
 
-            const pageUrl = new URL(`./${page}`, window.location.href).href;
-            const response = await fetch(pageUrl, { credentials: 'same-origin' });
+            // Không cache-bust thì CDN/trình duyệt có thể trả về bản HTML cũ của trang con
+            // trong khi module JS (đã cache-bust riêng bên dưới) là bản mới nhất — lệch nhau
+            // gây lỗi "getElementById trả về null" ngay sau khi vừa deploy.
+            const pageUrl = new URL(`./${page}`, window.location.href);
+            pageUrl.searchParams.set('__v', `${SESSION_VERSION}-${mySeq}`);
+            const response = await fetch(pageUrl.href, { credentials: 'same-origin', cache: 'no-store' });
             if (!response.ok) {
                 throw new Error(`Failed to load expert page ${pageUrl}: ${response.status}`);
             }
