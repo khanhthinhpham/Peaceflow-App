@@ -356,6 +356,34 @@
   font-weight: 800;
 }
 
+.expert-booking-zoom-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 11px;
+  padding: 9px 15px;
+  border: 1.5px solid #4b8fe8;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #eef6ff, #dcecff);
+  color: #2167b1;
+  font-size: 0.88rem;
+  font-weight: 800;
+  text-decoration: none;
+  box-shadow: 0 3px 0 rgba(75, 143, 232, 0.16);
+  transition: transform 160ms ease, box-shadow 160ms ease, background 160ms ease;
+}
+
+.expert-booking-zoom-link:hover {
+  background: linear-gradient(135deg, #dcecff, #c8e1ff);
+  box-shadow: 0 5px 0 rgba(75, 143, 232, 0.2);
+  transform: translateY(-1px);
+}
+
+.expert-booking-zoom-link:active {
+  box-shadow: 0 1px 0 rgba(75, 143, 232, 0.2);
+  transform: translateY(1px);
+}
+
 .expert-booking-status-chip {
   padding: 4px 10px;
   border-radius: 999px;
