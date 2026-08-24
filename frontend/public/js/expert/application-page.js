@@ -1,6 +1,7 @@
 import { auth } from '../auth.js';
 import { apiClient } from '../api-client.js';
 import { mountExpertShell, requireExpertUser, showExpertBanner, loadExpertData, invalidateExpertData, setExpertNavLock } from './shell.js';
+import { cropAvatarFile } from '../avatar-cropper.js';
 
 let applicationState = null;
 let overviewState = null;
@@ -242,8 +243,10 @@ function wireAvatarPhoto() {
         if (!file) return;
         uploadBtn.disabled = true;
         try {
+            const cropped = await cropAvatarFile(file);
+            if (!cropped) return;
             const formData = new FormData();
-            formData.set('image', file);
+            formData.set('image', cropped);
             await apiClient.postForm('/expert-portal/avatar', formData);
             invalidateExpertData();
             const { overview } = await loadExpertData();

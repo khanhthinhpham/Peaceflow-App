@@ -2,6 +2,7 @@ import { apiClient, API_BASE_URL } from '../api-client.js';
 import { mountAdminShell, setAdminBadge } from './shell.js';
 import { icon } from './icons.js';
 import { renderPager } from './pager.js';
+import { cropAvatarFile } from '../avatar-cropper.js';
 
 mountAdminShell({ active: 'experts' });
 
@@ -261,9 +262,11 @@ async function loadExperts(page = expertState.page) {
         avatarInput?.addEventListener('change', async () => {
             const file = avatarInput.files[0];
             if (!file) return;
-            const fd = new FormData();
-            fd.append('image', file);
             try {
+                const cropped = await cropAvatarFile(file);
+                if (!cropped) return;
+                const fd = new FormData();
+                fd.append('image', cropped);
                 await apiClient.postForm(`/admin/experts/${id}/avatar`, fd);
                 loadExperts(expertState.page);
             } catch (e) {
