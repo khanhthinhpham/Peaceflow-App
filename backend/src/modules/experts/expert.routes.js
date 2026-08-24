@@ -7,6 +7,7 @@ import { env } from '../../config/env.js';
 import { sendBookingRequestEmail, sendBookingStatusEmail, sendPayoutMethodChangedEmail } from '../../common/services/email.service.js';
 import { generateOrderCode, transferContent, buildTransferContent, buildVietQrUrl, platformBankInfo, computeFee, isPayosEnabled, createPayosPayment, qrImageFromString, verifyPayosWebhook, lookupBankAccount, isVietqrLookupEnabled } from '../../common/services/payment.service.js';
 import { approveExpertApplication, rejectExpertApplication } from '../auth/auth.service.js';
+import { sendPushToUser } from '../notifications/notification.routes.js';
 
 const router = Router();
 
@@ -1904,8 +1905,12 @@ router.post('/admin/bookings/:id/confirm-payment', requireAuth, async (req, res)
   try {
     if (req.user.role !== 'admin') return res.status(403).json({ success: false, message: 'Admin only' });
     const bRes = await db.query(
-      `select b.*, e.user_id as expert_user_id, e.full_name as expert_name
+      `select b.*, e.user_id as expert_user_id, e.full_name as expert_name,
+              eu.email as expert_email,
+              coalesce(cu.display_name, cu.full_name, 'Một thân chủ') as client_name
        from expert_bookings b join experts e on e.id = b.expert_id
+       left join users eu on eu.id = e.user_id
+       left join users cu on cu.id = b.user_id
        where b.id = $1 limit 1`,
       [req.params.id]
     );
@@ -1919,6 +1924,35 @@ router.post('/admin/bookings/:id/confirm-payment', requireAuth, async (req, res)
 
     await notify(b.user_id, null, 'booking_update', 'Đã xác nhận thanh toán — đang chờ chuyên gia nhận lịch.');
     await notify(b.expert_user_id, null, 'booking_new', 'Có lịch đã thanh toán — mời bạn nhận hoặc từ chối.');
+
+    // Gửi email cho chuyên gia nếu Resend đã được cấu hình. Lỗi email không làm
+    // thất bại thao tác xác nhận thanh toán đã ghi nhận thành công.
+    try {
+      if (b.expert_email) {
+        await sendBookingRequestEmail({
+          to: b.expert_email,
+          expertName: b.expert_name,
+          clientName: b.client_name,
+          sessionType: b.session_type,
+          startsAt: b.starts_at
+        });
+      }
+    } catch (e) {
+      console.error('[email] booking request failed:', e.message);
+    }
+
+    // Gửi Web Push tới các thiết bị mà chuyên gia đã đăng ký. Hàm này tự bỏ qua
+    // nếu VAPID chưa cấu hình hoặc chuyên gia chưa cấp quyền push.
+    try {
+      await sendPushToUser(
+        b.expert_user_id,
+        'Lịch hẹn mới',
+        'Có lịch đã thanh toán — mời bạn nhận hoặc từ chối.',
+        `${env.frontendUrl}/pages/expert/app.html?page=dashboard.html`
+      );
+    } catch (e) {
+      console.error('[push] booking request failed:', e.message);
+    }
 
     return res.json({ success: true });
   } catch (error) {
