@@ -58,10 +58,16 @@ export async function cropAvatarFile(file) {
 
     const render = () => {
         state.scale = baseScale * state.zoom;
-        preview.style.width = `${image.width * state.scale}px`;
-        preview.style.height = `${image.height * state.scale}px`;
-        preview.style.left = `${(stage.clientWidth - image.width * state.scale) / 2 + state.x}px`;
-        preview.style.top = `${(stage.clientHeight - image.height * state.scale) / 2 + state.y}px`;
+        const renderedWidth = image.width * state.scale;
+        const renderedHeight = image.height * state.scale;
+        const maxX = Math.max(0, (renderedWidth - stage.clientWidth) / 2);
+        const maxY = Math.max(0, (renderedHeight - stage.clientHeight) / 2);
+        state.x = Math.min(maxX, Math.max(-maxX, state.x));
+        state.y = Math.min(maxY, Math.max(-maxY, state.y));
+        preview.style.width = `${renderedWidth}px`;
+        preview.style.height = `${renderedHeight}px`;
+        preview.style.left = `${(stage.clientWidth - renderedWidth) / 2 + state.x}px`;
+        preview.style.top = `${(stage.clientHeight - renderedHeight) / 2 + state.y}px`;
     };
     render();
 
@@ -77,10 +83,12 @@ export async function cropAvatarFile(file) {
             const canvas = document.createElement('canvas');
             canvas.width = CROP_SIZE; canvas.height = CROP_SIZE;
             const ctx = canvas.getContext('2d');
-            const ratio = CROP_SIZE / stage.clientWidth;
             const left = (stage.clientWidth - image.width * state.scale) / 2 + state.x;
             const top = (stage.clientHeight - image.height * state.scale) / 2 + state.y;
-            ctx.drawImage(image, left * -ratio, top * -ratio, image.width * state.scale * ratio, image.height * state.scale * ratio);
+            const sourceX = Math.max(0, -left / state.scale);
+            const sourceY = Math.max(0, -top / state.scale);
+            const sourceSize = Math.min(stage.clientWidth / state.scale, image.width - sourceX, image.height - sourceY);
+            ctx.drawImage(image, sourceX, sourceY, sourceSize, sourceSize, 0, 0, CROP_SIZE, CROP_SIZE);
             try { close(await canvasFile(canvas, file.name)); } catch (error) { close(null, error); }
         });
     });

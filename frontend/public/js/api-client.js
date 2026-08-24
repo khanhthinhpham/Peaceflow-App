@@ -351,7 +351,7 @@ export const apiClient = {
         const token = getStoredAccessToken();
         const headers = {};
         if (token) headers.Authorization = `Bearer ${token}`;
-        const response = await fetch(`${API_BASE_URL}${endpoint}`, { headers });
+        const response = await fetch(`${API_BASE_URL}${endpoint}`, { headers, cache: 'no-store' });
         if (!response.ok) {
             throw new Error(`Không tải được file (HTTP ${response.status})`);
         }
