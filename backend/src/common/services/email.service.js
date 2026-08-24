@@ -222,6 +222,32 @@ export async function sendBookingStatusEmail({ to, clientName, expertName, sessi
   });
 }
 
+export async function sendBookingConfirmedEmail({ to, recipientName, expertName, clientName, sessionType, startsAt, durationMinutes, joinUrl, startUrl, isExpert }) {
+  if (!resend || !to || !joinUrl) return;
+  const portalLink = isExpert
+    ? `${APP_URL}/pages/expert/app.html?page=dashboard.html`
+    : `${APP_URL}/pages/experts.html`;
+  const actionUrl = startUrl || joinUrl;
+  await resend.emails.send({
+    from: FROM,
+    to,
+    subject: '🎥 Link Zoom lịch hẹn đã sẵn sàng — PeaceFlow',
+    html: `
+      <div style="font-family:sans-serif;max-width:520px;margin:0 auto;padding:32px 24px;">
+        <h2 style="color:#2D6A4F;">Lịch hẹn đã có phòng Zoom</h2>
+        <p style="color:#555;line-height:1.6;">Xin chào ${recipientName || 'bạn'}, chuyên gia <strong>${expertName}</strong> đã xác nhận lịch tư vấn với <strong>${clientName}</strong>.</p>
+        <table style="width:100%;border-collapse:collapse;color:#333;margin:16px 0;">
+          <tr><td style="padding:6px 0;color:#888;width:140px;">Hình thức</td><td><strong>${SESSION_LABELS[sessionType] || sessionType}</strong></td></tr>
+          <tr><td style="padding:6px 0;color:#888;">Thời gian</td><td><strong>${formatBookingTime(startsAt)}</strong></td></tr>
+          <tr><td style="padding:6px 0;color:#888;">Thời lượng</td><td><strong>${durationMinutes} phút</strong></td></tr>
+        </table>
+        <a href="${actionUrl}" style="display:inline-block;margin:16px 0;padding:12px 28px;background:#52B788;color:#fff;border-radius:8px;text-decoration:none;font-weight:700;">${isExpert ? 'Bắt đầu / vào Zoom' : 'Vào phòng Zoom'}</a>
+        <p style="color:#777;font-size:.9rem;line-height:1.6;">Bạn cũng có thể mở lại lịch hẹn trong PeaceFlow: <a href="${portalLink}">${portalLink}</a>.</p>
+      </div>
+    `
+  });
+}
+
 function ensureResendConfigured() {
   if (!resend) {
     throw new Error('RESEND_API_KEY is not configured.');

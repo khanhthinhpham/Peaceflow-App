@@ -440,6 +440,9 @@ function renderBookingRow(booking) {
 
     const reviewLine = booking.review_rating ? `<div class="expert-booking-extra">Đánh giá: ${booking.review_rating}/5</div>` : '';
     const notesLine = booking.notes ? `<div class="expert-booking-notes">${escapeHtml(booking.notes)}</div>` : '';
+    const zoomLine = booking.status === 'confirmed' && booking.zoom_start_url
+        ? `<a href="${escapeHtml(booking.zoom_start_url)}" target="_blank" rel="noopener" class="expert-booking-zoom-link">🎥 Vào phòng Zoom</a>`
+        : '';
 
     return `
         <article class="expert-booking-card">
@@ -452,6 +455,7 @@ function renderBookingRow(booking) {
                     </div>
                     ${notesLine}
                     ${reviewLine}
+                    ${zoomLine}
                 </div>
                 <span class="expert-booking-status-chip">${escapeHtml(BOOKING_STATUS_LABELS[booking.status] || booking.status)}</span>
             </div>

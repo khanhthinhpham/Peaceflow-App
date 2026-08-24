@@ -40,6 +40,13 @@ export const env = {
   vapidPrivateKey: process.env.VAPID_PRIVATE_KEY,
   vapidEmail: process.env.VAPID_EMAIL || 'mailto:admin@peaceflow.vn',
 
+  // Zoom Server-to-Server OAuth (dùng một tài khoản Zoom của PeaceFlow làm host)
+  zoomAccountId: process.env.ZOOM_ACCOUNT_ID,
+  zoomClientId: process.env.ZOOM_CLIENT_ID,
+  zoomClientSecret: process.env.ZOOM_CLIENT_SECRET,
+  zoomHostUserId: process.env.ZOOM_HOST_USER_ID || 'me',
+  zoomWebhookSecretToken: process.env.ZOOM_WEBHOOK_SECRET_TOKEN,
+
   // Thanh toán giữ chỗ — VietQR (miễn phí) + xác nhận thủ công
   platformBankId: process.env.PLATFORM_BANK_ID || 'MB',
   platformBankAccount: process.env.PLATFORM_BANK_ACCOUNT || '0000000000',

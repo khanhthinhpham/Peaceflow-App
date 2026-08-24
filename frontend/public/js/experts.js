@@ -999,7 +999,10 @@ function renderMyBookingCard(b) {
             <button class="btn-outline" style="padding:6px 12px;font-size:0.8rem;" data-cancel-id="${b.id}">Huỷ</button>
         </div>`;
     } else if (['pending', 'awaiting_expert', 'confirmed'].includes(b.status)) {
-        action = `<button class="btn-outline" style="padding:6px 12px;font-size:0.8rem;" data-cancel-id="${b.id}">Huỷ</button>`;
+        action = `<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:flex-end;">
+            ${b.status === 'confirmed' && b.zoom_join_url ? `<a href="${escapeHtml(b.zoom_join_url)}" target="_blank" rel="noopener" class="btn-primary" style="padding:6px 12px;font-size:0.8rem;text-decoration:none;">🎥 Vào Zoom</a>` : ''}
+            <button class="btn-outline" style="padding:6px 12px;font-size:0.8rem;" data-cancel-id="${b.id}">Huỷ</button>
+        </div>`;
     }
     return `
         <div style="display:flex;align-items:center;gap:14px;padding:12px 0;border-bottom:1px solid var(--kraft-light,#e8ddd0);">

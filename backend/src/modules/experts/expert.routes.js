@@ -4,7 +4,8 @@ import { requireAuth } from '../../common/middleware/auth.middleware.js';
 import { db } from '../../config/db.js';
 import { z } from 'zod';
 import { env } from '../../config/env.js';
-import { sendBookingRequestEmail, sendBookingStatusEmail, sendPayoutMethodChangedEmail } from '../../common/services/email.service.js';
+import { sendBookingRequestEmail, sendBookingStatusEmail, sendBookingConfirmedEmail, sendPayoutMethodChangedEmail } from '../../common/services/email.service.js';
+import { createZoomMeeting } from '../../common/services/zoom.service.js';
 import { generateOrderCode, transferContent, buildTransferContent, buildVietQrUrl, platformBankInfo, computeFee, isPayosEnabled, createPayosPayment, qrImageFromString, verifyPayosWebhook, lookupBankAccount, isVietqrLookupEnabled } from '../../common/services/payment.service.js';
 import { approveExpertApplication, rejectExpertApplication } from '../auth/auth.service.js';
 import { sendPushToUser } from '../notifications/notification.routes.js';
@@ -97,6 +98,8 @@ router.get('/expert-portal/overview', requireAuth, async (req, res) => {
            eb.duration_minutes,
            eb.price,
            eb.status,
+           eb.zoom_join_url,
+           eb.zoom_start_url,
            u.full_name as client_name,
            u.email as client_email
          from expert_bookings eb
@@ -311,6 +314,8 @@ router.get('/experts', requireAuth, async (req, res) => {
            eb.duration_minutes,
            eb.price,
            eb.status,
+           eb.zoom_join_url,
+           eb.zoom_start_url,
            e.full_name as expert_name
          from expert_bookings eb
          join experts e on e.id = eb.expert_id
@@ -800,6 +805,7 @@ router.get('/expert-portal/bookings', requireAuth, async (req, res) => {
     }
     const r = await db.query(
       `select eb.id, eb.session_type, eb.starts_at, eb.duration_minutes, eb.price, eb.status, eb.notes, eb.created_at,
+              eb.zoom_join_url, eb.zoom_start_url,
               u.full_name as client_name, u.email as client_email,
               er.rating as review_rating, er.comment as review_comment
        from expert_bookings eb
@@ -830,8 +836,13 @@ router.patch('/expert-portal/bookings/:id', requireAuth, async (req, res) => {
       return res.status(404).json({ success: false, message: 'Expert profile not found' });
     }
     const bRes = await db.query(
-      `select id, status, user_id, amount, price from expert_bookings where id = $1 and expert_id = $2 limit 1`,
-      [req.params.id, expert.id]
+      `select b.*, coalesce(cu.display_name, cu.full_name, 'Thân chủ') as client_name,
+              cu.email as client_email, eu.email as expert_email
+       from expert_bookings b
+       join users cu on cu.id = b.user_id
+       left join users eu on eu.id = $3
+       where b.id = $1 and b.expert_id = $2 limit 1`,
+      [req.params.id, expert.id, req.user.sub]
     );
     const booking = bRes.rows[0];
     if (!booking) {
@@ -847,9 +858,29 @@ router.patch('/expert-portal/bookings/:id', requireAuth, async (req, res) => {
       return res.status(409).json({ success: false, message: 'Không thể huỷ lịch này.' });
     }
 
+    let zoomMeeting = null;
+    if (status === 'confirmed' && ['voice', 'video'].includes(booking.session_type)) {
+      try {
+        zoomMeeting = await createZoomMeeting({
+          topic: `PeaceFlow - ${expert.full_name} - ${booking.client_name}`,
+          startsAt: booking.starts_at,
+          durationMinutes: booking.duration_minutes
+        });
+      } catch (error) {
+        console.error('[zoom] meeting creation failed:', error);
+        return res.status(503).json({ success: false, message: 'Không thể tạo phòng Zoom. Vui lòng thử lại hoặc báo quản trị viên.' });
+      }
+    }
+
     const updated = await db.query(
-      `update expert_bookings set status = $2 where id = $1 returning *`,
-      [booking.id, status]
+      zoomMeeting
+        ? `update expert_bookings
+           set status = $2, zoom_meeting_id = $3, zoom_join_url = $4, zoom_start_url = $5, zoom_password = $6
+           where id = $1 returning *`
+        : `update expert_bookings set status = $2 where id = $1 returning *`,
+      zoomMeeting
+        ? [booking.id, status, zoomMeeting.id, zoomMeeting.joinUrl, zoomMeeting.startUrl, zoomMeeting.password]
+        : [booking.id, status]
     );
     const b = updated.rows[0];
 
@@ -904,6 +935,38 @@ router.patch('/expert-portal/bookings/:id', requireAuth, async (req, res) => {
           startsAt: updated.rows[0].starts_at,
           status
         });
+      }
+      if (status === 'confirmed' && zoomMeeting) {
+        try {
+          await Promise.all([
+          client?.email && sendBookingConfirmedEmail({
+            to: client.email,
+            recipientName: client.name,
+            expertName: expert.full_name,
+            clientName: booking.client_name,
+            sessionType: b.session_type,
+            startsAt: b.starts_at,
+            durationMinutes: b.duration_minutes,
+            joinUrl: zoomMeeting.joinUrl,
+            startUrl: null,
+            isExpert: false
+          }),
+          booking.expert_email && sendBookingConfirmedEmail({
+            to: booking.expert_email,
+            recipientName: expert.full_name,
+            expertName: expert.full_name,
+            clientName: booking.client_name,
+            sessionType: b.session_type,
+            startsAt: b.starts_at,
+            durationMinutes: b.duration_minutes,
+            joinUrl: zoomMeeting.joinUrl,
+            startUrl: zoomMeeting.startUrl,
+            isExpert: true
+          })
+          ]);
+        } catch (e) {
+          console.error('[email] Zoom links failed:', e.message);
+        }
       }
     } catch (e) {
       console.error('[email] booking status failed:', e.message);
