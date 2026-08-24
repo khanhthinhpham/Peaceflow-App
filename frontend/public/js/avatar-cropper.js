@@ -17,7 +17,7 @@ function readImage(file) {
     return new Promise((resolve, reject) => {
         const url = URL.createObjectURL(file);
         const image = new Image();
-        image.onload = () => { URL.revokeObjectURL(url); resolve(image); };
+        image.onload = () => resolve({ image, url });
         image.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Không đọc được ảnh.')); };
         image.src = url;
     });
@@ -34,7 +34,8 @@ function canvasFile(canvas, name) {
 
 export async function cropAvatarFile(file) {
     if (!file || !file.type.startsWith('image/')) throw new Error('Vui lòng chọn file ảnh hợp lệ.');
-    const image = await readImage(file);
+    const loaded = await readImage(file);
+    const image = loaded.image;
     const backdrop = document.createElement('div');
     backdrop.className = 'avatar-crop-backdrop';
     backdrop.innerHTML = `${cropStyles()}
@@ -51,6 +52,7 @@ export async function cropAvatarFile(file) {
     const stage = backdrop.querySelector('.avatar-crop-stage');
     const preview = backdrop.querySelector('.avatar-crop-image');
     const zoom = backdrop.querySelector('input');
+    preview.src = loaded.url;
     const baseScale = Math.max(stage.clientWidth / image.width, stage.clientHeight / image.height);
     const state = { scale: baseScale, zoom: 1, x: 0, y: 0, startX: 0, startY: 0, dragging: false };
 
@@ -64,7 +66,7 @@ export async function cropAvatarFile(file) {
     render();
 
     const result = await new Promise((resolve, reject) => {
-        const close = (value, error) => { backdrop.remove(); if (error) reject(error); else resolve(value); };
+        const close = (value, error) => { URL.revokeObjectURL(loaded.url); backdrop.remove(); if (error) reject(error); else resolve(value); };
         backdrop.querySelector('.avatar-crop-cancel').addEventListener('click', () => close(null));
         backdrop.addEventListener('click', (event) => { if (event.target === backdrop) close(null); });
         zoom.addEventListener('input', () => { state.zoom = Number(zoom.value); render(); });
