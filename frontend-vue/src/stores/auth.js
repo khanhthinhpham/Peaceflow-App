@@ -125,7 +125,11 @@ export const useAuthStore = defineStore('auth', {
       if (!this.isAuthenticated) return false;
 
       if (!this._authCheckPromise) {
-        this._authCheckPromise = apiClient.get('/me', { noCache: true })
+        // Dùng SWR cache (giống các nơi khác đọc /me: ProfileView, CommunityView, SettingsView)
+        // thay vì noCache — trước đây mỗi lần chuyển trang đều bắt một round-trip /me mới, dù
+        // đã fetch cách đó vài giây, khiến trang nào cũng "load lâu mới hiện đúng thông tin".
+        // An toàn vì setSession()/logout() đã clearCache() nên không còn rò dữ liệu qua phiên.
+        this._authCheckPromise = apiClient.get('/me')
           .then((user) => {
             if (user) {
               this.user = { ...(this.user || {}), ...user };

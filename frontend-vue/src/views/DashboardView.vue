@@ -565,8 +565,10 @@ onMounted(async () => {
   window.addEventListener('peaceflow:booking-changed', handleMutation);
 
   try {
-    await auth.waitForAuth();
-    await refresh();
+    // Chạy song song thay vì chờ waitForAuth() xong mới bắt đầu refresh() — waitForAuth
+    // không quyết định việc có gọi refresh() hay không ở đây, nên chờ nối tiếp chỉ cộng
+    // thêm một round-trip vào thời gian hiện đúng dữ liệu mà không có lý do.
+    await Promise.all([auth.waitForAuth(), refresh()]);
   } catch (error) {
     console.error('Dashboard init error:', error);
   }
