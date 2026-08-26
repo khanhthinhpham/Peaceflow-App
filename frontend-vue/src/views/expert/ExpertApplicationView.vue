@@ -149,6 +149,13 @@ const router = useRouter();
 const auth = useAuthStore();
 const expertPortal = useExpertPortalStore();
 
+// Vue 3 tự ép giá trị v-model của <input type="number"> thành số (không phải chuỗi) ngay khi
+// người dùng tương tác với ô, dù không dùng v-model.number — String() trước khi .trim() để
+// basePrice/experienceYears luôn an toàn dù đang là số hay chuỗi.
+function str(v) {
+  return String(v ?? '').trim();
+}
+
 const banner = ref({ message: '', type: 'info' });
 function setBanner(message, type = 'info') {
   banner.value = { message: message || '', type };
@@ -286,9 +293,9 @@ async function submit() {
         degree: trimmedDegree,
         avatar_emoji: avatarEmoji.value.trim() || '👩‍⚕️',
         status: expertStatus.value,
-        base_price: basePrice.value.trim() || '0',
+        base_price: str(basePrice.value) || '0',
         location: location.value.trim(),
-        experience_years: experienceYears.value.trim() || '0',
+        experience_years: str(experienceYears.value) || '0',
         specialties: specialties.value.trim(),
         bio: bio.value.trim(),
         credentials: credentials.value.trim(),
@@ -307,7 +314,7 @@ async function submit() {
       formData.set('phone', trimmedPhone);
       formData.set('degree', trimmedDegree);
       formData.set('specialties', specialties.value.trim());
-      formData.set('experience_years', experienceYears.value.trim() || '0');
+      formData.set('experience_years', str(experienceYears.value) || '0');
       formData.set('location', location.value.trim());
       formData.set('bio', bio.value.trim());
       formData.set('credential_file', credentialFile);

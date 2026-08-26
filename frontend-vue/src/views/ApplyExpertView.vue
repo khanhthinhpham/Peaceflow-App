@@ -138,7 +138,7 @@ async function submit() {
     formData.set('phone', phone.value.trim());
     formData.set('degree', degree.value.trim());
     formData.set('specialties', specialties.value.trim());
-    formData.set('experience_years', experienceYears.value.trim() || '0');
+    formData.set('experience_years', String(experienceYears.value ?? '').trim() || '0');
     formData.set('location', location.value.trim());
     formData.set('bio', bio.value.trim());
     formData.set('credential_file', credentialFile);
