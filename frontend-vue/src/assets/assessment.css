@@ -636,6 +636,43 @@
     margin-bottom: 16px;
 }
 
+.result-ai-summary {
+    padding: 20px;
+    margin-bottom: 16px;
+    background: linear-gradient(135deg, var(--mint-light), var(--sky-light));
+    border-color: var(--mint);
+}
+
+.ai-summary-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.ai-summary-icon {
+    font-size: 1.3rem;
+    animation: ai-summary-bounce 3s ease-in-out infinite;
+}
+
+@keyframes ai-summary-bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-4px); }
+}
+
+.ai-summary-loading {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    font-style: italic;
+}
+
+.ai-summary-text {
+    font-size: 0.88rem;
+    line-height: 1.7;
+    color: var(--text-primary);
+    white-space: pre-line;
+}
+
 .ri-title {
     font-size: 0.9rem;
     font-weight: 700;

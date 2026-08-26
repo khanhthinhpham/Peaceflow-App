@@ -36,6 +36,8 @@ export const env = {
   ragApiKey: process.env.RAG_API_KEY,
   ragAdminKey: process.env.RAG_ADMIN_KEY,
   ragTenantId: process.env.RAG_TENANT_ID || 'peaceflow',
+  geminiApiKey: process.env.GEMINI_API_KEY,
+  geminiModel: process.env.GEMINI_MODEL || 'gemini-3.6-flash',
   vapidPublicKey: process.env.VAPID_PUBLIC_KEY || 'BBmum3N-lH6Ig9bGbellDDyTeSxZHQbYBmbXwtQGyMguftr1YOBsonHfT3JFJfvLMYpV-O-g57qC_IFg85rWrbE',
   vapidPrivateKey: process.env.VAPID_PRIVATE_KEY,
   vapidEmail: process.env.VAPID_EMAIL || 'mailto:admin@peaceflow.vn',

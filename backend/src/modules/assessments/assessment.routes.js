@@ -2,6 +2,7 @@ import { Router } from 'express';
 import multer from 'multer';
 import { requireAuth } from '../../common/middleware/auth.middleware.js';
 import { db } from '../../config/db.js';
+import { getAssessmentAiSummary } from '../ai/ai.service.js';
 
 const router = Router();
 
@@ -240,6 +241,48 @@ router.post('/assessments/:code/submit', requireAuth, async (req, res) => {
       success: false,
       message: 'Could not submit assessment result'
     });
+  }
+});
+
+// Tổng kết nhận xét bằng AI (Gemini) cho 1 kết quả đã nộp — gọi riêng, không chặn
+// lúc nộp bài, để nếu Gemini lỗi/chậm thì không ảnh hưởng việc lưu kết quả test.
+router.post('/assessments/results/:id/ai-summary', requireAuth, async (req, res) => {
+  try {
+    const resultRes = req.user.role === 'admin'
+      ? await db.query(
+          `select ar.total_score, ar.severity, ar.dimension_scores, a.name as assessment_name
+           from assessment_results ar
+           join assessments a on a.id = ar.assessment_id
+           where ar.id = $1 limit 1`,
+          [req.params.id]
+        )
+      : await db.query(
+          `select ar.total_score, ar.severity, ar.dimension_scores, a.name as assessment_name
+           from assessment_results ar
+           join assessments a on a.id = ar.assessment_id
+           where ar.id = $1 and ar.user_id = $2 limit 1`,
+          [req.params.id, req.user.sub]
+        );
+
+    const result = resultRes.rows[0];
+    if (!result) {
+      return res.status(404).json({ success: false, message: 'Không tìm thấy kết quả này.' });
+    }
+
+    // TẠM: giả lập kết quả AI để xem UI trong lúc chưa nạp credit Gemini — bỏ dòng
+    // này và mở lại lời gọi getAssessmentAiSummary() thật khi tài khoản Gemini có credit.
+    const summary = `Kết quả bài "${result.assessment_name}" của bạn cho thấy mức độ ${result.severity || 'ở ngưỡng cần lưu ý'} với ${result.total_score} điểm. Đây là dấu hiệu bạn nên chú ý hơn đến trạng thái tâm lý của mình trong những ngày gần đây, đặc biệt là giấc ngủ và cách bạn phản ứng với áp lực. Đừng quá lo lắng — những cảm giác này là bình thường và có thể cải thiện được. Hôm nay, hãy thử dành 10 phút ngồi yên hít thở sâu hoặc ghi lại 3 điều khiến bạn thấy nhẹ nhõm hơn.`;
+    /* const summary = await getAssessmentAiSummary({
+      assessmentName: result.assessment_name,
+      totalScore: Number(result.total_score || 0),
+      severity: result.severity,
+      dimensionScores: result.dimension_scores
+    }); */
+
+    return res.json({ success: true, data: { summary } });
+  } catch (error) {
+    console.error('Assessment AI summary error:', error);
+    return res.status(500).json({ success: false, message: 'Không thể tạo nhận xét AI lúc này.' });
   }
 });
 

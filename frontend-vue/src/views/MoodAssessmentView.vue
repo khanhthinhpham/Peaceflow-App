@@ -240,6 +240,16 @@
           </div>
         </div>
 
+        <div class="paper-card result-ai-summary" v-if="aiSummaryLoading || aiSummaryText">
+          <div class="ai-summary-header">
+            <span class="ai-summary-icon">🤖</span>
+            <span class="ri-title" style="margin-bottom:0;">Nhận xét từ AI</span>
+            <span class="badge-pill badge-mint" style="margin-left:auto;">AI</span>
+          </div>
+          <div v-if="aiSummaryLoading" class="ai-summary-loading">Đang phân tích kết quả...</div>
+          <div v-else class="ai-summary-text">{{ aiSummaryText }}</div>
+        </div>
+
         <div class="paper-card result-comparison">
           <div class="rc-title">📈 So sánh với lần trước</div>
           <div class="rc-bars">
@@ -350,6 +360,8 @@ const currentQIndex = ref(0);
 const answers = ref([]);
 const result = ref(null);
 const resultSaveNote = ref('');
+const aiSummaryText = ref('');
+const aiSummaryLoading = ref(false);
 const resultSubtitleBase = ref('');
 const apiTasks = ref(null);
 
@@ -634,6 +646,8 @@ function finishTest() {
   const now = new Date();
   resultSubtitleBase.value = `Hoàn thành lúc ${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')} — ${now.toLocaleDateString('vi-VN')}`;
   resultSaveNote.value = '';
+  aiSummaryText.value = '';
+  aiSummaryLoading.value = false;
 
   // Evaluate logic
   const subScores = {};
@@ -808,13 +822,27 @@ async function loadRecommendedTasks() {
   }
 }
 
+async function loadAiSummary(resultId) {
+  if (!resultId) return;
+  aiSummaryLoading.value = true;
+  try {
+    const data = await apiClient.post(`/assessments/results/${resultId}/ai-summary`, {});
+    aiSummaryText.value = data?.summary || '';
+  } catch (error) {
+    console.error('Assessment AI summary load failed:', error);
+    aiSummaryText.value = '';
+  } finally {
+    aiSummaryLoading.value = false;
+  }
+}
+
 async function onAssessmentFinished(payload) {
   const meta = ASSESSMENT_META[payload.testId];
   if (!meta) return;
 
   try {
     const savedRespondent = JSON.parse(localStorage.getItem(RESPONDENT_STORAGE_KEY) || 'null') || {};
-    await apiClient.post(`/assessments/${meta.apiCode}/submit`, {
+    const saved = await apiClient.post(`/assessments/${meta.apiCode}/submit`, {
       raw_answers: payload.rawAnswers,
       total_score: payload.totalScore,
       severity: payload.severity,
@@ -829,7 +857,8 @@ async function onAssessmentFinished(payload) {
 
     await Promise.all([
       loadAssessmentData(),
-      loadRecommendedTasks()
+      loadRecommendedTasks(),
+      loadAiSummary(saved?.id)
     ]);
   } catch (error) {
     console.error('Assessment submit failed:', error);

@@ -1,13 +1,20 @@
 <template>
   <div v-if="notif.panelOpen" ref="panelEl" class="notif-panel">
     <template v-if="!notif.notifications.length">
+      <div class="notif-panel-header">
+        <span>Thông báo</span>
+        <button class="notif-panel-close" @click="notif.closePanel()" aria-label="Đóng thông báo">✕</button>
+      </div>
       <div class="notif-empty">
         <div class="notif-empty-icon">🔔</div>
         <div class="notif-empty-text">Không có thông báo nào</div>
       </div>
     </template>
     <template v-else>
-      <div class="notif-panel-header">Thông báo</div>
+      <div class="notif-panel-header">
+        <span>Thông báo</span>
+        <button class="notif-panel-close" @click="notif.closePanel()" aria-label="Đóng thông báo">✕</button>
+      </div>
       <a
         v-for="n in notif.notifications"
         :key="n.id"
@@ -75,7 +82,32 @@ onBeforeUnmount(() => document.removeEventListener('click', handleOutsideClick))
 .notif-empty { padding: 24px; text-align: center; color: var(--text-secondary); }
 .notif-empty-icon { font-size: 2rem; margin-bottom: 8px; }
 .notif-empty-text { font-size: 0.88rem; }
-.notif-panel-header { padding: 12px 16px; border-bottom: 1px solid var(--kraft-light); font-weight: 800; font-size: 0.88rem; }
+.notif-panel-header {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--kraft-light);
+  font-weight: 800;
+  font-size: 0.88rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.notif-panel-close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+  color: var(--text-secondary);
+  padding: 4px 8px;
+  line-height: 1;
+}
+.notif-panel-close:active { color: var(--text-primary); }
+@media (max-width: 640px) {
+  .notif-panel {
+    left: 12px;
+    right: 12px;
+    width: auto;
+  }
+}
 .notif-item {
   display: flex;
   gap: 12px;

@@ -53,6 +53,15 @@
       </div>
       <p style="font-style: italic;">{{ saveStatus }}</p>
 
+      <div v-if="aiSummaryLoading || aiSummaryText" class="rv-ai-summary" style="text-align:left;margin:20px 0;">
+        <div class="rv-ai-summary-header">
+          <span class="rv-ai-summary-icon">🤖</span>
+          <span class="rv-ai-summary-title">Nhận xét từ AI</span>
+        </div>
+        <p v-if="aiSummaryLoading" class="rv-ai-summary-loading">Đang phân tích kết quả...</p>
+        <p v-else class="rv-ai-summary-text">{{ aiSummaryText }}</p>
+      </div>
+
       <div v-if="showAttachCard" class="rv-card" style="text-align:left;margin:20px 0;">
         <h3 style="margin-top:0;">📷 Đính kèm ảnh (nếu có)</h3>
         <p style="color:var(--text-secondary);font-size:0.85rem;">Nếu bạn làm bài trên phiếu giấy gốc, hãy chụp/tải ảnh phiếu trả lời lên đây để chuyên gia xem khi chấm điểm.</p>
@@ -92,6 +101,8 @@ const attachStatus = ref('');
 const attachUploading = ref(false);
 const attachInputEl = ref(null);
 const savedResultId = ref(null);
+const aiSummaryText = ref('');
+const aiSummaryLoading = ref(false);
 
 const currentItem = computed(() => ITEMS[index.value]);
 const progressPct = computed(() => Math.round((index.value / ITEMS.length) * 100));
@@ -179,10 +190,25 @@ async function finish() {
     });
     savedResultId.value = saved?.id || null;
     saveStatus.value = 'Đã lưu vào hồ sơ.';
+    loadAiSummary(savedResultId.value);
   } catch (error) {
     console.error('Raven submit failed:', error);
     saveStatus.value = 'Chưa lưu được vào hồ sơ, vui lòng thử lại sau.';
     showAttachCard.value = false;
+  }
+}
+
+async function loadAiSummary(resultId) {
+  if (!resultId) return;
+  aiSummaryLoading.value = true;
+  try {
+    const data = await apiClient.post(`/assessments/results/${resultId}/ai-summary`, {});
+    aiSummaryText.value = data?.summary || '';
+  } catch (error) {
+    console.error('Raven AI summary load failed:', error);
+    aiSummaryText.value = '';
+  } finally {
+    aiSummaryLoading.value = false;
   }
 }
 
@@ -237,6 +263,13 @@ onMounted(async () => {
 .rv-back { text-decoration: none; color: var(--text-secondary); font-weight: 700; padding: 8px 14px; border-radius: 999px; border: 1.5px solid var(--kraft-light); background: var(--warm-white); }
 .rv-disclaimer { background: var(--peach-light); border: 1.5px solid var(--peach); border-radius: var(--radius-md); padding: 14px 16px; font-size: 0.88rem; line-height: 1.5; margin-bottom: 20px; }
 .rv-card { background: var(--warm-white); border: 2px solid var(--kraft-light); border-radius: var(--radius-md); box-shadow: var(--shadow-paper); padding: 18px; }
+.rv-ai-summary { background: linear-gradient(135deg, var(--mint-light), var(--sky-light)); border: 2px solid var(--mint); border-radius: var(--radius-md); box-shadow: var(--shadow-paper); padding: 18px; }
+.rv-ai-summary-header { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+.rv-ai-summary-icon { font-size: 1.3rem; animation: rv-ai-bounce 3s ease-in-out infinite; }
+@keyframes rv-ai-bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+.rv-ai-summary-title { font-weight: 700; font-size: 0.95rem; }
+.rv-ai-summary-text { line-height: 1.7; font-size: 0.9rem; color: var(--text-primary); white-space: pre-line; }
+.rv-ai-summary-loading { font-size: 0.85rem; color: var(--text-secondary); font-style: italic; }
 .rv-progress-row { display: flex; justify-content: space-between; font-size: 0.85rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 8px; }
 .rv-progress-bar { height: 8px; border-radius: 999px; background: var(--kraft-light); overflow: hidden; margin-bottom: 18px; }
 .rv-progress-fill { height: 100%; background: linear-gradient(90deg, var(--mint-dark), var(--sky)); transition: width 0.25s ease; }
