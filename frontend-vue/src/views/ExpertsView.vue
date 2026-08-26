@@ -246,7 +246,7 @@ Ví dụ: Tôi đang gặp khó khăn với lo âu công việc và mất ngủ 
       <div v-if="reviewOpen" style="background:var(--warm-white);border-radius:18px;max-width:420px;width:calc(100% - 32px);padding:24px;box-shadow:0 24px 60px rgba(74,55,40,.2);">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
           <h3 style="margin:0;font-size:1.2rem;">Đánh giá buổi tư vấn</h3>
-          <button style="background:none;border:none;font-size:1.1rem;cursor:pointer;color:var(--text-secondary);" @click="reviewOpen = false">✕</button>
+          <button style="background:none;border:none;font-size:1.1rem;cursor:pointer;color:var(--text-secondary);" @click="closeReviewModal">✕</button>
         </div>
         <p style="margin:0 0 16px;color:var(--text-secondary);">{{ reviewState.expertName ? `Buổi tư vấn với ${reviewState.expertName}` : '' }}</p>
         <div style="display:flex;gap:8px;justify-content:center;margin-bottom:16px;">
@@ -268,7 +268,7 @@ Ví dụ: Tôi đang gặp khó khăn với lo âu công việc và mất ngủ 
     <div class="modal-overlay" :class="{ show: profileOpen }" @click="closeProfileIfOutside">
       <div class="profile-modal" v-if="profileOpen && currentExpert">
         <div class="pm-hero">
-          <button class="pm-close" @click="profileOpen = false">✕</button>
+          <button class="pm-close" @click="closeProfileModal">✕</button>
           <div class="pm-avatar">
             <img v-if="avatarUrls[currentExpert.id]" :src="avatarUrls[currentExpert.id]" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:block;">
             <template v-else>{{ currentExpert.avatar }}</template>
@@ -307,8 +307,8 @@ Ví dụ: Tôi đang gặp khó khăn với lo âu công việc và mất ngủ 
             <div class="pm-reviews"></div>
           </div>
           <div style="display:flex;gap:10px;margin-top:16px;">
-            <button class="btn-primary" style="flex:1;justify-content:center;" @click="profileOpen = false; openBookingModal(currentExpertId)">📅 Đặt lịch ngay</button>
-            <button class="btn-outline" @click="profileOpen = false">Đóng</button>
+            <button class="btn-primary" style="flex:1;justify-content:center;" @click="closeProfileModal(); openBookingModal(currentExpertId)">📅 Đặt lịch ngay</button>
+            <button class="btn-outline" @click="closeProfileModal">Đóng</button>
           </div>
         </div>
       </div>
@@ -956,8 +956,12 @@ function openProfileModal(id) {
   profileOpen.value = true;
   document.body.style.overflow = 'hidden';
 }
+function closeProfileModal() {
+  profileOpen.value = false;
+  document.body.style.overflow = '';
+}
 function closeProfileIfOutside(event) {
-  if (event.target.classList.contains('modal-overlay')) profileOpen.value = false;
+  if (event.target.classList.contains('modal-overlay')) closeProfileModal();
 }
 
 // ============================================================
@@ -998,8 +1002,12 @@ function openReviewModal(bookingId, expertName) {
   reviewOpen.value = true;
   document.body.style.overflow = 'hidden';
 }
+function closeReviewModal() {
+  reviewOpen.value = false;
+  document.body.style.overflow = '';
+}
 function closeReviewIfOutside(event) {
-  if (event.target.classList.contains('modal-overlay')) reviewOpen.value = false;
+  if (event.target.classList.contains('modal-overlay')) closeReviewModal();
 }
 async function submitReview() {
   if (!reviewState.bookingId) return;
@@ -1008,7 +1016,7 @@ async function submitReview() {
       rating: reviewState.rating,
       comment: reviewState.comment.trim()
     });
-    reviewOpen.value = false;
+    closeReviewModal();
     loadMyBookings();
   } catch (error) {
     alert(error.message || 'Không gửi được đánh giá.');
@@ -1056,6 +1064,10 @@ onBeforeUnmount(() => {
   window.removeEventListener('peaceflow:booking-changed', handleBookingChanged);
   stopPaymentCountdown();
   stopPaymentPoll();
+  // Lưới an toàn: nếu người dùng điều hướng sang trang khác trong lúc modal (đặt lịch/hồ sơ/
+  // đánh giá) còn mở, Vue unmount component mà không chạy các hàm close* — nếu không reset ở
+  // đây, body sẽ bị kẹt overflow:hidden vĩnh viễn (phải F5 mới vuốt/scroll được lại).
+  document.body.style.overflow = '';
 });
 </script>
 

@@ -342,7 +342,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
 import { useAuthStore } from '../stores/auth';
 
 const auth = useAuthStore();
@@ -473,6 +473,13 @@ function closeAuthDropdownOnOutsideClick(event) {
 onMounted(() => {
   document.addEventListener('click', closeAuthDropdownOnOutsideClick);
   auth.waitForAuth();
+});
+
+onBeforeUnmount(() => {
+  document.removeEventListener('click', closeAuthDropdownOnOutsideClick);
+  // Lưới an toàn: router-link trong mobile-nav-panel điều hướng đi luôn mà không
+  // gọi closeMobileNav() trước, nếu không reset ở đây body sẽ bị kẹt overflow:hidden.
+  document.body.style.overflow = '';
 });
 </script>
 
