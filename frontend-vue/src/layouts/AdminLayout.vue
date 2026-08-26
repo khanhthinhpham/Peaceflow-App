@@ -13,13 +13,15 @@
 </template>
 
 <script setup>
-import { ref, watch, onMounted } from 'vue';
+import { ref, watch, onMounted, onBeforeUnmount } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import AdminSidebar from '../components/AdminSidebar.vue';
 import AdminMobileTopbar from '../components/AdminMobileTopbar.vue';
 import NotificationPanel from '../components/NotificationPanel.vue';
 import { useAuthStore } from '../stores/auth';
 import { useNotificationsStore } from '../stores/notifications';
+import { useAdminBadgesStore } from '../stores/adminBadges';
+import { apiClient } from '../lib/apiClient';
 import '../assets/admin.css';
 
 const sidebarOpen = ref(false);
@@ -30,6 +32,18 @@ watch(() => route.fullPath, () => { sidebarOpen.value = false; });
 
 const auth = useAuthStore();
 const notif = useNotificationsStore();
+const adminBadges = useAdminBadgesStore();
+
+// Giống ensureAdminLiveBadges() ở bản gốc — badge trên sidebar tự cập nhật ngay khi có
+// thông báo liên quan (lịch hẹn mới, bài viết bị báo cáo...) mà không cần chuyển trang.
+async function refreshAdminBadges() {
+  try {
+    const o = await apiClient.get('/admin/overview', { noCache: true });
+    adminBadges.setBadge('experts', o.pending_expert_applications);
+    adminBadges.setBadge('payments', o.pending_payment_bookings);
+    adminBadges.setBadge('community', o.reported_community_posts);
+  } catch (_e) { /* ignore */ }
+}
 
 onMounted(async () => {
   const authenticated = await auth.waitForAuth();
@@ -43,6 +57,11 @@ onMounted(async () => {
   }
   ready.value = true;
   notif.init();
+  window.addEventListener('peaceflow:booking-changed', refreshAdminBadges);
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener('peaceflow:booking-changed', refreshAdminBadges);
 });
 </script>
 

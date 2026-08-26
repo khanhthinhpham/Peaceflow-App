@@ -758,7 +758,8 @@ function openBookingModal(id) {
   const defaultTier = durationTierOptionsFor(expert)[0];
   Object.assign(bookingData, {
     expertId: id, sessionType: 'voice', durationTier: defaultTier.key, price: defaultTier.price,
-    duration: defaultTier.minutes, date: '', time: '10:00', startsAt: '', topic: '', severity: '', notes: ''
+    // Bản gốc (renderCalendar()) tự chọn ngày hôm nay làm mặc định khi mở modal — giữ đúng hành vi đó.
+    duration: defaultTier.minutes, date: new Date().toISOString().slice(0, 10), time: '10:00', startsAt: '', topic: '', severity: '', notes: ''
   });
   notesFreeText.value = '';
   bookingStep.value = 1;
@@ -939,6 +940,7 @@ async function cancelMyBooking(bookingId) {
   if (!window.confirm('Bạn chắc chắn muốn huỷ lịch hẹn này?')) return;
   try {
     const r = await apiClient.post(`/expert-bookings/${bookingId}/cancel`, {});
+    alert(r?.refunded ? `Đã huỷ. Hoàn ${formatCurrency(r.refunded)} vào ví.` : 'Đã huỷ lịch hẹn.');
     loadMyBookings();
     loadWallet();
   } catch (error) {
