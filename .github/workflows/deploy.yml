@@ -43,11 +43,11 @@ jobs:
       - name: Build frontend-vue
         working-directory: frontend-vue
         run: npm run build
-        env:
-          GITHUB_PAGES: "true"
       - name: SPA fallback for GitHub Pages (deep links / refresh)
         working-directory: frontend-vue
         run: cp dist/index.html dist/404.html
+      - name: Preserve custom domain (peaceflow.vn)
+        run: cp CNAME frontend-vue/dist/CNAME
       - name: Setup Pages
         uses: actions/configure-pages@v4
       - name: Upload artifact
