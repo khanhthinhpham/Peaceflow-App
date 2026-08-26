@@ -31,7 +31,11 @@ const MIGRATED_PAGES = {
   'task-meditation.html': '/task-meditation',
   'emergency.html': '/emergency',
   'index.html': '/',
-  'expert-application.html': '/expert/application'
+  'expert-application.html': '/expert/application',
+  // Backend (notification.routes.js) vẫn gửi action theo path kiểu cũ của khu chuyên gia —
+  // dịch sang route Vue tương ứng thay vì bật ra app cũ.
+  'expert/app.html': '/expert/dashboard',
+  'expert/apply.html': '/expert-apply'
 };
 
 // Dùng cho các luồng redirect nhận vào tên trang kiểu cũ (ví dụ sau khi login/signup).

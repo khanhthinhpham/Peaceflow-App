@@ -553,7 +553,7 @@ router.post('/experts/:id/bookings', requireAuth, async (req, res) => {
     let auto = false;
     if (isPayosEnabled() && amount > 0) {
       try {
-        const ret = `${env.frontendUrl}/pages/experts.html`;
+        const ret = `${env.frontendUrl}/experts`;
         const data = await createPayosPayment({ orderCode, amount, description: transferContent(orderCode), returnUrl: ret, cancelUrl: ret });
         qrUrl = data.qrCode ? qrImageFromString(data.qrCode) : qrUrl;
         checkoutUrl = data.checkoutUrl || null;
@@ -2011,7 +2011,7 @@ router.post('/admin/bookings/:id/confirm-payment', requireAuth, async (req, res)
         b.expert_user_id,
         'Lịch hẹn mới',
         'Có lịch đã thanh toán — mời bạn nhận hoặc từ chối.',
-        `${env.frontendUrl}/pages/expert/app.html?page=dashboard.html`
+        `${env.frontendUrl}/expert/dashboard`
       );
     } catch (e) {
       console.error('[push] booking request failed:', e.message);

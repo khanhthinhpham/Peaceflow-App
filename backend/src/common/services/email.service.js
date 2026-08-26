@@ -7,7 +7,7 @@ const APP_URL = env.frontendUrl;
 
 export async function sendVerificationEmail(user, token) {
   ensureResendConfigured();
-  const link = `${APP_URL}/pages/verify-email.html?token=${token}`;
+  const link = `${APP_URL}/verify-email?token=${token}`;
 
   await resend.emails.send({
     from: FROM,
@@ -81,7 +81,7 @@ export async function sendExpertApplicationToAdmin({ application, fileBuffer }) 
 
 export async function sendExpertApprovedEmail(user) {
   ensureResendConfigured();
-  const link = `${APP_URL}/pages/login.html`;
+  const link = `${APP_URL}/login`;
   await resend.emails.send({
     from: FROM,
     to: user.email,
@@ -120,7 +120,7 @@ export async function sendExpertRejectedEmail(user) {
 
 export async function sendPasswordResetEmail(user, token) {
   ensureResendConfigured();
-  const link = `${APP_URL}/pages/reset-password.html?token=${token}`;
+  const link = `${APP_URL}/reset-password?token=${token}`;
 
   await resend.emails.send({
     from: FROM,
@@ -159,7 +159,7 @@ function formatBookingTime(value) {
 // Gửi cho chuyên gia khi có thân chủ đặt lịch mới (chờ xác nhận).
 export async function sendBookingRequestEmail({ to, expertName, clientName, sessionType, startsAt }) {
   if (!resend || !to) return;
-  const portalLink = `${APP_URL}/pages/expert/app.html?page=dashboard.html`;
+  const portalLink = `${APP_URL}/expert/dashboard`;
   await resend.emails.send({
     from: FROM,
     to,
@@ -202,7 +202,7 @@ export async function sendBookingStatusEmail({ to, clientName, expertName, sessi
   }[status];
   if (!info) return;
 
-  const link = `${APP_URL}/pages/experts.html`;
+  const link = `${APP_URL}/experts`;
   await resend.emails.send({
     from: FROM,
     to,
@@ -225,8 +225,8 @@ export async function sendBookingStatusEmail({ to, clientName, expertName, sessi
 export async function sendBookingConfirmedEmail({ to, recipientName, expertName, clientName, sessionType, startsAt, durationMinutes, joinUrl, startUrl, isExpert }) {
   if (!resend || !to || !joinUrl) return;
   const portalLink = isExpert
-    ? `${APP_URL}/pages/expert/app.html?page=dashboard.html`
-    : `${APP_URL}/pages/experts.html`;
+    ? `${APP_URL}/expert/dashboard`
+    : `${APP_URL}/experts`;
   const actionUrl = startUrl || joinUrl;
   await resend.emails.send({
     from: FROM,
