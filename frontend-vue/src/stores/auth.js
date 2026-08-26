@@ -62,6 +62,20 @@ export const useAuthStore = defineStore('auth', {
       return apiClient.get('/auth/expert-application/me', { noCache: true });
     },
 
+    async submitExpertApplication(formData) {
+      EventLogger.log('auth', 'submit_expert_application:attempt');
+      const data = await apiClient.postForm('/auth/expert-application', formData);
+      EventLogger.log('auth', 'submit_expert_application:success', { applicationId: data.application?.id });
+      return data;
+    },
+
+    async updateExpertProfile(payload) {
+      EventLogger.log('auth', 'update_expert_profile:attempt');
+      const data = await apiClient.put('/expert-portal/profile', payload);
+      EventLogger.log('auth', 'update_expert_profile:success');
+      return data;
+    },
+
     async login(email, password) {
       EventLogger.log('auth', 'login:attempt');
       const data = await apiClient.post('/auth/login', {
