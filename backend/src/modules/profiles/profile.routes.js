@@ -43,11 +43,11 @@ router.put('/profile', requireAuth, async (req, res) => {
            relationship_status = coalesce($3, relationship_status),
            sleep_target_hours = coalesce($4, sleep_target_hours),
            preferred_task_duration = coalesce($5, preferred_task_duration),
-           stress_triggers = case when $6 is null then stress_triggers else coalesce(stress_triggers, '[]'::jsonb) || $6::jsonb end,
-           support_preferences = case when $7 is null then support_preferences else coalesce(support_preferences, '{}'::jsonb) || $7::jsonb end,
-           goals = case when $8 is null then goals else $8::jsonb end,
-           onboarding_answers = case when $9 is null then onboarding_answers else coalesce(onboarding_answers, '{}'::jsonb) || $9::jsonb end,
-           personalization_weights = case when $10 is null then personalization_weights else coalesce(personalization_weights, '{}'::jsonb) || $10::jsonb end,
+           stress_triggers = case when $6::jsonb is null then stress_triggers else coalesce(stress_triggers, '[]'::jsonb) || $6::jsonb end,
+           support_preferences = case when $7::jsonb is null then support_preferences else coalesce(support_preferences, '{}'::jsonb) || $7::jsonb end,
+           goals = case when $8::jsonb is null then goals else $8::jsonb end,
+           onboarding_answers = case when $9::jsonb is null then onboarding_answers else coalesce(onboarding_answers, '{}'::jsonb) || $9::jsonb end,
+           personalization_weights = case when $10::jsonb is null then personalization_weights else coalesce(personalization_weights, '{}'::jsonb) || $10::jsonb end,
            updated_at = now()
        where user_id = $1
        returning *`,

@@ -1,0 +1,3657 @@
+{
+  "dass21": {
+    "name": "DASS-21",
+    "questions": [
+      {
+        "text": "Tôi không thể cảm nhận được bất kỳ cảm xúc tích cực nào",
+        "options": [
+          {
+            "label": "Không xảy ra",
+            "score": 0
+          },
+          {
+            "label": "Đôi khi",
+            "score": 1
+          },
+          {
+            "label": "Thường xuyên",
+            "score": 2
+          },
+          {
+            "label": "Hầu hết lúc",
+            "score": 3
+          }
+        ]
+      },
+      {
+        "text": "Tôi cảm thấy khô miệng",
+        "options": [
+          {
+            "label": "Không xảy ra",
+            "score": 0
+          },
+          {
+            "label": "Đôi khi",
+            "score": 1
+          },
+          {
+            "label": "Thường xuyên",
+            "score": 2
+          },
+          {
+            "label": "Hầu hết lúc",
+            "score": 3
+          }
+        ]
+      },
+      {
+        "text": "Tôi không thể trải nghiệm bất kỳ cảm giác tích cực nào",
+        "options": [
+          {
+            "label": "Không xảy ra",
+            "score": 0
+          },
+          {
+            "label": "Đôi khi",
+            "score": 1
+          },
+          {
+            "label": "Thường xuyên",
+            "score": 2
+          },
+          {
+            "label": "Hầu hết lúc",
+            "score": 3
+          }
+        ]
+      },
+      {
+        "text": "Tôi gặp khó khăn trong việc thở (thở gấp, khó thở dù không vận động)",
+        "options": [
+          {
+            "label": "Không xảy ra",
+            "score": 0
+          },
+          {
+            "label": "Đôi khi",
+            "score": 1
+          },
+          {
+            "label": "Thường xuyên",
+            "score": 2
+          },
+          {
+            "label": "Hầu hết lúc",
+            "score": 3
+          }
+        ]
+      },
+      {
+        "text": "Tôi thấy khó có thể bắt đầu làm bất cứ việc gì",
+        "options": [
+          {
+            "label": "Không xảy ra",
+            "score": 0
+          },
+          {
+            "label": "Đôi khi",
+            "score": 1
+          },
+          {
+            "label": "Thường xuyên",
+            "score": 2
+          },
+          {
+            "label": "Hầu hết lúc",
+            "score": 3
+          }
+        ]
+      },
+      {
+        "text": "Tôi có xu hướng phản ứng thái quá với các tình huống",
+        "options": [
+          {
+            "label": "Không xảy ra",
+            "score": 0
+          },
+          {
+            "label": "Đôi khi",
+            "score": 1
+          },
+          {
+            "label": "Thường xuyên",
+            "score": 2
+          },
+          {
+            "label": "Hầu hết lúc",
+            "score": 3
+          }
+        ]
+      },
+      {
+        "text": "Tôi cảm thấy run rẩy (ví dụ: tay run)",
+        "options": [
+          {
+            "label": "Không xảy ra",
+            "score": 0
+          },
+          {
+            "label": "Đôi khi",
+            "score": 1
+          },
+          {
+            "label": "Thường xuyên",
+            "score": 2
+          },
+          {
+            "label": "Hầu hết lúc",
+            "score": 3
+          }
+        ]
+      },
+      {
+        "text": "Tôi cảm thấy mình đang tiêu tốn nhiều năng lượng thần kinh",
+        "options": [
+          {
+            "label": "Không xảy ra",
+            "score": 0
+          },
+          {
+            "label": "Đôi khi",
+            "score": 1
+          },
+          {
+            "label": "Thường xuyên",
+            "score": 2
+          },
+          {
+            "label": "Hầu hết lúc",
+            "score": 3
+          }
+        ]
+      },
+      {
+        "text": "Tôi lo lắng về những tình huống có thể khiến tôi hoảng sợ hoặc bị coi là ngốc nghếch",
+        "options": [
+          {
+            "label": "Không xảy ra",
+            "score": 0
+          },
+          {
+            "label": "Đôi khi",
+            "score": 1
+          },
+          {
+            "label": "Thường xuyên",
+            "score": 2
+          },
+          {
+            "label": "Hầu hết lúc",
+            "score": 3
+          }
+        ]
+      },
+      {
+        "text": "Tôi cảm thấy không có gì để mong đợi",
+        "options": [
+          {
+            "label": "Không xảy ra",
+            "score": 0
+          },
+          {
+            "label": "Đôi khi",
+            "score": 1
+          },
+          {
+            "label": "Thường xuyên",
+            "score": 2
+          },
+          {
+            "label": "Hầu hết lúc",
+            "score": 3
+          }
+        ]
+      },
+      {
+        "text": "Tôi thấy bản thân trở nên kích động",
+        "options": [
+          {
+            "label": "Không xảy ra",
+            "score": 0
+          },
+          {
+            "label": "Đôi khi",
+            "score": 1
+          },
+          {
+            "label": "Thường xuyên",
+            "score": 2
+          },
+          {
+            "label": "Hầu hết lúc",
+            "score": 3
+          }
+        ]
+      },
+      {
+        "text": "Tôi thấy khó thư giãn",
+        "options": [
+          {
+            "label": "Không xảy ra",
+            "score": 0
+          },
+          {
+            "label": "Đôi khi",
+            "score": 1
+          },
+          {
+            "label": "Thường xuyên",
+            "score": 2
+          },
+          {
+            "label": "Hầu hết lúc",
+            "score": 3
+          }
+        ]
+      },
+      {
+        "text": "Tôi cảm thấy buồn bã và chán nản",
+        "options": [
+          {
+            "label": "Không xảy ra",
+            "score": 0
+          },
+          {
+            "label": "Đôi khi",
+            "score": 1
+          },
+          {
+            "label": "Thường xuyên",
+            "score": 2
+          },
+          {
+            "label": "Hầu hết lúc",
+            "score": 3
+          }
+        ]
+      },
+      {
+        "text": "Tôi không kiên nhẫn khi bị gián đoạn",
+        "options": [
+          {
+            "label": "Không xảy ra",
+            "score": 0
+          },
+          {
+            "label": "Đôi khi",
+            "score": 1
+          },
+          {
+            "label": "Thường xuyên",
+            "score": 2
+          },
+          {
+            "label": "Hầu hết lúc",
+            "score": 3
+          }
+        ]
+      },
+      {
+        "text": "Tôi cảm thấy gần như hoảng loạn",
+        "options": [
+          {
+            "label": "Không xảy ra",
+            "score": 0
+          },
+          {
+            "label": "Đôi khi",
+            "score": 1
+          },
+          {
+            "label": "Thường xuyên",
+            "score": 2
+          },
+          {
+            "label": "Hầu hết lúc",
+            "score": 3
+          }
+        ]
+      },
+      {
+        "text": "Tôi không thể hào hứng với bất cứ điều gì",
+        "options": [
+          {
+            "label": "Không xảy ra",
+            "score": 0
+          },
+          {
+            "label": "Đôi khi",
+            "score": 1
+          },
+          {
+            "label": "Thường xuyên",
+            "score": 2
+          },
+          {
+            "label": "Hầu hết lúc",
+            "score": 3
+          }
+        ]
+      },
+      {
+        "text": "Tôi cảm thấy mình không có giá trị như một con người",
+        "options": [
+          {
+            "label": "Không xảy ra",
+            "score": 0
+          },
+          {
+            "label": "Đôi khi",
+            "score": 1
+          },
+          {
+            "label": "Thường xuyên",
+            "score": 2
+          },
+          {
+            "label": "Hầu hết lúc",
+            "score": 3
+          }
+        ]
+      },
+      {
+        "text": "Tôi cảm thấy khá dễ bị kích thích",
+        "options": [
+          {
+            "label": "Không xảy ra",
+            "score": 0
+          },
+          {
+            "label": "Đôi khi",
+            "score": 1
+          },
+          {
+            "label": "Thường xuyên",
+            "score": 2
+          },
+          {
+            "label": "Hầu hết lúc",
+            "score": 3
+          }
+        ]
+      },
+      {
+        "text": "Tôi nhận thức được nhịp tim của mình dù không vận động thể chất",
+        "options": [
+          {
+            "label": "Không xảy ra",
+            "score": 0
+          },
+          {
+            "label": "Đôi khi",
+            "score": 1
+          },
+          {
+            "label": "Thường xuyên",
+            "score": 2
+          },
+          {
+            "label": "Hầu hết lúc",
+            "score": 3
+          }
+        ]
+      },
+      {
+        "text": "Tôi cảm thấy sợ hãi mà không có lý do chính đáng",
+        "options": [
+          {
+            "label": "Không xảy ra",
+            "score": 0
+          },
+          {
+            "label": "Đôi khi",
+            "score": 1
+          },
+          {
+            "label": "Thường xuyên",
+            "score": 2
+          },
+          {
+            "label": "Hầu hết lúc",
+            "score": 3
+          }
+        ]
+      },
+      {
+        "text": "Tôi cảm thấy cuộc sống vô nghĩa",
+        "options": [
+          {
+            "label": "Không xảy ra",
+            "score": 0
+          },
+          {
+            "label": "Đôi khi",
+            "score": 1
+          },
+          {
+            "label": "Thường xuyên",
+            "score": 2
+          },
+          {
+            "label": "Hầu hết lúc",
+            "score": 3
+          }
+        ]
+      }
+    ],
+    "scoring": {
+      "depression": {
+        "indices": [
+          0,
+          2,
+          4,
+          9,
+          12,
+          15,
+          16,
+          20
+        ],
+        "multiplier": 2
+      },
+      "anxiety": {
+        "indices": [
+          1,
+          3,
+          6,
+          8,
+          14,
+          18,
+          19
+        ],
+        "multiplier": 2
+      },
+      "stress": {
+        "indices": [
+          5,
+          7,
+          10,
+          11,
+          13,
+          17
+        ],
+        "multiplier": 2
+      }
+    }
+  },
+  "gad7": {
+    "name": "GAD-7",
+    "questions": [
+      {
+        "text": "Cảm thấy lo lắng, bồn chồn hoặc căng thẳng",
+        "options": [
+          {
+            "label": "Không bao giờ",
+            "score": 0
+          },
+          {
+            "label": "Vài ngày",
+            "score": 1
+          },
+          {
+            "label": "Hơn nửa số ngày",
+            "score": 2
+          },
+          {
+            "label": "Gần như mọi ngày",
+            "score": 3
+          }
+        ]
+      },
+      {
+        "text": "Không thể ngừng hoặc kiểm soát được sự lo lắng",
+        "options": [
+          {
+            "label": "Không bao giờ",
+            "score": 0
+          },
+          {
+            "label": "Vài ngày",
+            "score": 1
+          },
+          {
+            "label": "Hơn nửa số ngày",
+            "score": 2
+          },
+          {
+            "label": "Gần như mọi ngày",
+            "score": 3
+          }
+        ]
+      },
+      {
+        "text": "Lo lắng quá mức về nhiều thứ khác nhau",
+        "options": [
+          {
+            "label": "Không bao giờ",
+            "score": 0
+          },
+          {
+            "label": "Vài ngày",
+            "score": 1
+          },
+          {
+            "label": "Hơn nửa số ngày",
+            "score": 2
+          },
+          {
+            "label": "Gần như mọi ngày",
+            "score": 3
+          }
+        ]
+      },
+      {
+        "text": "Khó thư giãn",
+        "options": [
+          {
+            "label": "Không bao giờ",
+            "score": 0
+          },
+          {
+            "label": "Vài ngày",
+            "score": 1
+          },
+          {
+            "label": "Hơn nửa số ngày",
+            "score": 2
+          },
+          {
+            "label": "Gần như mọi ngày",
+            "score": 3
+          }
+        ]
+      },
+      {
+        "text": "Bồn chồn đến mức khó ngồi yên",
+        "options": [
+          {
+            "label": "Không bao giờ",
+            "score": 0
+          },
+          {
+            "label": "Vài ngày",
+            "score": 1
+          },
+          {
+            "label": "Hơn nửa số ngày",
+            "score": 2
+          },
+          {
+            "label": "Gần như mọi ngày",
+            "score": 3
+          }
+        ]
+      },
+      {
+        "text": "Dễ bực bội hoặc cáu kỉnh",
+        "options": [
+          {
+            "label": "Không bao giờ",
+            "score": 0
+          },
+          {
+            "label": "Vài ngày",
+            "score": 1
+          },
+          {
+            "label": "Hơn nửa số ngày",
+            "score": 2
+          },
+          {
+            "label": "Gần như mọi ngày",
+            "score": 3
+          }
+        ]
+      },
+      {
+        "text": "Cảm thấy sợ hãi như thể có điều gì đó tồi tệ sắp xảy ra",
+        "options": [
+          {
+            "label": "Không bao giờ",
+            "score": 0
+          },
+          {
+            "label": "Vài ngày",
+            "score": 1
+          },
+          {
+            "label": "Hơn nửa số ngày",
+            "score": 2
+          },
+          {
+            "label": "Gần như mọi ngày",
+            "score": 3
+          }
+        ]
+      }
+    ],
+    "scoring": {
+      "anxiety": {
+        "indices": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6
+        ],
+        "multiplier": 1
+      }
+    }
+  },
+  "hars": {
+    "name": "HARS",
+    "questions": [
+      {
+        "text": "Tâm trạng lo âu (lo lắng, linh cảm xấu, sợ hãi thái quá)",
+        "options": [
+          {
+            "label": "Không có",
+            "score": 0
+          },
+          {
+            "label": "Nhẹ",
+            "score": 1
+          },
+          {
+            "label": "Vừa phải",
+            "score": 2
+          },
+          {
+            "label": "Nặng",
+            "score": 3
+          },
+          {
+            "label": "Rất nặng",
+            "score": 4
+          }
+        ]
+      },
+      {
+        "text": "Căng thẳng (hay giật mình, dễ khóc, run rẩy, bồn chồn)",
+        "options": [
+          {
+            "label": "Không có",
+            "score": 0
+          },
+          {
+            "label": "Nhẹ",
+            "score": 1
+          },
+          {
+            "label": "Vừa phải",
+            "score": 2
+          },
+          {
+            "label": "Nặng",
+            "score": 3
+          },
+          {
+            "label": "Rất nặng",
+            "score": 4
+          }
+        ]
+      },
+      {
+        "text": "Sợ hãi (sợ bóng tối, người lạ, ở một mình, đám đông)",
+        "options": [
+          {
+            "label": "Không có",
+            "score": 0
+          },
+          {
+            "label": "Nhẹ",
+            "score": 1
+          },
+          {
+            "label": "Vừa phải",
+            "score": 2
+          },
+          {
+            "label": "Nặng",
+            "score": 3
+          },
+          {
+            "label": "Rất nặng",
+            "score": 4
+          }
+        ]
+      },
+      {
+        "text": "Mất ngủ (khó ngủ, ngủ không sâu, hay gặp ác mộng, mệt mỏi khi dậy)",
+        "options": [
+          {
+            "label": "Không có",
+            "score": 0
+          },
+          {
+            "label": "Nhẹ",
+            "score": 1
+          },
+          {
+            "label": "Vừa phải",
+            "score": 2
+          },
+          {
+            "label": "Nặng",
+            "score": 3
+          },
+          {
+            "label": "Rất nặng",
+            "score": 4
+          }
+        ]
+      },
+      {
+        "text": "Nhận thức và suy nghĩ (khó tập trung, trí nhớ kém)",
+        "options": [
+          {
+            "label": "Không có",
+            "score": 0
+          },
+          {
+            "label": "Nhẹ",
+            "score": 1
+          },
+          {
+            "label": "Vừa phải",
+            "score": 2
+          },
+          {
+            "label": "Nặng",
+            "score": 3
+          },
+          {
+            "label": "Rất nặng",
+            "score": 4
+          }
+        ]
+      },
+      {
+        "text": "Tâm trạng trầm cảm (mất hứng thú, không thấy vui, dậy sớm)",
+        "options": [
+          {
+            "label": "Không có",
+            "score": 0
+          },
+          {
+            "label": "Nhẹ",
+            "score": 1
+          },
+          {
+            "label": "Vừa phải",
+            "score": 2
+          },
+          {
+            "label": "Nặng",
+            "score": 3
+          },
+          {
+            "label": "Rất nặng",
+            "score": 4
+          }
+        ]
+      },
+      {
+        "text": "Triệu chứng cơ bắp (đau nhức cơ, co giật, căng cứng)",
+        "options": [
+          {
+            "label": "Không có",
+            "score": 0
+          },
+          {
+            "label": "Nhẹ",
+            "score": 1
+          },
+          {
+            "label": "Vừa phải",
+            "score": 2
+          },
+          {
+            "label": "Nặng",
+            "score": 3
+          },
+          {
+            "label": "Rất nặng",
+            "score": 4
+          }
+        ]
+      },
+      {
+        "text": "Triệu chứng giác quan (ù tai, mờ mắt, nóng lạnh bất thường)",
+        "options": [
+          {
+            "label": "Không có",
+            "score": 0
+          },
+          {
+            "label": "Nhẹ",
+            "score": 1
+          },
+          {
+            "label": "Vừa phải",
+            "score": 2
+          },
+          {
+            "label": "Nặng",
+            "score": 3
+          },
+          {
+            "label": "Rất nặng",
+            "score": 4
+          }
+        ]
+      },
+      {
+        "text": "Triệu chứng tim mạch (tim đập nhanh, đau ngực, mạch đập mạnh)",
+        "options": [
+          {
+            "label": "Không có",
+            "score": 0
+          },
+          {
+            "label": "Nhẹ",
+            "score": 1
+          },
+          {
+            "label": "Vừa phải",
+            "score": 2
+          },
+          {
+            "label": "Nặng",
+            "score": 3
+          },
+          {
+            "label": "Rất nặng",
+            "score": 4
+          }
+        ]
+      },
+      {
+        "text": "Triệu chứng hô hấp (khó thở, ngột ngạt, nghẹn họng)",
+        "options": [
+          {
+            "label": "Không có",
+            "score": 0
+          },
+          {
+            "label": "Nhẹ",
+            "score": 1
+          },
+          {
+            "label": "Vừa phải",
+            "score": 2
+          },
+          {
+            "label": "Nặng",
+            "score": 3
+          },
+          {
+            "label": "Rất nặng",
+            "score": 4
+          }
+        ]
+      },
+      {
+        "text": "Triệu chứng tiêu hóa (khó nuốt, đau dạ dày, buồn nôn, tiêu chảy)",
+        "options": [
+          {
+            "label": "Không có",
+            "score": 0
+          },
+          {
+            "label": "Nhẹ",
+            "score": 1
+          },
+          {
+            "label": "Vừa phải",
+            "score": 2
+          },
+          {
+            "label": "Nặng",
+            "score": 3
+          },
+          {
+            "label": "Rất nặng",
+            "score": 4
+          }
+        ]
+      },
+      {
+        "text": "Hệ bài tiết/Sinh dục (đi tiểu nhiều, giảm ham muốn)",
+        "options": [
+          {
+            "label": "Không có",
+            "score": 0
+          },
+          {
+            "label": "Nhẹ",
+            "score": 1
+          },
+          {
+            "label": "Vừa phải",
+            "score": 2
+          },
+          {
+            "label": "Nặng",
+            "score": 3
+          },
+          {
+            "label": "Rất nặng",
+            "score": 4
+          }
+        ]
+      },
+      {
+        "text": "Triệu chứng thần kinh thực vật (khô miệng, đổ mồ hôi, đỏ mặt, tái nhợt)",
+        "options": [
+          {
+            "label": "Không có",
+            "score": 0
+          },
+          {
+            "label": "Nhẹ",
+            "score": 1
+          },
+          {
+            "label": "Vừa phải",
+            "score": 2
+          },
+          {
+            "label": "Nặng",
+            "score": 3
+          },
+          {
+            "label": "Rất nặng",
+            "score": 4
+          }
+        ]
+      },
+      {
+        "text": "Hành vi bồn chồn (thở dài, nuốt liên tục, run rẩy khi giao tiếp)",
+        "options": [
+          {
+            "label": "Không có",
+            "score": 0
+          },
+          {
+            "label": "Nhẹ",
+            "score": 1
+          },
+          {
+            "label": "Vừa phải",
+            "score": 2
+          },
+          {
+            "label": "Nặng",
+            "score": 3
+          },
+          {
+            "label": "Rất nặng",
+            "score": 4
+          }
+        ]
+      }
+    ],
+    "scoring": {
+      "psychic": {
+        "indices": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          13
+        ],
+        "multiplier": 1
+      },
+      "somatic": {
+        "indices": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "multiplier": 1
+      },
+      "total": {
+        "indices": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13
+        ],
+        "multiplier": 1
+      }
+    }
+  },
+  "phq9": {
+    "name": "PHQ-9",
+    "questions": [
+      {
+        "text": "Ít hứng thú hoặc niềm vui khi làm việc / sinh hoạt",
+        "options": [
+          {
+            "label": "Không bao giờ",
+            "score": 0
+          },
+          {
+            "label": "Vài ngày",
+            "score": 1
+          },
+          {
+            "label": "Hơn nửa số ngày",
+            "score": 2
+          },
+          {
+            "label": "Gần như mọi ngày",
+            "score": 3
+          }
+        ]
+      },
+      {
+        "text": "Cảm thấy buồn bã, chán nản hoặc tuyệt vọng",
+        "options": [
+          {
+            "label": "Không bao giờ",
+            "score": 0
+          },
+          {
+            "label": "Vài ngày",
+            "score": 1
+          },
+          {
+            "label": "Hơn nửa số ngày",
+            "score": 2
+          },
+          {
+            "label": "Gần như mọi ngày",
+            "score": 3
+          }
+        ]
+      },
+      {
+        "text": "Khó đi vào giấc ngủ, ngủ không sâu giấc, hoặc ngủ quá nhiều",
+        "options": [
+          {
+            "label": "Không bao giờ",
+            "score": 0
+          },
+          {
+            "label": "Vài ngày",
+            "score": 1
+          },
+          {
+            "label": "Hơn nửa số ngày",
+            "score": 2
+          },
+          {
+            "label": "Gần như mọi ngày",
+            "score": 3
+          }
+        ]
+      },
+      {
+        "text": "Cảm thấy mệt mỏi hoặc ít năng lượng",
+        "options": [
+          {
+            "label": "Không bao giờ",
+            "score": 0
+          },
+          {
+            "label": "Vài ngày",
+            "score": 1
+          },
+          {
+            "label": "Hơn nửa số ngày",
+            "score": 2
+          },
+          {
+            "label": "Gần như mọi ngày",
+            "score": 3
+          }
+        ]
+      },
+      {
+        "text": "Chán ăn hoặc ăn quá mức",
+        "options": [
+          {
+            "label": "Không bao giờ",
+            "score": 0
+          },
+          {
+            "label": "Vài ngày",
+            "score": 1
+          },
+          {
+            "label": "Hơn nửa số ngày",
+            "score": 2
+          },
+          {
+            "label": "Gần như mọi ngày",
+            "score": 3
+          }
+        ]
+      },
+      {
+        "text": "Cảm thấy tồi tệ về bản thân - hoặc cảm thấy mình là kẻ thất bại, làm gia đình thất vọng",
+        "options": [
+          {
+            "label": "Không bao giờ",
+            "score": 0
+          },
+          {
+            "label": "Vài ngày",
+            "score": 1
+          },
+          {
+            "label": "Hơn nửa số ngày",
+            "score": 2
+          },
+          {
+            "label": "Gần như mọi ngày",
+            "score": 3
+          }
+        ]
+      },
+      {
+        "text": "Khó tập trung vào mọi việc (ví dụ: đọc báo, công việc, xem tivi)",
+        "options": [
+          {
+            "label": "Không bao giờ",
+            "score": 0
+          },
+          {
+            "label": "Vài ngày",
+            "score": 1
+          },
+          {
+            "label": "Hơn nửa số ngày",
+            "score": 2
+          },
+          {
+            "label": "Gần như mọi ngày",
+            "score": 3
+          }
+        ]
+      },
+      {
+        "text": "Di chuyển hoặc nói chuyện chậm chạp đến mức người khác cũng chú ý. Hoặc ngược lại - bồn chồn, đi lại liên tục",
+        "options": [
+          {
+            "label": "Không bao giờ",
+            "score": 0
+          },
+          {
+            "label": "Vài ngày",
+            "score": 1
+          },
+          {
+            "label": "Hơn nửa số ngày",
+            "score": 2
+          },
+          {
+            "label": "Gần như mọi ngày",
+            "score": 3
+          }
+        ]
+      },
+      {
+        "text": "Có ý nghĩ thà chết đi cho xong hoặc muốn tự làm hại bản thân bằng một cách nào đó",
+        "options": [
+          {
+            "label": "Không bao giờ",
+            "score": 0
+          },
+          {
+            "label": "Vài ngày",
+            "score": 1
+          },
+          {
+            "label": "Hơn nửa số ngày",
+            "score": 2
+          },
+          {
+            "label": "Gần như mọi ngày",
+            "score": 3
+          }
+        ]
+      }
+    ],
+    "scoring": {
+      "depression": {
+        "indices": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ],
+        "multiplier": 1
+      }
+    }
+  },
+  "psqi": {
+    "name": "PSQI",
+    "questions": [
+      {
+        "text": "Bạn đánh giá chất lượng giấc ngủ tổng thể của mình ở mức nào?",
+        "options": [
+          {
+            "label": "Rất tốt",
+            "score": 0
+          },
+          {
+            "label": "Khá tốt",
+            "score": 1
+          },
+          {
+            "label": "Khá kém",
+            "score": 2
+          },
+          {
+            "label": "Rất kém",
+            "score": 3
+          }
+        ]
+      },
+      {
+        "text": "Bạn thường mất bao lâu để chìm vào giấc ngủ mỗi đêm?",
+        "options": [
+          {
+            "label": "< 15 phút",
+            "score": 0
+          },
+          {
+            "label": "16 - 30 phút",
+            "score": 1
+          },
+          {
+            "label": "31 - 60 phút",
+            "score": 2
+          },
+          {
+            "label": "> 60 phút",
+            "score": 3
+          }
+        ]
+      },
+      {
+        "text": "Bạn thực sự ngủ được bao nhiêu tiếng mỗi đêm? (Không tính thời gian nằm trằn trọc)",
+        "options": [
+          {
+            "label": "> 7 tiếng",
+            "score": 0
+          },
+          {
+            "label": "6 - 7 tiếng",
+            "score": 1
+          },
+          {
+            "label": "5 - 6 tiếng",
+            "score": 2
+          },
+          {
+            "label": "< 5 tiếng",
+            "score": 3
+          }
+        ]
+      },
+      {
+        "text": "Tần suất bạn không thể chìm vào giấc ngủ trong vòng 30 phút?",
+        "options": [
+          {
+            "label": "Không bao giờ trong tháng qua",
+            "score": 0
+          },
+          {
+            "label": "Tuyệt đối hiếm (< 1 lần/tuần)",
+            "score": 1
+          },
+          {
+            "label": "Vài lần (1-2 lần/tuần)",
+            "score": 2
+          },
+          {
+            "label": "Thường xuyên (≥ 3 lần/tuần)",
+            "score": 3
+          }
+        ]
+      },
+      {
+        "text": "Tần suất bạn thức giấc giữa đêm hoặc dậy quá sớm vào buổi sáng?",
+        "options": [
+          {
+            "label": "Không bao giờ trong tháng qua",
+            "score": 0
+          },
+          {
+            "label": "Tuyệt đối hiếm (< 1 lần/tuần)",
+            "score": 1
+          },
+          {
+            "label": "Vài lần (1-2 lần/tuần)",
+            "score": 2
+          },
+          {
+            "label": "Thường xuyên (≥ 3 lần/tuần)",
+            "score": 3
+          }
+        ]
+      },
+      {
+        "text": "Tần suất bạn phải thức dậy đi lại để đi vệ sinh?",
+        "options": [
+          {
+            "label": "Không bao giờ trong tháng qua",
+            "score": 0
+          },
+          {
+            "label": "Tuyệt đối hiếm (< 1 lần/tuần)",
+            "score": 1
+          },
+          {
+            "label": "Vài lần (1-2 lần/tuần)",
+            "score": 2
+          },
+          {
+            "label": "Thường xuyên (≥ 3 lần/tuần)",
+            "score": 3
+          }
+        ]
+      },
+      {
+        "text": "Tần suất bạn gặp khó khăn do ho, khó thở hoặc ngáy to?",
+        "options": [
+          {
+            "label": "Không bao giờ trong tháng qua",
+            "score": 0
+          },
+          {
+            "label": "Tuyệt đối hiếm (< 1 lần/tuần)",
+            "score": 1
+          },
+          {
+            "label": "Vài lần (1-2 lần/tuần)",
+            "score": 2
+          },
+          {
+            "label": "Thường xuyên (≥ 3 lần/tuần)",
+            "score": 3
+          }
+        ]
+      },
+      {
+        "text": "Tần suất bạn ngủ không ngon vì gặp ác mộng, hoặc cảm thấy quá nóng/quá lạnh?",
+        "options": [
+          {
+            "label": "Không bao giờ trong tháng qua",
+            "score": 0
+          },
+          {
+            "label": "Tuyệt đối hiếm (< 1 lần/tuần)",
+            "score": 1
+          },
+          {
+            "label": "Vài lần (1-2 lần/tuần)",
+            "score": 2
+          },
+          {
+            "label": "Thường xuyên (≥ 3 lần/tuần)",
+            "score": 3
+          }
+        ]
+      },
+      {
+        "text": "Tần suất bạn phải dùng thuốc (được kê đơn hoặc không) để dễ ngủ?",
+        "options": [
+          {
+            "label": "Không bao giờ trong tháng qua",
+            "score": 0
+          },
+          {
+            "label": "Tuyệt đối hiếm (< 1 lần/tuần)",
+            "score": 1
+          },
+          {
+            "label": "Vài lần (1-2 lần/tuần)",
+            "score": 2
+          },
+          {
+            "label": "Thường xuyên (≥ 3 lần/tuần)",
+            "score": 3
+          }
+        ]
+      },
+      {
+        "text": "Tần suất bạn cảm thấy buồn ngủ, mệt mỏi vào ban ngày khi làm việc, lái xe hay giao tiếp?",
+        "options": [
+          {
+            "label": "Không bao giờ trong tháng qua",
+            "score": 0
+          },
+          {
+            "label": "Tuyệt đối hiếm (< 1 lần/tuần)",
+            "score": 1
+          },
+          {
+            "label": "Vài lần (1-2 lần/tuần)",
+            "score": 2
+          },
+          {
+            "label": "Thường xuyên (≥ 3 lần/tuần)",
+            "score": 3
+          }
+        ]
+      }
+    ],
+    "scoring": {
+      "sleep": {
+        "indices": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9
+        ],
+        "multiplier": 1
+      }
+    }
+  },
+  "pss": {
+    "name": "PSS",
+    "questions": [
+      {
+        "text": "Bạn có thường xuyên buồn phiền vì điều gì đó bất ngờ xảy ra không?",
+        "options": [
+          {
+            "label": "Không bao giờ",
+            "score": 0
+          },
+          {
+            "label": "Hầu như không bao giờ",
+            "score": 1
+          },
+          {
+            "label": "Thỉnh thoảng",
+            "score": 2
+          },
+          {
+            "label": "Khá thường xuyên",
+            "score": 3
+          },
+          {
+            "label": "Rất thường xuyên",
+            "score": 4
+          }
+        ]
+      },
+      {
+        "text": "Bạn có thường cảm thấy mình không thể kiểm soát được những việc quan trọng trong cuộc sống của mình không?",
+        "options": [
+          {
+            "label": "Không bao giờ",
+            "score": 0
+          },
+          {
+            "label": "Hầu như không bao giờ",
+            "score": 1
+          },
+          {
+            "label": "Thỉnh thoảng",
+            "score": 2
+          },
+          {
+            "label": "Khá thường xuyên",
+            "score": 3
+          },
+          {
+            "label": "Rất thường xuyên",
+            "score": 4
+          }
+        ]
+      },
+      {
+        "text": "Bạn có thường xuyên cảm thấy lo lắng và căng thẳng không?",
+        "options": [
+          {
+            "label": "Không bao giờ",
+            "score": 0
+          },
+          {
+            "label": "Hầu như không bao giờ",
+            "score": 1
+          },
+          {
+            "label": "Thỉnh thoảng",
+            "score": 2
+          },
+          {
+            "label": "Khá thường xuyên",
+            "score": 3
+          },
+          {
+            "label": "Rất thường xuyên",
+            "score": 4
+          }
+        ]
+      },
+      {
+        "text": "Bạn cảm thấy tự tin về khả năng xử lý các vấn đề cá nhân của mình như thế nào?",
+        "options": [
+          {
+            "label": "Không bao giờ",
+            "score": 4
+          },
+          {
+            "label": "Hầu như không bao giờ",
+            "score": 3
+          },
+          {
+            "label": "Thỉnh thoảng",
+            "score": 2
+          },
+          {
+            "label": "Khá thường xuyên",
+            "score": 1
+          },
+          {
+            "label": "Rất thường xuyên",
+            "score": 0
+          }
+        ]
+      },
+      {
+        "text": "Bạn cảm thấy mọi việc diễn ra theo ý mình ở mức nào?",
+        "options": [
+          {
+            "label": "Không bao giờ",
+            "score": 4
+          },
+          {
+            "label": "Hầu như không bao giờ",
+            "score": 3
+          },
+          {
+            "label": "Thỉnh thoảng",
+            "score": 2
+          },
+          {
+            "label": "Khá thường xuyên",
+            "score": 1
+          },
+          {
+            "label": "Rất thường xuyên",
+            "score": 0
+          }
+        ]
+      },
+      {
+        "text": "Bạn có thấy rằng mình không thể đương đầu với tất cả những việc phải làm không?",
+        "options": [
+          {
+            "label": "Không bao giờ",
+            "score": 0
+          },
+          {
+            "label": "Hầu như không bao giờ",
+            "score": 1
+          },
+          {
+            "label": "Thỉnh thoảng",
+            "score": 2
+          },
+          {
+            "label": "Khá thường xuyên",
+            "score": 3
+          },
+          {
+            "label": "Rất thường xuyên",
+            "score": 4
+          }
+        ]
+      },
+      {
+        "text": "Bạn có thường xuyên kiểm soát được những cơn cáu gắt trong cuộc sống của bạn không?",
+        "options": [
+          {
+            "label": "Không bao giờ",
+            "score": 4
+          },
+          {
+            "label": "Hầu như không bao giờ",
+            "score": 3
+          },
+          {
+            "label": "Thỉnh thoảng",
+            "score": 2
+          },
+          {
+            "label": "Khá thường xuyên",
+            "score": 1
+          },
+          {
+            "label": "Rất thường xuyên",
+            "score": 0
+          }
+        ]
+      },
+      {
+        "text": "Bao lâu rồi bạn cảm thấy rằng mình đang ở trên đỉnh của mọi thứ?",
+        "options": [
+          {
+            "label": "Không bao giờ",
+            "score": 4
+          },
+          {
+            "label": "Hầu như không bao giờ",
+            "score": 3
+          },
+          {
+            "label": "Thỉnh thoảng",
+            "score": 2
+          },
+          {
+            "label": "Khá thường xuyên",
+            "score": 1
+          },
+          {
+            "label": "Rất thường xuyên",
+            "score": 0
+          }
+        ]
+      },
+      {
+        "text": "Bạn có thường tức giận vì những việc xảy ra ngoài tầm kiểm soát của mình không?",
+        "options": [
+          {
+            "label": "Không bao giờ",
+            "score": 0
+          },
+          {
+            "label": "Hầu như không bao giờ",
+            "score": 1
+          },
+          {
+            "label": "Thỉnh thoảng",
+            "score": 2
+          },
+          {
+            "label": "Khá thường xuyên",
+            "score": 3
+          },
+          {
+            "label": "Rất thường xuyên",
+            "score": 4
+          }
+        ]
+      },
+      {
+        "text": "Bạn có thường cảm thấy khó khăn chồng chất đến mức không thể vượt qua được?",
+        "options": [
+          {
+            "label": "Không bao giờ",
+            "score": 0
+          },
+          {
+            "label": "Hầu như không bao giờ",
+            "score": 1
+          },
+          {
+            "label": "Thỉnh thoảng",
+            "score": 2
+          },
+          {
+            "label": "Khá thường xuyên",
+            "score": 3
+          },
+          {
+            "label": "Rất thường xuyên",
+            "score": 4
+          }
+        ]
+      }
+    ],
+    "scoring": {
+      "stress": {
+        "indices": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9
+        ],
+        "multiplier": 1
+      }
+    }
+  },
+  "sdq25": {
+    "name": "SDQ-25",
+    "questions": [
+      {
+        "text": "Em đối xử tốt với người khác, quan tâm đến cảm xúc của họ",
+        "options": [
+          {
+            "label": "Không đúng",
+            "score": 0
+          },
+          {
+            "label": "Đúng một phần",
+            "score": 1
+          },
+          {
+            "label": "Chắc chắn đúng",
+            "score": 2
+          }
+        ]
+      },
+      {
+        "text": "Em hay bồn chồn, quá hiếu động, không thể ngồi yên một chỗ lâu",
+        "options": [
+          {
+            "label": "Không đúng",
+            "score": 0
+          },
+          {
+            "label": "Đúng một phần",
+            "score": 1
+          },
+          {
+            "label": "Chắc chắn đúng",
+            "score": 2
+          }
+        ]
+      },
+      {
+        "text": "Em hay than phiền đau đầu, đau bụng hoặc cảm thấy ốm mệt",
+        "options": [
+          {
+            "label": "Không đúng",
+            "score": 0
+          },
+          {
+            "label": "Đúng một phần",
+            "score": 1
+          },
+          {
+            "label": "Chắc chắn đúng",
+            "score": 2
+          }
+        ]
+      },
+      {
+        "text": "Em sẵn lòng chia sẻ với các bạn khác (đồ chơi, đồ ăn, bút...)",
+        "options": [
+          {
+            "label": "Không đúng",
+            "score": 0
+          },
+          {
+            "label": "Đúng một phần",
+            "score": 1
+          },
+          {
+            "label": "Chắc chắn đúng",
+            "score": 2
+          }
+        ]
+      },
+      {
+        "text": "Em hay nổi cơn cáu giận hoặc tức giận",
+        "options": [
+          {
+            "label": "Không đúng",
+            "score": 0
+          },
+          {
+            "label": "Đúng một phần",
+            "score": 1
+          },
+          {
+            "label": "Chắc chắn đúng",
+            "score": 2
+          }
+        ]
+      },
+      {
+        "text": "Em khá đơn độc, thường thích chơi một mình",
+        "options": [
+          {
+            "label": "Không đúng",
+            "score": 0
+          },
+          {
+            "label": "Đúng một phần",
+            "score": 1
+          },
+          {
+            "label": "Chắc chắn đúng",
+            "score": 2
+          }
+        ]
+      },
+      {
+        "text": "Nhìn chung em khá ngoan, thường làm theo lời người lớn chỉ bảo",
+        "options": [
+          {
+            "label": "Không đúng",
+            "score": 2
+          },
+          {
+            "label": "Đúng một phần",
+            "score": 1
+          },
+          {
+            "label": "Chắc chắn đúng",
+            "score": 0
+          }
+        ]
+      },
+      {
+        "text": "Em có nhiều điều lo lắng, thường tỏ ra lo lắng",
+        "options": [
+          {
+            "label": "Không đúng",
+            "score": 0
+          },
+          {
+            "label": "Đúng một phần",
+            "score": 1
+          },
+          {
+            "label": "Chắc chắn đúng",
+            "score": 2
+          }
+        ]
+      },
+      {
+        "text": "Em sẵn sàng giúp đỡ nếu có ai đó bị đau, buồn hoặc ốm",
+        "options": [
+          {
+            "label": "Không đúng",
+            "score": 0
+          },
+          {
+            "label": "Đúng một phần",
+            "score": 1
+          },
+          {
+            "label": "Chắc chắn đúng",
+            "score": 2
+          }
+        ]
+      },
+      {
+        "text": "Em luôn bồn chồn, ngọ nguậy tay chân liên tục, khó ngồi yên",
+        "options": [
+          {
+            "label": "Không đúng",
+            "score": 0
+          },
+          {
+            "label": "Đúng một phần",
+            "score": 1
+          },
+          {
+            "label": "Chắc chắn đúng",
+            "score": 2
+          }
+        ]
+      },
+      {
+        "text": "Em có ít nhất một người bạn thân",
+        "options": [
+          {
+            "label": "Không đúng",
+            "score": 2
+          },
+          {
+            "label": "Đúng một phần",
+            "score": 1
+          },
+          {
+            "label": "Chắc chắn đúng",
+            "score": 0
+          }
+        ]
+      },
+      {
+        "text": "Em thường đánh nhau với bạn khác hoặc bắt ép bạn làm theo ý mình",
+        "options": [
+          {
+            "label": "Không đúng",
+            "score": 0
+          },
+          {
+            "label": "Đúng một phần",
+            "score": 1
+          },
+          {
+            "label": "Chắc chắn đúng",
+            "score": 2
+          }
+        ]
+      },
+      {
+        "text": "Em thường không vui, hay buồn bã hoặc dễ khóc",
+        "options": [
+          {
+            "label": "Không đúng",
+            "score": 0
+          },
+          {
+            "label": "Đúng một phần",
+            "score": 1
+          },
+          {
+            "label": "Chắc chắn đúng",
+            "score": 2
+          }
+        ]
+      },
+      {
+        "text": "Nhìn chung các bạn khác thích chơi cùng em",
+        "options": [
+          {
+            "label": "Không đúng",
+            "score": 2
+          },
+          {
+            "label": "Đúng một phần",
+            "score": 1
+          },
+          {
+            "label": "Chắc chắn đúng",
+            "score": 0
+          }
+        ]
+      },
+      {
+        "text": "Em dễ bị sao nhãng, khó tập trung chú ý",
+        "options": [
+          {
+            "label": "Không đúng",
+            "score": 0
+          },
+          {
+            "label": "Đúng một phần",
+            "score": 1
+          },
+          {
+            "label": "Chắc chắn đúng",
+            "score": 2
+          }
+        ]
+      },
+      {
+        "text": "Em hồi hộp, dễ mất tự tin trong những tình huống mới",
+        "options": [
+          {
+            "label": "Không đúng",
+            "score": 0
+          },
+          {
+            "label": "Đúng một phần",
+            "score": 1
+          },
+          {
+            "label": "Chắc chắn đúng",
+            "score": 2
+          }
+        ]
+      },
+      {
+        "text": "Em tử tế, thân thiện với các em nhỏ tuổi hơn",
+        "options": [
+          {
+            "label": "Không đúng",
+            "score": 0
+          },
+          {
+            "label": "Đúng một phần",
+            "score": 1
+          },
+          {
+            "label": "Chắc chắn đúng",
+            "score": 2
+          }
+        ]
+      },
+      {
+        "text": "Em thường bị nói là hay nói dối hoặc gian lận",
+        "options": [
+          {
+            "label": "Không đúng",
+            "score": 0
+          },
+          {
+            "label": "Đúng một phần",
+            "score": 1
+          },
+          {
+            "label": "Chắc chắn đúng",
+            "score": 2
+          }
+        ]
+      },
+      {
+        "text": "Em hay bị bạn khác trêu chọc hoặc bắt nạt",
+        "options": [
+          {
+            "label": "Không đúng",
+            "score": 0
+          },
+          {
+            "label": "Đúng một phần",
+            "score": 1
+          },
+          {
+            "label": "Chắc chắn đúng",
+            "score": 2
+          }
+        ]
+      },
+      {
+        "text": "Em thường tự nguyện giúp đỡ người khác (bố mẹ, thầy cô, bạn bè...)",
+        "options": [
+          {
+            "label": "Không đúng",
+            "score": 0
+          },
+          {
+            "label": "Đúng một phần",
+            "score": 1
+          },
+          {
+            "label": "Chắc chắn đúng",
+            "score": 2
+          }
+        ]
+      },
+      {
+        "text": "Em suy nghĩ kỹ hoặc cân nhắc trước khi làm một việc gì đó",
+        "options": [
+          {
+            "label": "Không đúng",
+            "score": 2
+          },
+          {
+            "label": "Đúng một phần",
+            "score": 1
+          },
+          {
+            "label": "Chắc chắn đúng",
+            "score": 0
+          }
+        ]
+      },
+      {
+        "text": "Em hay lấy những thứ không phải của mình ở nhà, trường học hoặc nơi khác",
+        "options": [
+          {
+            "label": "Không đúng",
+            "score": 0
+          },
+          {
+            "label": "Đúng một phần",
+            "score": 1
+          },
+          {
+            "label": "Chắc chắn đúng",
+            "score": 2
+          }
+        ]
+      },
+      {
+        "text": "Em dễ hòa đồng với người lớn hơn là với các bạn cùng lứa",
+        "options": [
+          {
+            "label": "Không đúng",
+            "score": 2
+          },
+          {
+            "label": "Đúng một phần",
+            "score": 1
+          },
+          {
+            "label": "Chắc chắn đúng",
+            "score": 0
+          }
+        ]
+      },
+      {
+        "text": "Em hay sợ hãi, dễ hoảng sợ",
+        "options": [
+          {
+            "label": "Không đúng",
+            "score": 0
+          },
+          {
+            "label": "Đúng một phần",
+            "score": 1
+          },
+          {
+            "label": "Chắc chắn đúng",
+            "score": 2
+          }
+        ]
+      },
+      {
+        "text": "Em làm việc được giao đến nơi đến chốn, tập trung chú ý tốt",
+        "options": [
+          {
+            "label": "Không đúng",
+            "score": 2
+          },
+          {
+            "label": "Đúng một phần",
+            "score": 1
+          },
+          {
+            "label": "Chắc chắn đúng",
+            "score": 0
+          }
+        ]
+      }
+    ],
+    "scoring": {
+      "emotional": {
+        "indices": [
+          2,
+          7,
+          12,
+          15,
+          23
+        ],
+        "multiplier": 1
+      },
+      "conduct": {
+        "indices": [
+          4,
+          6,
+          11,
+          17,
+          21
+        ],
+        "multiplier": 1
+      },
+      "hyperactivity": {
+        "indices": [
+          1,
+          9,
+          14,
+          20,
+          24
+        ],
+        "multiplier": 1
+      },
+      "peer": {
+        "indices": [
+          5,
+          10,
+          13,
+          18,
+          22
+        ],
+        "multiplier": 1
+      },
+      "prosocial": {
+        "indices": [
+          0,
+          3,
+          8,
+          16,
+          19
+        ],
+        "multiplier": 1
+      },
+      "total": {
+        "indices": [
+          2,
+          7,
+          12,
+          15,
+          23,
+          4,
+          6,
+          11,
+          17,
+          21,
+          1,
+          9,
+          14,
+          20,
+          24,
+          5,
+          10,
+          13,
+          18,
+          22
+        ],
+        "multiplier": 1
+      }
+    }
+  },
+  "mmse": {
+    "name": "MMSE",
+    "questions": [
+      {
+        "text": "Hôm nay là thứ mấy?",
+        "options": [
+          {
+            "label": "Sai",
+            "score": 0
+          },
+          {
+            "label": "Đúng",
+            "score": 1
+          }
+        ]
+      },
+      {
+        "text": "Hôm nay là ngày bao nhiêu?",
+        "options": [
+          {
+            "label": "Sai",
+            "score": 0
+          },
+          {
+            "label": "Đúng",
+            "score": 1
+          }
+        ]
+      },
+      {
+        "text": "Tháng này là tháng mấy?",
+        "options": [
+          {
+            "label": "Sai",
+            "score": 0
+          },
+          {
+            "label": "Đúng",
+            "score": 1
+          }
+        ]
+      },
+      {
+        "text": "Năm nay là năm nào?",
+        "options": [
+          {
+            "label": "Sai",
+            "score": 0
+          },
+          {
+            "label": "Đúng",
+            "score": 1
+          }
+        ]
+      },
+      {
+        "text": "Mùa này là mùa gì?",
+        "options": [
+          {
+            "label": "Sai",
+            "score": 0
+          },
+          {
+            "label": "Đúng",
+            "score": 1
+          }
+        ]
+      },
+      {
+        "text": "Chỗ này là chỗ nào? (tên nơi đang ở)",
+        "options": [
+          {
+            "label": "Sai",
+            "score": 0
+          },
+          {
+            "label": "Đúng",
+            "score": 1
+          }
+        ]
+      },
+      {
+        "text": "Khoa gì? Tầng mấy?",
+        "options": [
+          {
+            "label": "Sai",
+            "score": 0
+          },
+          {
+            "label": "Đúng",
+            "score": 1
+          }
+        ]
+      },
+      {
+        "text": "Tỉnh, thành phố nào?",
+        "options": [
+          {
+            "label": "Sai",
+            "score": 0
+          },
+          {
+            "label": "Đúng",
+            "score": 1
+          }
+        ]
+      },
+      {
+        "text": "Miền nào? (Bắc/Trung/Nam)",
+        "options": [
+          {
+            "label": "Sai",
+            "score": 0
+          },
+          {
+            "label": "Đúng",
+            "score": 1
+          }
+        ]
+      },
+      {
+        "text": "Nước nào?",
+        "options": [
+          {
+            "label": "Sai",
+            "score": 0
+          },
+          {
+            "label": "Đúng",
+            "score": 1
+          }
+        ]
+      },
+      {
+        "text": "Nói to, rõ 3 từ (con mèo, cây lúa, đồng xu), yêu cầu nhắc lại ngay — nhắc đúng mấy từ?",
+        "options": [
+          {
+            "label": "Đúng 0 từ",
+            "score": 0
+          },
+          {
+            "label": "Đúng 1 từ",
+            "score": 1
+          },
+          {
+            "label": "Đúng 2 từ",
+            "score": 2
+          },
+          {
+            "label": "Đúng 3 từ",
+            "score": 3
+          }
+        ]
+      },
+      {
+        "text": "Làm phép trừ 7 liên tiếp từ 100 (100-93-86-79-72-65) — đúng mấy phép?",
+        "options": [
+          {
+            "label": "Đúng 0 phép",
+            "score": 0
+          },
+          {
+            "label": "Đúng 1 phép",
+            "score": 1
+          },
+          {
+            "label": "Đúng 2 phép",
+            "score": 2
+          },
+          {
+            "label": "Đúng 3 phép",
+            "score": 3
+          },
+          {
+            "label": "Đúng 4 phép",
+            "score": 4
+          },
+          {
+            "label": "Đúng 5 phép",
+            "score": 5
+          }
+        ]
+      },
+      {
+        "text": "Yêu cầu nhớ lại 3 từ đã ghi nhận ở trên (không cần đúng thứ tự) — nhớ đúng mấy từ?",
+        "options": [
+          {
+            "label": "Nhớ đúng 0 từ",
+            "score": 0
+          },
+          {
+            "label": "Nhớ đúng 1 từ",
+            "score": 1
+          },
+          {
+            "label": "Nhớ đúng 2 từ",
+            "score": 2
+          },
+          {
+            "label": "Nhớ đúng 3 từ",
+            "score": 3
+          }
+        ]
+      },
+      {
+        "text": "Đưa và yêu cầu gọi tên 2 đồ vật (đồng hồ, cây viết) — gọi đúng mấy đồ vật?",
+        "options": [
+          {
+            "label": "Đúng 0 đồ vật",
+            "score": 0
+          },
+          {
+            "label": "Đúng 1 đồ vật",
+            "score": 1
+          },
+          {
+            "label": "Đúng 2 đồ vật",
+            "score": 2
+          }
+        ]
+      },
+      {
+        "text": "Yêu cầu nhắc lại câu: \"Không có nếu và hoặc nhưng mãi\"",
+        "options": [
+          {
+            "label": "Sai",
+            "score": 0
+          },
+          {
+            "label": "Đúng",
+            "score": 1
+          }
+        ]
+      },
+      {
+        "text": "Yêu cầu thực hiện mệnh lệnh 3 bước: \"Cầm tờ giấy bằng tay phải, gấp đôi lại, rồi đưa cho tôi\" — đúng mấy bước?",
+        "options": [
+          {
+            "label": "Đúng 0 bước",
+            "score": 0
+          },
+          {
+            "label": "Đúng 1 bước",
+            "score": 1
+          },
+          {
+            "label": "Đúng 2 bước",
+            "score": 2
+          },
+          {
+            "label": "Đúng 3 bước",
+            "score": 3
+          }
+        ]
+      },
+      {
+        "text": "Yêu cầu đọc thầm và làm theo mệnh lệnh viết sẵn: \"Hãy nhắm mắt lại\"",
+        "options": [
+          {
+            "label": "Sai",
+            "score": 0
+          },
+          {
+            "label": "Đúng",
+            "score": 1
+          }
+        ]
+      },
+      {
+        "text": "Yêu cầu viết một câu tuỳ ý (có nghĩa, đủ chủ ngữ - vị ngữ)",
+        "options": [
+          {
+            "label": "Sai",
+            "score": 0
+          },
+          {
+            "label": "Đúng",
+            "score": 1
+          }
+        ]
+      },
+      {
+        "text": "Yêu cầu vẽ lại 2 hình ngũ giác giao nhau",
+        "options": [
+          {
+            "label": "Sai",
+            "score": 0
+          },
+          {
+            "label": "Đúng",
+            "score": 1
+          }
+        ]
+      }
+    ],
+    "scoring": {
+      "total": {
+        "indices": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18
+        ],
+        "multiplier": 1
+      }
+    }
+  },
+  "isi": {
+    "name": "ISI",
+    "questions": [
+      {
+        "text": "Khó vào giấc",
+        "options": [
+          {
+            "label": "Không",
+            "score": 0
+          },
+          {
+            "label": "Nhẹ",
+            "score": 1
+          },
+          {
+            "label": "Vừa",
+            "score": 2
+          },
+          {
+            "label": "Nặng",
+            "score": 3
+          },
+          {
+            "label": "Rất nặng",
+            "score": 4
+          }
+        ]
+      },
+      {
+        "text": "Khó duy trì giấc",
+        "options": [
+          {
+            "label": "Không",
+            "score": 0
+          },
+          {
+            "label": "Nhẹ",
+            "score": 1
+          },
+          {
+            "label": "Vừa",
+            "score": 2
+          },
+          {
+            "label": "Nặng",
+            "score": 3
+          },
+          {
+            "label": "Rất nặng",
+            "score": 4
+          }
+        ]
+      },
+      {
+        "text": "Tỉnh giấc quá sớm",
+        "options": [
+          {
+            "label": "Không",
+            "score": 0
+          },
+          {
+            "label": "Nhẹ",
+            "score": 1
+          },
+          {
+            "label": "Vừa",
+            "score": 2
+          },
+          {
+            "label": "Nặng",
+            "score": 3
+          },
+          {
+            "label": "Rất nặng",
+            "score": 4
+          }
+        ]
+      },
+      {
+        "text": "Bạn hài lòng/không hài lòng với giấc ngủ hiện tại của mình ở mức độ nào?",
+        "options": [
+          {
+            "label": "Rất hài lòng",
+            "score": 0
+          },
+          {
+            "label": "Hài lòng",
+            "score": 1
+          },
+          {
+            "label": "Hài lòng vừa phải",
+            "score": 2
+          },
+          {
+            "label": "Không hài lòng",
+            "score": 3
+          },
+          {
+            "label": "Rất không hài lòng",
+            "score": 4
+          }
+        ]
+      },
+      {
+        "text": "Người khác nhận thấy vấn đề giấc ngủ ảnh hưởng đến chất lượng cuộc sống của bạn ở mức độ nào?",
+        "options": [
+          {
+            "label": "Không dễ nhận thấy chút nào",
+            "score": 0
+          },
+          {
+            "label": "Dễ nhận thấy một chút",
+            "score": 1
+          },
+          {
+            "label": "Dễ nhận thấy vừa phải",
+            "score": 2
+          },
+          {
+            "label": "Rất dễ nhận thấy",
+            "score": 3
+          },
+          {
+            "label": "Cực kỳ dễ nhận thấy",
+            "score": 4
+          }
+        ]
+      },
+      {
+        "text": "Bạn cảm thấy lo lắng/căng thẳng với vấn đề giấc ngủ hiện tại ở mức độ nào?",
+        "options": [
+          {
+            "label": "Không lo lắng chút nào",
+            "score": 0
+          },
+          {
+            "label": "Lo lắng một chút",
+            "score": 1
+          },
+          {
+            "label": "Lo lắng vừa phải",
+            "score": 2
+          },
+          {
+            "label": "Rất lo lắng",
+            "score": 3
+          },
+          {
+            "label": "Cực kỳ lo lắng",
+            "score": 4
+          }
+        ]
+      },
+      {
+        "text": "Vấn đề giấc ngủ đang ảnh hưởng đến hoạt động hằng ngày của bạn (mệt mỏi, giảm tập trung...) ở mức độ nào?",
+        "options": [
+          {
+            "label": "Không ảnh hưởng chút nào",
+            "score": 0
+          },
+          {
+            "label": "Ảnh hưởng một chút",
+            "score": 1
+          },
+          {
+            "label": "Ảnh hưởng vừa phải",
+            "score": 2
+          },
+          {
+            "label": "Ảnh hưởng rất nhiều",
+            "score": 3
+          },
+          {
+            "label": "Ảnh hưởng cực kỳ nhiều",
+            "score": 4
+          }
+        ]
+      }
+    ],
+    "scoring": {
+      "total": {
+        "indices": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6
+        ],
+        "multiplier": 1
+      }
+    }
+  },
+  "iat": {
+    "name": "IAT",
+    "questions": [
+      {
+        "text": "Bạn thường thấy rằng mình sử dụng internet nhiều hơn dự định",
+        "options": [
+          {
+            "label": "Không bao giờ",
+            "score": 0
+          },
+          {
+            "label": "Hiếm khi",
+            "score": 1
+          },
+          {
+            "label": "Thỉnh thoảng",
+            "score": 2
+          },
+          {
+            "label": "Thường xuyên",
+            "score": 3
+          },
+          {
+            "label": "Rất thường xuyên",
+            "score": 4
+          },
+          {
+            "label": "Luôn luôn",
+            "score": 5
+          }
+        ]
+      },
+      {
+        "text": "Bạn thường bỏ bê công việc gia đình để dành nhiều thời gian hơn sử dụng internet",
+        "options": [
+          {
+            "label": "Không bao giờ",
+            "score": 0
+          },
+          {
+            "label": "Hiếm khi",
+            "score": 1
+          },
+          {
+            "label": "Thỉnh thoảng",
+            "score": 2
+          },
+          {
+            "label": "Thường xuyên",
+            "score": 3
+          },
+          {
+            "label": "Rất thường xuyên",
+            "score": 4
+          },
+          {
+            "label": "Luôn luôn",
+            "score": 5
+          }
+        ]
+      },
+      {
+        "text": "Bạn thường thích thú với internet hơn là thân thiết với bạn bè",
+        "options": [
+          {
+            "label": "Không bao giờ",
+            "score": 0
+          },
+          {
+            "label": "Hiếm khi",
+            "score": 1
+          },
+          {
+            "label": "Thỉnh thoảng",
+            "score": 2
+          },
+          {
+            "label": "Thường xuyên",
+            "score": 3
+          },
+          {
+            "label": "Rất thường xuyên",
+            "score": 4
+          },
+          {
+            "label": "Luôn luôn",
+            "score": 5
+          }
+        ]
+      },
+      {
+        "text": "Bạn thường có các mối quan hệ mới với những người sử dụng internet khác",
+        "options": [
+          {
+            "label": "Không bao giờ",
+            "score": 0
+          },
+          {
+            "label": "Hiếm khi",
+            "score": 1
+          },
+          {
+            "label": "Thỉnh thoảng",
+            "score": 2
+          },
+          {
+            "label": "Thường xuyên",
+            "score": 3
+          },
+          {
+            "label": "Rất thường xuyên",
+            "score": 4
+          },
+          {
+            "label": "Luôn luôn",
+            "score": 5
+          }
+        ]
+      },
+      {
+        "text": "Những người xung quanh bạn thường xuyên phàn nàn về thời lượng bạn sử dụng internet",
+        "options": [
+          {
+            "label": "Không bao giờ",
+            "score": 0
+          },
+          {
+            "label": "Hiếm khi",
+            "score": 1
+          },
+          {
+            "label": "Thỉnh thoảng",
+            "score": 2
+          },
+          {
+            "label": "Thường xuyên",
+            "score": 3
+          },
+          {
+            "label": "Rất thường xuyên",
+            "score": 4
+          },
+          {
+            "label": "Luôn luôn",
+            "score": 5
+          }
+        ]
+      },
+      {
+        "text": "Điểm số hoặc công việc của bạn thường xuyên bị ảnh hưởng vì lượng thời gian bạn dành cho internet",
+        "options": [
+          {
+            "label": "Không bao giờ",
+            "score": 0
+          },
+          {
+            "label": "Hiếm khi",
+            "score": 1
+          },
+          {
+            "label": "Thỉnh thoảng",
+            "score": 2
+          },
+          {
+            "label": "Thường xuyên",
+            "score": 3
+          },
+          {
+            "label": "Rất thường xuyên",
+            "score": 4
+          },
+          {
+            "label": "Luôn luôn",
+            "score": 5
+          }
+        ]
+      },
+      {
+        "text": "Bạn thường kiểm tra email trước khi làm việc khác",
+        "options": [
+          {
+            "label": "Không bao giờ",
+            "score": 0
+          },
+          {
+            "label": "Hiếm khi",
+            "score": 1
+          },
+          {
+            "label": "Thỉnh thoảng",
+            "score": 2
+          },
+          {
+            "label": "Thường xuyên",
+            "score": 3
+          },
+          {
+            "label": "Rất thường xuyên",
+            "score": 4
+          },
+          {
+            "label": "Luôn luôn",
+            "score": 5
+          }
+        ]
+      },
+      {
+        "text": "Hiệu suất và năng suất công việc của bạn thường xuyên bị ảnh hưởng vì internet",
+        "options": [
+          {
+            "label": "Không bao giờ",
+            "score": 0
+          },
+          {
+            "label": "Hiếm khi",
+            "score": 1
+          },
+          {
+            "label": "Thỉnh thoảng",
+            "score": 2
+          },
+          {
+            "label": "Thường xuyên",
+            "score": 3
+          },
+          {
+            "label": "Rất thường xuyên",
+            "score": 4
+          },
+          {
+            "label": "Luôn luôn",
+            "score": 5
+          }
+        ]
+      },
+      {
+        "text": "Bạn thường đề phòng hoặc bí mật khi ai đó hỏi bạn đã làm những gì trên internet",
+        "options": [
+          {
+            "label": "Không bao giờ",
+            "score": 0
+          },
+          {
+            "label": "Hiếm khi",
+            "score": 1
+          },
+          {
+            "label": "Thỉnh thoảng",
+            "score": 2
+          },
+          {
+            "label": "Thường xuyên",
+            "score": 3
+          },
+          {
+            "label": "Rất thường xuyên",
+            "score": 4
+          },
+          {
+            "label": "Luôn luôn",
+            "score": 5
+          }
+        ]
+      },
+      {
+        "text": "Bạn thường loại bỏ những suy nghĩ buồn phiền trong cuộc sống bằng những suy nghĩ nhẹ nhàng về internet",
+        "options": [
+          {
+            "label": "Không bao giờ",
+            "score": 0
+          },
+          {
+            "label": "Hiếm khi",
+            "score": 1
+          },
+          {
+            "label": "Thỉnh thoảng",
+            "score": 2
+          },
+          {
+            "label": "Thường xuyên",
+            "score": 3
+          },
+          {
+            "label": "Rất thường xuyên",
+            "score": 4
+          },
+          {
+            "label": "Luôn luôn",
+            "score": 5
+          }
+        ]
+      },
+      {
+        "text": "Bạn thường mong chờ đến lúc được sử dụng internet lại",
+        "options": [
+          {
+            "label": "Không bao giờ",
+            "score": 0
+          },
+          {
+            "label": "Hiếm khi",
+            "score": 1
+          },
+          {
+            "label": "Thỉnh thoảng",
+            "score": 2
+          },
+          {
+            "label": "Thường xuyên",
+            "score": 3
+          },
+          {
+            "label": "Rất thường xuyên",
+            "score": 4
+          },
+          {
+            "label": "Luôn luôn",
+            "score": 5
+          }
+        ]
+      },
+      {
+        "text": "Bạn thường lo sợ rằng cuộc sống không có internet sẽ buồn chán, trống rỗng và không có niềm vui",
+        "options": [
+          {
+            "label": "Không bao giờ",
+            "score": 0
+          },
+          {
+            "label": "Hiếm khi",
+            "score": 1
+          },
+          {
+            "label": "Thỉnh thoảng",
+            "score": 2
+          },
+          {
+            "label": "Thường xuyên",
+            "score": 3
+          },
+          {
+            "label": "Rất thường xuyên",
+            "score": 4
+          },
+          {
+            "label": "Luôn luôn",
+            "score": 5
+          }
+        ]
+      },
+      {
+        "text": "Bạn thường cáu kỉnh, la hét hoặc tỏ ra khó chịu khi có ai đó làm phiền lúc bạn đang sử dụng internet",
+        "options": [
+          {
+            "label": "Không bao giờ",
+            "score": 0
+          },
+          {
+            "label": "Hiếm khi",
+            "score": 1
+          },
+          {
+            "label": "Thỉnh thoảng",
+            "score": 2
+          },
+          {
+            "label": "Thường xuyên",
+            "score": 3
+          },
+          {
+            "label": "Rất thường xuyên",
+            "score": 4
+          },
+          {
+            "label": "Luôn luôn",
+            "score": 5
+          }
+        ]
+      },
+      {
+        "text": "Bạn thường xuyên bị mất ngủ vì sử dụng internet",
+        "options": [
+          {
+            "label": "Không bao giờ",
+            "score": 0
+          },
+          {
+            "label": "Hiếm khi",
+            "score": 1
+          },
+          {
+            "label": "Thỉnh thoảng",
+            "score": 2
+          },
+          {
+            "label": "Thường xuyên",
+            "score": 3
+          },
+          {
+            "label": "Rất thường xuyên",
+            "score": 4
+          },
+          {
+            "label": "Luôn luôn",
+            "score": 5
+          }
+        ]
+      },
+      {
+        "text": "Bạn thường cảm thấy suy nghĩ nhiều về internet khi không online, hoặc tưởng tượng về việc đang sử dụng internet",
+        "options": [
+          {
+            "label": "Không bao giờ",
+            "score": 0
+          },
+          {
+            "label": "Hiếm khi",
+            "score": 1
+          },
+          {
+            "label": "Thỉnh thoảng",
+            "score": 2
+          },
+          {
+            "label": "Thường xuyên",
+            "score": 3
+          },
+          {
+            "label": "Rất thường xuyên",
+            "score": 4
+          },
+          {
+            "label": "Luôn luôn",
+            "score": 5
+          }
+        ]
+      },
+      {
+        "text": "Bạn thường tự nói \"chỉ vài phút nữa thôi\" khi đang sử dụng internet",
+        "options": [
+          {
+            "label": "Không bao giờ",
+            "score": 0
+          },
+          {
+            "label": "Hiếm khi",
+            "score": 1
+          },
+          {
+            "label": "Thỉnh thoảng",
+            "score": 2
+          },
+          {
+            "label": "Thường xuyên",
+            "score": 3
+          },
+          {
+            "label": "Rất thường xuyên",
+            "score": 4
+          },
+          {
+            "label": "Luôn luôn",
+            "score": 5
+          }
+        ]
+      },
+      {
+        "text": "Bạn thường cố gắng cắt giảm thời gian sử dụng internet và thất bại",
+        "options": [
+          {
+            "label": "Không bao giờ",
+            "score": 0
+          },
+          {
+            "label": "Hiếm khi",
+            "score": 1
+          },
+          {
+            "label": "Thỉnh thoảng",
+            "score": 2
+          },
+          {
+            "label": "Thường xuyên",
+            "score": 3
+          },
+          {
+            "label": "Rất thường xuyên",
+            "score": 4
+          },
+          {
+            "label": "Luôn luôn",
+            "score": 5
+          }
+        ]
+      },
+      {
+        "text": "Bạn thường cố giấu việc mình đã sử dụng internet bao lâu",
+        "options": [
+          {
+            "label": "Không bao giờ",
+            "score": 0
+          },
+          {
+            "label": "Hiếm khi",
+            "score": 1
+          },
+          {
+            "label": "Thỉnh thoảng",
+            "score": 2
+          },
+          {
+            "label": "Thường xuyên",
+            "score": 3
+          },
+          {
+            "label": "Rất thường xuyên",
+            "score": 4
+          },
+          {
+            "label": "Luôn luôn",
+            "score": 5
+          }
+        ]
+      },
+      {
+        "text": "Bạn thường chọn dành thời gian sử dụng internet nhiều hơn là đi chơi với người khác",
+        "options": [
+          {
+            "label": "Không bao giờ",
+            "score": 0
+          },
+          {
+            "label": "Hiếm khi",
+            "score": 1
+          },
+          {
+            "label": "Thỉnh thoảng",
+            "score": 2
+          },
+          {
+            "label": "Thường xuyên",
+            "score": 3
+          },
+          {
+            "label": "Rất thường xuyên",
+            "score": 4
+          },
+          {
+            "label": "Luôn luôn",
+            "score": 5
+          }
+        ]
+      },
+      {
+        "text": "Bạn thường cảm thấy chán nản, ủ rũ hoặc lo lắng khi không sử dụng internet, và cảm giác này biến mất khi dùng internet trở lại",
+        "options": [
+          {
+            "label": "Không bao giờ",
+            "score": 0
+          },
+          {
+            "label": "Hiếm khi",
+            "score": 1
+          },
+          {
+            "label": "Thỉnh thoảng",
+            "score": 2
+          },
+          {
+            "label": "Thường xuyên",
+            "score": 3
+          },
+          {
+            "label": "Rất thường xuyên",
+            "score": 4
+          },
+          {
+            "label": "Luôn luôn",
+            "score": 5
+          }
+        ]
+      }
+    ],
+    "scoring": {
+      "total": {
+        "indices": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19
+        ],
+        "multiplier": 1
+      }
+    }
+  },
+  "audit": {
+    "name": "AUDIT",
+    "questions": [
+      {
+        "text": "Mức độ uống rượu/bia của bạn trong 12 tháng vừa qua?",
+        "options": [
+          {
+            "label": "Chưa bao giờ",
+            "score": 0
+          },
+          {
+            "label": "Ít hơn 1 lần/tháng",
+            "score": 1
+          },
+          {
+            "label": "2-4 lần/tháng",
+            "score": 2
+          },
+          {
+            "label": "2-3 lần/tuần",
+            "score": 3
+          },
+          {
+            "label": "≥4 lần/tuần",
+            "score": 4
+          }
+        ]
+      },
+      {
+        "text": "Trong một ngày có uống rượu/bia, bạn thường uống bao nhiêu đơn vị? (1 đơn vị = 1 lon/chai bia, 1 cốc rượu vang 120ml, hay 1 chén rượu mạnh 30ml)",
+        "options": [
+          {
+            "label": "1-2 đơn vị",
+            "score": 0
+          },
+          {
+            "label": "3-4 đơn vị",
+            "score": 1
+          },
+          {
+            "label": "5-6 đơn vị",
+            "score": 2
+          },
+          {
+            "label": "7-9 đơn vị",
+            "score": 3
+          },
+          {
+            "label": "≥10 đơn vị",
+            "score": 4
+          }
+        ]
+      },
+      {
+        "text": "Tần suất uống từ 6 đơn vị rượu/bia trở lên trong 1 lần uống",
+        "options": [
+          {
+            "label": "Không bao giờ",
+            "score": 0
+          },
+          {
+            "label": "Ít hơn 1 lần/tháng",
+            "score": 1
+          },
+          {
+            "label": "Hàng tháng",
+            "score": 2
+          },
+          {
+            "label": "Hàng tuần",
+            "score": 3
+          },
+          {
+            "label": "Hàng ngày hoặc gần như hàng ngày",
+            "score": 4
+          }
+        ]
+      },
+      {
+        "text": "Tần suất bạn nhận thấy mình không thể tự dừng uống khi đã bắt đầu",
+        "options": [
+          {
+            "label": "Không bao giờ",
+            "score": 0
+          },
+          {
+            "label": "Ít hơn 1 lần/tháng",
+            "score": 1
+          },
+          {
+            "label": "Hàng tháng",
+            "score": 2
+          },
+          {
+            "label": "Hàng tuần",
+            "score": 3
+          },
+          {
+            "label": "Hàng ngày hoặc gần như hàng ngày",
+            "score": 4
+          }
+        ]
+      },
+      {
+        "text": "Tần suất bạn không làm được những việc đã dự định làm vì uống rượu/bia",
+        "options": [
+          {
+            "label": "Không bao giờ",
+            "score": 0
+          },
+          {
+            "label": "Ít hơn 1 lần/tháng",
+            "score": 1
+          },
+          {
+            "label": "Hàng tháng",
+            "score": 2
+          },
+          {
+            "label": "Hàng tuần",
+            "score": 3
+          },
+          {
+            "label": "Hàng ngày hoặc gần như hàng ngày",
+            "score": 4
+          }
+        ]
+      },
+      {
+        "text": "Tần suất buổi sáng ngay sau khi thức dậy bạn cần uống ngay một cốc rượu/bia trước khi nghĩ đến việc khác",
+        "options": [
+          {
+            "label": "Không bao giờ",
+            "score": 0
+          },
+          {
+            "label": "Ít hơn 1 lần/tháng",
+            "score": 1
+          },
+          {
+            "label": "Hàng tháng",
+            "score": 2
+          },
+          {
+            "label": "Hàng tuần",
+            "score": 3
+          },
+          {
+            "label": "Hàng ngày hoặc gần như hàng ngày",
+            "score": 4
+          }
+        ]
+      },
+      {
+        "text": "Tần suất bạn cảm thấy mắc lỗi hoặc áy náy/day dứt/lo lắng về việc uống rượu/bia của bản thân",
+        "options": [
+          {
+            "label": "Không bao giờ",
+            "score": 0
+          },
+          {
+            "label": "Ít hơn 1 lần/tháng",
+            "score": 1
+          },
+          {
+            "label": "Hàng tháng",
+            "score": 2
+          },
+          {
+            "label": "Hàng tuần",
+            "score": 3
+          },
+          {
+            "label": "Hàng ngày hoặc gần như hàng ngày",
+            "score": 4
+          }
+        ]
+      },
+      {
+        "text": "Tần suất bạn ở trong trạng thái sau khi uống rượu/bia không thể nhớ được chuyện gì đã xảy ra trước đó",
+        "options": [
+          {
+            "label": "Không bao giờ",
+            "score": 0
+          },
+          {
+            "label": "Ít hơn 1 lần/tháng",
+            "score": 1
+          },
+          {
+            "label": "Hàng tháng",
+            "score": 2
+          },
+          {
+            "label": "Hàng tuần",
+            "score": 3
+          },
+          {
+            "label": "Hàng ngày hoặc gần như hàng ngày",
+            "score": 4
+          }
+        ]
+      },
+      {
+        "text": "Từ trước đến nay, bạn đã bao giờ bị thương do uống rượu/bia chưa?",
+        "options": [
+          {
+            "label": "Chưa bao giờ",
+            "score": 0
+          },
+          {
+            "label": "Có, nhưng không phải trong năm vừa qua",
+            "score": 1
+          },
+          {
+            "label": "Có, trong năm vừa qua",
+            "score": 2
+          }
+        ]
+      },
+      {
+        "text": "Từ trước đến nay, có người thân/bạn bè/bác sĩ nào lo ngại về việc sử dụng rượu/bia của bạn và đề nghị bạn giảm uống không?",
+        "options": [
+          {
+            "label": "Chưa bao giờ",
+            "score": 0
+          },
+          {
+            "label": "Có, nhưng không phải trong năm vừa qua",
+            "score": 1
+          },
+          {
+            "label": "Có, trong năm vừa qua",
+            "score": 2
+          }
+        ]
+      }
+    ],
+    "scoring": {
+      "total": {
+        "indices": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9
+        ],
+        "multiplier": 1
+      }
+    }
+  }
+}

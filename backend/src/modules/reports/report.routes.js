@@ -259,7 +259,10 @@ router.get('/dashboard', requireAuth, async (req, res) => {
       [userId]
     ).catch((e) => { console.error('[DASHBOARD_CHECKIN] streak:', e.message); });
 
-    const recommendations = await RecommendationEngineService.recommendTasks(userId).catch((error) => {
+    // recommendTasks() và loạt query dashboard dưới đây độc lập với nhau — chạy song song
+    // thay vì nối tiếp để giảm số "vòng" round-trip DB (trước đây phải chờ recommendTasks
+    // xong hoàn toàn mới bắt đầu 12 query tiếp theo).
+    const recommendationsPromise = RecommendationEngineService.recommendTasks(userId).catch((error) => {
       console.error('Dashboard recommendation error:', error);
       return {
         today_priority_tasks: [],
@@ -268,29 +271,7 @@ router.get('/dashboard', requireAuth, async (req, res) => {
       };
     });
 
-    const fallbackRisk = recommendations.risk_summary
-      ? recommendations.risk_summary
-      : await RiskEngineService.calculateStressIndex(userId).catch(() => ({
-          stress_index: 0,
-          risk_level: 'low',
-          show_emergency_banner: false,
-          primary_trigger: null
-        }));
-
-    const [
-      userRes,
-      progressRes,
-      latestMoodRes,
-      moodHistoryRes,
-      anxiety14dRes,
-      weeklyTasksRes,
-      totalTasksRes,
-      badgesCountRes,
-      badgesRecentRes,
-      recentJournalRes,
-      topTaskRes,
-      upcomingExpertSessionRes
-    ] = await Promise.all([
+    const dashboardQueriesPromise = Promise.all([
       db.query(
         `select id, email, full_name, display_name, avatar_url
          from users
@@ -388,6 +369,30 @@ router.get('/dashboard', requireAuth, async (req, res) => {
         [userId]
       ).catch((e) => { console.error('[DASHBOARD_QUERY] expert_bookings:', e.message); return { rows: [] }; })
     ]);
+
+    const [recommendations, [
+      userRes,
+      progressRes,
+      latestMoodRes,
+      moodHistoryRes,
+      anxiety14dRes,
+      weeklyTasksRes,
+      totalTasksRes,
+      badgesCountRes,
+      badgesRecentRes,
+      recentJournalRes,
+      topTaskRes,
+      upcomingExpertSessionRes
+    ]] = await Promise.all([recommendationsPromise, dashboardQueriesPromise]);
+
+    const fallbackRisk = recommendations.risk_summary
+      ? recommendations.risk_summary
+      : await RiskEngineService.calculateStressIndex(userId).catch(() => ({
+          stress_index: 0,
+          risk_level: 'low',
+          show_emergency_banner: false,
+          primary_trigger: null
+        }));
 
     const user = userRes.rows[0] || null;
     const latestMood = latestMoodRes.rows[0] || null;

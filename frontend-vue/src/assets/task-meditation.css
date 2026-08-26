@@ -1,0 +1,175 @@
+/* CSS trang Thiền Chánh Niệm — trích xuất nguyên văn từ frontend/pages/task-meditation.html
+   (bỏ sidebar/mobile-topbar do AppLayout quản lý) */
+
+.task-meditation-page {
+    --border-radius: 16px;
+}
+
+.guest-emergency-note {
+    margin-bottom: 20px;
+    padding: 18px 20px;
+    border: 2px solid var(--coral);
+    border-radius: var(--border-radius);
+    background: linear-gradient(135deg, rgba(255, 179, 179, 0.32) 0%, rgba(255, 224, 196, 0.48) 100%);
+}
+
+.guest-emergency-note-title {
+    font-size: 1rem;
+    font-weight: 800;
+    color: var(--coral);
+    margin-bottom: 6px;
+}
+
+.guest-emergency-note-text {
+    font-size: 0.88rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+}
+
+/* MAIN */
+.main-content {
+    margin-left: var(--sidebar-width);
+    padding: 28px;
+    min-height: 100vh;
+}
+
+.breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 20px;
+    font-size: 0.8rem;
+    color: var(--text-light);
+}
+
+.breadcrumb a {
+    color: var(--text-light);
+    text-decoration: none;
+}
+
+.breadcrumb span {
+    color: var(--text-secondary);
+    font-weight: 600;
+}
+
+.page-layout {
+}
+
+/* ARENA */
+.meditation-arena {
+    padding: 32px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 20px;
+    background: linear-gradient(135deg, var(--lavender-light), var(--mint-light), var(--sky-light));
+    border-color: var(--lavender);
+}
+
+.ma-title {
+    font-size: 1.1rem;
+    font-weight: 800;
+    margin-bottom: 4px;
+}
+
+.ma-subtitle {
+    font-size: 0.82rem;
+    color: var(--text-secondary);
+    margin-bottom: 24px;
+}
+
+.visual-container {
+    width: 200px;
+    height: 200px;
+    margin: 0 auto 20px;
+    position: relative;
+}
+
+.lotus {
+    position: absolute;
+    inset: 0;
+    background: var(--lavender);
+    border-radius: 50%;
+    opacity: 0.3;
+    animation: pulse 4s ease-in-out infinite;
+}
+
+@keyframes pulse {
+
+    0%,
+    100% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.2);
+    }
+}
+
+.timer-display {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--text-primary);
+}
+
+.med-controls {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+.mc-btn {
+    padding: 10px 20px;
+    border-radius: 50px;
+    border: 2px solid;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.mc-start {
+    background: var(--lavender);
+    color: white;
+    border-color: var(--lavender-dark);
+}
+
+/* FEEDBACK */
+.feedback-card {
+    padding: 24px;
+    display: none;
+    text-align: center;
+}
+
+.xp-badge {
+    display: inline-flex;
+    padding: 10px 20px;
+    background: var(--peach-light);
+    border: 2px solid var(--peach);
+    border-radius: 50px;
+    margin: 16px 0;
+    font-weight: 800;
+}
+
+.xp-num {
+    color: var(--peach-dark);
+}
+
+@media(max-width:900px) {
+    :root {
+        --sidebar-width: 0px;
+    }
+
+    .main-content {
+        margin-left: 0;
+        padding-top: 76px;
+    }
+
+    .mobile-topbar {
+        display: flex;
+    }
+}

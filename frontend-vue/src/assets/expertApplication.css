@@ -1,0 +1,70 @@
+/* Port verbatim từ frontend/public/css/expert/application.css */
+.expert-form-panel {
+  padding: 24px;
+  margin: 35px;
+}
+
+.expert-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.expert-form-grid .full {
+  grid-column: 1 / -1;
+}
+
+.expert-steps {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 22px;
+}
+
+.expert-step {
+  padding: 14px;
+  border-radius: 18px;
+  border: 1px solid rgba(74,55,40,0.12);
+  background: rgba(255,255,255,0.72);
+}
+
+.expert-step small {
+  display: block;
+  color: var(--text-light);
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.expert-step strong {
+  display: block;
+  margin-bottom: 6px;
+}
+
+.expert-step p {
+  margin: 0;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  font-size: 0.92rem;
+}
+
+.expert-form-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+  margin-top: 18px;
+}
+
+.expert-form-actions p {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.92rem;
+}
+
+@media (max-width: 900px) {
+  .expert-steps,
+  .expert-form-grid {
+    grid-template-columns: 1fr;
+  }
+}
