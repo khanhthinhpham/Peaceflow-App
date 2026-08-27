@@ -95,6 +95,20 @@
             <div v-if="item.role !== 'user'" class="msg-avatar">🐱</div>
             <div class="msg-content">
               <div class="msg-bubble" v-html="item.html"></div>
+              <div v-if="item.suggestedTask" class="msg-suggestion" @click="goToTask(item.suggestedTask.id)">
+                <span class="msg-suggestion-icon">{{ item.suggestedTask.icon || '🎯' }}</span>
+                <div class="msg-suggestion-info">
+                  <div class="msg-suggestion-title">{{ item.suggestedTask.title }}</div>
+                  <div class="msg-suggestion-meta">⏱ {{ item.suggestedTask.duration_minutes || 0 }} phút</div>
+                </div>
+              </div>
+              <div v-if="item.suggestedExpert" class="msg-suggestion" @click="router.push('/experts')">
+                <span class="msg-suggestion-icon">🩺</span>
+                <div class="msg-suggestion-info">
+                  <div class="msg-suggestion-title">{{ item.suggestedExpert.name }}</div>
+                  <div class="msg-suggestion-meta">{{ item.suggestedExpert.degree || 'Chuyên gia tâm lý' }} · ⭐ {{ item.suggestedExpert.rating || '?' }}/5</div>
+                </div>
+              </div>
               <div class="msg-time">{{ item.time }}</div>
             </div>
           </div>
@@ -253,39 +267,6 @@ const DANGER_KEYWORDS = ['tự tử', 'muốn chết', 'không muốn sống', '
 const NEGATIVE_KW = ['căng thẳng', 'lo lắng', 'mệt mỏi', 'buồn', 'tức giận', 'kiệt sức', 'áp lực', 'mất ngủ', 'chán nản', 'sợ hãi', 'cô đơn', 'thất bại', 'khóc', 'đau', 'bế tắc', 'không ngủ được', 'deadline', 'sếp', 'công việc'];
 const POSITIVE_KW = ['vui', 'hạnh phúc', 'tốt', 'ổn', 'bình tĩnh', 'thư giãn', 'hy vọng', 'cảm ơn', 'biết ơn', 'yêu', 'tự hào', 'tiến bộ'];
 
-const AI_FLOWS = {
-  stressed: [
-    'Mình thấy bạn đang mang khá nhiều áp lực. Điều gì đang đè nặng nhất lúc này?',
-    'Áp lực đó đến chủ yếu từ công việc, các mối quan hệ hay từ chính kỳ vọng của bạn?',
-    'Nếu phải chọn một việc để tháo gỡ trước, bạn muốn bắt đầu từ đâu?'
-  ],
-  sad: [
-    'Mình nghe ra cảm giác buồn ở đây. Điều gì khiến hôm nay trở nên nặng nề nhất với bạn?',
-    'Cảm giác này đã kéo dài bao lâu rồi?',
-    'Lúc buồn như vậy, bạn thường cần được ở một mình hay cần một người lắng nghe?'
-  ],
-  tired: [
-    'Nghe như bạn đang khá cạn năng lượng. Đây là mệt về cơ thể, đầu óc hay cả hai?',
-    'Giấc ngủ của bạn gần đây có ổn không?',
-    'Nếu chỉ dành 5 phút cho bản thân ngay bây giờ, điều gì là nhẹ nhàng nhất với bạn?'
-  ],
-  angry: [
-    'Mình cảm nhận được sự bức bối. Chuyện gì vừa khiến bạn khó chịu nhất?',
-    'Cơn giận này đang hướng vào một người, một tình huống hay chính bản thân bạn?',
-    'Mình có thể cùng bạn làm chậm nhịp lại trước khi phản ứng tiếp.'
-  ],
-  good: [
-    'Mừng vì bạn đang ổn hơn. Điều gì đã giúp hôm nay dễ thở hơn?',
-    'Bạn muốn giữ nhịp tích cực này bằng một việc nhỏ nào tiếp theo không?',
-    'Đây là lúc tốt để ghi nhận điều đang làm bạn tiến bộ.'
-  ],
-  default: [
-    'Mình đang lắng nghe. Bạn muốn kể thêm một chút không?',
-    'Điều này ảnh hưởng đến bạn rõ nhất ở thời điểm nào trong ngày?',
-    'Nếu phải đặt tên cho cảm giác hiện tại, bạn sẽ gọi nó là gì?'
-  ]
-};
-
 function escapeHtml(value) {
   return String(value ?? '')
     .replace(/&/g, '&amp;')
@@ -331,7 +312,6 @@ const analysis = reactive({
   emotion: 50, physical: 50, social: 50, cognitive: 50
 });
 const keywords = ref([]);
-const flowCounters = reactive({ stressed: 0, sad: 0, tired: 0, angry: 0, good: 0, default: 0 });
 
 const userMessageCount = ref(0);
 
@@ -482,7 +462,9 @@ function addMessage(role, text, options = {}) {
     role,
     text,
     html: options.html || escapeHtml(text).replace(/\n/g, '<br>'),
-    time: options.time || getTimeLabel()
+    time: options.time || getTimeLabel(),
+    suggestedTask: options.suggestedTask || null,
+    suggestedExpert: options.suggestedExpert || null
   });
 
   conversation.value = conversation.value.slice(-MAX_CONVERSATION_ITEMS);
@@ -534,32 +516,6 @@ function updateAnalysisFromUserText(text) {
   keywords.value = keywords.value.slice(0, 10);
 }
 
-function buildBotReply(userText, moodType) {
-  const riskLevel = dashboard.value?.summary?.risk_level || report.value?.summary?.risk_level || 'low';
-  const suggestedTask = (dashboard.value?.tasks || [])[0];
-  const flow = AI_FLOWS[moodType] || AI_FLOWS.default;
-  const index = flowCounters[moodType] || 0;
-  flowCounters[moodType] = index + 1;
-
-  let reply = flow[index % flow.length];
-
-  if (moodType === 'danger') {
-    reply = 'Mình thấy nội dung này có tín hiệu nguy cấp. Mình muốn ưu tiên an toàn cho bạn ngay lúc này. Hãy mở hỗ trợ khẩn cấp hoặc liên hệ một người tin cậy ở gần bạn ngay bây giờ.';
-  } else if (riskLevel === 'high' || riskLevel === 'critical') {
-    reply += ' Mình cũng thấy dữ liệu gần đây của bạn đang ở vùng cần theo dõi kỹ hơn.';
-  }
-
-  if (suggestedTask && moodType !== 'good' && moodType !== 'danger') {
-    reply += ` Nếu muốn, sau đó bạn có thể thử nhiệm vụ "${suggestedTask.title}".`;
-  }
-
-  if (userText.length > 180) {
-    reply += ' Cảm ơn bạn đã kể khá rõ. Mình đang theo kịp và có thể đi cùng bạn từng ý một.';
-  }
-
-  return reply;
-}
-
 function resetChat(withWelcome = true) {
   conversation.value = [];
   if (withWelcome) {
@@ -593,7 +549,7 @@ function sendQuickReply(text) {
   sendMessage();
 }
 
-function sendMessage() {
+async function sendMessage() {
   const text = String(chatInputValue.value || '').trim();
   if (!text || isTyping.value) return;
 
@@ -611,11 +567,26 @@ function sendMessage() {
   }
 
   showTyping();
-  const reply = buildBotReply(text, moodType);
-  setTimeout(() => {
+  try {
+    // Gửi kèm lịch sử hội thoại (trừ tin vừa thêm — server tự nối vào cuối) để AI hiểu
+    // ngữ cảnh nhiều lượt, giống cách vanilla giữ conversation trong sessionStorage.
+    const history = conversation.value
+      .slice(0, -1)
+      .filter((item) => item.text)
+      .slice(-16)
+      .map((item) => ({ role: item.role, text: item.text }));
+
+    const res = await apiClient.post('/ai/chat', { message: text, history });
     hideTyping();
-    addMessage('bot', reply);
-  }, 700);
+    addMessage('bot', res?.reply || 'Xin lỗi, mình chưa nghĩ ra câu trả lời phù hợp lúc này.', {
+      suggestedTask: res?.suggested_task || null,
+      suggestedExpert: res?.suggested_expert || null
+    });
+  } catch (error) {
+    console.error('Chat AI failed:', error);
+    hideTyping();
+    addMessage('bot', 'Xin lỗi, mình đang gặp chút trục trặc, bạn thử lại sau ít phút nhé. Nếu cần hỗ trợ ngay, hãy bấm "🆘 Khẩn cấp" ở trên.');
+  }
 }
 
 function clearChat() {

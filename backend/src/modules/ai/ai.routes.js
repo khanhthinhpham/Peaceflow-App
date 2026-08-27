@@ -2,7 +2,7 @@ import { Router } from 'express';
 import rateLimit from 'express-rate-limit';
 import { requireAuth } from '../../common/middleware/auth.middleware.js';
 import { buildUserContext, invalidateContext } from './ai.context.js';
-import { getDailyMessage, getRecommendedTask, getWeeklyInsight } from './ai.service.js';
+import { getDailyMessage, getRecommendedTask, getWeeklyInsight, getChatReply } from './ai.service.js';
 
 const router = Router();
 
@@ -70,6 +70,49 @@ router.post('/ai/weekly-insight', requireAuth, aiRateLimit, async (req, res) => 
     } catch (error) {
         console.error('[AI] weekly-insight error:', error);
         return res.status(500).json({ success: false, message: 'Không thể tạo nhận xét lúc này.' });
+    }
+});
+
+const MAX_CHAT_MESSAGE_LENGTH = 500;
+
+// POST /ai/chat — chat nhiều lượt với PeaceCat AI (dùng chung rate limit AI hiện có)
+router.post('/ai/chat', requireAuth, aiRateLimit, async (req, res) => {
+    try {
+        const message = String(req.body?.message || '').trim().slice(0, MAX_CHAT_MESSAGE_LENGTH);
+        if (!message) {
+            return res.status(400).json({ success: false, message: 'Vui lòng nhập nội dung.' });
+        }
+        const history = Array.isArray(req.body?.history) ? req.body.history : [];
+
+        const result = await getChatReply({ userId: req.user.sub, message, history });
+
+        return res.json({
+            success: true,
+            data: {
+                reply: result.reply,
+                suggested_task: result.suggestedTask
+                    ? {
+                        id: result.suggestedTask.id,
+                        title: result.suggestedTask.title,
+                        category: result.suggestedTask.category,
+                        duration_minutes: result.suggestedTask.duration_minutes,
+                        xp_reward: result.suggestedTask.xp_reward,
+                        icon: result.suggestedTask.icon
+                    }
+                    : null,
+                suggested_expert: result.suggestedExpert
+                    ? {
+                        id: result.suggestedExpert.id,
+                        name: result.suggestedExpert.full_name,
+                        degree: result.suggestedExpert.degree,
+                        rating: result.suggestedExpert.rating
+                    }
+                    : null
+            }
+        });
+    } catch (error) {
+        console.error('[AI] chat error:', error);
+        return res.status(500).json({ success: false, message: 'Không thể trả lời lúc này.' });
     }
 });
 

@@ -61,7 +61,9 @@ export async function fetchActiveTasks() {
     return res.rows;
 }
 
-async function callGeminiJson(systemInstruction, userContent, schema) {
+// `contents` nhận trực tiếp mảng theo format Gemini ([{role?, parts:[{text}]}]) để hỗ
+// trợ cả 1 lượt (các tính năng cũ) và nhiều lượt hội thoại thật (chat) trong cùng 1 hàm.
+async function callGeminiJson(systemInstruction, contents, schema, options = {}) {
     if (!env.geminiApiKey) {
         throw new Error('GEMINI_API_KEY chưa được cấu hình');
     }
@@ -74,10 +76,11 @@ async function callGeminiJson(systemInstruction, userContent, schema) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 systemInstruction: { parts: [{ text: systemInstruction }] },
-                contents: [{ parts: [{ text: userContent }] }],
+                contents,
                 generationConfig: {
                     responseMimeType: 'application/json',
-                    responseSchema: schema
+                    responseSchema: schema,
+                    ...(options.maxOutputTokens ? { maxOutputTokens: options.maxOutputTokens } : {})
                 }
             })
         }
@@ -148,7 +151,7 @@ export async function getAssessmentAiSummary({ assessmentName, totalScore, sever
 Tổng điểm: ${totalScore}${severity ? `, mức độ: ${severity}` : ''}.
 ${dimensionLines ? `Điểm theo từng khía cạnh:\n${dimensionLines}` : ''}`;
 
-    const parsed = await callGeminiJson(buildAssessmentSystemInstruction(availableTasks), userContent, RECOMMENDATION_SCHEMA);
+    const parsed = await callGeminiJson(buildAssessmentSystemInstruction(availableTasks), [{ parts: [{ text: userContent }] }], RECOMMENDATION_SCHEMA);
 
     const matchedTask = availableTasks.find((t) => t.code === parsed.task_code) || null;
     return {
@@ -227,7 +230,7 @@ export async function getDailyMessage(userId, ctx = null) {
     if (!ctx) ctx = await buildUserContext(userId);
     const availableTasks = await fetchActiveTasks();
 
-    const parsed = await callGeminiJson(buildDailySystemInstruction(availableTasks), formatMoodContext(ctx), DAILY_MESSAGE_SCHEMA);
+    const parsed = await callGeminiJson(buildDailySystemInstruction(availableTasks), [{ parts: [{ text: formatMoodContext(ctx) }] }], DAILY_MESSAGE_SCHEMA);
 
     const exercises = Array.isArray(parsed.exercises)
         ? parsed.exercises
@@ -241,5 +244,91 @@ export async function getDailyMessage(userId, ctx = null) {
     return {
         recommendation: parsed.message || '',
         exercises
+    };
+}
+
+export async function fetchActiveExperts() {
+    const res = await db.query(
+        `select id, code, full_name, degree, specialties, rating, experience_years, bio
+         from experts where active = true order by rating desc nulls last, code`
+    );
+    return res.rows;
+}
+
+function formatExpertCatalog(availableExperts) {
+    const lines = availableExperts
+        .map((e) => {
+            const specialties = Array.isArray(e.specialties) ? e.specialties.join(', ') : (e.specialties || 'chưa cập nhật');
+            return `- ${e.code}: ${e.full_name}${e.degree ? ` (${e.degree})` : ''} — chuyên môn: ${specialties}, đánh giá ${e.rating ?? '?'}/5, ${e.experience_years ?? '?'} năm kinh nghiệm.`;
+        })
+        .join('\n');
+    return lines || '(không có chuyên gia nào)';
+}
+
+const CHAT_SCHEMA = {
+    type: 'object',
+    properties: {
+        reply: { type: 'string' },
+        suggested_task_code: { type: 'string' },
+        suggested_expert_code: { type: 'string' }
+    },
+    required: ['reply']
+};
+
+const MAX_CHAT_HISTORY = 16;
+
+function buildChatSystemInstruction(ctx, availableTasks, availableExperts) {
+    return `Bạn là PeaceCat AI — trợ lý tâm lý đồng hành của app PeaceFlow, trò chuyện bằng tiếng Việt, giọng văn ấm áp, đồng cảm, tự nhiên như một người bạn lắng nghe.
+
+QUY TẮC BẮT BUỘC:
+1. CHỈ trò chuyện về: cảm xúc, tâm trạng, sức khỏe tâm thần, stress/lo âu/trầm cảm, các bài tập/nhiệm vụ trong app, thông tin chuyên gia tâm lý trên hệ thống, và dữ liệu cá nhân của người dùng trong app (tâm trạng, tiến độ, lịch sử hoạt động...).
+2. Nếu người dùng hỏi chủ đề KHÔNG liên quan (lập trình, thời sự, giải trí, kiến thức chung, chuyện của người khác...), hãy từ chối lịch sự và mời họ quay lại chủ đề tâm lý — không trả lời nội dung ngoài phạm vi này.
+3. Trả lời NGẮN GỌN — tối đa 2-4 câu, không lan man, không liệt kê dài dòng, không dùng markdown.
+4. Không đưa ra chẩn đoán y khoa. Nếu phát hiện dấu hiệu nguy cấp (ý định tự hại/tự tử), khuyên người dùng liên hệ hotline hoặc chuyên gia ngay trong câu trả lời.
+5. Nếu phù hợp với câu hỏi, có thể gợi ý ĐÚNG 1 bài tập (suggested_task_code) hoặc ĐÚNG 1 chuyên gia (suggested_expert_code) từ danh sách dưới đây — không bịa mã không có. Nếu không có gợi ý phù hợp, để trống (chuỗi rỗng).
+
+--- Thông tin về người dùng đang chat (dùng để trả lời phù hợp, không đọc lại nguyên văn số liệu cho người dùng) ---
+${formatMoodContext(ctx)}
+
+--- Danh sách bài tập có sẵn (nếu gợi ý, chọn suggested_task_code từ đây) ---
+${formatTaskCatalog(availableTasks)}
+
+--- Danh sách chuyên gia có sẵn (nếu gợi ý, chọn suggested_expert_code từ đây) ---
+${formatExpertCatalog(availableExperts)}`;
+}
+
+// Chat nhiều lượt với PeaceCat AI — biết dữ liệu cá nhân người dùng (tâm trạng, tiến
+// độ...) và danh sách chuyên gia/bài tập thật để gợi ý kèm thẻ bấm được, giới hạn chỉ
+// trò chuyện trong phạm vi tâm lý/tâm thần, trả lời ngắn.
+export async function getChatReply({ userId, message, history = [] }) {
+    const ctx = await buildUserContext(userId);
+    const [availableTasks, availableExperts] = await Promise.all([
+        fetchActiveTasks(),
+        fetchActiveExperts()
+    ]);
+
+    const trimmedHistory = history.slice(-MAX_CHAT_HISTORY);
+    const contents = trimmedHistory
+        .filter((item) => item && typeof item.text === 'string' && item.text.trim())
+        .map((item) => ({
+            role: item.role === 'user' ? 'user' : 'model',
+            parts: [{ text: item.text }]
+        }));
+    contents.push({ role: 'user', parts: [{ text: message }] });
+
+    const parsed = await callGeminiJson(
+        buildChatSystemInstruction(ctx, availableTasks, availableExperts),
+        contents,
+        CHAT_SCHEMA,
+        { maxOutputTokens: 400 }
+    );
+
+    const matchedTask = availableTasks.find((t) => t.code === parsed.suggested_task_code) || null;
+    const matchedExpert = availableExperts.find((e) => e.code === parsed.suggested_expert_code) || null;
+
+    return {
+        reply: parsed.reply || '',
+        suggestedTask: matchedTask,
+        suggestedExpert: matchedExpert
     };
 }
