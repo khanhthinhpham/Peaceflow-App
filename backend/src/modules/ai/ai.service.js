@@ -1,6 +1,7 @@
 import { env } from '../../config/env.js';
 import { db } from '../../config/db.js';
 import { buildUserContext } from './ai.context.js';
+import { TRIGGER_CODES, formatTriggerList } from './taskTaxonomy.js';
 
 async function callRAG(ctx, sessionId) {
     const response = await fetch(`${env.ragBaseUrl}/recommend`, {
@@ -91,14 +92,17 @@ function buildAssessmentSystemInstruction() {
     return `Bạn là trợ lý tâm lý của app PeaceFlow. Người dùng sẽ gửi tên bài test tự đánh giá và điểm số của họ.
 Nhiệm vụ:
 1. Viết một đoạn nhận xét ngắn (3-5 câu) bằng tiếng Việt, giọng văn ấm áp, dễ hiểu, không dùng thuật ngữ chuyên môn khó hiểu, không đưa ra chẩn đoán y khoa, không dùng markdown.
-2. Mô tả NGẮN (3-8 từ tiếng Việt) loại bài tập phù hợp nhất với kết quả test này vào task_query (vd: "bài tập giảm lo âu", "thư giãn trước khi ngủ") — đây là mô tả để tìm kiếm, KHÔNG phải tên/mã cụ thể.
-3. Viết 1 câu ngắn giải thích vì sao loại bài tập đó phù hợp.`;
+2. task_trigger: chọn ĐÚNG 1 mã tình trạng cần nhắm tới nhất dựa trên kết quả test, từ danh sách sau (để trống nếu không rõ):
+${formatTriggerList()}
+3. task_query: mô tả bằng 1-2 câu tiếng Việt loại bài tập phù hợp nhất — nêu rõ MỤC ĐÍCH và CÁCH THỨC tác động (vd: "Bài tập điều hòa hơi thở chậm để làm dịu hệ thần kinh và giảm cảm giác bồn chồn"). Đây là mô tả để tìm kiếm, KHÔNG phải tên/mã bài tập cụ thể.
+4. task_reason: 1 câu ngắn giải thích vì sao loại bài tập đó phù hợp (câu này sẽ hiện cho người dùng đọc).`;
 }
 
 const RECOMMENDATION_SCHEMA = {
     type: 'object',
     properties: {
         summary: { type: 'string' },
+        task_trigger: { type: 'string' },
         task_query: { type: 'string' },
         task_reason: { type: 'string' }
     },
@@ -132,7 +136,7 @@ ${dimensionLines ? `Điểm theo từng khía cạnh:\n${dimensionLines}` : ''}`
 
     const parsed = await callGeminiJson(buildAssessmentSystemInstruction(), [{ parts: [{ text: userContent }] }], RECOMMENDATION_SCHEMA);
 
-    const matchedTask = await findMatchingTaskByEmbedding(parsed.task_query);
+    const matchedTask = await findMatchingTaskByEmbedding(parsed.task_query, parsed.task_trigger);
     return {
         summary: parsed.summary || '',
         recommendedTask: matchedTask ? { ...matchedTask, reason: parsed.task_reason || '' } : null
@@ -148,6 +152,7 @@ const DAILY_MESSAGE_SCHEMA = {
             items: {
                 type: 'object',
                 properties: {
+                    task_trigger: { type: 'string' },
                     task_query: { type: 'string' },
                     reason: { type: 'string' }
                 },
@@ -163,8 +168,12 @@ function buildDailySystemInstruction() {
     return `Bạn là trợ lý tâm lý của app PeaceFlow. Người dùng sẽ gửi dữ liệu tổng hợp về tâm trạng, mức độ lo âu/stress/năng lượng gần đây, streak hoạt động và các bài tập họ từng thích.
 Nhiệm vụ:
 1. Viết một lời nhắn buổi sáng ngắn gọn (2-4 câu) bằng tiếng Việt, giọng văn ấm áp, cá nhân hóa dựa trên xu hướng tâm trạng gần đây — không dùng thuật ngữ chuyên môn khó hiểu, không đưa ra chẩn đoán y khoa, không dùng markdown.
-2. Mô tả 1-2 loại bài tập phù hợp nhất (mỗi loại 3-8 từ tiếng Việt, vào task_query) — ưu tiên loại giúp cải thiện đúng vấn đề người dùng đang gặp (vd: stress cao thì ưu tiên "bài thư giãn hít thở"; năng lượng thấp thì ưu tiên "bài tập nhẹ nhàng"; đang tốt thì có thể gợi ý "thử thể loại mới"). Đây là mô tả để tìm kiếm, KHÔNG phải tên/mã cụ thể.
-3. Với mỗi loại bài tập, viết 1 câu ngắn giải thích vì sao phù hợp.`;
+2. Đề xuất 1-2 bài tập trong mảng exercises. Với mỗi phần tử:
+   - task_trigger: chọn ĐÚNG 1 mã tình trạng cần nhắm tới nhất từ danh sách sau (để trống nếu không rõ):
+${formatTriggerList()}
+   - task_query: mô tả bằng 1-2 câu loại bài tập phù hợp, nêu rõ MỤC ĐÍCH và CÁCH THỨC tác động (vd: "Bài tập vận động nhẹ ngoài trời để nâng năng lượng và cải thiện tâm trạng"). Đây là mô tả để tìm kiếm, KHÔNG phải tên/mã cụ thể.
+   - reason: 1 câu ngắn giải thích vì sao phù hợp (hiện cho người dùng đọc).
+Ưu tiên nhắm đúng vấn đề đang gặp: stress/lo âu cao thì ưu tiên bài làm dịu; năng lượng thấp thì ưu tiên bài nâng năng lượng nhẹ nhàng; đang ổn thì có thể gợi ý thử hướng mới.`;
 }
 
 function formatMoodContext(ctx) {
@@ -213,7 +222,7 @@ export async function getDailyMessage(userId, ctx = null) {
     const usedTaskIds = new Set();
     const matches = await Promise.all(
         (Array.isArray(parsed.exercises) ? parsed.exercises : []).map(async (ex) => {
-            const task = await findMatchingTaskByEmbedding(ex.task_query);
+            const task = await findMatchingTaskByEmbedding(ex.task_query, ex.task_trigger);
             return task ? { task, reason: ex.reason || '' } : null;
         })
     );
@@ -236,6 +245,7 @@ const CHAT_SCHEMA = {
     type: 'object',
     properties: {
         reply: { type: 'string' },
+        suggested_task_trigger: { type: 'string' },
         suggested_task_query: { type: 'string' },
         suggested_expert_query: { type: 'string' },
         mood_analysis: {
@@ -268,7 +278,13 @@ QUY TẮC BẮT BUỘC:
 2. Nếu người dùng hỏi chủ đề KHÔNG liên quan (lập trình, thời sự, giải trí, kiến thức chung, chuyện của người khác...), hãy từ chối lịch sự và mời họ quay lại chủ đề tâm lý — không trả lời nội dung ngoài phạm vi này.
 3. Trả lời NGẮN GỌN — tối đa 2-4 câu, không lan man, không liệt kê dài dòng, không dùng markdown.
 4. Không đưa ra chẩn đoán y khoa. Nếu phát hiện dấu hiệu nguy cấp (ý định tự hại/tự tử), khuyên người dùng liên hệ hotline hoặc chuyên gia ngay trong câu trả lời.
-5. Nếu phù hợp, mô tả NGẮN (3-8 từ tiếng Việt) loại bài tập nên gợi ý vào suggested_task_query (vd: "bài tập giúp ngủ ngon", "thở giảm lo âu") — để trống nếu không cần. Tương tự, nếu phù hợp thì mô tả NGẮN chuyên môn chuyên gia cần tìm vào suggested_expert_query (vd: "chuyên gia về lo âu mất ngủ") — để trống nếu không cần. Đây chỉ là mô tả để tìm kiếm, KHÔNG phải tên/mã cụ thể.
+5. Nếu việc gợi ý một bài tập là phù hợp với đoạn hội thoại, hãy điền:
+   - suggested_task_trigger: ĐÚNG 1 mã tình trạng cần nhắm tới nhất từ danh sách sau (để trống nếu không rõ):
+${formatTriggerList()}
+   - suggested_task_query: mô tả bằng 1-2 câu loại bài tập phù hợp, nêu rõ MỤC ĐÍCH và CÁCH THỨC tác động (vd: "Bài tập điều hòa hơi thở chậm để làm dịu hệ thần kinh và giảm bồn chồn").
+   Nếu không cần gợi ý bài tập thì để trống cả hai.
+   Tương tự, nếu người dùng cần tìm chuyên gia thì mô tả chuyên môn cần tìm vào suggested_expert_query (vd: "chuyên gia về lo âu và rối loạn giấc ngủ") — để trống nếu không cần.
+   Tất cả đều là mô tả để tìm kiếm, KHÔNG phải tên/mã cụ thể.
 6. Luôn kèm theo mood_analysis: ước lượng (0-100) dựa trên toàn bộ cuộc trò chuyện tính đến tin nhắn này — anxiety (lo âu), stress, mood (tâm trạng, càng cao càng tích cực), depression (dấu hiệu trầm cảm). Đây chỉ là ước lượng tham khảo để hiển thị cho người dùng tự theo dõi, KHÔNG phải chẩn đoán y khoa. Kèm tối đa 5 từ khóa cảm xúc nổi bật (keywords) rút ra từ lời người dùng vừa nói (ví dụ: "mất ngủ", "áp lực công việc", "cô đơn") — không lặp lại từ khóa đã có nếu không còn phù hợp.
 
 --- Thông tin về người dùng đang chat (dùng để trả lời phù hợp, không đọc lại nguyên văn số liệu cho người dùng) ---
@@ -306,26 +322,53 @@ async function embedText(text, taskType) {
     }
 }
 
-// So khớp bằng embedding (nghĩa ngữ nghĩa thật) thay vì đếm từ khóa trùng — vì nhiều
-// tên bài tập trong DB thực chất là cả đoạn mô tả dài, đếm từ trùng dễ khớp nhầm (vd
-// "thư giãn cơ thể" bị khớp nhầm sang bài về "xây dựng mối quan hệ" chỉ vì cùng có chữ
-// "năng lượng"). Cần đã chạy `node src/scripts/backfill-embeddings.js` để có dữ liệu.
-async function findMatchingTaskByEmbedding(queryText) {
-    if (!queryText) return null;
-    const vector = await embedText(queryText, 'RETRIEVAL_QUERY');
-    if (!vector) return null;
+// Tìm bài tập phù hợp theo 2 lớp:
+//   1) LỌC XÁC ĐỊNH theo tình trạng (triggers_supported / contraindications — đã được
+//      gán nhãn sẵn bằng `node src/scripts/label-task-triggers.js`). Đây là lớp quan
+//      trọng nhất: nó loại bỏ hẳn các bài PHẢN TÁC DỤNG, thứ mà embedding không làm
+//      được (vd bài "tự vấn/suy ngẫm trước khi ngủ" nghe rất giống chủ đề giấc ngủ
+//      nhưng lại làm mất ngủ nặng thêm).
+//   2) Trong nhóm đã lọc, dùng embedding chọn bài gần nghĩa nhất với mô tả AI đưa ra.
+// Nếu AI không xác định được tình trạng, bỏ qua lớp 1 và chỉ dùng embedding.
+async function queryClosestTask(vectorLiteral, trigger, requireSupported) {
+    const params = [vectorLiteral];
+    let filter = '';
+    if (trigger) {
+        params.push(JSON.stringify([trigger]));
+        // Điều kiện "không chống chỉ định" LUÔN được áp dụng khi đã biết tình trạng —
+        // không bao giờ nới lỏng, vì đây chính là thứ chặn các bài phản tác dụng.
+        filter = ` and not (contraindications @> $2::jsonb)`;
+        if (requireSupported) filter += ` and triggers_supported @> $2::jsonb`;
+    }
 
     const { rows } = await db.query(
         `select id, code, title, category, difficulty, duration_minutes, xp_reward, description,
                 metadata->>'icon' as icon, embedding <=> $1::vector as distance
          from tasks
-         where active = true and embedding is not null
+         where active = true and embedding is not null${filter}
          order by distance asc
          limit 1`,
-        [`[${vector.join(',')}]`]
+        params
     );
     const best = rows[0];
     return best && best.distance <= MAX_MATCH_DISTANCE ? best : null;
+}
+
+async function findMatchingTaskByEmbedding(queryText, targetTrigger = null) {
+    if (!queryText) return null;
+    const vector = await embedText(queryText, 'RETRIEVAL_QUERY');
+    if (!vector) return null;
+
+    const vectorLiteral = `[${vector.join(',')}]`;
+    const trigger = TRIGGER_CODES.includes(targetTrigger) ? targetTrigger : null;
+
+    // Ưu tiên bài được gán nhãn hỗ trợ đúng tình trạng này.
+    const preferred = await queryClosestTask(vectorLiteral, trigger, true);
+    if (preferred) return preferred;
+
+    // Không có bài nào vừa hỗ trợ đúng tình trạng vừa đủ gần nghĩa — nới lỏng yêu cầu
+    // "phải hỗ trợ", nhưng vẫn loại các bài chống chỉ định với tình trạng đó.
+    return queryClosestTask(vectorLiteral, trigger, false);
 }
 
 async function findMatchingExpertByEmbedding(queryText) {
@@ -364,7 +407,7 @@ export async function getChatReply({ userId, message, history = [] }) {
     const parsed = await callGeminiJson(buildChatSystemInstruction(ctx), contents, CHAT_SCHEMA, { maxOutputTokens: 300 });
 
     const [matchedTask, matchedExpert] = await Promise.all([
-        findMatchingTaskByEmbedding(parsed.suggested_task_query),
+        findMatchingTaskByEmbedding(parsed.suggested_task_query, parsed.suggested_task_trigger),
         findMatchingExpertByEmbedding(parsed.suggested_expert_query)
     ]);
     const clampScore = (value) => Math.max(0, Math.min(100, Number(value) || 0));
