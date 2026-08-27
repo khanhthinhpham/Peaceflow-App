@@ -37,13 +37,13 @@ router.post('/ai/daily-message', requireAuth, aiRateLimit, async (req, res) => {
         const ctx = await buildUserContext(req.user.sub);
         const contextHash = JSON.stringify(ctx);
 
-        const cached = _ragCache.get(req.user.sub);
+        const cached = _dailyMessageCache.get(req.user.sub);
         if (cached && cached.contextHash === contextHash) {
             return res.json({ success: true, data: cached.result });
         }
 
         const result = await getDailyMessage(req.user.sub, ctx);
-        _ragCache.set(req.user.sub, { result, contextHash });
+        _dailyMessageCache.set(req.user.sub, { result, contextHash });
         return res.json({ success: true, data: result });
     } catch (error) {
         console.error('[AI] daily-message error:', error);
