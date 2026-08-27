@@ -735,7 +735,7 @@ export default { name: 'DashboardView' };
   .grid-3 { grid-template-columns: repeat(2, 1fr); }
 }
 @media (max-width: 900px) {
-  .main-content { margin-left: 0; padding: 76px 16px 20px; }
+  .main-content { margin-left: 0; padding: 16px 16px 20px; }
   .grid-4 { grid-template-columns: repeat(2, 1fr); }
 }
 @media (max-width: 600px) {

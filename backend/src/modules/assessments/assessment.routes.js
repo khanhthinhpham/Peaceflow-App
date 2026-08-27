@@ -269,9 +269,12 @@ router.post('/assessments/results/:id/ai-summary', requireAuth, async (req, res)
       return res.status(404).json({ success: false, message: 'Không tìm thấy kết quả này.' });
     }
 
+    // ORDER BY cố định — bắt buộc để nội dung gửi Gemini giống hệt nhau giữa các lần gọi
+    // (điều kiện để implicit caching có cơ hội kích hoạt), nếu không Postgres có thể trả
+    // về thứ tự hàng khác nhau mỗi lần dù dữ liệu không đổi.
     const tasksRes = await db.query(
       `select id, code, title, category, duration_minutes, xp_reward, description, metadata->>'icon' as icon
-       from tasks where active = true`
+       from tasks where active = true order by code`
     );
 
     const { summary, recommendedTask } = await getAssessmentAiSummary({

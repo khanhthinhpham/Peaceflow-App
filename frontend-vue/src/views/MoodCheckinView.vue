@@ -498,7 +498,7 @@ onMounted(async () => {
 .ep-btn-close { background: transparent; color: var(--text-light); border: 2px solid var(--kraft-light); font-size: 0.8rem; }
 
 @media (max-width: 900px) {
-  .main-content { margin-left: 0; padding: 76px 16px 20px; }
+  .main-content { margin-left: 0; padding: 16px 16px 20px; }
 }
 @media (max-width: 600px) {
   .mode-selector { grid-template-columns: 1fr; }
