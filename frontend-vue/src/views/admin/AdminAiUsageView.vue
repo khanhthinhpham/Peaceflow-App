@@ -41,6 +41,11 @@
           <div class="admin-stat-value">{{ num(Number(totals.prompt_tokens || 0) + Number(totals.output_tokens || 0)) }}</div>
           <div class="admin-stat-hint">Vào {{ num(totals.prompt_tokens) }} · Ra {{ num(totals.output_tokens) }} · Cache {{ num(totals.cached_tokens) }}</div>
         </article>
+        <article class="admin-stat admin-stat--ops">
+          <div class="admin-stat-top"><span class="admin-stat-label">Tiết kiệm nhờ cache</span><span class="admin-stat-ico">♻️</span></div>
+          <div class="admin-stat-value">{{ money(totals.saved_vnd) }}</div>
+          <div class="admin-stat-hint">{{ num(totals.cache_hits) }} lượt dùng lại ({{ totals.cache_rate || 0 }}%) · 0 token</div>
+        </article>
         <article class="admin-stat" :class="totals.errors > 0 ? 'admin-stat--alert' : 'admin-stat--ops'">
           <div class="admin-stat-top"><span class="admin-stat-label">Lỗi</span><span class="admin-stat-ico">{{ totals.errors > 0 ? '⚠️' : '✅' }}</span></div>
           <div class="admin-stat-value">{{ num(totals.errors) }}</div>
@@ -160,6 +165,7 @@
             <div style="min-width:0;flex:1;">
               <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap;">
                 <span :style="log.success ? chipOk : chipErr">{{ log.success ? 'OK' : 'LỖI' }}</span>
+                <span v-if="log.from_cache" :style="chipCache" title="Dùng lại kết quả có sẵn — không tốn token">♻️ CACHE</span>
                 <strong style="font-size:.88rem;">{{ FEATURE_LABEL[log.feature] || log.feature }}</strong>
                 <span style="font-size:.78rem;color:var(--text-secondary);">{{ log.user_name }}</span>
               </div>
@@ -203,6 +209,7 @@ const featureTabs = [
 
 const chipOk = { fontSize: '.68rem', fontWeight: 800, padding: '1px 7px', borderRadius: '6px', background: 'var(--mint-light)', color: 'var(--mint-dark)' };
 const chipErr = { fontSize: '.68rem', fontWeight: 800, padding: '1px 7px', borderRadius: '6px', background: 'rgba(255,139,139,.16)', color: 'var(--coral-dark)' };
+const chipCache = { fontSize: '.68rem', fontWeight: 800, padding: '1px 7px', borderRadius: '6px', background: 'var(--sky-light)', color: '#4a90aa' };
 
 function num(v) { return Number(v || 0).toLocaleString('vi-VN'); }
 function money(v) { return `${Number(v || 0).toLocaleString('vi-VN')}đ`; }

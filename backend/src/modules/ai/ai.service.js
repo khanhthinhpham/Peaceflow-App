@@ -191,9 +191,53 @@ function formatDimensionValue(value) {
     return parts.length ? parts.join(' - ') : JSON.stringify(value);
 }
 
-// Đổi số này khi sửa prompt/schema của nhận xét bài test — toàn bộ cache cũ sẽ tự bị
-// vô hiệu (vì cache_key thay đổi), tránh việc người dùng nhận lời văn theo prompt cũ.
+// Đổi số này khi sửa prompt/schema — toàn bộ cache cũ sẽ tự bị vô hiệu (vì cache_key
+// thay đổi), tránh việc người dùng nhận lời văn theo prompt cũ.
 const ASSESSMENT_PROMPT_VERSION = 'v1';
+const DAILY_PROMPT_VERSION = 'v1';
+
+// ===== Cache kết quả AI (dùng chung cho nhận xét bài test & lời nhắn sáng) =====
+// Chỉ dùng được cho các tính năng mà ĐẦU VÀO không chứa nội dung riêng tư do người dùng
+// tự gõ. Chat KHÔNG dùng cache này — xem giải thích ở getChatReply.
+async function readSummaryCache(cacheKey) {
+    try {
+        const { rows } = await db.query(
+            `update ai_summary_cache
+                set hit_count = hit_count + 1, last_used_at = now()
+              where cache_key = $1
+              returning summary, tasks`,
+            [cacheKey]
+        );
+        return rows[0] || null;
+    } catch (error) {
+        // Cache lỗi thì coi như không có, gọi AI như bình thường — cache không bao giờ
+        // được phép làm sập tính năng chính.
+        console.error('[AI] đọc cache thất bại:', error.message);
+        return null;
+    }
+}
+
+function writeSummaryCache(cacheKey, feature, summary, tasks) {
+    if (!summary || !tasks.length) return;
+    db.query(
+        `insert into ai_summary_cache (cache_key, feature, summary, tasks)
+         values ($1, $2, $3, $4::jsonb)
+         on conflict (cache_key) do update
+           set summary = excluded.summary, tasks = excluded.tasks, last_used_at = now()`,
+        [cacheKey, feature, summary, JSON.stringify(tasks.map((t) => ({ task_code: t.code, reason: t.reason })))]
+    ).catch((error) => console.error('[AI] ghi cache thất bại:', error.message));
+}
+
+// Đối chiếu mã bài tập trong cache với danh sách hiện tại — nếu admin đã tắt/xoá bài tập
+// kể từ lúc cache được tạo thì bỏ ra, không trả link chết cho người dùng.
+function resolveCachedTasks(catalog, tasks) {
+    return (Array.isArray(tasks) ? tasks : [])
+        .map((t) => {
+            const task = catalog.taskByCode.get(t.task_code);
+            return task ? { ...task, reason: t.reason || '' } : null;
+        })
+        .filter(Boolean);
+}
 
 function buildAssessmentCacheKey({ assessmentName, totalScore, severity, dimensionScores }) {
     // Sắp xếp key của dimensionScores để 2 object cùng nội dung nhưng khác thứ tự key
@@ -217,39 +261,20 @@ export async function getAssessmentAiSummary({ userId = null, assessmentName, to
     const cacheKey = buildAssessmentCacheKey({ assessmentName, totalScore, severity, dimensionScores });
 
     // --- Thử lấy từ cache trước ---
-    try {
-        const cached = await db.query(
-            `update ai_summary_cache
-                set hit_count = hit_count + 1, last_used_at = now()
-              where cache_key = $1
-              returning summary, tasks`,
-            [cacheKey]
-        );
-        if (cached.rows[0]) {
-            const row = cached.rows[0];
-            logAiUsage({
-                userId,
-                feature: 'assessment_summary',
-                model: null,
-                latencyMs: 0,
-                fromCache: true,
-                topics: [assessmentName, severity].filter(Boolean)
-            });
-
-            // Đối chiếu lại mã bài tập với catalog hiện tại — nếu admin đã tắt/xoá bài tập
-            // kể từ lúc cache được tạo thì bỏ bài đó ra, không trả link chết cho người dùng.
-            const tasks = (Array.isArray(row.tasks) ? row.tasks : [])
-                .map((t) => {
-                    const task = catalog.taskByCode.get(t.task_code);
-                    return task ? { ...task, reason: t.reason || '' } : null;
-                })
-                .filter(Boolean);
-
-            return { summary: row.summary || '', recommendedTasks: tasks };
-        }
-    } catch (error) {
-        // Cache lỗi thì bỏ qua, gọi AI như bình thường — không được để cache làm sập tính năng.
-        console.error('[AI] đọc cache nhận xét thất bại:', error.message);
+    const cached = await readSummaryCache(cacheKey);
+    if (cached) {
+        logAiUsage({
+            userId,
+            feature: 'assessment_summary',
+            model: null,
+            latencyMs: 0,
+            fromCache: true,
+            topics: [assessmentName, severity].filter(Boolean)
+        });
+        return {
+            summary: cached.summary || '',
+            recommendedTasks: resolveCachedTasks(catalog, cached.tasks)
+        };
     }
 
     const dimensionLines = dimensionScores && typeof dimensionScores === 'object' && Object.keys(dimensionScores).length
@@ -306,22 +331,7 @@ ${dimensionLines ? `Điểm theo từng khía cạnh:\n${dimensionLines}` : ''}`
         .map(({ task, reason }) => ({ ...task, reason }));
 
     const summary = parsed.summary || '';
-
-    // --- Lưu vào cache cho các lượt sau (chỉ lưu khi có nội dung dùng được) ---
-    if (summary && recommendedTasks.length) {
-        db.query(
-            `insert into ai_summary_cache (cache_key, feature, summary, tasks)
-             values ($1, 'assessment_summary', $2, $3::jsonb)
-             on conflict (cache_key) do update
-               set summary = excluded.summary, tasks = excluded.tasks, last_used_at = now()`,
-            [
-                cacheKey,
-                summary,
-                JSON.stringify(recommendedTasks.map((t) => ({ task_code: t.code, reason: t.reason })))
-            ]
-        ).catch((error) => console.error('[AI] ghi cache nhận xét thất bại:', error.message));
-    }
-
+    writeSummaryCache(cacheKey, 'assessment_summary', summary, recommendedTasks);
     return { summary, recommendedTasks };
 }
 
@@ -391,15 +401,45 @@ function formatMoodContext(ctx) {
 
 // Lời nhắn buổi sáng cá nhân hóa dựa trên xu hướng tâm trạng gần đây + gợi ý 1-2 bài
 // tập phù hợp — dùng chung cơ chế chọn task_code thật với getAssessmentAiSummary.
+//
+// Có cache kết quả theo NGỮ CẢNH (không theo user): ngữ cảnh chỉ gồm số liệu tổng hợp
+// (điểm trung bình, streak, thể loại hay làm...) nên nhiều người có cùng ngữ cảnh sẽ dùng
+// lại được kết quả của nhau. Đo trên dữ liệu thật: 173/235 người dùng (74%) chưa có dữ
+// liệu nên ngữ cảnh giống hệt nhau. Cache này cũng khiến 1 người dùng chỉ tốn token 1 lần
+// cho tới khi dữ liệu của họ đổi — kể cả khi dùng nhiều thiết bị hoặc server khởi động lại
+// (khác với cache trong RAM ở route, vốn mất mỗi lần Vercel tạo container mới).
 export async function getDailyMessage(userId, ctx = null) {
     if (!ctx) ctx = await buildUserContext(userId);
     const catalog = await getCatalog();
+
+    const moodContext = formatMoodContext(ctx);
+    const cacheKey = createHash('sha256')
+        .update([DAILY_PROMPT_VERSION, moodContext].join('|'))
+        .digest('hex');
+
+    const cached = await readSummaryCache(cacheKey);
+    if (cached) {
+        logAiUsage({
+            userId,
+            feature: 'daily_message',
+            model: null,
+            latencyMs: 0,
+            fromCache: true,
+            topics: ctx.moodTrend?.trend && ctx.moodTrend.trend !== 'unknown'
+                ? [`mood:${ctx.moodTrend.trend}`]
+                : []
+        });
+        return {
+            recommendation: cached.summary || '',
+            exercises: resolveCachedTasks(catalog, cached.tasks)
+        };
+    }
 
     const startedAt = Date.now();
     let parsed;
     let usage;
     try {
-        ({ parsed, usage } = await callGeminiJson(buildDailySystemInstruction(catalog), [{ parts: [{ text: formatMoodContext(ctx) }] }], DAILY_MESSAGE_SCHEMA));
+        ({ parsed, usage } = await callGeminiJson(buildDailySystemInstruction(catalog), [{ parts: [{ text: moodContext }] }], DAILY_MESSAGE_SCHEMA));
     } catch (error) {
         logAiUsage({
             userId,
@@ -444,10 +484,9 @@ export async function getDailyMessage(userId, ctx = null) {
         })
         .map(({ task, reason }) => ({ ...task, reason }));
 
-    return {
-        recommendation: parsed.message || '',
-        exercises
-    };
+    const recommendation = parsed.message || '';
+    writeSummaryCache(cacheKey, 'daily_message', recommendation, exercises);
+    return { recommendation, exercises };
 }
 
 const CHAT_SCHEMA = {
@@ -582,6 +621,16 @@ async function resolveExpert(catalog, rawCode, fallbackText) {
 // Chat nhiều lượt với PeaceCat AI — biết dữ liệu cá nhân người dùng (tâm trạng, tiến
 // độ...) và thấy toàn bộ danh sách bài tập/chuyên gia thật để tự chọn, giới hạn chỉ trò
 // chuyện trong phạm vi tâm lý/tâm thần, trả lời ngắn.
+//
+// CỐ Ý KHÔNG CACHE tính năng này, vì 3 lý do:
+// 1. Quyền riêng tư: muốn cache thì phải lấy nội dung người dùng gõ làm khóa, và câu AI
+//    trả lời thường nhắc lại chính điều họ vừa kể ("nghe bạn chia sẻ về áp lực deadline...").
+//    Lưu những thứ đó vào một bảng cache dùng chung là đi ngược nguyên tắc "không lưu nội
+//    dung tin nhắn" đã chọn cho app sức khỏe tâm thần này.
+// 2. Trải nghiệm: hội thoại mà trả lời y hệt nhau thì mất tự nhiên — người dùng nói lại
+//    một câu sẽ nhận đúng từng chữ câu trả lời cũ.
+// 3. Hiệu quả gần như bằng 0: tin nhắn là văn bản tự do, cộng thêm lịch sử hội thoại và
+//    dữ liệu cá nhân khác nhau ở mỗi người, nên gần như không bao giờ trùng khóa cache.
 export async function getChatReply({ userId, message, history = [] }) {
     const [ctx, catalog] = await Promise.all([buildUserContext(userId), getCatalog()]);
 

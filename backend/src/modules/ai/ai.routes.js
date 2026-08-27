@@ -155,6 +155,7 @@ router.get('/admin/ai/overview', requireAuth, async (req, res) => {
                 `select
                    count(*)::int as calls,
                    count(*) filter (where success = false)::int as errors,
+                   count(*) filter (where from_cache)::int as cache_hits,
                    count(distinct user_id)::int as users,
                    coalesce(sum(prompt_tokens), 0)::bigint as prompt_tokens,
                    coalesce(sum(output_tokens), 0)::bigint as output_tokens,
@@ -233,6 +234,12 @@ router.get('/admin/ai/overview', requireAuth, async (req, res) => {
         const totalUsd = modelRows.reduce((sum, r) => sum + r.cost_usd, 0);
         const totals = totalsRes.rows[0] || {};
 
+        // Tiết kiệm nhờ cache: mỗi lượt lấy từ cache tốn 0 token, nên phần tiết kiệm được
+        // ước tính bằng (số lượt cache) × (chi phí trung bình của 1 lượt gọi AI thật).
+        const paidCalls = Number(totals.calls || 0) - Number(totals.cache_hits || 0);
+        const avgCostVnd = paidCalls > 0 ? (totalUsd * USD_TO_VND) / paidCalls : 0;
+        const savedVnd = Math.round(Number(totals.cache_hits || 0) * avgCostVnd);
+
         return res.json({
             success: true,
             data: {
@@ -240,6 +247,8 @@ router.get('/admin/ai/overview', requireAuth, async (req, res) => {
                 totals: {
                     ...totals,
                     error_rate: totals.calls ? Number(((totals.errors / totals.calls) * 100).toFixed(1)) : 0,
+                    cache_rate: totals.calls ? Number(((totals.cache_hits / totals.calls) * 100).toFixed(1)) : 0,
+                    saved_vnd: savedVnd,
                     cost_usd: Number(totalUsd.toFixed(6)),
                     cost_vnd: Math.round(totalUsd * USD_TO_VND)
                 },
