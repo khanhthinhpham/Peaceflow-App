@@ -251,7 +251,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, nextTick, onMounted } from 'vue';
+import { ref, reactive, computed, nextTick, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { apiClient } from '../lib/apiClient';
 import { useAuthStore } from '../stores/auth';
