@@ -161,6 +161,47 @@
           </div>
         </div>
       </div>
+
+      <!-- Tính năng dùng nhiều nhất -->
+      <div class="admin-ov-section">
+        <h3 class="admin-ov-h"><span v-html="icon('chart')"></span> Tính năng được dùng nhiều nhất</h3>
+        <p class="admin-page-sub" style="margin:-6px 0 12px;">30 ngày qua · đếm trên lượt hoạt động thật (bài tập hoàn thành, check-in, bài test, đăng bài, đặt lịch, chat AI...)</p>
+        <div v-if="!features.length" class="admin-card admin-empty">Chưa có dữ liệu.</div>
+        <div v-else class="admin-card">
+          <div class="admin-bar-list">
+            <div v-for="f in features" :key="f.key" class="admin-bar-row">
+              <div class="admin-bar-row-head">
+                <span class="admin-bar-row-label">{{ f.label }}</span>
+                <span class="admin-bar-row-value">{{ num(f.total) }} lượt · {{ num(f.users) }} người dùng</span>
+              </div>
+              <div class="admin-bar-track"><div class="admin-bar-fill" :style="{ width: barWidth(f.total) + '%' }"></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bài tập được làm nhiều nhất -->
+      <div class="admin-ov-section">
+        <h3 class="admin-ov-h"><span v-html="icon('badge')"></span> Bài tập được làm nhiều nhất</h3>
+        <p class="admin-page-sub" style="margin:-6px 0 12px;">30 ngày qua</p>
+        <div v-if="!topTasks.length" class="admin-card admin-empty">Chưa có dữ liệu.</div>
+        <div v-else class="admin-card">
+          <div class="admin-list">
+            <div v-for="(tk, idx) in topTasks" :key="tk.title + idx" class="admin-list-item">
+              <div style="display:flex;align-items:center;gap:10px;min-width:0;flex:1;">
+                <span style="font-weight:800;color:var(--text-light);min-width:22px;">{{ idx + 1 }}.</span>
+                <div style="min-width:0;">
+                  <div class="admin-list-title">{{ tk.title }}</div>
+                  <div class="admin-list-sub">{{ tk.duration_minutes }} phút</div>
+                </div>
+              </div>
+              <div style="text-align:right;flex-shrink:0;">
+                <div style="font-weight:800;">{{ num(tk.completions) }} lượt</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </template>
   </main>
 </template>
@@ -180,6 +221,8 @@ const loadError = ref('');
 const o = ref(null);
 const t = ref(null);
 const nowStamp = ref('');
+const features = ref([]);
+const topTasks = ref([]);
 
 const greetingName = computed(() => {
   const name = auth.user?.display_name || auth.user?.full_name || 'Admin';
@@ -237,6 +280,11 @@ const bookings = computed(() => t.value?.bookings || []);
 const bookingSum = computed(() => bookings.value.reduce((acc, s) => acc + s.value, 0));
 const bookingChartSvg = computed(() => barChart(bookings.value, '#e0955a'));
 
+const maxFeatureTotal = computed(() => Math.max(1, ...features.value.map((f) => f.total)));
+function barWidth(total) {
+  return Math.max(3, Math.round((Number(total || 0) / maxFeatureTotal.value) * 100));
+}
+
 const alertInfo = computed(() => {
   if (!o.value) return { variant: 'ok', ico: '', title: '', sub: '', cta: '', to: '' };
   if (o.value.high_risk_users_7d > 0) {
@@ -255,12 +303,15 @@ async function load() {
   loading.value = true;
   loadError.value = '';
   try {
-    const [overview, trends] = await Promise.all([
+    const [overview, trends, usage] = await Promise.all([
       apiClient.get('/admin/overview', { noCache: true }),
-      apiClient.get('/admin/overview/trends', { noCache: true }).catch(() => ({ revenue: [], bookings: [], signups: [] }))
+      apiClient.get('/admin/overview/trends', { noCache: true }).catch(() => ({ revenue: [], bookings: [], signups: [] })),
+      apiClient.get('/admin/overview/feature-usage', { noCache: true }).catch(() => ({ features: [], top_tasks: [] }))
     ]);
     o.value = overview;
     t.value = trends;
+    features.value = usage?.features || [];
+    topTasks.value = usage?.top_tasks || [];
     badges.setBadge('experts', overview.pending_expert_applications);
     badges.setBadge('payments', overview.pending_payment_bookings);
     badges.setBadge('community', overview.reported_community_posts);

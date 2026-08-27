@@ -450,6 +450,44 @@ body.admin-body {
   line-height: 1.5;
 }
 
+.admin-bar-list {
+  display: grid;
+  gap: 16px;
+}
+
+.admin-bar-row-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
+.admin-bar-row-label {
+  font-weight: 800;
+  font-size: 0.95rem;
+}
+
+.admin-bar-row-value {
+  color: var(--text-secondary, #7a6555);
+  font-size: 0.82rem;
+  white-space: nowrap;
+}
+
+.admin-bar-track {
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(168, 213, 186, 0.18);
+  overflow: hidden;
+}
+
+.admin-bar-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: var(--mint, #4a9e8e);
+  transition: width var(--transition, 0.2s ease);
+}
+
 .admin-pill {
   display: inline-flex;
   align-items: center;

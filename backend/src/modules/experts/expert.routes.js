@@ -1442,6 +1442,81 @@ router.get('/admin/overview/trends', requireAuth, async (req, res) => {
   }
 });
 
+// Tính năng nào được người dùng dùng nhiều nhất (30 ngày qua) — mỗi tính năng đếm trên
+// đúng bảng ghi hoạt động thật của nó (bài tập hoàn thành, check-in, bài test, nhật ký,
+// cộng đồng, đặt lịch chuyên gia, chat AI), không phải lượt truy cập trang vì app chưa
+// có bảng ghi page-view.
+router.get('/admin/overview/feature-usage', requireAuth, async (req, res) => {
+  try {
+    if (req.user.role !== 'admin') return res.status(403).json({ success: false, message: 'Admin only' });
+
+    const [featuresRes, topTasksRes] = await Promise.all([
+      db.query(
+        `select 'task' as key, count(*)::int as total, count(distinct user_id)::int as users
+           from task_completions where created_at >= now() - interval '30 days'
+         union all
+         select 'checkin', count(*)::int, count(distinct user_id)::int
+           from mood_checkins where created_at >= now() - interval '30 days'
+         union all
+         select 'assessment', count(*)::int, count(distinct user_id)::int
+           from assessment_results where created_at >= now() - interval '30 days'
+         union all
+         select 'journal', count(*)::int, count(distinct user_id)::int
+           from user_journals where created_at >= now() - interval '30 days'
+         union all
+         select 'community_post', count(*)::int, count(distinct user_id)::int
+           from community_posts where created_at >= now() - interval '30 days'
+         union all
+         select 'community_reaction', count(*)::int, count(distinct user_id)::int
+           from community_reactions where created_at >= now() - interval '30 days'
+         union all
+         select 'expert_booking', count(*)::int, count(distinct user_id)::int
+           from expert_bookings where created_at >= now() - interval '30 days'
+         union all
+         select 'ai_chat', count(*)::int, count(distinct user_id)::int
+           from ai_usage_logs where feature = 'chat' and created_at >= now() - interval '30 days'
+         order by total desc`
+      ),
+      db.query(
+        `select t.title, t.category, t.duration_minutes, count(*)::int as completions
+         from task_completions tc
+         join tasks t on t.id = tc.task_id
+         where tc.created_at >= now() - interval '30 days'
+         group by t.id, t.title, t.category, t.duration_minutes
+         order by completions desc
+         limit 10`
+      )
+    ]);
+
+    const FEATURE_LABELS = {
+      task: 'Bài tập / nhiệm vụ',
+      checkin: 'Check-in tâm trạng',
+      assessment: 'Bài test tự đánh giá',
+      journal: 'Nhật ký',
+      community_post: 'Đăng bài cộng đồng',
+      community_reaction: 'Thả cảm xúc cộng đồng',
+      expert_booking: 'Đặt lịch chuyên gia',
+      ai_chat: 'Chat PeaceCat AI'
+    };
+
+    return res.json({
+      success: true,
+      data: {
+        features: featuresRes.rows.map((r) => ({
+          key: r.key,
+          label: FEATURE_LABELS[r.key] || r.key,
+          total: r.total,
+          users: r.users
+        })),
+        top_tasks: topTasksRes.rows
+      }
+    });
+  } catch (error) {
+    console.error('Admin feature-usage error:', error);
+    return res.status(500).json({ success: false, message: 'Could not fetch feature usage' });
+  }
+});
+
 // ===== Admin: duyệt hồ sơ chuyên gia =====
 
 // Danh sách hồ sơ đăng ký chuyên gia. ?status=pending|approved|rejected|all (mặc định pending).
