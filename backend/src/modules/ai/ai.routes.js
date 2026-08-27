@@ -107,7 +107,8 @@ router.post('/ai/chat', requireAuth, aiRateLimit, async (req, res) => {
                         degree: result.suggestedExpert.degree,
                         rating: result.suggestedExpert.rating
                     }
-                    : null
+                    : null,
+                mood_analysis: result.moodAnalysis
             }
         });
     } catch (error) {

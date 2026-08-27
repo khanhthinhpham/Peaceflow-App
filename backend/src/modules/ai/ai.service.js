@@ -270,9 +270,20 @@ const CHAT_SCHEMA = {
     properties: {
         reply: { type: 'string' },
         suggested_task_code: { type: 'string' },
-        suggested_expert_code: { type: 'string' }
+        suggested_expert_code: { type: 'string' },
+        mood_analysis: {
+            type: 'object',
+            properties: {
+                anxiety: { type: 'integer' },
+                stress: { type: 'integer' },
+                mood: { type: 'integer' },
+                depression: { type: 'integer' },
+                keywords: { type: 'array', items: { type: 'string' } }
+            },
+            required: ['anxiety', 'stress', 'mood', 'depression', 'keywords']
+        }
     },
-    required: ['reply']
+    required: ['reply', 'mood_analysis']
 };
 
 const MAX_CHAT_HISTORY = 6;
@@ -286,6 +297,7 @@ QUY TẮC BẮT BUỘC:
 3. Trả lời NGẮN GỌN — tối đa 2-4 câu, không lan man, không liệt kê dài dòng, không dùng markdown.
 4. Không đưa ra chẩn đoán y khoa. Nếu phát hiện dấu hiệu nguy cấp (ý định tự hại/tự tử), khuyên người dùng liên hệ hotline hoặc chuyên gia ngay trong câu trả lời.
 5. Nếu phù hợp với câu hỏi, có thể gợi ý ĐÚNG 1 bài tập (suggested_task_code) hoặc ĐÚNG 1 chuyên gia (suggested_expert_code) từ danh sách dưới đây — không bịa mã không có. Nếu không có gợi ý phù hợp, để trống (chuỗi rỗng).
+6. Luôn kèm theo mood_analysis: ước lượng (0-100) dựa trên toàn bộ cuộc trò chuyện tính đến tin nhắn này — anxiety (lo âu), stress, mood (tâm trạng, càng cao càng tích cực), depression (dấu hiệu trầm cảm). Đây chỉ là ước lượng tham khảo để hiển thị cho người dùng tự theo dõi, KHÔNG phải chẩn đoán y khoa. Kèm tối đa 5 từ khóa cảm xúc nổi bật (keywords) rút ra từ lời người dùng vừa nói (ví dụ: "mất ngủ", "áp lực công việc", "cô đơn") — không lặp lại từ khóa đã có nếu không còn phù hợp.
 
 --- Thông tin về người dùng đang chat (dùng để trả lời phù hợp, không đọc lại nguyên văn số liệu cho người dùng) ---
 ${formatMoodContext(ctx)}
@@ -320,15 +332,24 @@ export async function getChatReply({ userId, message, history = [] }) {
         buildChatSystemInstruction(ctx, availableTasks, availableExperts),
         contents,
         CHAT_SCHEMA,
-        { maxOutputTokens: 400 }
+        { maxOutputTokens: 500 }
     );
 
     const matchedTask = availableTasks.find((t) => t.code === parsed.suggested_task_code) || null;
     const matchedExpert = availableExperts.find((e) => e.code === parsed.suggested_expert_code) || null;
+    const clampScore = (value) => Math.max(0, Math.min(100, Number(value) || 0));
+    const analysis = parsed.mood_analysis || {};
 
     return {
         reply: parsed.reply || '',
         suggestedTask: matchedTask,
-        suggestedExpert: matchedExpert
+        suggestedExpert: matchedExpert,
+        moodAnalysis: {
+            anxiety: clampScore(analysis.anxiety),
+            stress: clampScore(analysis.stress),
+            mood: clampScore(analysis.mood),
+            depression: clampScore(analysis.depression),
+            keywords: Array.isArray(analysis.keywords) ? analysis.keywords.slice(0, 5) : []
+        }
     };
 }

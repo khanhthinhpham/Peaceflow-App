@@ -495,24 +495,24 @@ function detectMoodType(text) {
   return 'default';
 }
 
-function updateAnalysisFromUserText(text) {
-  const lower = String(text || '').toLowerCase();
-  const negativeHits = NEGATIVE_KW.filter((keyword) => lower.includes(keyword)).length;
-  const positiveHits = POSITIVE_KW.filter((keyword) => lower.includes(keyword)).length;
-
-  analysis.anxiety = clamp(analysis.anxiety + (negativeHits * 5) - (positiveHits * 3), 5, 95);
-  analysis.stress = clamp(analysis.stress + (negativeHits * 4) - (positiveHits * 2), 5, 95);
-  analysis.mood = clamp(analysis.mood - (negativeHits * 3) + (positiveHits * 4), 5, 95);
-  analysis.depression = clamp(analysis.depression + (negativeHits * 2) - (positiveHits * 2), 5, 95);
+// Cập nhật "Phân tích realtime" từ mood_analysis do chính Gemini trả về (dựa trên
+// toàn bộ cuộc trò chuyện) — thay cho cách đếm từ khóa cứng cũ (NEGATIVE_KW/POSITIVE_KW)
+// vốn rất thô và dễ bị đẩy lên 90%+ chỉ sau vài từ khớp.
+function applyAiMoodAnalysis(moodAnalysis) {
+  if (!moodAnalysis) return;
+  analysis.anxiety = clamp(moodAnalysis.anxiety, 5, 95);
+  analysis.stress = clamp(moodAnalysis.stress, 5, 95);
+  analysis.mood = clamp(moodAnalysis.mood, 5, 95);
+  analysis.depression = clamp(moodAnalysis.depression, 5, 95);
   analysis.emotion = analysis.mood;
   analysis.cognitive = clamp(100 - Math.round((analysis.anxiety + analysis.stress) / 2), 5, 95);
 
-  [...NEGATIVE_KW, ...POSITIVE_KW].forEach((keyword) => {
-    if (lower.includes(keyword) && !keywords.value.includes(keyword)) {
-      keywords.value.unshift(keyword);
+  (Array.isArray(moodAnalysis.keywords) ? moodAnalysis.keywords : []).forEach((keyword) => {
+    const trimmed = String(keyword || '').trim();
+    if (trimmed && !keywords.value.includes(trimmed)) {
+      keywords.value.unshift(trimmed);
     }
   });
-
   keywords.value = keywords.value.slice(0, 10);
 }
 
@@ -557,7 +557,6 @@ async function sendMessage() {
   handleInputResize();
 
   addMessage('user', text);
-  updateAnalysisFromUserText(text);
 
   const moodType = detectMoodType(text);
   if (moodType === 'danger') {
@@ -578,6 +577,7 @@ async function sendMessage() {
 
     const res = await apiClient.post('/ai/chat', { message: text, history });
     hideTyping();
+    applyAiMoodAnalysis(res?.mood_analysis);
     addMessage('bot', res?.reply || 'Xin lỗi, mình chưa nghĩ ra câu trả lời phù hợp lúc này.', {
       suggestedTask: res?.suggested_task || null,
       suggestedExpert: res?.suggested_expert || null
