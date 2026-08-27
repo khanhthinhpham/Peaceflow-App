@@ -61,16 +61,17 @@
         <p v-if="aiSummaryLoading" class="rv-ai-summary-loading">Đang phân tích kết quả...</p>
         <p v-else class="rv-ai-summary-text">{{ aiSummaryText }}</p>
         <div
-          v-if="aiRecommendedTask"
+          v-for="task in aiRecommendedTasks"
+          :key="task.id"
           class="rv-ai-task"
-          @click="router.push({ path: '/task-detail', query: { id: aiRecommendedTask.id } })"
+          @click="router.push({ path: '/task-detail', query: { id: task.id } })"
         >
-          <div class="rv-ai-task-icon">{{ aiRecommendedTask.icon || '🧩' }}</div>
+          <div class="rv-ai-task-icon">{{ task.icon || '🧩' }}</div>
           <div class="rv-ai-task-info">
-            <div class="rv-ai-task-name">{{ aiRecommendedTask.title }}</div>
-            <div class="rv-ai-task-reason">{{ aiRecommendedTask.reason }}</div>
+            <div class="rv-ai-task-name">{{ task.title }}</div>
+            <div class="rv-ai-task-reason">{{ task.reason }}</div>
           </div>
-          <div class="rv-ai-task-xp" v-if="aiRecommendedTask.xp_reward">+{{ aiRecommendedTask.xp_reward }} XP</div>
+          <div class="rv-ai-task-xp" v-if="task.xp_reward">+{{ task.xp_reward }} XP</div>
         </div>
       </div>
 
@@ -115,7 +116,7 @@ const attachInputEl = ref(null);
 const savedResultId = ref(null);
 const aiSummaryText = ref('');
 const aiSummaryLoading = ref(false);
-const aiRecommendedTask = ref(null);
+const aiRecommendedTasks = ref([]);
 
 const currentItem = computed(() => ITEMS[index.value]);
 const progressPct = computed(() => Math.round((index.value / ITEMS.length) * 100));
@@ -217,11 +218,11 @@ async function loadAiSummary(resultId) {
   try {
     const data = await apiClient.post(`/assessments/results/${resultId}/ai-summary`, {});
     aiSummaryText.value = data?.summary || '';
-    aiRecommendedTask.value = data?.recommended_task || null;
+    aiRecommendedTasks.value = Array.isArray(data?.recommended_tasks) ? data.recommended_tasks : [];
   } catch (error) {
     console.error('Raven AI summary load failed:', error);
     aiSummaryText.value = '';
-    aiRecommendedTask.value = null;
+    aiRecommendedTasks.value = [];
   } finally {
     aiSummaryLoading.value = false;
   }

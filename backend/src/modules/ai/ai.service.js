@@ -138,8 +138,13 @@ function buildAssessmentSystemInstruction(catalog) {
     return `Bạn là trợ lý tâm lý của app PeaceFlow. Người dùng sẽ gửi tên bài test tự đánh giá và điểm số của họ.
 Nhiệm vụ:
 1. summary: viết một đoạn nhận xét ngắn (3-5 câu) bằng tiếng Việt, giọng văn ấm áp, dễ hiểu, không dùng thuật ngữ chuyên môn khó hiểu, không đưa ra chẩn đoán y khoa, không dùng markdown.
-2. task_code: chọn ĐÚNG 1 mã bài tập phù hợp nhất từ danh sách dưới đây. Copy chính xác phần mã (trước dấu |), không thêm bớt ký tự nào. Xét theo tác dụng thực tế của bài tập với tình trạng người dùng — tránh chọn bài có thể phản tác dụng (vd người mất ngủ thì không nên chọn bài đòi suy ngẫm/phân tích nhiều hoặc vận động mạnh trước khi ngủ).
-3. task_reason: 1 câu ngắn giải thích vì sao bài tập đó phù hợp (câu này hiện cho người dùng đọc).
+2. tasks: chọn 2-3 bài tập phù hợp nhất với kết quả test này từ danh sách dưới đây, xếp theo mức độ phù hợp giảm dần. Mỗi phần tử gồm:
+   - task_code: copy chính xác phần mã (trước dấu |), không thêm bớt ký tự nào.
+   - reason: 1 câu ngắn giải thích vì sao bài đó phù hợp (hiện cho người dùng đọc).
+   NGUYÊN TẮC CHỌN BÀI:
+   - Xét theo VIỆC NGƯỜI DÙNG THỰC SỰ LÀM trong bài tập và tác động của việc đó, KHÔNG xét theo từ ngữ trong tên bài. Tên bài có nhắc tới một thời điểm hay một chủ đề không tự động nghĩa là bài đó phù hợp với tình trạng đang xét.
+   - Loại bỏ bài có thể làm tình trạng NẶNG THÊM. Ví dụ: bài yêu cầu suy ngẫm/tự vấn/phân tích bản thân sẽ kích hoạt suy nghĩ miên man nên KHÔNG phù hợp với người mất ngủ, dù tên bài có chữ "trước khi ngủ"; bài vận động mạnh gây tỉnh táo cũng không phù hợp khi cần dễ ngủ.
+   - Thà chỉ chọn 2 bài thật sự phù hợp còn hơn chọn đủ 3 bài mà có bài kém liên quan. Không chọn trùng cùng 1 bài.
 
 --- DANH SÁCH BÀI TẬP (định dạng: mã|tên|thời lượng) ---
 ${catalog.taskLines}`;
@@ -149,10 +154,19 @@ const RECOMMENDATION_SCHEMA = {
     type: 'object',
     properties: {
         summary: { type: 'string' },
-        task_code: { type: 'string' },
-        task_reason: { type: 'string' }
+        tasks: {
+            type: 'array',
+            items: {
+                type: 'object',
+                properties: {
+                    task_code: { type: 'string' },
+                    reason: { type: 'string' }
+                },
+                required: ['task_code', 'reason']
+            }
+        }
     },
-    required: ['summary', 'task_code', 'task_reason']
+    required: ['summary', 'tasks']
 };
 
 // Bài test nhiều khía cạnh (DASS21, Raven...) lưu dimension_scores dạng object lồng
@@ -167,7 +181,7 @@ function formatDimensionValue(value) {
     return parts.length ? parts.join(' - ') : JSON.stringify(value);
 }
 
-// Tổng kết nhận xét + gợi ý 1 bài tập phù hợp bằng Gemini, sau khi người dùng nộp 1
+// Tổng kết nhận xét + gợi ý 2-3 bài tập phù hợp bằng Gemini, sau khi người dùng nộp 1
 // bài test tự đánh giá. LLM được xem toàn bộ danh sách bài tập thật (dạng rút gọn) và
 // tự chọn mã; code chỉ đối chiếu mã đó với DB, kèm lưới an toàn bằng embedding nếu LLM
 // trả về mã không tồn tại.
@@ -184,10 +198,27 @@ ${dimensionLines ? `Điểm theo từng khía cạnh:\n${dimensionLines}` : ''}`
 
     const parsed = await callGeminiJson(buildAssessmentSystemInstruction(catalog), [{ parts: [{ text: userContent }] }], RECOMMENDATION_SCHEMA);
 
-    const matchedTask = await resolveTask(catalog, parsed.task_code, parsed.task_reason);
+    const matches = await Promise.all(
+        (Array.isArray(parsed.tasks) ? parsed.tasks.slice(0, 3) : []).map(async (item) => {
+            const task = await resolveTask(catalog, item.task_code, item.reason);
+            return task ? { task, reason: item.reason || '' } : null;
+        })
+    );
+
+    // Loại trùng — LLM đôi khi chọn lặp, hoặc 2 mã sai cùng rơi về 1 bài qua lưới an toàn.
+    const usedIds = new Set();
+    const recommendedTasks = matches
+        .filter(Boolean)
+        .filter(({ task }) => {
+            if (usedIds.has(task.id)) return false;
+            usedIds.add(task.id);
+            return true;
+        })
+        .map(({ task, reason }) => ({ ...task, reason }));
+
     return {
         summary: parsed.summary || '',
-        recommendedTask: matchedTask ? { ...matchedTask, reason: parsed.task_reason || '' } : null
+        recommendedTasks
     };
 }
 

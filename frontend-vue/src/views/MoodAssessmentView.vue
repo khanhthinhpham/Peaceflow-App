@@ -288,18 +288,22 @@
           </div>
           <div v-if="aiSummaryLoading" class="ai-summary-loading">Đang phân tích kết quả...</div>
           <div v-else class="ai-summary-text">{{ aiSummaryText }}</div>
-          <div
-            v-if="aiRecommendedTask"
-            class="ai-summary-task"
-            @click="router.push({ path: '/task-detail', query: { id: aiRecommendedTask.id } })"
-          >
-            <div class="ai-summary-task-icon">{{ aiRecommendedTask.icon || '🧩' }}</div>
-            <div class="ai-summary-task-info">
-              <div class="ai-summary-task-name">{{ aiRecommendedTask.title }}</div>
-              <div class="ai-summary-task-reason">{{ aiRecommendedTask.reason }}</div>
+          <template v-if="aiRecommendedTasks.length">
+            <div class="ai-summary-task-title">🎯 Nhiệm vụ phù hợp với kết quả này</div>
+            <div
+              v-for="task in aiRecommendedTasks"
+              :key="task.id"
+              class="ai-summary-task"
+              @click="router.push({ path: '/task-detail', query: { id: task.id } })"
+            >
+              <div class="ai-summary-task-icon">{{ task.icon || '🧩' }}</div>
+              <div class="ai-summary-task-info">
+                <div class="ai-summary-task-name">{{ task.title }}</div>
+                <div class="ai-summary-task-reason">{{ task.reason }}</div>
+              </div>
+              <div class="ai-summary-task-xp" v-if="task.xp_reward">+{{ task.xp_reward }} XP</div>
             </div>
-            <div class="ai-summary-task-xp" v-if="aiRecommendedTask.xp_reward">+{{ aiRecommendedTask.xp_reward }} XP</div>
-          </div>
+          </template>
         </div>
 
         <div class="paper-card result-comparison">
@@ -340,25 +344,6 @@
             ngay</router-link>
         </div>
 
-        <div class="paper-card result-tasks">
-          <div class="rt-title">🎯 Nhiệm vụ được gợi ý dựa trên kết quả</div>
-          <div>
-            <div
-              v-for="(task, tIdx) in resultTasks"
-              :key="tIdx"
-              class="rt-item"
-              @click="goToTaskHref(task.href)"
-            >
-              <div class="rt-icon-box">{{ task.icon }}</div>
-              <div class="rt-info">
-                <div class="rt-name">{{ task.name }}</div>
-                <div class="rt-meta">{{ task.meta }}</div>
-              </div>
-              <div class="rt-xp">+{{ task.xp }} XP</div>
-            </div>
-          </div>
-        </div>
-
         <div style="padding:12px 16px;background:rgba(255,203,164,0.15);border:1.5px solid var(--peach);border-radius:var(--border-radius-sm);font-size:0.75rem;color:var(--text-secondary);margin-bottom:16px;line-height:1.6;">
           ⚠️ <strong>Tuyên bố miễn trách:</strong> Kết quả này chỉ mang tính tham khảo và <strong>không phải chẩn
             đoán y khoa</strong>. Chỉ bác sĩ hoặc chuyên gia tâm lý lâm sàng mới có thể đưa ra chẩn đoán chính
@@ -382,7 +367,6 @@ import { ref, reactive, computed, watch, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { apiClient } from '../lib/apiClient';
 import { useAuthStore } from '../stores/auth';
-import { goToLegacyPage, resolveAppRedirect } from '../lib/legacyApp';
 import { TESTS } from '../lib/assessmentTests';
 import { ASSESSMENT_META } from '../lib/assessmentMeta';
 
@@ -390,17 +374,6 @@ const RESPONDENT_STORAGE_KEY = 'peaceflow_respondent_info';
 
 const auth = useAuthStore();
 const router = useRouter();
-
-function goToTaskHref(href) {
-  if (href.startsWith('task-detail.html')) {
-    const id = href.split('?id=')[1];
-    router.push({ path: '/task-detail', query: id ? { id: decodeURIComponent(id) } : {} });
-    return;
-  }
-  const resolved = resolveAppRedirect(href);
-  if (resolved.internal) router.push(resolved.path);
-  else goToLegacyPage(resolved.page);
-}
 
 // ============================================================
 // STATE
@@ -414,9 +387,8 @@ const result = ref(null);
 const resultSaveNote = ref('');
 const aiSummaryText = ref('');
 const aiSummaryLoading = ref(false);
-const aiRecommendedTask = ref(null);
+const aiRecommendedTasks = ref([]);
 const resultSubtitleBase = ref('');
-const apiTasks = ref(null);
 
 const assessments = ref([]);
 const history = ref([]);
@@ -762,7 +734,7 @@ function finishTest() {
   resultSaveNote.value = '';
   aiSummaryText.value = '';
   aiSummaryLoading.value = false;
-  aiRecommendedTask.value = null;
+  aiRecommendedTasks.value = [];
 
   // Evaluate logic
   const subScores = {};
@@ -854,7 +826,6 @@ function finishTest() {
     comparison,
     isWarning
   };
-  apiTasks.value = null;
   view.value = 'result';
 
   const overallSeverity = keys
@@ -897,57 +868,17 @@ function finishTest() {
   });
 }
 
-// Nhiệm vụ gợi ý: mặc định theo kết quả bài test (như bản cũ), sau đó nếu API
-// /tasks/recommended trả về dữ liệu thì thay thế bằng danh sách từ API.
-const resultTasks = computed(() => {
-  if (apiTasks.value?.length) return apiTasks.value;
-  if (!result.value) return [];
-
-  if (result.value.isWarning || result.value.testName === 'PHQ-9') {
-    return [
-      { icon: '🌬️', name: 'Hít thở vuông 4-4-4 khẩn cấp', meta: 'Can thiệp giảm lo âu lập tức', xp: 15, href: 'task-breathing.html' },
-      { icon: '🎧', name: 'Thải độc cảm xúc bằng âm thanh Binaural', meta: 'Binaural beats • 10 phút', xp: 25, href: 'task-detail.html' }
-    ];
-  }
-  if (result.value.testName === 'PSQI') {
-    return [
-      { icon: '🧘', name: 'Thiền buông thư trước khi ngủ', meta: 'Body scan • 15 phút', xp: 20, href: 'task-meditation.html' }
-    ];
-  }
-  return [
-    { icon: '🧠', name: 'Thực hành chánh niệm tổng quát', meta: 'Cải thiện tính bền bỉ và tập trung', xp: 20, href: 'task-detail.html' },
-    { icon: '📝', name: 'Nhật ký biết ơn cuối ngày', meta: 'Nhìn nhận các khía cạnh tích cực', xp: 15, href: 'task-detail.html' }
-  ];
-});
-
-async function loadRecommendedTasks() {
-  try {
-    const tasks = await apiClient.get('/tasks/recommended');
-    if (!Array.isArray(tasks) || !tasks.length) return;
-
-    apiTasks.value = tasks.slice(0, 2).map((task) => ({
-      icon: task.icon || '🧩',
-      name: task.title || 'Nhiệm vụ phù hợp',
-      meta: task.reason || task.category || 'Gợi ý từ hồ sơ hiện tại',
-      xp: task.xp_reward ?? task.xp ?? 0,
-      href: `task-detail.html?id=${encodeURIComponent(task.id)}`
-    }));
-  } catch (error) {
-    console.error('Assessment recommended tasks load failed:', error);
-  }
-}
-
 async function loadAiSummary(resultId) {
   if (!resultId) return;
   aiSummaryLoading.value = true;
   try {
     const data = await apiClient.post(`/assessments/results/${resultId}/ai-summary`, {});
     aiSummaryText.value = data?.summary || '';
-    aiRecommendedTask.value = data?.recommended_task || null;
+    aiRecommendedTasks.value = Array.isArray(data?.recommended_tasks) ? data.recommended_tasks : [];
   } catch (error) {
     console.error('Assessment AI summary load failed:', error);
     aiSummaryText.value = '';
-    aiRecommendedTask.value = null;
+    aiRecommendedTasks.value = [];
   } finally {
     aiSummaryLoading.value = false;
   }
@@ -974,7 +905,6 @@ async function onAssessmentFinished(payload) {
 
     await Promise.all([
       loadAssessmentData(),
-      loadRecommendedTasks(),
       loadAiSummary(saved?.id)
     ]);
   } catch (error) {
