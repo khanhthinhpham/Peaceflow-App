@@ -16,9 +16,7 @@
     "rag:setup": "node src/scripts/setup-rag.js",
     "rag:ingest": "node src/scripts/ingest-tasks-to-rag.js",
     "streak:fix": "node src/scripts/fix-streaks.js",
-    "ai:embeddings": "node src/scripts/backfill-embeddings.js",
-    "ai:labels": "node src/scripts/label-task-triggers.js",
-    "ai:reindex": "npm run ai:labels && npm run ai:embeddings"
+    "ai:embeddings": "node src/scripts/backfill-embeddings.js"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.100.1",

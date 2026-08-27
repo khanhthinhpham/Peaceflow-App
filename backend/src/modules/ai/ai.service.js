@@ -1,7 +1,6 @@
 import { env } from '../../config/env.js';
 import { db } from '../../config/db.js';
 import { buildUserContext } from './ai.context.js';
-import { TRIGGER_CODES, formatTriggerList } from './taskTaxonomy.js';
 
 async function callRAG(ctx, sessionId) {
     const response = await fetch(`${env.ragBaseUrl}/recommend`, {
@@ -39,6 +38,57 @@ export async function getRecommendedTask(userId) {
 export async function getWeeklyInsight(userId) {
     const ctx = await buildUserContext(userId);
     return callRAG(ctx, `peaceflow_insight_${userId}`);
+}
+
+// ===== Catalog rút gọn gửi cho LLM =====
+// Mục tiêu: LLM thấy TOÀN BỘ bài tập/chuyên gia thật để tự chọn, nhưng không tốn nhiều
+// token. Chìa khóa là bỏ phần description dài: gửi đủ 122 bài chỉ tốn ~1.900 token thay
+// vì ~6.200 token (trung vị tên bài chỉ 46 ký tự, chỉ 20/122 bài có tên dài).
+const MAX_TITLE_CHARS = 70;
+const CATALOG_TTL_MS = 5 * 60 * 1000;
+
+let _catalogCache = null;
+
+async function getCatalog() {
+    if (_catalogCache && Date.now() - _catalogCache.at < CATALOG_TTL_MS) {
+        return _catalogCache.data;
+    }
+
+    const [tasksRes, expertsRes] = await Promise.all([
+        db.query(
+            `select id, code, title, category, difficulty, duration_minutes, xp_reward, description,
+                    metadata->>'icon' as icon
+             from tasks where active = true order by code`
+        ),
+        db.query(
+            `select id, code, full_name, degree, specialties, rating, experience_years, bio
+             from experts where active = true order by rating desc nulls last, code`
+        )
+    ]);
+
+    const tasks = tasksRes.rows;
+    const experts = expertsRes.rows;
+
+    const taskLines = tasks
+        .map((t) => `${t.code}|${String(t.title).slice(0, MAX_TITLE_CHARS)}|${t.duration_minutes}p`)
+        .join('\n');
+    const expertLines = experts
+        .map((e) => {
+            const sp = Array.isArray(e.specialties) ? e.specialties.join(',') : (e.specialties || '');
+            return `${e.code}|${e.full_name}|${sp}`;
+        })
+        .join('\n');
+
+    const data = {
+        tasks,
+        experts,
+        taskByCode: new Map(tasks.map((t) => [t.code, t])),
+        expertByCode: new Map(experts.map((e) => [e.code, e])),
+        taskLines,
+        expertLines
+    };
+    _catalogCache = { at: Date.now(), data };
+    return data;
 }
 
 // `contents` nhận trực tiếp mảng theo format Gemini ([{role?, parts:[{text}]}]) để hỗ
@@ -84,29 +134,25 @@ async function callGeminiJson(systemInstruction, contents, schema, options = {})
     }
 }
 
-// Không nhét cả danh sách bài tập vào prompt (từng ~6.700 token, dễ khiến model chọn
-// nhầm/sinh mã lỗi khi phải chọn đúng 1 mã trong danh sách dài). Thay vào đó AI chỉ mô
-// tả NGẮN loại bài tập cần bằng chữ thường, code tự so khớp với dữ liệu thật bên dưới
-// (findBestMatchingTask) — giống cách đã áp dụng cho chat.
-function buildAssessmentSystemInstruction() {
+function buildAssessmentSystemInstruction(catalog) {
     return `Bạn là trợ lý tâm lý của app PeaceFlow. Người dùng sẽ gửi tên bài test tự đánh giá và điểm số của họ.
 Nhiệm vụ:
-1. Viết một đoạn nhận xét ngắn (3-5 câu) bằng tiếng Việt, giọng văn ấm áp, dễ hiểu, không dùng thuật ngữ chuyên môn khó hiểu, không đưa ra chẩn đoán y khoa, không dùng markdown.
-2. task_trigger: chọn ĐÚNG 1 mã tình trạng cần nhắm tới nhất dựa trên kết quả test, từ danh sách sau (để trống nếu không rõ):
-${formatTriggerList()}
-3. task_query: mô tả bằng 1-2 câu tiếng Việt loại bài tập phù hợp nhất — nêu rõ MỤC ĐÍCH và CÁCH THỨC tác động (vd: "Bài tập điều hòa hơi thở chậm để làm dịu hệ thần kinh và giảm cảm giác bồn chồn"). Đây là mô tả để tìm kiếm, KHÔNG phải tên/mã bài tập cụ thể.
-4. task_reason: 1 câu ngắn giải thích vì sao loại bài tập đó phù hợp (câu này sẽ hiện cho người dùng đọc).`;
+1. summary: viết một đoạn nhận xét ngắn (3-5 câu) bằng tiếng Việt, giọng văn ấm áp, dễ hiểu, không dùng thuật ngữ chuyên môn khó hiểu, không đưa ra chẩn đoán y khoa, không dùng markdown.
+2. task_code: chọn ĐÚNG 1 mã bài tập phù hợp nhất từ danh sách dưới đây. Copy chính xác phần mã (trước dấu |), không thêm bớt ký tự nào. Xét theo tác dụng thực tế của bài tập với tình trạng người dùng — tránh chọn bài có thể phản tác dụng (vd người mất ngủ thì không nên chọn bài đòi suy ngẫm/phân tích nhiều hoặc vận động mạnh trước khi ngủ).
+3. task_reason: 1 câu ngắn giải thích vì sao bài tập đó phù hợp (câu này hiện cho người dùng đọc).
+
+--- DANH SÁCH BÀI TẬP (định dạng: mã|tên|thời lượng) ---
+${catalog.taskLines}`;
 }
 
 const RECOMMENDATION_SCHEMA = {
     type: 'object',
     properties: {
         summary: { type: 'string' },
-        task_trigger: { type: 'string' },
-        task_query: { type: 'string' },
+        task_code: { type: 'string' },
         task_reason: { type: 'string' }
     },
-    required: ['summary', 'task_query', 'task_reason']
+    required: ['summary', 'task_code', 'task_reason']
 };
 
 // Bài test nhiều khía cạnh (DASS21, Raven...) lưu dimension_scores dạng object lồng
@@ -122,9 +168,11 @@ function formatDimensionValue(value) {
 }
 
 // Tổng kết nhận xét + gợi ý 1 bài tập phù hợp bằng Gemini, sau khi người dùng nộp 1
-// bài test tự đánh giá. AI chỉ mô tả loại bài tập cần, code tự tìm bài tập thật khớp
-// nhất bằng embedding — đảm bảo link bấm vào được, không bịa ra bài tập không tồn tại.
+// bài test tự đánh giá. LLM được xem toàn bộ danh sách bài tập thật (dạng rút gọn) và
+// tự chọn mã; code chỉ đối chiếu mã đó với DB, kèm lưới an toàn bằng embedding nếu LLM
+// trả về mã không tồn tại.
 export async function getAssessmentAiSummary({ assessmentName, totalScore, severity, dimensionScores }) {
+    const catalog = await getCatalog();
     const dimensionLines = dimensionScores && typeof dimensionScores === 'object' && Object.keys(dimensionScores).length
         ? Object.entries(dimensionScores).map(([key, value]) => `- ${key}: ${formatDimensionValue(value)}`).join('\n')
         : '';
@@ -134,9 +182,9 @@ export async function getAssessmentAiSummary({ assessmentName, totalScore, sever
 Tổng điểm: ${totalScore}${severity ? `, mức độ: ${severity}` : ''}.
 ${dimensionLines ? `Điểm theo từng khía cạnh:\n${dimensionLines}` : ''}`;
 
-    const parsed = await callGeminiJson(buildAssessmentSystemInstruction(), [{ parts: [{ text: userContent }] }], RECOMMENDATION_SCHEMA);
+    const parsed = await callGeminiJson(buildAssessmentSystemInstruction(catalog), [{ parts: [{ text: userContent }] }], RECOMMENDATION_SCHEMA);
 
-    const matchedTask = await findMatchingTaskByEmbedding(parsed.task_query, parsed.task_trigger);
+    const matchedTask = await resolveTask(catalog, parsed.task_code, parsed.task_reason);
     return {
         summary: parsed.summary || '',
         recommendedTask: matchedTask ? { ...matchedTask, reason: parsed.task_reason || '' } : null
@@ -152,28 +200,25 @@ const DAILY_MESSAGE_SCHEMA = {
             items: {
                 type: 'object',
                 properties: {
-                    task_trigger: { type: 'string' },
-                    task_query: { type: 'string' },
+                    task_code: { type: 'string' },
                     reason: { type: 'string' }
                 },
-                required: ['task_query', 'reason']
+                required: ['task_code', 'reason']
             }
         }
     },
     required: ['message', 'exercises']
 };
 
-// Không nhét cả danh sách bài tập vào prompt nữa (xem giải thích ở buildAssessmentSystemInstruction).
-function buildDailySystemInstruction() {
+function buildDailySystemInstruction(catalog) {
     return `Bạn là trợ lý tâm lý của app PeaceFlow. Người dùng sẽ gửi dữ liệu tổng hợp về tâm trạng, mức độ lo âu/stress/năng lượng gần đây, streak hoạt động và các bài tập họ từng thích.
 Nhiệm vụ:
-1. Viết một lời nhắn buổi sáng ngắn gọn (2-4 câu) bằng tiếng Việt, giọng văn ấm áp, cá nhân hóa dựa trên xu hướng tâm trạng gần đây — không dùng thuật ngữ chuyên môn khó hiểu, không đưa ra chẩn đoán y khoa, không dùng markdown.
-2. Đề xuất 1-2 bài tập trong mảng exercises. Với mỗi phần tử:
-   - task_trigger: chọn ĐÚNG 1 mã tình trạng cần nhắm tới nhất từ danh sách sau (để trống nếu không rõ):
-${formatTriggerList()}
-   - task_query: mô tả bằng 1-2 câu loại bài tập phù hợp, nêu rõ MỤC ĐÍCH và CÁCH THỨC tác động (vd: "Bài tập vận động nhẹ ngoài trời để nâng năng lượng và cải thiện tâm trạng"). Đây là mô tả để tìm kiếm, KHÔNG phải tên/mã cụ thể.
-   - reason: 1 câu ngắn giải thích vì sao phù hợp (hiện cho người dùng đọc).
-Ưu tiên nhắm đúng vấn đề đang gặp: stress/lo âu cao thì ưu tiên bài làm dịu; năng lượng thấp thì ưu tiên bài nâng năng lượng nhẹ nhàng; đang ổn thì có thể gợi ý thử hướng mới.`;
+1. message: viết một lời nhắn buổi sáng ngắn gọn (2-4 câu) bằng tiếng Việt, giọng văn ấm áp, cá nhân hóa dựa trên xu hướng tâm trạng gần đây — không dùng thuật ngữ chuyên môn khó hiểu, không đưa ra chẩn đoán y khoa, không dùng markdown.
+2. exercises: chọn 1-2 bài tập từ danh sách dưới đây. Mỗi phần tử gồm task_code (copy chính xác phần mã trước dấu |, không thêm bớt ký tự) và reason (1 câu ngắn giải thích vì sao phù hợp, hiện cho người dùng đọc). Không chọn trùng cùng 1 bài.
+Ưu tiên nhắm đúng vấn đề đang gặp: stress/lo âu cao thì chọn bài làm dịu; năng lượng thấp thì chọn bài nâng năng lượng nhẹ nhàng; đang ổn thì có thể gợi ý hướng mới. Tránh bài có thể phản tác dụng với tình trạng hiện tại.
+
+--- DANH SÁCH BÀI TẬP (định dạng: mã|tên|thời lượng) ---
+${catalog.taskLines}`;
 }
 
 function formatMoodContext(ctx) {
@@ -214,18 +259,19 @@ function formatMoodContext(ctx) {
 // tập phù hợp — dùng chung cơ chế chọn task_code thật với getAssessmentAiSummary.
 export async function getDailyMessage(userId, ctx = null) {
     if (!ctx) ctx = await buildUserContext(userId);
+    const catalog = await getCatalog();
 
-    const parsed = await callGeminiJson(buildDailySystemInstruction(), [{ parts: [{ text: formatMoodContext(ctx) }] }], DAILY_MESSAGE_SCHEMA);
+    const parsed = await callGeminiJson(buildDailySystemInstruction(catalog), [{ parts: [{ text: formatMoodContext(ctx) }] }], DAILY_MESSAGE_SCHEMA);
 
-    // Loại trùng — 2 mô tả khác nhau (vd "bài thư giãn" và "hít thở") đôi khi khớp
-    // cùng 1 bài tập thật, không nên hiện lặp lại cùng 1 bài trong danh sách gợi ý.
-    const usedTaskIds = new Set();
     const matches = await Promise.all(
         (Array.isArray(parsed.exercises) ? parsed.exercises : []).map(async (ex) => {
-            const task = await findMatchingTaskByEmbedding(ex.task_query, ex.task_trigger);
+            const task = await resolveTask(catalog, ex.task_code, ex.reason);
             return task ? { task, reason: ex.reason || '' } : null;
         })
     );
+
+    // Loại trùng — LLM đôi khi chọn lặp, hoặc 2 mã sai cùng rơi về 1 bài qua lưới an toàn.
+    const usedTaskIds = new Set();
     const exercises = matches
         .filter(Boolean)
         .filter(({ task }) => {
@@ -245,9 +291,8 @@ const CHAT_SCHEMA = {
     type: 'object',
     properties: {
         reply: { type: 'string' },
-        suggested_task_trigger: { type: 'string' },
-        suggested_task_query: { type: 'string' },
-        suggested_expert_query: { type: 'string' },
+        suggested_task_code: { type: 'string' },
+        suggested_expert_code: { type: 'string' },
         mood_analysis: {
             type: 'object',
             properties: {
@@ -265,12 +310,7 @@ const CHAT_SCHEMA = {
 
 const MAX_CHAT_HISTORY = 6;
 
-// Không nhét cả danh sách bài tập/chuyên gia vào đây nữa (từng gây ~7.500 token/lần và
-// khiến model thỉnh thoảng sinh mã lỗi khi phải chọn đúng 1 mã từ danh sách dài). Thay
-// vào đó Gemini chỉ mô tả NGẮN bằng chữ thường loại bài tập/chuyên gia cần — code tự so
-// khớp với dữ liệu thật bên dưới (findBestMatchingTask/Expert). Giảm ~99% token, không
-// còn khả năng bịa mã vì đầu ra không còn là 1 mã cụ thể để model "chọn nhầm/gõ nhầm".
-function buildChatSystemInstruction(ctx) {
+function buildChatSystemInstruction(ctx, catalog) {
     return `Bạn là PeaceCat AI — trợ lý tâm lý đồng hành của app PeaceFlow, trò chuyện bằng tiếng Việt, giọng văn ấm áp, đồng cảm, tự nhiên như một người bạn lắng nghe.
 
 QUY TẮC BẮT BUỘC:
@@ -278,17 +318,18 @@ QUY TẮC BẮT BUỘC:
 2. Nếu người dùng hỏi chủ đề KHÔNG liên quan (lập trình, thời sự, giải trí, kiến thức chung, chuyện của người khác...), hãy từ chối lịch sự và mời họ quay lại chủ đề tâm lý — không trả lời nội dung ngoài phạm vi này.
 3. Trả lời NGẮN GỌN — tối đa 2-4 câu, không lan man, không liệt kê dài dòng, không dùng markdown.
 4. Không đưa ra chẩn đoán y khoa. Nếu phát hiện dấu hiệu nguy cấp (ý định tự hại/tự tử), khuyên người dùng liên hệ hotline hoặc chuyên gia ngay trong câu trả lời.
-5. Nếu việc gợi ý một bài tập là phù hợp với đoạn hội thoại, hãy điền:
-   - suggested_task_trigger: ĐÚNG 1 mã tình trạng cần nhắm tới nhất từ danh sách sau (để trống nếu không rõ):
-${formatTriggerList()}
-   - suggested_task_query: mô tả bằng 1-2 câu loại bài tập phù hợp, nêu rõ MỤC ĐÍCH và CÁCH THỨC tác động (vd: "Bài tập điều hòa hơi thở chậm để làm dịu hệ thần kinh và giảm bồn chồn").
-   Nếu không cần gợi ý bài tập thì để trống cả hai.
-   Tương tự, nếu người dùng cần tìm chuyên gia thì mô tả chuyên môn cần tìm vào suggested_expert_query (vd: "chuyên gia về lo âu và rối loạn giấc ngủ") — để trống nếu không cần.
-   Tất cả đều là mô tả để tìm kiếm, KHÔNG phải tên/mã cụ thể.
+5. Nếu việc gợi ý một bài tập là phù hợp với đoạn hội thoại, điền suggested_task_code = mã bài tập phù hợp nhất từ DANH SÁCH BÀI TẬP dưới đây (copy chính xác phần mã trước dấu |, không thêm bớt ký tự) — để trống nếu không cần gợi ý. Tránh chọn bài có thể phản tác dụng với tình trạng người dùng (vd người mất ngủ thì không nên chọn bài đòi suy ngẫm/phân tích nhiều hoặc vận động mạnh).
+   Tương tự, nếu người dùng cần tìm chuyên gia, điền suggested_expert_code = mã chuyên gia phù hợp nhất từ DANH SÁCH CHUYÊN GIA — để trống nếu không cần.
 6. Luôn kèm theo mood_analysis: ước lượng (0-100) dựa trên toàn bộ cuộc trò chuyện tính đến tin nhắn này — anxiety (lo âu), stress, mood (tâm trạng, càng cao càng tích cực), depression (dấu hiệu trầm cảm). Đây chỉ là ước lượng tham khảo để hiển thị cho người dùng tự theo dõi, KHÔNG phải chẩn đoán y khoa. Kèm tối đa 5 từ khóa cảm xúc nổi bật (keywords) rút ra từ lời người dùng vừa nói (ví dụ: "mất ngủ", "áp lực công việc", "cô đơn") — không lặp lại từ khóa đã có nếu không còn phù hợp.
 
 --- Thông tin về người dùng đang chat (dùng để trả lời phù hợp, không đọc lại nguyên văn số liệu cho người dùng) ---
-${formatMoodContext(ctx)}`;
+${formatMoodContext(ctx)}
+
+--- DANH SÁCH BÀI TẬP (định dạng: mã|tên|thời lượng) ---
+${catalog.taskLines}
+
+--- DANH SÁCH CHUYÊN GIA (định dạng: mã|tên|chuyên môn) ---
+${catalog.expertLines}`;
 }
 
 const EMBED_MODEL = 'gemini-embedding-001';
@@ -322,60 +363,46 @@ async function embedText(text, taskType) {
     }
 }
 
-// Tìm bài tập phù hợp theo 2 lớp:
-//   1) LỌC XÁC ĐỊNH theo tình trạng (triggers_supported / contraindications — đã được
-//      gán nhãn sẵn bằng `node src/scripts/label-task-triggers.js`). Đây là lớp quan
-//      trọng nhất: nó loại bỏ hẳn các bài PHẢN TÁC DỤNG, thứ mà embedding không làm
-//      được (vd bài "tự vấn/suy ngẫm trước khi ngủ" nghe rất giống chủ đề giấc ngủ
-//      nhưng lại làm mất ngủ nặng thêm).
-//   2) Trong nhóm đã lọc, dùng embedding chọn bài gần nghĩa nhất với mô tả AI đưa ra.
-// Nếu AI không xác định được tình trạng, bỏ qua lớp 1 và chỉ dùng embedding.
-async function queryClosestTask(vectorLiteral, trigger, requireSupported) {
-    const params = [vectorLiteral];
-    let filter = '';
-    if (trigger) {
-        params.push(JSON.stringify([trigger]));
-        // Điều kiện "không chống chỉ định" LUÔN được áp dụng khi đã biết tình trạng —
-        // không bao giờ nới lỏng, vì đây chính là thứ chặn các bài phản tác dụng.
-        filter = ` and not (contraindications @> $2::jsonb)`;
-        if (requireSupported) filter += ` and triggers_supported @> $2::jsonb`;
-    }
+// Đối chiếu mã LLM chọn với dữ liệu thật. LLM đã được xem toàn bộ catalog nên gần như
+// luôn trả về mã hợp lệ; 2 hàm dưới đây chỉ là lưới an toàn cho trường hợp nó gõ sai/bịa
+// mã: khi đó dùng embedding tìm bài/chuyên gia gần nghĩa nhất với lý do nó vừa viết,
+// thay vì mất luôn gợi ý.
+function normalizeCode(value) {
+    // LLM đôi khi trả kèm phần sau dấu | hoặc thêm khoảng trắng/dấu ngoặc.
+    return String(value || '').split('|')[0].trim().replace(/^["'(\[]+|["')\]]+$/g, '');
+}
 
+async function resolveTask(catalog, rawCode, fallbackText) {
+    const code = normalizeCode(rawCode);
+    if (!code) return null;
+
+    const exact = catalog.taskByCode.get(code);
+    if (exact) return exact;
+
+    const vector = await embedText(fallbackText, 'RETRIEVAL_QUERY');
+    if (!vector) return null;
     const { rows } = await db.query(
         `select id, code, title, category, difficulty, duration_minutes, xp_reward, description,
                 metadata->>'icon' as icon, embedding <=> $1::vector as distance
          from tasks
-         where active = true and embedding is not null${filter}
+         where active = true and embedding is not null
          order by distance asc
          limit 1`,
-        params
+        [`[${vector.join(',')}]`]
     );
     const best = rows[0];
     return best && best.distance <= MAX_MATCH_DISTANCE ? best : null;
 }
 
-async function findMatchingTaskByEmbedding(queryText, targetTrigger = null) {
-    if (!queryText) return null;
-    const vector = await embedText(queryText, 'RETRIEVAL_QUERY');
+async function resolveExpert(catalog, rawCode, fallbackText) {
+    const code = normalizeCode(rawCode);
+    if (!code) return null;
+
+    const exact = catalog.expertByCode.get(code);
+    if (exact) return exact;
+
+    const vector = await embedText(fallbackText, 'RETRIEVAL_QUERY');
     if (!vector) return null;
-
-    const vectorLiteral = `[${vector.join(',')}]`;
-    const trigger = TRIGGER_CODES.includes(targetTrigger) ? targetTrigger : null;
-
-    // Ưu tiên bài được gán nhãn hỗ trợ đúng tình trạng này.
-    const preferred = await queryClosestTask(vectorLiteral, trigger, true);
-    if (preferred) return preferred;
-
-    // Không có bài nào vừa hỗ trợ đúng tình trạng vừa đủ gần nghĩa — nới lỏng yêu cầu
-    // "phải hỗ trợ", nhưng vẫn loại các bài chống chỉ định với tình trạng đó.
-    return queryClosestTask(vectorLiteral, trigger, false);
-}
-
-async function findMatchingExpertByEmbedding(queryText) {
-    if (!queryText) return null;
-    const vector = await embedText(queryText, 'RETRIEVAL_QUERY');
-    if (!vector) return null;
-
     const { rows } = await db.query(
         `select id, code, full_name, degree, specialties, rating, experience_years, bio,
                 embedding <=> $1::vector as distance
@@ -390,10 +417,10 @@ async function findMatchingExpertByEmbedding(queryText) {
 }
 
 // Chat nhiều lượt với PeaceCat AI — biết dữ liệu cá nhân người dùng (tâm trạng, tiến
-// độ...), giới hạn chỉ trò chuyện trong phạm vi tâm lý/tâm thần, trả lời ngắn. Gợi ý
-// bài tập/chuyên gia bằng cách AI mô tả nhu cầu rồi code tự so khớp dữ liệu thật.
+// độ...) và thấy toàn bộ danh sách bài tập/chuyên gia thật để tự chọn, giới hạn chỉ trò
+// chuyện trong phạm vi tâm lý/tâm thần, trả lời ngắn.
 export async function getChatReply({ userId, message, history = [] }) {
-    const ctx = await buildUserContext(userId);
+    const [ctx, catalog] = await Promise.all([buildUserContext(userId), getCatalog()]);
 
     const trimmedHistory = history.slice(-MAX_CHAT_HISTORY);
     const contents = trimmedHistory
@@ -404,11 +431,11 @@ export async function getChatReply({ userId, message, history = [] }) {
         }));
     contents.push({ role: 'user', parts: [{ text: message }] });
 
-    const parsed = await callGeminiJson(buildChatSystemInstruction(ctx), contents, CHAT_SCHEMA, { maxOutputTokens: 300 });
+    const parsed = await callGeminiJson(buildChatSystemInstruction(ctx, catalog), contents, CHAT_SCHEMA, { maxOutputTokens: 300 });
 
     const [matchedTask, matchedExpert] = await Promise.all([
-        findMatchingTaskByEmbedding(parsed.suggested_task_query, parsed.suggested_task_trigger),
-        findMatchingExpertByEmbedding(parsed.suggested_expert_query)
+        resolveTask(catalog, parsed.suggested_task_code, parsed.reply),
+        resolveExpert(catalog, parsed.suggested_expert_code, parsed.reply)
     ]);
     const clampScore = (value) => Math.max(0, Math.min(100, Number(value) || 0));
     const analysis = parsed.mood_analysis || {};
