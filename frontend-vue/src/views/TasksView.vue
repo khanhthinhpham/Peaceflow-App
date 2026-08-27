@@ -199,6 +199,7 @@ const router = useRouter();
 const allTasks = ref([]);
 const dashboard = ref(null);
 const recommendedIds = reactive(new Set());
+const aiExercises = ref([]);
 const activeFilter = ref('all');
 const searchQuery = ref('');
 const guestEmergencyMode = ref(false);
@@ -274,6 +275,13 @@ function getRiskLabel(level) {
 }
 
 const suggestionBannerText = computed(() => {
+  // Ưu tiên bài tập AI (Gemini) đã chọn ở daily message trên Dashboard — cùng nguồn
+  // dữ liệu tâm trạng/xu hướng gần đây, cụ thể hơn bộ máy quy tắc chung (dashboard.tasks).
+  if (aiExercises.value.length) {
+    const names = aiExercises.value.map((ex) => ex.title).filter(Boolean).join(', ');
+    return `PeaceCat (AI) gợi ý ${aiExercises.value.length} nhiệm vụ dựa trên tâm trạng gần đây của bạn: ${names}.`;
+  }
+
   const recommendedTasks = Array.isArray(dashboard.value?.tasks) ? dashboard.value.tasks : [];
   const latestMood = dashboard.value?.latest_mood;
   const summary = dashboard.value?.summary || {};
@@ -384,6 +392,7 @@ async function loadTaskPage() {
     if (aiCache) {
       try {
         const { exercises = [] } = JSON.parse(aiCache);
+        aiExercises.value = exercises;
         exercises.forEach((ex) => {
           if (ex.id) recommendedIds.add(ex.id);
         });
