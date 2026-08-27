@@ -1,3 +1,4 @@
+import { createHash } from 'crypto';
 import { env } from '../../config/env.js';
 import { db } from '../../config/db.js';
 import { buildUserContext } from './ai.context.js';
@@ -190,17 +191,71 @@ function formatDimensionValue(value) {
     return parts.length ? parts.join(' - ') : JSON.stringify(value);
 }
 
+// Đổi số này khi sửa prompt/schema của nhận xét bài test — toàn bộ cache cũ sẽ tự bị
+// vô hiệu (vì cache_key thay đổi), tránh việc người dùng nhận lời văn theo prompt cũ.
+const ASSESSMENT_PROMPT_VERSION = 'v1';
+
+function buildAssessmentCacheKey({ assessmentName, totalScore, severity, dimensionScores }) {
+    // Sắp xếp key của dimensionScores để 2 object cùng nội dung nhưng khác thứ tự key
+    // vẫn cho ra cùng 1 cache_key.
+    const dims = dimensionScores && typeof dimensionScores === 'object'
+        ? Object.keys(dimensionScores).sort().map((k) => `${k}=${JSON.stringify(dimensionScores[k])}`).join('&')
+        : '';
+    const raw = [ASSESSMENT_PROMPT_VERSION, assessmentName, String(totalScore), severity || '', dims].join('|');
+    return createHash('sha256').update(raw).digest('hex');
+}
+
 // Tổng kết nhận xét + gợi ý 2-3 bài tập phù hợp bằng Gemini, sau khi người dùng nộp 1
 // bài test tự đánh giá. LLM được xem toàn bộ danh sách bài tập thật (dạng rút gọn) và
 // tự chọn mã; code chỉ đối chiếu mã đó với DB, kèm lưới an toàn bằng embedding nếu LLM
 // trả về mã không tồn tại.
+//
+// Có cache kết quả: đầu vào không chứa gì riêng tư nên 2 người cùng bài test + cùng điểm
+// dùng lại được kết quả của nhau, tốn 0 token (xem giải thích ở migration 0045).
 export async function getAssessmentAiSummary({ userId = null, assessmentName, totalScore, severity, dimensionScores }) {
     const catalog = await getCatalog();
+    const cacheKey = buildAssessmentCacheKey({ assessmentName, totalScore, severity, dimensionScores });
+
+    // --- Thử lấy từ cache trước ---
+    try {
+        const cached = await db.query(
+            `update ai_summary_cache
+                set hit_count = hit_count + 1, last_used_at = now()
+              where cache_key = $1
+              returning summary, tasks`,
+            [cacheKey]
+        );
+        if (cached.rows[0]) {
+            const row = cached.rows[0];
+            logAiUsage({
+                userId,
+                feature: 'assessment_summary',
+                model: null,
+                latencyMs: 0,
+                fromCache: true,
+                topics: [assessmentName, severity].filter(Boolean)
+            });
+
+            // Đối chiếu lại mã bài tập với catalog hiện tại — nếu admin đã tắt/xoá bài tập
+            // kể từ lúc cache được tạo thì bỏ bài đó ra, không trả link chết cho người dùng.
+            const tasks = (Array.isArray(row.tasks) ? row.tasks : [])
+                .map((t) => {
+                    const task = catalog.taskByCode.get(t.task_code);
+                    return task ? { ...task, reason: t.reason || '' } : null;
+                })
+                .filter(Boolean);
+
+            return { summary: row.summary || '', recommendedTasks: tasks };
+        }
+    } catch (error) {
+        // Cache lỗi thì bỏ qua, gọi AI như bình thường — không được để cache làm sập tính năng.
+        console.error('[AI] đọc cache nhận xét thất bại:', error.message);
+    }
+
     const dimensionLines = dimensionScores && typeof dimensionScores === 'object' && Object.keys(dimensionScores).length
         ? Object.entries(dimensionScores).map(([key, value]) => `- ${key}: ${formatDimensionValue(value)}`).join('\n')
         : '';
 
-    // Chỉ chứa dữ liệu riêng của người dùng này — thay đổi mỗi lần gọi, không cache được.
     const userContent = `Bài test: "${assessmentName}".
 Tổng điểm: ${totalScore}${severity ? `, mức độ: ${severity}` : ''}.
 ${dimensionLines ? `Điểm theo từng khía cạnh:\n${dimensionLines}` : ''}`;
@@ -250,10 +305,24 @@ ${dimensionLines ? `Điểm theo từng khía cạnh:\n${dimensionLines}` : ''}`
         })
         .map(({ task, reason }) => ({ ...task, reason }));
 
-    return {
-        summary: parsed.summary || '',
-        recommendedTasks
-    };
+    const summary = parsed.summary || '';
+
+    // --- Lưu vào cache cho các lượt sau (chỉ lưu khi có nội dung dùng được) ---
+    if (summary && recommendedTasks.length) {
+        db.query(
+            `insert into ai_summary_cache (cache_key, feature, summary, tasks)
+             values ($1, 'assessment_summary', $2, $3::jsonb)
+             on conflict (cache_key) do update
+               set summary = excluded.summary, tasks = excluded.tasks, last_used_at = now()`,
+            [
+                cacheKey,
+                summary,
+                JSON.stringify(recommendedTasks.map((t) => ({ task_code: t.code, reason: t.reason })))
+            ]
+        ).catch((error) => console.error('[AI] ghi cache nhận xét thất bại:', error.message));
+    }
+
+    return { summary, recommendedTasks };
 }
 
 const DAILY_MESSAGE_SCHEMA = {

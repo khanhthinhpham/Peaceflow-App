@@ -41,7 +41,8 @@ export function logAiUsage({
     latencyMs = null,
     success = true,
     errorMessage = null,
-    topics = []
+    topics = [],
+    fromCache = false
 }) {
     const safeTopics = Array.isArray(topics)
         ? topics.map((t) => String(t || '').trim()).filter(Boolean).slice(0, 10)
@@ -50,8 +51,8 @@ export function logAiUsage({
     db.query(
         `insert into ai_usage_logs
            (user_id, feature, model, prompt_tokens, output_tokens, cached_tokens,
-            latency_ms, success, error_message, topics)
-         values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10::jsonb)`,
+            latency_ms, success, error_message, topics, from_cache)
+         values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10::jsonb, $11)`,
         [
             userId,
             feature,
@@ -62,7 +63,8 @@ export function logAiUsage({
             latencyMs === null ? null : Math.round(latencyMs),
             success,
             errorMessage ? String(errorMessage).slice(0, 500) : null,
-            JSON.stringify(safeTopics)
+            JSON.stringify(safeTopics),
+            Boolean(fromCache)
         ]
     ).catch((error) => {
         console.error('[AI] logAiUsage failed:', error.message);
