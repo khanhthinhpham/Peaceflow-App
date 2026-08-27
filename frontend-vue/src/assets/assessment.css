@@ -454,11 +454,13 @@
     box-shadow: var(--shadow-paper);
 }
 
-.likert-option:hover {
-    border-color: var(--mint-dark);
-    background: var(--mint-light);
-    box-shadow: 2px 2px 0px var(--mint-dark);
-    transform: translate(-1px, -1px);
+@media (hover: hover) and (pointer: fine) {
+    .likert-option:hover {
+        border-color: var(--mint-dark);
+        background: var(--mint-light);
+        box-shadow: 2px 2px 0px var(--mint-dark);
+        transform: translate(-1px, -1px);
+    }
 }
 
 .likert-option.selected {
