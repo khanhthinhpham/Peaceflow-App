@@ -289,16 +289,24 @@ QUY TẮC BẮT BUỘC:
 ${formatMoodContext(ctx)}`;
 }
 
+// Từ đệm tiếng Việt phổ biến — loại bỏ để tránh khớp giả (vd 2 câu chỉ chung từ "và",
+// "một", "cho" thì không nên tính là liên quan nhau).
+const STOPWORDS = new Set(['và', 'của', 'cho', 'để', 'là', 'có', 'các', 'những', 'một', 'khi', 'này', 'với', 'từ', 'trong', 'về', 'bị', 'được', 'sẽ', 'đã', 'đang', 'rất', 'hay', 'nên', 'cần', 'nếu', 'thì']);
+
 function normalizeWords(text) {
     return String(text || '')
         .toLowerCase()
         .replace(/[.,!?;:()"'–-]/g, ' ')
         .split(/\s+/)
-        .filter((w) => w.length > 1);
+        .filter((w) => w.length > 1 && !STOPWORDS.has(w));
 }
 
-// So khớp từ khóa đơn giản (đếm số từ trùng) giữa mô tả AI đưa ra và tên+mô tả bài tập
-// thật trong DB — thay cho việc bắt AI tự chọn đúng 1 mã từ danh sách dài dễ sai.
+// So khớp từ khóa giữa mô tả AI đưa ra và tên+mô tả bài tập thật trong DB — thay cho
+// việc bắt AI tự chọn đúng 1 mã từ danh sách dài dễ sai. Ưu tiên trùng từ trong TÊN bài
+// tập (weight 2) hơn trong mô tả (weight 1), và yêu cầu điểm tối thiểu mới nhận là khớp
+// — tránh gợi ý sai lệch chỉ vì trùng ngẫu nhiên 1 từ không thật sự liên quan.
+const MIN_MATCH_SCORE = 3;
+
 function findBestMatchingTask(availableTasks, queryText) {
     const queryWords = normalizeWords(queryText);
     if (!queryWords.length) return null;
@@ -306,15 +314,22 @@ function findBestMatchingTask(availableTasks, queryText) {
     let best = null;
     let bestScore = 0;
     for (const task of availableTasks) {
-        const haystack = normalizeWords(`${task.title} ${task.description || ''}`).join(' ');
-        const score = queryWords.reduce((sum, w) => sum + (haystack.includes(w) ? 1 : 0), 0);
+        const titleWords = normalizeWords(task.title).join(' ');
+        const descWords = normalizeWords(task.description || '').join(' ');
+        const score = queryWords.reduce((sum, w) => {
+            if (titleWords.includes(w)) return sum + 2;
+            if (descWords.includes(w)) return sum + 1;
+            return sum;
+        }, 0);
         if (score > bestScore) {
             bestScore = score;
             best = task;
         }
     }
-    return bestScore > 0 ? best : null;
+    return bestScore >= MIN_MATCH_SCORE ? best : null;
 }
+
+const MIN_EXPERT_MATCH_SCORE = 2;
 
 function findBestMatchingExpert(availableExperts, queryText) {
     const queryWords = normalizeWords(queryText);
@@ -323,15 +338,19 @@ function findBestMatchingExpert(availableExperts, queryText) {
     let best = null;
     let bestScore = 0;
     for (const expert of availableExperts) {
-        const specialties = Array.isArray(expert.specialties) ? expert.specialties.join(' ') : (expert.specialties || '');
-        const haystack = normalizeWords(`${specialties} ${expert.bio || ''}`).join(' ');
-        const score = queryWords.reduce((sum, w) => sum + (haystack.includes(w) ? 1 : 0), 0);
+        const specialtyWords = normalizeWords(Array.isArray(expert.specialties) ? expert.specialties.join(' ') : (expert.specialties || '')).join(' ');
+        const bioWords = normalizeWords(expert.bio || '').join(' ');
+        const score = queryWords.reduce((sum, w) => {
+            if (specialtyWords.includes(w)) return sum + 2;
+            if (bioWords.includes(w)) return sum + 1;
+            return sum;
+        }, 0);
         if (score > bestScore) {
             bestScore = score;
             best = expert;
         }
     }
-    return bestScore > 0 ? best : null;
+    return bestScore >= MIN_EXPERT_MATCH_SCORE ? best : null;
 }
 
 // Chat nhiều lượt với PeaceCat AI — biết dữ liệu cá nhân người dùng (tâm trạng, tiến
