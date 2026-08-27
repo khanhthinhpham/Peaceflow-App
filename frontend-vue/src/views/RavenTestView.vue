@@ -60,6 +60,18 @@
         </div>
         <p v-if="aiSummaryLoading" class="rv-ai-summary-loading">Đang phân tích kết quả...</p>
         <p v-else class="rv-ai-summary-text">{{ aiSummaryText }}</p>
+        <div
+          v-if="aiRecommendedTask"
+          class="rv-ai-task"
+          @click="router.push({ path: '/task-detail', query: { id: aiRecommendedTask.id } })"
+        >
+          <div class="rv-ai-task-icon">{{ aiRecommendedTask.icon || '🧩' }}</div>
+          <div class="rv-ai-task-info">
+            <div class="rv-ai-task-name">{{ aiRecommendedTask.title }}</div>
+            <div class="rv-ai-task-reason">{{ aiRecommendedTask.reason }}</div>
+          </div>
+          <div class="rv-ai-task-xp" v-if="aiRecommendedTask.xp_reward">+{{ aiRecommendedTask.xp_reward }} XP</div>
+        </div>
       </div>
 
       <div v-if="showAttachCard" class="rv-card" style="text-align:left;margin:20px 0;">
@@ -103,6 +115,7 @@ const attachInputEl = ref(null);
 const savedResultId = ref(null);
 const aiSummaryText = ref('');
 const aiSummaryLoading = ref(false);
+const aiRecommendedTask = ref(null);
 
 const currentItem = computed(() => ITEMS[index.value]);
 const progressPct = computed(() => Math.round((index.value / ITEMS.length) * 100));
@@ -204,9 +217,11 @@ async function loadAiSummary(resultId) {
   try {
     const data = await apiClient.post(`/assessments/results/${resultId}/ai-summary`, {});
     aiSummaryText.value = data?.summary || '';
+    aiRecommendedTask.value = data?.recommended_task || null;
   } catch (error) {
     console.error('Raven AI summary load failed:', error);
     aiSummaryText.value = '';
+    aiRecommendedTask.value = null;
   } finally {
     aiSummaryLoading.value = false;
   }
@@ -270,6 +285,13 @@ onMounted(async () => {
 .rv-ai-summary-title { font-weight: 700; font-size: 0.95rem; }
 .rv-ai-summary-text { line-height: 1.7; font-size: 0.9rem; color: var(--text-primary); white-space: pre-line; }
 .rv-ai-summary-loading { font-size: 0.85rem; color: var(--text-secondary); font-style: italic; }
+.rv-ai-task { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border: 1.5px solid var(--mint); border-radius: var(--radius-md); background: var(--warm-white); margin-top: 14px; cursor: pointer; }
+.rv-ai-task:hover { background: var(--mint-light); }
+.rv-ai-task-icon { width: 38px; height: 38px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; border: 2px solid var(--mint); background: var(--mint-light); flex-shrink: 0; }
+.rv-ai-task-info { flex: 1; }
+.rv-ai-task-name { font-size: 0.85rem; font-weight: 700; }
+.rv-ai-task-reason { font-size: 0.72rem; color: var(--text-secondary); margin-top: 2px; }
+.rv-ai-task-xp { font-size: 0.72rem; font-weight: 700; color: var(--peach-dark); background: var(--peach-light); padding: 2px 8px; border-radius: 50px; flex-shrink: 0; }
 .rv-progress-row { display: flex; justify-content: space-between; font-size: 0.85rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 8px; }
 .rv-progress-bar { height: 8px; border-radius: 999px; background: var(--kraft-light); overflow: hidden; margin-bottom: 18px; }
 .rv-progress-fill { height: 100%; background: linear-gradient(90deg, var(--mint-dark), var(--sky)); transition: width 0.25s ease; }

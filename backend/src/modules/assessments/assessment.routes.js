@@ -269,14 +269,36 @@ router.post('/assessments/results/:id/ai-summary', requireAuth, async (req, res)
       return res.status(404).json({ success: false, message: 'Không tìm thấy kết quả này.' });
     }
 
-    const summary = await getAssessmentAiSummary({
+    const tasksRes = await db.query(
+      `select id, code, title, category, duration_minutes, xp_reward, description, metadata->>'icon' as icon
+       from tasks where active = true`
+    );
+
+    const { summary, recommendedTask } = await getAssessmentAiSummary({
       assessmentName: result.assessment_name,
       totalScore: Number(result.total_score || 0),
       severity: result.severity,
-      dimensionScores: result.dimension_scores
+      dimensionScores: result.dimension_scores,
+      availableTasks: tasksRes.rows
     });
 
-    return res.json({ success: true, data: { summary } });
+    return res.json({
+      success: true,
+      data: {
+        summary,
+        recommended_task: recommendedTask
+          ? {
+              id: recommendedTask.id,
+              title: recommendedTask.title,
+              category: recommendedTask.category,
+              duration_minutes: recommendedTask.duration_minutes,
+              xp_reward: recommendedTask.xp_reward,
+              icon: recommendedTask.icon,
+              reason: recommendedTask.reason
+            }
+          : null
+      }
+    });
   } catch (error) {
     console.error('Assessment AI summary error:', error);
     return res.status(500).json({ success: false, message: 'Không thể tạo nhận xét AI lúc này.' });

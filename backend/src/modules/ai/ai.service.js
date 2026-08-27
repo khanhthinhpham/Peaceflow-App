@@ -48,6 +48,26 @@ export async function getWeeklyInsight(userId) {
     return callRAG(ctx, `peaceflow_insight_${userId}`);
 }
 
+// Phần hướng dẫn/vai trò AI — GIỮ NGUYÊN CHỮ, giống nhau cho mọi người dùng và mọi bài
+// test. Để riêng trong systemInstruction (thay vì nhét chung vào 1 chuỗi prompt) để
+// sau này Gemini có thể cache lại phần này (context caching) — chỉ phần dữ liệu riêng
+// của từng người ở dưới (contents) mới thay đổi giữa các lần gọi.
+const SYSTEM_INSTRUCTION = `Bạn là trợ lý tâm lý của app PeaceFlow. Người dùng sẽ gửi tên bài test tự đánh giá, điểm số của họ, và danh sách bài tập đang có sẵn trong app.
+Nhiệm vụ:
+1. Viết một đoạn nhận xét ngắn (3-5 câu) bằng tiếng Việt, giọng văn ấm áp, dễ hiểu, không dùng thuật ngữ chuyên môn khó hiểu, không đưa ra chẩn đoán y khoa, không dùng markdown.
+2. Chọn ĐÚNG 1 mã bài tập (task_code) phù hợp nhất với kết quả test này TỪ DANH SÁCH được cung cấp — không được bịa ra mã không có trong danh sách.
+3. Viết 1 câu ngắn giải thích vì sao bài tập đó phù hợp.`;
+
+const RECOMMENDATION_SCHEMA = {
+    type: 'object',
+    properties: {
+        summary: { type: 'string' },
+        task_code: { type: 'string' },
+        task_reason: { type: 'string' }
+    },
+    required: ['summary', 'task_code', 'task_reason']
+};
+
 // Bài test nhiều khía cạnh (DASS21, Raven...) lưu dimension_scores dạng object lồng
 // nhau (vd { score, severity } hoặc { score, max }) — phải trích giá trị đọc được,
 // nếu không sẽ in ra "[object Object]" không có ý nghĩa gì trong prompt gửi AI.
@@ -60,15 +80,11 @@ function formatDimensionValue(value) {
     return parts.length ? parts.join(' - ') : JSON.stringify(value);
 }
 
-// Phần hướng dẫn/vai trò AI — GIỮ NGUYÊN CHỮ, giống nhau cho mọi người dùng và mọi bài
-// test. Để riêng trong systemInstruction (thay vì nhét chung vào 1 chuỗi prompt) để
-// sau này Gemini có thể cache lại phần này (context caching) — chỉ phần dữ liệu riêng
-// của từng người ở dưới (contents) mới thay đổi giữa các lần gọi.
-const SYSTEM_INSTRUCTION = `Bạn là trợ lý tâm lý của app PeaceFlow. Người dùng sẽ gửi tên bài test tự đánh giá cùng điểm số của họ.
-Hãy viết một đoạn nhận xét ngắn (3-5 câu) bằng tiếng Việt, giọng văn ấm áp, dễ hiểu, không dùng thuật ngữ chuyên môn khó hiểu, không đưa ra chẩn đoán y khoa. Kết thúc bằng 1 gợi ý hành động nhỏ, thiết thực người dùng có thể làm hôm nay.`;
-
-// Tổng kết nhận xét bằng Gemini sau khi người dùng nộp 1 bài test tự đánh giá.
-export async function getAssessmentAiSummary({ assessmentName, totalScore, severity, dimensionScores }) {
+// Tổng kết nhận xét + gợi ý 1 bài tập phù hợp bằng Gemini, sau khi người dùng nộp 1
+// bài test tự đánh giá. `availableTasks` là danh sách bài tập THẬT đang có trong app
+// (bảng tasks) — bắt AI chọn trong danh sách này để đảm bảo link bấm vào được, tránh
+// bịa ra bài tập không tồn tại.
+export async function getAssessmentAiSummary({ assessmentName, totalScore, severity, dimensionScores, availableTasks = [] }) {
     if (!env.geminiApiKey) {
         throw new Error('GEMINI_API_KEY chưa được cấu hình');
     }
@@ -77,10 +93,16 @@ export async function getAssessmentAiSummary({ assessmentName, totalScore, sever
         ? Object.entries(dimensionScores).map(([key, value]) => `- ${key}: ${formatDimensionValue(value)}`).join('\n')
         : '';
 
+    const taskLines = availableTasks
+        .map((t) => `- ${t.code}: ${t.title} (${t.category}, ${t.duration_minutes} phút)${t.description ? ` — ${t.description}` : ''}`)
+        .join('\n');
+
     // Chỉ chứa dữ liệu riêng của người dùng này — thay đổi mỗi lần gọi, không cache được.
     const userContent = `Bài test: "${assessmentName}".
 Tổng điểm: ${totalScore}${severity ? `, mức độ: ${severity}` : ''}.
-${dimensionLines ? `Điểm theo từng khía cạnh:\n${dimensionLines}` : ''}`;
+${dimensionLines ? `Điểm theo từng khía cạnh:\n${dimensionLines}\n` : ''}
+Danh sách bài tập có sẵn (chọn task_code từ đây):
+${taskLines || '(không có bài tập nào)'}`;
 
     const model = env.geminiModel;
     const response = await fetch(
@@ -90,7 +112,11 @@ ${dimensionLines ? `Điểm theo từng khía cạnh:\n${dimensionLines}` : ''}`
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 systemInstruction: { parts: [{ text: SYSTEM_INSTRUCTION }] },
-                contents: [{ parts: [{ text: userContent }] }]
+                contents: [{ parts: [{ text: userContent }] }],
+                generationConfig: {
+                    responseMimeType: 'application/json',
+                    responseSchema: RECOMMENDATION_SCHEMA
+                }
             })
         }
     );
@@ -105,5 +131,17 @@ ${dimensionLines ? `Điểm theo từng khía cạnh:\n${dimensionLines}` : ''}`
     if (!text) {
         throw new Error('Gemini không trả về nội dung');
     }
-    return text;
+
+    let parsed;
+    try {
+        parsed = JSON.parse(text);
+    } catch {
+        throw new Error('Gemini trả về JSON không hợp lệ');
+    }
+
+    const matchedTask = availableTasks.find((t) => t.code === parsed.task_code) || null;
+    return {
+        summary: parsed.summary || '',
+        recommendedTask: matchedTask ? { ...matchedTask, reason: parsed.task_reason || '' } : null
+    };
 }

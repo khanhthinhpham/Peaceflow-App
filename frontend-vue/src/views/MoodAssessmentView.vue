@@ -248,6 +248,18 @@
           </div>
           <div v-if="aiSummaryLoading" class="ai-summary-loading">Đang phân tích kết quả...</div>
           <div v-else class="ai-summary-text">{{ aiSummaryText }}</div>
+          <div
+            v-if="aiRecommendedTask"
+            class="ai-summary-task"
+            @click="router.push({ path: '/task-detail', query: { id: aiRecommendedTask.id } })"
+          >
+            <div class="ai-summary-task-icon">{{ aiRecommendedTask.icon || '🧩' }}</div>
+            <div class="ai-summary-task-info">
+              <div class="ai-summary-task-name">{{ aiRecommendedTask.title }}</div>
+              <div class="ai-summary-task-reason">{{ aiRecommendedTask.reason }}</div>
+            </div>
+            <div class="ai-summary-task-xp" v-if="aiRecommendedTask.xp_reward">+{{ aiRecommendedTask.xp_reward }} XP</div>
+          </div>
         </div>
 
         <div class="paper-card result-comparison">
@@ -362,6 +374,7 @@ const result = ref(null);
 const resultSaveNote = ref('');
 const aiSummaryText = ref('');
 const aiSummaryLoading = ref(false);
+const aiRecommendedTask = ref(null);
 const resultSubtitleBase = ref('');
 const apiTasks = ref(null);
 
@@ -648,6 +661,7 @@ function finishTest() {
   resultSaveNote.value = '';
   aiSummaryText.value = '';
   aiSummaryLoading.value = false;
+  aiRecommendedTask.value = null;
 
   // Evaluate logic
   const subScores = {};
@@ -828,9 +842,11 @@ async function loadAiSummary(resultId) {
   try {
     const data = await apiClient.post(`/assessments/results/${resultId}/ai-summary`, {});
     aiSummaryText.value = data?.summary || '';
+    aiRecommendedTask.value = data?.recommended_task || null;
   } catch (error) {
     console.error('Assessment AI summary load failed:', error);
     aiSummaryText.value = '';
+    aiRecommendedTask.value = null;
   } finally {
     aiSummaryLoading.value = false;
   }
