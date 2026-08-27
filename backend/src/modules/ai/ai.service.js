@@ -194,10 +194,10 @@ function formatDimensionValue(value) {
 // Đổi số này khi sửa prompt/schema — toàn bộ cache cũ sẽ tự bị vô hiệu (vì cache_key
 // thay đổi), tránh việc người dùng nhận lời văn theo prompt cũ.
 const ASSESSMENT_PROMPT_VERSION = 'v1';
-const DAILY_PROMPT_VERSION = 'v1';
+const DAILY_PROMPT_VERSION = 'v2';  // v2: lời khuyên chỉ tập trung cảm xúc, bỏ streak/chỉ số
 // Đổi số này khi muốn buộc TẤT CẢ người dùng được sinh lại lời khuyên ở lần bấm nút tiếp
 // theo (vd sau khi sửa prompt hoặc sửa cách tính dấu vân tay dữ liệu).
-const INSIGHT_PROMPT_VERSION = 'v1';
+const INSIGHT_PROMPT_VERSION = 'v2';  // v2: bỏ streak khỏi dấu vân tay
 
 // ===== Cache kết quả AI (dùng chung cho nhận xét bài test & lời nhắn sáng) =====
 // Chỉ dùng được cho các tính năng mà ĐẦU VÀO không chứa nội dung riêng tư do người dùng
@@ -358,14 +358,49 @@ const DAILY_MESSAGE_SCHEMA = {
 };
 
 function buildDailySystemInstruction(catalog) {
-    return `Bạn là trợ lý tâm lý của app PeaceFlow. Người dùng sẽ gửi dữ liệu tổng hợp về tâm trạng, mức độ lo âu/stress/năng lượng gần đây, streak hoạt động và các bài tập họ từng thích.
+    return `Bạn là trợ lý tâm lý của app PeaceFlow. Người dùng sẽ gửi dữ liệu tổng hợp về trạng thái cảm xúc gần đây của họ.
 Nhiệm vụ:
-1. message: viết một lời nhắn buổi sáng ngắn gọn (2-4 câu) bằng tiếng Việt, giọng văn ấm áp, cá nhân hóa dựa trên xu hướng tâm trạng gần đây — không dùng thuật ngữ chuyên môn khó hiểu, không đưa ra chẩn đoán y khoa, không dùng markdown.
-2. exercises: chọn 1-2 bài tập từ danh sách dưới đây. Mỗi phần tử gồm task_code (copy chính xác phần mã trước dấu |, không thêm bớt ký tự) và reason (1 câu ngắn giải thích vì sao phù hợp, hiện cho người dùng đọc). Không chọn trùng cùng 1 bài.
-Ưu tiên nhắm đúng vấn đề đang gặp: stress/lo âu cao thì chọn bài làm dịu; năng lượng thấp thì chọn bài nâng năng lượng nhẹ nhàng; đang ổn thì có thể gợi ý hướng mới. Tránh bài có thể phản tác dụng với tình trạng hiện tại.
+1. message: viết lời khuyên ngắn gọn (2-4 câu) bằng tiếng Việt, giọng văn ấm áp, đồng cảm.
+   CHỈ NÓI VỀ CẢM XÚC VÀ TÂM TRẠNG của người dùng: họ đang cảm thấy thế nào, điều đó ảnh hưởng ra sao, và họ có thể làm gì để dễ chịu hơn.
+   TUYỆT ĐỐI KHÔNG nhắc tới: chuỗi ngày liên tục (streak), điểm XP, cấp độ, số lần check-in, số bài test đã làm, tên thể loại bài tập, hay bất kỳ con số/chỉ số nào. Đây là những thứ về game hóa và thống kê, không phải cảm xúc — nhắc tới sẽ làm lời khuyên khô khan và lệch trọng tâm.
+   Đừng đọc lại số liệu cho người dùng; hãy diễn đạt bằng cảm xúc (ví dụ nói "khoảng thời gian này khá nhiều áp lực với bạn" thay vì "điểm stress của bạn là 4/5").
+   Không dùng thuật ngữ chuyên môn khó hiểu, không đưa ra chẩn đoán y khoa, không dùng markdown.
+2. exercises: chọn 1-2 bài tập từ danh sách dưới đây. Mỗi phần tử gồm task_code (copy chính xác phần mã trước dấu |, không thêm bớt ký tự) và reason (1 câu ngắn giải thích vì sao phù hợp với cảm xúc hiện tại của họ). Không chọn trùng cùng 1 bài.
+Ưu tiên nhắm đúng vấn đề cảm xúc đang gặp: stress/lo âu cao thì chọn bài làm dịu; năng lượng thấp thì chọn bài nhẹ nhàng nâng tinh thần; đang ổn thì có thể gợi ý hướng mới. Tránh bài có thể phản tác dụng với trạng thái hiện tại.
 
 --- DANH SÁCH BÀI TẬP (định dạng: mã|tên|thời lượng) ---
 ${catalog.taskLines}`;
+}
+
+// Ngữ cảnh dành riêng cho lời khuyên: CHỈ gồm dữ liệu cảm xúc. Cố ý bỏ streak/XP và các
+// chỉ số game hóa ra khỏi đây — AI không thấy thì không thể nhắc tới, chắc chắn hơn là
+// chỉ dặn trong prompt. Phần sở thích bài tập được tách riêng và ghi rõ "chỉ dùng để chọn
+// bài tập", tránh việc AI đem tên thể loại vào lời khuyên.
+function formatInsightContext(ctx) {
+    const mood = ctx.moodTrend || {};
+    const assessment = ctx.assessmentTrend || {};
+    const lines = [];
+
+    if (mood.checkin_count) {
+        lines.push(`Cảm xúc 14 ngày qua (thang 5): tâm trạng ${mood.mood_avg ?? '?'}, lo âu ${mood.anxiety_avg ?? '?'}, căng thẳng ${mood.stress_avg ?? '?'}, năng lượng ${mood.energy_avg ?? '?'}. Xu hướng gần đây: ${mood.trend}.`);
+    } else {
+        lines.push('Chưa có dữ liệu cảm xúc gần đây — hãy viết lời khuyên chung, nhẹ nhàng, mời gọi họ chú ý tới cảm xúc của mình.');
+    }
+
+    if (assessment.count) {
+        lines.push(`Xu hướng mức độ qua các bài test tự đánh giá: ${assessment.trend}.`);
+    }
+
+    // Phần dưới đây CHỈ để chọn bài tập phù hợp, không được đưa vào lời khuyên.
+    const prefs = [];
+    if (ctx.taskPatterns?.favorite_category) prefs.push(`thường làm bài thuộc nhóm ${ctx.taskPatterns.favorite_category}`);
+    if (ctx.topRatedTasks?.length) prefs.push(`từng thấy hiệu quả với: ${ctx.topRatedTasks.map((t) => t.title).join(', ')}`);
+    if (ctx.untriedCategories?.length) prefs.push(`chưa thử nhóm: ${ctx.untriedCategories.join(', ')}`);
+    if (prefs.length) {
+        lines.push(`(Thông tin nội bộ chỉ để CHỌN bài tập, KHÔNG nhắc trong lời khuyên: ${prefs.join('; ')}.)`);
+    }
+
+    return lines.join('\n');
 }
 
 function formatMoodContext(ctx) {
@@ -416,7 +451,7 @@ async function getDailyMessage(userId, ctx = null) {
     if (!ctx) ctx = await buildUserContext(userId);
     const catalog = await getCatalog();
 
-    const moodContext = formatMoodContext(ctx);
+    const moodContext = formatInsightContext(ctx);
     const cacheKey = createHash('sha256')
         .update([DAILY_PROMPT_VERSION, moodContext].join('|'))
         .digest('hex');
@@ -495,19 +530,11 @@ async function getDailyMessage(userId, ctx = null) {
 
 // ===================== LỜI KHUYÊN THEO YÊU CẦU (bấm nút mới chạy) =====================
 
-// Dấu vân tay dữ liệu người dùng. LÀM THÔ CÓ CHỦ Ý: làm tròn điểm về 0.5, chia streak
-// thành nhóm, chỉ lấy SỐ LƯỢNG thay vì danh sách chi tiết... để những dao động nhỏ
-// (streak +1 ngày, điểm trung bình lệch 0.1) KHÔNG bị coi là "thay đổi đáng kể" và
-// không tốn token gọi lại AI. Đổi những mốc dưới đây nếu muốn nhạy hơn / thô hơn.
-function bucketStreak(days) {
-    const n = Number(days || 0);
-    if (n <= 0) return '0';
-    if (n <= 2) return '1-2';
-    if (n <= 6) return '3-6';
-    if (n <= 13) return '7-13';
-    return '14+';
-}
-
+// Dấu vân tay dữ liệu CẢM XÚC của người dùng. LÀM THÔ CÓ CHỦ Ý: làm tròn điểm về 0.5,
+// chỉ lấy SỐ LƯỢNG theo nhóm thay vì số chính xác... để những dao động nhỏ (điểm trung
+// bình lệch 0.1, thêm 1 lần check-in) KHÔNG bị coi là "thay đổi đáng kể" và không tốn
+// token gọi lại AI. Cố ý KHÔNG tính streak: lời khuyên không nói về streak nữa nên
+// streak đổi cũng không cần sinh lại. Đổi các mốc dưới đây nếu muốn nhạy hơn / thô hơn.
 function bucketCount(value) {
     const n = Number(value || 0);
     if (n <= 0) return '0';
@@ -524,7 +551,6 @@ function roundHalf(value) {
 function buildInsightSignature(ctx) {
     const mood = ctx.moodTrend || {};
     const assessment = ctx.assessmentTrend || {};
-    const progress = ctx.progress || {};
 
     const parts = [
         INSIGHT_PROMPT_VERSION,
@@ -536,7 +562,6 @@ function buildInsightSignature(ctx) {
         `checkins=${bucketCount(mood.checkin_count)}`,
         `atrend=${assessment.trend || 'unknown'}`,
         `acount=${bucketCount(assessment.count)}`,
-        `streak=${bucketStreak(progress.current_streak)}`,
         `fav=${ctx.taskPatterns?.favorite_category || '-'}`,
         `untried=${(ctx.untriedCategories || []).length}`,
         `time=${ctx.preferredTime || '-'}`
