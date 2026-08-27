@@ -111,6 +111,13 @@
           <div v-if="insightTags.length" class="insight-tags">
             <span v-for="(tag, idx) in insightTags" :key="idx" class="badge-pill" :class="tag.cls">{{ tag.text }}</span>
           </div>
+
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:14px;">
+            <button class="btn-primary" :disabled="insightMode === 'loading'" @click="requestAiInsight">
+              {{ insightMode === 'loading' ? '⏳ Đang phân tích...' : (aiRecommendation ? '🔄 Cập nhật lời khuyên' : '✨ Nhận lời khuyên từ AI') }}
+            </button>
+            <span v-if="insightNote" style="font-size:0.78rem;color:var(--text-secondary);">{{ insightNote }}</span>
+          </div>
         </div>
 
         <div class="paper-card radar-card" style="margin-bottom:18px;">
@@ -303,9 +310,10 @@ const donate = useDonateStore();
 const data = ref(null);
 const chartPeriod = ref('7d');
 const loading = ref(false);
-const aiLoaded = ref(false);
 const aiTasks = ref(null);
 const insightMode = ref('server'); // 'server' | 'loading' | 'ai'
+const insightNote = ref('');
+const insightGeneratedAt = ref(null);
 const aiRecommendation = ref('');
 const aiExercises = ref([]);
 
@@ -350,7 +358,20 @@ const chartLabels = computed(() => (data.value?.mood_chart?.[chartPeriod.value]?
 
 const insightTitle = computed(() => {
   if (insightMode.value === 'loading') return 'PeaceCat AI đang phân tích...';
-  if (insightMode.value === 'ai') return 'Gợi ý hôm nay từ PeaceCat AI';
+  if (insightMode.value === 'ai') {
+    // Ghi rõ lời khuyên được sinh lúc nào, vì giờ nó chỉ đổi khi người dùng bấm nút
+    // (và dữ liệu của họ đã thay đổi) — không còn tự làm mới mỗi ngày.
+    const at = insightGeneratedAt.value;
+    if (!at) return 'Lời khuyên từ PeaceCat AI';
+    try {
+      const label = new Intl.DateTimeFormat('vi-VN', {
+        day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Bangkok'
+      }).format(new Date(at));
+      return `Lời khuyên từ PeaceCat AI · ${label}`;
+    } catch (_e) {
+      return 'Lời khuyên từ PeaceCat AI';
+    }
+  }
   return data.value?.insight?.title || 'Insight từ dữ liệu của bạn';
 });
 const insightBadge = computed(() => (insightMode.value === 'ai' || insightMode.value === 'loading' ? 'AI' : 'DB'));
@@ -455,47 +476,64 @@ function syncUser(user) {
   auth.setSession({ user: merged });
 }
 
-async function loadAiInsight() {
+// Ghi lại vào localStorage để trang Nhiệm vụ tô sáng đúng các bài AI vừa gợi ý.
+function cacheInsightForTasksPage(recommendation, exercises) {
   const today = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' });
   const userId = data.value?.user?.id || auth.user?.id || 'guest';
-  const cacheKey = `peaceflow_ai_insight_${userId}_${today}`;
-
-  const cached = localStorage.getItem(cacheKey);
-  if (cached) {
-    try {
-      const p = JSON.parse(cached);
-      aiRecommendation.value = p.recommendation || '';
-      aiExercises.value = p.exercises || [];
-      insightMode.value = 'ai';
-      aiLoaded.value = true;
-      if (aiExercises.value.length) aiTasks.value = aiExercises.value;
-    } catch {
-      aiRecommendation.value = cached;
-      aiExercises.value = [];
-      insightMode.value = 'ai';
-    }
-    return;
-  }
-
-  insightMode.value = 'loading';
-
   try {
-    const res = await apiClient.post('/ai/daily-message');
-    const recommendation = res?.recommendation || '';
-    // exercises giờ đã là object bài tập thật đầy đủ (id, title, category, reason...)
-    // do backend tự chọn từ bảng tasks — không cần dò khớp theo tên nữa.
-    const exercises = Array.isArray(res?.exercises) ? res.exercises : [];
-    if (recommendation || exercises.length) {
-      localStorage.setItem(cacheKey, JSON.stringify({ recommendation, exercises }));
-      aiRecommendation.value = recommendation;
-      aiExercises.value = exercises;
-      insightMode.value = 'ai';
-      aiLoaded.value = true;
-      if (exercises.length) aiTasks.value = exercises;
-    }
+    localStorage.setItem(
+      `peaceflow_ai_insight_${userId}_${today}`,
+      JSON.stringify({ recommendation, exercises })
+    );
+  } catch (_e) { /* hết dung lượng localStorage thì bỏ qua */ }
+}
+
+function applyInsight(res) {
+  const recommendation = res?.summary || '';
+  const exercises = Array.isArray(res?.exercises) ? res.exercises : [];
+  if (!recommendation && !exercises.length) return false;
+
+  aiRecommendation.value = recommendation;
+  aiExercises.value = exercises;
+  insightMode.value = 'ai';
+  insightGeneratedAt.value = res?.generated_at || null;
+  if (exercises.length) aiTasks.value = exercises;
+  cacheInsightForTasksPage(recommendation, exercises);
+  return true;
+}
+
+// Mở trang: chỉ ĐỌC lời khuyên đã lưu từ lần bấm nút trước — KHÔNG gọi AI, không tốn token.
+async function loadStoredInsight() {
+  try {
+    const res = await apiClient.get('/ai/insight', { noCache: true });
+    applyInsight(res);
   } catch (e) {
-    console.warn('[AI] insight load failed:', e.message);
-    if (data.value?.insight) insightMode.value = 'server';
+    console.warn('[AI] không đọc được lời khuyên đã lưu:', e.message);
+  }
+}
+
+// Người dùng bấm nút. Backend tự so dữ liệu hiện tại với lần chạy gần nhất:
+// chưa thay đổi đáng kể -> trả lại đúng lời khuyên cũ (không gọi AI, không tốn token);
+// đã thay đổi -> sinh lời khuyên mới.
+async function requestAiInsight() {
+  if (insightMode.value === 'loading') return;
+  insightMode.value = 'loading';
+  insightNote.value = '';
+  try {
+    const res = await apiClient.post('/ai/insight', {});
+    const ok = applyInsight(res);
+    if (!ok) {
+      insightNote.value = 'Chưa đủ dữ liệu để đưa ra lời khuyên. Hãy check-in tâm trạng hoặc hoàn thành một nhiệm vụ trước nhé.';
+      insightMode.value = data.value?.insight ? 'server' : 'ai';
+      return;
+    }
+    insightNote.value = res?.changed === false
+      ? 'Dữ liệu của bạn chưa thay đổi đáng kể so với lần trước nên lời khuyên được giữ nguyên.'
+      : 'Đã cập nhật theo dữ liệu mới nhất của bạn.';
+  } catch (e) {
+    console.warn('[AI] tạo lời khuyên thất bại:', e.message);
+    insightNote.value = 'Không tạo được lời khuyên lúc này, bạn thử lại sau ít phút nhé.';
+    insightMode.value = aiRecommendation.value ? 'ai' : (data.value?.insight ? 'server' : 'server');
   }
 }
 
@@ -504,9 +542,7 @@ async function refresh(force = false) {
   loading.value = true;
 
   try {
-    aiLoaded.value = false;
     aiTasks.value = null;
-    insightMode.value = 'server';
     const forceFresh = force || localStorage.getItem('peaceflow_dashboard_refresh') === '1';
     const result = await apiClient.get('/dashboard', { noCache: forceFresh });
     data.value = result;
@@ -525,7 +561,8 @@ async function refresh(force = false) {
     }
 
     localStorage.removeItem('peaceflow_dashboard_refresh');
-    loadAiInsight();
+    // KHONG tu dong goi AI nua: chi doc lai loi khuyen da luu tu lan bam nut truoc.
+    loadStoredInsight();
   } finally {
     loading.value = false;
   }

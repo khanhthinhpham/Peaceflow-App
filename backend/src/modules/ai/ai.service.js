@@ -195,6 +195,9 @@ function formatDimensionValue(value) {
 // thay đổi), tránh việc người dùng nhận lời văn theo prompt cũ.
 const ASSESSMENT_PROMPT_VERSION = 'v1';
 const DAILY_PROMPT_VERSION = 'v1';
+// Đổi số này khi muốn buộc TẤT CẢ người dùng được sinh lại lời khuyên ở lần bấm nút tiếp
+// theo (vd sau khi sửa prompt hoặc sửa cách tính dấu vân tay dữ liệu).
+const INSIGHT_PROMPT_VERSION = 'v1';
 
 // ===== Cache kết quả AI (dùng chung cho nhận xét bài test & lời nhắn sáng) =====
 // Chỉ dùng được cho các tính năng mà ĐẦU VÀO không chứa nội dung riêng tư do người dùng
@@ -408,7 +411,8 @@ function formatMoodContext(ctx) {
 // liệu nên ngữ cảnh giống hệt nhau. Cache này cũng khiến 1 người dùng chỉ tốn token 1 lần
 // cho tới khi dữ liệu của họ đổi — kể cả khi dùng nhiều thiết bị hoặc server khởi động lại
 // (khác với cache trong RAM ở route, vốn mất mỗi lần Vercel tạo container mới).
-export async function getDailyMessage(userId, ctx = null) {
+// Chi dung noi bo boi generateUserInsight (khong con route nao goi truc tiep).
+async function getDailyMessage(userId, ctx = null) {
     if (!ctx) ctx = await buildUserContext(userId);
     const catalog = await getCatalog();
 
@@ -487,6 +491,129 @@ export async function getDailyMessage(userId, ctx = null) {
     const recommendation = parsed.message || '';
     writeSummaryCache(cacheKey, 'daily_message', recommendation, exercises);
     return { recommendation, exercises };
+}
+
+// ===================== LỜI KHUYÊN THEO YÊU CẦU (bấm nút mới chạy) =====================
+
+// Dấu vân tay dữ liệu người dùng. LÀM THÔ CÓ CHỦ Ý: làm tròn điểm về 0.5, chia streak
+// thành nhóm, chỉ lấy SỐ LƯỢNG thay vì danh sách chi tiết... để những dao động nhỏ
+// (streak +1 ngày, điểm trung bình lệch 0.1) KHÔNG bị coi là "thay đổi đáng kể" và
+// không tốn token gọi lại AI. Đổi những mốc dưới đây nếu muốn nhạy hơn / thô hơn.
+function bucketStreak(days) {
+    const n = Number(days || 0);
+    if (n <= 0) return '0';
+    if (n <= 2) return '1-2';
+    if (n <= 6) return '3-6';
+    if (n <= 13) return '7-13';
+    return '14+';
+}
+
+function bucketCount(value) {
+    const n = Number(value || 0);
+    if (n <= 0) return '0';
+    if (n <= 3) return '1-3';
+    if (n <= 10) return '4-10';
+    return '11+';
+}
+
+function roundHalf(value) {
+    if (value === null || value === undefined) return '?';
+    return (Math.round(Number(value) * 2) / 2).toFixed(1);
+}
+
+function buildInsightSignature(ctx) {
+    const mood = ctx.moodTrend || {};
+    const assessment = ctx.assessmentTrend || {};
+    const progress = ctx.progress || {};
+
+    const parts = [
+        INSIGHT_PROMPT_VERSION,
+        `mood=${roundHalf(mood.mood_avg)}`,
+        `anx=${roundHalf(mood.anxiety_avg)}`,
+        `str=${roundHalf(mood.stress_avg)}`,
+        `enr=${roundHalf(mood.energy_avg)}`,
+        `trend=${mood.trend || 'unknown'}`,
+        `checkins=${bucketCount(mood.checkin_count)}`,
+        `atrend=${assessment.trend || 'unknown'}`,
+        `acount=${bucketCount(assessment.count)}`,
+        `streak=${bucketStreak(progress.current_streak)}`,
+        `fav=${ctx.taskPatterns?.favorite_category || '-'}`,
+        `untried=${(ctx.untriedCategories || []).length}`,
+        `time=${ctx.preferredTime || '-'}`
+    ];
+    return createHash('sha256').update(parts.join('|')).digest('hex');
+}
+
+// Đọc lời khuyên đã lưu của người dùng — KHÔNG gọi AI, chỉ đọc DB. Dùng để Dashboard
+// hiển thị lại lời khuyên lần trước ngay khi mở trang mà không tốn token.
+export async function getStoredUserInsight(userId) {
+    const catalog = await getCatalog();
+    const { rows } = await db.query(
+        `select signature, summary, tasks, generated_at from ai_user_insights where user_id = $1`,
+        [userId]
+    );
+    const row = rows[0];
+    if (!row) return null;
+
+    return {
+        summary: row.summary || '',
+        exercises: resolveCachedTasks(catalog, row.tasks),
+        generatedAt: row.generated_at,
+        signature: row.signature
+    };
+}
+
+// Sinh lời khuyên khi người dùng bấm nút.
+//   - Dữ liệu chưa thay đổi đáng kể so với lần chạy gần nhất => trả lại ĐÚNG lời khuyên cũ,
+//     không gọi AI (changed = false).
+//   - Dữ liệu đã thay đổi => gọi AI, ghi đè, trả về lời khuyên mới (changed = true).
+export async function generateUserInsight(userId) {
+    const ctx = await buildUserContext(userId);
+    const signature = buildInsightSignature(ctx);
+
+    const stored = await getStoredUserInsight(userId);
+    if (stored && stored.signature === signature) {
+        logAiUsage({
+            userId,
+            feature: 'daily_message',
+            model: null,
+            latencyMs: 0,
+            fromCache: true,
+            topics: ctx.moodTrend?.trend && ctx.moodTrend.trend !== 'unknown'
+                ? [`mood:${ctx.moodTrend.trend}`]
+                : []
+        });
+        return { ...stored, changed: false };
+    }
+
+    // Dữ liệu đã đổi -> sinh mới. getDailyMessage vẫn có cache theo nội dung ngữ cảnh nên
+    // nếu có người khác cùng ngữ cảnh thì vẫn không tốn token.
+    const fresh = await getDailyMessage(userId, ctx);
+
+    await db.query(
+        `insert into ai_user_insights (user_id, signature, summary, tasks, generated_at, updated_at)
+         values ($1, $2, $3, $4::jsonb, now(), now())
+         on conflict (user_id) do update
+           set signature = excluded.signature,
+               summary = excluded.summary,
+               tasks = excluded.tasks,
+               generated_at = now(),
+               updated_at = now()`,
+        [
+            userId,
+            signature,
+            fresh.recommendation || '',
+            JSON.stringify((fresh.exercises || []).map((t) => ({ task_code: t.code, reason: t.reason })))
+        ]
+    );
+
+    return {
+        summary: fresh.recommendation || '',
+        exercises: fresh.exercises || [],
+        generatedAt: new Date().toISOString(),
+        signature,
+        changed: true
+    };
 }
 
 const CHAT_SCHEMA = {

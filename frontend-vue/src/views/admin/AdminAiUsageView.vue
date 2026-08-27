@@ -155,7 +155,16 @@
         >{{ opt.l }}</button>
       </div>
 
-      <div style="font-size:.82rem;color:var(--text-light);margin-bottom:10px;">{{ logMetaText }}</div>
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px;">
+        <span style="font-size:.82rem;color:var(--text-light);">{{ logMetaText }}</span>
+        <select v-model.number="logLimit" class="admin-input" aria-label="Số log mỗi trang" title="Số log mỗi trang" style="max-width:130px;margin-left:auto;" @change="loadLogs(0)">
+          <option :value="5">5 / trang</option>
+          <option :value="10">10 / trang</option>
+          <option :value="25">25 / trang</option>
+          <option :value="50">50 / trang</option>
+          <option :value="100">100 / trang</option>
+        </select>
+      </div>
 
       <div v-if="logsLoading" class="admin-card admin-empty">Đang tải...</div>
       <div v-else-if="!logs.length" class="admin-card admin-empty">Không có log nào khớp bộ lọc.</div>
@@ -198,13 +207,13 @@ import AdminPager from '../../components/AdminPager.vue';
 const FEATURE_LABEL = {
   chat: 'Chat PeaceCat',
   assessment_summary: 'Nhận xét bài test',
-  daily_message: 'Lời nhắn buổi sáng'
+  daily_message: 'Lời khuyên (bấm nút)'
 };
 
 const featureTabs = [
   { v: 'chat', l: 'Chat' },
   { v: 'assessment_summary', l: 'Bài test' },
-  { v: 'daily_message', l: 'Lời nhắn sáng' }
+  { v: 'daily_message', l: 'Lời khuyên' }
 ];
 
 const chipOk = { fontSize: '.68rem', fontWeight: 800, padding: '1px 7px', borderRadius: '6px', background: 'var(--mint-light)', color: 'var(--mint-dark)' };
@@ -272,15 +281,15 @@ const logs = ref([]);
 const logsLoading = ref(false);
 const logTotal = ref(0);
 const logPage = ref(0);
-const logLimit = 25;
+const logLimit = ref(25);
 const logStatus = ref('');
 const logFeature = ref('');
 
-const logTotalPages = computed(() => Math.max(1, Math.ceil(logTotal.value / logLimit)));
+const logTotalPages = computed(() => Math.max(1, Math.ceil(logTotal.value / logLimit.value)));
 const logMetaText = computed(() => {
   if (logsLoading.value) return '';
-  const from = logTotal.value ? logPage.value * logLimit + 1 : 0;
-  const to = logPage.value * logLimit + logs.value.length;
+  const from = logTotal.value ? logPage.value * logLimit.value + 1 : 0;
+  const to = logPage.value * logLimit.value + logs.value.length;
   return `${from}–${to} trong ${logTotal.value} lượt gọi · Trang ${logPage.value + 1}/${logTotalPages.value}`;
 });
 
@@ -299,7 +308,7 @@ async function loadLogs(p = logPage.value) {
   logPage.value = Math.max(0, p);
   logsLoading.value = true;
   try {
-    const qs = new URLSearchParams({ limit: String(logLimit), offset: String(logPage.value * logLimit) });
+    const qs = new URLSearchParams({ limit: String(logLimit.value), offset: String(logPage.value * logLimit.value) });
     if (logStatus.value) qs.set('status', logStatus.value);
     if (logFeature.value) qs.set('feature', logFeature.value);
     const data = await apiClient.get(`/admin/ai/logs?${qs.toString()}`, { noCache: true });

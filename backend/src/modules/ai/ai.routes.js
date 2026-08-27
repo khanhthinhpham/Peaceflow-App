@@ -3,7 +3,7 @@ import rateLimit from 'express-rate-limit';
 import { requireAuth } from '../../common/middleware/auth.middleware.js';
 import { db } from '../../config/db.js';
 import { buildUserContext, invalidateContext } from './ai.context.js';
-import { getDailyMessage, getRecommendedTask, getWeeklyInsight, getChatReply } from './ai.service.js';
+import { getRecommendedTask, getWeeklyInsight, getChatReply, getStoredUserInsight, generateUserInsight } from './ai.service.js';
 import { estimateCostUsd, USD_TO_VND } from './ai.usage.js';
 
 const router = Router();
@@ -29,27 +29,47 @@ router.get('/me/ai-context', requireAuth, async (req, res) => {
     }
 });
 
-// key: userId → { result, contextHash }
-// Chỉ gọi Gemini khi context thực sự thay đổi (không phụ thuộc ngày)
-const _dailyMessageCache = new Map();
+function serializeInsight(insight) {
+    if (!insight) return null;
+    return {
+        summary: insight.summary,
+        generated_at: insight.generatedAt,
+        changed: insight.changed ?? null,
+        exercises: (insight.exercises || []).map((t) => ({
+            id: t.id,
+            title: t.title,
+            category: t.category,
+            difficulty: t.difficulty,
+            duration_minutes: t.duration_minutes,
+            xp_reward: t.xp_reward,
+            icon: t.icon,
+            reason: t.reason
+        }))
+    };
+}
 
-// POST /ai/daily-message — lời nhắn buổi sáng cá nhân hóa
-router.post('/ai/daily-message', requireAuth, aiRateLimit, async (req, res) => {
+// GET /ai/insight — đọc lời khuyên đã lưu lần trước. KHÔNG gọi AI, không tốn token.
+// Dashboard dùng cái này lúc mở trang để hiển thị lại lời khuyên cũ.
+router.get('/ai/insight', requireAuth, async (req, res) => {
     try {
-        const ctx = await buildUserContext(req.user.sub);
-        const contextHash = JSON.stringify(ctx);
-
-        const cached = _dailyMessageCache.get(req.user.sub);
-        if (cached && cached.contextHash === contextHash) {
-            return res.json({ success: true, data: cached.result });
-        }
-
-        const result = await getDailyMessage(req.user.sub, ctx);
-        _dailyMessageCache.set(req.user.sub, { result, contextHash });
-        return res.json({ success: true, data: result });
+        const insight = await getStoredUserInsight(req.user.sub);
+        return res.json({ success: true, data: serializeInsight(insight) });
     } catch (error) {
-        console.error('[AI] daily-message error:', error);
-        return res.status(500).json({ success: false, message: 'Không thể tạo lời nhắn lúc này.' });
+        console.error('[AI] get insight error:', error);
+        return res.status(500).json({ success: false, message: 'Không tải được lời khuyên.' });
+    }
+});
+
+// POST /ai/insight — người dùng bấm nút xin lời khuyên.
+// Dữ liệu chưa thay đổi đáng kể so với lần chạy gần nhất => trả lại đúng lời khuyên cũ
+// (changed = false, không gọi AI). Đã thay đổi => gọi AI sinh mới (changed = true).
+router.post('/ai/insight', requireAuth, aiRateLimit, async (req, res) => {
+    try {
+        const insight = await generateUserInsight(req.user.sub);
+        return res.json({ success: true, data: serializeInsight(insight) });
+    } catch (error) {
+        console.error('[AI] generate insight error:', error);
+        return res.status(500).json({ success: false, message: 'Không thể tạo lời khuyên lúc này.' });
     }
 });
 
