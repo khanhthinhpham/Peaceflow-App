@@ -573,7 +573,13 @@ async function sendMessage() {
       .slice(0, -1)
       .filter((item) => item.text)
       .slice(-6)
-      .map((item) => ({ role: item.role, text: item.text }));
+      // hadSuggestion: cho server biết lượt trả lời trước đã gắn thẻ gợi ý chưa, để AI
+      // không gắn bài tập ở mọi lượt liên tiếp (đọc lên rất máy móc).
+      .map((item) => ({
+        role: item.role,
+        text: item.text,
+        hadSuggestion: Boolean(item.suggestedTask || item.suggestedExpert)
+      }));
 
     const res = await apiClient.post('/ai/chat', { message: text, history });
     hideTyping();

@@ -653,7 +653,11 @@ const CHAT_SCHEMA = {
 
 const MAX_CHAT_HISTORY = 6;
 
-function buildChatSystemInstruction(ctx, catalog) {
+function buildChatSystemInstruction(ctx, catalog, options = {}) {
+    const noSuggestNote = options.previousTurnSuggested
+        ? '\nLƯU Ý RIÊNG CHO LƯỢT NÀY: lượt trả lời trước của bạn đã gắn một thẻ gợi ý rồi. Lượt này BẮT BUỘC để trống suggested_task_code và trong câu trả lời cũng không mời họ làm bài tập nào — hãy quay lại lắng nghe và đi sâu hơn vào điều họ đang mang trong lòng.\n'
+        : '';
+
     return `Bạn là PeaceCat — KHÔNG phải trợ lý tư vấn, mà là một người bạn thân đang ngồi cạnh người dùng và thật sự muốn hiểu họ. Nói tiếng Việt như người thật nhắn tin cho bạn thân: ấm, thật lòng, đời thường, không lên giọng chuyên gia.
 
 VIỆC QUAN TRỌNG NHẤT — TÌM VÀ GỌI TÊN ĐÚNG VẤN ĐỀ CỐT LÕI BÊN TRONG HỌ:
@@ -674,13 +678,14 @@ TUYỆT ĐỐI TRÁNH — đây chính là những thứ làm câu trả lời n
 GỢI Ý BÀI TẬP — MẶC ĐỊNH LÀ KHÔNG GỢI Ý:
 Để trống suggested_task_code, TRỪ KHI người dùng thật sự hỏi cách làm ("tôi nên làm gì", "có cách nào không", "gợi ý cho tôi đi"), hoặc họ đã được nghe xong và đang tự tìm một việc cụ thể để làm.
 KHÔNG BAO GIỜ gợi ý ở hai lượt liền nhau, và không gợi ý ở lượt người dùng đang trút lòng — lúc đó gắn thêm bài tập khiến họ cảm thấy bị gạt đi cho xong.
-
+Nếu đã gợi ý một bài mà lượt sau họ vẫn hỏi tiếp, đừng đưa bài khác cùng kiểu (vd đã gợi ý viết nhật ký thì đừng lại gợi ý viết cảm xúc ra giấy) — hãy nói chuyện tiếp thay vì đổi thẻ.
+${noSuggestNote}
 QUY TẮC KHÁC:
 1. CHỈ trò chuyện về: cảm xúc, tâm trạng, sức khỏe tâm thần, stress/lo âu/trầm cảm, chuyện đời sống đang ảnh hưởng tới tinh thần họ, các bài tập/nhiệm vụ trong app, chuyên gia tâm lý trên hệ thống, và dữ liệu cá nhân của họ trong app.
 2. Nếu người dùng hỏi chủ đề KHÔNG liên quan (lập trình, thời sự, giải trí, kiến thức chung...), từ chối lịch sự và mời họ quay lại chuyện của chính họ.
 3. Độ dài: 2-5 câu, viết liền như một tin nhắn — không markdown, không gạch đầu dòng, không đánh số. Khi họ xin lời khuyên thì đưa lời khuyên CỤ THỂ làm được ngay hôm nay và gắn đúng vào cái cốt lõi vừa nói ra, không nói "hãy chăm sóc bản thân".
 4. Không chẩn đoán y khoa, không gọi tên bệnh lý cho họ. Nếu có dấu hiệu nguy cấp (ý định tự hại/tự tử), nói thẳng sự lo lắng của bạn và khuyên họ liên hệ hotline hoặc chuyên gia ngay trong câu trả lời.
-5. Nếu (và chỉ nếu) người dùng cần tìm người để nói chuyện sâu hơn, điền suggested_expert_code = mã chuyên gia phù hợp nhất từ DANH SÁCH CHUYÊN GIA — để trống nếu không cần. Khi có gợi ý bài tập thì suggested_task_code = mã bài phù hợp nhất từ DANH SÁCH BÀI TẬP (copy chính xác phần mã trước dấu |), tránh bài có thể phản tác dụng với tình trạng của họ.
+5. suggested_expert_code mặc định để TRỐNG. Chỉ điền mã chuyên gia (từ DANH SÁCH CHUYÊN GIA) trong 2 trường hợp: người dùng hỏi về chuyên gia / muốn gặp người có chuyên môn, hoặc có dấu hiệu nguy cấp cần chuyển tiếp. Không tự ý mời gặp chuyên gia khi họ chỉ đang tâm sự — điều đó nghe như bị đẩy đi cho xong. Khi có gợi ý bài tập thì suggested_task_code = mã bài phù hợp nhất từ DANH SÁCH BÀI TẬP (copy chính xác phần mã trước dấu |), tránh bài có thể phản tác dụng với tình trạng của họ.
 6. Luôn kèm theo mood_analysis: ước lượng (0-100) dựa trên toàn bộ cuộc trò chuyện tính đến tin nhắn này — anxiety (lo âu), stress, mood (tâm trạng, càng cao càng tích cực), depression (dấu hiệu trầm cảm). Đây chỉ là ước lượng tham khảo để người dùng tự theo dõi, KHÔNG phải chẩn đoán. Kèm tối đa 5 từ khóa cảm xúc nổi bật (keywords) rút từ lời họ vừa nói — ưu tiên từ khóa mô tả cái cốt lõi (ví dụ "sợ không đủ tốt", "mất chỗ dựa") thay vì từ chung ("buồn").
 
 --- Thông tin về người dùng đang chat (dùng để trả lời phù hợp, không đọc lại nguyên văn số liệu cho người dùng) ---
@@ -802,11 +807,22 @@ export async function getChatReply({ userId, message, history = [] }) {
         }));
     contents.push({ role: 'user', parts: [{ text: message }] });
 
+    // Lượt trả lời trước đã gắn thẻ gợi ý chưa? Model không tự biết được điều này vì lịch
+    // sử gửi lên chỉ có phần chữ, nên phải nói cho nó biết — và chặn cứng ở dưới. Nếu
+    // không, cứ lượt nào nó cũng gắn một thẻ bài tập, đọc lên rất máy móc.
+    const lastModelTurn = [...trimmedHistory].reverse().find((item) => item && item.role !== 'user');
+    const previousTurnSuggested = Boolean(lastModelTurn?.hadSuggestion);
+
     const startedAt = Date.now();
     let parsed;
     let usage;
     try {
-        ({ parsed, usage } = await callGeminiJson(buildChatSystemInstruction(ctx, catalog), contents, CHAT_SCHEMA, { maxOutputTokens: 420 }));
+        ({ parsed, usage } = await callGeminiJson(
+            buildChatSystemInstruction(ctx, catalog, { previousTurnSuggested }),
+            contents,
+            CHAT_SCHEMA,
+            { maxOutputTokens: 420 }
+        ));
     } catch (error) {
         logAiUsage({
             userId,
@@ -830,8 +846,10 @@ export async function getChatReply({ userId, message, history = [] }) {
         topics: parsed.mood_analysis?.keywords || []
     });
 
+    // Chặn cứng: lượt trước đã gợi ý thì lượt này bỏ thẻ bài tập, dù model có trả về mã.
+    const taskCode = previousTurnSuggested ? null : parsed.suggested_task_code;
     const [matchedTask, matchedExpert] = await Promise.all([
-        resolveTask(catalog, parsed.suggested_task_code, parsed.reply),
+        resolveTask(catalog, taskCode, parsed.reply),
         resolveExpert(catalog, parsed.suggested_expert_code, parsed.reply)
     ]);
     const clampScore = (value) => Math.max(0, Math.min(100, Number(value) || 0));
