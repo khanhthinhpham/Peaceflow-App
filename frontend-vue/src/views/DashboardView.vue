@@ -366,13 +366,11 @@ const insightBodyHtml = computed(() => {
   if (insightMode.value === 'ai') {
     let exercisesHtml = '';
     if (aiExercises.value.length) {
-      const tasks = data.value?.tasks || [];
       const items = aiExercises.value.map((ex) => {
-        const matched = tasks.find((t) => t.title === ex.exercise_name);
-        const nameHtml = matched
-          ? `<a data-task-id="${matched.id}" style="color:var(--mint-dark);font-weight:700;text-decoration:none;cursor:pointer;">${escapeHtml(ex.exercise_name)}</a>`
-          : `<strong>${escapeHtml(ex.exercise_name)}</strong>`;
-        return `<li style="margin-bottom:12px;">${nameHtml}${ex.explanation ? `<div style="margin-top:4px;font-size:0.85rem;color:var(--text-secondary);line-height:1.5;">${escapeHtml(ex.explanation)}</div>` : ''}</li>`;
+        const nameHtml = ex.id
+          ? `<a data-task-id="${ex.id}" style="color:var(--mint-dark);font-weight:700;text-decoration:none;cursor:pointer;">${escapeHtml(ex.title)}</a>`
+          : `<strong>${escapeHtml(ex.title)}</strong>`;
+        return `<li style="margin-bottom:12px;">${nameHtml}${ex.reason ? `<div style="margin-top:4px;font-size:0.85rem;color:var(--text-secondary);line-height:1.5;">${escapeHtml(ex.reason)}</div>` : ''}</li>`;
       }).join('');
       exercisesHtml = `<ol style="padding-left:1.25rem;margin:8px 0 0;">${items}</ol>`;
     }
@@ -457,16 +455,10 @@ function syncUser(user) {
   auth.setSession({ user: merged });
 }
 
-function mapExercisesToTasks(exercises, tasks) {
-  return exercises.map((ex) => tasks.find((t) => t.title === ex.exercise_name) || null).filter(Boolean);
-}
-
 async function loadAiInsight() {
   const today = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' });
   const userId = data.value?.user?.id || auth.user?.id || 'guest';
   const cacheKey = `peaceflow_ai_insight_${userId}_${today}`;
-  const rawTasks = await apiClient.get('/tasks').catch(() => []);
-  const tasks = Array.isArray(rawTasks) ? rawTasks : [];
 
   const cached = localStorage.getItem(cacheKey);
   if (cached) {
@@ -476,8 +468,7 @@ async function loadAiInsight() {
       aiExercises.value = p.exercises || [];
       insightMode.value = 'ai';
       aiLoaded.value = true;
-      const mapped = mapExercisesToTasks(p.exercises || [], tasks);
-      if (mapped.length) aiTasks.value = mapped;
+      if (aiExercises.value.length) aiTasks.value = aiExercises.value;
     } catch {
       aiRecommendation.value = cached;
       aiExercises.value = [];
@@ -491,6 +482,8 @@ async function loadAiInsight() {
   try {
     const res = await apiClient.post('/ai/daily-message');
     const recommendation = res?.recommendation || '';
+    // exercises giờ đã là object bài tập thật đầy đủ (id, title, category, reason...)
+    // do backend tự chọn từ bảng tasks — không cần dò khớp theo tên nữa.
     const exercises = Array.isArray(res?.exercises) ? res.exercises : [];
     if (recommendation || exercises.length) {
       localStorage.setItem(cacheKey, JSON.stringify({ recommendation, exercises }));
@@ -498,8 +491,7 @@ async function loadAiInsight() {
       aiExercises.value = exercises;
       insightMode.value = 'ai';
       aiLoaded.value = true;
-      const mapped = mapExercisesToTasks(exercises, tasks);
-      if (mapped.length) aiTasks.value = mapped;
+      if (exercises.length) aiTasks.value = exercises;
     }
   } catch (e) {
     console.warn('[AI] insight load failed:', e.message);

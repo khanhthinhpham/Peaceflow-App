@@ -385,8 +385,7 @@ async function loadTaskPage() {
       try {
         const { exercises = [] } = JSON.parse(aiCache);
         exercises.forEach((ex) => {
-          const t = allTasks.value.find((item) => item.title === ex.exercise_name);
-          if (t) recommendedIds.add(t.id);
+          if (ex.id) recommendedIds.add(ex.id);
         });
       } catch (_e) { /* ignore corrupted cache */ }
     }

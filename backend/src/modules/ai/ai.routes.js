@@ -28,8 +28,8 @@ router.get('/me/ai-context', requireAuth, async (req, res) => {
 });
 
 // key: userId → { result, contextHash }
-// Chỉ gọi RAG khi context thực sự thay đổi (không phụ thuộc ngày)
-const _ragCache = new Map();
+// Chỉ gọi Gemini khi context thực sự thay đổi (không phụ thuộc ngày)
+const _dailyMessageCache = new Map();
 
 // POST /ai/daily-message — lời nhắn buổi sáng cá nhân hóa
 router.post('/ai/daily-message', requireAuth, aiRateLimit, async (req, res) => {
