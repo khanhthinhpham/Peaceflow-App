@@ -270,6 +270,7 @@ router.post('/assessments/results/:id/ai-summary', requireAuth, async (req, res)
     }
 
     const { summary, recommendedTasks } = await getAssessmentAiSummary({
+      userId: req.user.sub,
       assessmentName: result.assessment_name,
       totalScore: Number(result.total_score || 0),
       severity: result.severity,

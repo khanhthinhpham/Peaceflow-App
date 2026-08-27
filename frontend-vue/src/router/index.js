@@ -32,6 +32,7 @@ import AdminPaymentsView from '../views/admin/AdminPaymentsView.vue';
 import AdminUsersView from '../views/admin/AdminUsersView.vue';
 import AdminCommunityView from '../views/admin/AdminCommunityView.vue';
 import AdminAssessmentResultsView from '../views/admin/AdminAssessmentResultsView.vue';
+import AdminAiUsageView from '../views/admin/AdminAiUsageView.vue';
 import ExpertLayout from '../layouts/ExpertLayout.vue';
 import ApplyExpertView from '../views/ApplyExpertView.vue';
 import ExpertDashboardView from '../views/expert/ExpertDashboardView.vue';
@@ -88,7 +89,8 @@ const router = createRouter({
         { path: 'payments', name: 'admin-payments', component: AdminPaymentsView, meta: { navKey: 'payments' } },
         { path: 'users', name: 'admin-users', component: AdminUsersView, meta: { navKey: 'users' } },
         { path: 'community', name: 'admin-community', component: AdminCommunityView, meta: { navKey: 'community' } },
-        { path: 'assessment-results', name: 'admin-assessment-results', component: AdminAssessmentResultsView, meta: { navKey: 'assessment-results' } }
+        { path: 'assessment-results', name: 'admin-assessment-results', component: AdminAssessmentResultsView, meta: { navKey: 'assessment-results' } },
+        { path: 'ai-usage', name: 'admin-ai-usage', component: AdminAiUsageView, meta: { navKey: 'ai-usage' } }
       ]
     },
     // Khu chuyên gia — shell/sidebar riêng (CSS grid), không dùng chung AppLayout.

@@ -68,7 +68,8 @@ const NAV_ITEMS = [
   { route: 'admin-payments', key: 'payments', icon: '💳', label: 'Thanh toán & payout', badge: 'payments' },
   { route: 'admin-users', key: 'users', icon: '👥', label: 'Người dùng' },
   { route: 'admin-assessment-results', key: 'assessment-results', icon: '🧪', label: 'Bài test' },
-  { route: 'admin-community', key: 'community', icon: '🛡️', label: 'Kiểm duyệt cộng đồng', badge: 'community' }
+  { route: 'admin-community', key: 'community', icon: '🛡️', label: 'Kiểm duyệt cộng đồng', badge: 'community' },
+  { route: 'admin-ai-usage', key: 'ai-usage', icon: '🤖', label: 'Quản lý AI' }
 ];
 
 const route = useRoute();

@@ -1,6 +1,7 @@
 import { env } from '../../config/env.js';
 import { db } from '../../config/db.js';
 import { buildUserContext } from './ai.context.js';
+import { logAiUsage } from './ai.usage.js';
 
 async function callRAG(ctx, sessionId) {
     const response = await fetch(`${env.ragBaseUrl}/recommend`, {
@@ -122,13 +123,21 @@ async function callGeminiJson(systemInstruction, contents, schema, options = {})
     }
 
     const data = await response.json();
+    const meta = data?.usageMetadata || {};
+    const usage = {
+        model,
+        promptTokens: Number(meta.promptTokenCount || 0),
+        outputTokens: Number(meta.candidatesTokenCount || 0),
+        cachedTokens: Number(meta.cachedContentTokenCount || 0)
+    };
+
     const text = data?.candidates?.[0]?.content?.parts?.map((p) => p.text || '').join('').trim();
     if (!text) {
         throw new Error('Gemini không trả về nội dung');
     }
 
     try {
-        return JSON.parse(text);
+        return { parsed: JSON.parse(text), usage };
     } catch {
         throw new Error('Gemini trả về JSON không hợp lệ');
     }
@@ -185,7 +194,7 @@ function formatDimensionValue(value) {
 // bài test tự đánh giá. LLM được xem toàn bộ danh sách bài tập thật (dạng rút gọn) và
 // tự chọn mã; code chỉ đối chiếu mã đó với DB, kèm lưới an toàn bằng embedding nếu LLM
 // trả về mã không tồn tại.
-export async function getAssessmentAiSummary({ assessmentName, totalScore, severity, dimensionScores }) {
+export async function getAssessmentAiSummary({ userId = null, assessmentName, totalScore, severity, dimensionScores }) {
     const catalog = await getCatalog();
     const dimensionLines = dimensionScores && typeof dimensionScores === 'object' && Object.keys(dimensionScores).length
         ? Object.entries(dimensionScores).map(([key, value]) => `- ${key}: ${formatDimensionValue(value)}`).join('\n')
@@ -196,7 +205,32 @@ export async function getAssessmentAiSummary({ assessmentName, totalScore, sever
 Tổng điểm: ${totalScore}${severity ? `, mức độ: ${severity}` : ''}.
 ${dimensionLines ? `Điểm theo từng khía cạnh:\n${dimensionLines}` : ''}`;
 
-    const parsed = await callGeminiJson(buildAssessmentSystemInstruction(catalog), [{ parts: [{ text: userContent }] }], RECOMMENDATION_SCHEMA);
+    const startedAt = Date.now();
+    let parsed;
+    let usage;
+    try {
+        ({ parsed, usage } = await callGeminiJson(buildAssessmentSystemInstruction(catalog), [{ parts: [{ text: userContent }] }], RECOMMENDATION_SCHEMA));
+    } catch (error) {
+        logAiUsage({
+            userId,
+            feature: 'assessment_summary',
+            model: env.geminiModel,
+            latencyMs: Date.now() - startedAt,
+            success: false,
+            errorMessage: error.message
+        });
+        throw error;
+    }
+
+    // Chủ đề = tên bài test (không phải nội dung riêng tư của người dùng).
+    logAiUsage({
+        userId,
+        feature: 'assessment_summary',
+        model: usage.model,
+        usage,
+        latencyMs: Date.now() - startedAt,
+        topics: [assessmentName, severity].filter(Boolean)
+    });
 
     const matches = await Promise.all(
         (Array.isArray(parsed.tasks) ? parsed.tasks.slice(0, 3) : []).map(async (item) => {
@@ -292,7 +326,36 @@ export async function getDailyMessage(userId, ctx = null) {
     if (!ctx) ctx = await buildUserContext(userId);
     const catalog = await getCatalog();
 
-    const parsed = await callGeminiJson(buildDailySystemInstruction(catalog), [{ parts: [{ text: formatMoodContext(ctx) }] }], DAILY_MESSAGE_SCHEMA);
+    const startedAt = Date.now();
+    let parsed;
+    let usage;
+    try {
+        ({ parsed, usage } = await callGeminiJson(buildDailySystemInstruction(catalog), [{ parts: [{ text: formatMoodContext(ctx) }] }], DAILY_MESSAGE_SCHEMA));
+    } catch (error) {
+        logAiUsage({
+            userId,
+            feature: 'daily_message',
+            model: env.geminiModel,
+            latencyMs: Date.now() - startedAt,
+            success: false,
+            errorMessage: error.message
+        });
+        throw error;
+    }
+
+    // Chủ đề = xu hướng tâm trạng tổng hợp (không phải nội dung riêng tư).
+    logAiUsage({
+        userId,
+        feature: 'daily_message',
+        model: usage.model,
+        usage,
+        latencyMs: Date.now() - startedAt,
+        // Bỏ qua trend 'unknown' (nghĩa là chưa đủ dữ liệu check-in) — đó không phải một
+        // chủ đề, để vào sẽ làm nhiễu bảng "chủ đề được hỏi nhiều nhất" của admin.
+        topics: ctx.moodTrend?.trend && ctx.moodTrend.trend !== 'unknown'
+            ? [`mood:${ctx.moodTrend.trend}`]
+            : []
+    });
 
     const matches = await Promise.all(
         (Array.isArray(parsed.exercises) ? parsed.exercises : []).map(async (ex) => {
@@ -462,7 +525,33 @@ export async function getChatReply({ userId, message, history = [] }) {
         }));
     contents.push({ role: 'user', parts: [{ text: message }] });
 
-    const parsed = await callGeminiJson(buildChatSystemInstruction(ctx, catalog), contents, CHAT_SCHEMA, { maxOutputTokens: 300 });
+    const startedAt = Date.now();
+    let parsed;
+    let usage;
+    try {
+        ({ parsed, usage } = await callGeminiJson(buildChatSystemInstruction(ctx, catalog), contents, CHAT_SCHEMA, { maxOutputTokens: 300 }));
+    } catch (error) {
+        logAiUsage({
+            userId,
+            feature: 'chat',
+            model: env.geminiModel,
+            latencyMs: Date.now() - startedAt,
+            success: false,
+            errorMessage: error.message
+        });
+        throw error;
+    }
+
+    // Chủ đề = từ khóa do chính AI rút ra (vd "mất ngủ", "áp lực công việc") — KHÔNG lưu
+    // câu người dùng gõ hay câu AI trả lời, xem giải thích ở migration 0044.
+    logAiUsage({
+        userId,
+        feature: 'chat',
+        model: usage.model,
+        usage,
+        latencyMs: Date.now() - startedAt,
+        topics: parsed.mood_analysis?.keywords || []
+    });
 
     const [matchedTask, matchedExpert] = await Promise.all([
         resolveTask(catalog, parsed.suggested_task_code, parsed.reply),
