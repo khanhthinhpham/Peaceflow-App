@@ -93,33 +93,6 @@ async function getCatalog() {
     return data;
 }
 
-// Chat không cần thấy cả 122 bài tập mỗi tin nhắn (~1.600 token/lượt, mà phần lớn lượt
-// còn không gợi ý bài nào). Thay bằng danh sách ngắn các bài gần nhất với điều người
-// dùng đang nói, lấy qua embedding — LLM vẫn chọn theo mã nên độ chính xác giữ nguyên.
-// Trả về null nếu embedding lỗi, để bên gọi tự quay lại dùng full catalog.
-const CHAT_TASK_SHORTLIST = 20;
-
-async function getTaskShortlistLines(queryText) {
-    const vector = await embedText(queryText, 'RETRIEVAL_QUERY');
-    if (!vector) return null;
-    try {
-        const { rows } = await db.query(
-            `select code, title, duration_minutes
-             from tasks
-             where active = true and embedding is not null
-             order by embedding <=> $1::vector asc
-             limit $2`,
-            [`[${vector.join(',')}]`, CHAT_TASK_SHORTLIST]
-        );
-        if (!rows.length) return null;
-        return rows
-            .map((t) => `${t.code}|${String(t.title).slice(0, MAX_TITLE_CHARS)}|${t.duration_minutes}p`)
-            .join('\n');
-    } catch {
-        return null;
-    }
-}
-
 // `contents` nhận trực tiếp mảng theo format Gemini ([{role?, parts:[{text}]}]) để hỗ
 // trợ cả 1 lượt (các tính năng cũ) và nhiều lượt hội thoại thật (chat) trong cùng 1 hàm.
 async function callGeminiJson(systemInstruction, contents, schema, options = {}) {
@@ -663,6 +636,7 @@ const CHAT_SCHEMA = {
         reply: { type: 'string' },
         suggested_task_code: { type: 'string' },
         suggested_expert_code: { type: 'string' },
+        offered_task: { type: 'boolean' },
         mood_analysis: {
             type: 'object',
             properties: {
@@ -681,9 +655,16 @@ const CHAT_SCHEMA = {
 const MAX_CHAT_HISTORY = 6;
 
 function buildChatSystemInstruction(ctx, catalog, options = {}) {
-    const noSuggestNote = options.previousTurnSuggested
-        ? 'LƯU Ý RIÊNG LƯỢT NÀY: lượt trước bạn đã gắn một thẻ gợi ý rồi, nên lượt này BẮT BUỘC để trống suggested_task_code và không mời họ làm bài tập nào — quay lại lắng nghe và đi sâu hơn.\n'
-        : '';
+    // Model không tự biết được các trạng thái này vì lịch sử gửi lên chỉ có phần chữ,
+    // nên phải nói thẳng cho nó ở từng lượt.
+    let turnNote;
+    if (options.previousTurnSuggested) {
+        turnNote = 'Lượt trước bạn đã gắn một thẻ bài tập rồi: lượt này BẮT BUỘC để trống suggested_task_code, không mời làm bài tập, không hỏi có muốn gợi ý nữa — quay lại lắng nghe và đi sâu hơn.';
+    } else if (options.includeTaskList) {
+        turnNote = 'Lượt trước bạn đã HỎI họ có muốn gợi ý bài tập không, nên lượt này bạn được cấp DANH SÁCH BÀI TẬP. Lời họ vừa nói đồng ý thì chọn một mã phù hợp cho suggested_task_code; họ từ chối hoặc lảng sang chuyện khác thì để trống và tuyệt đối không hỏi lại lần nữa.';
+    } else {
+        turnNote = 'Lượt này bạn KHÔNG có DANH SÁCH BÀI TẬP nên BẮT BUỘC để trống suggested_task_code (không tự nghĩ ra mã). Nếu thấy một bài tập có thể giúp thì chỉ HỎI xem họ có muốn gợi ý không, và đặt offered_task = true — thà không có thẻ còn hơn tự ý gửi.';
+    }
 
     return `Bạn là PeaceCat — không phải trợ lý tư vấn, mà là người bạn thân đang ngồi cạnh người dùng. Nhắn tin tiếng Việt như người thật: ấm, thật lòng, không lên giọng chuyên gia.
 
@@ -697,9 +678,10 @@ CẤM — đây là thứ làm câu trả lời nghe như máy:
 - Lặp khuôn qua các lượt (đồng cảm → an ủi → mời làm bài tập). Điều đã nói rồi thì lượt này phải đi sâu thêm một bước.
 - Giảng đạo, dạy lý thuyết tâm lý, liệt kê "bạn nên A, B, C". Nhắc điểm/streak/số liệu app.
 
-GỢI Ý BÀI TẬP — MẶC ĐỊNH KHÔNG:
-Để trống suggested_task_code, trừ khi họ thật sự hỏi cách làm ("nên làm gì", "có cách nào không"). Không gợi ý lúc họ đang trút lòng, không gợi ý 2 lượt liền nhau, không đổi sang bài cùng kiểu với bài đã gợi ý.
-${noSuggestNote}
+GỢI Ý BÀI TẬP — LUÔN PHẢI HỎI TRƯỚC, KHÔNG BAO GIỜ TỰ Ý GỬI:
+Không bao giờ điền suggested_task_code ở lượt bạn chưa hỏi ý họ trước — kể cả khi họ hỏi thẳng "nên làm gì". Nếu thấy một bài có thể giúp, hãy HỎI một câu tự nhiên ở cuối câu trả lời ("bạn có muốn mình gợi ý một việc nhỏ để làm không?") và đặt offered_task = true. Chỉ điền suggested_task_code ở đúng lượt kế tiếp, sau khi họ đã đồng ý. Không hỏi lúc họ đang trút lòng, không hỏi 2 lượt liền nhau, họ từ chối một lần thì thôi hẳn không hỏi lại.
+LƯU Ý RIÊNG LƯỢT NÀY: ${turnNote}
+
 QUY TẮC KHÁC:
 1. Chỉ nói về cảm xúc, sức khỏe tâm thần, chuyện đời sống đang ảnh hưởng tinh thần họ, bài tập/chuyên gia trong app, dữ liệu cá nhân của họ. Hỏi ngoài phạm vi (lập trình, thời sự, kiến thức chung...) thì từ chối lịch sự, mời họ quay lại chuyện của mình.
 2. Dài 2-5 câu, viết liền như một tin nhắn, không markdown, không gạch đầu dòng. Khi họ xin lời khuyên: đưa việc CỤ THỂ làm được ngay hôm nay, gắn đúng cái cốt lõi vừa nói ra, không nói "hãy chăm sóc bản thân".
@@ -710,10 +692,7 @@ QUY TẮC KHÁC:
 --- Người dùng đang chat (dùng để hiểu họ, không đọc lại số liệu cho họ) ---
 ${formatMoodContext(ctx)}
 
---- DANH SÁCH BÀI TẬP (mã|tên|thời lượng) ---
-${options.taskLines || catalog.taskLines}
-
---- DANH SÁCH CHUYÊN GIA (mã|tên|chuyên môn) ---
+${options.includeTaskList ? `--- DANH SÁCH BÀI TẬP (mã|tên|thời lượng) ---\n${catalog.taskLines}\n\n` : ''}--- DANH SÁCH CHUYÊN GIA (mã|tên|chuyên môn) ---
 ${catalog.expertLines}`;
 }
 
@@ -816,21 +795,7 @@ async function resolveExpert(catalog, rawCode, fallbackText) {
 //    dữ liệu cá nhân khác nhau ở mỗi người, nên gần như không bao giờ trùng khóa cache.
 export async function getChatReply({ userId, message, history = [] }) {
     const trimmedHistory = history.slice(-MAX_CHAT_HISTORY);
-
-    // Truy vấn embedding = tin nhắn hiện tại + 2 lượt người dùng gần nhất, để danh sách
-    // bài tập rút gọn bám theo cả mạch hội thoại chứ không chỉ một câu lẻ.
-    const recentUserText = trimmedHistory
-        .filter((item) => item && item.role === 'user' && typeof item.text === 'string')
-        .slice(-2)
-        .map((item) => item.text)
-        .join('\n');
-    const shortlistQuery = [recentUserText, message].filter(Boolean).join('\n');
-
-    const [ctx, catalog, taskLines] = await Promise.all([
-        buildUserContext(userId),
-        getCatalog(),
-        getTaskShortlistLines(shortlistQuery)
-    ]);
+    const [ctx, catalog] = await Promise.all([buildUserContext(userId), getCatalog()]);
 
     const contents = trimmedHistory
         .filter((item) => item && typeof item.text === 'string' && item.text.trim())
@@ -840,18 +805,23 @@ export async function getChatReply({ userId, message, history = [] }) {
         }));
     contents.push({ role: 'user', parts: [{ text: message }] });
 
-    // Lượt trả lời trước đã gắn thẻ gợi ý chưa? Model không tự biết được điều này vì lịch
-    // sử gửi lên chỉ có phần chữ, nên phải nói cho nó biết — và chặn cứng ở dưới. Nếu
-    // không, cứ lượt nào nó cũng gắn một thẻ bài tập, đọc lên rất máy móc.
+    // Model không tự biết được lượt trước đã làm gì (lịch sử gửi lên chỉ có phần chữ),
+    // nên phải nói cho nó và chặn cứng ở code — không tin tưởng riêng vào việc nó tuân
+    // prompt. Bài tập LUÔN phải hỏi trước rồi mới gợi ý (yêu cầu người dùng): lượt đã
+    // gắn thẻ thì thôi; lượt trước hỏi ý thì lượt này mới được cấp danh sách 122 bài để
+    // chọn theo câu trả lời của họ; các lượt khác hoàn toàn không thấy danh sách, nên
+    // dù model có "muốn" gợi ý cũng không có mã nào để điền — không thể tự ý gửi.
     const lastModelTurn = [...trimmedHistory].reverse().find((item) => item && item.role !== 'user');
     const previousTurnSuggested = Boolean(lastModelTurn?.hadSuggestion);
+    const previousTurnOffered = Boolean(lastModelTurn?.offeredTask) && !previousTurnSuggested;
+    const includeTaskList = previousTurnOffered;
 
     const startedAt = Date.now();
     let parsed;
     let usage;
     try {
         ({ parsed, usage } = await callGeminiJson(
-            buildChatSystemInstruction(ctx, catalog, { previousTurnSuggested, taskLines }),
+            buildChatSystemInstruction(ctx, catalog, { previousTurnSuggested, includeTaskList }),
             contents,
             CHAT_SCHEMA,
             { maxOutputTokens: 420 }
@@ -879,8 +849,11 @@ export async function getChatReply({ userId, message, history = [] }) {
         topics: parsed.mood_analysis?.keywords || []
     });
 
-    // Chặn cứng: lượt trước đã gợi ý thì lượt này bỏ thẻ bài tập, dù model có trả về mã.
-    const taskCode = previousTurnSuggested ? null : parsed.suggested_task_code;
+    // Chặn cứng: chỉ resolve mã bài tập khi lượt này thực sự được cấp danh sách (tức là
+    // đã hỏi ý ở lượt trước và người dùng đang trả lời) — không tin riêng vào việc model
+    // tuân prompt "phải hỏi trước". Không cấp danh sách thì dù parsed có trả về mã gì
+    // cũng bỏ qua, không đi resolve (kể cả qua embedding fallback).
+    const taskCode = includeTaskList && !previousTurnSuggested ? parsed.suggested_task_code : null;
     const [matchedTask, matchedExpert] = await Promise.all([
         resolveTask(catalog, taskCode, parsed.reply),
         resolveExpert(catalog, parsed.suggested_expert_code, parsed.reply)
@@ -892,6 +865,7 @@ export async function getChatReply({ userId, message, history = [] }) {
         reply: parsed.reply || '',
         suggestedTask: matchedTask,
         suggestedExpert: matchedExpert,
+        offeredTask: Boolean(parsed.offered_task) && !matchedTask,
         moodAnalysis: {
             anxiety: clampScore(analysis.anxiety),
             stress: clampScore(analysis.stress),

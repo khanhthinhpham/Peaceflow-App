@@ -464,7 +464,8 @@ function addMessage(role, text, options = {}) {
     html: options.html || escapeHtml(text).replace(/\n/g, '<br>'),
     time: options.time || getTimeLabel(),
     suggestedTask: options.suggestedTask || null,
-    suggestedExpert: options.suggestedExpert || null
+    suggestedExpert: options.suggestedExpert || null,
+    offeredTask: Boolean(options.offeredTask)
   });
 
   conversation.value = conversation.value.slice(-MAX_CONVERSATION_ITEMS);
@@ -573,12 +574,14 @@ async function sendMessage() {
       .slice(0, -1)
       .filter((item) => item.text)
       .slice(-6)
-      // hadSuggestion: cho server biết lượt trả lời trước đã gắn thẻ gợi ý chưa, để AI
-      // không gắn bài tập ở mọi lượt liên tiếp (đọc lên rất máy móc).
+      // hadSuggestion/offeredTask: cho server biết lượt trước đã gắn thẻ hay đã hỏi ý
+      // gợi ý bài tập chưa — bài tập giờ LUÔN phải hỏi trước rồi mới gợi ý, server dùng
+      // 2 cờ này để quyết định lượt này có được cấp danh sách bài tập hay không.
       .map((item) => ({
         role: item.role,
         text: item.text,
-        hadSuggestion: Boolean(item.suggestedTask || item.suggestedExpert)
+        hadSuggestion: Boolean(item.suggestedTask || item.suggestedExpert),
+        offeredTask: Boolean(item.offeredTask)
       }));
 
     const res = await apiClient.post('/ai/chat', { message: text, history });
@@ -586,7 +589,8 @@ async function sendMessage() {
     applyAiMoodAnalysis(res?.mood_analysis);
     addMessage('bot', res?.reply || 'Xin lỗi, mình chưa nghĩ ra câu trả lời phù hợp lúc này.', {
       suggestedTask: res?.suggested_task || null,
-      suggestedExpert: res?.suggested_expert || null
+      suggestedExpert: res?.suggested_expert || null,
+      offeredTask: res?.offered_task || false
     });
   } catch (error) {
     console.error('Chat AI failed:', error);

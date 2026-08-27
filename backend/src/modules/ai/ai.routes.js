@@ -130,6 +130,7 @@ router.post('/ai/chat', requireAuth, aiRateLimit, async (req, res) => {
                         rating: result.suggestedExpert.rating
                     }
                     : null,
+                offered_task: result.offeredTask,
                 mood_analysis: result.moodAnalysis
             }
         });
