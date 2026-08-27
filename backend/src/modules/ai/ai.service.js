@@ -275,7 +275,7 @@ const CHAT_SCHEMA = {
     required: ['reply']
 };
 
-const MAX_CHAT_HISTORY = 16;
+const MAX_CHAT_HISTORY = 6;
 
 function buildChatSystemInstruction(ctx, availableTasks, availableExperts) {
     return `Bạn là PeaceCat AI — trợ lý tâm lý đồng hành của app PeaceFlow, trò chuyện bằng tiếng Việt, giọng văn ấm áp, đồng cảm, tự nhiên như một người bạn lắng nghe.

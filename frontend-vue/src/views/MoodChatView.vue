@@ -573,7 +573,7 @@ async function sendMessage() {
     const history = conversation.value
       .slice(0, -1)
       .filter((item) => item.text)
-      .slice(-16)
+      .slice(-6)
       .map((item) => ({ role: item.role, text: item.text }));
 
     const res = await apiClient.post('/ai/chat', { message: text, history });
