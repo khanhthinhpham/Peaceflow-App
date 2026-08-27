@@ -121,7 +121,7 @@
               v-for="(item, hIdx) in historyCards"
               :key="hIdx"
               class="paper-card history-card"
-              @click="startTest(item.startKey)"
+              @click="openHistoryReview(item)"
             >
               <div class="hc-test">{{ item.name }}</div>
               <div class="hc-date">{{ item.dateLabel }}</div>
@@ -134,6 +134,46 @@
                 >{{ pill.text }}</span>
               </div>
             </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== MODAL XEM LẠI KẾT QUẢ CŨ ===== -->
+      <div v-if="reviewDetail" class="review-overlay" @click.self="closeHistoryReview">
+        <div class="review-modal paper-card">
+          <div class="review-head">
+            <div>
+              <div class="review-title">{{ reviewDetail.name }}</div>
+              <div class="review-date">Hoàn thành lúc {{ reviewDetail.dateLabel }}</div>
+            </div>
+            <button class="review-close" @click="closeHistoryReview" aria-label="Đóng">✕</button>
+          </div>
+
+          <div class="review-total">
+            <div class="review-total-score">{{ reviewDetail.totalScore }}</div>
+            <span v-if="reviewDetail.severity" class="hc-score-item" :style="reviewDetail.severityStyle">{{ reviewDetail.severity }}</span>
+          </div>
+
+          <div v-if="reviewDetail.dimensions.length" class="review-dims">
+            <div v-for="dim in reviewDetail.dimensions" :key="dim.key" class="review-dim">
+              <span class="review-dim-label">{{ dim.label }}</span>
+              <span class="review-dim-score">{{ dim.score }}</span>
+              <span v-if="dim.severity" class="hc-score-item" :style="dim.style">{{ dim.severity }}</span>
+            </div>
+          </div>
+
+          <div v-if="reviewDetail.respondentName || reviewDetail.note || reviewDetail.hasAttachment" class="review-meta">
+            <div v-if="reviewDetail.respondentName">
+              Người làm bài: <strong>{{ reviewDetail.respondentName }}</strong>
+              <span v-if="reviewDetail.respondentAge"> ({{ reviewDetail.respondentAge }} tuổi)</span>
+            </div>
+            <div v-if="reviewDetail.note">Ghi chú: {{ reviewDetail.note }}</div>
+            <div v-if="reviewDetail.hasAttachment">📎 Có ảnh đính kèm</div>
+          </div>
+
+          <div class="review-actions">
+            <button class="btn-primary" @click="retakeFromReview">🔄 Làm lại bài này</button>
+            <button class="btn-outline" @click="closeHistoryReview">Đóng</button>
           </div>
         </div>
       </div>
@@ -531,9 +571,70 @@ const historyCards = computed(() => history.value.map((item) => {
     startKey: key || 'dass21',
     name: meta?.name || item.code,
     dateLabel: formatRelativeDate(item.created_at),
-    pills
+    pills,
+    raw: item,
+    testKey: key
   };
 }));
+
+// ===== Xem lại kết quả cũ =====
+// Trước đây bấm vào thẻ lịch sử lại mở ra bài test MỚI (hành vi này có từ bản cũ:
+// onclick="startTest('dass21')"), nên khách tưởng mất kết quả cũ. Giờ bấm vào sẽ mở
+// modal xem lại chính kết quả đó, muốn làm lại thì bấm nút riêng trong modal.
+const reviewCard = ref(null);
+
+function openHistoryReview(card) {
+  reviewCard.value = card;
+}
+
+function closeHistoryReview() {
+  reviewCard.value = null;
+}
+
+function retakeFromReview() {
+  const key = reviewCard.value?.startKey || 'dass21';
+  closeHistoryReview();
+  startTest(key);
+}
+
+// Nhãn đọc được cho từng khía cạnh: lấy catLabel trong định nghĩa bài test (vd 'depression'
+// -> 'Trầm cảm'); 'total' -> 'Tổng điểm'; không tìm được thì giữ nguyên key.
+function getDimensionLabel(testKey, dimension) {
+  if (dimension === 'total') return 'Tổng điểm';
+  const test = testKey ? TESTS[testKey] : null;
+  const question = test?.questions?.find((q) => q.cat === dimension);
+  return question?.catLabel || dimension;
+}
+
+const reviewDetail = computed(() => {
+  const card = reviewCard.value;
+  if (!card) return null;
+  const item = card.raw || {};
+  const dims = item.dimension_scores && typeof item.dimension_scores === 'object'
+    ? Object.entries(item.dimension_scores)
+    : [];
+
+  return {
+    name: card.name,
+    dateLabel: item.created_at
+      ? new Date(item.created_at).toLocaleString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+      : card.dateLabel,
+    totalScore: item.total_score,
+    severity: item.severity,
+    severityStyle: getSeverityBadgeStyle(item.severity),
+    respondentName: item.respondent_name,
+    respondentAge: item.respondent_age,
+    note: item.note,
+    hasAttachment: item.has_attachment,
+    dimensions: dims.map(([dimension, data]) => ({
+      key: dimension,
+      label: getDimensionLabel(card.testKey, dimension),
+      score: data?.score ?? '--',
+      severity: data?.severity || '',
+      style: getSeverityBadgeStyle(data?.severity)
+    }))
+  };
+});
 
 function syncPrevScores() {
   Object.entries(ASSESSMENT_META).forEach(([key, meta]) => {
