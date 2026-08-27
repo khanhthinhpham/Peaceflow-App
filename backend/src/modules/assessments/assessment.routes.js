@@ -2,7 +2,7 @@ import { Router } from 'express';
 import multer from 'multer';
 import { requireAuth } from '../../common/middleware/auth.middleware.js';
 import { db } from '../../config/db.js';
-import { getAssessmentAiSummary, fetchActiveTasks } from '../ai/ai.service.js';
+import { getAssessmentAiSummary } from '../ai/ai.service.js';
 
 const router = Router();
 
@@ -269,14 +269,11 @@ router.post('/assessments/results/:id/ai-summary', requireAuth, async (req, res)
       return res.status(404).json({ success: false, message: 'Không tìm thấy kết quả này.' });
     }
 
-    const availableTasks = await fetchActiveTasks();
-
     const { summary, recommendedTask } = await getAssessmentAiSummary({
       assessmentName: result.assessment_name,
       totalScore: Number(result.total_score || 0),
       severity: result.severity,
-      dimensionScores: result.dimension_scores,
-      availableTasks
+      dimensionScores: result.dimension_scores
     });
 
     return res.json({

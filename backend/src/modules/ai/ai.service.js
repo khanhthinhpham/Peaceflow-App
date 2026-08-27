@@ -40,14 +40,6 @@ export async function getWeeklyInsight(userId) {
     return callRAG(ctx, `peaceflow_insight_${userId}`);
 }
 
-export async function fetchActiveTasks() {
-    const res = await db.query(
-        `select id, code, title, category, difficulty, duration_minutes, xp_reward, description, metadata->>'icon' as icon
-         from tasks where active = true order by code`
-    );
-    return res.rows;
-}
-
 // `contents` nhận trực tiếp mảng theo format Gemini ([{role?, parts:[{text}]}]) để hỗ
 // trợ cả 1 lượt (các tính năng cũ) và nhiều lượt hội thoại thật (chat) trong cùng 1 hàm.
 async function callGeminiJson(systemInstruction, contents, schema, options = {}) {
@@ -126,10 +118,9 @@ function formatDimensionValue(value) {
 }
 
 // Tổng kết nhận xét + gợi ý 1 bài tập phù hợp bằng Gemini, sau khi người dùng nộp 1
-// bài test tự đánh giá. `availableTasks` là danh sách bài tập THẬT đang có trong app
-// (bảng tasks) — bắt AI chọn trong danh sách này để đảm bảo link bấm vào được, tránh
-// bịa ra bài tập không tồn tại.
-export async function getAssessmentAiSummary({ assessmentName, totalScore, severity, dimensionScores, availableTasks = [] }) {
+// bài test tự đánh giá. AI chỉ mô tả loại bài tập cần, code tự tìm bài tập thật khớp
+// nhất bằng embedding — đảm bảo link bấm vào được, không bịa ra bài tập không tồn tại.
+export async function getAssessmentAiSummary({ assessmentName, totalScore, severity, dimensionScores }) {
     const dimensionLines = dimensionScores && typeof dimensionScores === 'object' && Object.keys(dimensionScores).length
         ? Object.entries(dimensionScores).map(([key, value]) => `- ${key}: ${formatDimensionValue(value)}`).join('\n')
         : '';
@@ -141,7 +132,7 @@ ${dimensionLines ? `Điểm theo từng khía cạnh:\n${dimensionLines}` : ''}`
 
     const parsed = await callGeminiJson(buildAssessmentSystemInstruction(), [{ parts: [{ text: userContent }] }], RECOMMENDATION_SCHEMA);
 
-    const matchedTask = parsed.task_query ? findBestMatchingTask(availableTasks, parsed.task_query) : null;
+    const matchedTask = await findMatchingTaskByEmbedding(parsed.task_query);
     return {
         summary: parsed.summary || '',
         recommendedTask: matchedTask ? { ...matchedTask, reason: parsed.task_reason || '' } : null
@@ -214,36 +205,31 @@ function formatMoodContext(ctx) {
 // tập phù hợp — dùng chung cơ chế chọn task_code thật với getAssessmentAiSummary.
 export async function getDailyMessage(userId, ctx = null) {
     if (!ctx) ctx = await buildUserContext(userId);
-    const availableTasks = await fetchActiveTasks();
 
     const parsed = await callGeminiJson(buildDailySystemInstruction(), [{ parts: [{ text: formatMoodContext(ctx) }] }], DAILY_MESSAGE_SCHEMA);
 
     // Loại trùng — 2 mô tả khác nhau (vd "bài thư giãn" và "hít thở") đôi khi khớp
     // cùng 1 bài tập thật, không nên hiện lặp lại cùng 1 bài trong danh sách gợi ý.
     const usedTaskIds = new Set();
-    const exercises = Array.isArray(parsed.exercises)
-        ? parsed.exercises
-            .map((ex) => {
-                const task = ex.task_query ? findBestMatchingTask(availableTasks, ex.task_query) : null;
-                if (!task || usedTaskIds.has(task.id)) return null;
-                usedTaskIds.add(task.id);
-                return { ...task, reason: ex.reason || '' };
-            })
-            .filter(Boolean)
-        : [];
+    const matches = await Promise.all(
+        (Array.isArray(parsed.exercises) ? parsed.exercises : []).map(async (ex) => {
+            const task = await findMatchingTaskByEmbedding(ex.task_query);
+            return task ? { task, reason: ex.reason || '' } : null;
+        })
+    );
+    const exercises = matches
+        .filter(Boolean)
+        .filter(({ task }) => {
+            if (usedTaskIds.has(task.id)) return false;
+            usedTaskIds.add(task.id);
+            return true;
+        })
+        .map(({ task, reason }) => ({ ...task, reason }));
 
     return {
         recommendation: parsed.message || '',
         exercises
     };
-}
-
-export async function fetchActiveExperts() {
-    const res = await db.query(
-        `select id, code, full_name, degree, specialties, rating, experience_years, bio
-         from experts where active = true order by rating desc nulls last, code`
-    );
-    return res.rows;
 }
 
 const CHAT_SCHEMA = {
@@ -289,68 +275,75 @@ QUY TẮC BẮT BUỘC:
 ${formatMoodContext(ctx)}`;
 }
 
-// Từ đệm tiếng Việt phổ biến — loại bỏ để tránh khớp giả (vd 2 câu chỉ chung từ "và",
-// "một", "cho" thì không nên tính là liên quan nhau).
-const STOPWORDS = new Set(['và', 'của', 'cho', 'để', 'là', 'có', 'các', 'những', 'một', 'khi', 'này', 'với', 'từ', 'trong', 'về', 'bị', 'được', 'sẽ', 'đã', 'đang', 'rất', 'hay', 'nên', 'cần', 'nếu', 'thì']);
+const EMBED_MODEL = 'gemini-embedding-001';
+const EMBED_DIMENSIONS = 768;
+// Khoảng cách cosine tối đa để chấp nhận là "khớp" — hiệu chỉnh thực nghiệm: câu hỏi
+// liên quan thật ra khoảng cách ~0.24-0.31 với bài tập/chuyên gia phù hợp, còn câu hỏi
+// không liên quan gì (vd hỏi về lập trình) ra ~0.42+. Để trống (null) an toàn hơn là
+// ép nhận 1 kết quả không thật sự liên quan.
+const MAX_MATCH_DISTANCE = 0.35;
 
-function normalizeWords(text) {
-    return String(text || '')
-        .toLowerCase()
-        .replace(/[.,!?;:()"'–-]/g, ' ')
-        .split(/\s+/)
-        .filter((w) => w.length > 1 && !STOPWORDS.has(w));
+async function embedText(text, taskType) {
+    if (!text || !env.geminiApiKey) return null;
+    try {
+        const response = await fetch(
+            `https://generativelanguage.googleapis.com/v1beta/models/${EMBED_MODEL}:embedContent?key=${env.geminiApiKey}`,
+            {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    content: { parts: [{ text }] },
+                    outputDimensionality: EMBED_DIMENSIONS,
+                    taskType
+                })
+            }
+        );
+        if (!response.ok) return null;
+        const data = await response.json();
+        return data.embedding?.values || null;
+    } catch {
+        return null;
+    }
 }
 
-// So khớp từ khóa giữa mô tả AI đưa ra và tên+mô tả bài tập thật trong DB — thay cho
-// việc bắt AI tự chọn đúng 1 mã từ danh sách dài dễ sai. Ưu tiên trùng từ trong TÊN bài
-// tập (weight 2) hơn trong mô tả (weight 1), và yêu cầu điểm tối thiểu mới nhận là khớp
-// — tránh gợi ý sai lệch chỉ vì trùng ngẫu nhiên 1 từ không thật sự liên quan.
-const MIN_MATCH_SCORE = 3;
+// So khớp bằng embedding (nghĩa ngữ nghĩa thật) thay vì đếm từ khóa trùng — vì nhiều
+// tên bài tập trong DB thực chất là cả đoạn mô tả dài, đếm từ trùng dễ khớp nhầm (vd
+// "thư giãn cơ thể" bị khớp nhầm sang bài về "xây dựng mối quan hệ" chỉ vì cùng có chữ
+// "năng lượng"). Cần đã chạy `node src/scripts/backfill-embeddings.js` để có dữ liệu.
+async function findMatchingTaskByEmbedding(queryText) {
+    if (!queryText) return null;
+    const vector = await embedText(queryText, 'RETRIEVAL_QUERY');
+    if (!vector) return null;
 
-function findBestMatchingTask(availableTasks, queryText) {
-    const queryWords = normalizeWords(queryText);
-    if (!queryWords.length) return null;
-
-    let best = null;
-    let bestScore = 0;
-    for (const task of availableTasks) {
-        const titleWords = normalizeWords(task.title).join(' ');
-        const descWords = normalizeWords(task.description || '').join(' ');
-        const score = queryWords.reduce((sum, w) => {
-            if (titleWords.includes(w)) return sum + 2;
-            if (descWords.includes(w)) return sum + 1;
-            return sum;
-        }, 0);
-        if (score > bestScore) {
-            bestScore = score;
-            best = task;
-        }
-    }
-    return bestScore >= MIN_MATCH_SCORE ? best : null;
+    const { rows } = await db.query(
+        `select id, code, title, category, difficulty, duration_minutes, xp_reward, description,
+                metadata->>'icon' as icon, embedding <=> $1::vector as distance
+         from tasks
+         where active = true and embedding is not null
+         order by distance asc
+         limit 1`,
+        [`[${vector.join(',')}]`]
+    );
+    const best = rows[0];
+    return best && best.distance <= MAX_MATCH_DISTANCE ? best : null;
 }
 
-const MIN_EXPERT_MATCH_SCORE = 2;
+async function findMatchingExpertByEmbedding(queryText) {
+    if (!queryText) return null;
+    const vector = await embedText(queryText, 'RETRIEVAL_QUERY');
+    if (!vector) return null;
 
-function findBestMatchingExpert(availableExperts, queryText) {
-    const queryWords = normalizeWords(queryText);
-    if (!queryWords.length) return null;
-
-    let best = null;
-    let bestScore = 0;
-    for (const expert of availableExperts) {
-        const specialtyWords = normalizeWords(Array.isArray(expert.specialties) ? expert.specialties.join(' ') : (expert.specialties || '')).join(' ');
-        const bioWords = normalizeWords(expert.bio || '').join(' ');
-        const score = queryWords.reduce((sum, w) => {
-            if (specialtyWords.includes(w)) return sum + 2;
-            if (bioWords.includes(w)) return sum + 1;
-            return sum;
-        }, 0);
-        if (score > bestScore) {
-            bestScore = score;
-            best = expert;
-        }
-    }
-    return bestScore >= MIN_EXPERT_MATCH_SCORE ? best : null;
+    const { rows } = await db.query(
+        `select id, code, full_name, degree, specialties, rating, experience_years, bio,
+                embedding <=> $1::vector as distance
+         from experts
+         where active = true and embedding is not null
+         order by distance asc
+         limit 1`,
+        [`[${vector.join(',')}]`]
+    );
+    const best = rows[0];
+    return best && best.distance <= MAX_MATCH_DISTANCE ? best : null;
 }
 
 // Chat nhiều lượt với PeaceCat AI — biết dữ liệu cá nhân người dùng (tâm trạng, tiến
@@ -368,14 +361,12 @@ export async function getChatReply({ userId, message, history = [] }) {
         }));
     contents.push({ role: 'user', parts: [{ text: message }] });
 
-    const [parsed, availableTasks, availableExperts] = await Promise.all([
-        callGeminiJson(buildChatSystemInstruction(ctx), contents, CHAT_SCHEMA, { maxOutputTokens: 300 }),
-        fetchActiveTasks(),
-        fetchActiveExperts()
-    ]);
+    const parsed = await callGeminiJson(buildChatSystemInstruction(ctx), contents, CHAT_SCHEMA, { maxOutputTokens: 300 });
 
-    const matchedTask = parsed.suggested_task_query ? findBestMatchingTask(availableTasks, parsed.suggested_task_query) : null;
-    const matchedExpert = parsed.suggested_expert_query ? findBestMatchingExpert(availableExperts, parsed.suggested_expert_query) : null;
+    const [matchedTask, matchedExpert] = await Promise.all([
+        findMatchingTaskByEmbedding(parsed.suggested_task_query),
+        findMatchingExpertByEmbedding(parsed.suggested_expert_query)
+    ]);
     const clampScore = (value) => Math.max(0, Math.min(100, Number(value) || 0));
     const analysis = parsed.mood_analysis || {};
 
