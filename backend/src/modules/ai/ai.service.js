@@ -144,39 +144,34 @@ async function callGeminiJson(systemInstruction, contents, schema, options = {})
     }
 }
 
-function buildAssessmentSystemInstruction(catalog) {
-    return `Bạn là trợ lý tâm lý của app PeaceFlow. Người dùng sẽ gửi tên bài test tự đánh giá và điểm số của họ.
-Nhiệm vụ:
-1. summary: viết một đoạn nhận xét ngắn (3-5 câu) bằng tiếng Việt, giọng văn ấm áp, dễ hiểu, không dùng thuật ngữ chuyên môn khó hiểu, không đưa ra chẩn đoán y khoa, không dùng markdown.
-2. tasks: chọn 2-3 bài tập phù hợp nhất với kết quả test này từ danh sách dưới đây, xếp theo mức độ phù hợp giảm dần. Mỗi phần tử gồm:
-   - task_code: copy chính xác phần mã (trước dấu |), không thêm bớt ký tự nào.
-   - reason: 1 câu ngắn giải thích vì sao bài đó phù hợp (hiện cho người dùng đọc).
-   NGUYÊN TẮC CHỌN BÀI:
-   - Xét theo VIỆC NGƯỜI DÙNG THỰC SỰ LÀM trong bài tập và tác động của việc đó, KHÔNG xét theo từ ngữ trong tên bài. Tên bài có nhắc tới một thời điểm hay một chủ đề không tự động nghĩa là bài đó phù hợp với tình trạng đang xét.
-   - Loại bỏ bài có thể làm tình trạng NẶNG THÊM. Ví dụ: bài yêu cầu suy ngẫm/tự vấn/phân tích bản thân sẽ kích hoạt suy nghĩ miên man nên KHÔNG phù hợp với người mất ngủ, dù tên bài có chữ "trước khi ngủ"; bài vận động mạnh gây tỉnh táo cũng không phù hợp khi cần dễ ngủ.
-   - Thà chỉ chọn 2 bài thật sự phù hợp còn hơn chọn đủ 3 bài mà có bài kém liên quan. Không chọn trùng cùng 1 bài.
+// Không gửi danh sách bài tập trong prompt này nữa (tính năng không còn gợi ý bài tập),
+// nhờ đó prompt nhẹ đi khoảng 1.600 token mỗi lượt gọi.
+function buildAssessmentSystemInstruction() {
+    return `Bạn là trợ lý tâm lý của app PeaceFlow. Người dùng sẽ gửi tên bài test tự đánh giá cùng điểm số của họ.
+Trả về 2 nội dung:
 
---- DANH SÁCH BÀI TẬP (định dạng: mã|tên|thời lượng) ---
-${catalog.taskLines}`;
+1. summary — LỜI KHUYÊN (3-5 câu): nói với người dùng bằng giọng ấm áp, đồng cảm, ngôi thứ hai ("bạn"). Ghi nhận cảm giác họ có thể đang trải qua, rồi đưa ra hướng thiết thực họ có thể làm để dễ chịu hơn. Không dùng markdown, không dùng thuật ngữ chuyên môn khó hiểu.
+
+2. interpretation — PHÁN ĐOÁN HỖ TRỢ VỀ TÌNH TRẠNG (3-5 câu): giúp người dùng hiểu kết quả này phản ánh điều gì. Nêu:
+   - Mức điểm này thường đi cùng những biểu hiện nào trong đời sống hằng ngày (giấc ngủ, khả năng tập trung, năng lượng, các mối quan hệ...).
+   - Những mặt nào có thể đang bị ảnh hưởng nhiều nhất, dựa trên điểm từng khía cạnh nếu có.
+   - Dấu hiệu cần chú ý theo dõi thêm, và mốc nào thì nên gặp chuyên gia tâm lý/bác sĩ.
+
+GIỚI HẠN BẮT BUỘC cho cả 2 phần:
+- KHÔNG chẩn đoán bệnh, KHÔNG gọi tên bệnh lý cho người dùng (không viết kiểu "bạn bị trầm cảm/rối loạn lo âu"). Chỉ nói về BIỂU HIỆN và MỨC ĐỘ mà thang đo phản ánh.
+- Diễn đạt bằng ngôn ngữ khả năng ("kết quả cho thấy có thể...", "thường đi cùng với..."), không nói chắc chắn về tình trạng y khoa.
+- KHÔNG kê thuốc, không hướng dẫn dùng thuốc.
+- Nếu điểm ở mức nặng/nghiêm trọng, nhắc rõ nên tìm chuyên gia tâm lý hoặc bác sĩ để được đánh giá đầy đủ — nhưng nói theo cách trấn an, không gây hoảng.
+- Đây là thông tin tham khảo cho người dùng tự hiểu mình, không thay thế chẩn đoán chuyên môn.`;
 }
 
 const RECOMMENDATION_SCHEMA = {
     type: 'object',
     properties: {
         summary: { type: 'string' },
-        tasks: {
-            type: 'array',
-            items: {
-                type: 'object',
-                properties: {
-                    task_code: { type: 'string' },
-                    reason: { type: 'string' }
-                },
-                required: ['task_code', 'reason']
-            }
-        }
+        interpretation: { type: 'string' }
     },
-    required: ['summary', 'tasks']
+    required: ['summary', 'interpretation']
 };
 
 // Bài test nhiều khía cạnh (DASS21, Raven...) lưu dimension_scores dạng object lồng
@@ -193,7 +188,7 @@ function formatDimensionValue(value) {
 
 // Đổi số này khi sửa prompt/schema — toàn bộ cache cũ sẽ tự bị vô hiệu (vì cache_key
 // thay đổi), tránh việc người dùng nhận lời văn theo prompt cũ.
-const ASSESSMENT_PROMPT_VERSION = 'v1';
+const ASSESSMENT_PROMPT_VERSION = 'v2';  // v2: bỏ gợi ý bài tập, thêm phán đoán tình trạng
 const DAILY_PROMPT_VERSION = 'v2';  // v2: lời khuyên chỉ tập trung cảm xúc, bỏ streak/chỉ số
 // Đổi số này khi muốn buộc TẤT CẢ người dùng được sinh lại lời khuyên ở lần bấm nút tiếp
 // theo (vd sau khi sửa prompt hoặc sửa cách tính dấu vân tay dữ liệu).
@@ -208,7 +203,7 @@ async function readSummaryCache(cacheKey) {
             `update ai_summary_cache
                 set hit_count = hit_count + 1, last_used_at = now()
               where cache_key = $1
-              returning summary, tasks`,
+              returning summary, tasks, interpretation`,
             [cacheKey]
         );
         return rows[0] || null;
@@ -220,14 +215,27 @@ async function readSummaryCache(cacheKey) {
     }
 }
 
-function writeSummaryCache(cacheKey, feature, summary, tasks) {
-    if (!summary || !tasks.length) return;
+function writeSummaryCache(cacheKey, feature, summary, tasks = [], interpretation = null) {
+    // Cần có nội dung dùng được mới đáng cache: nhận xét bài test cần phần phán đoán,
+    // lời khuyên hằng ngày cần ít nhất 1 bài tập.
+    if (!summary) return;
+    if (!interpretation && !tasks.length) return;
+
     db.query(
-        `insert into ai_summary_cache (cache_key, feature, summary, tasks)
-         values ($1, $2, $3, $4::jsonb)
+        `insert into ai_summary_cache (cache_key, feature, summary, tasks, interpretation)
+         values ($1, $2, $3, $4::jsonb, $5)
          on conflict (cache_key) do update
-           set summary = excluded.summary, tasks = excluded.tasks, last_used_at = now()`,
-        [cacheKey, feature, summary, JSON.stringify(tasks.map((t) => ({ task_code: t.code, reason: t.reason })))]
+           set summary = excluded.summary,
+               tasks = excluded.tasks,
+               interpretation = excluded.interpretation,
+               last_used_at = now()`,
+        [
+            cacheKey,
+            feature,
+            summary,
+            JSON.stringify(tasks.map((t) => ({ task_code: t.code, reason: t.reason }))),
+            interpretation
+        ]
     ).catch((error) => console.error('[AI] ghi cache thất bại:', error.message));
 }
 
@@ -252,15 +260,13 @@ function buildAssessmentCacheKey({ assessmentName, totalScore, severity, dimensi
     return createHash('sha256').update(raw).digest('hex');
 }
 
-// Tổng kết nhận xét + gợi ý 2-3 bài tập phù hợp bằng Gemini, sau khi người dùng nộp 1
-// bài test tự đánh giá. LLM được xem toàn bộ danh sách bài tập thật (dạng rút gọn) và
-// tự chọn mã; code chỉ đối chiếu mã đó với DB, kèm lưới an toàn bằng embedding nếu LLM
-// trả về mã không tồn tại.
+// Lời khuyên + phán đoán hỗ trợ về tình trạng, sau khi người dùng nộp 1 bài test tự
+// đánh giá. KHÔNG còn gợi ý bài tập (đã bỏ theo yêu cầu) nên prompt cũng không cần gửi
+// danh sách bài tập — nhẹ hơn ~1.600 token mỗi lượt.
 //
 // Có cache kết quả: đầu vào không chứa gì riêng tư nên 2 người cùng bài test + cùng điểm
 // dùng lại được kết quả của nhau, tốn 0 token (xem giải thích ở migration 0045).
 export async function getAssessmentAiSummary({ userId = null, assessmentName, totalScore, severity, dimensionScores }) {
-    const catalog = await getCatalog();
     const cacheKey = buildAssessmentCacheKey({ assessmentName, totalScore, severity, dimensionScores });
 
     // --- Thử lấy từ cache trước ---
@@ -276,7 +282,7 @@ export async function getAssessmentAiSummary({ userId = null, assessmentName, to
         });
         return {
             summary: cached.summary || '',
-            recommendedTasks: resolveCachedTasks(catalog, cached.tasks)
+            interpretation: cached.interpretation || ''
         };
     }
 
@@ -292,7 +298,7 @@ ${dimensionLines ? `Điểm theo từng khía cạnh:\n${dimensionLines}` : ''}`
     let parsed;
     let usage;
     try {
-        ({ parsed, usage } = await callGeminiJson(buildAssessmentSystemInstruction(catalog), [{ parts: [{ text: userContent }] }], RECOMMENDATION_SCHEMA));
+        ({ parsed, usage } = await callGeminiJson(buildAssessmentSystemInstruction(), [{ parts: [{ text: userContent }] }], RECOMMENDATION_SCHEMA));
     } catch (error) {
         logAiUsage({
             userId,
@@ -315,27 +321,10 @@ ${dimensionLines ? `Điểm theo từng khía cạnh:\n${dimensionLines}` : ''}`
         topics: [assessmentName, severity].filter(Boolean)
     });
 
-    const matches = await Promise.all(
-        (Array.isArray(parsed.tasks) ? parsed.tasks.slice(0, 3) : []).map(async (item) => {
-            const task = await resolveTask(catalog, item.task_code, item.reason);
-            return task ? { task, reason: item.reason || '' } : null;
-        })
-    );
-
-    // Loại trùng — LLM đôi khi chọn lặp, hoặc 2 mã sai cùng rơi về 1 bài qua lưới an toàn.
-    const usedIds = new Set();
-    const recommendedTasks = matches
-        .filter(Boolean)
-        .filter(({ task }) => {
-            if (usedIds.has(task.id)) return false;
-            usedIds.add(task.id);
-            return true;
-        })
-        .map(({ task, reason }) => ({ ...task, reason }));
-
     const summary = parsed.summary || '';
-    writeSummaryCache(cacheKey, 'assessment_summary', summary, recommendedTasks);
-    return { summary, recommendedTasks };
+    const interpretation = parsed.interpretation || '';
+    writeSummaryCache(cacheKey, 'assessment_summary', summary, [], interpretation);
+    return { summary, interpretation };
 }
 
 const DAILY_MESSAGE_SCHEMA = {

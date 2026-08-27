@@ -288,21 +288,9 @@
           </div>
           <div v-if="aiSummaryLoading" class="ai-summary-loading">Đang phân tích kết quả...</div>
           <div v-else class="ai-summary-text">{{ aiSummaryText }}</div>
-          <template v-if="aiRecommendedTasks.length">
-            <div class="ai-summary-task-title">🎯 Nhiệm vụ phù hợp với kết quả này</div>
-            <div
-              v-for="task in aiRecommendedTasks"
-              :key="task.id"
-              class="ai-summary-task"
-              @click="router.push({ path: '/task-detail', query: { id: task.id } })"
-            >
-              <div class="ai-summary-task-icon">{{ task.icon || '🧩' }}</div>
-              <div class="ai-summary-task-info">
-                <div class="ai-summary-task-name">{{ task.title }}</div>
-                <div class="ai-summary-task-reason">{{ task.reason }}</div>
-              </div>
-              <div class="ai-summary-task-xp" v-if="task.xp_reward">+{{ task.xp_reward }} XP</div>
-            </div>
+          <template v-if="aiInterpretation">
+            <div class="ai-summary-task-title">🔎 Phán đoán hỗ trợ về tình trạng</div>
+            <div class="ai-summary-text">{{ aiInterpretation }}</div>
           </template>
         </div>
 
@@ -387,7 +375,7 @@ const result = ref(null);
 const resultSaveNote = ref('');
 const aiSummaryText = ref('');
 const aiSummaryLoading = ref(false);
-const aiRecommendedTasks = ref([]);
+const aiInterpretation = ref('');
 const resultSubtitleBase = ref('');
 
 const assessments = ref([]);
@@ -734,7 +722,7 @@ function finishTest() {
   resultSaveNote.value = '';
   aiSummaryText.value = '';
   aiSummaryLoading.value = false;
-  aiRecommendedTasks.value = [];
+  aiInterpretation.value = '';
 
   // Evaluate logic
   const subScores = {};
@@ -874,11 +862,11 @@ async function loadAiSummary(resultId) {
   try {
     const data = await apiClient.post(`/assessments/results/${resultId}/ai-summary`, {});
     aiSummaryText.value = data?.summary || '';
-    aiRecommendedTasks.value = Array.isArray(data?.recommended_tasks) ? data.recommended_tasks : [];
+    aiInterpretation.value = data?.interpretation || '';
   } catch (error) {
     console.error('Assessment AI summary load failed:', error);
     aiSummaryText.value = '';
-    aiRecommendedTasks.value = [];
+    aiInterpretation.value = '';
   } finally {
     aiSummaryLoading.value = false;
   }

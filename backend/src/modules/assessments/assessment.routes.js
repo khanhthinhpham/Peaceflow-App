@@ -269,7 +269,7 @@ router.post('/assessments/results/:id/ai-summary', requireAuth, async (req, res)
       return res.status(404).json({ success: false, message: 'Không tìm thấy kết quả này.' });
     }
 
-    const { summary, recommendedTasks } = await getAssessmentAiSummary({
+    const { summary, interpretation } = await getAssessmentAiSummary({
       userId: req.user.sub,
       assessmentName: result.assessment_name,
       totalScore: Number(result.total_score || 0),
@@ -277,25 +277,9 @@ router.post('/assessments/results/:id/ai-summary', requireAuth, async (req, res)
       dimensionScores: result.dimension_scores
     });
 
-    const mapped = (recommendedTasks || []).map((task) => ({
-      id: task.id,
-      title: task.title,
-      category: task.category,
-      difficulty: task.difficulty,
-      duration_minutes: task.duration_minutes,
-      xp_reward: task.xp_reward,
-      icon: task.icon,
-      reason: task.reason
-    }));
-
     return res.json({
       success: true,
-      data: {
-        summary,
-        recommended_tasks: mapped,
-        // Giữ lại trường cũ (bài đầu tiên) để bản frontend chưa cập nhật vẫn chạy được.
-        recommended_task: mapped[0] || null
-      }
+      data: { summary, interpretation }
     });
   } catch (error) {
     console.error('Assessment AI summary error:', error);
