@@ -26,6 +26,11 @@ export const env = {
   jwtAccessExpires: process.env.JWT_ACCESS_EXPIRES || '7d',
   jwtRefreshExpires: process.env.JWT_REFRESH_EXPIRES || '30d',
   resendApiKey: process.env.RESEND_API_KEY,
+  // Nguồn gửi mail dự phòng khi Resend hết quota (gói free Resend chỉ 100 mail/ngày,
+  // Brevo cho thêm 300/ngày). Xem src/common/services/mail-transport.js.
+  brevoApiKey: process.env.BREVO_API_KEY,
+  // Chỉ cần khi domain chưa xác thực xong ở Brevo — xem mail-transport.js.
+  brevoFrom: process.env.BREVO_FROM,
   emailFrom: process.env.EMAIL_FROM || 'PeaceFlow <onboarding@resend.dev>',
   adminEmail: process.env.ADMIN_EMAIL || 'hoangtu251004@gmail.com',
   apiPublicUrl: (process.env.API_PUBLIC_URL || `http://localhost:${process.env.PORT || 4000}`).replace(/\/+$/, ''),

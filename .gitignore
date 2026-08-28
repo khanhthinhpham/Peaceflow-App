@@ -20,3 +20,6 @@ postgres_data/
 *.exe
 ~$*
 .codex-temp-*
+
+# Script mo may ao Android - duong dan SDK co dinh theo may, khong dung chung duoc
+run-emulator.bat

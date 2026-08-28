@@ -73,7 +73,10 @@ export async function register(data) {
   try {
     await sendVerificationEmail(user, verifyToken);
   } catch (e) {
-    console.error('Failed to send verification email:', e.message);
+    // Vẫn không chặn việc tạo tài khoản khi gửi mail lỗi, nhưng PHẢI kêu to. Ngày
+    // 28/08/2026 Resend hết quota ngày (100 mail) mà lỗi bị ẩn hoàn toàn nên hơn 500
+    // người không xác nhận được email trong 4 tiếng mà không ai biết.
+    console.error('[MAIL_FAIL] verification email:', user.email, '|', e.message);
   }
 
   return { user };
@@ -108,7 +111,7 @@ export async function registerExpert(data) {
   try {
     await sendVerificationEmail(user, verifyToken);
   } catch (e) {
-    console.error('Failed to send expert verification email:', e.message);
+    console.error('[MAIL_FAIL] expert verification email:', user.email, '|', e.message);
   }
 
   return { user };

@@ -1,15 +1,14 @@
-import { Resend } from 'resend';
 import { env } from '../../config/env.js';
+import { sendMail, getConfiguredMailProviders } from './mail-transport.js';
 
-const resend = env.resendApiKey ? new Resend(env.resendApiKey) : null;
 const FROM = env.emailFrom;
 const APP_URL = env.frontendUrl;
 
 export async function sendVerificationEmail(user, token) {
-  ensureResendConfigured();
+  ensureMailConfigured();
   const link = `${APP_URL}/verify-email?token=${token}`;
 
-  await resend.emails.send({
+  await sendMail({
     from: FROM,
     to: user.email,
     subject: '✉️ Xác nhận email — PeaceFlow',
@@ -31,7 +30,7 @@ export async function sendVerificationEmail(user, token) {
 }
 
 export async function sendExpertApplicationToAdmin({ application, fileBuffer }) {
-  ensureResendConfigured();
+  ensureMailConfigured();
   const apiBase = `${env.apiPublicUrl}${env.apiPrefix || '/api/v1'}`;
   const approveLink = `${apiBase}/auth/expert-application/approve?token=${application.approval_token}`;
   const rejectLink = `${apiBase}/auth/expert-application/reject?token=${application.approval_token}`;
@@ -41,7 +40,7 @@ export async function sendExpertApplicationToAdmin({ application, fileBuffer }) 
     ? application.specialties.join(', ')
     : '';
 
-  await resend.emails.send({
+  await sendMail({
     from: FROM,
     to: env.adminEmail,
     subject: `🩺 Hồ sơ chuyên gia mới — ${application.full_name}`,
@@ -80,9 +79,9 @@ export async function sendExpertApplicationToAdmin({ application, fileBuffer }) 
 }
 
 export async function sendExpertApprovedEmail(user) {
-  ensureResendConfigured();
+  ensureMailConfigured();
   const link = `${APP_URL}/login`;
-  await resend.emails.send({
+  await sendMail({
     from: FROM,
     to: user.email,
     subject: '🎉 Hồ sơ chuyên gia đã được duyệt — PeaceFlow',
@@ -101,8 +100,8 @@ export async function sendExpertApprovedEmail(user) {
 }
 
 export async function sendExpertRejectedEmail(user) {
-  ensureResendConfigured();
-  await resend.emails.send({
+  ensureMailConfigured();
+  await sendMail({
     from: FROM,
     to: user.email,
     subject: 'Kết quả đăng ký chuyên gia — PeaceFlow',
@@ -119,10 +118,10 @@ export async function sendExpertRejectedEmail(user) {
 }
 
 export async function sendPasswordResetEmail(user, token) {
-  ensureResendConfigured();
+  ensureMailConfigured();
   const link = `${APP_URL}/reset-password?token=${token}`;
 
-  await resend.emails.send({
+  await sendMail({
     from: FROM,
     to: user.email,
     subject: '🔐 Đặt lại mật khẩu — PeaceFlow',
@@ -158,9 +157,9 @@ function formatBookingTime(value) {
 
 // Gửi cho chuyên gia khi có thân chủ đặt lịch mới (chờ xác nhận).
 export async function sendBookingRequestEmail({ to, expertName, clientName, sessionType, startsAt }) {
-  if (!resend || !to) return;
+  if (!hasMailProvider() || !to) return;
   const portalLink = `${APP_URL}/expert/dashboard`;
-  await resend.emails.send({
+  await sendMail({
     from: FROM,
     to,
     subject: '🗓️ Yêu cầu đặt lịch mới — PeaceFlow',
@@ -182,7 +181,7 @@ export async function sendBookingRequestEmail({ to, expertName, clientName, sess
 
 // Gửi cho thân chủ khi chuyên gia cập nhật trạng thái lịch hẹn.
 export async function sendBookingStatusEmail({ to, clientName, expertName, sessionType, startsAt, status }) {
-  if (!resend || !to) return;
+  if (!hasMailProvider() || !to) return;
   const info = {
     confirmed: {
       subject: '✅ Lịch hẹn đã được xác nhận — PeaceFlow',
@@ -203,7 +202,7 @@ export async function sendBookingStatusEmail({ to, clientName, expertName, sessi
   if (!info) return;
 
   const link = `${APP_URL}/experts`;
-  await resend.emails.send({
+  await sendMail({
     from: FROM,
     to,
     subject: info.subject,
@@ -223,12 +222,12 @@ export async function sendBookingStatusEmail({ to, clientName, expertName, sessi
 }
 
 export async function sendBookingConfirmedEmail({ to, recipientName, expertName, clientName, sessionType, startsAt, durationMinutes, joinUrl, startUrl, isExpert }) {
-  if (!resend || !to || !joinUrl) return;
+  if (!hasMailProvider() || !to || !joinUrl) return;
   const portalLink = isExpert
     ? `${APP_URL}/expert/dashboard`
     : `${APP_URL}/experts`;
   const actionUrl = startUrl || joinUrl;
-  await resend.emails.send({
+  await sendMail({
     from: FROM,
     to,
     subject: '🎥 Link Zoom lịch hẹn đã sẵn sàng — PeaceFlow',
@@ -248,16 +247,20 @@ export async function sendBookingConfirmedEmail({ to, recipientName, expertName,
   });
 }
 
-function ensureResendConfigured() {
-  if (!resend) {
-    throw new Error('RESEND_API_KEY is not configured.');
+function hasMailProvider() {
+  return getConfiguredMailProviders().length > 0;
+}
+
+function ensureMailConfigured() {
+  if (!hasMailProvider()) {
+    throw new Error('Chua cau hinh nha cung cap email nao (RESEND_API_KEY / BREVO_API_KEY).');
   }
 }
 
 // Cảnh báo bảo mật: phương thức nhận thanh toán (payout) vừa thay đổi.
 export async function sendPayoutMethodChangedEmail({ to, name, bankName, accountMasked }) {
-  ensureResendConfigured();
-  await resend.emails.send({
+  ensureMailConfigured();
+  await sendMail({
     from: FROM,
     to,
     subject: '🔔 Phương thức nhận thanh toán đã thay đổi — PeaceFlow',
