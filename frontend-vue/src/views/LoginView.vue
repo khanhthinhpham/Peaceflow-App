@@ -26,7 +26,19 @@
 
       <div class="divider" style="margin-top:20px;">hoặc</div>
 
-      <div id="btnGoogleLogin" ref="googleBtnEl" style="display:flex;justify-content:center;margin-bottom:4px;"></div>
+      <!-- Google chặn đăng nhập OAuth chạy trong WebView nhúng (app mobile) nên phải dùng
+           SDK native riêng (Credential Manager) thay cho nút SDK JS dùng trên web. -->
+      <button
+        v-if="isNativeApp"
+        type="button"
+        class="btn-google-native"
+        :disabled="nativeGoogleLoading"
+        @click="handleNativeGoogleLogin"
+      >
+        <span v-if="nativeGoogleLoading">Đang mở Google...</span>
+        <span v-else>Đăng nhập với Google</span>
+      </button>
+      <div v-else id="btnGoogleLogin" ref="googleBtnEl" style="display:flex;justify-content:center;margin-bottom:4px;"></div>
 
       <div class="auth-links">
         Chưa có tài khoản? <router-link to="/signup">Đăng ký ngay</router-link>
@@ -44,8 +56,10 @@ import { useRoute, useRouter } from 'vue-router';
 import { useAuthStore } from '../stores/auth';
 import { apiClient } from '../lib/apiClient';
 import { goToLegacyPage, resolveAppRedirect } from '../lib/legacyApp';
+import { isNativeApp } from '../lib/native';
 
 const GOOGLE_CLIENT_ID = '287402483358-uiec013q9obn1m8j82ejhkdmuoi3ku6v.apps.googleusercontent.com';
+const nativeGoogleLoading = ref(false);
 
 const auth = useAuthStore();
 const route = useRoute();
@@ -146,6 +160,31 @@ async function handleGoogleCredential(response) {
   }
 }
 
+// App mobile: chọn tài khoản Google qua Credential Manager của hệ thống (không qua
+// WebView) rồi lấy idToken gửi lên backend — cùng API loginWithGoogle như bản web.
+async function handleNativeGoogleLogin() {
+  if (nativeGoogleLoading.value) return;
+  nativeGoogleLoading.value = true;
+  showMessage('');
+  try {
+    const { SocialLogin } = await import('@capgo/capacitor-social-login');
+    await SocialLogin.initialize({ google: { webClientId: GOOGLE_CLIENT_ID } });
+    const res = await SocialLogin.login({ provider: 'google', options: { scopes: ['email', 'profile'] } });
+    const idToken = res?.result?.idToken;
+    if (!idToken) {
+      throw new Error('Không lấy được thông tin xác thực từ Google.');
+    }
+    await handleGoogleCredential({ credential: idToken });
+  } catch (err) {
+    const cancelled = /cancel/i.test(err?.message || '') || /cancel/i.test(String(err?.code || ''));
+    if (!cancelled) {
+      showMessage(err?.message ? escapeHtml(err.message) : 'Đăng nhập Google thất bại.', 'error');
+    }
+  } finally {
+    nativeGoogleLoading.value = false;
+  }
+}
+
 async function handleSubmit() {
   showMessage('');
 
@@ -211,6 +250,8 @@ onMounted(async () => {
     return;
   }
 
+  if (isNativeApp) return;
+
   window.handleCredentialResponse = handleGoogleCredential;
 
   const initGoogle = () => {
@@ -241,6 +282,30 @@ onMounted(async () => {
 </script>
 
 <style scoped>
+.btn-google-native {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 11px 16px;
+  margin-bottom: 4px;
+  border: 1.5px solid var(--kraft-light, #d9c9a8);
+  border-radius: 999px;
+  background: var(--warm-white);
+  color: var(--text-primary);
+  font-weight: 700;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+.btn-google-native:hover:not(:disabled) {
+  background: var(--cream);
+}
+.btn-google-native:disabled {
+  opacity: 0.7;
+  cursor: default;
+}
 .auth-container {
   min-height: 100vh;
   display: flex;
