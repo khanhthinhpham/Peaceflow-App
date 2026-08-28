@@ -18,7 +18,12 @@
     backdrop-filter: blur(12px);
     border-bottom: 2px solid var(--kraft-light);
     padding: 0 5%;
-    height: 64px;
+    /* padding-top che status bar/tai thỏ khi chạy trong app mobile (Capacitor) — trên
+       web thường env(safe-area-inset-top) = 0px nên không đổi gì. min-height (không phải
+       height) để phần thêm vào không ép co nội dung bên trong. */
+    padding-top: env(safe-area-inset-top, 0px);
+    min-height: 64px;
+    height: auto;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -1139,6 +1144,8 @@
     background: var(--warm-white);
     z-index: 95;
     padding: 24px;
+    padding-top: calc(24px + env(safe-area-inset-top, 0px));
+    padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px));
     transform: translateX(100%);
     transition: transform 0.3s ease;
     overflow-y: auto;
@@ -1265,6 +1272,7 @@
     .hero {
         flex-direction: column;
         padding: 100px 5% 60px;
+        padding-top: calc(100px + env(safe-area-inset-top, 0px));
         text-align: center;
     }
 

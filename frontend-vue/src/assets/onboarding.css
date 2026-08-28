@@ -8,7 +8,9 @@
 /* ===== PROGRESS BAR ===== */
 .progress-bar-container {
     position: fixed;
-    top: 0;
+    /* top thay vì 0 để tránh nằm dưới status bar/tai thỏ trong app mobile (Capacitor) —
+       trên web thường env(safe-area-inset-top) = 0px nên không đổi gì. */
+    top: env(safe-area-inset-top, 0px);
     left: 0;
     right: 0;
     height: 6px;
@@ -26,7 +28,7 @@
 /* ===== LOGO ===== */
 .onboarding-logo {
     position: fixed;
-    top: 16px;
+    top: calc(16px + env(safe-area-inset-top, 0px));
     left: 24px;
     display: flex;
     align-items: center;
@@ -61,7 +63,7 @@
 /* ===== STEP DOTS ===== */
 .step-dots {
     position: fixed;
-    top: 20px;
+    top: calc(20px + env(safe-area-inset-top, 0px));
     right: 24px;
     display: flex;
     gap: 8px;

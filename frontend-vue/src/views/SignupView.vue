@@ -177,7 +177,9 @@ async function handleNativeGoogleLogin() {
   try {
     const { SocialLogin } = await import('@capgo/capacitor-social-login');
     await SocialLogin.initialize({ google: { webClientId: GOOGLE_CLIENT_ID } });
-    const res = await SocialLogin.login({ provider: 'google', options: { scopes: ['email', 'profile'] } });
+    // Không truyền "scopes" — plugin đã tự thêm sẵn email/profile/openid cho mọi lượt
+    // đăng nhập; tự truyền scopes riêng sẽ bắt phải sửa MainActivity, không cần thiết.
+    const res = await SocialLogin.login({ provider: 'google' });
     const idToken = res?.result?.idToken;
     if (!idToken) {
       throw new Error('Không lấy được thông tin xác thực từ Google.');
