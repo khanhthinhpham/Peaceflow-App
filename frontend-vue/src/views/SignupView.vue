@@ -18,6 +18,26 @@
         </div>
       </div>
 
+      <!-- Google đặt LÊN TRƯỚC form email: tài khoản Google được xác thực email sẵn nên
+           dùng được ngay, không phụ thuộc hạn mức gửi mail (sự cố 29/08/2026).
+           Chỉ áp dụng cho tài khoản người dùng thường, không dùng cho chuyên gia.
+           Bản app mobile phải dùng SDK native vì Google chặn OAuth trong WebView nhúng. -->
+      <template v-if="!success && mode === 'user'">
+        <button
+          v-if="isNativeApp"
+          type="button"
+          class="btn-google-native"
+          :disabled="nativeGoogleLoading"
+          @click="handleNativeGoogleLogin"
+        >
+          <span v-if="nativeGoogleLoading">Đang mở Google...</span>
+          <span v-else>Đăng ký với Google</span>
+        </button>
+        <div v-else ref="googleBtnEl" style="display:flex;justify-content:center;"></div>
+        <p class="auth-google-hint">Nhanh nhất — không cần chờ email xác nhận</p>
+        <div class="divider" style="margin:18px 0;">hoặc dùng email</div>
+      </template>
+
       <form v-if="!success" class="auth-form" @submit.prevent="handleSubmit">
         <div class="account-toggle" aria-label="Loại tài khoản">
           <button type="button" :class="['toggle-chip', { active: mode === 'user' }]" @click="setMode('user')">Người dùng</button>
@@ -56,25 +76,10 @@
           </span>
         </label>
 
-        <button type="submit" class="btn-primary" style="width: 100%; font-size: 1rem; padding: 12px; background: var(--peach); border-color: var(--peach-dark); box-shadow: 2px 2px 0 var(--peach-dark);" :disabled="submitting">
-          {{ submitting ? 'Đang tạo tài khoản...' : 'Đăng Ký' }}
+        <button type="submit" class="btn-secondary-auth" :disabled="submitting">
+          {{ submitting ? 'Đang tạo tài khoản...' : 'Đăng ký bằng email' }}
         </button>
       </form>
-
-      <div v-if="!success && mode === 'user'" class="divider" style="margin-top:20px;">hoặc</div>
-      <!-- Google chặn OAuth chạy trong WebView nhúng (app mobile) nên phải dùng SDK native
-           riêng (Credential Manager) thay cho nút SDK JS dùng trên web. -->
-      <button
-        v-if="!success && mode === 'user' && isNativeApp"
-        type="button"
-        class="btn-google-native"
-        :disabled="nativeGoogleLoading"
-        @click="handleNativeGoogleLogin"
-      >
-        <span v-if="nativeGoogleLoading">Đang mở Google...</span>
-        <span v-else>Đăng nhập với Google</span>
-      </button>
-      <div v-else-if="!success && mode === 'user'" ref="googleBtnEl" style="display:flex;justify-content:center;margin-bottom:4px;"></div>
 
       <div class="auth-links">
         Đã có tài khoản? <router-link to="/login">Đăng nhập</router-link>
@@ -299,21 +304,47 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 11px 16px;
-  margin-bottom: 4px;
-  border: 1.5px solid var(--kraft-light, #d9c9a8);
+  padding: 13px 16px;
+  border: 2px solid var(--mint-dark, #7BBF95);
   border-radius: 999px;
-  background: var(--warm-white);
+  background: var(--mint, #A8D5BA);
   color: var(--text-primary);
-  font-weight: 700;
-  font-size: 0.95rem;
+  font-weight: 800;
+  font-size: 1rem;
   cursor: pointer;
   transition: background 0.15s ease;
 }
 .btn-google-native:hover:not(:disabled) {
-  background: var(--cream);
+  background: var(--mint-dark, #7BBF95);
 }
 .btn-google-native:disabled {
+  opacity: 0.7;
+  cursor: default;
+}
+.auth-google-hint {
+  margin: 8px 0 0;
+  font-size: 0.78rem;
+  color: var(--text-light);
+  text-align: center;
+}
+/* Đăng ký bằng email là lựa chọn phụ — làm nhạt hơn nút Google. */
+.btn-secondary-auth {
+  width: 100%;
+  padding: 11px 16px;
+  border: 1.5px solid var(--kraft-light, #d9c9a8);
+  border-radius: 999px;
+  background: var(--warm-white);
+  color: var(--text-secondary, #7a6555);
+  font-family: inherit;
+  font-weight: 700;
+  font-size: 0.92rem;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+.btn-secondary-auth:hover:not(:disabled) {
+  background: var(--cream);
+}
+.btn-secondary-auth:disabled {
   opacity: 0.7;
   cursor: default;
 }

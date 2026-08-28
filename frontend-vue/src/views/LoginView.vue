@@ -7,6 +7,25 @@
 
       <div v-if="message" :class="['auth-message', messageType]" v-html="message"></div>
 
+      <!-- Google đặt LÊN TRƯỚC form email: không phụ thuộc email xác nhận nên vào được
+           ngay, kể cả khi hạn mức gửi mail đã cạn (sự cố 29/08/2026).
+           Google chặn OAuth trong WebView nhúng (app mobile) nên bản native phải dùng
+           SDK riêng (Credential Manager) thay cho nút SDK JS của web. -->
+      <button
+        v-if="isNativeApp"
+        type="button"
+        class="btn-google-native"
+        :disabled="nativeGoogleLoading"
+        @click="handleNativeGoogleLogin"
+      >
+        <span v-if="nativeGoogleLoading">Đang mở Google...</span>
+        <span v-else>Đăng nhập với Google</span>
+      </button>
+      <div v-else id="btnGoogleLogin" ref="googleBtnEl" style="display:flex;justify-content:center;"></div>
+      <p class="auth-google-hint">Nhanh nhất — không cần chờ email xác nhận</p>
+
+      <div class="divider" style="margin:18px 0;">hoặc dùng email</div>
+
       <form class="auth-form" @submit.prevent="handleSubmit">
         <div class="form-group">
           <label class="form-label">Email</label>
@@ -19,26 +38,10 @@
         <div style="text-align:right;margin-bottom:16px;">
           <router-link to="/forgot-password" style="font-size:0.82rem;color:var(--text-light);">Quên mật khẩu?</router-link>
         </div>
-        <button type="submit" class="btn-primary" style="width: 100%; font-size: 1rem; padding: 12px;" :disabled="submitting">
-          {{ submitting ? 'Đang đăng nhập...' : 'Đăng Nhập' }}
+        <button type="submit" class="btn-secondary-auth" :disabled="submitting">
+          {{ submitting ? 'Đang đăng nhập...' : 'Đăng nhập bằng email' }}
         </button>
       </form>
-
-      <div class="divider" style="margin-top:20px;">hoặc</div>
-
-      <!-- Google chặn đăng nhập OAuth chạy trong WebView nhúng (app mobile) nên phải dùng
-           SDK native riêng (Credential Manager) thay cho nút SDK JS dùng trên web. -->
-      <button
-        v-if="isNativeApp"
-        type="button"
-        class="btn-google-native"
-        :disabled="nativeGoogleLoading"
-        @click="handleNativeGoogleLogin"
-      >
-        <span v-if="nativeGoogleLoading">Đang mở Google...</span>
-        <span v-else>Đăng nhập với Google</span>
-      </button>
-      <div v-else id="btnGoogleLogin" ref="googleBtnEl" style="display:flex;justify-content:center;margin-bottom:4px;"></div>
 
       <div class="auth-links">
         Chưa có tài khoản? <router-link to="/signup">Đăng ký ngay</router-link>
@@ -290,21 +293,48 @@ onMounted(async () => {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 11px 16px;
-  margin-bottom: 4px;
-  border: 1.5px solid var(--kraft-light, #d9c9a8);
+  padding: 13px 16px;
+  border: 2px solid var(--mint-dark, #7BBF95);
   border-radius: 999px;
-  background: var(--warm-white);
+  background: var(--mint, #A8D5BA);
   color: var(--text-primary);
-  font-weight: 700;
-  font-size: 0.95rem;
+  font-weight: 800;
+  font-size: 1rem;
   cursor: pointer;
   transition: background 0.15s ease;
 }
 .btn-google-native:hover:not(:disabled) {
-  background: var(--cream);
+  background: var(--mint-dark, #7BBF95);
 }
 .btn-google-native:disabled {
+  opacity: 0.7;
+  cursor: default;
+}
+.auth-google-hint {
+  margin: 8px 0 0;
+  font-size: 0.78rem;
+  color: var(--text-light);
+  text-align: center;
+}
+/* Đăng nhập bằng email giờ là lựa chọn phụ — làm nhạt hơn nút Google để hướng người
+   dùng sang cách không phụ thuộc email xác nhận. */
+.btn-secondary-auth {
+  width: 100%;
+  padding: 11px 16px;
+  border: 1.5px solid var(--kraft-light, #d9c9a8);
+  border-radius: 999px;
+  background: var(--warm-white);
+  color: var(--text-secondary, #7a6555);
+  font-family: inherit;
+  font-weight: 700;
+  font-size: 0.92rem;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+.btn-secondary-auth:hover:not(:disabled) {
+  background: var(--cream);
+}
+.btn-secondary-auth:disabled {
   opacity: 0.7;
   cursor: default;
 }
