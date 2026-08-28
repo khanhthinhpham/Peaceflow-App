@@ -53,6 +53,11 @@ auth.waitForAuth().then(() => notif.init());
   background: var(--warm-white);
 }
 @media (max-width: 900px) {
-  .shell-host { margin-left: 0; width: 100vw; margin-top: 60px; min-height: calc(100vh - 60px); }
+  .shell-host {
+    margin-left: 0;
+    width: 100vw;
+    margin-top: calc(60px + env(safe-area-inset-top, 0px));
+    min-height: calc(100vh - 60px - env(safe-area-inset-top, 0px));
+  }
 }
 </style>

@@ -449,7 +449,7 @@ body.expert-portal-body {
   }
 
   .expert-main {
-    padding-top: calc(var(--topbar-height, 60px) + 6px);
+    padding-top: calc(var(--topbar-height, 60px) + 6px + env(safe-area-inset-top, 0px));
   }
 
   /* Tránh trùng chuông với topbar mobile */

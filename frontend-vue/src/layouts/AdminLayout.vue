@@ -88,6 +88,6 @@ onBeforeUnmount(() => {
   min-height: 100vh;
 }
 @media (max-width: 860px) {
-  #adminPageHost { margin-left: 0; padding-top: 60px; }
+  #adminPageHost { margin-left: 0; padding-top: calc(60px + env(safe-area-inset-top, 0px)); }
 }
 </style>

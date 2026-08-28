@@ -1,19 +1,21 @@
 <template>
   <div class="mobile-topbar expert-mobile-topbar">
-    <button type="button" class="mobile-menu-btn" aria-label="Mở menu chuyên gia" @click="$emit('toggle-sidebar')">☰</button>
-    <router-link :to="{ name: 'expert-dashboard' }" class="expert-mobile-brand" aria-label="Về tổng quan chuyên gia">
-      <div class="logo-icon">🌿</div>
-      <div class="expert-mobile-brand-text">
-        <span class="expert-mobile-brand-name">Peace<span>Flow</span></span>
-        <span class="expert-mobile-brand-role">Chuyên gia</span>
-      </div>
-    </router-link>
-    <button type="button" class="expert-mobile-notif-btn" aria-label="Mở thông báo" @click="notif.togglePanel()">
-      <span class="expert-mobile-notif-icon" aria-hidden="true">
-        🔔
-        <span class="expert-mobile-bell-badge" :class="{ show: notif.unread > 0 }">{{ Math.min(notif.unread, 9) }}</span>
-      </span>
-    </button>
+    <div class="mobile-topbar-inner">
+      <button type="button" class="mobile-menu-btn" aria-label="Mở menu chuyên gia" @click="$emit('toggle-sidebar')">☰</button>
+      <router-link :to="{ name: 'expert-dashboard' }" class="expert-mobile-brand" aria-label="Về tổng quan chuyên gia">
+        <div class="logo-icon">🌿</div>
+        <div class="expert-mobile-brand-text">
+          <span class="expert-mobile-brand-name">Peace<span>Flow</span></span>
+          <span class="expert-mobile-brand-role">Chuyên gia</span>
+        </div>
+      </router-link>
+      <button type="button" class="expert-mobile-notif-btn" aria-label="Mở thông báo" @click="notif.togglePanel()">
+        <span class="expert-mobile-notif-icon" aria-hidden="true">
+          🔔
+          <span class="expert-mobile-bell-badge" :class="{ show: notif.unread > 0 }">{{ Math.min(notif.unread, 9) }}</span>
+        </span>
+      </button>
+    </div>
   </div>
 </template>
 
@@ -29,10 +31,14 @@ const notif = useNotificationsStore();
   display: none;
   position: fixed;
   top: 0; left: 0; right: 0;
-  height: 60px;
+  padding-top: env(safe-area-inset-top, 0px);
   background: var(--warm-white);
   border-bottom: 2px solid var(--kraft-light);
   z-index: 300;
+}
+.mobile-topbar-inner {
+  height: 60px;
+  display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0 16px;
@@ -54,6 +60,6 @@ const notif = useNotificationsStore();
   justify-content: center;
 }
 @media (max-width: 1180px) {
-  .mobile-topbar { display: flex; }
+  .mobile-topbar { display: block; }
 }
 </style>
