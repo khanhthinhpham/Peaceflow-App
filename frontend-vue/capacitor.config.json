@@ -16,6 +16,9 @@
     "StatusBar": {
       "backgroundColor": "#FFF8F0"
     },
+    "EdgeToEdge": {
+      "backgroundColor": "#FFF8F0"
+    },
     "SocialLogin": {
       "google": {
         "webClientId": "287402483358-uiec013q9obn1m8j82ejhkdmuoi3ku6v.apps.googleusercontent.com"
