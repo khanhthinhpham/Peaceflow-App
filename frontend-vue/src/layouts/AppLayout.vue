@@ -51,6 +51,9 @@ auth.waitForAuth().then(() => notif.init());
   min-height: 100vh;
   position: relative;
   background: var(--warm-white);
+  /* Android 15+ (target SDK 35+) buộc edge-to-edge — nội dung vẽ tràn xuống dưới cả
+     thanh điều hướng hệ thống nếu không tự chừa. Trên web env(...) = 0px, không đổi gì. */
+  padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 @media (max-width: 900px) {
   .shell-host {

@@ -19,10 +19,11 @@
     border-bottom: 2px solid var(--kraft-light);
     padding: 0 5%;
     /* padding-top che status bar/tai thỏ khi chạy trong app mobile (Capacitor) — trên
-       web thường env(safe-area-inset-top) = 0px nên không đổi gì. min-height (không phải
-       height) để phần thêm vào không ép co nội dung bên trong. */
+       web thường env(safe-area-inset-top) = 0px nên không đổi gì. min-height phải CỘNG
+       THÊM đúng phần padding-top đó, nếu không vùng chứa nội dung (sau khi trừ padding)
+       bị hẹp lại, đẩy logo dồn xuống sát viền dưới thay vì nằm giữa như thiết kế gốc. */
     padding-top: env(safe-area-inset-top, 0px);
-    min-height: 64px;
+    min-height: calc(64px + env(safe-area-inset-top, 0px));
     height: auto;
     display: flex;
     align-items: center;
@@ -1014,6 +1015,7 @@
     background: var(--text-primary);
     color: rgba(255, 255, 255, 0.85);
     padding: 48px 5% 24px;
+    padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px));
 }
 
 .footer-grid {
