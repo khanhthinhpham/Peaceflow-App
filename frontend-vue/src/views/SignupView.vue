@@ -34,7 +34,7 @@
           <span v-else>Đăng ký với Google</span>
         </button>
         <div v-else ref="googleBtnEl" style="display:flex;justify-content:center;"></div>
-        <p class="auth-google-hint">Nhanh nhất — không cần chờ email xác nhận</p>
+        <p class="auth-google-hint">thuận tiện — Nhanh chóng</p>
         <div class="divider" style="margin:18px 0;">hoặc dùng email</div>
       </template>
 
