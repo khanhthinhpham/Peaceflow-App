@@ -358,7 +358,8 @@ router.get('/admin/ai/topics', requireAuth, async (req, res) => {
     }
 });
 
-// GET /admin/ai/logs?limit=25&offset=0&feature=chat&status=error — log chi tiết từng lần gọi
+// GET /admin/ai/logs?limit=25&offset=0&feature=chat&status=error&q=<ten hoac email>
+// Log chi tiết từng lần gọi. Tham số q để tra một người cụ thể đã dùng AI làm những gì.
 router.get('/admin/ai/logs', requireAuth, async (req, res) => {
     try {
         if (!requireAdmin(req, res)) return;
@@ -373,16 +374,39 @@ router.get('/admin/ai/logs', requireAuth, async (req, res) => {
         }
         if (req.query.status === 'error') conditions.push('l.success = false');
         if (req.query.status === 'success') conditions.push('l.success = true');
+
+        const search = String(req.query.q || '').trim();
+        if (search) {
+            // Tìm theo tên hiển thị / tên đầy đủ / email.
+            // Escape \, % và _ để người gõ "a_b" hay "giảm 50%" không bị LIKE hiểu thành
+            // ký tự đại diện (nếu không, gõ "%" sẽ khớp toàn bộ log).
+            const escaped = search.replace(/[\\%_]/g, (ch) => `\\${ch}`);
+            params.push(`%${escaped}%`);
+            const p = params.length;
+            conditions.push(
+                `(u.display_name ilike $${p} escape '\\'
+                  or u.full_name ilike $${p} escape '\\'
+                  or u.email ilike $${p} escape '\\')`
+            );
+        }
         const where = conditions.length ? `where ${conditions.join(' and ')}` : '';
 
-        const countRes = await db.query(`select count(*)::int as total from ai_usage_logs l ${where}`, params);
+        // Câu đếm cũng phải join users, vì điều kiện tìm kiếm tham chiếu tới u.*
+        const countRes = await db.query(
+            `select count(*)::int as total
+             from ai_usage_logs l
+             left join users u on u.id = l.user_id
+             ${where}`,
+            params
+        );
 
         params.push(limit);
         params.push(offset);
         const { rows } = await db.query(
             `select l.id, l.feature, l.model, l.prompt_tokens, l.output_tokens, l.cached_tokens,
                     l.latency_ms, l.success, l.error_message, l.topics, l.created_at,
-                    coalesce(u.display_name, u.full_name, u.email, '(đã xoá)') as user_name
+                    coalesce(u.display_name, u.full_name, u.email, '(đã xoá)') as user_name,
+                    u.email as user_email
              from ai_usage_logs l
              left join users u on u.id = l.user_id
              ${where}

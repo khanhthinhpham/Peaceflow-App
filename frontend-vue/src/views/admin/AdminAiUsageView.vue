@@ -155,6 +155,28 @@
         >{{ opt.l }}</button>
       </div>
 
+      <!-- Tra cứu một người cụ thể đã dùng AI làm gì. Gõ xong dừng 400ms mới gọi API để
+           không bắn một request cho mỗi ký tự. -->
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
+        <input
+          v-model="logSearch"
+          type="search"
+          class="admin-input"
+          placeholder="Tìm theo tên hoặc email người dùng..."
+          aria-label="Tìm log theo tên hoặc email"
+          style="flex:1;min-width:220px;"
+          @input="onSearchInput"
+          @keyup.enter="loadLogs(0)"
+        >
+        <button
+          v-if="logSearch"
+          type="button"
+          class="admin-tab"
+          title="Xoá tìm kiếm"
+          @click="logSearch = ''; loadLogs(0)"
+        >✕ Xoá</button>
+      </div>
+
       <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px;">
         <span style="font-size:.82rem;color:var(--text-light);">{{ logMetaText }}</span>
         <select v-model.number="logLimit" class="admin-input" aria-label="Số log mỗi trang" title="Số log mỗi trang" style="max-width:130px;margin-left:auto;" @change="loadLogs(0)">
@@ -176,7 +198,10 @@
                 <span :style="log.success ? chipOk : chipErr">{{ log.success ? 'OK' : 'LỖI' }}</span>
                 <span v-if="log.from_cache" :style="chipCache" title="Dùng lại kết quả có sẵn — không tốn token">♻️ CACHE</span>
                 <strong style="font-size:.88rem;">{{ FEATURE_LABEL[log.feature] || log.feature }}</strong>
-                <span style="font-size:.78rem;color:var(--text-secondary);">{{ log.user_name }}</span>
+                <span style="font-size:.78rem;color:var(--text-secondary);">
+                  {{ log.user_name }}
+                  <span v-if="log.user_email && log.user_email !== log.user_name" style="color:var(--text-light);">· {{ log.user_email }}</span>
+                </span>
               </div>
               <div style="font-size:.76rem;color:var(--text-light);margin-top:4px;">
                 {{ dtFull(log.created_at) }} · {{ log.model || '—' }} ·
@@ -200,7 +225,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
 import { apiClient } from '../../lib/apiClient';
 import AdminPager from '../../components/AdminPager.vue';
 
@@ -284,13 +309,23 @@ const logPage = ref(0);
 const logLimit = ref(25);
 const logStatus = ref('');
 const logFeature = ref('');
+const logSearch = ref('');
+
+// Gõ xong dừng 400ms mới gọi API, tránh mỗi ký tự một request.
+let searchTimer = null;
+function onSearchInput() {
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(() => loadLogs(0), 400);
+}
+onBeforeUnmount(() => clearTimeout(searchTimer));
 
 const logTotalPages = computed(() => Math.max(1, Math.ceil(logTotal.value / logLimit.value)));
 const logMetaText = computed(() => {
   if (logsLoading.value) return '';
   const from = logTotal.value ? logPage.value * logLimit.value + 1 : 0;
   const to = logPage.value * logLimit.value + logs.value.length;
-  return `${from}–${to} trong ${logTotal.value} lượt gọi · Trang ${logPage.value + 1}/${logTotalPages.value}`;
+  const base = `${from}–${to} trong ${logTotal.value} lượt gọi · Trang ${logPage.value + 1}/${logTotalPages.value}`;
+  return logSearch.value.trim() ? `${base} · đang tìm "${logSearch.value.trim()}"` : base;
 });
 
 async function loadOverview() {
@@ -311,6 +346,7 @@ async function loadLogs(p = logPage.value) {
     const qs = new URLSearchParams({ limit: String(logLimit.value), offset: String(logPage.value * logLimit.value) });
     if (logStatus.value) qs.set('status', logStatus.value);
     if (logFeature.value) qs.set('feature', logFeature.value);
+    if (logSearch.value.trim()) qs.set('q', logSearch.value.trim());
     const data = await apiClient.get(`/admin/ai/logs?${qs.toString()}`, { noCache: true });
     logs.value = data?.logs || [];
     logTotal.value = data?.total || 0;
