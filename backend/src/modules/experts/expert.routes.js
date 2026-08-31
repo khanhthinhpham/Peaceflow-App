@@ -571,6 +571,30 @@ router.post('/experts/:id/bookings', requireAuth, async (req, res) => {
       [booking.id, orderCode, amount, provider, qrUrl, checkoutUrl, content, expiresAt.toISOString()]
     );
 
+    // Báo admin ngay khi booking được tạo để theo dõi đơn chờ thanh toán.
+    // Thông báo này tách biệt với thông báo khi thân chủ bấm "Đã chuyển khoản".
+    const adminsRes = await db.query(`select id from users where role = 'admin'`);
+    const startsAtLabel = payload.starts_at.toLocaleString('vi-VN', {
+      timeZone: 'Asia/Ho_Chi_Minh',
+      dateStyle: 'short',
+      timeStyle: 'short'
+    });
+    const expiresAtLabel = expiresAt.toLocaleString('vi-VN', {
+      timeZone: 'Asia/Ho_Chi_Minh',
+      dateStyle: 'short',
+      timeStyle: 'short'
+    });
+    for (const admin of adminsRes.rows) {
+      await notify(
+        admin.id,
+        clientName || 'Thân chủ',
+        'booking_new',
+        `Booking mới: ${clientName || 'Thân chủ'} đặt lịch với chuyên gia ${expert.full_name}, ` +
+        `${payload.session_type === 'voice' ? 'gọi thoại' : 'video'} lúc ${startsAtLabel}, ` +
+        `giá ${amount.toLocaleString('vi-VN')}đ. Hạn thanh toán: ${expiresAtLabel}.`
+      );
+    }
+
     return res.json({
       success: true,
       data: {
