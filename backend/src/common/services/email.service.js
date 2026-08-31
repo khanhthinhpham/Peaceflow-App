@@ -179,6 +179,37 @@ export async function sendBookingRequestEmail({ to, expertName, clientName, sess
   });
 }
 
+// Gửi cho admin ngay khi một booking mới được tạo, trước khi thanh toán được xác nhận.
+export async function sendBookingCreatedAdminEmail({
+  to, clientName, clientEmail, expertName, sessionType, startsAt,
+  amount, orderCode, expiresAt
+}) {
+  if (!hasMailProvider() || !to) return;
+  const adminLink = `${APP_URL}/expert/app.html?page=dashboard.html`;
+  await sendMail({
+    from: FROM,
+    to,
+    subject: '🆕 Booking mới đang chờ thanh toán — PeaceFlow',
+    html: `
+      <div style="font-family:sans-serif;max-width:560px;margin:0 auto;padding:32px 24px;">
+        <h2 style="color:#2D6A4F;margin-bottom:8px;">Có booking mới đang chờ thanh toán</h2>
+        <p style="color:#555;line-height:1.6;">Một thân chủ vừa tạo booking trên PeaceFlow. Vui lòng theo dõi trạng thái thanh toán.</p>
+        <table style="width:100%;border-collapse:collapse;font-size:0.95rem;color:#333;margin:16px 0;">
+          <tr><td style="padding:6px 0;color:#888;width:160px;">Thân chủ</td><td><strong>${clientName || '-'}</strong></td></tr>
+          <tr><td style="padding:6px 0;color:#888;">Email thân chủ</td><td>${clientEmail || '-'}</td></tr>
+          <tr><td style="padding:6px 0;color:#888;">Chuyên gia</td><td><strong>${expertName || '-'}</strong></td></tr>
+          <tr><td style="padding:6px 0;color:#888;">Hình thức</td><td>${SESSION_LABELS[sessionType] || sessionType || '-'}</td></tr>
+          <tr><td style="padding:6px 0;color:#888;">Thời gian gọi</td><td><strong>${formatBookingTime(startsAt)}</strong></td></tr>
+          <tr><td style="padding:6px 0;color:#888;">Số tiền</td><td><strong>${Number(amount || 0).toLocaleString('vi-VN')}đ</strong></td></tr>
+          <tr><td style="padding:6px 0;color:#888;">Mã thanh toán</td><td>${orderCode || '-'}</td></tr>
+          <tr><td style="padding:6px 0;color:#888;">Hạn thanh toán</td><td><strong>${formatBookingTime(expiresAt)}</strong></td></tr>
+        </table>
+        <a href="${adminLink}" style="display:inline-block;margin:16px 0;padding:12px 28px;background:#52B788;color:#fff;border-radius:8px;text-decoration:none;font-weight:700;">Mở trang quản trị</a>
+      </div>
+    `
+  });
+}
+
 // Gửi cho thân chủ khi chuyên gia cập nhật trạng thái lịch hẹn.
 export async function sendBookingStatusEmail({ to, clientName, expertName, sessionType, startsAt, status }) {
   if (!hasMailProvider() || !to) return;

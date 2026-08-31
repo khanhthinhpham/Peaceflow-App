@@ -4,7 +4,7 @@ import { requireAuth } from '../../common/middleware/auth.middleware.js';
 import { db } from '../../config/db.js';
 import { z } from 'zod';
 import { env } from '../../config/env.js';
-import { sendBookingRequestEmail, sendBookingStatusEmail, sendBookingConfirmedEmail, sendPayoutMethodChangedEmail } from '../../common/services/email.service.js';
+import { sendBookingRequestEmail, sendBookingCreatedAdminEmail, sendBookingStatusEmail, sendBookingConfirmedEmail, sendPayoutMethodChangedEmail } from '../../common/services/email.service.js';
 import { createZoomMeeting } from '../../common/services/zoom.service.js';
 import { generateOrderCode, transferContent, buildTransferContent, buildVietQrUrl, platformBankInfo, computeFee, isPayosEnabled, createPayosPayment, qrImageFromString, verifyPayosWebhook, lookupBankAccount, isVietqrLookupEnabled } from '../../common/services/payment.service.js';
 import { approveExpertApplication, rejectExpertApplication } from '../auth/auth.service.js';
@@ -539,7 +539,7 @@ router.post('/experts/:id/bookings', requireAuth, async (req, res) => {
     const booking = bookingResult.rows[0];
 
     const orderCode = generateOrderCode();
-    const clientNameRes = await db.query(`select coalesce(display_name, full_name, '') as name from users where id = $1`, [req.user.sub]);
+    const clientNameRes = await db.query(`select coalesce(display_name, full_name, '') as name, email from users where id = $1`, [req.user.sub]);
     const clientName = clientNameRes.rows[0]?.name || '';
 
     // Nội dung CK: "TÊN PEACEFLOW <mã>" (chế độ thủ công); PayOS dùng mã ngắn (giới hạn 25 ký tự).
@@ -573,7 +573,7 @@ router.post('/experts/:id/bookings', requireAuth, async (req, res) => {
 
     // Báo admin ngay khi booking được tạo để theo dõi đơn chờ thanh toán.
     // Thông báo này tách biệt với thông báo khi thân chủ bấm "Đã chuyển khoản".
-    const adminsRes = await db.query(`select id from users where role = 'admin'`);
+    const adminsRes = await db.query(`select id, email from users where role = 'admin'`);
     const startsAtLabel = payload.starts_at.toLocaleString('vi-VN', {
       timeZone: 'Asia/Ho_Chi_Minh',
       dateStyle: 'short',
@@ -593,6 +593,21 @@ router.post('/experts/:id/bookings', requireAuth, async (req, res) => {
         `${payload.session_type === 'voice' ? 'gọi thoại' : 'video'} lúc ${startsAtLabel}, ` +
         `giá ${amount.toLocaleString('vi-VN')}đ. Hạn thanh toán: ${expiresAtLabel}.`
       );
+      try {
+        await sendBookingCreatedAdminEmail({
+          to: admin.email,
+          clientName,
+          clientEmail: clientNameRes.rows[0]?.email,
+          expertName: expert.full_name,
+          sessionType: payload.session_type,
+          startsAt: payload.starts_at,
+          amount,
+          orderCode,
+          expiresAt
+        });
+      } catch (error) {
+        console.error('[email] new booking admin notification failed:', error.message);
+      }
     }
 
     return res.json({
