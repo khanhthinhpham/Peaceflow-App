@@ -57,6 +57,16 @@ export const useNotificationsStore = defineStore('notifications', {
       unsubscribeNotifications();
       subscribeNotifications((notif) => {
         const meta = toastMetaFor(notif);
+        const nextNotification = {
+          ...notif,
+          icon: meta.icon,
+          title: meta.title,
+          body: notif.message,
+          action: meta.action
+        };
+        if (!this.notifications.some((item) => item.id === nextNotification.id)) {
+          this.notifications.unshift(nextNotification);
+        }
         this.pushToast({ type: notif.type, icon: meta.icon, title: meta.title, body: notif.message, action: meta.action });
         this.unread++;
 

@@ -29,6 +29,16 @@ export const NotificationManager = {
         subscribeNotifications((notif) => {
             // Hiện toast ngay lập tức theo đúng loại thông báo
             const meta = this._toastMetaFor(notif);
+            const nextNotification = {
+                ...notif,
+                icon: meta.icon,
+                title: meta.title,
+                body: notif.message,
+                action: meta.action
+            };
+            if (!this._notifications.some((item) => item.id === nextNotification.id)) {
+                this._notifications.unshift(nextNotification);
+            }
             this._showToast({
                 type: notif.type,
                 icon: meta.icon,
