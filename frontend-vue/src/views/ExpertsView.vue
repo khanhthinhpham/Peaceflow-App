@@ -921,8 +921,12 @@ function startPaymentPoll(bookingId) {
   paymentPoll = setInterval(async () => {
     try {
       const p = await apiClient.get(`/bookings/${bookingId}/payment`, { noCache: true });
-      if (p.booking_status && p.booking_status !== 'pending_payment') {
+      // Chỉ coi là "đã thanh toán" khi chuyển sang đúng các trạng thái sau thanh toán —
+      // tránh nhận nhầm khi status chuyển thành 'expired' (đơn giữ chỗ hết hạn giữa lúc đang poll).
+      if (['pending', 'awaiting_expert', 'confirmed'].includes(p.booking_status)) {
         paymentPaidSuccess();
+      } else if (p.booking_status === 'expired') {
+        stopPaymentPoll();
       }
     } catch (_e) { /* bỏ qua, thử lại lượt sau */ }
   }, 4000);
@@ -977,6 +981,11 @@ function stopPaymentCountdown() {
 async function reopenPayment(bookingId, expertId) {
   try {
     const p = await apiClient.get(`/bookings/${bookingId}/payment`, { noCache: true });
+    if (p.booking_status === 'expired') {
+      alert('Đơn giữ chỗ này đã hết hạn, vui lòng đặt lịch lại.');
+      loadMyBookings();
+      return;
+    }
     if (p.booking_status !== 'pending_payment') {
       loadMyBookings();
       return;

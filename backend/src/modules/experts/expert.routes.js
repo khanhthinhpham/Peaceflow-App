@@ -775,6 +775,13 @@ router.get('/bookings/:id/payment', requireAuth, async (req, res) => {
     );
     const row = r.rows[0];
     if (!row) return res.status(404).json({ success: false, message: 'Không tìm thấy lịch hẹn.' });
+
+    if (row.booking_status === 'pending_payment' && row.expires_at && new Date(row.expires_at) < new Date()) {
+      await expireBookingPaymentIfDue(row.booking_id);
+      row.booking_status = 'expired';
+      row.payment_status = 'expired';
+    }
+
     return res.json({
       success: true,
       data: {
@@ -848,6 +855,8 @@ router.post('/payments/webhook', async (req, res) => {
 // Thân chủ báo "đã chuyển khoản" → đưa lịch vào hàng chờ chuyên gia xác nhận (chế độ thủ công).
 router.post('/bookings/:id/claim-payment', requireAuth, async (req, res) => {
   try {
+    await expireBookingPaymentIfDue(req.params.id);
+
     const bRes = await db.query(
       `select b.*, e.user_id as expert_user_id, e.full_name as expert_name, eu.email as expert_email
        from expert_bookings b
@@ -858,6 +867,9 @@ router.post('/bookings/:id/claim-payment', requireAuth, async (req, res) => {
     );
     const booking = bRes.rows[0];
     if (!booking) return res.status(404).json({ success: false, message: 'Không tìm thấy lịch hẹn.' });
+    if (booking.status === 'expired') {
+      return res.status(409).json({ success: false, message: `Đơn giữ chỗ đã hết hạn (quá ${env.paymentExpireMinutes} phút), vui lòng đặt lịch lại.` });
+    }
     if (booking.status !== 'pending_payment') {
       return res.status(409).json({ success: false, message: 'Lịch hẹn không ở trạng thái chờ thanh toán.' });
     }
@@ -2299,6 +2311,8 @@ router.get('/wallet', requireAuth, async (req, res) => {
 // Thanh toán lịch hẹn bằng số dư ví (tự xác nhận → chờ chuyên gia nhận).
 router.post('/bookings/:id/pay-wallet', requireAuth, async (req, res) => {
   try {
+    await expireBookingPaymentIfDue(req.params.id);
+
     const bRes = await db.query(
       `select b.*, e.user_id as expert_user_id, coalesce(u.display_name, u.full_name, 'Thân chủ') as client_name
        from expert_bookings b join experts e on e.id = b.expert_id join users u on u.id = b.user_id
@@ -2307,6 +2321,9 @@ router.post('/bookings/:id/pay-wallet', requireAuth, async (req, res) => {
     );
     const b = bRes.rows[0];
     if (!b) return res.status(404).json({ success: false, message: 'Không tìm thấy lịch hẹn.' });
+    if (b.status === 'expired') {
+      return res.status(409).json({ success: false, message: `Đơn giữ chỗ đã hết hạn (quá ${env.paymentExpireMinutes} phút), vui lòng đặt lịch lại.` });
+    }
     if (b.status !== 'pending_payment') return res.status(409).json({ success: false, message: 'Lịch không ở trạng thái chờ thanh toán.' });
     const amount = Number(b.amount) || 0;
     if (amount <= 0) return res.status(400).json({ success: false, message: 'Đơn không hợp lệ.' });
@@ -2772,6 +2789,24 @@ async function notify(recipientId, actorName, type, message) {
   } catch (e) {
     console.error('[notify] failed:', e.message);
   }
+}
+
+// Hết hạn NGAY một booking cụ thể nếu đã quá giờ giữ chỗ — dùng ở các endpoint đọc/ghi
+// trạng thái thanh toán để không phải chờ expireStaleBookings() được kích hoạt tình cờ
+// bởi một request khác (đặt lịch mới / xem slot của đúng chuyên gia đó).
+async function expireBookingPaymentIfDue(bookingId) {
+  const r = await db.query(
+    `update payments set status = 'expired'
+     where booking_id = $1 and status = 'pending' and expires_at < now()
+     returning booking_id`,
+    [bookingId]
+  );
+  if (!r.rows.length) return false;
+  await db.query(
+    `update expert_bookings set status = 'expired' where id = $1 and status = 'pending_payment'`,
+    [bookingId]
+  );
+  return true;
 }
 
 // Hết hạn các đơn chưa thanh toán quá giờ → nhả khung giờ đang giữ chỗ.
