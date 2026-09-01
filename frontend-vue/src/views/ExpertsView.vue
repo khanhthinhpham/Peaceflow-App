@@ -221,7 +221,8 @@ Ví dụ: Tôi đang gặp khó khăn với lo âu công việc và mất ngủ 
                 <div style="font-size:3rem;margin-bottom:12px;">🎉</div>
                 <div style="font-size:1.1rem;font-weight:800;margin-bottom:6px;">{{ paymentPaidTitle }}</div>
                 <div style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:16px;line-height:1.5;">{{ paymentPaidText }}</div>
-                <button class="btn-primary" @click="closeBookingModal">Đóng</button>
+                <MedicalRecordsUpload v-if="currentBookingId" :booking-id="currentBookingId" />
+                <button class="btn-primary" style="margin-top:14px;" @click="closeBookingModal">Đóng</button>
               </div>
             </template>
           </div>
@@ -235,7 +236,8 @@ Ví dụ: Tôi đang gặp khó khăn với lo âu công việc và mất ngủ 
               📅 <strong>{{ formatDateTime(bookingData.startsAt) }}</strong><br>
               💬 <span>{{ SESSION_CONFIG[bookingData.sessionType]?.label }}</span> với <strong>{{ currentExpert.name }}</strong>
             </div>
-            <button class="btn-primary" @click="closeBookingModal">Đóng</button>
+            <MedicalRecordsUpload v-if="currentBookingId" :booking-id="currentBookingId" />
+            <button class="btn-primary" style="margin-top:14px;" @click="closeBookingModal">Đóng</button>
           </div>
         </div>
       </div>
@@ -509,6 +511,7 @@ Ví dụ: Tôi đang gặp khó khăn với lo âu công việc và mất ngủ 
 <script setup>
 import { ref, reactive, computed, onMounted, onBeforeUnmount } from 'vue';
 import { apiClient } from '../lib/apiClient';
+import MedicalRecordsUpload from '../components/MedicalRecordsUpload.vue';
 
 const SESSION_CONFIG = {
   voice: { label: 'Gọi thoại', icon: '📞' },
@@ -765,6 +768,7 @@ function openBookingModal(id) {
   bookingStep.value = 1;
   bookingPhase.value = 'form';
   paymentPaid.value = false;
+  currentBookingId.value = null;
   loadTimeSlots();
   bookingOpen.value = true;
   document.body.style.overflow = 'hidden';
@@ -822,6 +826,7 @@ async function confirmBooking() {
 
     localStorage.setItem('peaceflow_dashboard_refresh', '1');
     loadMyBookings();
+    currentBookingId.value = booking.id;
     if (booking.payment) {
       showPaymentStep(booking.id, booking.payment);
     } else {

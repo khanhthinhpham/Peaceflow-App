@@ -93,6 +93,7 @@
                         {{ formatDateTime(booking.starts_at) }} · {{ booking.duration_minutes }} phút · {{ money(booking.price) }}
                       </div>
                       <div v-if="booking.notes" class="expert-booking-notes">{{ booking.notes }}</div>
+                      <MedicalRecordsViewer :booking-id="booking.id" />
                       <div v-if="booking.review_rating" class="expert-booking-extra">Đánh giá: {{ booking.review_rating }}/5</div>
                       <a v-if="booking.status === 'confirmed' && booking.zoom_start_url" :href="booking.zoom_start_url" target="_blank" rel="noopener" class="expert-booking-zoom-link">🎥 Vào phòng Zoom</a>
                     </div>
@@ -138,6 +139,7 @@
                 <div class="expert-pending-meta">{{ SESSION_TYPE_LABELS[booking.session_type] || booking.session_type }} · {{ formatDateTime(booking.starts_at) }} · {{ booking.duration_minutes }} phút</div>
                 <div v-if="booking.notes" class="expert-pending-note">{{ booking.notes }}</div>
                 <div v-else class="expert-pending-note is-empty">Thân chủ chưa để lại mô tả tình trạng.</div>
+                <MedicalRecordsViewer :booking-id="booking.id" />
                 <div class="expert-booking-actions">
                   <button type="button" class="expert-booking-action is-primary" @click="updateBooking(booking.id, 'confirmed')">Nhận lịch</button>
                   <button type="button" class="expert-booking-action" @click="updateBooking(booking.id, 'cancelled')">Từ chối</button>
@@ -270,6 +272,7 @@ import { useRouter } from 'vue-router';
 import { apiClient } from '../../lib/apiClient';
 import { useExpertPortalStore } from '../../stores/expertPortal';
 import { useNotificationsStore } from '../../stores/notifications';
+import MedicalRecordsViewer from '../../components/MedicalRecordsViewer.vue';
 import ExpertStatusBanner from '../../components/ExpertStatusBanner.vue';
 
 const SESSION_TYPE_LABELS = { chat: 'Chat', voice: 'Gọi thoại', video: 'Video', inperson: 'Trực tiếp' };
