@@ -161,6 +161,29 @@ Ví dụ: Tôi đang gặp khó khăn với lo âu công việc và mất ngủ 
               ></textarea>
               <div style="font-size:0.72rem;color:var(--text-light);margin-top:4px;">🔒 Thông tin được mã hóa AES-256 và chỉ chuyên gia được chọn mới có thể xem</div>
             </div>
+            <div class="bm-section">
+              <div class="bm-section-title">📎 Hồ sơ khám cũ (nếu có)</div>
+              <p style="font-size:0.78rem;color:var(--text-secondary);line-height:1.5;margin:0 0 10px;">Bệnh án, đơn thuốc, chỉ số thăm khám từ nơi khác — giúp chuyên gia hiểu tình trạng của bạn hơn. Hoàn toàn tuỳ chọn, có thể bỏ qua. Dữ liệu được mã hoá, chỉ chuyên gia buổi hẹn này xem được.</p>
+              <label style="display:inline-flex;align-items:center;padding:7px 14px;border:1.5px solid var(--mint-dark);border-radius:999px;background:var(--mint-light);color:var(--text-primary);font-weight:700;font-size:0.82rem;cursor:pointer;">
+                <input ref="medicalFileInput" type="file" multiple accept="image/*,application/pdf" style="display:none;" @change="onPickMedicalFiles">
+                <span>+ Thêm ảnh/PDF</span>
+              </label>
+              <div v-if="medicalRecordFiles.length" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;">
+                <span
+                  v-for="(f, i) in medicalRecordFiles"
+                  :key="i"
+                  style="display:inline-flex;align-items:center;gap:6px;padding:4px 8px;border-radius:999px;background:var(--cream);font-size:0.78rem;border:1px solid var(--kraft-light);"
+                >{{ f.name }} <button type="button" style="border:none;background:none;cursor:pointer;color:var(--coral);font-size:0.8rem;padding:0;" @click="medicalRecordFiles.splice(i, 1)">✕</button></span>
+              </div>
+              <textarea
+                v-model="medicalRecordNote"
+                rows="2"
+                maxlength="2000"
+                placeholder="Ghi chú cho hồ sơ đính kèm (ví dụ: đơn thuốc từ BV X, kê ngày ...)"
+                style="width:100%;box-sizing:border-box;margin-top:10px;border:1.5px solid var(--kraft-light);border-radius:12px;padding:8px 10px;font-family:inherit;font-size:0.85rem;resize:vertical;"
+              ></textarea>
+              <div v-if="medicalRecordError" style="font-size:0.78rem;color:var(--coral);margin-top:6px;">{{ medicalRecordError }}</div>
+            </div>
             <div style="display:flex;gap:10px;justify-content:flex-end;">
               <button class="btn-outline" @click="goBookingStep(2)">← Quay lại</button>
               <button class="btn-primary" @click="goBookingStep(4)">Xem tóm tắt →</button>
@@ -562,6 +585,10 @@ const bookingData = reactive({
   topic: '', severity: '', notes: ''
 });
 const notesFreeText = ref('');
+const medicalFileInput = ref(null);
+const medicalRecordFiles = ref([]);
+const medicalRecordNote = ref('');
+const medicalRecordError = ref('');
 
 const bookingOpen = ref(false);
 const profileOpen = ref(false);
@@ -765,6 +792,9 @@ function openBookingModal(id) {
     duration: defaultTier.minutes, date: new Date().toISOString().slice(0, 10), time: '10:00', startsAt: '', topic: '', severity: '', notes: ''
   });
   notesFreeText.value = '';
+  medicalRecordFiles.value = [];
+  medicalRecordNote.value = '';
+  medicalRecordError.value = '';
   bookingStep.value = 1;
   bookingPhase.value = 'form';
   paymentPaid.value = false;
@@ -806,6 +836,29 @@ function goBookingStep(step) {
   bookingStep.value = step;
 }
 
+function onPickMedicalFiles(e) {
+  const picked = Array.from(e.target.files || []);
+  const tooBig = picked.filter((f) => f.size > 5 * 1024 * 1024);
+  medicalRecordError.value = tooBig.length ? `File "${tooBig[0].name}" vượt quá 5MB, vui lòng chọn file nhỏ hơn.` : '';
+  medicalRecordFiles.value = medicalRecordFiles.value.concat(picked.filter((f) => f.size <= 5 * 1024 * 1024)).slice(0, 5);
+  if (medicalFileInput.value) medicalFileInput.value.value = '';
+}
+
+async function uploadPendingMedicalRecords(bookingId) {
+  if (!medicalRecordFiles.value.length && !medicalRecordNote.value.trim()) return;
+  try {
+    const formData = new FormData();
+    medicalRecordFiles.value.forEach((f) => formData.append('files', f));
+    if (medicalRecordNote.value.trim()) formData.set('note', medicalRecordNote.value.trim());
+    await apiClient.postForm(`/bookings/${bookingId}/medical-records`, formData);
+  } catch (error) {
+    console.error('Gửi hồ sơ khám cũ thất bại:', error);
+  } finally {
+    medicalRecordFiles.value = [];
+    medicalRecordNote.value = '';
+  }
+}
+
 const bookingSummaryTypeLabel = computed(() => {
   const session = SESSION_CONFIG[bookingData.sessionType] || SESSION_CONFIG.voice;
   const tier = DURATION_TIERS[bookingData.durationTier] || DURATION_TIERS.quick;
@@ -827,6 +880,7 @@ async function confirmBooking() {
     localStorage.setItem('peaceflow_dashboard_refresh', '1');
     loadMyBookings();
     currentBookingId.value = booking.id;
+    await uploadPendingMedicalRecords(booking.id);
     if (booking.payment) {
       showPaymentStep(booking.id, booking.payment);
     } else {
