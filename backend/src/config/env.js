@@ -29,6 +29,9 @@ export const env = {
   // Nguồn gửi mail dự phòng khi Resend hết quota (gói free Resend chỉ 100 mail/ngày,
   // Brevo cho thêm 300/ngày). Xem src/common/services/mail-transport.js.
   brevoApiKey: process.env.BREVO_API_KEY,
+  // Khoá AES-256 (32 byte, base64) mã hoá hồ sơ y tế cũ bệnh nhân đính kèm khi đặt lịch.
+  // Xem src/common/services/crypto.service.js. Sinh bằng: crypto.randomBytes(32).toString('base64')
+  medicalRecordsEncryptionKey: process.env.MEDICAL_RECORDS_ENCRYPTION_KEY,
   // Chỉ cần khi domain chưa xác thực xong ở Brevo — xem mail-transport.js.
   brevoFrom: process.env.BREVO_FROM,
   emailFrom: process.env.EMAIL_FROM || 'PeaceFlow <onboarding@resend.dev>',

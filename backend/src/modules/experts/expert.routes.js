@@ -9,6 +9,7 @@ import { createZoomMeeting } from '../../common/services/zoom.service.js';
 import { generateOrderCode, transferContent, buildTransferContent, buildVietQrUrl, platformBankInfo, computeFee, isPayosEnabled, createPayosPayment, qrImageFromString, verifyPayosWebhook, lookupBankAccount, isVietqrLookupEnabled } from '../../common/services/payment.service.js';
 import { approveExpertApplication, rejectExpertApplication } from '../auth/auth.service.js';
 import { sendPushToUser } from '../notifications/notification.routes.js';
+import { encryptBuffer, decryptBuffer, encryptText, decryptText } from '../../common/services/crypto.service.js';
 
 const router = Router();
 
@@ -635,6 +636,127 @@ router.post('/experts/:id/bookings', requireAuth, async (req, res) => {
     }
     console.error('Create expert booking error:', error);
     return res.status(500).json({ success: false, message: 'Could not create booking' });
+  }
+});
+
+// ===== Hồ sơ y tế cũ đính kèm khi đặt lịch (bệnh án, đơn thuốc, chỉ số thăm khám...) =====
+// Bệnh nhân đính kèm tuỳ chọn sau khi tạo booking. Chuyên gia được gán cho buổi đó xem
+// VĨNH VIỄN (không hết hạn theo trạng thái booking) — đã thống nhất với người yêu cầu.
+// File + ghi chú đều mã hoá thật (crypto.service.js), không như cột "notes" cũ chỉ text
+// thường dù UI có quảng cáo "mã hoá AES-256".
+const medicalRecordUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 5 * 1024 * 1024, files: 5 },
+  fileFilter: (req, file, cb) => {
+    const ok = file.mimetype.startsWith('image/') || file.mimetype === 'application/pdf';
+    if (!ok) return cb(new Error('Chỉ chấp nhận file ảnh hoặc PDF'));
+    cb(null, true);
+  }
+});
+
+// Xác thực người gọi là BỆNH NHÂN chủ booking HOẶC chuyên gia được gán cho booking đó.
+// Trả về hàng booking nếu hợp lệ, tự gửi response lỗi và trả về null nếu không.
+async function authorizeBookingRecordsAccess(req, res, bookingId) {
+  const b = await db.query(
+    `select eb.id, eb.user_id, eb.expert_id, e.user_id as expert_user_id
+     from expert_bookings eb
+     join experts e on e.id = eb.expert_id
+     where eb.id = $1`,
+    [bookingId]
+  );
+  const booking = b.rows[0];
+  if (!booking) {
+    res.status(404).json({ success: false, message: 'Booking not found' });
+    return null;
+  }
+  const isPatient = booking.user_id === req.user.sub;
+  const isAssignedExpert = booking.expert_user_id === req.user.sub;
+  if (!isPatient && !isAssignedExpert) {
+    res.status(403).json({ success: false, message: 'Bạn không có quyền truy cập hồ sơ này.' });
+    return null;
+  }
+  return booking;
+}
+
+router.post('/bookings/:id/medical-records', requireAuth, medicalRecordUpload.array('files', 5), async (req, res) => {
+  try {
+    const booking = await db.query(`select id, user_id from expert_bookings where id = $1`, [req.params.id]);
+    if (!booking.rows[0]) return res.status(404).json({ success: false, message: 'Booking not found' });
+    // Chỉ BỆNH NHÂN của booking được thêm hồ sơ — chuyên gia chỉ có quyền xem.
+    if (booking.rows[0].user_id !== req.user.sub) {
+      return res.status(403).json({ success: false, message: 'Bạn không có quyền thêm hồ sơ cho lịch hẹn này.' });
+    }
+
+    const files = req.files || [];
+    const note = String(req.body?.note || '').trim().slice(0, 2000);
+
+    for (const file of files) {
+      await db.query(
+        `insert into booking_medical_records (booking_id, file, filename, mime, file_size)
+         values ($1, $2, $3, $4, $5)`,
+        [req.params.id, encryptBuffer(file.buffer), file.originalname.slice(0, 255), file.mimetype, file.size]
+      );
+    }
+    if (note) {
+      await db.query(
+        `update expert_bookings set medical_records_note = $1 where id = $2`,
+        [encryptText(note), req.params.id]
+      );
+    }
+
+    return res.json({ success: true, data: { uploaded: files.length, note_saved: Boolean(note) } });
+  } catch (error) {
+    console.error('Upload medical records error:', error);
+    return res.status(500).json({ success: false, message: error.message || 'Không tải lên được hồ sơ.' });
+  }
+});
+
+// Metadata + ghi chú (KHÔNG kèm nội dung file — file tải riêng qua route bên dưới để
+// tránh giải mã cả cục dữ liệu nặng khi chỉ cần hiển thị danh sách).
+router.get('/bookings/:id/medical-records', requireAuth, async (req, res) => {
+  try {
+    const booking = await authorizeBookingRecordsAccess(req, res, req.params.id);
+    if (!booking) return;
+
+    const noteRow = await db.query(`select medical_records_note from expert_bookings where id = $1`, [req.params.id]);
+    const files = await db.query(
+      `select id, filename, mime, file_size, created_at
+       from booking_medical_records where booking_id = $1 order by created_at asc`,
+      [req.params.id]
+    );
+
+    return res.json({
+      success: true,
+      data: {
+        note: decryptText(noteRow.rows[0]?.medical_records_note),
+        files: files.rows
+      }
+    });
+  } catch (error) {
+    console.error('List medical records error:', error);
+    return res.status(500).json({ success: false, message: 'Không tải được danh sách hồ sơ.' });
+  }
+});
+
+router.get('/bookings/:id/medical-records/:recordId/file', requireAuth, async (req, res) => {
+  try {
+    const booking = await authorizeBookingRecordsAccess(req, res, req.params.id);
+    if (!booking) return;
+
+    const r = await db.query(
+      `select file, filename, mime from booking_medical_records where id = $1 and booking_id = $2`,
+      [req.params.recordId, req.params.id]
+    );
+    const record = r.rows[0];
+    if (!record) return res.status(404).json({ success: false, message: 'File not found' });
+
+    const plain = decryptBuffer(record.file);
+    res.setHeader('Content-Type', record.mime);
+    res.setHeader('Content-Disposition', `inline; filename="${encodeURIComponent(record.filename)}"`);
+    return res.send(plain);
+  } catch (error) {
+    console.error('Download medical record error:', error);
+    return res.status(500).json({ success: false, message: 'Không tải được file.' });
   }
 });
 
