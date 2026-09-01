@@ -405,7 +405,7 @@ Ví dụ: Tôi đang gặp khó khăn với lo âu công việc và mất ngủ 
                   <button v-else class="btn-primary" style="padding:6px 14px;font-size:0.82rem;" @click="openReviewModal(b.id, b.expert_name)">Đánh giá</button>
                 </div>
                 <div v-else-if="b.status === 'pending_payment'" style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;">
-                  <button class="btn-primary" style="padding:6px 12px;font-size:0.8rem;" @click="reopenPayment(b.id)">Thanh toán</button>
+                  <button class="btn-primary" style="padding:6px 12px;font-size:0.8rem;" @click="reopenPayment(b.id, b.expert_id)">Thanh toán</button>
                   <button class="btn-outline" style="padding:6px 12px;font-size:0.8rem;" @click="cancelMyBooking(b.id)">Huỷ</button>
                 </div>
                 <div v-else-if="['pending', 'awaiting_expert', 'confirmed'].includes(b.status)" style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:flex-end;">
@@ -974,13 +974,14 @@ function stopPaymentCountdown() {
   if (paymentTimer) { clearInterval(paymentTimer); paymentTimer = null; }
 }
 
-async function reopenPayment(bookingId) {
+async function reopenPayment(bookingId, expertId) {
   try {
     const p = await apiClient.get(`/bookings/${bookingId}/payment`, { noCache: true });
     if (p.booking_status !== 'pending_payment') {
       loadMyBookings();
       return;
     }
+    currentExpertId.value = expertId;
     bookingOpen.value = true;
     document.body.style.overflow = 'hidden';
     showPaymentStep(bookingId, {
