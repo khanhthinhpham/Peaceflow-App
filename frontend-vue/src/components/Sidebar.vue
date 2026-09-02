@@ -138,7 +138,7 @@ const notif = useNotificationsStore();
 const activeKey = computed(() => route.meta?.navKey || null);
 const isExpert = computed(() => Boolean(auth.user?.is_expert));
 const expertRole = computed(() => Boolean(auth.user?.is_expert || auth.user?.role === 'expert'));
-const isAdmin = computed(() => auth.user?.role === 'admin');
+const isAdmin = computed(() => Boolean(auth.user?.role === 'admin' || auth.user?.is_admin));
 const displayName = computed(() => auth.user?.display_name || auth.user?.full_name || 'Người dùng');
 
 const avatarEmoji = computed(() => {

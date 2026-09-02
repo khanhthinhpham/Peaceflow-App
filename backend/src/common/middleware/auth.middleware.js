@@ -33,6 +33,7 @@ export async function requireAuth(req, res, next) {
       full_name: user.full_name,
       display_name: user.display_name,
       role: user.role,
+      is_admin: user.role === 'admin' || user.is_admin === true,
       email_verified: user.email_verified,
       status: user.status
     };

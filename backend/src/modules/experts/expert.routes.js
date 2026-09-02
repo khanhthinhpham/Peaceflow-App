@@ -574,7 +574,7 @@ router.post('/experts/:id/bookings', requireAuth, async (req, res) => {
 
     // Báo admin ngay khi booking được tạo để theo dõi đơn chờ thanh toán.
     // Thông báo này tách biệt với thông báo khi thân chủ bấm "Đã chuyển khoản".
-    const adminsRes = await db.query(`select id, email from users where role = 'admin'`);
+    const adminsRes = await db.query(`select id, email from users where role = 'admin' or is_admin`);
     const startsAtLabel = payload.starts_at.toLocaleString('vi-VN', {
       timeZone: 'Asia/Ho_Chi_Minh',
       dateStyle: 'short',
@@ -883,7 +883,7 @@ router.post('/bookings/:id/claim-payment', requireAuth, async (req, res) => {
     const clientName = clientRes.rows[0]?.name || 'Một thân chủ';
 
     // Báo ADMIN để đối chiếu sao kê & xác nhận thanh toán.
-    const adminsRes = await db.query(`select id from users where role = 'admin'`);
+    const adminsRes = await db.query(`select id from users where role = 'admin' or is_admin`);
     for (const admin of adminsRes.rows) {
       await notify(admin.id, clientName, 'booking_update', `${clientName} báo đã chuyển khoản — cần đối chiếu & xác nhận thanh toán.`);
     }
@@ -1428,7 +1428,7 @@ router.post('/expert-portal/clients/:userId/assessments/:code/submit', requireAu
 
 router.get('/admin/overview', requireAuth, async (req, res) => {
   try {
-    if (req.user.role !== 'admin') {
+    if (!req.user.is_admin) {
       return res.status(403).json({ success: false, message: 'Admin only' });
     }
 
@@ -1555,7 +1555,7 @@ router.get('/admin/overview', requireAuth, async (req, res) => {
 // Chuỗi thời gian 30 ngày (giờ VN) cho biểu đồ: doanh thu, booking, đăng ký.
 router.get('/admin/overview/trends', requireAuth, async (req, res) => {
   try {
-    if (req.user.role !== 'admin') return res.status(403).json({ success: false, message: 'Admin only' });
+    if (!req.user.is_admin) return res.status(403).json({ success: false, message: 'Admin only' });
 
     const days = `generate_series(
       (now() at time zone 'Asia/Ho_Chi_Minh')::date - 29,
@@ -1621,7 +1621,7 @@ router.get('/admin/overview/trends', requireAuth, async (req, res) => {
 // có bảng ghi page-view.
 router.get('/admin/overview/feature-usage', requireAuth, async (req, res) => {
   try {
-    if (req.user.role !== 'admin') return res.status(403).json({ success: false, message: 'Admin only' });
+    if (!req.user.is_admin) return res.status(403).json({ success: false, message: 'Admin only' });
 
     const [featuresRes, topTasksRes] = await Promise.all([
       db.query(
@@ -1695,7 +1695,7 @@ router.get('/admin/overview/feature-usage', requireAuth, async (req, res) => {
 // Danh sách hồ sơ đăng ký chuyên gia. ?status=pending|approved|rejected|all (mặc định pending).
 router.get('/admin/expert-applications', requireAuth, async (req, res) => {
   try {
-    if (req.user.role !== 'admin') return res.status(403).json({ success: false, message: 'Admin only' });
+    if (!req.user.is_admin) return res.status(403).json({ success: false, message: 'Admin only' });
 
     const allowed = ['pending', 'approved', 'rejected', 'all'];
     const filter = allowed.includes(req.query.status) ? req.query.status : 'pending';
@@ -1746,7 +1746,7 @@ router.get('/admin/expert-applications', requireAuth, async (req, res) => {
 // Duyệt / từ chối hồ sơ ngay trên web (tái dùng logic + email của luồng duyệt qua link).
 router.post('/admin/expert-applications/:id/approve', requireAuth, async (req, res) => {
   try {
-    if (req.user.role !== 'admin') return res.status(403).json({ success: false, message: 'Admin only' });
+    if (!req.user.is_admin) return res.status(403).json({ success: false, message: 'Admin only' });
     const tokenRes = await db.query(`select approval_token from expert_applications where id = $1 limit 1`, [req.params.id]);
     const token = tokenRes.rows[0]?.approval_token;
     if (!token) return res.status(404).json({ success: false, message: 'Không tìm thấy hồ sơ.' });
@@ -1760,7 +1760,7 @@ router.post('/admin/expert-applications/:id/approve', requireAuth, async (req, r
 
 router.post('/admin/expert-applications/:id/reject', requireAuth, async (req, res) => {
   try {
-    if (req.user.role !== 'admin') return res.status(403).json({ success: false, message: 'Admin only' });
+    if (!req.user.is_admin) return res.status(403).json({ success: false, message: 'Admin only' });
     const tokenRes = await db.query(`select approval_token from expert_applications where id = $1 limit 1`, [req.params.id]);
     const token = tokenRes.rows[0]?.approval_token;
     if (!token) return res.status(404).json({ success: false, message: 'Không tìm thấy hồ sơ.' });
@@ -1775,7 +1775,7 @@ router.post('/admin/expert-applications/:id/reject', requireAuth, async (req, re
 // Danh sách chuyên gia (đã được duyệt). ?search=&active=true|false&limit=&offset=
 router.get('/admin/experts', requireAuth, async (req, res) => {
   try {
-    if (req.user.role !== 'admin') return res.status(403).json({ success: false, message: 'Admin only' });
+    if (!req.user.is_admin) return res.status(403).json({ success: false, message: 'Admin only' });
 
     const limit = Math.min(Math.max(parseInt(req.query.limit, 10) || 25, 1), 100);
     const offset = Math.max(parseInt(req.query.offset, 10) || 0, 0);
@@ -1831,7 +1831,7 @@ router.get('/admin/experts', requireAuth, async (req, res) => {
 // Bật / tắt hoạt động của chuyên gia. Body: { active: boolean }.
 router.patch('/admin/experts/:id', requireAuth, async (req, res) => {
   try {
-    if (req.user.role !== 'admin') return res.status(403).json({ success: false, message: 'Admin only' });
+    if (!req.user.is_admin) return res.status(403).json({ success: false, message: 'Admin only' });
     if (typeof req.body.active !== 'boolean') {
       return res.status(400).json({ success: false, message: 'Thiếu trường active.' });
     }
@@ -1850,7 +1850,7 @@ router.patch('/admin/experts/:id', requireAuth, async (req, res) => {
 // Admin tải lên ảnh đại diện thật cho chuyên gia (thay cho avatar_emoji mặc định).
 router.post('/admin/experts/:id/avatar', requireAuth, avatarUpload.single('image'), async (req, res) => {
   try {
-    if (req.user.role !== 'admin') return res.status(403).json({ success: false, message: 'Admin only' });
+    if (!req.user.is_admin) return res.status(403).json({ success: false, message: 'Admin only' });
     if (!req.file) return res.status(400).json({ success: false, message: 'Thiếu file ảnh' });
 
     const r = await db.query(
@@ -1871,7 +1871,7 @@ router.post('/admin/experts/:id/avatar', requireAuth, avatarUpload.single('image
 // Xoá ảnh đại diện thật, quay về avatar_emoji mặc định.
 router.delete('/admin/experts/:id/avatar', requireAuth, async (req, res) => {
   try {
-    if (req.user.role !== 'admin') return res.status(403).json({ success: false, message: 'Admin only' });
+    if (!req.user.is_admin) return res.status(403).json({ success: false, message: 'Admin only' });
     const r = await db.query(
       `update experts set avatar_photo = null, avatar_photo_mime = null, updated_at = now() where id = $1 returning id`,
       [req.params.id]
@@ -1906,7 +1906,7 @@ router.get('/experts/:id/avatar', requireAuth, async (req, res) => {
 // Danh sách user. ?search= (email/tên), ?role=, ?status=, ?limit=&offset= (phân trang).
 router.get('/admin/users', requireAuth, async (req, res) => {
   try {
-    if (req.user.role !== 'admin') return res.status(403).json({ success: false, message: 'Admin only' });
+    if (!req.user.is_admin) return res.status(403).json({ success: false, message: 'Admin only' });
 
     const limit = Math.min(Math.max(parseInt(req.query.limit, 10) || 25, 1), 100);
     const offset = Math.max(parseInt(req.query.offset, 10) || 0, 0);
@@ -1953,7 +1953,7 @@ router.get('/admin/users', requireAuth, async (req, res) => {
 
 // Cập nhật trạng thái / vai trò user. Body: { status?, role? }.
 router.patch('/admin/users/:id', requireAuth, async (req, res) => {
-  if (req.user.role !== 'admin') return res.status(403).json({ success: false, message: 'Admin only' });
+  if (!req.user.is_admin) return res.status(403).json({ success: false, message: 'Admin only' });
   if (req.params.id === req.user.sub) {
     return res.status(400).json({ success: false, message: 'Không thể tự thay đổi tài khoản của chính mình.' });
   }
@@ -2031,7 +2031,7 @@ router.patch('/admin/users/:id', requireAuth, async (req, res) => {
 // Danh sách bài cần kiểm duyệt. ?filter=reported|hidden|all (mặc định reported).
 router.get('/admin/community/reports', requireAuth, async (req, res) => {
   try {
-    if (req.user.role !== 'admin') return res.status(403).json({ success: false, message: 'Admin only' });
+    if (!req.user.is_admin) return res.status(403).json({ success: false, message: 'Admin only' });
 
     const limit = Math.min(Math.max(parseInt(req.query.limit, 10) || 50, 1), 100);
     const offset = Math.max(parseInt(req.query.offset, 10) || 0, 0);
@@ -2067,7 +2067,7 @@ router.get('/admin/community/reports', requireAuth, async (req, res) => {
 // Ẩn / hiện lại bài. Body: { is_hidden: boolean }.
 router.patch('/admin/community/posts/:id', requireAuth, async (req, res) => {
   try {
-    if (req.user.role !== 'admin') return res.status(403).json({ success: false, message: 'Admin only' });
+    if (!req.user.is_admin) return res.status(403).json({ success: false, message: 'Admin only' });
     if (typeof req.body.is_hidden !== 'boolean') {
       return res.status(400).json({ success: false, message: 'Thiếu trường is_hidden.' });
     }
@@ -2087,7 +2087,7 @@ router.patch('/admin/community/posts/:id', requireAuth, async (req, res) => {
 // Bỏ qua báo cáo (xem như hợp lệ): xoá report, reset count & hiện lại bài.
 router.post('/admin/community/posts/:id/dismiss-reports', requireAuth, async (req, res) => {
   try {
-    if (req.user.role !== 'admin') return res.status(403).json({ success: false, message: 'Admin only' });
+    if (!req.user.is_admin) return res.status(403).json({ success: false, message: 'Admin only' });
     await db.query(`delete from community_reports where post_id = $1`, [req.params.id]);
     const r = await db.query(
       `update community_posts set reports_count = 0, is_hidden = false, updated_at = now() where id = $1
@@ -2105,7 +2105,7 @@ router.post('/admin/community/posts/:id/dismiss-reports', requireAuth, async (re
 // Gỡ hẳn bài viết (cascade xoá comment/reaction/report).
 router.delete('/admin/community/posts/:id', requireAuth, async (req, res) => {
   try {
-    if (req.user.role !== 'admin') return res.status(403).json({ success: false, message: 'Admin only' });
+    if (!req.user.is_admin) return res.status(403).json({ success: false, message: 'Admin only' });
     const r = await db.query(`delete from community_posts where id = $1 returning id`, [req.params.id]);
     if (!r.rows[0]) return res.status(404).json({ success: false, message: 'Không tìm thấy bài viết.' });
     return res.json({ success: true });
@@ -2118,7 +2118,7 @@ router.delete('/admin/community/posts/:id', requireAuth, async (req, res) => {
 // ===== Admin: quản lý lịch hẹn (quan sát toàn bộ) =====
 router.get('/admin/bookings', requireAuth, async (req, res) => {
   try {
-    if (req.user.role !== 'admin') return res.status(403).json({ success: false, message: 'Admin only' });
+    if (!req.user.is_admin) return res.status(403).json({ success: false, message: 'Admin only' });
 
     const STATUSES = ['pending_payment', 'pending', 'awaiting_expert', 'confirmed', 'completed', 'cancelled', 'expired'];
     const limit = Math.min(Math.max(parseInt(req.query.limit, 10) || 20, 1), 100);
@@ -2151,7 +2151,7 @@ router.get('/admin/bookings', requireAuth, async (req, res) => {
     const rowsRes = await db.query(
       `select b.id, b.session_type, b.starts_at, b.duration_minutes,
               coalesce(b.amount, b.price, 0)::int as amount, b.status, b.notes,
-              b.created_at, b.paid_at, b.cancelled_at, b.cancel_reason,
+              b.created_at, b.paid_at, b.cancelled_at, b.cancel_reason, b.zoom_join_url,
               u.full_name as client_name, u.email as client_email,
               e.full_name as expert_name, e.code as expert_code,
               p.order_code, p.content as payment_content, p.status as payment_status
@@ -2178,7 +2178,7 @@ router.get('/admin/bookings', requireAuth, async (req, res) => {
 // Danh sách lịch đã báo chuyển khoản, chờ admin đối chiếu sao kê.
 router.get('/admin/bookings/pending-payment', requireAuth, async (req, res) => {
   try {
-    if (req.user.role !== 'admin') return res.status(403).json({ success: false, message: 'Admin only' });
+    if (!req.user.is_admin) return res.status(403).json({ success: false, message: 'Admin only' });
     const limit = Math.min(Math.max(parseInt(req.query.limit, 10) || 20, 1), 100);
     const offset = Math.max(parseInt(req.query.offset, 10) || 0, 0);
     const countRes = await db.query(`select count(*)::int as total from expert_bookings where status = 'pending'`);
@@ -2214,7 +2214,7 @@ router.get('/admin/bookings/pending-payment', requireAuth, async (req, res) => {
 // Admin xác nhận đã nhận tiền → chốt lịch + ghi sổ doanh thu.
 router.post('/admin/bookings/:id/confirm-payment', requireAuth, async (req, res) => {
   try {
-    if (req.user.role !== 'admin') return res.status(403).json({ success: false, message: 'Admin only' });
+    if (!req.user.is_admin) return res.status(403).json({ success: false, message: 'Admin only' });
     const bRes = await db.query(
       `select b.*, e.user_id as expert_user_id, e.full_name as expert_name,
               eu.email as expert_email,
@@ -2275,7 +2275,7 @@ router.post('/admin/bookings/:id/confirm-payment', requireAuth, async (req, res)
 // Admin từ chối (không thấy tiền) → huỷ đơn.
 router.post('/admin/bookings/:id/reject-payment', requireAuth, async (req, res) => {
   try {
-    if (req.user.role !== 'admin') return res.status(403).json({ success: false, message: 'Admin only' });
+    if (!req.user.is_admin) return res.status(403).json({ success: false, message: 'Admin only' });
     const bRes = await db.query(`select * from expert_bookings where id = $1 limit 1`, [req.params.id]);
     const b = bRes.rows[0];
     if (!b) return res.status(404).json({ success: false, message: 'Không tìm thấy lịch hẹn.' });
@@ -2499,7 +2499,7 @@ router.get('/expert-portal/earnings', requireAuth, async (req, res) => {
 // ===== ADMIN: chi trả (payout) cho chuyên gia =====
 router.get('/admin/payouts/pending', requireAuth, async (req, res) => {
   try {
-    if (req.user.role !== 'admin') return res.status(403).json({ success: false, message: 'Admin only' });
+    if (!req.user.is_admin) return res.status(403).json({ success: false, message: 'Admin only' });
     const limit = Math.min(Math.max(parseInt(req.query.limit, 10) || 20, 1), 100);
     const offset = Math.max(parseInt(req.query.offset, 10) || 0, 0);
     const countRes = await db.query(`select count(*)::int as total from experts where coalesce(balance, 0) > 0`);
@@ -2520,7 +2520,7 @@ router.get('/admin/payouts/pending', requireAuth, async (req, res) => {
 
 router.post('/admin/payouts/:expertId', requireAuth, async (req, res) => {
   try {
-    if (req.user.role !== 'admin') return res.status(403).json({ success: false, message: 'Admin only' });
+    if (!req.user.is_admin) return res.status(403).json({ success: false, message: 'Admin only' });
     const eRes = await db.query(`select id, user_id, coalesce(balance, 0)::int as balance, full_name from experts where id = $1 limit 1`, [req.params.expertId]);
     const exp = eRes.rows[0];
     if (!exp) return res.status(404).json({ success: false, message: 'Không tìm thấy chuyên gia.' });

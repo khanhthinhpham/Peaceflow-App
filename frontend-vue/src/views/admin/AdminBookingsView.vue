@@ -63,6 +63,9 @@
           </div>
         </div>
         <div v-if="b.notes" style="margin-top:10px;font-size:.84rem;color:var(--text-secondary);background:var(--cream,#fff8f0);border:1px solid var(--kraft-light,#e8cba7);border-radius:10px;padding:8px 12px;">📝 {{ b.notes }}</div>
+        <div v-if="b.zoom_join_url" style="margin-top:8px;font-size:.82rem;">
+          🎥 <a :href="b.zoom_join_url" target="_blank" rel="noopener" style="color:var(--mint-dark,#2f7d52);font-weight:700;">{{ b.zoom_join_url }}</a>
+        </div>
         <div v-if="b.status === 'cancelled' && b.cancel_reason" style="margin-top:8px;font-size:.8rem;color:var(--coral-dark);">Lý do huỷ: {{ b.cancel_reason }}</div>
         <div v-if="b.order_code" style="margin-top:8px;font-size:.82rem;color:var(--text-secondary);">
           Mã CK: <strong style="font-family:monospace;">{{ b.payment_content || b.order_code }}</strong>{{ b.payment_status ? ` · TT: ${b.payment_status}` : '' }}

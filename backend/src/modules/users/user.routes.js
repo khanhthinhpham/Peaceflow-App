@@ -8,7 +8,8 @@ router.get('/me', requireAuth, async (req, res) => {
   try {
     const result = await db.query(
       `select u.id, u.email, u.full_name, u.display_name, u.phone, u.gender, u.avatar_url, u.city, u.country, u.role, u.email_verified, u.status, u.created_at,
-              exists(select 1 from experts e where e.user_id = u.id) as is_expert
+              exists(select 1 from experts e where e.user_id = u.id) as is_expert,
+              (u.role = 'admin' or u.is_admin) as is_admin
        from users u where u.id = $1`,
       [req.user.sub]
     );

@@ -32,7 +32,7 @@ router.get('/community', requireAuth, async (req, res) => {
            u.display_name,
            u.full_name,
            (select exists(select 1 from experts e where e.user_id = p.user_id)) as author_is_expert,
-           (u.role = 'admin') as author_is_admin,
+           (u.role = 'admin' or u.is_admin) as author_is_admin,
            coalesce(
              json_agg(
                distinct jsonb_build_object(
@@ -47,7 +47,7 @@ router.get('/community', requireAuth, async (req, res) => {
                    end,
                  'author_avatar', c.author_avatar,
                  'author_is_expert', (select exists(select 1 from experts e where e.user_id = c.user_id)),
-                 'author_is_admin', (cu.role = 'admin'),
+                 'author_is_admin', (cu.role = 'admin' or cu.is_admin),
                  'is_anonymous', c.is_anonymous,
                  'created_at', c.created_at
                )

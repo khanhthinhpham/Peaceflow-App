@@ -11,7 +11,7 @@ export async function findUserByEmail(email) {
 
 export async function findUserById(id) {
   const result = await db.query(
-    `select id, email, full_name, display_name, avatar_url, city, country, phone, role, status, email_verified, created_at
+    `select id, email, full_name, display_name, avatar_url, city, country, phone, role, is_admin, status, email_verified, created_at
      from public.users
      where id = $1
      limit 1`,

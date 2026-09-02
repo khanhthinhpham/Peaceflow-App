@@ -151,7 +151,7 @@ router.post('/ai/context/invalidate', requireAuth, (req, res) => {
 // dung tin nhắn — xem giải thích ở migration 0044).
 
 function requireAdmin(req, res) {
-    if (req.user.role !== 'admin') {
+    if (!req.user.is_admin) {
         res.status(403).json({ success: false, message: 'Admin only' });
         return false;
     }

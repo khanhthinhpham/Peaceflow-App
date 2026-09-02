@@ -248,7 +248,7 @@ router.post('/assessments/:code/submit', requireAuth, async (req, res) => {
 // lúc nộp bài, để nếu Gemini lỗi/chậm thì không ảnh hưởng việc lưu kết quả test.
 router.post('/assessments/results/:id/ai-summary', requireAuth, async (req, res) => {
   try {
-    const resultRes = req.user.role === 'admin'
+    const resultRes = req.user.is_admin
       ? await db.query(
           `select ar.total_score, ar.severity, ar.dimension_scores, a.name as assessment_name
            from assessment_results ar
@@ -354,13 +354,13 @@ router.get('/assessments/results/:id/attachment', requireAuth, async (req, res) 
 // khám trực tiếp). Ghi lại người sửa + thời điểm sửa để có dấu vết trên hồ sơ.
 router.patch('/assessments/results/:id', requireAuth, async (req, res) => {
   try {
-    if (req.user.role !== 'expert' && req.user.role !== 'admin') {
+    if (req.user.role !== 'expert' && !req.user.is_admin) {
       return res.status(403).json({ success: false, message: 'Chỉ chuyên gia hoặc admin mới có thể sửa kết quả.' });
     }
 
     // Admin sửa được bất kỳ kết quả nào (kiểm duyệt/hỗ trợ); chuyên gia chỉ sửa được
     // kết quả do chính mình nhập.
-    const ownerRes = req.user.role === 'admin'
+    const ownerRes = req.user.is_admin
       ? await db.query(`select id from assessment_results where id = $1 limit 1`, [req.params.id])
       : await db.query(`select id from assessment_results where id = $1 and user_id = $2 limit 1`, [req.params.id, req.user.sub]);
     if (!ownerRes.rows[0]) {
@@ -443,7 +443,7 @@ router.patch('/assessments/results/:id/flag', requireAuth, async (req, res) => {
     if (typeof req.body.flagged !== 'boolean') {
       return res.status(400).json({ success: false, message: 'Thiếu trường flagged.' });
     }
-    const access = req.user.role === 'admin'
+    const access = req.user.is_admin
       ? await db.query(`select id from assessment_results where id = $1 limit 1`, [req.params.id])
       : await db.query(
           `select ar.id from assessment_results ar
@@ -473,7 +473,7 @@ router.patch('/assessments/results/:id/flag', requireAuth, async (req, res) => {
 // Admin thao tác được trên bất kỳ kết quả nào (kiểm duyệt/hỗ trợ); chuyên gia chỉ thao
 // tác được trên kết quả do chính mình nhập.
 async function findOwnedResult(req) {
-  const r = req.user.role === 'admin'
+  const r = req.user.is_admin
     ? await db.query(`select id from assessment_results where id = $1 limit 1`, [req.params.id])
     : await db.query(`select id from assessment_results where id = $1 and user_id = $2 limit 1`, [req.params.id, req.user.sub]);
   return r.rows[0] || null;
@@ -481,7 +481,7 @@ async function findOwnedResult(req) {
 
 router.post('/assessments/results/:id/share', requireAuth, async (req, res) => {
   try {
-    if (req.user.role !== 'expert' && req.user.role !== 'admin') {
+    if (req.user.role !== 'expert' && !req.user.is_admin) {
       return res.status(403).json({ success: false, message: 'Chỉ chuyên gia hoặc admin mới có thể chia sẻ kết quả.' });
     }
     const targetUserIds = Array.isArray(req.body.target_user_ids)
@@ -519,7 +519,7 @@ router.post('/assessments/results/:id/share', requireAuth, async (req, res) => {
 // khi chuyển thì chủ cũ KHÔNG còn thấy kết quả này trong danh sách của mình nữa.
 router.post('/assessments/results/:id/transfer', requireAuth, async (req, res) => {
   try {
-    if (req.user.role !== 'expert' && req.user.role !== 'admin') {
+    if (req.user.role !== 'expert' && !req.user.is_admin) {
       return res.status(403).json({ success: false, message: 'Chỉ chuyên gia hoặc admin mới có thể chuyển hồ sơ.' });
     }
     const targetUserId = req.body.target_user_id;
@@ -588,7 +588,7 @@ router.delete('/assessments/results/:id/share/:targetUserId', requireAuth, async
 // CẢ kết quả của mọi tài khoản, không chỉ của riêng mình — để rà soát/hỗ trợ khi cần.
 router.get('/admin/assessment-results', requireAuth, async (req, res) => {
   try {
-    if (req.user.role !== 'admin') return res.status(403).json({ success: false, message: 'Admin only' });
+    if (!req.user.is_admin) return res.status(403).json({ success: false, message: 'Admin only' });
 
     const wantAll = req.query.limit === '0';
     const limit = wantAll ? 5000 : Math.min(Math.max(parseInt(req.query.limit, 10) || 10, 1), 100);
@@ -692,7 +692,7 @@ router.get('/admin/assessment-results', requireAuth, async (req, res) => {
 // xác tài khoản nào muốn xuất Excel, thay vì luôn xuất toàn bộ hệ thống.
 router.get('/admin/assessment-results/owners', requireAuth, async (req, res) => {
   try {
-    if (req.user.role !== 'admin') return res.status(403).json({ success: false, message: 'Admin only' });
+    if (!req.user.is_admin) return res.status(403).json({ success: false, message: 'Admin only' });
     const r = await db.query(
       `select u.id as owner_user_id, u.email as owner_email, u.role as owner_role,
               coalesce(u.display_name, u.full_name) as owner_name,
@@ -712,7 +712,7 @@ router.get('/admin/assessment-results/owners', requireAuth, async (req, res) => 
 // Admin xoá 1 kết quả bất kỳ trong hệ thống (kiểm duyệt/hỗ trợ) — không giới hạn theo chủ sở hữu.
 router.delete('/admin/assessment-results/:id', requireAuth, async (req, res) => {
   try {
-    if (req.user.role !== 'admin') return res.status(403).json({ success: false, message: 'Admin only' });
+    if (!req.user.is_admin) return res.status(403).json({ success: false, message: 'Admin only' });
     const r = await db.query(`delete from assessment_results where id = $1 returning id`, [req.params.id]);
     if (!r.rows[0]) return res.status(404).json({ success: false, message: 'Không tìm thấy kết quả này.' });
     return res.json({ success: true, data: { deleted: true } });
