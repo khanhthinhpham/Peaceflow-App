@@ -162,8 +162,8 @@ Ví dụ: Tôi đang gặp khó khăn với lo âu công việc và mất ngủ 
               <div style="font-size:0.72rem;color:var(--text-light);margin-top:4px;">🔒 Thông tin được mã hóa AES-256 và chỉ chuyên gia được chọn mới có thể xem</div>
             </div>
             <div class="bm-section">
-              <div class="bm-section-title">📎 Hồ sơ khám cũ (nếu có)</div>
-              <p style="font-size:0.78rem;color:var(--text-secondary);line-height:1.5;margin:0 0 10px;">Bệnh án, đơn thuốc, chỉ số thăm khám từ nơi khác — giúp chuyên gia hiểu tình trạng của bạn hơn. Hoàn toàn tuỳ chọn, có thể bỏ qua. Dữ liệu được mã hoá, chỉ chuyên gia buổi hẹn này xem được.</p>
+              <div class="bm-section-title">📎 Hồ sơ khám cũ <span style="color:var(--coral);">*</span></div>
+              <p style="font-size:0.78rem;color:var(--text-secondary);line-height:1.5;margin:0 0 10px;">Bệnh án, đơn thuốc, chỉ số thăm khám từ nơi khác — giúp chuyên gia hiểu tình trạng của bạn hơn. <strong>Bắt buộc:</strong> đính kèm ảnh/PDF, hoặc ghi chú cụ thể bên dưới — nếu chưa từng khám ở đâu khác, hãy ghi rõ "Không có". Dữ liệu được mã hoá, chỉ chuyên gia buổi hẹn này xem được.</p>
               <label style="display:inline-flex;align-items:center;padding:7px 14px;border:1.5px solid var(--mint-dark);border-radius:999px;background:var(--mint-light);color:var(--text-primary);font-weight:700;font-size:0.82rem;cursor:pointer;">
                 <input ref="medicalFileInput" type="file" multiple accept="image/*,application/pdf" style="display:none;" @change="onPickMedicalFiles">
                 <span>+ Thêm ảnh/PDF</span>
@@ -179,7 +179,7 @@ Ví dụ: Tôi đang gặp khó khăn với lo âu công việc và mất ngủ 
                 v-model="medicalRecordNote"
                 rows="2"
                 maxlength="2000"
-                placeholder="Ghi chú cho hồ sơ đính kèm (ví dụ: đơn thuốc từ BV X, kê ngày ...)"
+                placeholder="Ghi chú cụ thể về hồ sơ khám cũ (ví dụ: đơn thuốc từ BV X, kê ngày ...). Nếu chưa từng khám ở đâu khác, hãy ghi &quot;Không có&quot;."
                 style="width:100%;box-sizing:border-box;margin-top:10px;border:1.5px solid var(--kraft-light);border-radius:12px;padding:8px 10px;font-family:inherit;font-size:0.85rem;resize:vertical;"
               ></textarea>
               <div v-if="medicalRecordError" style="font-size:0.78rem;color:var(--coral);margin-top:6px;">{{ medicalRecordError }}</div>
@@ -823,6 +823,12 @@ function goBookingStep(step) {
     return;
   }
   if (step === 4) {
+    if (!medicalRecordFiles.value.length && !medicalRecordNote.value.trim()) {
+      medicalRecordError.value = 'Vui lòng đính kèm hồ sơ khám cũ, hoặc ghi chú cụ thể — nếu chưa từng khám ở đâu khác, hãy ghi rõ "Không có".';
+      alert(medicalRecordError.value);
+      return;
+    }
+    medicalRecordError.value = '';
     const startsAt = bookingData.date && bookingData.time ? `${bookingData.date}T${bookingData.time}:00+07:00` : '';
     bookingData.startsAt = startsAt;
     const headerParts = [];
