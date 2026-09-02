@@ -230,11 +230,17 @@
             <span class="expert-availability-legend-item"><span class="legend-swatch is-busy"></span> {{ busyCellsCount }} giờ bận</span>
           </div>
         </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+          <button type="button" class="btn-outline" style="padding:5px 12px;font-size:0.75rem;" :disabled="weeklyViewOffset <= 0" :style="{ opacity: weeklyViewOffset <= 0 ? 0.4 : 1, cursor: weeklyViewOffset <= 0 ? 'default' : 'pointer' }" @click="changeWeeklyView(-1)">← Tuần trước</button>
+          <span style="font-size:0.85rem;font-weight:700;">{{ weeklyRangeLabel }}{{ weeklyViewOffset === 0 ? ' (tuần này)' : '' }}</span>
+          <button type="button" class="btn-outline" style="padding:5px 12px;font-size:0.75rem;" @click="changeWeeklyView(1)">Tuần sau →</button>
+        </div>
+        <p style="font-size:0.72rem;color:var(--text-light);margin:0 0 10px;">Lịch này lặp lại <strong>mọi tuần</strong> — điều hướng chỉ để xem đúng ngày tương ứng, không phải đặt lịch riêng cho tuần đó.</p>
         <div class="expert-availability-matrix">
           <div class="expert-availability-heads">
             <div class="availability-time-spacer"></div>
             <div class="availability-head-cells">
-              <div v-for="day in AVAILABILITY_DAY_ORDER" :key="day" class="availability-day-head compact">{{ AVAILABILITY_DAY_LABELS[day] }}</div>
+              <div v-for="d in weeklyHeaderDates" :key="d.day" class="availability-day-head compact">{{ d.label }}<br><span style="font-weight:400;color:var(--text-light);font-size:0.68rem;">{{ d.dateLabel }}</span></div>
             </div>
           </div>
           <div class="expert-availability-rows">
@@ -506,6 +512,36 @@ async function loadEarnings() {
     earnings.value = null;
     earningsError.value = true;
   }
+}
+
+// Điều hướng tuần chỉ để HIỂN THỊ đúng ngày tương ứng (VD "T2 07/09") cho dễ hình dung —
+// lịch này là mẫu LẶP LẠI mọi tuần nên không ảnh hưởng gì đến dữ liệu khi đổi tuần xem.
+const WEEKDAY_OFFSET_FROM_MONDAY = { 1: 0, 2: 1, 3: 2, 4: 3, 5: 4, 6: 5, 0: 6 };
+const weeklyViewOffset = ref(0);
+function startOfWeek(date) {
+  const d = new Date(date);
+  d.setHours(0, 0, 0, 0);
+  const day = d.getDay();
+  d.setDate(d.getDate() + (day === 0 ? -6 : 1 - day));
+  return d;
+}
+function shortDate(d) {
+  return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}`;
+}
+const weeklyHeaderDates = computed(() => {
+  const weekStart = new Date(startOfWeek(new Date()).getTime() + weeklyViewOffset.value * 7 * 86400000);
+  return AVAILABILITY_DAY_ORDER.map((day) => {
+    const date = new Date(weekStart.getTime() + WEEKDAY_OFFSET_FROM_MONDAY[day] * 86400000);
+    return { day, label: AVAILABILITY_DAY_LABELS[day], dateLabel: shortDate(date) };
+  });
+});
+const weeklyRangeLabel = computed(() => {
+  const weekStart = new Date(startOfWeek(new Date()).getTime() + weeklyViewOffset.value * 7 * 86400000);
+  const weekEnd = new Date(weekStart.getTime() + 6 * 86400000);
+  return `${shortDate(weekStart)} – ${shortDate(weekEnd)}/${weekEnd.getFullYear()}`;
+});
+function changeWeeklyView(offset) {
+  weeklyViewOffset.value = Math.max(0, weeklyViewOffset.value + offset);
 }
 
 // availabilityActive = tập hợp các ô RẢNH mà chuyên gia đã bấm chọn (đổi hướng UX: bấm để
