@@ -87,18 +87,21 @@
             <div class="bm-section">
               <div class="bm-section-title">📅 Chọn ngày</div>
               <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-                <button class="btn-outline" style="padding:5px 12px;font-size:0.75rem;" @click="changeMonth(-1)">← Tháng trước</button>
+                <button class="btn-outline" style="padding:5px 12px;font-size:0.75rem;" :disabled="bookingMonthOffset <= 0" :style="{ opacity: bookingMonthOffset <= 0 ? 0.4 : 1, cursor: bookingMonthOffset <= 0 ? 'default' : 'pointer' }" @click="changeMonth(-1)">← Tháng trước</button>
                 <span style="font-size:0.85rem;font-weight:700;">{{ calMonthLabel }}</span>
                 <button class="btn-outline" style="padding:5px 12px;font-size:0.75rem;" @click="changeMonth(1)">Tháng sau →</button>
               </div>
               <div class="calendar-grid">
-                <div
-                  v-for="day in calendarDays"
-                  :key="day.iso"
-                  class="calendar-day valid"
-                  :class="{ selected: bookingData.date === day.iso }"
-                  @click="selectBookingDate(day.iso)"
-                >{{ day.day }}</div>
+                <div v-for="wd in WEEKDAY_LABELS" :key="wd" class="cal-header">{{ wd }}</div>
+                <template v-for="(day, idx) in calendarDays" :key="day ? day.iso : `blank-${idx}`">
+                  <div v-if="!day" class="cal-day disabled"></div>
+                  <div
+                    v-else
+                    class="cal-day"
+                    :class="{ selected: bookingData.date === day.iso, today: day.isToday, disabled: day.past }"
+                    @click="!day.past && selectBookingDate(day.iso)"
+                  >{{ day.day }}</div>
+                </template>
               </div>
             </div>
             <div class="bm-section">
@@ -541,6 +544,7 @@ const DURATION_TIERS = {
   quick: { label: 'Nhanh', icon: '⚡', durationLabel: 'Dưới 30 phút', minutes: 25 },
   standard: { label: 'Tiêu chuẩn', icon: '🕐', durationLabel: '30 - 60 phút', minutes: 45 }
 };
+const WEEKDAY_LABELS = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
 const TOPIC_OPTIONS = ['Lo âu', 'Trầm cảm', 'Stress công việc', 'Mất ngủ', 'Mối quan hệ', 'Sang chấn', 'Khác'];
 const SEVERITY_OPTIONS = ['Nhẹ', 'Vừa', 'Nặng'];
 const FILTER_BUTTONS = [
@@ -733,17 +737,24 @@ const calMonthLabel = computed(() => {
   const monthBase = new Date(today.getFullYear(), today.getMonth() + bookingMonthOffset.value, 1);
   return new Intl.DateTimeFormat('vi-VN', { month: 'long', year: 'numeric', timeZone: 'Asia/Bangkok' }).format(monthBase);
 });
+function toIsoDate(y, m, d) {
+  return `${y}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+}
+
 const calendarDays = computed(() => {
   const today = new Date();
+  const todayIso = toIsoDate(today.getFullYear(), today.getMonth(), today.getDate());
   const monthBase = new Date(today.getFullYear(), today.getMonth() + bookingMonthOffset.value, 1);
-  const days = [];
-  for (let i = 0; i < 14; i += 1) {
-    const date = new Date();
-    date.setDate(today.getDate() + i);
-    if (date.getMonth() !== monthBase.getMonth() || date.getFullYear() !== monthBase.getFullYear()) continue;
-    days.push({ iso: date.toISOString().slice(0, 10), day: date.getDate() });
+  const daysInMonth = new Date(monthBase.getFullYear(), monthBase.getMonth() + 1, 0).getDate();
+  // Chủ nhật = 0 — số ô trống đầu bảng để ngày 1 rơi đúng cột thứ trong tuần.
+  const leadingBlanks = monthBase.getDay();
+
+  const cells = Array.from({ length: leadingBlanks }, () => null);
+  for (let d = 1; d <= daysInMonth; d += 1) {
+    const iso = toIsoDate(monthBase.getFullYear(), monthBase.getMonth(), d);
+    cells.push({ iso, day: d, past: iso < todayIso, isToday: iso === todayIso });
   }
-  return days;
+  return cells;
 });
 
 async function loadTimeSlots() {
