@@ -270,7 +270,7 @@
       </div>
     </section>
 
-    <section v-if="hasProfile" class="expert-panel expert-section">
+    <section v-if="hasProfile" class="expert-panel expert-section" id="expertAvailabilityExceptionsSection">
       <div class="expert-section-head">
         <div>
           <h2 class="expert-section-title">Nghỉ / bận riêng theo ngày cụ thể</h2>

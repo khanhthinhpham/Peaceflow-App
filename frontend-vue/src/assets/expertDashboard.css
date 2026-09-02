@@ -116,7 +116,8 @@
 
 .expert-kpi-row,
 .expert-dashboard-grid,
-#expertAvailabilitySection {
+#expertAvailabilitySection,
+#expertAvailabilityExceptionsSection {
   margin-left: 38px;
   margin-right: 38px;
 }
@@ -726,7 +727,8 @@
 @media (max-width: 860px) {
   .expert-kpi-row,
   .expert-dashboard-grid,
-  #expertAvailabilitySection {
+  #expertAvailabilitySection,
+  #expertAvailabilityExceptionsSection {
     margin-left: 18px;
     margin-right: 18px;
   }
@@ -907,7 +909,8 @@
 
 }
 
-#expertAvailabilitySection {
+#expertAvailabilitySection,
+#expertAvailabilityExceptionsSection {
   margin-top: 20px;
 }
 
