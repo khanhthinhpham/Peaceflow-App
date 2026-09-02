@@ -953,3 +953,121 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* Nghỉ / bận riêng theo ngày cụ thể */
+#expertAvailabilityExceptions {
+  padding: 20px 28px 28px;
+}
+
+.availability-exception-form {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  margin-bottom: 16px;
+}
+
+.availability-exception-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.availability-exception-field label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--expert-muted);
+}
+
+.availability-exception-field input[type="date"],
+.availability-exception-field input[type="time"],
+.availability-exception-field input[type="text"] {
+  border: 1.5px solid var(--kraft-light);
+  border-radius: 12px;
+  padding: 9px 12px;
+  font: inherit;
+  font-size: 0.86rem;
+  color: var(--expert-ink);
+  background: #fff;
+  box-sizing: border-box;
+  height: 40px;
+}
+
+.availability-exception-field input:focus {
+  outline: none;
+  border-color: var(--expert-accent);
+}
+
+.availability-exception-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 40px;
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: var(--expert-ink);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.availability-exception-checkbox input {
+  width: 17px;
+  height: 17px;
+  accent-color: var(--expert-accent);
+  cursor: pointer;
+}
+
+.availability-exception-reason {
+  flex: 1;
+  min-width: 220px;
+}
+
+.availability-exception-reason input {
+  width: 100%;
+}
+
+.availability-exception-error {
+  color: var(--coral);
+  font-size: 0.82rem;
+  margin-bottom: 12px;
+}
+
+.availability-exception-empty {
+  color: var(--expert-muted);
+  font-size: 0.86rem;
+}
+
+.availability-exception-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.availability-exception-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 14px;
+  background: var(--cream);
+  border: 1px solid var(--kraft-light);
+  border-radius: 12px;
+  font-size: 0.86rem;
+  color: var(--expert-ink);
+}
+
+.availability-exception-remove {
+  border: none;
+  background: none;
+  color: var(--coral);
+  cursor: pointer;
+  font-size: 0.82rem;
+  font-weight: 700;
+  padding: 4px 8px;
+  border-radius: 8px;
+  flex: 0 0 auto;
+}
+
+.availability-exception-remove:hover {
+  background: rgba(224, 85, 85, 0.1);
+}

@@ -277,37 +277,39 @@
           <p class="expert-section-copy">Cộng thêm vào lịch tuần ở trên — dùng cho nghỉ lễ, nghỉ phép, bận đột xuất đúng 1 ngày.</p>
         </div>
       </div>
-      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-bottom:14px;">
-        <div>
-          <label style="display:block;font-size:0.78rem;color:var(--text-secondary);margin-bottom:4px;">Ngày</label>
-          <input type="date" v-model="exceptionForm.date" :min="todayIso" style="padding:7px 10px;border:1.5px solid var(--kraft-light);border-radius:8px;font:inherit;">
-        </div>
-        <label style="display:flex;align-items:center;gap:6px;font-size:0.84rem;cursor:pointer;padding-bottom:8px;">
-          <input type="checkbox" v-model="exceptionForm.fullDay">
-          Nghỉ cả ngày
-        </label>
-        <template v-if="!exceptionForm.fullDay">
-          <div>
-            <label style="display:block;font-size:0.78rem;color:var(--text-secondary);margin-bottom:4px;">Từ</label>
-            <input type="time" v-model="exceptionForm.startTime" style="padding:7px 10px;border:1.5px solid var(--kraft-light);border-radius:8px;font:inherit;">
+      <div id="expertAvailabilityExceptions">
+        <div class="availability-exception-form">
+          <div class="availability-exception-field">
+            <label>Ngày</label>
+            <input type="date" v-model="exceptionForm.date" :min="todayIso">
           </div>
-          <div>
-            <label style="display:block;font-size:0.78rem;color:var(--text-secondary);margin-bottom:4px;">Đến</label>
-            <input type="time" v-model="exceptionForm.endTime" style="padding:7px 10px;border:1.5px solid var(--kraft-light);border-radius:8px;font:inherit;">
+          <label class="availability-exception-checkbox">
+            <input type="checkbox" v-model="exceptionForm.fullDay">
+            Nghỉ cả ngày
+          </label>
+          <template v-if="!exceptionForm.fullDay">
+            <div class="availability-exception-field">
+              <label>Từ</label>
+              <input type="time" v-model="exceptionForm.startTime">
+            </div>
+            <div class="availability-exception-field">
+              <label>Đến</label>
+              <input type="time" v-model="exceptionForm.endTime">
+            </div>
+          </template>
+          <div class="availability-exception-field availability-exception-reason">
+            <label>Lý do (tuỳ chọn)</label>
+            <input type="text" v-model="exceptionForm.reason" maxlength="200" placeholder="VD: Nghỉ lễ, việc riêng...">
           </div>
-        </template>
-        <div style="flex:1;min-width:160px;">
-          <label style="display:block;font-size:0.78rem;color:var(--text-secondary);margin-bottom:4px;">Lý do (tuỳ chọn)</label>
-          <input type="text" v-model="exceptionForm.reason" maxlength="200" placeholder="VD: Nghỉ lễ, việc riêng..." style="width:100%;box-sizing:border-box;padding:7px 10px;border:1.5px solid var(--kraft-light);border-radius:8px;font:inherit;">
+          <button type="button" class="btn-primary" :disabled="addingException" @click="addAvailabilityException">Thêm</button>
         </div>
-        <button type="button" class="btn-primary" :disabled="addingException" @click="addAvailabilityException">Thêm</button>
-      </div>
-      <div v-if="exceptionError" style="color:var(--coral);font-size:0.82rem;margin-bottom:10px;">{{ exceptionError }}</div>
-      <div v-if="!availabilityExceptions.length" style="color:var(--text-secondary);font-size:0.85rem;">Chưa có ngày ngoại lệ nào sắp tới.</div>
-      <div v-else style="display:flex;flex-direction:column;gap:8px;">
-        <div v-for="ex in availabilityExceptions" :key="ex.id" style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 12px;background:var(--cream);border:1px solid var(--kraft-light);border-radius:10px;font-size:0.84rem;">
-          <div><strong>{{ formatExceptionDate(ex.date) }}</strong> · {{ ex.start_time }}–{{ ex.end_time }}{{ ex.reason ? ` · ${ex.reason}` : '' }}</div>
-          <button type="button" style="border:none;background:none;color:var(--coral);cursor:pointer;font-size:0.8rem;" @click="removeAvailabilityException(ex.id)">✕ Xoá</button>
+        <div v-if="exceptionError" class="availability-exception-error">{{ exceptionError }}</div>
+        <div v-if="!availabilityExceptions.length" class="availability-exception-empty">Chưa có ngày ngoại lệ nào sắp tới.</div>
+        <div v-else class="availability-exception-list">
+          <div v-for="ex in availabilityExceptions" :key="ex.id" class="availability-exception-item">
+            <div><strong>{{ formatExceptionDate(ex.date) }}</strong> · {{ ex.start_time }}–{{ ex.end_time }}{{ ex.reason ? ` · ${ex.reason}` : '' }}</div>
+            <button type="button" class="availability-exception-remove" @click="removeAvailabilityException(ex.id)">✕ Xoá</button>
+          </div>
         </div>
       </div>
     </section>
