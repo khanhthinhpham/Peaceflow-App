@@ -496,13 +496,19 @@ router.post('/experts/:id/bookings', requireAuth, async (req, res) => {
       return res.status(409).json({ success: false, message: 'Khung giờ này đã có lịch khác, vui lòng chọn giờ khác.' });
     }
 
-    // Chặn đặt vào khung giờ chuyên gia đã đánh dấu bận (lịch làm việc hằng tuần).
+    // Chặn đặt vào khung giờ chuyên gia đã đánh dấu bận (lịch làm việc hằng tuần + ngoại lệ theo ngày).
     const busyHit = await db.query(
       `select 1 from expert_availability a
        where a.expert_id = $1
          and a.weekday = extract(dow from ($2::timestamptz at time zone 'Asia/Bangkok'))::int
          and a.start_time < ($3::timestamptz at time zone 'Asia/Bangkok')::time
          and a.end_time > ($2::timestamptz at time zone 'Asia/Bangkok')::time
+       union all
+       select 1 from expert_availability_exceptions e
+       where e.expert_id = $1
+         and e.date = ($2::timestamptz at time zone 'Asia/Bangkok')::date
+         and e.start_time < ($3::timestamptz at time zone 'Asia/Bangkok')::time
+         and e.end_time > ($2::timestamptz at time zone 'Asia/Bangkok')::time
        limit 1`,
       [expert.id, payload.starts_at.toISOString(), endsAt.toISOString()]
     );
@@ -2612,6 +2618,95 @@ router.put('/expert-portal/availability', requireAuth, async (req, res) => {
   }
 });
 
+// ===== Ngoại lệ bận theo ngày cụ thể (nghỉ lễ, nghỉ phép, bận đột xuất) =====
+// Cộng thêm vào lịch bận lặp lại hàng tuần — không thay thế.
+
+router.get('/expert-portal/availability-exceptions', requireAuth, async (req, res) => {
+  try {
+    if (req.user.role !== 'expert') {
+      return res.status(403).json({ success: false, message: 'Expert access required' });
+    }
+    const eRes = await db.query(`select id from experts where user_id = $1 limit 1`, [req.user.sub]);
+    if (!eRes.rows[0]) return res.json({ success: true, data: [] });
+
+    const r = await db.query(
+      `select id, to_char(date, 'YYYY-MM-DD') as date,
+              to_char(start_time, 'HH24:MI') as start_time, to_char(end_time, 'HH24:MI') as end_time, reason
+       from expert_availability_exceptions
+       where expert_id = $1 and date >= current_date
+       order by date, start_time`,
+      [eRes.rows[0].id]
+    );
+    return res.json({ success: true, data: r.rows });
+  } catch (error) {
+    console.error('Get availability exceptions error:', error);
+    return res.status(500).json({ success: false, message: 'Could not fetch availability exceptions' });
+  }
+});
+
+router.post('/expert-portal/availability-exceptions', requireAuth, async (req, res) => {
+  try {
+    if (req.user.role !== 'expert') {
+      return res.status(403).json({ success: false, message: 'Expert access required' });
+    }
+    const payload = z.object({
+      date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+      full_day: z.coerce.boolean().optional().default(false),
+      start_time: z.string().regex(/^\d{2}:\d{2}$/).optional(),
+      end_time: z.string().regex(/^\d{2}:\d{2}$/).optional(),
+      reason: z.string().max(200).optional().nullable()
+    }).parse(req.body);
+
+    if (payload.date < new Date().toISOString().slice(0, 10)) {
+      return res.status(400).json({ success: false, message: 'Không thể thêm ngoại lệ cho ngày đã qua.' });
+    }
+
+    const startTime = payload.full_day ? `${String(SLOT_START_HOUR).padStart(2, '0')}:00` : payload.start_time;
+    const endTime = payload.full_day ? `${String(SLOT_END_HOUR).padStart(2, '0')}:00` : payload.end_time;
+    if (!startTime || !endTime || endTime <= startTime) {
+      return res.status(400).json({ success: false, message: 'Khung giờ không hợp lệ.' });
+    }
+
+    const eRes = await db.query(`select id from experts where user_id = $1 limit 1`, [req.user.sub]);
+    if (!eRes.rows[0]) return res.status(404).json({ success: false, message: 'Expert profile not found' });
+
+    const r = await db.query(
+      `insert into expert_availability_exceptions (expert_id, date, start_time, end_time, reason)
+       values ($1, $2, $3, $4, $5)
+       returning id, to_char(date, 'YYYY-MM-DD') as date,
+                 to_char(start_time, 'HH24:MI') as start_time, to_char(end_time, 'HH24:MI') as end_time, reason`,
+      [eRes.rows[0].id, payload.date, startTime, endTime, payload.reason || null]
+    );
+    return res.json({ success: true, data: r.rows[0] });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ success: false, message: 'Dữ liệu không hợp lệ' });
+    }
+    console.error('Create availability exception error:', error);
+    return res.status(500).json({ success: false, message: 'Could not create availability exception' });
+  }
+});
+
+router.delete('/expert-portal/availability-exceptions/:id', requireAuth, async (req, res) => {
+  try {
+    if (req.user.role !== 'expert') {
+      return res.status(403).json({ success: false, message: 'Expert access required' });
+    }
+    const eRes = await db.query(`select id from experts where user_id = $1 limit 1`, [req.user.sub]);
+    if (!eRes.rows[0]) return res.status(404).json({ success: false, message: 'Expert profile not found' });
+
+    const r = await db.query(
+      `delete from expert_availability_exceptions where id = $1 and expert_id = $2 returning id`,
+      [req.params.id, eRes.rows[0].id]
+    );
+    if (!r.rows[0]) return res.status(404).json({ success: false, message: 'Không tìm thấy ngoại lệ này.' });
+    return res.json({ success: true });
+  } catch (error) {
+    console.error('Delete availability exception error:', error);
+    return res.status(500).json({ success: false, message: 'Could not delete availability exception' });
+  }
+});
+
 // Client xem lịch rảnh của một chuyên gia
 router.get('/experts/:id/availability', requireAuth, async (req, res) => {
   try {
@@ -2641,11 +2736,17 @@ router.get('/experts/:id/slots', requireAuth, async (req, res) => {
 
     await expireStaleBookings();
 
-    const [busyRes, bookingRes, nowRes] = await Promise.all([
+    const [busyRes, exceptionRes, bookingRes, nowRes] = await Promise.all([
       db.query(
         `select to_char(start_time, 'HH24:MI') as s, to_char(end_time, 'HH24:MI') as e
          from expert_availability
          where expert_id = $1 and weekday = extract(dow from $2::date)::int`,
+        [req.params.id, date]
+      ),
+      db.query(
+        `select to_char(start_time, 'HH24:MI') as s, to_char(end_time, 'HH24:MI') as e
+         from expert_availability_exceptions
+         where expert_id = $1 and date = $2::date`,
         [req.params.id, date]
       ),
       db.query(
@@ -2668,7 +2769,7 @@ router.get('/experts/:id/slots', requireAuth, async (req, res) => {
     };
     const overlaps = (a1, a2, b1, b2) => a1 < b2 && b1 < a2;
 
-    const busy = busyRes.rows.map((r) => [toMin(r.s), toMin(r.e)]);
+    const busy = busyRes.rows.concat(exceptionRes.rows).map((r) => [toMin(r.s), toMin(r.e)]);
     const booked = bookingRes.rows.map((r) => {
       const start = toMin(r.t);
       return [start, start + (Number(r.duration_minutes) || 60)];
