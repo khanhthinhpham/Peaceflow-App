@@ -576,18 +576,23 @@ function toggleAvailabilityCell(key) {
 // để chuyên gia mới (chưa lưu gì, slots rỗng) thấy đúng thực tế hiện tại: toàn bộ đều rảnh.
 function buildAvailabilityState(slots) {
   const allCells = getAvailabilityCells();
-  const busy = new Set();
-  if (Array.isArray(slots) && slots.length > 0) {
-    slots.forEach((slot) => {
-      const weekday = Number(slot.weekday);
-      const start = timeToMinutes(slot.start_time);
-      const end = timeToMinutes(slot.end_time);
-      allCells.forEach((cell) => {
-        if (cell.weekday !== weekday) return;
-        if (cell.startMinutes >= start && cell.endMinutes <= end) busy.add(cell.key);
-      });
-    });
+
+  // Chưa từng lưu gì (chuyên gia mới) → mặc định TOÀN BỘ bận (đỏ), phải tự bấm chọn giờ
+  // rảnh — đúng nghĩa "bấm để chọn rảnh", không phải "mặc định rảnh sẵn, bấm để trừ ra".
+  if (!Array.isArray(slots) || slots.length === 0) {
+    return new Set();
   }
+
+  const busy = new Set();
+  slots.forEach((slot) => {
+    const weekday = Number(slot.weekday);
+    const start = timeToMinutes(slot.start_time);
+    const end = timeToMinutes(slot.end_time);
+    allCells.forEach((cell) => {
+      if (cell.weekday !== weekday) return;
+      if (cell.startMinutes >= start && cell.endMinutes <= end) busy.add(cell.key);
+    });
+  });
   const free = new Set();
   allCells.forEach((cell) => {
     if (!busy.has(cell.key)) free.add(cell.key);
@@ -625,6 +630,10 @@ function buildAvailabilityPayload() {
 }
 
 async function saveAvailability() {
+  if (freeCellsCount.value === 0) {
+    const ok = window.confirm('Bạn chưa chọn giờ rảnh nào — lưu như vậy nghĩa là thân chủ sẽ KHÔNG đặt được lịch vào bất kỳ giờ nào cả tuần. Vẫn lưu?');
+    if (!ok) return;
+  }
   savingAvailability.value = true;
   try {
     await apiClient.put('/expert-portal/availability', { slots: buildAvailabilityPayload() });
