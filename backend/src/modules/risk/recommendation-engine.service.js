@@ -1,5 +1,6 @@
 import { db } from '../../config/db.js';
 import { RiskEngineService } from './risk-engine.service.js';
+import { getActiveTasks } from '../tasks/tasks.cache.js';
 
 export class RecommendationEngineService {
   /**
@@ -151,8 +152,7 @@ export class RecommendationEngineService {
   }
 
   static async _getActiveTasks() {
-    const result = await db.query('SELECT * FROM tasks WHERE active = true');
-    return result.rows;
+    return getActiveTasks();
   }
 
   static async _getTaskHistory(userId) {

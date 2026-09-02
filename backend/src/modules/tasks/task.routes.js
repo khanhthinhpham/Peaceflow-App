@@ -3,6 +3,17 @@ import { requireAuth } from '../../common/middleware/auth.middleware.js';
 import { db } from '../../config/db.js';
 import { RecommendationEngineService } from '../risk/recommendation-engine.service.js';
 import { BadgeAwardService } from '../progress/badge-award.service.js';
+import { getActiveTasks } from './tasks.cache.js';
+
+function sortTasks(tasks) {
+  return [...tasks].sort((a, b) => {
+    const aEmergency = a.category === 'emergency' ? 0 : 1;
+    const bEmergency = b.category === 'emergency' ? 0 : 1;
+    if (aEmergency !== bEmergency) return aEmergency - bEmergency;
+    if (a.difficulty !== b.difficulty) return (a.difficulty ?? 0) - (b.difficulty ?? 0);
+    return (a.duration_minutes ?? 0) - (b.duration_minutes ?? 0);
+  });
+}
 
 const router = Router();
 
@@ -18,37 +29,29 @@ const LEVELS = [
 router.get('/tasks', requireAuth, async (req, res) => {
   try {
     const userId = req.user.sub;
-    const result = await db.query(
-      `select
-         t.*,
-         exists(
-           select 1
-           from task_completions tc
-           where tc.user_id = $1
-             and tc.task_id = t.id
-         ) as completed,
-         exists(
-           select 1
-           from user_task_assignments uta
-           where uta.user_id = $1
-             and uta.task_id = t.id
-             and uta.status = 'in_progress'
-         ) as in_progress,
-         (
-           select count(*)::int
-           from task_completions tc
-           where tc.user_id = $1
-             and tc.task_id = t.id
-         ) as completion_count
-       from tasks t
-       where t.active = true
-       order by
-         case when t.category = 'emergency' then 0 else 1 end,
-         t.difficulty,
-         t.duration_minutes`,
-      [userId]
-    );
-    return res.json({ success: true, data: result.rows });
+    const [tasks, completionsRes, inProgressRes] = await Promise.all([
+      getActiveTasks(),
+      db.query(
+        `select task_id, count(*)::int as completion_count
+         from task_completions where user_id = $1 group by task_id`,
+        [userId]
+      ),
+      db.query(
+        `select task_id from user_task_assignments where user_id = $1 and status = 'in_progress'`,
+        [userId]
+      )
+    ]);
+    const completionMap = new Map(completionsRes.rows.map((r) => [r.task_id, r.completion_count]));
+    const inProgressSet = new Set(inProgressRes.rows.map((r) => r.task_id));
+
+    const data = sortTasks(tasks.map((t) => ({
+      ...t,
+      completed: completionMap.has(t.id),
+      in_progress: inProgressSet.has(t.id),
+      completion_count: completionMap.get(t.id) || 0
+    })));
+
+    return res.json({ success: true, data });
   } catch (error) {
     console.error('Tasks list error:', error.message, error.stack);
     return res.status(500).json({ success: false, message: 'Could not fetch tasks' });
@@ -58,31 +61,26 @@ router.get('/tasks', requireAuth, async (req, res) => {
 // GET /api/v1/tasks/public-emergency
 router.get('/tasks/public-emergency', async (_req, res) => {
   try {
-    const result = await db.query(
-      `select
-         t.*,
-         false as completed,
-         false as in_progress,
-         0::int as completion_count
-       from tasks t
-       where t.active = true
-         and (
-           t.category = 'emergency'
-           or t.code like 'E%'
-           or exists (
-             select 1
-             from jsonb_array_elements_text(coalesce(t.tags, '[]'::jsonb)) as tag(value)
-             where lower(tag.value) = 'emergency'
-           )
-         )
-       order by
-         case when t.category = 'emergency' then 0 else 1 end,
-         t.difficulty,
-         t.duration_minutes,
-         t.code`,
-      []
-    );
-    return res.json({ success: true, data: result.rows });
+    const tasks = await getActiveTasks();
+    const isEmergency = (t) => {
+      if (t.category === 'emergency') return true;
+      if (typeof t.code === 'string' && t.code.startsWith('E')) return true;
+      const tags = Array.isArray(t.tags) ? t.tags : [];
+      return tags.some((tag) => String(tag).toLowerCase() === 'emergency');
+    };
+
+    const data = sortTasks(
+      tasks.filter(isEmergency).map((t) => ({ ...t, completed: false, in_progress: false, completion_count: 0 }))
+    ).sort((a, b) => {
+      // sortTasks không so sánh theo code — giữ đúng tie-break gốc cho danh sách công khai này.
+      const primary = (a.category === 'emergency' ? 0 : 1) - (b.category === 'emergency' ? 0 : 1)
+        || (a.difficulty ?? 0) - (b.difficulty ?? 0)
+        || (a.duration_minutes ?? 0) - (b.duration_minutes ?? 0);
+      if (primary !== 0) return primary;
+      return String(a.code).localeCompare(String(b.code));
+    });
+
+    return res.json({ success: true, data });
   } catch (error) {
     console.error('Public emergency tasks error:', error.message, error.stack);
     return res.status(500).json({ success: false, message: 'Could not fetch emergency tasks' });
