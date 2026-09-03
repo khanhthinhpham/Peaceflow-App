@@ -429,7 +429,7 @@ Ví dụ: Tôi đang gặp khó khăn với lo âu công việc và mất ngủ 
                   <button class="btn-outline" style="padding:6px 12px;font-size:0.8rem;" @click="cancelMyBooking(b.id)">Huỷ</button>
                 </div>
                 <div v-else-if="['pending', 'awaiting_expert', 'confirmed'].includes(b.status)" style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:flex-end;">
-                  <a v-if="b.status === 'confirmed' && b.zoom_join_url" :href="b.zoom_join_url" target="_blank" rel="noopener" class="btn-primary" style="padding:6px 12px;font-size:0.8rem;text-decoration:none;">🎥 Vào Zoom</a>
+                  <button v-if="b.status === 'confirmed' && b.zoom_join_url" type="button" class="btn-primary" style="padding:6px 12px;font-size:0.8rem;" @click="openZoomRoom(b.id)">🎥 Vào Zoom</button>
                   <button class="btn-outline" style="padding:6px 12px;font-size:0.8rem;" @click="cancelMyBooking(b.id)">Huỷ</button>
                 </div>
               </div>
@@ -1055,6 +1055,15 @@ async function cancelMyBooking(bookingId) {
     loadWallet();
   } catch (error) {
     alert(error.message || 'Không huỷ được lịch.');
+  }
+}
+
+async function openZoomRoom(bookingId) {
+  try {
+    const res = await apiClient.get(`/bookings/${bookingId}/zoom-access`, { noCache: true });
+    window.open(res.url, '_blank', 'noopener');
+  } catch (error) {
+    alert(error.message || 'Không mở được phòng Zoom.');
   }
 }
 

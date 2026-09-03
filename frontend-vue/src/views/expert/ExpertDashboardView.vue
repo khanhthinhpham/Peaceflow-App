@@ -96,7 +96,7 @@
                       <div v-if="booking.contact_phone" class="expert-booking-meta">📞 {{ booking.contact_phone }}{{ booking.contact_social ? ` · ${booking.contact_social}` : '' }}</div>
                       <MedicalRecordsViewer :booking-id="booking.id" />
                       <div v-if="booking.review_rating" class="expert-booking-extra">Đánh giá: {{ booking.review_rating }}/5</div>
-                      <a v-if="booking.status === 'confirmed' && booking.zoom_start_url" :href="booking.zoom_start_url" target="_blank" rel="noopener" class="expert-booking-zoom-link">🎥 Vào phòng Zoom</a>
+                      <button v-if="booking.status === 'confirmed' && booking.zoom_join_url" type="button" class="expert-booking-zoom-link" @click="openZoomRoom(booking.id)">🎥 Vào phòng Zoom</button>
                     </div>
                     <span class="expert-booking-status-chip">{{ BOOKING_STATUS_LABELS[booking.status] || booking.status }}</span>
                   </div>
@@ -503,6 +503,20 @@ async function updateBooking(id, status) {
     loadBookingManagement();
   } catch (error) {
     setBanner(error.message || 'Không thể cập nhật lịch hẹn.', 'error');
+  }
+}
+
+const openingZoomId = ref(null);
+async function openZoomRoom(bookingId) {
+  if (openingZoomId.value) return;
+  openingZoomId.value = bookingId;
+  try {
+    const res = await apiClient.get(`/bookings/${bookingId}/zoom-access`, { noCache: true });
+    window.open(res.url, '_blank', 'noopener');
+  } catch (error) {
+    alert(error.message || 'Không mở được phòng Zoom.');
+  } finally {
+    openingZoomId.value = null;
   }
 }
 

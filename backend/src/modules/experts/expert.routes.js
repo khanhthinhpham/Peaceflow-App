@@ -814,6 +814,50 @@ router.get('/bookings/:id/payment', requireAuth, async (req, res) => {
   }
 });
 
+// Lấy link Zoom để vào phòng — chỉ cấp trong khung giờ cho phép (trước giờ hẹn 10 phút,
+// đóng đúng lúc hết thời lượng buổi hẹn). Tư vấn 1-1 không cần phân biệt host/attendee —
+// cả thân chủ lẫn chuyên gia đều dùng chung 1 link join ổn định (không hết hạn, không cần
+// đăng nhập tài khoản Zoom nào — xem createZoomMeeting: join_before_host=true, waiting_room=false).
+router.get('/bookings/:id/zoom-access', requireAuth, async (req, res) => {
+  try {
+    const b = await db.query(
+      `select eb.id, eb.user_id, eb.status, eb.starts_at, eb.duration_minutes,
+              eb.zoom_meeting_id, eb.zoom_join_url, e.user_id as expert_user_id
+       from expert_bookings eb join experts e on e.id = eb.expert_id
+       where eb.id = $1`,
+      [req.params.id]
+    );
+    const booking = b.rows[0];
+    if (!booking) return res.status(404).json({ success: false, message: 'Không tìm thấy lịch hẹn.' });
+
+    const isPatient = booking.user_id === req.user.sub;
+    const isExpert = booking.expert_user_id === req.user.sub;
+    if (!isPatient && !isExpert) {
+      return res.status(403).json({ success: false, message: 'Bạn không có quyền truy cập phòng họp này.' });
+    }
+    if (booking.status !== 'confirmed' || !booking.zoom_meeting_id) {
+      return res.status(409).json({ success: false, message: 'Lịch hẹn này chưa có phòng Zoom.' });
+    }
+
+    const startsAt = new Date(booking.starts_at);
+    const opensAt = new Date(startsAt.getTime() - 10 * 60000);
+    const closesAt = new Date(startsAt.getTime() + Number(booking.duration_minutes || 0) * 60000);
+    const now = new Date();
+    if (now < opensAt) {
+      const opensLabel = opensAt.toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Bangkok' });
+      return res.status(403).json({ success: false, message: `Chưa đến giờ hẹn — có thể vào phòng trước 10 phút (từ ${opensLabel}).` });
+    }
+    if (now > closesAt) {
+      return res.status(403).json({ success: false, message: 'Buổi hẹn đã kết thúc, không thể vào phòng nữa.' });
+    }
+
+    return res.json({ success: true, data: { url: booking.zoom_join_url, role: isExpert ? 'expert' : 'patient' } });
+  } catch (error) {
+    console.error('Zoom access error:', error);
+    return res.status(500).json({ success: false, message: 'Không lấy được link phòng Zoom.' });
+  }
+});
+
 // Webhook PayOS — tự động xác nhận khi có tiền. Public (không requireAuth), trả 200.
 router.post('/payments/webhook', async (req, res) => {
   try {

@@ -368,9 +368,11 @@
   border-radius: 999px;
   background: linear-gradient(135deg, #eef6ff, #dcecff);
   color: #2167b1;
+  font-family: inherit;
   font-size: 0.88rem;
   font-weight: 800;
   text-decoration: none;
+  cursor: pointer;
   box-shadow: 0 3px 0 rgba(75, 143, 232, 0.16);
   transition: transform 160ms ease, box-shadow 160ms ease, background 160ms ease;
 }
