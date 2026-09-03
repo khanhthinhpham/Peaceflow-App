@@ -144,6 +144,126 @@ async function callGeminiJson(systemInstruction, contents, schema, options = {})
     }
 }
 
+// ===== Tool tra cứu tài liệu chuyên môn (RAG service riêng, tenant peaceflow-kb) =====
+// PeaceCat tự quyết định KHI NÀO cần gọi (Gemini function-calling) — không gọi cho mọi
+// câu hỏi, chỉ khi model thấy cần kiến thức chuyên sâu (tên thang đo, định nghĩa...).
+const KB_TOOL = {
+    functionDeclarations: [{
+        name: 'tra_cuu_tai_lieu_chuyen_mon',
+        description: 'Tra cứu tài liệu chuyên môn sức khỏe tâm thần (thang đo PSS, CARS, SDQ-25, RAVEN...) khi người dùng hỏi khái niệm, định nghĩa, cách tính điểm, hoặc kiến thức chuyên sâu cụ thể. KHÔNG gọi khi họ chỉ đang tâm sự/chia sẻ cảm xúc thông thường.',
+        parameters: {
+            type: 'object',
+            properties: { question: { type: 'string', description: 'Câu hỏi cần tra cứu, viết lại rõ ràng nếu cần' } },
+            required: ['question']
+        }
+    }]
+};
+
+async function queryKnowledgeBase(question, sessionId) {
+    if (!env.ragKbApiKey) return null; // chưa cấu hình -> tool coi như không khả dụng
+    try {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 8000);
+        const response = await fetch(`${env.ragKbBaseUrl}/query`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-API-Key': env.ragKbApiKey },
+            body: JSON.stringify({ question, session_id: sessionId }),
+            signal: controller.signal
+        }).finally(() => clearTimeout(timeout));
+        if (!response.ok) return null;
+        const data = await response.json();
+        return { answer: data.answer || '', sources: Array.isArray(data.sources) ? data.sources : [] };
+    } catch (error) {
+        // Timeout/lỗi mạng KHÔNG được phép làm sập cả cuộc trò chuyện — coi như không có
+        // kết quả, để model tự trả lời bằng kiến thức chung.
+        console.error('[AI] Tra cứu tài liệu chuyên môn thất bại:', error.message);
+        return null;
+    }
+}
+
+async function executeChatTool(name, args, sessionId) {
+    if (name !== 'tra_cuu_tai_lieu_chuyen_mon') {
+        return { found: false, note: 'Tool không xác định.' };
+    }
+    const result = await queryKnowledgeBase(args?.question || '', sessionId);
+    if (!result) {
+        return { found: false, note: 'Không tra cứu được lúc này — trả lời bằng kiến thức chung, đừng bịa nguồn tài liệu.' };
+    }
+    if (!result.answer || /don't know|không biết|no answer/i.test(result.answer)) {
+        return { found: false, note: 'Tài liệu chuyên môn không đề cập nội dung này.' };
+    }
+    return { found: true, answer: result.answer, sources: result.sources };
+}
+
+// Giống callGeminiJson nhưng hỗ trợ 1 tool function-calling: nếu model quyết định gọi
+// tool, thực thi rồi gửi lại kết quả cho model tổng hợp câu trả lời cuối (vẫn theo đúng
+// schema). Gemini 3 series cho dùng `tools` + `responseSchema` cùng lúc — đã verify bằng
+// request thật (model tự trả JSON ngay khi không cần tool, không tốn thêm lượt nào).
+// Lưu ý: role gửi lại functionResponse phải là "USER_CONTEXT" — model này KHÔNG chấp nhận
+// role "function" cổ điển (đã verify bằng lỗi 400 thực tế khi thử).
+async function callGeminiWithTool(systemInstruction, contents, schema, sessionId, options = {}) {
+    if (!env.geminiApiKey) {
+        throw new Error('GEMINI_API_KEY chưa được cấu hình');
+    }
+    const model = env.geminiModel;
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${env.geminiApiKey}`;
+    const buildBody = (currentContents) => ({
+        systemInstruction: { parts: [{ text: systemInstruction }] },
+        contents: currentContents,
+        tools: [KB_TOOL],
+        generationConfig: {
+            responseMimeType: 'application/json',
+            responseSchema: schema,
+            ...(options.maxOutputTokens ? { maxOutputTokens: options.maxOutputTokens } : {})
+        }
+    });
+
+    let workingContents = contents;
+    const usage = { model, promptTokens: 0, outputTokens: 0, cachedTokens: 0 };
+    const MAX_TOOL_ROUNDS = 2; // lưới an toàn — không cho model gọi tool lặp vô hạn
+
+    for (let round = 0; round <= MAX_TOOL_ROUNDS; round += 1) {
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(buildBody(workingContents))
+        });
+        if (!response.ok) {
+            const err = await response.text();
+            throw new Error(`Gemini ${response.status}: ${err}`);
+        }
+        const data = await response.json();
+        const meta = data?.usageMetadata || {};
+        usage.promptTokens += Number(meta.promptTokenCount || 0);
+        usage.outputTokens += Number(meta.candidatesTokenCount || 0);
+        usage.cachedTokens += Number(meta.cachedContentTokenCount || 0);
+
+        const modelTurn = data?.candidates?.[0]?.content;
+        const functionCall = modelTurn?.parts?.find((p) => p.functionCall)?.functionCall;
+
+        if (functionCall && round < MAX_TOOL_ROUNDS) {
+            const toolResult = await executeChatTool(functionCall.name, functionCall.args, sessionId);
+            workingContents = [
+                ...workingContents,
+                modelTurn,
+                { role: 'USER_CONTEXT', parts: [{ functionResponse: { name: functionCall.name, response: toolResult } }] }
+            ];
+            continue;
+        }
+
+        const text = modelTurn?.parts?.map((p) => p.text || '').join('').trim();
+        if (!text) {
+            throw new Error('Gemini không trả về nội dung');
+        }
+        try {
+            return { parsed: JSON.parse(text), usage };
+        } catch {
+            throw new Error('Gemini trả về JSON không hợp lệ');
+        }
+    }
+    throw new Error('Gemini gọi tool quá nhiều lượt, không thể hoàn tất');
+}
+
 // Không gửi danh sách bài tập trong prompt này nữa (tính năng không còn gợi ý bài tập),
 // nhờ đó prompt nhẹ đi khoảng 1.600 token mỗi lượt gọi.
 function buildAssessmentSystemInstruction() {
@@ -688,6 +808,7 @@ QUY TẮC KHÁC:
 3. Không chẩn đoán, không gọi tên bệnh lý cho họ. Có dấu hiệu tự hại/tự tử: nói thẳng sự lo lắng của bạn và khuyên liên hệ hotline hoặc chuyên gia ngay.
 4. suggested_expert_code mặc định TRỐNG — chỉ điền khi họ hỏi về chuyên gia/muốn gặp người có chuyên môn, hoặc khi nguy cấp; đừng tự mời gặp chuyên gia lúc họ chỉ đang tâm sự. suggested_task_code copy chính xác phần mã trước dấu | trong DANH SÁCH BÀI TẬP, tránh bài phản tác dụng với tình trạng của họ.
 5. Luôn kèm mood_analysis: anxiety, stress, mood (càng cao càng tích cực), depression — 0-100 dựa trên cả hội thoại, chỉ để tham khảo, không phải chẩn đoán. Kèm tối đa 5 keywords ưu tiên mô tả cốt lõi ("sợ không đủ tốt", "mất chỗ dựa") thay vì từ chung ("buồn").
+6. Có tool tra_cuu_tai_lieu_chuyen_mon — chỉ gọi khi họ hỏi thẳng về khái niệm/thang đo/định nghĩa chuyên môn cụ thể (vd "PSS là gì", "thang CARS đánh giá gì"), KHÔNG gọi khi họ chỉ đang tâm sự. Nếu tool trả found=false thì đừng nhắc tới việc "đã tra cứu", trả lời bằng hiểu biết chung, không bịa nguồn.
 
 --- Người dùng đang chat (dùng để hiểu họ, không đọc lại số liệu cho họ) ---
 ${formatMoodContext(ctx)}
@@ -820,10 +941,11 @@ export async function getChatReply({ userId, message, history = [] }) {
     let parsed;
     let usage;
     try {
-        ({ parsed, usage } = await callGeminiJson(
+        ({ parsed, usage } = await callGeminiWithTool(
             buildChatSystemInstruction(ctx, catalog, { previousTurnSuggested, includeTaskList }),
             contents,
             CHAT_SCHEMA,
+            `peacecat_${userId}`,
             { maxOutputTokens: 420 }
         ));
     } catch (error) {

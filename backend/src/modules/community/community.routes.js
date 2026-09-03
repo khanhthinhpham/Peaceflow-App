@@ -78,7 +78,7 @@ router.get('/community', requireAuth, async (req, res) => {
            where post_id = p.id and user_id = $1
          ) mr on true
          where p.is_hidden = false
-         group by p.id, u.display_name, u.full_name, u.role
+         group by p.id, u.display_name, u.full_name, u.role, u.is_admin
          order by p.created_at desc`,
         [userId]
       ).catch((e) => { console.error('[COMMUNITY_QUERY] community_posts:', e.message); return { rows: [] }; }),

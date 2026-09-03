@@ -44,6 +44,10 @@ export const env = {
   ragApiKey: process.env.RAG_API_KEY,
   ragAdminKey: process.env.RAG_ADMIN_KEY,
   ragTenantId: process.env.RAG_TENANT_ID || 'peaceflow',
+  // Tenant riêng cho tài liệu chuyên môn (PSS, CARS, SDQ-25, RAVEN...) — PeaceCat tra cứu
+  // qua tool-calling khi cần, tách biệt hoàn toàn với RAG bài tập ở trên.
+  ragKbBaseUrl: process.env.RAG_KB_BASE_URL || 'http://localhost:8888/api',
+  ragKbApiKey: process.env.RAG_KB_API_KEY,
   geminiApiKey: process.env.GEMINI_API_KEY,
   geminiModel: process.env.GEMINI_MODEL || 'gemini-3.5-flash-lite',
   vapidPublicKey: process.env.VAPID_PUBLIC_KEY || 'BBmum3N-lH6Ig9bGbellDDyTeSxZHQbYBmbXwtQGyMguftr1YOBsonHfT3JFJfvLMYpV-O-g57qC_IFg85rWrbE',
