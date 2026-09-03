@@ -165,6 +165,22 @@ Ví dụ: Tôi đang gặp khó khăn với lo âu công việc và mất ngủ 
               <div style="font-size:0.72rem;color:var(--text-light);margin-top:4px;">🔒 Thông tin được mã hóa AES-256 và chỉ chuyên gia được chọn mới có thể xem</div>
             </div>
             <div class="bm-section">
+              <div class="bm-section-title">📞 Thông tin liên hệ <span style="color:var(--coral);">*</span></div>
+              <p style="font-size:0.78rem;color:var(--text-secondary);line-height:1.5;margin:0 0 10px;">Để admin và chuyên gia có thể chủ động liên hệ với bạn khi cần.</p>
+              <input
+                type="tel"
+                v-model="bookingData.contactPhone"
+                placeholder="Số điện thoại *"
+                style="width:100%;box-sizing:border-box;border:1.5px solid var(--kraft-light);border-radius:12px;padding:9px 12px;font:inherit;font-size:0.85rem;"
+              >
+              <input
+                type="text"
+                v-model="bookingData.contactSocial"
+                placeholder="Facebook / Threads (không bắt buộc)"
+                style="width:100%;box-sizing:border-box;margin-top:8px;border:1.5px solid var(--kraft-light);border-radius:12px;padding:9px 12px;font:inherit;font-size:0.85rem;"
+              >
+            </div>
+            <div class="bm-section">
               <div class="bm-section-title">📎 Hồ sơ khám cũ <span style="color:var(--coral);">*</span></div>
               <p style="font-size:0.78rem;color:var(--text-secondary);line-height:1.5;margin:0 0 10px;">Bệnh án, đơn thuốc, chỉ số thăm khám từ nơi khác — giúp chuyên gia hiểu tình trạng của bạn hơn. <strong>Bắt buộc:</strong> đính kèm ảnh/PDF, hoặc ghi chú cụ thể bên dưới — nếu chưa từng khám ở đâu khác, hãy ghi rõ "Không có". Dữ liệu được mã hoá, chỉ chuyên gia buổi hẹn này xem được.</p>
               <label style="display:inline-flex;align-items:center;padding:7px 14px;border:1.5px solid var(--mint-dark);border-radius:999px;background:var(--mint-light);color:var(--text-primary);font-weight:700;font-size:0.82rem;cursor:pointer;">
@@ -203,6 +219,7 @@ Ví dụ: Tôi đang gặp khó khăn với lo âu công việc và mất ngủ 
                 <div class="bs-row"><span>Ngày &amp; giờ</span><span>{{ bookingData.startsAt ? formatDateTime(bookingData.startsAt) : 'Chưa chọn' }}</span></div>
                 <div class="bs-row"><span>Thời lượng</span><span>{{ bookingData.duration }} phút</span></div>
                 <div class="bs-row"><span>Tổng thanh toán</span><span>{{ formatCurrency(bookingData.price) }}</span></div>
+                <div class="bs-row"><span>Liên hệ</span><span>{{ bookingData.contactPhone }}{{ bookingData.contactSocial ? ` · ${bookingData.contactSocial}` : '' }}</span></div>
               </div>
               <div style="margin-top:10px;padding:10px 12px;background:var(--peach-light);border:1.5px solid var(--peach);border-radius:var(--radius-sm);font-size:0.75rem;color:var(--text-secondary);line-height:1.5;">
                 ⚠️ Bạn sẽ nhận được nhắc nhở 1 giờ trước buổi tư vấn. Hủy lịch miễn phí trước 24 giờ.
@@ -535,6 +552,9 @@ Ví dụ: Tôi đang gặp khó khăn với lo âu công việc và mất ngủ 
 <script setup>
 import { ref, reactive, computed, onMounted, onBeforeUnmount } from 'vue';
 import { apiClient } from '../lib/apiClient';
+import { useAuthStore } from '../stores/auth';
+
+const authStore = useAuthStore();
 
 const SESSION_CONFIG = {
   voice: { label: 'Gọi thoại', icon: '📞' },
@@ -583,7 +603,7 @@ const avatarUrlCache = new Map();
 const bookingData = reactive({
   expertId: null, sessionType: 'voice', durationTier: 'quick', price: 0,
   duration: DURATION_TIERS.quick.minutes, date: '', time: '10:00', startsAt: '',
-  topic: '', severity: '', notes: ''
+  topic: '', severity: '', notes: '', contactPhone: '', contactSocial: ''
 });
 const notesFreeText = ref('');
 const medicalFileInput = ref(null);
@@ -797,7 +817,8 @@ function openBookingModal(id) {
   Object.assign(bookingData, {
     expertId: id, sessionType: 'voice', durationTier: defaultTier.key, price: defaultTier.price,
     // Bản gốc (renderCalendar()) tự chọn ngày hôm nay làm mặc định khi mở modal — giữ đúng hành vi đó.
-    duration: defaultTier.minutes, date: new Date().toISOString().slice(0, 10), time: '10:00', startsAt: '', topic: '', severity: '', notes: ''
+    duration: defaultTier.minutes, date: new Date().toISOString().slice(0, 10), time: '10:00', startsAt: '', topic: '', severity: '', notes: '',
+    contactPhone: authStore.user?.phone || '', contactSocial: ''
   });
   notesFreeText.value = '';
   medicalRecordFiles.value = [];
@@ -834,6 +855,10 @@ function goBookingStep(step) {
     return;
   }
   if (step === 4) {
+    if (!bookingData.contactPhone.trim()) {
+      alert('Vui lòng nhập số điện thoại liên hệ.');
+      return;
+    }
     if (!medicalRecordFiles.value.length && !medicalRecordNote.value.trim()) {
       medicalRecordError.value = 'Vui lòng đính kèm hồ sơ khám cũ, hoặc ghi chú cụ thể — nếu chưa từng khám ở đâu khác, hãy ghi rõ "Không có".';
       alert(medicalRecordError.value);
@@ -888,7 +913,9 @@ async function confirmBooking() {
       session_type: bookingData.sessionType,
       duration_tier: bookingData.durationTier,
       starts_at: bookingData.startsAt,
-      notes: bookingData.notes
+      notes: bookingData.notes,
+      contact_phone: bookingData.contactPhone.trim(),
+      contact_social: bookingData.contactSocial.trim() || null
     });
 
     localStorage.setItem('peaceflow_dashboard_refresh', '1');

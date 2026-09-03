@@ -55,6 +55,9 @@
             <div style="color:var(--text-light);font-size:.78rem;margin-top:3px;">
               {{ b.client_email || '' }}{{ b.expert_code ? ` · ${b.expert_code}` : '' }}
             </div>
+            <div v-if="b.contact_phone" style="color:var(--text-secondary);font-size:.82rem;margin-top:3px;">
+              📞 {{ b.contact_phone }}{{ b.contact_social ? ` · ${b.contact_social}` : '' }}
+            </div>
           </div>
           <div style="text-align:right;white-space:nowrap;">
             <div style="font-size:1.15rem;font-weight:800;color:var(--coral);">{{ money(b.amount) }}</div>

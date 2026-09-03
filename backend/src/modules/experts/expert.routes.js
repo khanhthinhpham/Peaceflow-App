@@ -451,7 +451,9 @@ const bookingCreateSchema = z.object({
   session_type: z.enum(['voice', 'video']),
   duration_tier: z.enum(['quick', 'standard']),
   starts_at: z.coerce.date(),
-  notes: z.string().max(1000).optional().nullable()
+  notes: z.string().max(1000).optional().nullable(),
+  contact_phone: z.string().trim().min(8, 'Vui lòng nhập số điện thoại liên hệ.').max(20),
+  contact_social: z.string().trim().max(255).optional().nullable()
 });
 
 router.post('/experts/:id/bookings', requireAuth, async (req, res) => {
@@ -529,8 +531,8 @@ router.post('/experts/:id/bookings', requireAuth, async (req, res) => {
     // Đặt lịch ở trạng thái CHỜ THANH TOÁN — sinh đơn + QR VietQR. Chỉ sau khi
     // thân chủ chuyển khoản (claim) lịch mới vào hàng "Cần xác nhận" của chuyên gia.
     const bookingResult = await db.query(
-      `insert into expert_bookings (user_id, expert_id, session_type, starts_at, duration_minutes, price, notes, status, amount)
-       values ($1, $2, $3, $4, $5, $6, $7, 'pending_payment', $8)
+      `insert into expert_bookings (user_id, expert_id, session_type, starts_at, duration_minutes, price, notes, status, amount, contact_phone, contact_social)
+       values ($1, $2, $3, $4, $5, $6, $7, 'pending_payment', $8, $9, $10)
        returning *`,
       [
         req.user.sub,
@@ -540,7 +542,9 @@ router.post('/experts/:id/bookings', requireAuth, async (req, res) => {
         durationMinutes,
         amount,
         payload.notes || null,
-        amount
+        amount,
+        payload.contact_phone,
+        payload.contact_social || null
       ]
     );
     const booking = bookingResult.rows[0];
@@ -984,7 +988,7 @@ router.get('/expert-portal/bookings', requireAuth, async (req, res) => {
     }
     const r = await db.query(
       `select eb.id, eb.session_type, eb.starts_at, eb.duration_minutes, eb.price, eb.status, eb.notes, eb.created_at,
-              eb.zoom_join_url, eb.zoom_start_url,
+              eb.zoom_join_url, eb.zoom_start_url, eb.contact_phone, eb.contact_social,
               u.full_name as client_name, u.email as client_email,
               er.rating as review_rating, er.comment as review_comment
        from expert_bookings eb
@@ -2158,6 +2162,7 @@ router.get('/admin/bookings', requireAuth, async (req, res) => {
       `select b.id, b.session_type, b.starts_at, b.duration_minutes,
               coalesce(b.amount, b.price, 0)::int as amount, b.status, b.notes,
               b.created_at, b.paid_at, b.cancelled_at, b.cancel_reason, b.zoom_join_url,
+              b.contact_phone, b.contact_social,
               u.full_name as client_name, u.email as client_email,
               e.full_name as expert_name, e.code as expert_code,
               p.order_code, p.content as payment_content, p.status as payment_status

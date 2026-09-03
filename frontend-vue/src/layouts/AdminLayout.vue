@@ -51,7 +51,7 @@ onMounted(async () => {
     router.replace('/login');
     return;
   }
-  if (auth.user?.role !== 'admin') {
+  if (auth.user?.role !== 'admin' && !auth.user?.is_admin) {
     router.replace('/dashboard');
     return;
   }

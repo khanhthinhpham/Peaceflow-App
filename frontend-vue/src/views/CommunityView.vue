@@ -549,7 +549,7 @@ async function handleSubmitComment(postId) {
 
   const optimisticComment = {
     id: `temp-${Date.now()}`, userId: auth.user?.id, parentId: null, avatar: '🐱',
-    name: currentUserName.value, isExpert: Boolean(auth.user?.is_expert), isAdmin: auth.user?.role === 'admin', text: content
+    name: currentUserName.value, isExpert: Boolean(auth.user?.is_expert), isAdmin: Boolean(auth.user?.role === 'admin' || auth.user?.is_admin), text: content
   };
   updatePostState(postId, (post) => ({ ...post, comments: [...(post.comments || []), optimisticComment] }));
   openComments.add(postId);
@@ -564,7 +564,7 @@ async function handleSubmitComment(postId) {
         comments[idx] = {
           id: created.id, userId: created.user_id, parentId: null,
           avatar: created.author_avatar || optimisticComment.avatar, name: created.author_name || optimisticComment.name,
-          isExpert: Boolean(auth.user?.is_expert), isAdmin: auth.user?.role === 'admin', text: created.content || content
+          isExpert: Boolean(auth.user?.is_expert), isAdmin: Boolean(auth.user?.role === 'admin' || auth.user?.is_admin), text: created.content || content
         };
       }
       return { ...post, comments };
@@ -610,7 +610,7 @@ async function submitReply(postId, parentCommentId, content) {
 
   const optimisticReply = {
     id: `temp-${Date.now()}`, userId: auth.user?.id, parentId: parentCommentId, avatar: '🐱',
-    name: currentUserName.value, isExpert: Boolean(auth.user?.is_expert), isAdmin: auth.user?.role === 'admin', text: trimmed
+    name: currentUserName.value, isExpert: Boolean(auth.user?.is_expert), isAdmin: Boolean(auth.user?.role === 'admin' || auth.user?.is_admin), text: trimmed
   };
   updatePostState(postId, (post) => ({ ...post, comments: [...(post.comments || []), optimisticReply] }));
   replyingTo.value = null;
@@ -624,7 +624,7 @@ async function submitReply(postId, parentCommentId, content) {
         comments[idx] = {
           id: created.id, userId: created.user_id, parentId: created.parent_id || parentCommentId,
           avatar: created.author_avatar || optimisticReply.avatar, name: created.author_name || optimisticReply.name,
-          isExpert: Boolean(auth.user?.is_expert), isAdmin: auth.user?.role === 'admin', text: created.content || trimmed
+          isExpert: Boolean(auth.user?.is_expert), isAdmin: Boolean(auth.user?.role === 'admin' || auth.user?.is_admin), text: created.content || trimmed
         };
       }
       return { ...post, comments };

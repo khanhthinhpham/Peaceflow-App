@@ -319,7 +319,7 @@ const aiExercises = ref([]);
 
 const displayName = computed(() => auth.user?.display_name || auth.user?.full_name || 'bạn');
 const isExpert = computed(() => Boolean(auth.user?.is_expert));
-const isAdmin = computed(() => auth.user?.role === 'admin');
+const isAdmin = computed(() => Boolean(auth.user?.role === 'admin' || auth.user?.is_admin));
 
 const progress = computed(() => data.value?.progress || null);
 const summary = computed(() => data.value?.summary || null);
