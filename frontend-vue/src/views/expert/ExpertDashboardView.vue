@@ -220,7 +220,7 @@
       <div class="expert-section-head">
         <div>
           <h2 class="expert-section-title">Lịch làm việc hàng tuần</h2>
-          <p class="expert-section-copy">Bấm để tô xanh những khung giờ bạn <strong>rảnh</strong> — thân chủ chỉ đặt được lịch vào các khung giờ đó. Khung giờ để trống nghĩa là bạn bận.</p>
+          <p class="expert-section-copy">Mặc định mọi khung giờ đều rảnh. Tô đỏ những giờ bạn bận — thân chủ sẽ không đặt được vào lúc đó.</p>
         </div>
       </div>
       <div id="expertAvailability">
@@ -252,9 +252,9 @@
                   :key="cell.key"
                   type="button"
                   class="availability-cell"
-                  :class="cell.free ? 'is-free' : 'is-busy'"
-                  :aria-pressed="cell.free ? 'true' : 'false'"
-                  :title="`${WEEKDAYS[cell.weekday]} ${row.label}: ${cell.free ? 'Rảnh' : 'Bận'}`"
+                  :class="cell.busy ? 'is-busy' : 'is-free'"
+                  :aria-pressed="cell.busy ? 'true' : 'false'"
+                  :title="`${WEEKDAYS[cell.weekday]} ${row.label}: ${cell.busy ? 'Bận' : 'Rảnh'}`"
                   @click="toggleAvailabilityCell(cell.key)"
                 >
                   <span></span>
@@ -263,7 +263,7 @@
             </div>
           </div>
         </div>
-        <div class="expert-availability-note">Bấm vào ô để đánh dấu giờ <strong>rảnh</strong>. Mỗi ô là 1 giờ; ô để trống nghĩa là bạn bận và thân chủ sẽ không đặt được vào lúc đó.</div>
+        <div class="expert-availability-note">Bấm vào ô để đánh dấu giờ <strong>bận</strong>. Mỗi ô là 1 giờ; ô để trống nghĩa là bạn rảnh và thân chủ có thể đặt lịch.</div>
         <div class="expert-availability-footer">
           <button type="button" class="btn-primary" :disabled="savingAvailability" @click="saveAvailability">Lưu lịch</button>
         </div>
@@ -546,9 +546,6 @@ function changeWeeklyView(offset) {
   weeklyViewOffset.value = Math.max(0, weeklyViewOffset.value + offset);
 }
 
-// availabilityActive = tập hợp các ô RẢNH mà chuyên gia đã bấm chọn (đổi hướng UX: bấm để
-// chọn rảnh thay vì chọn bận). Backend/expert_availability vẫn lưu khung giờ BẬN như cũ (dùng
-// ở nhiều chỗ: chặn đặt lịch, tính slot trống...) — nên khi tải lên/lưu xuống phải lấy PHẦN BÙ.
 const availabilityActive = ref(new Set());
 const availabilityRows = computed(() => {
   const rows = [];
@@ -556,14 +553,14 @@ const availabilityRows = computed(() => {
     const label = `${minutesToTime(startMinutes)} - ${minutesToTime(startMinutes + AVAILABILITY_SLOT_MINUTES)}`;
     const cells = AVAILABILITY_DAY_ORDER.map((weekday) => {
       const key = availabilityCellKey(weekday, startMinutes);
-      return { key, weekday, free: availabilityActive.value.has(key) };
+      return { key, weekday, busy: availabilityActive.value.has(key) };
     });
     rows.push({ startMinutes, label, cells });
   }
   return rows;
 });
-const freeCellsCount = computed(() => availabilityActive.value.size);
-const busyCellsCount = computed(() => Math.max(0, getAvailabilityCells().length - freeCellsCount.value));
+const busyCellsCount = computed(() => availabilityActive.value.size);
+const freeCellsCount = computed(() => Math.max(0, getAvailabilityCells().length - busyCellsCount.value));
 
 function toggleAvailabilityCell(key) {
   const next = new Set(availabilityActive.value);
@@ -572,32 +569,21 @@ function toggleAvailabilityCell(key) {
   availabilityActive.value = next;
 }
 
-// slots tải về là khung giờ BẬN (đúng như backend lưu) — chuyển thành tập RẢNH = phần bù,
-// để chuyên gia mới (chưa lưu gì, slots rỗng) thấy đúng thực tế hiện tại: toàn bộ đều rảnh.
 function buildAvailabilityState(slots) {
   const allCells = getAvailabilityCells();
-
-  // Chưa từng lưu gì (chuyên gia mới) → mặc định TOÀN BỘ bận (đỏ), phải tự bấm chọn giờ
-  // rảnh — đúng nghĩa "bấm để chọn rảnh", không phải "mặc định rảnh sẵn, bấm để trừ ra".
-  if (!Array.isArray(slots) || slots.length === 0) {
-    return new Set();
-  }
-
-  const busy = new Set();
-  slots.forEach((slot) => {
-    const weekday = Number(slot.weekday);
-    const start = timeToMinutes(slot.start_time);
-    const end = timeToMinutes(slot.end_time);
-    allCells.forEach((cell) => {
-      if (cell.weekday !== weekday) return;
-      if (cell.startMinutes >= start && cell.endMinutes <= end) busy.add(cell.key);
+  const active = new Set();
+  if (Array.isArray(slots) && slots.length > 0) {
+    slots.forEach((slot) => {
+      const weekday = Number(slot.weekday);
+      const start = timeToMinutes(slot.start_time);
+      const end = timeToMinutes(slot.end_time);
+      allCells.forEach((cell) => {
+        if (cell.weekday !== weekday) return;
+        if (cell.startMinutes >= start && cell.endMinutes <= end) active.add(cell.key);
+      });
     });
-  });
-  const free = new Set();
-  allCells.forEach((cell) => {
-    if (!busy.has(cell.key)) free.add(cell.key);
-  });
-  return free;
+  }
+  return active;
 }
 
 const savingAvailability = ref(false);
@@ -610,14 +596,13 @@ async function loadAvailabilityEditor() {
   }
 }
 
-// Gửi backend đúng hợp đồng cũ (khung giờ BẬN) = phần bù của tập RẢNH đang chọn trên UI.
 function buildAvailabilityPayload() {
-  const busyCells = getAvailabilityCells()
-    .filter((cell) => !availabilityActive.value.has(cell.key))
+  const activeCells = getAvailabilityCells()
+    .filter((cell) => availabilityActive.value.has(cell.key))
     .sort((a, b) => (a.weekday - b.weekday) || (a.startMinutes - b.startMinutes));
 
   const merged = [];
-  busyCells.forEach((cell) => {
+  activeCells.forEach((cell) => {
     const last = merged[merged.length - 1];
     if (last && last.weekday === cell.weekday && last.endMinutes === cell.startMinutes) {
       last.endMinutes = cell.endMinutes;
@@ -630,10 +615,6 @@ function buildAvailabilityPayload() {
 }
 
 async function saveAvailability() {
-  if (freeCellsCount.value === 0) {
-    const ok = window.confirm('Bạn chưa chọn giờ rảnh nào — lưu như vậy nghĩa là thân chủ sẽ KHÔNG đặt được lịch vào bất kỳ giờ nào cả tuần. Vẫn lưu?');
-    if (!ok) return;
-  }
   savingAvailability.value = true;
   try {
     await apiClient.put('/expert-portal/availability', { slots: buildAvailabilityPayload() });
