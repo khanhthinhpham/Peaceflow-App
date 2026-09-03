@@ -130,6 +130,150 @@ export const TESTS = {
         },
         prevScores: { depression: 5 }
     },
+    bdi: {
+        name: 'BDI', fullname: 'Thang Đánh Giá Trầm Cảm Beck (Beck Depression Inventory)',
+        icon: '🌧️', iconBg: 'var(--mint-light)', iconBorder: 'var(--mint)',
+        timeRef: 'hiện tại', totalQ: 21, maxScore: 63,
+        subscales: ['depression'],
+        questions: [
+            { text: 'Cảm xúc buồn', cat: 'depression', catLabel: 'Trầm cảm', likertOptions: [
+                { emoji: '🙂', label: 'Tôi không cảm thấy buồn.', score: 0 },
+                { emoji: '😐', label: 'Tôi cảm thấy buồn.', score: 1 },
+                { emoji: '😟', label: 'Tôi luôn cảm thấy buồn và không thể thoát khỏi cảm giác đó.', score: 2 },
+                { emoji: '😰', label: 'Tôi buồn và đau khổ đến mức không thể chịu đựng được.', score: 3 }
+            ] },
+            { text: 'Bi quan về tương lai', cat: 'depression', catLabel: 'Trầm cảm', likertOptions: [
+                { emoji: '🙂', label: 'Tôi không đặc biệt bi quan về tương lai.', score: 0 },
+                { emoji: '😐', label: 'Tôi cảm thấy bi quan về tương lai.', score: 1 },
+                { emoji: '😟', label: 'Tôi cảm thấy mình không còn điều gì để mong đợi trong tương lai.', score: 2 },
+                { emoji: '😰', label: 'Tôi cảm thấy tương lai hoàn toàn vô vọng và mọi việc không thể cải thiện.', score: 3 }
+            ] },
+            { text: 'Cảm giác thất bại', cat: 'depression', catLabel: 'Trầm cảm', likertOptions: [
+                { emoji: '🙂', label: 'Tôi không cảm thấy mình là người thất bại.', score: 0 },
+                { emoji: '😐', label: 'Tôi cảm thấy mình thất bại nhiều hơn một người bình thường.', score: 1 },
+                { emoji: '😟', label: 'Khi nhìn lại cuộc đời mình, tôi chỉ thấy rất nhiều thất bại.', score: 2 },
+                { emoji: '😰', label: 'Tôi cảm thấy mình hoàn toàn là một người thất bại.', score: 3 }
+            ] },
+            { text: 'Mất hứng thú và khả năng cảm nhận sự hài lòng', cat: 'depression', catLabel: 'Trầm cảm', likertOptions: [
+                { emoji: '🙂', label: 'Tôi vẫn cảm thấy hài lòng với mọi việc như trước đây.', score: 0 },
+                { emoji: '😐', label: 'Tôi không còn thấy thích thú với mọi việc như trước đây.', score: 1 },
+                { emoji: '😟', label: 'Tôi không còn thực sự cảm thấy hài lòng với bất cứ điều gì nữa.', score: 2 },
+                { emoji: '😰', label: 'Tôi cảm thấy không hài lòng hoặc buồn chán với mọi thứ.', score: 3 }
+            ] },
+            { text: 'Cảm giác có lỗi', cat: 'depression', catLabel: 'Trầm cảm', likertOptions: [
+                { emoji: '🙂', label: 'Tôi không cảm thấy đặc biệt có lỗi.', score: 0 },
+                { emoji: '😐', label: 'Tôi cảm thấy có lỗi trong một khoảng thời gian đáng kể.', score: 1 },
+                { emoji: '😟', label: 'Tôi cảm thấy khá có lỗi trong phần lớn thời gian.', score: 2 },
+                { emoji: '😰', label: 'Tôi luôn luôn cảm thấy có lỗi.', score: 3 }
+            ] },
+            { text: 'Cảm giác bị trừng phạt', cat: 'depression', catLabel: 'Trầm cảm', likertOptions: [
+                { emoji: '🙂', label: 'Tôi không cảm thấy mình đang bị trừng phạt.', score: 0 },
+                { emoji: '😐', label: 'Tôi cảm thấy mình có thể bị trừng phạt.', score: 1 },
+                { emoji: '😟', label: 'Tôi nghĩ rằng mình sẽ bị trừng phạt.', score: 2 },
+                { emoji: '😰', label: 'Tôi cảm thấy mình đang bị trừng phạt.', score: 3 }
+            ] },
+            { text: 'Không hài lòng với bản thân', cat: 'depression', catLabel: 'Trầm cảm', likertOptions: [
+                { emoji: '🙂', label: 'Tôi không cảm thấy thất vọng về bản thân.', score: 0 },
+                { emoji: '😐', label: 'Tôi thất vọng về bản thân.', score: 1 },
+                { emoji: '😟', label: 'Tôi cảm thấy ghê tởm và chán ghét bản thân.', score: 2 },
+                { emoji: '😰', label: 'Tôi ghét chính bản thân mình.', score: 3 }
+            ] },
+            { text: 'Tự phê phán bản thân', cat: 'depression', catLabel: 'Trầm cảm', likertOptions: [
+                { emoji: '🙂', label: 'Tôi không cảm thấy mình kém hơn bất kỳ ai khác.', score: 0 },
+                { emoji: '😐', label: 'Tôi tự phê phán bản thân vì những điểm yếu hoặc sai lầm của mình.', score: 1 },
+                { emoji: '😟', label: 'Tôi luôn tự trách mình về những khuyết điểm của bản thân.', score: 2 },
+                { emoji: '😰', label: 'Tôi tự trách mình về mọi điều tồi tệ xảy ra.', score: 3 }
+            ] },
+            { text: 'Ý nghĩ về cái chết hoặc tự sát', cat: 'depression', catLabel: 'Trầm cảm', likertOptions: [
+                { emoji: '🙂', label: 'Tôi không có bất kỳ ý nghĩ nào về việc tự sát.', score: 0 },
+                { emoji: '😐', label: 'Tôi có ý nghĩ tự sát, nhưng tôi sẽ không thực hiện điều đó.', score: 1 },
+                { emoji: '😟', label: 'Tôi muốn tự sát.', score: 2 },
+                { emoji: '😰', label: 'Tôi sẽ tự sát nếu có cơ hội.', score: 3 }
+            ] },
+            { text: 'Khóc', cat: 'depression', catLabel: 'Trầm cảm', likertOptions: [
+                { emoji: '🙂', label: 'Tôi không khóc nhiều hơn bình thường.', score: 0 },
+                { emoji: '😐', label: 'Hiện nay tôi khóc nhiều hơn trước đây.', score: 1 },
+                { emoji: '😟', label: 'Hiện nay tôi gần như luôn khóc.', score: 2 },
+                { emoji: '😰', label: 'Trước đây tôi có thể khóc, nhưng hiện giờ tôi không thể khóc được dù rất muốn.', score: 3 }
+            ] },
+            { text: 'Dễ cáu gắt', cat: 'depression', catLabel: 'Trầm cảm', likertOptions: [
+                { emoji: '🙂', label: 'Tôi không dễ bị mọi việc làm khó chịu hoặc cáu gắt hơn trước đây.', score: 0 },
+                { emoji: '😐', label: 'Hiện nay tôi dễ cáu gắt hơn bình thường một chút.', score: 1 },
+                { emoji: '😟', label: 'Tôi khá khó chịu hoặc cáu gắt trong phần lớn thời gian.', score: 2 },
+                { emoji: '😰', label: 'Tôi cảm thấy cáu gắt gần như mọi lúc.', score: 3 }
+            ] },
+            { text: 'Mất hứng thú với người khác', cat: 'depression', catLabel: 'Trầm cảm', likertOptions: [
+                { emoji: '🙂', label: 'Tôi không mất hứng thú với những người khác.', score: 0 },
+                { emoji: '😐', label: 'Tôi ít quan tâm đến những người khác hơn trước đây.', score: 1 },
+                { emoji: '😟', label: 'Tôi đã mất phần lớn sự quan tâm đến những người khác.', score: 2 },
+                { emoji: '😰', label: 'Tôi hoàn toàn không còn hứng thú với những người khác.', score: 3 }
+            ] },
+            { text: 'Khó khăn trong việc ra quyết định', cat: 'depression', catLabel: 'Trầm cảm', likertOptions: [
+                { emoji: '🙂', label: 'Tôi vẫn có thể đưa ra quyết định tốt như trước đây.', score: 0 },
+                { emoji: '😐', label: 'Tôi trì hoãn việc đưa ra quyết định nhiều hơn trước đây.', score: 1 },
+                { emoji: '😟', label: 'Tôi gặp khó khăn trong việc đưa ra quyết định nhiều hơn trước đây.', score: 2 },
+                { emoji: '😰', label: 'Tôi hoàn toàn không thể đưa ra quyết định nữa.', score: 3 }
+            ] },
+            { text: 'Thay đổi về ngoại hình', cat: 'depression', catLabel: 'Trầm cảm', likertOptions: [
+                { emoji: '🙂', label: 'Tôi không cảm thấy mình trông xấu hơn trước đây.', score: 0 },
+                { emoji: '😐', label: 'Tôi lo lắng rằng mình đang trở nên già đi hoặc kém hấp dẫn.', score: 1 },
+                { emoji: '😟', label: 'Tôi cảm thấy ngoại hình của mình đã có những thay đổi lâu dài khiến tôi trở nên kém hấp dẫn.', score: 2 },
+                { emoji: '😰', label: 'Tôi tin rằng mình trông rất xấu.', score: 3 }
+            ] },
+            { text: 'Khả năng làm việc', cat: 'depression', catLabel: 'Trầm cảm', likertOptions: [
+                { emoji: '🙂', label: 'Tôi vẫn có thể làm việc tốt như trước đây.', score: 0 },
+                { emoji: '😐', label: 'Tôi phải cố gắng thêm mới có thể bắt đầu làm một việc gì đó.', score: 1 },
+                { emoji: '😟', label: 'Tôi phải thúc ép bản thân rất nhiều mới có thể làm bất cứ việc gì.', score: 2 },
+                { emoji: '😰', label: 'Tôi hoàn toàn không thể làm việc được.', score: 3 }
+            ] },
+            { text: 'Giấc ngủ', cat: 'depression', catLabel: 'Trầm cảm', likertOptions: [
+                { emoji: '🙂', label: 'Tôi có thể ngủ tốt như bình thường.', score: 0 },
+                { emoji: '😐', label: 'Tôi ngủ không ngon như trước đây.', score: 1 },
+                { emoji: '😟', label: 'Tôi thức dậy sớm hơn bình thường khoảng 1–2 giờ và khó ngủ lại.', score: 2 },
+                { emoji: '😰', label: 'Tôi thức dậy sớm hơn bình thường vài giờ và không thể ngủ lại.', score: 3 }
+            ] },
+            { text: 'Mệt mỏi', cat: 'depression', catLabel: 'Trầm cảm', likertOptions: [
+                { emoji: '🙂', label: 'Tôi không cảm thấy mệt hơn bình thường.', score: 0 },
+                { emoji: '😐', label: 'Tôi dễ mệt hơn trước đây.', score: 1 },
+                { emoji: '😟', label: 'Tôi cảm thấy mệt ngay cả khi làm hầu hết các việc.', score: 2 },
+                { emoji: '😰', label: 'Tôi quá mệt để có thể làm bất cứ việc gì.', score: 3 }
+            ] },
+            { text: 'Cảm giác thèm ăn', cat: 'depression', catLabel: 'Trầm cảm', likertOptions: [
+                { emoji: '🙂', label: 'Khẩu vị của tôi không thay đổi so với bình thường.', score: 0 },
+                { emoji: '😐', label: 'Tôi ăn không ngon miệng như trước đây.', score: 1 },
+                { emoji: '😟', label: 'Hiện nay khẩu vị của tôi giảm đi nhiều.', score: 2 },
+                { emoji: '😰', label: 'Tôi hoàn toàn không còn cảm giác thèm ăn.', score: 3 }
+            ] },
+            { text: 'Thay đổi cân nặng', cat: 'depression', catLabel: 'Trầm cảm', likertOptions: [
+                { emoji: '🙂', label: 'Gần đây tôi không giảm cân đáng kể, nếu có thì cũng rất ít.', score: 0 },
+                { emoji: '😐', label: 'Tôi đã giảm hơn 5 pound (khoảng 2,3 kg).', score: 1 },
+                { emoji: '😟', label: 'Tôi đã giảm hơn 10 pound (khoảng 4,5 kg).', score: 2 },
+                { emoji: '😰', label: 'Tôi đã giảm hơn 15 pound (khoảng 6,8 kg).', score: 3 }
+            ] },
+            { text: 'Lo lắng về sức khỏe', cat: 'depression', catLabel: 'Trầm cảm', likertOptions: [
+                { emoji: '🙂', label: 'Tôi không lo lắng về sức khỏe của mình nhiều hơn bình thường.', score: 0 },
+                { emoji: '😐', label: 'Tôi lo lắng về các vấn đề thể chất như đau nhức, đau đớn, khó chịu ở dạ dày hoặc táo bón.', score: 1 },
+                { emoji: '😟', label: 'Tôi rất lo lắng về các vấn đề thể chất và khó nghĩ đến những chuyện khác.', score: 2 },
+                { emoji: '😰', label: 'Tôi quá lo lắng về các vấn đề thể chất của mình đến mức không thể nghĩ đến bất cứ điều gì khác.', score: 3 }
+            ] },
+            { text: 'Hứng thú tình dục', cat: 'depression', catLabel: 'Trầm cảm', likertOptions: [
+                { emoji: '🙂', label: 'Tôi không nhận thấy gần đây có bất kỳ thay đổi nào trong sự quan tâm của mình đối với tình dục.', score: 0 },
+                { emoji: '😐', label: 'Tôi ít hứng thú với tình dục hơn trước đây.', score: 1 },
+                { emoji: '😟', label: 'Tôi hầu như không còn hứng thú với tình dục.', score: 2 },
+                { emoji: '😰', label: 'Tôi hoàn toàn mất hứng thú với tình dục.', score: 3 }
+            ] }
+        ],
+        scoring: {
+            depression: { indices: Array.from({ length: 21 }, (_, i) => i), multiplier: 1, levels: [
+                { max: 10, label: 'Bình thường', class: 'level-0' },
+                { max: 16, label: 'Rối loạn khí sắc nhẹ', class: 'level-1' },
+                { max: 20, label: 'Trầm cảm lâm sàng mức giới hạn', class: 'level-2' },
+                { max: 30, label: 'Trầm cảm mức độ vừa', class: 'level-3' },
+                { max: 40, label: 'Trầm cảm nặng', class: 'level-4' },
+                { max: 999, label: 'Trầm cảm rất nặng', class: 'level-5' }
+            ] }
+        }
+    },
     psqi: {
         name: 'PSQI', fullname: 'Pittsburgh Sleep Quality Index (Bản chuẩn hóa trắc nghiệm)',
         icon: '😴', iconBg: 'var(--peach-light)', iconBorder: 'var(--kraft)',

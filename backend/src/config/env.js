@@ -35,7 +35,7 @@ export const env = {
   // Chỉ cần khi domain chưa xác thực xong ở Brevo — xem mail-transport.js.
   brevoFrom: process.env.BREVO_FROM,
   emailFrom: process.env.EMAIL_FROM || 'PeaceFlow <onboarding@resend.dev>',
-  adminEmail: process.env.ADMIN_EMAIL || 'hoangtu251004@gmail.com',
+  adminEmail: process.env.ADMIN_EMAIL || 'peaceflow.vn@gmail.com',
   apiPublicUrl: (process.env.API_PUBLIC_URL || `http://localhost:${process.env.PORT || 4000}`).replace(/\/+$/, ''),
   googleClientId: process.env.GOOGLE_CLIENT_ID,
   frontendUrl: process.env.FRONTEND_URL || 'https://peaceflow.vn',

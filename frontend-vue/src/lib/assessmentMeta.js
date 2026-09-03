@@ -57,6 +57,20 @@ export const ASSESSMENT_META = {
             { className: 'badge-peach', label: '2 tuần/lần' }
         ]
     },
+    bdi: {
+        apiCode: 'BDI',
+        name: 'BDI',
+        fullname: 'Thang Đánh Giá Trầm Cảm Beck',
+        icon: '🌧️',
+        cardClass: 'phq',
+        iconStyle: 'background:var(--mint-light);border-color:var(--mint);',
+        desc: 'Đánh giá chuyên sâu mức độ trầm cảm qua 21 khía cạnh — cảm xúc, thể chất, hành vi.',
+        badges: [
+            { className: 'badge-mint', label: '21 câu hỏi' },
+            { className: 'badge-mint', label: '~8 phút' },
+            { className: 'badge-peach', label: 'Khi cần' }
+        ]
+    },
     psqi: {
         apiCode: 'PSQI',
         name: 'PSQI',
