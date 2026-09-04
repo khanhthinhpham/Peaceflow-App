@@ -174,7 +174,9 @@ export const useNotificationsStore = defineStore('notifications', {
 
       if (!seenIds) return;
 
-      const newNotifs = this.notifications.filter((n) => !seenIds.has(n.id));
+      // Bỏ luôn cái server đã báo là đã đọc — vd người dùng đã xem trên máy/thiết bị khác,
+      // hoặc thông báo cũ vẫn nằm trong danh sách để xem lại nhưng không còn "mới".
+      const newNotifs = this.notifications.filter((n) => !n.is_read && !seenIds.has(n.id));
       if (!newNotifs.length) return;
 
       // Chỉ toast tối đa MAX_VISIBLE_TOASTS cái; còn lại vẫn nằm trong panel thông báo.

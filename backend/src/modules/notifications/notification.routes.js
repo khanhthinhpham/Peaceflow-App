@@ -67,11 +67,17 @@ router.get('/notifications', requireAuth, async (req, res) => {
            and r.created_at >= now() - interval '24 hours'`,
         [userId]
       ).catch(() => ({ rows: [] })),
+      // CỐ Ý không lọc is_read = false: người dùng vẫn cần MỞ CHUÔNG XEM LẠI những thông
+      // báo đã đọc (ai đã bình luận, lịch hẹn nào vừa đổi). Trả về cả đã đọc, kèm cờ
+      // all_read để client biết cái nào còn mới — cái đã đọc không tính vào badge và không
+      // bắn toast nữa. Giới hạn 30 ngày + 10 nhóm để danh sách không phình vô hạn.
       db.query(
         `select group_key, type, post_id, message, count(*)::int as total,
-                max(created_at) as latest, min(actor_name) as actor_name
+                max(created_at) as latest, min(actor_name) as actor_name,
+                bool_and(is_read) as all_read
          from notifications
-         where recipient_id = $1 and is_read = false
+         where recipient_id = $1
+           and created_at >= now() - interval '30 days'
          group by group_key, type, post_id, message
          order by max(created_at) desc limit 10`,
         [userId]
@@ -160,7 +166,10 @@ router.get('/notifications', requireAuth, async (req, res) => {
           title: approved ? 'Hồ sơ đã được duyệt' : 'Kết quả hồ sơ chuyên gia',
           body: row.message,
           action: approved ? 'expert/app.html?page=dashboard.html' : 'expert/apply.html',
-          created_at: row.latest
+          created_at: row.latest,
+          // Dùng cờ đã đọc THẬT của nhóm (bool_and), không dùng mốc thời gian: loại này có
+          // hàng thật trong bảng notifications nên đánh dấu theo dòng là chính xác nhất.
+          is_read: Boolean(row.all_read)
         });
         return;
       }
@@ -173,7 +182,8 @@ router.get('/notifications', requireAuth, async (req, res) => {
           title: row.type === 'booking_new' ? 'Lịch hẹn mới' : 'Cập nhật lịch hẹn',
           body: row.message,
           action: row.type === 'booking_new' ? 'expert/app.html?page=dashboard.html' : 'experts.html',
-          created_at: row.latest
+          created_at: row.latest,
+          is_read: Boolean(row.all_read)
         });
         return;
       }
@@ -192,7 +202,8 @@ router.get('/notifications', requireAuth, async (req, res) => {
         title,
         body,
         action: 'community.html',
-        created_at: row.latest
+        created_at: row.latest,
+        is_read: Boolean(row.all_read)
       });
     });
 
@@ -218,6 +229,8 @@ router.get('/notifications', requireAuth, async (req, res) => {
     const readAtRaw = userRes?.rows?.[0]?.notifications_read_at;
     const readAt = readAtRaw ? new Date(readAtRaw).getTime() : 0;
     notifications.forEach((item) => {
+      // Loại lấy từ bảng notifications đã tự mang cờ đã đọc thật -> KHÔNG ghi đè.
+      if (typeof item.is_read === 'boolean') return;
       const createdAt = item.created_at ? new Date(item.created_at).getTime() : 0;
       item.is_read = createdAt > 0 && createdAt <= readAt;
     });
