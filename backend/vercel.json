@@ -1,5 +1,6 @@
 {
   "regions": ["icn1"],
+  "installCommand": "npm ci --omit=dev",
   "crons": [
     {
       "path": "/api/v1/cron/run-jobs",
