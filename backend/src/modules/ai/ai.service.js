@@ -296,7 +296,17 @@ async function callGeminiWithTool(systemInstruction, contents, schema, sessionId
 
     let workingContents = contents;
     const usage = { model, promptTokens: 0, outputTokens: 0, cachedTokens: 0 };
-    const MAX_TOOL_ROUNDS = 2; // lưới an toàn — không cho model gọi tool lặp vô hạn
+    // CHỈ 1 lần tra cứu mỗi lượt chat. Trước đây cho 2 lần và đo thật trên production:
+    // model tra lần 1 thất bại thì tra tiếp lần 2 (chỉ đổi cách diễn đạt câu hỏi), rồi cần
+    // lượt 3 để trả lời -> gửi lại TOÀN BỘ prompt 3 lần, 15.000 token cho 1 tin nhắn
+    // (baseline trước khi có tool là 2.806). Một lần tra là đủ.
+    const MAX_TOOL_ROUNDS = 1;
+
+    // Không khai báo tool khi kho tài liệu chưa được cấu hình. Nếu vẫn khai báo, model sẽ
+    // gọi tool, nhận found=false tức thì, rồi tốn thêm lượt nữa để trả lời — trả tiền cho
+    // một thứ chắc chắn không dùng được. Đây đúng là tình trạng production khi chưa set
+    // RAG_KB_BASE_URL / RAG_KB_API_KEY.
+    const toolAvailable = Boolean(env.ragKbApiKey);
 
     // Ngân sách chung cho cả lượt: mọi lời gọi bên dưới đều phải nằm trong đây.
     const deadline = Date.now() + TURN_BUDGET_MS;
@@ -310,7 +320,7 @@ async function callGeminiWithTool(systemInstruction, contents, schema, sessionId
         // sập cả lượt chat (verify bằng lỗi thật "Gemini không trả về nội dung" khi model
         // tra cứu 2 lần đều found=false rồi cố tra lần 3). Bỏ tools ép model PHẢI trả lời
         // bằng văn bản ngay, dùng những gì đã có.
-        const includeTool = !toolsDisabled && round < MAX_TOOL_ROUNDS;
+        const includeTool = toolAvailable && !toolsDisabled && round < MAX_TOOL_ROUNDS;
         // Không bao giờ để 1 lời gọi vượt quá phần ngân sách còn lại; vẫn giữ sàn 3s để
         // lời gọi đầu tiên không bị cắt vô nghĩa khi đồng hồ đã chạy sẵn.
         const callTimeout = clampMs(budgetLeft(), 3000, GEMINI_CALL_TIMEOUT_MS);
@@ -939,7 +949,7 @@ function buildChatSystemInstruction(ctx, catalog, options = {}) {
     } else if (options.includeTaskList) {
         turnNote = 'Lượt trước bạn đã HỎI họ có muốn gợi ý bài tập không, nên lượt này bạn được cấp DANH SÁCH BÀI TẬP. Lời họ vừa nói đồng ý thì chọn một mã phù hợp cho suggested_task_code; họ từ chối hoặc lảng sang chuyện khác thì để trống và tuyệt đối không hỏi lại lần nữa.';
     } else {
-        turnNote = 'Lượt này bạn KHÔNG có DANH SÁCH BÀI TẬP nên BẮT BUỘC để trống suggested_task_code (không tự nghĩ ra mã). Nếu thấy một bài tập có thể giúp thì chỉ HỎI xem họ có muốn gợi ý không, và đặt offered_task = true — thà không có thẻ còn hơn tự ý gửi.';
+        turnNote = 'Lượt này bạn KHÔNG có DANH SÁCH BÀI TẬP nên BẮT BUỘC để trống suggested_task_code (không tự nghĩ ra mã). Mặc định lượt này là LẮNG NGHE: kết bằng một câu để họ kể tiếp, để trống offered_task. Chỉ đặt offered_task = true nếu họ vừa xin cách làm cụ thể hoặc đã kể đủ và đang bí không biết làm gì.';
     }
 
     // Khối khủng hoảng đặt TRÊN cả "NHIỆM VỤ SỐ 1" là có chủ ý: đo thực tế trong phiên
@@ -948,6 +958,23 @@ function buildChatSystemInstruction(ctx, catalog, options = {}) {
     // việc gọi tên cảm xúc cốt lõi KHÔNG còn là ưu tiên số một.
     // Lưu ý: đây chỉ là lớp nhắc model. Lớp BẢO ĐẢM nằm ở code (ai.safety.js) — nguồn trợ
     // giúp được nối vào câu trả lời bất kể model có tuân hay không.
+    // Khối về tool CHỈ xuất hiện khi kho tài liệu thật sự dùng được. Nếu không, prompt vừa
+    // nặng thêm vô ích, vừa mồi cho model nói về "2 cuốn sách" mà nó không tra được — đúng
+    // cái đã xảy ra trên production khi chưa set env: nó tự bịa nội dung sách của Richard
+    // Carlson. Không có tool thì cấm thẳng việc nói nội dung sách.
+    const toolBlock = options.toolAvailable
+        ? `TRA CỨU SÁCH TRƯỚC KHI ĐƯA KỸ THUẬT GIẢM STRESS — BẮT BUỘC, KHÔNG PHẢI TÙY CHỌN:
+Bạn có tool tra_cuu_tai_lieu_chuyen_mon nối tới 2 cuốn sách giảm stress THẬT đã nạp sẵn (Richard Carlson, Mike George). Đây KHÔNG phải tính năng phụ — đây là nguồn kiến thức thật bạn PHẢI dùng thay vì tự bịa.
+QUY TẮC CỨNG: bất cứ khi nào câu trả lời của bạn SẮP chứa một kỹ thuật/cách làm/lời khuyên cụ thể để giảm căng thẳng, bình tĩnh lại, xả stress, hay khơi lại sáng tạo — dù họ có xin hay không, dù họ có nhắc tên sách hay không — bạn PHẢI gọi tool này trước để lấy kỹ thuật thật, rồi mới viết câu trả lời dựa trên đó (lồng tự nhiên như lời khuyên của chính bạn, không cần trích "theo sách..." trừ khi họ hỏi thẳng nguồn). Tự nghĩ ra kỹ thuật bằng trí nhớ của bạn thay vì gọi tool là VI PHẠM quy tắc này.
+Chỉ được bỏ qua tool khi lượt này bạn không hề đưa ra kỹ thuật/lời khuyên cụ thể nào cả (ví dụ chỉ đang lắng nghe, gọi tên cảm xúc, hoặc hỏi lại một câu).
+Nếu tool trả found=false: TUYỆT ĐỐI không nói bất cứ điều gì về nội dung sách nữa (không "sách đó nói rằng...", không đoán ý tác giả). Nói thật là bạn không có đủ thông tin về phần đó, rồi trả lời bằng hiểu biết chung của mình.
+
+`
+        : `KHÔNG TRA CỨU ĐƯỢC TÀI LIỆU — TUYỆT ĐỐI KHÔNG NÓI NỘI DUNG SÁCH:
+Lượt này bạn KHÔNG có cách nào tra cứu sách hay tài liệu chuyên môn. Nếu họ hỏi một cuốn sách/tài liệu cụ thể nói gì, hãy nói thẳng là bạn không tra cứu được nội dung cuốn đó ngay lúc này — TUYỆT ĐỐI không tự thuật lại nội dung sách bằng trí nhớ của bạn, không đoán ý tác giả, không gán cho sách những điều bạn không chắc. Vẫn có thể trò chuyện và đưa lời khuyên bằng hiểu biết chung của mình, nhưng đừng gắn nó vào tên sách nào.
+
+`;
+
     const crisisBlock = options.crisisDetected
         ? `ƯU TIÊN TUYỆT ĐỐI LƯỢT NÀY — TIN NHẮN CỦA HỌ CÓ DẤU HIỆU TỰ HẠI/TỰ TỬ:
 Bỏ mọi thứ khác lại. Lượt này KHÔNG gợi ý bài tập, KHÔNG hỏi có muốn gợi ý gì không, KHÔNG phân tích dài dòng.
@@ -961,25 +988,25 @@ Giọng bình tĩnh, ấm, không phán xét, không giảng giải, không hứ
 
 ${crisisBlock}NHIỆM VỤ SỐ 1 — GỌI TÊN VẤN ĐỀ CỐT LÕI BÊN TRONG HỌ:
 Điều họ kể chỉ là bề mặt; bên dưới luôn có một mất mát, một nỗi sợ, một nhu cầu chưa được đáp ứng, hoặc một điều họ tự nghĩ xấu về bản thân. Ví dụ "thất tình, buồn quá" — cốt lõi có thể là sợ mình không đủ tốt để được yêu, hoặc trống rỗng vì mất chỗ dựa mỗi tối.
-Mỗi lượt: đọc cả hội thoại, tìm điều đang làm họ đau nhất mà chính họ chưa nói ra được, rồi GỌI TÊN nó bằng lời cụ thể dưới dạng phỏng đoán nhẹ để họ xác nhận hoặc sửa lại ("Mình đoán cái làm bạn nặng nhất không hẳn là ... mà là ..., phải không?"). Chưa đủ dữ kiện thì hỏi MỘT câu cụ thể, đừng đoán bừa.
-Gọi tên đúng cốt lõi quan trọng hơn mọi lời an ủi và mọi bài tập.
+Đọc cả hội thoại, tìm điều đang làm họ đau nhất mà chính họ chưa nói ra được, rồi gọi tên nó bằng lời cụ thể CỦA RIÊNG BẠN, dưới dạng phỏng đoán nhẹ để họ xác nhận hoặc sửa lại. Chưa đủ dữ kiện thì hỏi MỘT câu cụ thể về điều họ vừa kể, đừng đoán bừa.
+ĐỔI CÁCH DIỄN ĐẠT MỖI LƯỢT: có lượt gọi tên bằng một câu khẳng định nhẹ, có lượt hỏi lại về một chi tiết họ vừa nhắc, có lượt chỉ nhắc lại đúng hình ảnh/chữ họ dùng rồi để họ tự nói tiếp. Không phải lượt nào cũng phải phỏng đoán — nếu họ đang kể dở thì để họ kể.
+CẤM khuôn "Mình đoán cái làm bạn ... không hẳn là ... mà là ..., phải không?" — dùng lại khuôn này (hay bất kỳ khuôn mở đầu nào) ở 2 lượt liền nhau là lỗi.
+Gọi tên đúng cốt lõi quan trọng hơn mọi lời an ủi và mọi bài tập. Nhưng nếu họ hỏi thẳng một câu, hãy TRẢ LỜI câu đó trước rồi mới đi sâu.
 
 CẤM — đây là thứ làm câu trả lời nghe như máy:
 - Sáo ngữ dán vào ai cũng đúng: "khoảng thời gian khó khăn", "hãy dịu dàng với chính mình", "cho bản thân thời gian", "mình luôn ở đây", "rồi sẽ ổn". Tự kiểm: câu nào gửi cho người lạ nào cũng đúng thì xóa.
 - Lặp khuôn qua các lượt (đồng cảm → an ủi → mời làm bài tập). Điều đã nói rồi thì lượt này phải đi sâu thêm một bước.
 - Giảng đạo, dạy lý thuyết tâm lý, liệt kê "bạn nên A, B, C". Nhắc điểm/streak/số liệu app.
 
-GỢI Ý BÀI TẬP — LUÔN PHẢI HỎI TRƯỚC, KHÔNG BAO GIỜ TỰ Ý GỬI:
-Không bao giờ điền suggested_task_code ở lượt bạn chưa hỏi ý họ trước — kể cả khi họ hỏi thẳng "nên làm gì". Nếu thấy một bài có thể giúp, hãy HỎI một câu tự nhiên ở cuối câu trả lời ("bạn có muốn mình gợi ý một việc nhỏ để làm không?") và đặt offered_task = true. Chỉ điền suggested_task_code ở đúng lượt kế tiếp, sau khi họ đã đồng ý. Không hỏi lúc họ đang trút lòng, không hỏi 2 lượt liền nhau, họ từ chối một lần thì thôi hẳn không hỏi lại.
+VIỆC CHÍNH LÀ ĐỂ HỌ GIÃI BÀY — KHÔNG MỜI BÀI TẬP Ở MỌI LƯỢT:
+Phần lớn các lượt, việc của bạn là ngồi nghe và hỏi thêm để họ nói ra được nhiều hơn. Hãy kết câu trả lời bằng một câu mở đường cho họ kể tiếp — hỏi về một chi tiết họ vừa nhắc, hỏi chuyện đó bắt đầu từ lúc nào, lúc nào thì đỡ hơn, ai đang biết chuyện này... — CHỨ KHÔNG phải bằng lời mời làm bài tập.
+Chỉ mời bài tập khi thật đúng lúc: họ đã kể đủ và đang tự hỏi "giờ làm gì", hoặc họ xin cách làm cụ thể. Khi đó mới hỏi ý họ bằng lời của chính bạn (mỗi lần một cách khác nhau, không dùng lại cùng một câu mời) và đặt offered_task = true.
+Tuyệt đối không mời lúc họ đang trút lòng, không mời 2 lượt liền nhau, họ từ chối một lần thì thôi hẳn.
+Không bao giờ điền suggested_task_code ở lượt bạn chưa hỏi ý họ trước — kể cả khi họ hỏi thẳng "nên làm gì". Chỉ điền ở đúng lượt kế tiếp, sau khi họ đã đồng ý.
 LƯU Ý RIÊNG LƯỢT NÀY: ${turnNote}
 
-TRA CỨU SÁCH TRƯỚC KHI ĐƯA KỸ THUẬT GIẢM STRESS — BẮT BUỘC, KHÔNG PHẢI TÙY CHỌN:
-Bạn có tool tra_cuu_tai_lieu_chuyen_mon nối tới 2 cuốn sách giảm stress THẬT đã nạp sẵn (Richard Carlson, Mike George). Đây KHÔNG phải tính năng phụ — đây là nguồn kiến thức thật bạn PHẢI dùng thay vì tự bịa.
-QUY TẮC CỨNG: bất cứ khi nào câu trả lời của bạn SẮP chứa một kỹ thuật/cách làm/lời khuyên cụ thể để giảm căng thẳng, bình tĩnh lại, xả stress, hay khơi lại sáng tạo — dù họ có xin hay không, dù họ có nhắc tên sách hay không — bạn PHẢI gọi tool này trước để lấy kỹ thuật thật, rồi mới viết câu trả lời dựa trên đó (lồng tự nhiên như lời khuyên của chính bạn, không cần trích "theo sách..." trừ khi họ hỏi thẳng nguồn). Tự nghĩ ra kỹ thuật bằng trí nhớ của bạn thay vì gọi tool là VI PHẠM quy tắc này.
-Chỉ được bỏ qua tool khi lượt này bạn không hề đưa ra kỹ thuật/lời khuyên cụ thể nào cả (ví dụ chỉ đang lắng nghe, gọi tên cảm xúc, hoặc hỏi lại một câu). Nếu tool trả found=false thì đừng nhắc tới việc "đã tra cứu", trả lời bằng hiểu biết chung, không bịa nguồn.
-
-QUY TẮC KHÁC:
-1. Chỉ nói về cảm xúc, sức khỏe tâm thần, chuyện đời sống đang ảnh hưởng tinh thần họ, bài tập/chuyên gia trong app, dữ liệu cá nhân của họ, và nội dung tài liệu/sách chuyên môn qua tool ở trên. Hỏi ngoài phạm vi này (lập trình, thời sự, kiến thức chung không liên quan sức khỏe tâm thần...) thì từ chối lịch sự, mời họ quay lại chuyện của mình.
+${toolBlock}QUY TẮC KHÁC:
+1. Chỉ nói về cảm xúc, sức khỏe tâm thần, chuyện đời sống đang ảnh hưởng tinh thần họ, bài tập/chuyên gia trong app, dữ liệu cá nhân của họ${options.toolAvailable ? ', và nội dung tài liệu/sách chuyên môn qua tool ở trên' : ''}. Hỏi ngoài phạm vi này (lập trình, thời sự, kiến thức chung không liên quan sức khỏe tâm thần...) thì từ chối lịch sự, mời họ quay lại chuyện của mình.
 2. Dài 2-5 câu, viết liền như một tin nhắn, không markdown, không gạch đầu dòng. Khi họ xin lời khuyên: đưa việc CỤ THỂ làm được ngay hôm nay, gắn đúng cái cốt lõi vừa nói ra, không nói "hãy chăm sóc bản thân".
 3. Không chẩn đoán, không gọi tên bệnh lý cho họ. Có dấu hiệu tự hại/tự tử: nói thẳng sự lo lắng của bạn và khuyên liên hệ hotline hoặc chuyên gia ngay.
 4. suggested_expert_code mặc định TRỐNG — chỉ điền khi họ hỏi về chuyên gia/muốn gặp người có chuyên môn, hoặc khi nguy cấp; đừng tự mời gặp chuyên gia lúc họ chỉ đang tâm sự. suggested_task_code copy chính xác phần mã trước dấu | trong DANH SÁCH BÀI TẬP, tránh bài phản tác dụng với tình trạng của họ.
@@ -1130,7 +1157,14 @@ export async function getChatReply({ userId, message, history = [] }) {
     let usage;
     try {
         ({ parsed, usage } = await callGeminiWithTool(
-            buildChatSystemInstruction(ctx, catalog, { previousTurnSuggested, includeTaskList, crisisDetected }),
+            buildChatSystemInstruction(ctx, catalog, {
+                previousTurnSuggested,
+                includeTaskList,
+                crisisDetected,
+                // Cùng điều kiện với callGeminiWithTool: chưa cấu hình kho tài liệu thì
+                // không khai báo tool VÀ không nhắc tool trong prompt.
+                toolAvailable: Boolean(env.ragKbApiKey)
+            }),
             contents,
             CHAT_SCHEMA,
             `peacecat_${userId}`,
