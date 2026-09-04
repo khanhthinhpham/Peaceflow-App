@@ -1,0 +1,14 @@
+-- Mốc "đã đọc thông báo" của từng người dùng.
+--
+-- Vì sao dùng MỘT MỐC THỜI GIAN chứ không lưu trạng thái đọc cho từng thông báo:
+-- GET /notifications không đọc từ một bảng thông báo cố định, mà TỔNG HỢP tại thời điểm
+-- gọi (nhắc check-in, streak, huy hiệu, bình luận/cảm xúc gộp theo group_key, lịch hẹn...).
+-- Id của chúng là id suy ra, có cái đổi theo dữ liệu mới ('booking-<group_key|timestamp>'),
+-- nên lưu trạng thái đọc theo từng id sẽ hỏng ngay khi id đổi.
+-- Một mốc thời gian xử lý được tất cả: thông báo nào có created_at <= mốc thì coi như đã
+-- đọc. Nhóm nào có hoạt động mới sẽ tự thành chưa đọc trở lại (vì created_at của nhóm lấy
+-- theo mốc mới nhất trong nhóm) — đúng hành vi mong muốn.
+--
+-- Trước khi có cột này, client chỉ đặt unread = 0 trong bộ nhớ khi mở panel, nên tải lại
+-- trang là badge hiện lại nguyên số cũ.
+alter table users add column if not exists notifications_read_at timestamptz;

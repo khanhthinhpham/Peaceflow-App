@@ -16,6 +16,17 @@ if (env.vapidPrivateKey && env.vapidPublicKey) {
   }
 }
 
+// Đầu ngày theo giờ Việt Nam (UTC+7), trả về dạng ISO.
+// Dùng làm created_at cho các lời nhắc được TỔNG HỢP tại đây. Trước đây chúng dùng
+// `new Date().toISOString()` — tức mốc thời gian đổi mỗi lần gọi API, nên luôn mới hơn
+// mốc "đã đọc" của người dùng và VĨNH VIỄN hiện là chưa đọc, badge không bao giờ về 0.
+// Mốc theo ngày giúp: bấm đọc là hết trong hôm nay, sang ngày mới thì nhắc lại — đúng
+// bản chất của một lời nhắc hằng ngày.
+function startOfVnDay() {
+    const nowVn = new Date(Date.now() + 7 * 3600000);
+    return new Date(Date.UTC(nowVn.getUTCFullYear(), nowVn.getUTCMonth(), nowVn.getUTCDate()) - 7 * 3600000).toISOString();
+}
+
 // GET /notifications — in-app notifications tính từ dữ liệu hiện có
 router.get('/notifications', requireAuth, async (req, res) => {
   try {
@@ -23,7 +34,7 @@ router.get('/notifications', requireAuth, async (req, res) => {
     const isTest = req.query.test === 'true';
     const notifications = [];
 
-    const [moodRes, progressRes, badgesRes, communityCommentRes, communityReactionRes, communityNotifsRes] = await Promise.all([
+    const [moodRes, progressRes, badgesRes, communityCommentRes, communityReactionRes, communityNotifsRes, userRes] = await Promise.all([
       db.query(
         `select created_at from mood_checkins where user_id = $1 order by created_at desc limit 1`,
         [userId]
@@ -64,6 +75,13 @@ router.get('/notifications', requireAuth, async (req, res) => {
          group by group_key, type, post_id, message
          order by max(created_at) desc limit 10`,
         [userId]
+      ).catch(() => ({ rows: [] })),
+      // Mốc đã đọc, dùng để đánh dấu is_read cho các thông báo được TỔNG HỢP tại đây
+      // (nhắc check-in, streak, huy hiệu) — những thứ không có hàng nào trong bảng
+      // notifications nên không thể đánh dấu đọc theo từng dòng. Xem migration 0054.
+      db.query(
+        `select notifications_read_at from users where id = $1`,
+        [userId]
       ).catch(() => ({ rows: [] }))
     ]);
 
@@ -96,7 +114,9 @@ router.get('/notifications', requireAuth, async (req, res) => {
           title: `Streak ${progress.current_streak} ngày sắp bị phá!`,
           body: 'Hoàn thành ít nhất 1 nhiệm vụ hoặc check-in hôm nay.',
           action: 'tasks.html',
-          created_at: new Date().toISOString()
+          // Mốc ỔN ĐỊNH theo NGÀY (không phải new Date() mỗi lần gọi API) — xem giải
+          // thích ở startOfVnDay().
+          created_at: startOfVnDay()
         });
       }
     }
@@ -115,7 +135,16 @@ router.get('/notifications', requireAuth, async (req, res) => {
         title: hoursSinceMood === Infinity ? 'Check-in tâm trạng đầu tiên' : 'Đã đến giờ check-in!',
         body: 'Ghi nhận tâm trạng mỗi ngày giúp hệ thống gợi ý chính xác hơn.',
         action: 'mood-checkin.html',
-        created_at: new Date().toISOString()
+        // Mốc ỔN ĐỊNH = mốc MUỘN HƠN giữa "đến hạn" (22 giờ sau lần check-in gần nhất) và
+        // "đầu ngày hôm nay".
+        // Vì sao phải lấy cái muộn hơn: nếu chỉ lấy "đến hạn", người đã lâu không check-in
+        // sẽ có mốc nằm ở quá khứ xa, đọc một lần là lời nhắc im VĨNH VIỄN, hôm sau không
+        // nhắc nữa. Kẹp thêm đầu ngày thì mỗi ngày mốc lại mới hơn mốc đã đọc hôm trước →
+        // nhắc lại mỗi ngày, và bấm đọc chỉ im trong hôm nay. Xem thêm startOfVnDay().
+        created_at: new Date(Math.max(
+          lastMood ? new Date(lastMood.created_at).getTime() + 22 * 3600000 : 0,
+          Date.parse(startOfVnDay())
+        )).toISOString()
       });
     }
 
@@ -181,10 +210,51 @@ router.get('/notifications', requireAuth, async (req, res) => {
       return (order[a.type] ?? 3) - (order[b.type] ?? 3);
     });
 
+    // Gắn is_read cho từng thông báo để client đếm badge cho đúng.
+    // Các thông báo lấy từ bảng notifications đã được lọc is_read = false ở trên nên
+    // đương nhiên là chưa đọc; phần tổng hợp (nhắc check-in, streak, huy hiệu) thì so với
+    // mốc đã đọc của người dùng. CỐ Ý giữ nguyên shape MẢNG của response — chỉ thêm field
+    // vào từng phần tử — để client cũ không bị vỡ.
+    const readAtRaw = userRes?.rows?.[0]?.notifications_read_at;
+    const readAt = readAtRaw ? new Date(readAtRaw).getTime() : 0;
+    notifications.forEach((item) => {
+      const createdAt = item.created_at ? new Date(item.created_at).getTime() : 0;
+      item.is_read = createdAt > 0 && createdAt <= readAt;
+    });
+
     return res.json({ success: true, data: notifications });
   } catch (error) {
     console.error('Notifications error:', error.message, error.stack);
     return res.status(500).json({ success: false, message: 'Could not fetch notifications' });
+  }
+});
+
+// POST /notifications/read — đánh dấu đã đọc toàn bộ thông báo hiện có.
+// Client gọi khi người dùng mở panel thông báo. Trước đây client chỉ đặt unread = 0 trong
+// bộ nhớ nên tải lại trang là badge hiện lại nguyên số cũ — cột is_read của bảng
+// notifications có từ migration 0019 nhưng CHƯA BAO GIỜ được set true (cả code chỉ có một
+// chỗ `where is_read = false`), nên mọi thông báo cộng đồng/lịch hẹn ở lại "chưa đọc"
+// vĩnh viễn và bị trả về mọi lần tải trang.
+router.post('/notifications/read', requireAuth, async (req, res) => {
+  try {
+    const userId = req.user.sub;
+    await Promise.all([
+      // Thông báo có hàng thật trong DB: đánh dấu theo từng dòng.
+      db.query(
+        `update notifications set is_read = true
+          where recipient_id = $1 and is_read = false`,
+        [userId]
+      ),
+      // Thông báo tổng hợp (không có hàng nào): dùng mốc thời gian — xem migration 0054.
+      db.query(
+        `update users set notifications_read_at = now() where id = $1`,
+        [userId]
+      )
+    ]);
+    return res.json({ success: true });
+  } catch (error) {
+    console.error('Notifications read error:', error.message, error.stack);
+    return res.status(500).json({ success: false, message: 'Could not mark notifications read' });
   }
 });
 

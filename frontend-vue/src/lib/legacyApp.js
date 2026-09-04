@@ -41,7 +41,14 @@ const MIGRATED_PAGES = {
 // Dùng cho các luồng redirect nhận vào tên trang kiểu cũ (ví dụ sau khi login/signup).
 // Trả về { internal: true, path } nếu trang đã migrate, ngược lại { internal: false, page }.
 export function resolveAppRedirect(pageSpec) {
-  const pageName = String(pageSpec || '').split('?')[0].split('#')[0];
+  const spec = String(pageSpec || '');
+  // Giá trị bắt đầu bằng "/" ĐÃ là route Vue (vd '/admin/payments') — điều hướng nội bộ
+  // luôn. Trước đây mọi thứ không có trong MIGRATED_PAGES đều bị coi là trang cũ, nên một
+  // route Vue truyền vào đây sẽ bị bật ra frontend/pages/... và rời hẳn app.
+  if (spec.startsWith('/')) {
+    return { internal: true, path: spec };
+  }
+  const pageName = spec.split('?')[0].split('#')[0];
   if (MIGRATED_PAGES[pageName]) {
     return { internal: true, path: MIGRATED_PAGES[pageName] };
   }

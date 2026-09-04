@@ -5,6 +5,12 @@ import { subscribeNotifications, unsubscribeNotifications } from '../lib/supabas
 
 const VAPID_PUBLIC_KEY = 'BPv-CCXdm5KP7VgrtF2NILO4xIRp2w5zk-BqcCJDoYTKWLHDrSUkhD5ODXJDlyV529vsm78bgPrNXCs0TasYjx0';
 let toastIdSeq = 0;
+// Số toast hiển thị cùng lúc. Trước đây không giới hạn nên 5-6 thông báo là xếp chồng
+// che kín góc phải màn hình.
+const MAX_VISIBLE_TOASTS = 3;
+// Số id "đã xem" giữ lại trong localStorage — đủ nhiều để thông báo cũ không bị toast lại,
+// vẫn đủ nhỏ để không phình vô hạn.
+const MAX_SEEN_IDS = 200;
 
 function urlBase64ToUint8Array(base64String) {
   const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
@@ -76,19 +82,37 @@ export const useNotificationsStore = defineStore('notifications', {
       });
     },
 
+    // Nơi bấm vào một thông báo sẽ dẫn tới.
+    //
+    // Quyết định theo VAI TRÒ người đang đăng nhập, KHÔNG theo trang đang đứng. Trước đây
+    // điều kiện là `window.location.pathname.includes('/admin/')` nên cùng một thông báo,
+    // admin bấm từ /admin/payments ra một đường, bấm từ /dashboard lại ra đường khác. Tệ
+    // hơn: nhánh đó trả 'app.html?page=payments.html' — 'app.html' không có trong
+    // MIGRATED_PAGES nên admin bấm thông báo là bị bật hẳn ra frontend cũ.
+    //
+    // Backend gửi action theo LOẠI thông báo, không biết người nhận là ai; mà cùng một
+    // loại 'booking_update' được gửi cho cả bệnh nhân, chuyên gia và admin (xem
+    // expert.routes.js). Nên phần dưới đây chỉnh lại đích cho đúng vai:
     actionFor(notif) {
-      if (window.location.pathname.includes('/admin/')) {
-        switch (notif?.type) {
-          case 'booking_new':
-          case 'booking_update':
-            return 'app.html?page=payments.html';
-          case 'comment':
-          case 'community':
-            return 'app.html?page=community.html';
-          default:
-            return 'app.html?page=dashboard.html';
-        }
-      }
+      const auth = useAuthStore();
+      const isAdmin = Boolean(auth.user?.role === 'admin' || auth.user?.is_admin);
+      const isExpert = Boolean(auth.user?.is_expert || auth.user?.role === 'expert');
+      // Loại từ danh sách tổng hợp là 'booking', từ realtime là 'booking_new'/'booking_update'.
+      const type = String(notif?.type || '');
+      const isBooking = type.startsWith('booking');
+
+      // Admin: thông báo lịch hẹn/thanh toán gửi cho admin là việc đối chiếu thanh toán
+      // ("... báo đã chuyển khoản — cần đối chiếu & xác nhận"), thuộc khu quản trị.
+      // CỐ Ý không bắt các loại còn lại: nhắc check-in, streak, huy hiệu, hay bình luận
+      // trên bài của chính họ là chuyện cá nhân — admin cũng là người dùng bình thường
+      // (is_admin cộng thêm vào role, xem migration 0049), đưa hết về khu quản trị là sai.
+      if (isAdmin && isBooking) return '/admin/payments';
+
+      // Chuyên gia: mọi thông báo lịch hẹn đều thuộc khu làm việc của họ. Trước đây
+      // 'booking_update' luôn trỏ 'experts.html' nên chuyên gia nhận tin "thân chủ đã huỷ
+      // lịch" lại bị đưa tới trang đi TÌM chuyên gia.
+      if (isExpert && isBooking) return '/expert/dashboard';
+
       return notif?.action || '#';
     },
 
@@ -118,7 +142,9 @@ export const useNotificationsStore = defineStore('notifications', {
       try {
         const data = await apiClient.get('/notifications', { noCache: true });
         this.notifications = Array.isArray(data) ? data : [];
-        this.unread = this.notifications.length;
+        // Đếm theo is_read do server trả về, KHÔNG lấy tổng số. Trước đây lấy tổng nên
+        // badge hiện lại nguyên số cũ sau mỗi lần tải trang, dù người dùng đã mở panel.
+        this.unread = this.notifications.filter((item) => !item.is_read).length;
         this._maybeShowToast();
       } catch (_) {
         this.notifications = [];
@@ -130,24 +156,44 @@ export const useNotificationsStore = defineStore('notifications', {
       if (!this.notifications.length) return;
 
       const seenRaw = localStorage.getItem('notif_seen_ids');
-      const seenIds = seenRaw ? new Set(JSON.parse(seenRaw)) : null;
+      let seenIds = null;
+      try {
+        seenIds = seenRaw ? new Set(JSON.parse(seenRaw)) : null;
+      } catch {
+        seenIds = null; // localStorage hỏng -> coi như lần đầu, chỉ ghi nhận không toast
+      }
       const currentIds = this.notifications.map((n) => n.id);
 
-      localStorage.setItem('notif_seen_ids', JSON.stringify(currentIds));
+      // CỘNG DỒN danh sách đã xem, KHÔNG ghi đè bằng lô hiện tại.
+      // Trước đây ghi đè nên bất cứ thông báo nào rơi ra khỏi kết quả API rồi quay lại —
+      // hoặc có id tổng hợp bị đổi (id lịch hẹn là `booking-${group_key || timestamp}`,
+      // đổi theo mốc thời gian mới nhất) — đều bị coi là mới và toast lại. Đó là hiện
+      // tượng "vào lại là hiện cả loạt thông báo cũ".
+      const merged = [...new Set([...(seenIds || []), ...currentIds])].slice(-MAX_SEEN_IDS);
+      localStorage.setItem('notif_seen_ids', JSON.stringify(merged));
 
       if (!seenIds) return;
 
       const newNotifs = this.notifications.filter((n) => !seenIds.has(n.id));
       if (!newNotifs.length) return;
 
-      newNotifs.forEach((notif, i) => {
+      // Chỉ toast tối đa MAX_VISIBLE_TOASTS cái; còn lại vẫn nằm trong panel thông báo.
+      newNotifs.slice(0, MAX_VISIBLE_TOASTS).forEach((notif, i) => {
         setTimeout(() => this.pushToast(notif), i * 800);
       });
     },
 
     pushToast(notif) {
       const id = ++toastIdSeq;
-      this.toasts.push({ id, ...notif });
+      // `id` phải đặt SAU ...notif. Mọi thông báo từ API đều có sẵn trường id
+      // ('booking-xxx', 'checkin-reminder'...); để id trước thì nó bị ghi đè, rồi timer
+      // tự tắt gọi dismissToast(<số>) trong khi toast mang id <chuỗi> -> filter không
+      // khớp gì -> toast KHÔNG BAO GIỜ tự tắt, chỉ tắt được khi người dùng bấm ✕.
+      this.toasts.push({ ...notif, id });
+      // Quá số lượng cho phép thì bỏ cái cũ nhất (timer của nó sau đó thành vô hại).
+      if (this.toasts.length > MAX_VISIBLE_TOASTS) {
+        this.toasts = this.toasts.slice(-MAX_VISIBLE_TOASTS);
+      }
       setTimeout(() => this.dismissToast(id), 4000);
     },
 
@@ -157,7 +203,17 @@ export const useNotificationsStore = defineStore('notifications', {
 
     togglePanel() {
       this.panelOpen = !this.panelOpen;
-      if (this.panelOpen) this.unread = 0;
+      if (!this.panelOpen) return;
+
+      this.unread = 0;
+      // Ghi nhận đã đọc ở SERVER nữa, không chỉ trong bộ nhớ — nếu không, tải lại trang là
+      // badge hiện lại. Đánh dấu ngay trên bản đồ dữ liệu đang giữ để panel không nhảy số
+      // khi load lại lần sau.
+      this.notifications = this.notifications.map((item) => ({ ...item, is_read: true }));
+      // "Bắn và quên": lỗi mạng không được làm hỏng việc mở panel.
+      apiClient.post('/notifications/read', {}).catch((error) => {
+        console.warn('[Notif] không đánh dấu được đã đọc:', error?.message || error);
+      });
     },
 
     closePanel() {
