@@ -219,8 +219,15 @@ const KB_TOOL = {
 // (verify bằng log thật). timeoutMs để lời gọi cắt theo ngân sách còn lại của lượt chat.
 const RAG_TIMEOUT_MS = 20000;
 
+// Kho sách chỉ coi là dùng được khi có ĐỦ cả URL và API key. Thiếu một trong hai thì tool
+// không được khai báo với model — tránh việc trả tiền cho một lời gọi chắc chắn thất bại
+// rồi phải tốn thêm một lượt Gemini nữa để trả lời.
+function isKbConfigured() {
+    return Boolean(env.ragKbBaseUrl && env.ragKbApiKey);
+}
+
 async function queryKnowledgeBase(question, sessionId, timeoutMs = RAG_TIMEOUT_MS) {
-    if (!env.ragKbApiKey) return null; // chưa cấu hình -> tool coi như không khả dụng
+    if (!isKbConfigured()) return null; // chưa cấu hình -> tool coi như không khả dụng
     try {
         const response = await fetchWithDeadline(
             `${env.ragKbBaseUrl}/query`,
@@ -306,7 +313,7 @@ async function callGeminiWithTool(systemInstruction, contents, schema, sessionId
     // gọi tool, nhận found=false tức thì, rồi tốn thêm lượt nữa để trả lời — trả tiền cho
     // một thứ chắc chắn không dùng được. Đây đúng là tình trạng production khi chưa set
     // RAG_KB_BASE_URL / RAG_KB_API_KEY.
-    const toolAvailable = Boolean(env.ragKbApiKey);
+    const toolAvailable = isKbConfigured();
 
     // Ngân sách chung cho cả lượt: mọi lời gọi bên dưới đều phải nằm trong đây.
     const deadline = Date.now() + TURN_BUDGET_MS;
@@ -1163,7 +1170,7 @@ export async function getChatReply({ userId, message, history = [] }) {
                 crisisDetected,
                 // Cùng điều kiện với callGeminiWithTool: chưa cấu hình kho tài liệu thì
                 // không khai báo tool VÀ không nhắc tool trong prompt.
-                toolAvailable: Boolean(env.ragKbApiKey)
+                toolAvailable: isKbConfigured()
             }),
             contents,
             CHAT_SCHEMA,

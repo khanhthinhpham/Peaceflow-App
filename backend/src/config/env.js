@@ -44,9 +44,13 @@ export const env = {
   ragApiKey: process.env.RAG_API_KEY,
   ragAdminKey: process.env.RAG_ADMIN_KEY,
   ragTenantId: process.env.RAG_TENANT_ID || 'peaceflow',
-  // Tenant riêng cho tài liệu chuyên môn (PSS, CARS, SDQ-25, RAVEN...) — PeaceCat tra cứu
-  // qua tool-calling khi cần, tách biệt hoàn toàn với RAG bài tập ở trên.
-  ragKbBaseUrl: process.env.RAG_KB_BASE_URL || 'http://localhost:8888/api',
+  // Tenant riêng cho kho sách chuyên môn — PeaceCat tra cứu qua tool-calling khi cần,
+  // tách biệt hoàn toàn với RAG bài tập ở trên.
+  // CỐ Ý KHÔNG có giá trị mặc định: trước đây mặc định là 'http://localhost:8888/api' nên
+  // production không set biến vẫn lặng lẽ trỏ về localhost — model gọi tra cứu, thất bại
+  // tức thì, rồi tốn thêm một lượt Gemini nữa để trả lời (đo thật: 7.267 token/tin thay vì
+  // 1.903). Để trống thì tool tự tắt hẳn, không có lời gọi vô ích nào.
+  ragKbBaseUrl: process.env.RAG_KB_BASE_URL,
   ragKbApiKey: process.env.RAG_KB_API_KEY,
   geminiApiKey: process.env.GEMINI_API_KEY,
   geminiModel: process.env.GEMINI_MODEL || 'gemini-3.5-flash-lite',
