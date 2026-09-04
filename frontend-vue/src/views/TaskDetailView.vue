@@ -12,7 +12,7 @@
           <div class="eph-label">Đường dây nóng sức khỏe tâm thần — Miễn phí, 24/7</div>
         </div>
         <div class="ep-actions">
-          <a href="tel:1800599920" class="ep-btn ep-btn-red">📞 Gọi ngay hotline</a>
+          <a href="tel:0931773637" class="ep-btn ep-btn-red">📞 Gọi ngay hotline</a>
           <router-link to="/experts" class="ep-btn ep-btn-green">💬 Kết nối chuyên gia</router-link>
           <button class="ep-btn ep-btn-ghost" @click="emergencyOpen = false">Tôi ổn, đóng lại</button>
         </div>

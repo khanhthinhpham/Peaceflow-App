@@ -1,22 +1,18 @@
 import { Router } from 'express';
-import rateLimit from 'express-rate-limit';
 import { requireAuth } from '../../common/middleware/auth.middleware.js';
 import { db } from '../../config/db.js';
 import { buildUserContext, invalidateContext } from './ai.context.js';
-import { getRecommendedTask, getWeeklyInsight, getChatReply, getStoredUserInsight, generateUserInsight } from './ai.service.js';
+import { getRecommendedTask, getWeeklyInsight, getChatReply, getStoredUserInsight, generateUserInsight, MAX_CHAT_HISTORY } from './ai.service.js';
 import { estimateCostUsd, USD_TO_VND } from './ai.usage.js';
+import { createAiRateLimit } from './ai.ratelimit.js';
 
 const router = Router();
 
-// Giới hạn: mỗi user tối đa 20 lần gọi AI / 1 giờ
-const aiRateLimit = rateLimit({
-    windowMs: 60 * 60 * 1000,
-    max: 20,
-    keyGenerator: (req) => req.user?.sub ?? req.ip,
-    message: { success: false, message: 'Bạn đã gọi AI quá nhiều lần. Vui lòng thử lại sau.' },
-    standardHeaders: true,
-    legacyHeaders: false,
-});
+// Giới hạn: mỗi user tối đa 20 lần gọi AI / 1 giờ.
+// Đếm trong DB, KHÔNG dùng express-rate-limit nữa: memory store mặc định của nó đếm riêng
+// trên từng serverless container của Vercel nên giới hạn cũ không có tác dụng toàn cục —
+// xem ai.ratelimit.js.
+const aiRateLimit = createAiRateLimit(20);
 
 // GET /me/ai-context — trả về dữ liệu context thô (debug / frontend dùng)
 router.get('/me/ai-context', requireAuth, async (req, res) => {
@@ -104,7 +100,25 @@ router.post('/ai/chat', requireAuth, aiRateLimit, async (req, res) => {
         if (!message) {
             return res.status(400).json({ success: false, message: 'Vui lòng nhập nội dung.' });
         }
-        const history = Array.isArray(req.body?.history) ? req.body.history : [];
+
+        // Lọc history do client gửi lên trước khi dùng:
+        //  - Cắt độ dài TỪNG lượt bằng đúng mức của tin nhắn mới. Trước đây chỉ `message`
+        //    bị cắt 500 ký tự, còn history thì không giới hạn gì (MAX_CHAT_HISTORY chỉ
+        //    giới hạn SỐ lượt) — client gửi 6 lượt mỗi lượt vài chục KB là prompt phình,
+        //    token nổ, tiền thật.
+        //  - Chỉ giữ đúng role + text. Các cờ hadSuggestion/offeredTask client gửi kèm bị
+        //    BỎ HẲN: server tự nhớ trong DB (xem readChatTurnState), vì client sửa cờ là
+        //    tự mở khoá được danh sách bài tập.
+        // Vẫn phải nhận nội dung history từ client vì app cố ý không lưu nội dung chat ở
+        // server (xem getChatReply) — đánh đổi đã biết: client vẫn có thể bơm lượt "model"
+        // giả vào ngữ cảnh.
+        const history = (Array.isArray(req.body?.history) ? req.body.history : [])
+            .slice(-MAX_CHAT_HISTORY)
+            .filter((item) => item && typeof item.text === 'string' && item.text.trim())
+            .map((item) => ({
+                role: item.role === 'user' ? 'user' : 'model',
+                text: item.text.trim().slice(0, MAX_CHAT_MESSAGE_LENGTH)
+            }));
 
         const result = await getChatReply({ userId: req.user.sub, message, history });
 
@@ -131,6 +145,10 @@ router.post('/ai/chat', requireAuth, aiRateLimit, async (req, res) => {
                     }
                     : null,
                 offered_task: result.offeredTask,
+                // Server đã xác nhận có dấu hiệu tự hại/tự tử trong tin nhắn — client nào
+                // cũng bật được UI khẩn cấp dựa vào cờ này, không chỉ dựa vào bộ từ khoá
+                // riêng phía client.
+                crisis: result.crisis,
                 mood_analysis: result.moodAnalysis
             }
         });

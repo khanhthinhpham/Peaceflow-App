@@ -53,7 +53,7 @@
       <!-- Hotlines -->
       <div class="section-title">📞 Liên hệ ngay — Miễn phí, 24/7</div>
       <div class="hotline-grid">
-        <a href="tel:1800599920" class="paper-card hotline-card hc-main" @click="logHotlineView('1800599920')">
+        <a href="tel:0931773637" class="paper-card hotline-card hc-main" @click="logHotlineView('0931773637')">
           <div class="hc-icon">📞</div>
           <div class="hc-num">0931773637</div>
           <div class="hc-label">Đường dây nóng sức khỏe tâm thần</div>

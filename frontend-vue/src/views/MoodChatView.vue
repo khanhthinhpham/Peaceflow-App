@@ -10,7 +10,7 @@
         <div class="eph-label">Đường dây nóng sức khỏe tâm thần — Miễn phí, 24/7</div>
       </div>
       <div class="ep-actions">
-        <a href="tel:1800599920" class="ep-btn ep-btn-red">📞 Gọi ngay hotline</a>
+        <a href="tel:0931773637" class="ep-btn ep-btn-red">📞 Gọi ngay hotline</a>
         <router-link to="/experts" class="ep-btn ep-btn-green">💬 Chat với chuyên gia thật</router-link>
         <a href="tel:115" class="ep-btn ep-btn-green" style="background:var(--coral-light);color:#c05050;border-color:var(--coral);">🆘 Gọi cấp cứu 115</a>
         <button class="ep-btn ep-btn-ghost" @click="closeEmergency">Tôi ổn, tiếp tục trò chuyện</button>
@@ -592,6 +592,11 @@ async function sendMessage() {
       suggestedExpert: res?.suggested_expert || null,
       offeredTask: res?.offered_task || false
     });
+
+    // Server cũng tự kiểm tra dấu hiệu tự hại (bộ từ khoá riêng, rộng hơn DANGER_KEYWORDS
+    // ở đây) — nếu nó phát hiện mà bộ từ khoá phía client bỏ sót thì vẫn mở popup khẩn cấp.
+    // showEmergency() chỉ bật cờ nên gọi trùng cũng vô hại.
+    if (res?.crisis) showEmergency();
   } catch (error) {
     console.error('Chat AI failed:', error);
     hideTyping();

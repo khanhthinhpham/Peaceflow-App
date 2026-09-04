@@ -171,7 +171,7 @@
           <div class="eph-label">Đường dây nóng sức khỏe tâm thần — Miễn phí, 24/7</div>
         </div>
         <div class="ep-actions">
-          <a href="tel:1800599920" class="ep-btn ep-btn-primary">📞 Gọi ngay</a>
+          <a href="tel:0931773637" class="ep-btn ep-btn-primary">📞 Gọi ngay</a>
           <router-link to="/experts" class="ep-btn ep-btn-secondary">💬 Chat với chuyên gia</router-link>
           <a href="tel:115" class="ep-btn ep-btn-secondary" style="background:var(--coral-light);color:#c05050;border-color:var(--coral);">🆘 Gọi cấp cứu 115</a>
           <button class="ep-btn ep-btn-close" @click="showEmergencyPopup = false">Tôi ổn, tiếp tục</button>

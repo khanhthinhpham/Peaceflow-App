@@ -3,6 +3,7 @@ import { env } from '../../config/env.js';
 import { db } from '../../config/db.js';
 import { buildUserContext } from './ai.context.js';
 import { logAiUsage } from './ai.usage.js';
+import { detectCrisisSignals, ensureCrisisResources, logCrisisFlag } from './ai.safety.js';
 
 async function callRAG(ctx, sessionId) {
     const response = await fetch(`${env.ragBaseUrl}/recommend`, {
@@ -93,6 +94,46 @@ async function getCatalog() {
     return data;
 }
 
+// ===== Giới hạn thời gian cho các lời gọi ra ngoài =====
+// Trước đây chỉ lời gọi RAG có deadline, còn Gemini thì không có gì cả: Google trả lời
+// chậm/treo là request treo theo (Node fetch mặc định chỉ cắt ở mức ~5 phút), trong khi
+// vẫn giữ 1 kết nối DB pool và đã tiêu 1 lượt rate limit của người dùng.
+// Nghiêm trọng hơn: backend chạy trên Vercel nên nền tảng sẽ cắt function TRƯỚC khi
+// code kịp ghi log -> lỗi không hiện trên dashboard admin, nhìn vào tưởng chưa từng có
+// cuộc gọi nào. Có deadline riêng thì lỗi thành lỗi "của mình", được log tử tế.
+const GEMINI_CALL_TIMEOUT_MS = 18000;
+// Ngân sách cho CẢ một lượt chat. Từ khi có tool-calling, một lượt có thể tốn tới 3 lời
+// gọi Gemini + 2 lời gọi RAG nối tiếp — đo thật đã thấy lượt 37.4 giây. Không chặn tổng
+// thì các lời gọi cộng dồn không giới hạn.
+const TURN_BUDGET_MS = 40000;
+// Dưới mức này thì không bắt đầu vòng gọi tool nữa (không đủ thời gian cho RAG + lời gọi
+// chốt câu trả lời) — thà bỏ tra cứu còn hơn để cả lượt chat chết vì hết giờ.
+const MIN_TOOL_BUDGET_MS = 12000;
+// Phần thời gian luôn để dành cho lời gọi Gemini chốt câu trả lời cuối.
+const FINAL_CALL_RESERVE_MS = 8000;
+
+function clampMs(value, min, max) {
+    return Math.max(min, Math.min(max, value));
+}
+
+// fetch có deadline, và đổi lỗi abort thành thông điệp đọc được. Lý do đổi thông điệp:
+// AbortError chỉ nói "This operation was aborted", đi vào ai_usage_logs.error_message thì
+// admin không biết là hết thời gian chờ ở đâu.
+async function fetchWithDeadline(url, options, timeoutMs, label) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+        return await fetch(url, { ...options, signal: controller.signal });
+    } catch (error) {
+        if (error.name === 'AbortError') {
+            throw new Error(`${label} quá thời gian chờ (${Math.round(timeoutMs / 1000)}s)`);
+        }
+        throw error;
+    } finally {
+        clearTimeout(timer);
+    }
+}
+
 // `contents` nhận trực tiếp mảng theo format Gemini ([{role?, parts:[{text}]}]) để hỗ
 // trợ cả 1 lượt (các tính năng cũ) và nhiều lượt hội thoại thật (chat) trong cùng 1 hàm.
 async function callGeminiJson(systemInstruction, contents, schema, options = {}) {
@@ -101,7 +142,7 @@ async function callGeminiJson(systemInstruction, contents, schema, options = {})
     }
 
     const model = env.geminiModel;
-    const response = await fetch(
+    const response = await fetchWithDeadline(
         `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${env.geminiApiKey}`,
         {
             method: 'POST',
@@ -115,7 +156,9 @@ async function callGeminiJson(systemInstruction, contents, schema, options = {})
                     ...(options.maxOutputTokens ? { maxOutputTokens: options.maxOutputTokens } : {})
                 }
             })
-        }
+        },
+        GEMINI_CALL_TIMEOUT_MS,
+        'Gemini'
     );
 
     if (!response.ok) {
@@ -145,34 +188,57 @@ async function callGeminiJson(systemInstruction, contents, schema, options = {})
 }
 
 // ===== Tool tra cứu tài liệu chuyên môn (RAG service riêng, tenant peaceflow-kb) =====
-// PeaceCat tự quyết định KHI NÀO cần gọi (Gemini function-calling) — không gọi cho mọi
-// câu hỏi, chỉ khi model thấy cần kiến thức chuyên sâu (tên thang đo, định nghĩa...).
+// Mục tiêu KHÔNG PHẢI "chat với 1 file" (chỉ tra khi người dùng hỏi thẳng tên sách), mà
+// là để PeaceCat CHỦ ĐỘNG lấy kiến thức/kỹ thuật thật trong sách rồi lồng tự nhiên vào lời
+// khuyên — kể cả khi người dùng không hề nhắc tên sách. PeaceCat tự quyết định KHI NÀO cần
+// gọi (Gemini function-calling), không gọi cho mọi câu hỏi.
 const KB_TOOL = {
     functionDeclarations: [{
         name: 'tra_cuu_tai_lieu_chuyen_mon',
-        description: 'Tra cứu tài liệu chuyên môn sức khỏe tâm thần (thang đo PSS, CARS, SDQ-25, RAVEN...) khi người dùng hỏi khái niệm, định nghĩa, cách tính điểm, hoặc kiến thức chuyên sâu cụ thể. KHÔNG gọi khi họ chỉ đang tâm sự/chia sẻ cảm xúc thông thường.',
+        description: 'Tra cứu kho sách giảm stress THẬT đã nạp sẵn ("100 Cách Đơn Giản Để Giảm Stress Dành Cho Nam Giới" - Richard Carlson, "AHA! Giải Toả Stress Và Khơi Nguồn Sáng Tạo" - Mike George) để lấy kỹ thuật/lời khuyên/nội dung THẬT, dùng làm căn cứ trả lời thay vì tự nghĩ ra. GỌI tool này khi: (a) người dùng hỏi thẳng nội dung một trong 2 cuốn sách trên, HOẶC (b) người dùng đang cần một lời khuyên/kỹ thuật cụ thể để giảm căng thẳng/stress/tìm lại sự sáng tạo — dù họ không nhắc tên sách. KHÔNG gọi khi họ chỉ đang tâm sự/trút cảm xúc và chưa tới lúc cần lời khuyên cụ thể, hoặc câu hỏi không liên quan gì tới stress/sáng tạo.',
         parameters: {
             type: 'object',
-            properties: { question: { type: 'string', description: 'Câu hỏi cần tra cứu, viết lại rõ ràng nếu cần' } },
+            properties: {
+                question: {
+                    type: 'string',
+                    // Verify thật: RAG tự chấm độ "grounded" rất khắt khe — câu hỏi càng kèm
+                    // hoàn cảnh riêng của người dùng ("vì công việc dồn dập", "ngay lập tức")
+                    // càng dễ bị RAG từ chối (found=false) dù sách có kỹ thuật áp dụng được,
+                    // chỉ vì sách không nói đúng y nguyên bối cảnh đó. Câu hỏi càng tổng quát
+                    // càng dễ tìm thấy nội dung thật.
+                    description: 'Câu hỏi TỔNG QUÁT để tra cứu — chỉ hỏi đúng khái niệm/kỹ thuật cần tìm (vd "cách bình tĩnh lại khi căng thẳng", "kỹ thuật giảm stress"), KHÔNG kèm hoàn cảnh riêng của người dùng (không thêm "vì công việc", "ngay lập tức", "khi mất ngủ vì deadline"...) vì sách hiếm khi khớp đúng bối cảnh cụ thể đó, dù kỹ thuật chung vẫn áp dụng được.'
+                }
+            },
             required: ['question']
         }
     }]
 };
 
-async function queryKnowledgeBase(question, sessionId) {
+// Pipeline RAG thật (embedding + hybrid search + rerank + sinh câu trả lời) có thể mất
+// hơn chục giây — 8s ban đầu từng abort giữa chừng dù service vẫn hoạt động bình thường
+// (verify bằng log thật). timeoutMs để lời gọi cắt theo ngân sách còn lại của lượt chat.
+const RAG_TIMEOUT_MS = 20000;
+
+async function queryKnowledgeBase(question, sessionId, timeoutMs = RAG_TIMEOUT_MS) {
     if (!env.ragKbApiKey) return null; // chưa cấu hình -> tool coi như không khả dụng
     try {
-        const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 8000);
-        const response = await fetch(`${env.ragKbBaseUrl}/query`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'X-API-Key': env.ragKbApiKey },
-            body: JSON.stringify({ question, session_id: sessionId }),
-            signal: controller.signal
-        }).finally(() => clearTimeout(timeout));
+        const response = await fetchWithDeadline(
+            `${env.ragKbBaseUrl}/query`,
+            {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-API-Key': env.ragKbApiKey },
+                body: JSON.stringify({ question, session_id: sessionId })
+            },
+            timeoutMs,
+            'Tra cứu tài liệu'
+        );
         if (!response.ok) return null;
         const data = await response.json();
-        return { answer: data.answer || '', sources: Array.isArray(data.sources) ? data.sources : [] };
+        // CỐ Ý bỏ qua data.sources: RAG trả kèm nguyên đoạn trích gốc + rất nhiều metadata
+        // (_id, chunk_index, char_start, rerank_score...) mà model không hề dùng tới để trả
+        // lời (PeaceCat trả lời tự nhiên, không hiện "nguồn: trang X") — gửi cả mảng đó
+        // ngược lại cho Gemini từng làm prompt tăng gấp 3-7 lần cho mỗi lượt gọi tool.
+        return { answer: data.answer || '' };
     } catch (error) {
         // Timeout/lỗi mạng KHÔNG được phép làm sập cả cuộc trò chuyện — coi như không có
         // kết quả, để model tự trả lời bằng kiến thức chung.
@@ -181,18 +247,28 @@ async function queryKnowledgeBase(question, sessionId) {
     }
 }
 
-async function executeChatTool(name, args, sessionId) {
+async function executeChatTool(name, args, sessionId, timeoutMs = RAG_TIMEOUT_MS) {
+    const question = args?.question || '';
+    console.log(`[AI] Tool "${name}" được gọi — session=${sessionId} question="${question}"`);
     if (name !== 'tra_cuu_tai_lieu_chuyen_mon') {
+        console.log(`[AI] Tool "${name}" -> không xác định, bỏ qua`);
         return { found: false, note: 'Tool không xác định.' };
     }
-    const result = await queryKnowledgeBase(args?.question || '', sessionId);
+    const result = await queryKnowledgeBase(question, sessionId, timeoutMs);
     if (!result) {
+        console.log(`[AI] Tool "${name}" -> found=false (tra cứu lỗi/timeout, xem log lỗi phía trên)`);
         return { found: false, note: 'Không tra cứu được lúc này — trả lời bằng kiến thức chung, đừng bịa nguồn tài liệu.' };
     }
-    if (!result.answer || /don't know|không biết|no answer/i.test(result.answer)) {
+    // Chỉ coi là "không tìm thấy" khi mở đầu câu trả lời đúng là mẫu từ chối thật của RAG
+    // service ("Tài liệu không đề cập đến..." — verify bằng câu hỏi ngoài phạm vi tài liệu
+    // thật). Trước đây dò cụm "không biết" bất kỳ đâu trong câu → khớp nhầm khi câu trả
+    // lời hợp lệ trích dẫn sách có chứa cụm đó (vd "...khi không biết câu trả lời...").
+    if (!result.answer || /^(tài liệu|the document)s?\s+không\s+(đề cập|(có|cung cấp|tìm thấy)(\s+\S+){0,2}\s+thông tin)|^(i don't know|no answer)/i.test(result.answer.trim())) {
+        console.log(`[AI] Tool "${name}" -> found=false (RAG không có nội dung liên quan): "${result.answer.slice(0, 150)}"`);
         return { found: false, note: 'Tài liệu chuyên môn không đề cập nội dung này.' };
     }
-    return { found: true, answer: result.answer, sources: result.sources };
+    console.log(`[AI] Tool "${name}" -> found=true: "${result.answer.slice(0, 150)}..."`);
+    return { found: true, answer: result.answer };
 }
 
 // Giống callGeminiJson nhưng hỗ trợ 1 tool function-calling: nếu model quyết định gọi
@@ -207,10 +283,10 @@ async function callGeminiWithTool(systemInstruction, contents, schema, sessionId
     }
     const model = env.geminiModel;
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${env.geminiApiKey}`;
-    const buildBody = (currentContents) => ({
+    const buildBody = (currentContents, includeTool) => ({
         systemInstruction: { parts: [{ text: systemInstruction }] },
         contents: currentContents,
-        tools: [KB_TOOL],
+        ...(includeTool ? { tools: [KB_TOOL] } : {}),
         generationConfig: {
             responseMimeType: 'application/json',
             responseSchema: schema,
@@ -222,12 +298,32 @@ async function callGeminiWithTool(systemInstruction, contents, schema, sessionId
     const usage = { model, promptTokens: 0, outputTokens: 0, cachedTokens: 0 };
     const MAX_TOOL_ROUNDS = 2; // lưới an toàn — không cho model gọi tool lặp vô hạn
 
+    // Ngân sách chung cho cả lượt: mọi lời gọi bên dưới đều phải nằm trong đây.
+    const deadline = Date.now() + TURN_BUDGET_MS;
+    const budgetLeft = () => deadline - Date.now();
+    // Bật khi hết ngân sách giữa đường: tắt tool để lấy câu trả lời bằng chữ ngay.
+    let toolsDisabled = false;
+
     for (let round = 0; round <= MAX_TOOL_ROUNDS; round += 1) {
-        const response = await fetch(url, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(buildBody(workingContents))
-        });
+        // Lượt cuối (đã dùng hết số lần gọi tool cho phép) CỐ Ý bỏ "tools" khỏi request —
+        // nếu không, model vẫn có thể đòi gọi tool lần nữa, phần "text" sẽ rỗng và làm
+        // sập cả lượt chat (verify bằng lỗi thật "Gemini không trả về nội dung" khi model
+        // tra cứu 2 lần đều found=false rồi cố tra lần 3). Bỏ tools ép model PHẢI trả lời
+        // bằng văn bản ngay, dùng những gì đã có.
+        const includeTool = !toolsDisabled && round < MAX_TOOL_ROUNDS;
+        // Không bao giờ để 1 lời gọi vượt quá phần ngân sách còn lại; vẫn giữ sàn 3s để
+        // lời gọi đầu tiên không bị cắt vô nghĩa khi đồng hồ đã chạy sẵn.
+        const callTimeout = clampMs(budgetLeft(), 3000, GEMINI_CALL_TIMEOUT_MS);
+        const response = await fetchWithDeadline(
+            url,
+            {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(buildBody(workingContents, includeTool))
+            },
+            callTimeout,
+            'Gemini'
+        );
         if (!response.ok) {
             const err = await response.text();
             throw new Error(`Gemini ${response.status}: ${err}`);
@@ -241,14 +337,29 @@ async function callGeminiWithTool(systemInstruction, contents, schema, sessionId
         const modelTurn = data?.candidates?.[0]?.content;
         const functionCall = modelTurn?.parts?.find((p) => p.functionCall)?.functionCall;
 
-        if (functionCall && round < MAX_TOOL_ROUNDS) {
-            const toolResult = await executeChatTool(functionCall.name, functionCall.args, sessionId);
+        if (functionCall && includeTool && budgetLeft() < MIN_TOOL_BUDGET_MS) {
+            // Không còn đủ thời gian cho RAG + lời gọi chốt câu trả lời. Tắt tool rồi hỏi
+            // lại model để nó trả lời bằng chữ — CỐ Ý không đưa lượt functionCall này vào
+            // workingContents, coi như model chưa từng đòi gọi tool.
+            console.log(`[AI] session=${sessionId} hết ngân sách thời gian (${budgetLeft()}ms), bỏ tra cứu và trả lời ngay`);
+            toolsDisabled = true;
+            continue;
+        }
+
+        if (functionCall && includeTool) {
+            // Chừa lại phần cho lời gọi chốt câu trả lời, phần còn lại mới là của RAG.
+            const toolTimeout = clampMs(budgetLeft() - FINAL_CALL_RESERVE_MS, 3000, RAG_TIMEOUT_MS);
+            const toolResult = await executeChatTool(functionCall.name, functionCall.args, sessionId, toolTimeout);
             workingContents = [
                 ...workingContents,
                 modelTurn,
                 { role: 'USER_CONTEXT', parts: [{ functionResponse: { name: functionCall.name, response: toolResult } }] }
             ];
             continue;
+        }
+
+        if (round === 0) {
+            console.log(`[AI] session=${sessionId} không gọi tool nào, trả lời trực tiếp`);
         }
 
         const text = modelTurn?.parts?.map((p) => p.text || '').join('').trim();
@@ -772,7 +883,52 @@ const CHAT_SCHEMA = {
     required: ['reply', 'mood_analysis']
 };
 
-const MAX_CHAT_HISTORY = 6;
+// Export để route dùng đúng cùng một con số khi lọc history client gửi lên.
+export const MAX_CHAT_HISTORY = 6;
+
+// ===== Trạng thái lượt chat trước, lưu ở SERVER =====
+// Trước đây 2 cờ này do client gửi kèm history, nên client chỉ cần đặt offeredTask = true
+// là tự mở khoá được danh sách bài tập — đúng thứ mà code đang cố chặn cứng. Giờ server
+// tự nhớ (bảng ai_chat_turn_state, migration 0053), client gửi gì cũng không tính.
+//
+// Chỉ tin trạng thái còn "tươi": người dùng bấm xoá hội thoại rồi chat lại (frontend xoá
+// sessionStorage) thì cờ cũ không còn ý nghĩa, mà server không có cách nào biết. Quá mốc
+// này thì coi như hội thoại mới, cả 2 cờ về false — thà mất một lượt gợi ý bài tập còn hơn
+// tự ý gắn thẻ trong khi chưa hỏi ý.
+const TURN_STATE_FRESH_MS = 30 * 60 * 1000;
+
+async function readChatTurnState(userId) {
+    try {
+        const { rows } = await db.query(
+            `select offered_task, had_suggestion, updated_at
+             from ai_chat_turn_state where user_id = $1`,
+            [userId]
+        );
+        const row = rows[0];
+        if (!row) return { offeredTask: false, hadSuggestion: false };
+        if (Date.now() - new Date(row.updated_at).getTime() > TURN_STATE_FRESH_MS) {
+            return { offeredTask: false, hadSuggestion: false };
+        }
+        return { offeredTask: Boolean(row.offered_task), hadSuggestion: Boolean(row.had_suggestion) };
+    } catch (error) {
+        // Đọc lỗi thì coi như hội thoại mới — hướng an toàn (không mở khoá gợi ý bài tập).
+        console.error('[AI] đọc trạng thái lượt chat thất bại:', error.message);
+        return { offeredTask: false, hadSuggestion: false };
+    }
+}
+
+function writeChatTurnState(userId, { offeredTask, hadSuggestion }) {
+    // "Bắn và quên" như logAiUsage: ghi trạng thái không được phép làm hỏng lượt chat.
+    db.query(
+        `insert into ai_chat_turn_state (user_id, offered_task, had_suggestion, updated_at)
+         values ($1, $2, $3, now())
+         on conflict (user_id) do update
+           set offered_task = excluded.offered_task,
+               had_suggestion = excluded.had_suggestion,
+               updated_at = now()`,
+        [userId, Boolean(offeredTask), Boolean(hadSuggestion)]
+    ).catch((error) => console.error('[AI] ghi trạng thái lượt chat thất bại:', error.message));
+}
 
 function buildChatSystemInstruction(ctx, catalog, options = {}) {
     // Model không tự biết được các trạng thái này vì lịch sử gửi lên chỉ có phần chữ,
@@ -786,9 +942,24 @@ function buildChatSystemInstruction(ctx, catalog, options = {}) {
         turnNote = 'Lượt này bạn KHÔNG có DANH SÁCH BÀI TẬP nên BẮT BUỘC để trống suggested_task_code (không tự nghĩ ra mã). Nếu thấy một bài tập có thể giúp thì chỉ HỎI xem họ có muốn gợi ý không, và đặt offered_task = true — thà không có thẻ còn hơn tự ý gửi.';
     }
 
+    // Khối khủng hoảng đặt TRÊN cả "NHIỆM VỤ SỐ 1" là có chủ ý: đo thực tế trong phiên
+    // phát triển cho thấy model tuân các khối có tiêu đề riêng ở đầu prompt rất tốt, còn
+    // quy tắc nằm chìm trong danh sách đánh số thì bị lướt qua. Đây là lúc duy nhất mà
+    // việc gọi tên cảm xúc cốt lõi KHÔNG còn là ưu tiên số một.
+    // Lưu ý: đây chỉ là lớp nhắc model. Lớp BẢO ĐẢM nằm ở code (ai.safety.js) — nguồn trợ
+    // giúp được nối vào câu trả lời bất kể model có tuân hay không.
+    const crisisBlock = options.crisisDetected
+        ? `ƯU TIÊN TUYỆT ĐỐI LƯỢT NÀY — TIN NHẮN CỦA HỌ CÓ DẤU HIỆU TỰ HẠI/TỰ TỬ:
+Bỏ mọi thứ khác lại. Lượt này KHÔNG gợi ý bài tập, KHÔNG hỏi có muốn gợi ý gì không, KHÔNG phân tích dài dòng.
+Hãy: (1) nói thẳng rằng bạn lo cho họ và bạn đang ở đây, (2) hỏi xem ngay lúc này họ có đang an toàn không, (3) khuyên liên hệ trợ giúp ngay — nêu ĐÚNG số này, không được tự nghĩ ra số khác: đường dây nóng sức khỏe tâm thần 0931773637 (miễn phí, 24/7), hoặc 115 nếu cần cấp cứu; và nếu có thể thì nói với một người họ tin cậy ở gần.
+Giọng bình tĩnh, ấm, không phán xét, không giảng giải, không hứa thay họ điều gì. Ngắn thôi — 3-4 câu.
+
+`
+        : '';
+
     return `Bạn là PeaceCat — không phải trợ lý tư vấn, mà là người bạn thân đang ngồi cạnh người dùng. Nhắn tin tiếng Việt như người thật: ấm, thật lòng, không lên giọng chuyên gia.
 
-NHIỆM VỤ SỐ 1 — GỌI TÊN VẤN ĐỀ CỐT LÕI BÊN TRONG HỌ:
+${crisisBlock}NHIỆM VỤ SỐ 1 — GỌI TÊN VẤN ĐỀ CỐT LÕI BÊN TRONG HỌ:
 Điều họ kể chỉ là bề mặt; bên dưới luôn có một mất mát, một nỗi sợ, một nhu cầu chưa được đáp ứng, hoặc một điều họ tự nghĩ xấu về bản thân. Ví dụ "thất tình, buồn quá" — cốt lõi có thể là sợ mình không đủ tốt để được yêu, hoặc trống rỗng vì mất chỗ dựa mỗi tối.
 Mỗi lượt: đọc cả hội thoại, tìm điều đang làm họ đau nhất mà chính họ chưa nói ra được, rồi GỌI TÊN nó bằng lời cụ thể dưới dạng phỏng đoán nhẹ để họ xác nhận hoặc sửa lại ("Mình đoán cái làm bạn nặng nhất không hẳn là ... mà là ..., phải không?"). Chưa đủ dữ kiện thì hỏi MỘT câu cụ thể, đừng đoán bừa.
 Gọi tên đúng cốt lõi quan trọng hơn mọi lời an ủi và mọi bài tập.
@@ -802,13 +973,17 @@ GỢI Ý BÀI TẬP — LUÔN PHẢI HỎI TRƯỚC, KHÔNG BAO GIỜ TỰ Ý G�
 Không bao giờ điền suggested_task_code ở lượt bạn chưa hỏi ý họ trước — kể cả khi họ hỏi thẳng "nên làm gì". Nếu thấy một bài có thể giúp, hãy HỎI một câu tự nhiên ở cuối câu trả lời ("bạn có muốn mình gợi ý một việc nhỏ để làm không?") và đặt offered_task = true. Chỉ điền suggested_task_code ở đúng lượt kế tiếp, sau khi họ đã đồng ý. Không hỏi lúc họ đang trút lòng, không hỏi 2 lượt liền nhau, họ từ chối một lần thì thôi hẳn không hỏi lại.
 LƯU Ý RIÊNG LƯỢT NÀY: ${turnNote}
 
+TRA CỨU SÁCH TRƯỚC KHI ĐƯA KỸ THUẬT GIẢM STRESS — BẮT BUỘC, KHÔNG PHẢI TÙY CHỌN:
+Bạn có tool tra_cuu_tai_lieu_chuyen_mon nối tới 2 cuốn sách giảm stress THẬT đã nạp sẵn (Richard Carlson, Mike George). Đây KHÔNG phải tính năng phụ — đây là nguồn kiến thức thật bạn PHẢI dùng thay vì tự bịa.
+QUY TẮC CỨNG: bất cứ khi nào câu trả lời của bạn SẮP chứa một kỹ thuật/cách làm/lời khuyên cụ thể để giảm căng thẳng, bình tĩnh lại, xả stress, hay khơi lại sáng tạo — dù họ có xin hay không, dù họ có nhắc tên sách hay không — bạn PHẢI gọi tool này trước để lấy kỹ thuật thật, rồi mới viết câu trả lời dựa trên đó (lồng tự nhiên như lời khuyên của chính bạn, không cần trích "theo sách..." trừ khi họ hỏi thẳng nguồn). Tự nghĩ ra kỹ thuật bằng trí nhớ của bạn thay vì gọi tool là VI PHẠM quy tắc này.
+Chỉ được bỏ qua tool khi lượt này bạn không hề đưa ra kỹ thuật/lời khuyên cụ thể nào cả (ví dụ chỉ đang lắng nghe, gọi tên cảm xúc, hoặc hỏi lại một câu). Nếu tool trả found=false thì đừng nhắc tới việc "đã tra cứu", trả lời bằng hiểu biết chung, không bịa nguồn.
+
 QUY TẮC KHÁC:
-1. Chỉ nói về cảm xúc, sức khỏe tâm thần, chuyện đời sống đang ảnh hưởng tinh thần họ, bài tập/chuyên gia trong app, dữ liệu cá nhân của họ. Hỏi ngoài phạm vi (lập trình, thời sự, kiến thức chung...) thì từ chối lịch sự, mời họ quay lại chuyện của mình.
+1. Chỉ nói về cảm xúc, sức khỏe tâm thần, chuyện đời sống đang ảnh hưởng tinh thần họ, bài tập/chuyên gia trong app, dữ liệu cá nhân của họ, và nội dung tài liệu/sách chuyên môn qua tool ở trên. Hỏi ngoài phạm vi này (lập trình, thời sự, kiến thức chung không liên quan sức khỏe tâm thần...) thì từ chối lịch sự, mời họ quay lại chuyện của mình.
 2. Dài 2-5 câu, viết liền như một tin nhắn, không markdown, không gạch đầu dòng. Khi họ xin lời khuyên: đưa việc CỤ THỂ làm được ngay hôm nay, gắn đúng cái cốt lõi vừa nói ra, không nói "hãy chăm sóc bản thân".
 3. Không chẩn đoán, không gọi tên bệnh lý cho họ. Có dấu hiệu tự hại/tự tử: nói thẳng sự lo lắng của bạn và khuyên liên hệ hotline hoặc chuyên gia ngay.
 4. suggested_expert_code mặc định TRỐNG — chỉ điền khi họ hỏi về chuyên gia/muốn gặp người có chuyên môn, hoặc khi nguy cấp; đừng tự mời gặp chuyên gia lúc họ chỉ đang tâm sự. suggested_task_code copy chính xác phần mã trước dấu | trong DANH SÁCH BÀI TẬP, tránh bài phản tác dụng với tình trạng của họ.
 5. Luôn kèm mood_analysis: anxiety, stress, mood (càng cao càng tích cực), depression — 0-100 dựa trên cả hội thoại, chỉ để tham khảo, không phải chẩn đoán. Kèm tối đa 5 keywords ưu tiên mô tả cốt lõi ("sợ không đủ tốt", "mất chỗ dựa") thay vì từ chung ("buồn").
-6. Có tool tra_cuu_tai_lieu_chuyen_mon — chỉ gọi khi họ hỏi thẳng về khái niệm/thang đo/định nghĩa chuyên môn cụ thể (vd "PSS là gì", "thang CARS đánh giá gì"), KHÔNG gọi khi họ chỉ đang tâm sự. Nếu tool trả found=false thì đừng nhắc tới việc "đã tra cứu", trả lời bằng hiểu biết chung, không bịa nguồn.
 
 --- Người dùng đang chat (dùng để hiểu họ, không đọc lại số liệu cho họ) ---
 ${formatMoodContext(ctx)}
@@ -926,23 +1101,36 @@ export async function getChatReply({ userId, message, history = [] }) {
         }));
     contents.push({ role: 'user', parts: [{ text: message }] });
 
-    // Model không tự biết được lượt trước đã làm gì (lịch sử gửi lên chỉ có phần chữ),
-    // nên phải nói cho nó và chặn cứng ở code — không tin tưởng riêng vào việc nó tuân
-    // prompt. Bài tập LUÔN phải hỏi trước rồi mới gợi ý (yêu cầu người dùng): lượt đã
-    // gắn thẻ thì thôi; lượt trước hỏi ý thì lượt này mới được cấp danh sách 122 bài để
-    // chọn theo câu trả lời của họ; các lượt khác hoàn toàn không thấy danh sách, nên
-    // dù model có "muốn" gợi ý cũng không có mã nào để điền — không thể tự ý gửi.
-    const lastModelTurn = [...trimmedHistory].reverse().find((item) => item && item.role !== 'user');
-    const previousTurnSuggested = Boolean(lastModelTurn?.hadSuggestion);
-    const previousTurnOffered = Boolean(lastModelTurn?.offeredTask) && !previousTurnSuggested;
-    const includeTaskList = previousTurnOffered;
+    // Lưới an toàn: kiểm tra dấu hiệu tự hại/tự tử bằng CODE, không phụ thuộc model có
+    // tuân prompt hay không. Chỉ soi tin nhắn CỦA LƯỢT NÀY, cố ý không soi lại history —
+    // soi lại thì mọi lượt sau đó đều bị kích hoạt vì một câu đã nói từ trước, vừa gây
+    // nhiễu vừa làm người dùng chai với cảnh báo.
+    const crisisSignals = detectCrisisSignals(message);
+    const crisisDetected = crisisSignals.length > 0;
+    if (crisisDetected) {
+        // Ghi vào emergency_logs -> risk engine đếm được (nó tính emergency_logs 7 ngày
+        // gần nhất), khép lại chỗ mà trước đây chat hoàn toàn không nối vào lưới rủi ro.
+        logCrisisFlag(userId, crisisSignals);
+    }
+
+    // Bài tập LUÔN phải hỏi trước rồi mới gợi ý (yêu cầu người dùng): lượt đã gắn thẻ thì
+    // thôi; lượt trước hỏi ý thì lượt này mới được cấp danh sách 122 bài để chọn theo câu
+    // trả lời của họ; các lượt khác hoàn toàn không thấy danh sách, nên dù model có "muốn"
+    // gợi ý cũng không có mã nào để điền — không thể tự ý gửi.
+    // Trạng thái này đọc từ DB chứ KHÔNG lấy từ history do client gửi (xem
+    // readChatTurnState): trước đây client sửa cờ là tự mở khoá được danh sách bài tập.
+    const turnState = await readChatTurnState(userId);
+    const previousTurnSuggested = turnState.hadSuggestion;
+    // Đang khủng hoảng thì không mở khoá gợi ý bài tập, kể cả khi lượt trước đã hỏi ý —
+    // không gamify một lượt như thế.
+    const includeTaskList = turnState.offeredTask && !previousTurnSuggested && !crisisDetected;
 
     const startedAt = Date.now();
     let parsed;
     let usage;
     try {
         ({ parsed, usage } = await callGeminiWithTool(
-            buildChatSystemInstruction(ctx, catalog, { previousTurnSuggested, includeTaskList }),
+            buildChatSystemInstruction(ctx, catalog, { previousTurnSuggested, includeTaskList, crisisDetected }),
             contents,
             CHAT_SCHEMA,
             `peacecat_${userId}`,
@@ -983,11 +1171,30 @@ export async function getChatReply({ userId, message, history = [] }) {
     const clampScore = (value) => Math.max(0, Math.min(100, Number(value) || 0));
     const analysis = parsed.mood_analysis || {};
 
+    // Lớp BẢO ĐẢM (khác với lớp nhắc trong prompt): dù model có tuân hay không, câu trả
+    // lời cho một tin nhắn có dấu hiệu tự hại LUÔN kèm nguồn trợ giúp cụ thể.
+    const reply = crisisDetected
+        ? ensureCrisisResources(parsed.reply || '')
+        : (parsed.reply || '');
+    // Lượt khủng hoảng thì không kèm thẻ bài tập và cũng không hỏi mời làm bài tập.
+    const suggestedTask = crisisDetected ? null : matchedTask;
+    const offeredTask = crisisDetected ? false : (Boolean(parsed.offered_task) && !matchedTask);
+
+    // Server tự nhớ trạng thái lượt này để lượt sau dùng — không phụ thuộc client gửi lại.
+    writeChatTurnState(userId, {
+        offeredTask,
+        hadSuggestion: Boolean(suggestedTask || matchedExpert)
+    });
+
     return {
-        reply: parsed.reply || '',
-        suggestedTask: matchedTask,
+        reply,
+        suggestedTask,
         suggestedExpert: matchedExpert,
-        offeredTask: Boolean(parsed.offered_task) && !matchedTask,
+        offeredTask,
+        // Cho client biết server đã xác nhận có dấu hiệu khủng hoảng, để client nào cũng
+        // bật được UI khẩn cấp của mình (client web hiện đã tự kiểm tra bằng
+        // DANGER_KEYWORDS, nhưng app khác/gọi API trực tiếp thì không có lớp đó).
+        crisis: crisisDetected,
         moodAnalysis: {
             anxiety: clampScore(analysis.anxiety),
             stress: clampScore(analysis.stress),

@@ -11,7 +11,7 @@
           <div class="eph-label">Đường dây nóng sức khỏe tâm thần — Miễn phí, 24/7</div>
         </div>
         <div class="ep-actions">
-          <a href="tel:1800599920" class="ep-btn ep-btn-red">📞 Gọi ngay hotline</a>
+          <a href="tel:0931773637" class="ep-btn ep-btn-red">📞 Gọi ngay hotline</a>
           <button class="ep-btn ep-btn-green" @click="emergencyOpen = false">💬 Kết nối chuyên gia ngay</button>
           <button class="ep-btn ep-btn-ghost" @click="emergencyOpen = false">Tôi ổn, đóng lại</button>
         </div>
@@ -377,7 +377,7 @@ Ví dụ: Tôi đang gặp khó khăn với lo âu công việc và mất ngủ 
       <div class="hotline-banner">
         <span class="hb-icon">📞</span>
         <div class="hb-text"><strong>Đường dây nóng sức khỏe tâm thần:</strong> 0931773637 — Miễn phí, hoạt động 24/7. Nếu bạn đang trong tình trạng khủng hoảng, hãy gọi ngay.</div>
-        <a href="tel:1800599920" class="hb-btn">Gọi ngay</a>
+        <a href="tel:0931773637" class="hb-btn">Gọi ngay</a>
       </div>
 
       <div class="paper-card ai-match-banner">
