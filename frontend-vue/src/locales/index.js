@@ -99,6 +99,18 @@ function getInitialLocale() {
   }
 }
 
+// true khi khách chưa từng tự chọn ngôn ngữ VÀ chưa từng có gợi ý nào được lưu — tức lần
+// đầu tiên thực sự ghé landing page (kể cả khách vãng lai chưa đăng ký/đăng nhập). Dùng để
+// quyết định có nên gọi GET /auth/locale-suggestion hay không (xem main.js) — chỉ gọi đúng
+// 1 lần trong đời trình duyệt đó, không gọi lại mỗi lần mở app.
+export function shouldSuggestLocaleFromIp() {
+  try {
+    return !localStorage.getItem(EXPLICIT_KEY) && !localStorage.getItem(SUGGESTED_KEY);
+  } catch {
+    return false;
+  }
+}
+
 export const i18n = createI18n({
   legacy: false, // bắt buộc để dùng useI18n() trong <script setup> (Composition API)
   locale: getInitialLocale(),

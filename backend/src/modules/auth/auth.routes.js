@@ -62,6 +62,7 @@ const emailPerIpLimiter = rateLimit({
 
 const emailLimiters = [emailPerIpLimiter, emailPerAddressLimiter];
 
+router.get('/locale-suggestion', authController.localeSuggestion);
 router.post('/register', registerLimiter, authController.register);
 router.post('/register-expert', registerLimiter, authController.registerExpert);
 router.post('/login', loginLimiter, authController.login);

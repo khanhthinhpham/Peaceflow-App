@@ -22,6 +22,14 @@ function detectLocale(req) {
   return country && country !== 'VN' ? 'en' : 'vi';
 }
 
+// GET /auth/locale-suggestion — công khai, không cần đăng nhập. Cho phép frontend gợi ý
+// ngôn ngữ theo IP ngay khi khách VÃNG LAI (chưa đăng ký/đăng nhập) mở landing page lần
+// đầu, thay vì phải chờ tới lúc họ đăng ký/đăng nhập mới có locale từ detectLocale() ở các
+// endpoint auth khác. Xem localeSuggestion.js phía frontend cho luồng gọi tương ứng.
+export async function localeSuggestion(req, res) {
+  return res.json({ success: true, data: { locale: detectLocale(req) } });
+}
+
 function sendAuthError(res, error, fallbackStatus = 400) {
   if (error instanceof ZodError) {
     return res.status(400).json({
