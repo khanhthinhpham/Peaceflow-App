@@ -4,16 +4,16 @@
     <div class="emergency-overlay" :class="{ show: emergencyOpen }">
       <div class="emergency-popup">
         <div class="ep-icon">❤️</div>
-        <div class="ep-title">Bạn không đơn độc</div>
-        <p class="ep-text">Nếu điểm số cao và bạn đang cảm thấy khó khăn, hãy để ai đó giúp bạn ngay bây giờ.</p>
+        <div class="ep-title">{{ t('moodAssessment.emergency.title') }}</div>
+        <p class="ep-text">{{ t('moodAssessment.emergency.text') }}</p>
         <div class="ep-hotline">
           <div class="eph-num">📞 0931773637</div>
-          <div class="eph-label">Đường dây nóng sức khỏe tâm thần — Miễn phí, 24/7</div>
+          <div class="eph-label">{{ t('moodAssessment.emergency.hotlineLabel') }}</div>
         </div>
         <div class="ep-actions">
-          <a href="tel:0931773637" class="ep-btn ep-btn-red">📞 Gọi ngay hotline</a>
-          <router-link to="/experts" class="ep-btn ep-btn-green">💬 Kết nối chuyên gia</router-link>
-          <button class="ep-btn ep-btn-ghost" @click="emergencyOpen = false">Tôi hiểu, đóng lại</button>
+          <a href="tel:0931773637" class="ep-btn ep-btn-red">{{ t('moodAssessment.emergency.callHotline') }}</a>
+          <router-link to="/experts" class="ep-btn ep-btn-green">{{ t('moodAssessment.emergency.connectExpert') }}</router-link>
+          <button class="ep-btn ep-btn-ghost" @click="emergencyOpen = false">{{ t('moodAssessment.emergency.understood') }}</button>
         </div>
       </div>
     </div>
@@ -23,50 +23,43 @@
       <div v-show="view === 'selector'">
         <div class="page-header">
           <div>
-            <div class="page-title">📋 Bài Kiểm Tra Tâm Lý Chuẩn Hóa</div>
-            <div class="page-subtitle">Các thang đo lâm sàng được sử dụng rộng rãi — giúp bạn hiểu sâu hơn về
-              bản thân</div>
+            <div class="page-title">{{ t('moodAssessment.selector.pageTitle') }}</div>
+            <div class="page-subtitle">{{ t('moodAssessment.selector.pageSubtitle') }}</div>
           </div>
           <div style="display:flex;gap:8px;">
-            <router-link to="/mood-checkin" class="btn-outline">← Quay lại</router-link>
-            <router-link to="/mood-chat" class="btn-outline">💬 Chat AI</router-link>
+            <router-link to="/mood-checkin" class="btn-outline">{{ t('moodAssessment.selector.back') }}</router-link>
+            <router-link to="/mood-chat" class="btn-outline">{{ t('moodAssessment.selector.chatAi') }}</router-link>
           </div>
         </div>
 
         <div class="disclaimer-banner">
           <span class="db-icon">⚠️</span>
-          <div><strong>Lưu ý quan trọng:</strong> Các bài kiểm tra này là công cụ <strong>sàng lọc tham
-              khảo</strong>, không phải chẩn đoán y khoa. Kết quả chỉ mang tính định hướng. Nếu điểm số ở mức
-            cao, hãy tham khảo ý kiến chuyên gia tâm lý lâm sàng. Ứng dụng này <strong>không thay thế</strong>
-            dịch vụ y tế chuyên nghiệp.</div>
+          <div v-html="t('moodAssessment.selector.disclaimer')"></div>
         </div>
 
         <div class="respondent-card">
-          <h3>📝 Thông tin người làm test</h3>
-          <p class="rc-sub">Điền tên của <strong>người sẽ làm bài</strong> (khách hàng, học sinh, người thân...) — không phải tên tài khoản đang đăng nhập. Thông tin này dùng chung cho mọi bài test bên dưới, chỉ cần điền một lần.
-            <br>⚠️ Nếu <strong>2 người khác nhau trùng cả tên lẫn tuổi</strong>, hãy thêm ký hiệu phân biệt vào tên (VD: "Nguyễn Văn A - lớp 5A") để tránh bị gộp nhầm khi chuyên gia xuất báo cáo. Khác tuổi thì hệ thống đã tự tách riêng.
-            <br>ℹ️ "Tháng lẻ" chỉ cần điền khi làm bài <strong>Raven CPM</strong> cho trẻ 4-11 tuổi — dùng để tính điểm chuẩn (IQ) đúng theo mốc tuổi tháng. Các bài khác không cần.
-            <br>📅 Có thể điền <strong>Ngày sinh</strong> để hệ thống tự tính Tuổi/Tháng lẻ, hoặc bỏ qua và điền trực tiếp Tuổi/Tháng lẻ — chọn 1 trong 2 cách đều được.</p>
+          <h3>{{ t('moodAssessment.selector.respondentTitle') }}</h3>
+          <p class="rc-sub" v-html="t('moodAssessment.selector.respondentSub')"></p>
           <div class="rc-fields">
             <div class="rp-field">
-              <label for="respondentName">Họ và tên người làm bài *</label>
-              <input type="text" id="respondentName" v-model="respondent.name" placeholder="Nguyễn Văn A">
+              <label for="respondentName">{{ t('moodAssessment.selector.nameLabel') }}</label>
+              <input type="text" id="respondentName" v-model="respondent.name" :placeholder="t('moodAssessment.selector.namePlaceholder')">
             </div>
             <div class="rp-field">
-              <label for="respondentDob" title="Điền ngày sinh để tự tính Tuổi/Tháng lẻ, hoặc bỏ trống và điền trực tiếp Tuổi/Tháng lẻ bên cạnh">Ngày sinh (tuỳ chọn)</label>
+              <label for="respondentDob" :title="t('moodAssessment.selector.dobTitle')">{{ t('moodAssessment.selector.dobLabel') }}</label>
               <input type="date" id="respondentDob" v-model="respondent.dob" @input="onDobInput">
             </div>
             <div class="rp-field">
-              <label for="respondentAge">Tuổi</label>
-              <input type="number" id="respondentAge" v-model="respondent.age" min="0" max="120" placeholder="VD: 15">
+              <label for="respondentAge">{{ t('moodAssessment.selector.ageLabel') }}</label>
+              <input type="number" id="respondentAge" v-model="respondent.age" min="0" max="120" :placeholder="t('moodAssessment.selector.agePlaceholder')">
             </div>
             <div class="rp-field">
-              <label for="respondentAgeMonths" title="Chỉ cần điền cho bài Raven CPM (trẻ 4-11 tuổi) để tính điểm chuẩn theo đúng độ tuổi tháng">Tháng lẻ</label>
-              <input type="number" id="respondentAgeMonths" v-model="respondent.ageMonths" min="0" max="11" placeholder="0-11">
+              <label for="respondentAgeMonths" :title="t('moodAssessment.selector.ageMonthsTitle')">{{ t('moodAssessment.selector.ageMonthsLabel') }}</label>
+              <input type="number" id="respondentAgeMonths" v-model="respondent.ageMonths" min="0" max="11" :placeholder="t('moodAssessment.selector.ageMonthsPlaceholder')">
             </div>
             <div class="rp-field rc-field-note">
-              <label for="respondentNote">Ghi chú</label>
-              <textarea id="respondentNote" v-model="respondent.note" placeholder="Ghi chú thêm (nếu có)..."></textarea>
+              <label for="respondentNote">{{ t('moodAssessment.selector.noteLabel') }}</label>
+              <textarea id="respondentNote" v-model="respondent.note" :placeholder="t('moodAssessment.selector.notePlaceholder')"></textarea>
             </div>
           </div>
         </div>
@@ -91,31 +84,31 @@
                 :class="badge.className || ''"
                 :style="badge.style || null"
               >{{ badge.label }}</span>
-              <span v-if="card.scorePill !== null" class="badge-pill badge-mint">Điểm gần nhất: {{ card.scorePill }}</span>
+              <span v-if="card.scorePill !== null" class="badge-pill badge-mint">{{ t('moodAssessment.selector.scorePillLabel', { score: card.scorePill }) }}</span>
             </div>
-            <div class="tsc-last">🕐 Lần cuối: {{ card.latestLabel }}</div>
+            <div class="tsc-last">{{ t('moodAssessment.selector.lastTimeLabel', { label: card.latestLabel }) }}</div>
           </div>
 
           <div class="test-select-card sdq" @click="router.push('/raven-test')">
             <div class="tsc-icon" style="background:var(--sky-light);border-color:var(--lavender);">🧩</div>
-            <div class="tsc-name">Raven CPM</div>
-            <div class="tsc-fullname">Coloured Progressive Matrices</div>
-            <div class="tsc-desc">Trắc nghiệm phi ngôn ngữ đo tư duy logic bằng hình ảnh. Chuyên gia sẽ chấm điểm theo đáp án gốc.</div>
+            <div class="tsc-name">{{ t('moodAssessment.selector.ravenName') }}</div>
+            <div class="tsc-fullname">{{ t('moodAssessment.selector.ravenFullname') }}</div>
+            <div class="tsc-desc">{{ t('moodAssessment.selector.ravenDesc') }}</div>
             <div class="tsc-meta">
-              <span class="badge-pill badge-sky">36 câu hỏi</span>
-              <span class="badge-pill badge-mint">~20 phút</span>
-              <span class="badge-pill" style="background:var(--lavender-light);color:#8a6aaa;border:1.5px solid var(--lavender);">Chuyên gia chấm</span>
+              <span class="badge-pill badge-sky">{{ t('moodAssessment.selector.ravenBadgeQuestions') }}</span>
+              <span class="badge-pill badge-mint">{{ t('moodAssessment.selector.ravenBadgeDuration') }}</span>
+              <span class="badge-pill" style="background:var(--lavender-light);color:#8a6aaa;border:1.5px solid var(--lavender);">{{ t('moodAssessment.selector.ravenBadgeGrading') }}</span>
             </div>
-            <div class="tsc-last">🕐 Xem trong lịch sử sau khi có kết quả chấm</div>
+            <div class="tsc-last">{{ t('moodAssessment.selector.ravenLastLabel') }}</div>
           </div>
         </div>
 
         <!-- History -->
         <div class="history-section">
-          <div class="history-title">📅 Lịch sử kiểm tra gần đây</div>
+          <div class="history-title">{{ t('moodAssessment.selector.historyTitle') }}</div>
           <div class="history-grid">
             <div v-if="!history.length" class="paper-card" style="padding:18px;color:var(--text-secondary);line-height:1.6;">
-              Chưa có kết quả assessment nào được lưu trong hồ sơ của bạn.
+              {{ t('moodAssessment.selector.noHistory') }}
             </div>
             <div
               v-for="(item, hIdx) in historyCards"
@@ -144,9 +137,9 @@
           <div class="review-head">
             <div>
               <div class="review-title">{{ reviewDetail.name }}</div>
-              <div class="review-date">Hoàn thành lúc {{ reviewDetail.dateLabel }}</div>
+              <div class="review-date">{{ t('moodAssessment.review.completedAtLabel', { date: reviewDetail.dateLabel }) }}</div>
             </div>
-            <button class="review-close" @click="closeHistoryReview" aria-label="Đóng">✕</button>
+            <button class="review-close" @click="closeHistoryReview" :aria-label="t('moodAssessment.review.closeAria')">✕</button>
           </div>
 
           <div class="review-total">
@@ -164,16 +157,16 @@
 
           <div v-if="reviewDetail.respondentName || reviewDetail.note || reviewDetail.hasAttachment" class="review-meta">
             <div v-if="reviewDetail.respondentName">
-              Người làm bài: <strong>{{ reviewDetail.respondentName }}</strong>
-              <span v-if="reviewDetail.respondentAge"> ({{ reviewDetail.respondentAge }} tuổi)</span>
+              {{ t('moodAssessment.review.respondentLabel') }} <strong>{{ reviewDetail.respondentName }}</strong>
+              <span v-if="reviewDetail.respondentAge"> {{ t('moodAssessment.review.ageUnit', { age: reviewDetail.respondentAge }) }}</span>
             </div>
-            <div v-if="reviewDetail.note">Ghi chú: {{ reviewDetail.note }}</div>
-            <div v-if="reviewDetail.hasAttachment">📎 Có ảnh đính kèm</div>
+            <div v-if="reviewDetail.note">{{ t('moodAssessment.review.noteLabel', { note: reviewDetail.note }) }}</div>
+            <div v-if="reviewDetail.hasAttachment">{{ t('moodAssessment.review.attachmentLabel') }}</div>
           </div>
 
           <div class="review-actions">
-            <button class="btn-primary" @click="retakeFromReview">🔄 Làm lại bài này</button>
-            <button class="btn-outline" @click="closeHistoryReview">Đóng</button>
+            <button class="btn-primary" @click="retakeFromReview">{{ t('moodAssessment.review.retakeBtn') }}</button>
+            <button class="btn-outline" @click="closeHistoryReview">{{ t('moodAssessment.review.closeBtn') }}</button>
           </div>
         </div>
       </div>
@@ -181,11 +174,10 @@
       <!-- ===== TEST AREA ===== -->
       <div class="test-area" :style="{ display: view === 'test' ? 'block' : 'none' }">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px;">
-          <button class="btn-outline" @click="backToSelector">← Chọn bài khác</button>
+          <button class="btn-outline" @click="backToSelector">{{ t('moodAssessment.test.backBtn') }}</button>
           <div style="display:flex;gap:8px;align-items:center;">
             <span class="badge-pill badge-mint">{{ currentTest?.name }}</span>
-            <button class="btn-outline" style="font-size:0.78rem;padding:7px 14px;" @click="emergencyOpen = true">🆘
-              Khẩn cấp</button>
+            <button class="btn-outline" style="font-size:0.78rem;padding:7px 14px;" @click="emergencyOpen = true">{{ t('moodAssessment.test.emergencyBtn') }}</button>
           </div>
         </div>
 
@@ -199,7 +191,7 @@
             </div>
             <div style="margin-left:auto;text-align:right;">
               <div style="font-size:1.2rem;font-weight:800;">{{ currentQIndex + 1 }}/{{ currentTest.totalQ }}</div>
-              <div style="font-size:0.72rem;color:var(--text-secondary);">câu hỏi</div>
+              <div style="font-size:0.72rem;color:var(--text-secondary);">{{ t('moodAssessment.test.questionCountUnit') }}</div>
             </div>
           </div>
           <div class="th-progress-wrap">
@@ -207,7 +199,7 @@
               <div class="th-progress-fill" :style="{ width: displayedProgressPct + '%' }"></div>
             </div>
             <div class="th-progress-labels">
-              <span>Câu {{ currentQIndex + 1 }}</span>
+              <span>{{ t('moodAssessment.test.questionLabel', { n: currentQIndex + 1 }) }}</span>
               <span>{{ displayedProgressPct }}%</span>
             </div>
           </div>
@@ -216,10 +208,10 @@
         <!-- Question Card -->
         <div class="question-wrap" v-if="currentQuestion">
           <div class="paper-card question-card">
-            <div class="q-num">Câu {{ currentQIndex + 1 }} / {{ currentTest.totalQ }}</div>
+            <div class="q-num">{{ t('moodAssessment.test.questionLabelFull', { n: currentQIndex + 1, total: currentTest.totalQ }) }}</div>
             <div class="q-category badge-pill badge-peach">{{ currentQuestion.catLabel }}</div>
             <div class="q-text">{{ currentQuestion.text }}</div>
-            <div class="q-subtext">{{ currentTest.timeRef ? `Trong thời gian: ${currentTest.timeRef}` : '' }}</div>
+            <div class="q-subtext">{{ currentTest.timeRef ? t('moodAssessment.test.timeRefPrefix', { time: currentTest.timeRef }) : '' }}</div>
             <div class="likert-wrap" :class="`cols-${currentOptions.length}`">
               <div
                 v-for="(opt, oIdx) in currentOptions"
@@ -233,11 +225,9 @@
               </div>
             </div>
             <div class="q-nav">
-              <button class="btn-outline" v-show="currentQIndex > 0" @click="prevQuestion">← Câu
-                trước</button>
-              <div class="q-nav-info">{{ answers[currentQIndex] !== undefined ? 'Đã chọn. Nhấn Câu tiếp ->' : 'Chọn một đáp án để tiếp tục' }}</div>
-              <button class="btn-primary" v-show="answers[currentQIndex] !== undefined" @click="nextQuestion">Câu tiếp
-                →</button>
+              <button class="btn-outline" v-show="currentQIndex > 0" @click="prevQuestion">{{ t('moodAssessment.test.prevBtn') }}</button>
+              <div class="q-nav-info">{{ answers[currentQIndex] !== undefined ? t('moodAssessment.test.selectedHint') : t('moodAssessment.test.chooseHint') }}</div>
+              <button class="btn-primary" v-show="answers[currentQIndex] !== undefined" @click="nextQuestion">{{ t('moodAssessment.test.nextBtn') }}</button>
             </div>
           </div>
         </div>
@@ -246,16 +236,16 @@
       <!-- ===== RESULT PANEL ===== -->
       <div class="result-panel" :class="{ active: view === 'result' }" v-if="result">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px;">
-          <button class="btn-outline" @click="backToSelector">← Chọn bài khác</button>
+          <button class="btn-outline" @click="backToSelector">{{ t('moodAssessment.result.backBtn') }}</button>
           <div style="display:flex;gap:8px;">
-            <button class="btn-outline" @click="retakeTest">🔄 Làm lại</button>
-            <button class="btn-primary" @click="printResult">📄 Xuất PDF</button>
+            <button class="btn-outline" @click="retakeTest">{{ t('moodAssessment.result.retakeBtn') }}</button>
+            <button class="btn-primary" @click="printResult">{{ t('moodAssessment.result.exportPdfBtn') }}</button>
           </div>
         </div>
 
         <div class="paper-card result-header">
           <div class="rh-mascot">{{ result.icon }}</div>
-          <div class="rh-title">Kết quả {{ result.testName }} của bạn</div>
+          <div class="rh-title">{{ t('moodAssessment.result.title', { testName: result.testName }) }}</div>
           <div class="rh-subtitle">{{ resultSubtitle }}</div>
         </div>
 
@@ -269,12 +259,12 @@
         </div>
 
         <div class="paper-card result-interpretation">
-          <div class="ri-title">🔍 Diễn giải kết quả</div>
+          <div class="ri-title">{{ t('moodAssessment.result.interpretationTitle') }}</div>
           <div>
             <ul style="padding:0; margin:0; list-style:none;">
               <li v-for="item in result.interpretation" :key="item.key" class="ri-item" :class="item.tone">
                 <span class="ri-icon">{{ item.icon }}</span>
-                <div><strong>{{ item.displayLabel }}:</strong> Mức điểm {{ item.score }} — thuộc nhóm <strong>{{ item.levelLabel }}</strong>. {{ item.note }}</div>
+                <div><strong>{{ item.displayLabel }}:</strong> <span v-html="t('moodAssessment.result.interpretationText', { score: item.score, level: item.levelLabel })"></span> {{ item.note }}</div>
               </li>
             </ul>
           </div>
@@ -283,34 +273,34 @@
         <div class="paper-card result-ai-summary" v-if="aiSummaryLoading || aiSummaryText">
           <div class="ai-summary-header">
             <span class="ai-summary-icon">🤖</span>
-            <span class="ri-title" style="margin-bottom:0;">Nhận xét từ AI</span>
+            <span class="ri-title" style="margin-bottom:0;">{{ t('moodAssessment.result.aiTitle') }}</span>
             <span class="badge-pill badge-mint" style="margin-left:auto;">AI</span>
           </div>
-          <div v-if="aiSummaryLoading" class="ai-summary-loading">Đang phân tích kết quả...</div>
+          <div v-if="aiSummaryLoading" class="ai-summary-loading">{{ t('moodAssessment.result.aiLoading') }}</div>
           <div v-else class="ai-summary-text">{{ aiSummaryText }}</div>
           <template v-if="aiInterpretation">
-            <div class="ai-summary-task-title">🔎 Phán đoán hỗ trợ về tình trạng</div>
+            <div class="ai-summary-task-title">{{ t('moodAssessment.result.aiJudgmentTitle') }}</div>
             <div class="ai-summary-text">{{ aiInterpretation }}</div>
           </template>
         </div>
 
         <div class="paper-card result-comparison">
-          <div class="rc-title">📈 So sánh với lần trước</div>
+          <div class="rc-title">{{ t('moodAssessment.result.comparisonTitle') }}</div>
           <div class="rc-bars">
             <div
               v-if="!result.comparison"
               style="font-size:0.8rem;color:var(--text-secondary);font-style:italic;padding:8px 0;"
-            >Bài kiểm tra lần đầu — Chưa có dữ liệu cơ sở để so sánh.</div>
+            >{{ t('moodAssessment.result.noComparisonYet') }}</div>
             <div v-for="bar in (result.comparison || [])" :key="bar.key" class="rcb-item" style="margin-bottom:8px;">
               <div class="rcb-label">{{ bar.label }}</div>
               <div class="rcb-bars">
                 <div class="rcb-bar-wrap">
-                  <div class="rcb-date">Hiện tại</div>
+                  <div class="rcb-date">{{ t('moodAssessment.result.currentLabel') }}</div>
                   <div class="rcb-bar"><div class="rcb-fill" :style="{ width: bar.currPct + '%', background: 'var(--mint-dark)' }"></div></div>
                   <div class="rcb-val">{{ bar.currentSc }}</div>
                 </div>
                 <div class="rcb-bar-wrap">
-                  <div class="rcb-date">Lần trước</div>
+                  <div class="rcb-date">{{ t('moodAssessment.result.previousLabel') }}</div>
                   <div class="rcb-bar"><div class="rcb-fill" :style="{ width: bar.prevPct + '%', background: 'var(--kraft-dark)' }"></div></div>
                   <div class="rcb-val">{{ bar.prevSc }}</div>
                 </div>
@@ -323,27 +313,20 @@
           <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
             <span style="font-size:1.4rem;">🩺</span>
             <div>
-              <div style="font-size:0.9rem;font-weight:700;">Nên tham khảo chuyên gia</div>
-              <div style="font-size:0.78rem;color:var(--text-secondary);">Kết quả cho thấy bạn có thể cần hỗ
-                trợ chuyên sâu hơn</div>
+              <div style="font-size:0.9rem;font-weight:700;">{{ t('moodAssessment.result.expertRecommendTitle') }}</div>
+              <div style="font-size:0.78rem;color:var(--text-secondary);">{{ t('moodAssessment.result.expertRecommendDesc') }}</div>
             </div>
           </div>
-          <router-link to="/experts" class="btn-primary" style="width:100%;justify-content:center;">📅 Đặt lịch tư vấn
-            ngay</router-link>
+          <router-link to="/experts" class="btn-primary" style="width:100%;justify-content:center;">{{ t('moodAssessment.result.bookNowBtn') }}</router-link>
         </div>
 
-        <div style="padding:12px 16px;background:rgba(255,203,164,0.15);border:1.5px solid var(--peach);border-radius:var(--border-radius-sm);font-size:0.75rem;color:var(--text-secondary);margin-bottom:16px;line-height:1.6;">
-          ⚠️ <strong>Tuyên bố miễn trách:</strong> Kết quả này chỉ mang tính tham khảo và <strong>không phải chẩn
-            đoán y khoa</strong>. Chỉ bác sĩ hoặc chuyên gia tâm lý lâm sàng mới có thể đưa ra chẩn đoán chính
-          thức. Nếu bạn lo lắng về sức khỏe tâm thần, hãy liên hệ chuyên gia hoặc gọi
-          <strong>0931773637</strong>.
-        </div>
+        <div style="padding:12px 16px;background:rgba(255,203,164,0.15);border:1.5px solid var(--peach);border-radius:var(--border-radius-sm);font-size:0.75rem;color:var(--text-secondary);margin-bottom:16px;line-height:1.6;" v-html="t('moodAssessment.result.disclaimer')"></div>
 
         <div class="result-actions">
-          <router-link to="/tasks" class="btn-primary">🎮 Bắt đầu nhiệm vụ</router-link>
-          <router-link to="/mood-chat" class="btn-outline">💬 Chat với PeaceCat</router-link>
-          <router-link to="/experts" class="btn-outline">🩺 Kết nối chuyên gia</router-link>
-          <router-link to="/dashboard" class="btn-outline">🏡 Dashboard</router-link>
+          <router-link to="/tasks" class="btn-primary">{{ t('moodAssessment.result.startTasksBtn') }}</router-link>
+          <router-link to="/mood-chat" class="btn-outline">{{ t('moodAssessment.result.chatBtn') }}</router-link>
+          <router-link to="/experts" class="btn-outline">{{ t('moodAssessment.result.expertsBtn') }}</router-link>
+          <router-link to="/dashboard" class="btn-outline">{{ t('moodAssessment.result.dashboardBtn') }}</router-link>
         </div>
       </div>
     </main>
@@ -353,15 +336,25 @@
 <script setup>
 import { ref, reactive, computed, watch, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
+import { useI18n } from 'vue-i18n';
 import { apiClient } from '../lib/apiClient';
 import { useAuthStore } from '../stores/auth';
-import { TESTS } from '../lib/assessmentTests';
-import { ASSESSMENT_META } from '../lib/assessmentMeta';
+import { TESTS as TESTS_VI } from '../lib/assessmentTests';
+import { TESTS as TESTS_EN } from '../lib/assessmentTests.en';
+import { ASSESSMENT_META as ASSESSMENT_META_VI } from '../lib/assessmentMeta';
+import { ASSESSMENT_META as ASSESSMENT_META_EN } from '../lib/assessmentMeta.en';
 
 const RESPONDENT_STORAGE_KEY = 'peaceflow_respondent_info';
 
 const auth = useAuthStore();
 const router = useRouter();
+const { t, locale } = useI18n();
+const intlLocale = computed(() => (locale.value === 'en' ? 'en-US' : 'vi-VN'));
+// Chọn bộ dữ liệu bài test theo ngôn ngữ UI — TESTS bị mutate trực tiếp ở chỗ khác
+// (vd TESTS[key].prevScores = ...) nên giữ nguyên tham chiếu object theo từng ngôn ngữ,
+// không tạo object mới mỗi lần computed chạy lại.
+const TESTS = computed(() => (locale.value === 'en' ? TESTS_EN : TESTS_VI));
+const ASSESSMENT_META = computed(() => (locale.value === 'en' ? ASSESSMENT_META_EN : ASSESSMENT_META_VI));
 
 // ============================================================
 // STATE
@@ -389,7 +382,7 @@ let hasFinishedCurrentTest = false;
 // Ở câu cuối, thanh tiến độ được đẩy lên 100% trước khi chuyển sang màn kết quả.
 const forceFullProgress = ref(false);
 
-const currentTest = computed(() => (currentTestId.value ? TESTS[currentTestId.value] : null));
+const currentTest = computed(() => (currentTestId.value ? TESTS.value[currentTestId.value] : null));
 const currentQuestion = computed(() => currentTest.value?.questions[currentQIndex.value] || null);
 const currentOptions = computed(() => currentQuestion.value?.likertOptions || currentTest.value?.likertOptions || []);
 const progressPct = computed(() => (currentTest.value ? Math.round((currentQIndex.value / currentTest.value.totalQ) * 100) : 0));
@@ -456,15 +449,15 @@ watch(respondent, () => saveRespondentInfo(readRespondentInfo()), { deep: true }
 
 function getAccountOwnerName() {
   const user = auth.user;
-  return (user && (user.display_name || user.full_name)) || 'Chủ tài khoản';
+  return (user && (user.display_name || user.full_name)) || t('moodAssessment.defaultOwnerName');
 }
 
 // ============================================================
 // SELECTOR / HISTORY RENDERING
 // ============================================================
 function formatDate(value) {
-  if (!value) return 'Chưa làm lần nào';
-  return new Intl.DateTimeFormat('vi-VN', {
+  if (!value) return t('moodAssessment.dates.never');
+  return new Intl.DateTimeFormat(intlLocale.value, {
     day: '2-digit',
     month: '2-digit',
     year: 'numeric',
@@ -473,19 +466,19 @@ function formatDate(value) {
 }
 
 function formatRelativeDate(value) {
-  if (!value) return 'Chưa có dữ liệu';
+  if (!value) return t('moodAssessment.dates.noData');
 
   const target = new Date(value);
   const now = new Date();
   const diffDays = Math.floor((now - target) / (24 * 60 * 60 * 1000));
 
-  if (diffDays <= 0) return `Hôm nay — ${formatDate(value)}`;
-  if (diffDays === 1) return `1 ngày trước — ${formatDate(value)}`;
-  return `${diffDays} ngày trước — ${formatDate(value)}`;
+  if (diffDays <= 0) return t('moodAssessment.dates.today', { date: formatDate(value) });
+  if (diffDays === 1) return t('moodAssessment.dates.oneDayAgo', { date: formatDate(value) });
+  return t('moodAssessment.dates.daysAgo', { n: diffDays, date: formatDate(value) });
 }
 
 function getAssessmentKeyByCode(code) {
-  return Object.keys(ASSESSMENT_META).find((key) => ASSESSMENT_META[key].apiCode === code) || null;
+  return Object.keys(ASSESSMENT_META.value).find((key) => ASSESSMENT_META.value[key].apiCode === code) || null;
 }
 
 function getSeverityBadgeStyle(severity) {
@@ -499,12 +492,12 @@ function getSeverityBadgeStyle(severity) {
   return 'background:var(--mint-light);color:var(--mint-dark);';
 }
 
-const testCards = computed(() => Object.entries(ASSESSMENT_META).map(([key, meta]) => {
+const testCards = computed(() => Object.entries(ASSESSMENT_META.value).map(([key, meta]) => {
   const apiRow = assessments.value.find((item) => item.code === meta.apiCode);
   return {
     key,
     meta,
-    latestLabel: apiRow?.latest_taken_at ? formatRelativeDate(apiRow.latest_taken_at) : 'Chưa làm lần nào',
+    latestLabel: apiRow?.latest_taken_at ? formatRelativeDate(apiRow.latest_taken_at) : t('moodAssessment.dates.never'),
     scorePill: apiRow?.latest_total_score !== null && apiRow?.latest_total_score !== undefined
       ? apiRow.latest_total_score
       : null
@@ -513,7 +506,7 @@ const testCards = computed(() => Object.entries(ASSESSMENT_META).map(([key, meta
 
 const historyCards = computed(() => history.value.map((item) => {
   const key = getAssessmentKeyByCode(item.code);
-  const meta = key ? ASSESSMENT_META[key] : null;
+  const meta = key ? ASSESSMENT_META.value[key] : null;
   const dimensions = item.dimension_scores && typeof item.dimension_scores === 'object'
     ? Object.entries(item.dimension_scores)
     : [];
@@ -524,7 +517,7 @@ const historyCards = computed(() => history.value.map((item) => {
     }))
     : [{
       style: getSeverityBadgeStyle(item.severity),
-      text: `${item.severity || 'Đã hoàn thành'} • ${item.total_score}`
+      text: `${item.severity || t('moodAssessment.defaultSeverityCompleted')} • ${item.total_score}`
     }];
 
   return {
@@ -560,8 +553,8 @@ function retakeFromReview() {
 // Nhãn đọc được cho từng khía cạnh: lấy catLabel trong định nghĩa bài test (vd 'depression'
 // -> 'Trầm cảm'); 'total' -> 'Tổng điểm'; không tìm được thì giữ nguyên key.
 function getDimensionLabel(testKey, dimension) {
-  if (dimension === 'total') return 'Tổng điểm';
-  const test = testKey ? TESTS[testKey] : null;
+  if (dimension === 'total') return t('moodAssessment.totalScoreLabel');
+  const test = testKey ? TESTS.value[testKey] : null;
   const question = test?.questions?.find((q) => q.cat === dimension);
   return question?.catLabel || dimension;
 }
@@ -577,7 +570,7 @@ const reviewDetail = computed(() => {
   return {
     name: card.name,
     dateLabel: item.created_at
-      ? new Date(item.created_at).toLocaleString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+      ? new Date(item.created_at).toLocaleString(intlLocale.value, { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
       : card.dateLabel,
     totalScore: item.total_score,
     severity: item.severity,
@@ -597,22 +590,22 @@ const reviewDetail = computed(() => {
 });
 
 function syncPrevScores() {
-  Object.entries(ASSESSMENT_META).forEach(([key, meta]) => {
+  Object.entries(ASSESSMENT_META.value).forEach(([key, meta]) => {
     const latest = assessments.value.find((item) => item.code === meta.apiCode);
     if (!latest) return;
 
     const dimensions = latest.latest_dimension_scores;
     if (dimensions && typeof dimensions === 'object' && Object.keys(dimensions).length) {
-      TESTS[key].prevScores = Object.fromEntries(
+      TESTS.value[key].prevScores = Object.fromEntries(
         Object.entries(dimensions).map(([dimension, value]) => [dimension, Number(value?.score ?? value ?? 0)])
       );
     } else if (latest.latest_total_score !== null && latest.latest_total_score !== undefined) {
-      const firstSubscale = TESTS[key]?.subscales?.[0];
-      TESTS[key].prevScores = firstSubscale
+      const firstSubscale = TESTS.value[key]?.subscales?.[0];
+      TESTS.value[key].prevScores = firstSubscale
         ? { [firstSubscale]: Number(latest.latest_total_score) }
         : null;
     } else {
-      TESTS[key].prevScores = null;
+      TESTS.value[key].prevScores = null;
     }
   });
 }
@@ -682,7 +675,7 @@ function selectAnswer(score) {
 
   // Auto-advance
   setTimeout(() => {
-    if (currentQIndex.value < TESTS[currentTestId.value].totalQ - 1) {
+    if (currentQIndex.value < TESTS.value[currentTestId.value].totalQ - 1) {
       nextQuestion();
       isAdvancing = false;
     } else {
@@ -719,7 +712,10 @@ function finishTest() {
   const answerList = answers.value;
 
   const now = new Date();
-  resultSubtitleBase.value = `Hoàn thành lúc ${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')} — ${now.toLocaleDateString('vi-VN')}`;
+  resultSubtitleBase.value = t('moodAssessment.result.completedAt', {
+    time: `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`,
+    date: now.toLocaleDateString(intlLocale.value)
+  });
   resultSaveNote.value = '';
   aiSummaryText.value = '';
   aiSummaryLoading.value = false;
@@ -773,14 +769,14 @@ function finishTest() {
       ? 'good'
       : (levelConfig.class === 'level-2' ? 'medium' : 'bad');
     const note = isWarning
-      ? 'Mức độ này có ảnh hưởng đáng kể tới chất lượng cuộc sống của bạn.'
-      : 'Hãy tiếp tục giữ vững tâm lý theo nhịp độ này nhé.';
+      ? t('moodAssessment.result.noteWarning')
+      : t('moodAssessment.result.noteGood');
 
     interpretation.push({ key, tone, icon, displayLabel, score: s.score, levelLabel: levelConfig.label, note });
 
     analysisStr += `<li class="ri-item ${tone}">
                 <span class="ri-icon">${icon}</span>
-                <div><strong>${displayLabel}:</strong> Mức điểm ${s.score} — thuộc nhóm <strong>${levelConfig.label}</strong>. ${note}</div>
+                <div><strong>${displayLabel}:</strong> ${t('moodAssessment.result.interpretationText', { score: s.score, level: levelConfig.label })} ${note}</div>
             </li>`;
   });
 
@@ -874,7 +870,7 @@ async function loadAiSummary(resultId) {
 }
 
 async function onAssessmentFinished(payload) {
-  const meta = ASSESSMENT_META[payload.testId];
+  const meta = ASSESSMENT_META.value[payload.testId];
   if (!meta) return;
 
   try {
@@ -890,7 +886,7 @@ async function onAssessmentFinished(payload) {
       note: savedRespondent.note || null
     });
 
-    resultSaveNote.value = ' • Đã lưu vào hồ sơ';
+    resultSaveNote.value = t('moodAssessment.dates.savedNote');
 
     await Promise.all([
       loadAssessmentData(),
@@ -898,7 +894,7 @@ async function onAssessmentFinished(payload) {
     ]);
   } catch (error) {
     console.error('Assessment submit failed:', error);
-    resultSaveNote.value = ' • Chưa lưu được vào hồ sơ';
+    resultSaveNote.value = t('moodAssessment.dates.notSavedNote');
   }
 }
 

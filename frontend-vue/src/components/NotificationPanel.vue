@@ -2,18 +2,18 @@
   <div v-if="notif.panelOpen" ref="panelEl" class="notif-panel">
     <template v-if="!notif.notifications.length">
       <div class="notif-panel-header">
-        <span>Thông báo</span>
-        <button class="notif-panel-close" @click="notif.closePanel()" aria-label="Đóng thông báo">✕</button>
+        <span>{{ t('notifPanel.title') }}</span>
+        <button class="notif-panel-close" @click="notif.closePanel()" :aria-label="t('notifPanel.closeAria')">✕</button>
       </div>
       <div class="notif-empty">
         <div class="notif-empty-icon">🔔</div>
-        <div class="notif-empty-text">Không có thông báo nào</div>
+        <div class="notif-empty-text">{{ t('notifPanel.empty') }}</div>
       </div>
     </template>
     <template v-else>
       <div class="notif-panel-header">
-        <span>Thông báo</span>
-        <button class="notif-panel-close" @click="notif.closePanel()" aria-label="Đóng thông báo">✕</button>
+        <span>{{ t('notifPanel.title') }}</span>
+        <button class="notif-panel-close" @click="notif.closePanel()" :aria-label="t('notifPanel.closeAria')">✕</button>
       </div>
       <a
         v-for="n in notif.notifications"
@@ -24,23 +24,29 @@
       >
         <div class="notif-item-icon">{{ n.icon }}</div>
         <div>
+          <!-- n.title/n.body do BACKEND sinh (tổng hợp động, có cả nội dung tự do như tên
+               người bình luận) — chưa nằm trong phạm vi đợt dịch tĩnh này, xem ai.service.js
+               notification.routes.js. Chỉ phần khung xung quanh (tiêu đề panel, nút...) đã
+               dịch ở đây. -->
           <div class="notif-item-title">{{ n.title }}</div>
           <div class="notif-item-body">{{ n.body }}</div>
         </div>
       </a>
     </template>
     <div v-if="!notif._isPushGranted()" class="notif-panel-footer">
-      <button @click="notif.requestPush(); notif.closePanel();">🔔 Bật thông báo push để nhận nhắc nhở</button>
+      <button @click="notif.requestPush(); notif.closePanel();">{{ t('notifPanel.enablePush') }}</button>
     </div>
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted, onBeforeUnmount } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 import { useNotificationsStore } from '../stores/notifications';
 import { goToLegacyPage, resolveAppRedirect } from '../lib/legacyApp';
 
+const { t } = useI18n();
 const notif = useNotificationsStore();
 const panelEl = ref(null);
 const router = useRouter();

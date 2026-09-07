@@ -1,0 +1,166 @@
+{
+  "emergency": {
+    "breadcrumbDashboard": "🏡 Overview",
+    "breadcrumbCurrent": "🆘 Emergency support",
+    "taskModal": {
+      "timeRemainingLabel": "Time remaining",
+      "startBtn": "▶ Start",
+      "closeBtn": "Close"
+    },
+    "hero": {
+      "titlePre": "You are",
+      "titleHighlight": "not alone",
+      "subtitle": "Whatever you're feeling right now — we're here with you. Slow your breathing and pick one small action below. This will pass. 🌱",
+      "reassure": "💚 It took courage to reach out for help"
+    },
+    "hotlines": {
+      "sectionTitle": "📞 Reach out now — Free, 24/7",
+      "mainLabel": "Mental health hotline",
+      "mainDesc": "Experts listening 24/7",
+      "mainBadge": "Free · Confidential",
+      "expertNum": "Chat now",
+      "expertLabel": "Connect with a psychologist",
+      "expertDesc": "Book an appointment or chat now",
+      "expertBadge": "Experts online",
+      "rescueLabel": "Medical emergency",
+      "rescueDesc": "For immediate medical assistance",
+      "rescueBadge": "Emergency"
+    },
+    "breathing": {
+      "title": "💨 Breathe to steady yourself — Box breathing 4-4-4",
+      "desc": "This technique calms your nervous system within 2 minutes",
+      "startBtn": "▶ Start breathing",
+      "stopBtn": "⏹ Stop"
+    },
+    "breathPhases": {
+      "inhaleLabel": "Breathe in... (4 seconds)",
+      "holdLabel": "Hold... (4 seconds)",
+      "exhaleLabel": "Breathe out... (4 seconds)",
+      "restLabel": "Rest... (2 seconds)",
+      "inhaleText": "Breathe in",
+      "holdText": "Hold",
+      "exhaleText": "Breathe out",
+      "restText": "Rest",
+      "startText": "Start",
+      "startHint": "Tap the circle to begin",
+      "completedLabel": "🎉 Great job! You've completed 5 breathing cycles!"
+    },
+    "tasksSectionTitle": "⚡ Immediate grounding exercises",
+    "tasks": {
+      "detach": {
+        "title": "Step away from the environment",
+        "desc": "Find a quiet space, sit down, and place your hand on your chest.",
+        "time": "2-5 min",
+        "steps": ["Leave the noisy space", "Find a quiet place to sit", "Place your hand on your chest, feel your heartbeat", "Close your eyes and breathe slowly 5 times", "Open your eyes and look around"]
+      },
+      "stopDropBreathe": {
+        "title": "Stop-Drop-Breathe",
+        "desc": "Stop every negative thought and focus on your breath right now.",
+        "time": "1-2 min",
+        "steps": ["STOP — Stop completely", "DROP — Let go of every thought", "BREATHE — Take 3 deep breaths", "Replace it with: \"I am safe. I am okay.\""]
+      },
+      "coldWater": {
+        "title": "Splash cold water on your face",
+        "desc": "Cold water triggers a reflex that slows your heart rate and eases anxiety right away.",
+        "time": "1 min",
+        "steps": ["Go to a sink", "Turn on cold water", "Splash your face 3-5 times", "Notice the cool sensation", "Look in the mirror and breathe slowly"]
+      },
+      "warmCup": {
+        "title": "Hold a warm cup",
+        "desc": "Warmth helps calm the nervous system and brings your mind back to the present.",
+        "time": "3 min",
+        "steps": ["Make a warm cup of water or tea", "Hold the cup with both hands", "Feel the warmth through your palms", "Breathe in the scent if there is one", "Take slow, small sips"]
+      },
+      "selfForgive": {
+        "title": "Forgive yourself",
+        "desc": "Write down what you're blaming yourself for and let it go.",
+        "time": "3-5 min",
+        "steps": ["Grab paper and a pen or open your journal", "Write: \"I'm blaming myself for...\"", "Then write: \"But I forgive myself because...\"", "Read it aloud 3 times", "Tear up the paper (symbolically letting go)"]
+      },
+      "cryIfNeeded": {
+        "title": "Cry if you need to",
+        "desc": "Crying is a natural way to release tension — allow yourself to.",
+        "time": "No limit",
+        "steps": ["Find a private space", "Play soft music if you'd like", "Let yourself cry naturally", "Don't judge your own emotions", "Afterwards, drink water and rest"]
+      }
+    },
+    "grounding": {
+      "sectionTitle": "🌍 5-4-3-2-1 Grounding exercise",
+      "subtitle": "Bring your mind back to the present — tap each step as you complete it:",
+      "resetBtn": "🔄 Start over",
+      "completedToast": "🌍 Great job! You've completed the 5-4-3-2-1 Grounding exercise!"
+    },
+    "groundingSteps": {
+      "see": { "title": "5 things you can SEE", "desc": "Look around and name 5 objects you see right now" },
+      "touch": { "title": "4 things you can TOUCH", "desc": "Touch 4 different surfaces — a table, a chair, your clothes, a wall..." },
+      "hear": { "title": "3 sounds you can HEAR", "desc": "Listen and notice 3 sounds happening around you" },
+      "smell": { "title": "2 smells you can NOTICE", "desc": "Smell the air, your clothes, or anything nearby" },
+      "taste": { "title": "1 thing you can TASTE", "desc": "Take a sip of water or notice the taste in your mouth" }
+    },
+    "affirmation": {
+      "sectionTitle": "💬 Positive affirmations",
+      "hint": "👆 Tap to see the next affirmation"
+    },
+    "affirmations": [
+      "All of my feelings right now are valid and deserve respect.",
+      "I allow myself to rest without feeling guilty.",
+      "I let go of things outside my control.",
+      "This too shall pass.",
+      "I don't have to solve everything right this moment.",
+      "I accept that I'm not perfect, and that's completely okay.",
+      "I breathe in calm and breathe out tension.",
+      "I am strong enough to get through this difficult moment.",
+      "I've overcome many challenges before, and I will this time too.",
+      "This pressure is here to help me grow, not to break me.",
+      "I'm capable of finding a solution to every problem I face.",
+      "Worry won't change the future, but calm will help me handle it.",
+      "I trust my own resilience and ability to cope.",
+      "I am in charge of my mind, not a slave to fear.",
+      "Right now, I am safe.",
+      "I choose to focus on the small step in front of me instead of worrying about the whole journey.",
+      "I am in control of my breath, and my breath leads me back to peace.",
+      "The past is gone, the future hasn't arrived, I live only for this present moment.",
+      "Every breath helps me feel steadier and more grounded.",
+      "The world keeps turning, and I have the right to slow down a little.",
+      "I choose to trust myself."
+    ],
+    "disclaimer": "⚠️ <strong>Important note:</strong> This app provides mental health support tools, NOT a medical service or clinical diagnosis. If you're in an emergency or having thoughts of self-harm, call <strong>0931773637</strong> or <strong>115</strong> right now.",
+    "expertQuick": {
+      "title": "🩺 Experts online",
+      "online": "🟢 Online",
+      "offline": "⚫ Offline",
+      "chatBtn": "Chat now",
+      "scheduleBtn": "Book",
+      "viewAllBtn": "View all experts →"
+    },
+    "safePlan": {
+      "title": "📋 Personal safety plan",
+      "subtitle": "When you're feeling unwell, follow these steps in order:",
+      "step1": "Take 5 slow, deep breaths",
+      "step2": "Call a trusted family member or friend",
+      "step3": "Call the hotline at 0931773637",
+      "step4": "Chat with PeaceCat or an expert",
+      "step5": "Go to the nearest medical facility if needed",
+      "customizeBtn": "✏️ Customize my plan"
+    },
+    "peaceCatMessages": [
+      "\"I'm here with you. Slow your breathing — you're doing great by reaching out for help. Just take it one small step at a time. 💚\"",
+      "\"You don't have to be strong alone. Just take small steps for now. 🌿\"",
+      "\"This hard moment won't last forever. I'll be here with you. 🐱\"",
+      "\"You deserve to be safe, heard, and loved. ✨\""
+    ],
+    "resources": {
+      "title": "📚 Support resources",
+      "aiChat": "Chat with PeaceCat AI",
+      "tasks": "Emergency tasks",
+      "journal": "Write an emotional journal entry",
+      "community": "Share with the community"
+    },
+    "toast": {
+      "breathingDone": "🌬️ Breathing exercise complete! Feeling a bit better?",
+      "taskDone": "✨ Exercise complete! You did great.",
+      "connectingExpert": "🚀 Connecting with {name}...",
+      "safePlanComingSoon": "📝 Plan customization is coming soon!"
+    }
+  }
+}

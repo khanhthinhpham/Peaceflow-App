@@ -4,17 +4,31 @@ import { sendMail, getConfiguredMailProviders } from './mail-transport.js';
 const FROM = env.emailFrom;
 const APP_URL = env.frontendUrl;
 
-export async function sendVerificationEmail(user, token) {
+export async function sendVerificationEmail(user, token, locale = 'vi') {
   ensureMailConfigured();
   const link = `${APP_URL}/verify-email?token=${token}`;
+  const name = user.display_name || user.full_name;
 
   await sendMail({
     from: FROM,
     to: user.email,
-    subject: '✉️ Xác nhận email — PeaceFlow',
-    html: `
+    subject: locale === 'en' ? '✉️ Confirm your email — PeaceFlow' : '✉️ Xác nhận email — PeaceFlow',
+    html: locale === 'en' ? `
       <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:32px 24px;">
-        <h2 style="color:#2D6A4F;margin-bottom:8px;">Xin chào ${user.display_name || user.full_name} 👋</h2>
+        <h2 style="color:#2D6A4F;margin-bottom:8px;">Hi ${name} 👋</h2>
+        <p style="color:#555;line-height:1.6;">
+          Thanks for signing up for PeaceFlow. Please confirm your email address to activate your account.
+        </p>
+        <a href="${link}" style="display:inline-block;margin:24px 0;padding:12px 28px;background:#52B788;color:#fff;border-radius:8px;text-decoration:none;font-weight:700;">
+          Confirm email
+        </a>
+        <p style="color:#999;font-size:0.85rem;">
+          This link expires in 24 hours. If you didn't sign up, you can ignore this email.
+        </p>
+      </div>
+    ` : `
+      <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:32px 24px;">
+        <h2 style="color:#2D6A4F;margin-bottom:8px;">Xin chào ${name} 👋</h2>
         <p style="color:#555;line-height:1.6;">
           Cảm ơn bạn đã đăng ký PeaceFlow. Hãy xác nhận địa chỉ email để kích hoạt tài khoản.
         </p>
@@ -78,16 +92,27 @@ export async function sendExpertApplicationToAdmin({ application, fileBuffer }) 
   });
 }
 
-export async function sendExpertApprovedEmail(user) {
+export async function sendExpertApprovedEmail(user, locale = 'vi') {
   ensureMailConfigured();
   const link = `${APP_URL}/login`;
+  const name = user.display_name || user.full_name;
   await sendMail({
     from: FROM,
     to: user.email,
-    subject: '🎉 Hồ sơ chuyên gia đã được duyệt — PeaceFlow',
-    html: `
+    subject: locale === 'en' ? '🎉 Your expert application was approved — PeaceFlow' : '🎉 Hồ sơ chuyên gia đã được duyệt — PeaceFlow',
+    html: locale === 'en' ? `
       <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:32px 24px;">
-        <h2 style="color:#2D6A4F;margin-bottom:8px;">Chúc mừng ${user.display_name || user.full_name} 🎉</h2>
+        <h2 style="color:#2D6A4F;margin-bottom:8px;">Congratulations ${name} 🎉</h2>
+        <p style="color:#555;line-height:1.6;">
+          Your expert application has been approved. You can log in now to get started.
+        </p>
+        <a href="${link}" style="display:inline-block;margin:24px 0;padding:12px 28px;background:#52B788;color:#fff;border-radius:8px;text-decoration:none;font-weight:700;">
+          Log in
+        </a>
+      </div>
+    ` : `
+      <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:32px 24px;">
+        <h2 style="color:#2D6A4F;margin-bottom:8px;">Chúc mừng ${name} 🎉</h2>
         <p style="color:#555;line-height:1.6;">
           Hồ sơ chuyên gia của bạn đã được duyệt. Bạn có thể đăng nhập ngay để bắt đầu.
         </p>
@@ -99,15 +124,24 @@ export async function sendExpertApprovedEmail(user) {
   });
 }
 
-export async function sendExpertRejectedEmail(user) {
+export async function sendExpertRejectedEmail(user, locale = 'vi') {
   ensureMailConfigured();
+  const name = user.display_name || user.full_name;
   await sendMail({
     from: FROM,
     to: user.email,
-    subject: 'Kết quả đăng ký chuyên gia — PeaceFlow',
-    html: `
+    subject: locale === 'en' ? 'Expert application result — PeaceFlow' : 'Kết quả đăng ký chuyên gia — PeaceFlow',
+    html: locale === 'en' ? `
       <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:32px 24px;">
-        <h2 style="color:#2D6A4F;margin-bottom:8px;">Xin chào ${user.display_name || user.full_name}</h2>
+        <h2 style="color:#2D6A4F;margin-bottom:8px;">Hi ${name}</h2>
+        <p style="color:#555;line-height:1.6;">
+          We're sorry, your expert application was not approved this time.
+          If you think this is a mistake or need to add more information, please contact the PeaceFlow team.
+        </p>
+      </div>
+    ` : `
+      <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:32px 24px;">
+        <h2 style="color:#2D6A4F;margin-bottom:8px;">Xin chào ${name}</h2>
         <p style="color:#555;line-height:1.6;">
           Rất tiếc, hồ sơ đăng ký chuyên gia của bạn chưa được duyệt lần này.
           Nếu bạn cho rằng có nhầm lẫn hoặc cần bổ sung, vui lòng liên hệ đội ngũ PeaceFlow.
@@ -117,15 +151,28 @@ export async function sendExpertRejectedEmail(user) {
   });
 }
 
-export async function sendPasswordResetEmail(user, token) {
+export async function sendPasswordResetEmail(user, token, locale = 'vi') {
   ensureMailConfigured();
   const link = `${APP_URL}/reset-password?token=${token}`;
 
   await sendMail({
     from: FROM,
     to: user.email,
-    subject: '🔐 Đặt lại mật khẩu — PeaceFlow',
-    html: `
+    subject: locale === 'en' ? '🔐 Reset your password — PeaceFlow' : '🔐 Đặt lại mật khẩu — PeaceFlow',
+    html: locale === 'en' ? `
+      <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:32px 24px;">
+        <h2 style="color:#2D6A4F;margin-bottom:8px;">Reset your password</h2>
+        <p style="color:#555;line-height:1.6;">
+          You just requested a password reset for the account <strong>${user.email}</strong>.
+        </p>
+        <a href="${link}" style="display:inline-block;margin:24px 0;padding:12px 28px;background:#52B788;color:#fff;border-radius:8px;text-decoration:none;font-weight:700;">
+          Reset password
+        </a>
+        <p style="color:#999;font-size:0.85rem;">
+          This link expires in 1 hour. If you didn't request this, you can ignore this email.
+        </p>
+      </div>
+    ` : `
       <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:32px 24px;">
         <h2 style="color:#2D6A4F;margin-bottom:8px;">Đặt lại mật khẩu</h2>
         <p style="color:#555;line-height:1.6;">
@@ -143,10 +190,11 @@ export async function sendPasswordResetEmail(user, token) {
 }
 
 const SESSION_LABELS = { chat: 'Chat text', voice: 'Gọi thoại', video: 'Video call', inperson: 'Gặp trực tiếp' };
+const SESSION_LABELS_EN = { chat: 'Text chat', voice: 'Voice call', video: 'Video call', inperson: 'In person' };
 
-function formatBookingTime(value) {
+function formatBookingTime(value, locale = 'vi') {
   try {
-    return new Intl.DateTimeFormat('vi-VN', {
+    return new Intl.DateTimeFormat(locale === 'en' ? 'en-US' : 'vi-VN', {
       weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric',
       hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Bangkok'
     }).format(new Date(value));
@@ -156,21 +204,34 @@ function formatBookingTime(value) {
 }
 
 // Gửi cho chuyên gia khi có thân chủ đặt lịch mới (chờ xác nhận).
-export async function sendBookingRequestEmail({ to, expertName, clientName, sessionType, startsAt }) {
+export async function sendBookingRequestEmail({ to, expertName, clientName, sessionType, startsAt, locale = 'vi' }) {
   if (!hasMailProvider() || !to) return;
   const portalLink = `${APP_URL}/expert/dashboard`;
+  const sessionLabel = (locale === 'en' ? SESSION_LABELS_EN : SESSION_LABELS)[sessionType] || sessionType;
   await sendMail({
     from: FROM,
     to,
-    subject: '🗓️ Yêu cầu đặt lịch mới — PeaceFlow',
-    html: `
+    subject: locale === 'en' ? '🗓️ New booking request — PeaceFlow' : '🗓️ Yêu cầu đặt lịch mới — PeaceFlow',
+    html: locale === 'en' ? `
+      <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:32px 24px;">
+        <h2 style="color:#2D6A4F;margin-bottom:8px;">You have a new booking request</h2>
+        <p style="color:#555;line-height:1.6;">Hi ${expertName || 'there'},</p>
+        <p style="color:#555;line-height:1.6;"><strong>${clientName || 'A client'}</strong> just booked a session and is waiting for your confirmation:</p>
+        <table style="width:100%;border-collapse:collapse;font-size:0.95rem;color:#333;margin:16px 0;">
+          <tr><td style="padding:6px 0;color:#888;width:140px;">Format</td><td><strong>${sessionLabel}</strong></td></tr>
+          <tr><td style="padding:6px 0;color:#888;">Time</td><td><strong>${formatBookingTime(startsAt, locale)}</strong></td></tr>
+        </table>
+        <a href="${portalLink}" style="display:inline-block;margin:16px 0;padding:12px 28px;background:#52B788;color:#fff;border-radius:8px;text-decoration:none;font-weight:700;">View & confirm</a>
+        <p style="color:#999;font-size:0.85rem;">You can also confirm it from "Needs confirmation" on your expert dashboard.</p>
+      </div>
+    ` : `
       <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:32px 24px;">
         <h2 style="color:#2D6A4F;margin-bottom:8px;">Bạn có một yêu cầu đặt lịch mới</h2>
         <p style="color:#555;line-height:1.6;">Xin chào ${expertName || 'chuyên gia'},</p>
         <p style="color:#555;line-height:1.6;"><strong>${clientName || 'Một thân chủ'}</strong> vừa đặt một buổi tư vấn và đang chờ bạn xác nhận:</p>
         <table style="width:100%;border-collapse:collapse;font-size:0.95rem;color:#333;margin:16px 0;">
-          <tr><td style="padding:6px 0;color:#888;width:140px;">Hình thức</td><td><strong>${SESSION_LABELS[sessionType] || sessionType}</strong></td></tr>
-          <tr><td style="padding:6px 0;color:#888;">Thời gian</td><td><strong>${formatBookingTime(startsAt)}</strong></td></tr>
+          <tr><td style="padding:6px 0;color:#888;width:140px;">Hình thức</td><td><strong>${sessionLabel}</strong></td></tr>
+          <tr><td style="padding:6px 0;color:#888;">Thời gian</td><td><strong>${formatBookingTime(startsAt, locale)}</strong></td></tr>
         </table>
         <a href="${portalLink}" style="display:inline-block;margin:16px 0;padding:12px 28px;background:#52B788;color:#fff;border-radius:8px;text-decoration:none;font-weight:700;">Xem & xác nhận</a>
         <p style="color:#999;font-size:0.85rem;">Bạn cũng có thể xác nhận trong mục "Cần xác nhận" trên dashboard chuyên gia.</p>
@@ -211,9 +272,25 @@ export async function sendBookingCreatedAdminEmail({
 }
 
 // Gửi cho thân chủ khi chuyên gia cập nhật trạng thái lịch hẹn.
-export async function sendBookingStatusEmail({ to, clientName, expertName, sessionType, startsAt, status }) {
+export async function sendBookingStatusEmail({ to, clientName, expertName, sessionType, startsAt, status, locale = 'vi' }) {
   if (!hasMailProvider() || !to) return;
-  const info = {
+  const info = (locale === 'en' ? {
+    confirmed: {
+      subject: '✅ Booking confirmed — PeaceFlow',
+      title: 'Your booking has been confirmed',
+      body: `Expert <strong>${expertName}</strong> has confirmed your session.`
+    },
+    cancelled: {
+      subject: '❌ Booking cancelled — PeaceFlow',
+      title: 'Booking cancelled',
+      body: `We're sorry, expert <strong>${expertName}</strong> has cancelled this session. You can book another time slot.`
+    },
+    completed: {
+      subject: '🎉 Session completed — PeaceFlow',
+      title: 'Session completed',
+      body: `Your session with <strong>${expertName}</strong> has been completed. Please take a moment to leave a review to help the community.`
+    }
+  } : {
     confirmed: {
       subject: '✅ Lịch hẹn đã được xác nhận — PeaceFlow',
       title: 'Lịch hẹn của bạn đã được xác nhận',
@@ -229,22 +306,34 @@ export async function sendBookingStatusEmail({ to, clientName, expertName, sessi
       title: 'Buổi tư vấn đã hoàn thành',
       body: `Buổi tư vấn với <strong>${expertName}</strong> đã hoàn thành. Hãy dành chút thời gian đánh giá để giúp cộng đồng nhé.`
     }
-  }[status];
+  })[status];
   if (!info) return;
 
+  const sessionLabel = (locale === 'en' ? SESSION_LABELS_EN : SESSION_LABELS)[sessionType] || sessionType;
   const link = `${APP_URL}/experts`;
   await sendMail({
     from: FROM,
     to,
     subject: info.subject,
-    html: `
+    html: locale === 'en' ? `
+      <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:32px 24px;">
+        <h2 style="color:#2D6A4F;margin-bottom:8px;">${info.title}</h2>
+        <p style="color:#555;line-height:1.6;">Hi ${clientName || 'there'},</p>
+        <p style="color:#555;line-height:1.6;">${info.body}</p>
+        <table style="width:100%;border-collapse:collapse;font-size:0.95rem;color:#333;margin:16px 0;">
+          <tr><td style="padding:6px 0;color:#888;width:140px;">Format</td><td><strong>${sessionLabel}</strong></td></tr>
+          <tr><td style="padding:6px 0;color:#888;">Time</td><td><strong>${formatBookingTime(startsAt, locale)}</strong></td></tr>
+        </table>
+        <a href="${link}" style="display:inline-block;margin:16px 0;padding:12px 28px;background:#52B788;color:#fff;border-radius:8px;text-decoration:none;font-weight:700;">View my bookings</a>
+      </div>
+    ` : `
       <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:32px 24px;">
         <h2 style="color:#2D6A4F;margin-bottom:8px;">${info.title}</h2>
         <p style="color:#555;line-height:1.6;">Xin chào ${clientName || 'bạn'},</p>
         <p style="color:#555;line-height:1.6;">${info.body}</p>
         <table style="width:100%;border-collapse:collapse;font-size:0.95rem;color:#333;margin:16px 0;">
-          <tr><td style="padding:6px 0;color:#888;width:140px;">Hình thức</td><td><strong>${SESSION_LABELS[sessionType] || sessionType}</strong></td></tr>
-          <tr><td style="padding:6px 0;color:#888;">Thời gian</td><td><strong>${formatBookingTime(startsAt)}</strong></td></tr>
+          <tr><td style="padding:6px 0;color:#888;width:140px;">Hình thức</td><td><strong>${sessionLabel}</strong></td></tr>
+          <tr><td style="padding:6px 0;color:#888;">Thời gian</td><td><strong>${formatBookingTime(startsAt, locale)}</strong></td></tr>
         </table>
         <a href="${link}" style="display:inline-block;margin:16px 0;padding:12px 28px;background:#52B788;color:#fff;border-radius:8px;text-decoration:none;font-weight:700;">Xem lịch hẹn của tôi</a>
       </div>
@@ -252,23 +341,36 @@ export async function sendBookingStatusEmail({ to, clientName, expertName, sessi
   });
 }
 
-export async function sendBookingConfirmedEmail({ to, recipientName, expertName, clientName, sessionType, startsAt, durationMinutes, joinUrl, startUrl, isExpert }) {
+export async function sendBookingConfirmedEmail({ to, recipientName, expertName, clientName, sessionType, startsAt, durationMinutes, joinUrl, startUrl, isExpert, locale = 'vi' }) {
   if (!hasMailProvider() || !to || !joinUrl) return;
   const portalLink = isExpert
     ? `${APP_URL}/expert/dashboard`
     : `${APP_URL}/experts`;
   const actionUrl = startUrl || joinUrl;
+  const sessionLabel = (locale === 'en' ? SESSION_LABELS_EN : SESSION_LABELS)[sessionType] || sessionType;
   await sendMail({
     from: FROM,
     to,
-    subject: '🎥 Link Zoom lịch hẹn đã sẵn sàng — PeaceFlow',
-    html: `
+    subject: locale === 'en' ? '🎥 Your Zoom link is ready — PeaceFlow' : '🎥 Link Zoom lịch hẹn đã sẵn sàng — PeaceFlow',
+    html: locale === 'en' ? `
+      <div style="font-family:sans-serif;max-width:520px;margin:0 auto;padding:32px 24px;">
+        <h2 style="color:#2D6A4F;">Your session now has a Zoom room</h2>
+        <p style="color:#555;line-height:1.6;">Hi ${recipientName || 'there'}, expert <strong>${expertName}</strong> has confirmed the session with <strong>${clientName}</strong>.</p>
+        <table style="width:100%;border-collapse:collapse;color:#333;margin:16px 0;">
+          <tr><td style="padding:6px 0;color:#888;width:140px;">Format</td><td><strong>${sessionLabel}</strong></td></tr>
+          <tr><td style="padding:6px 0;color:#888;">Time</td><td><strong>${formatBookingTime(startsAt, locale)}</strong></td></tr>
+          <tr><td style="padding:6px 0;color:#888;">Duration</td><td><strong>${durationMinutes} min</strong></td></tr>
+        </table>
+        <a href="${actionUrl}" style="display:inline-block;margin:16px 0;padding:12px 28px;background:#52B788;color:#fff;border-radius:8px;text-decoration:none;font-weight:700;">${isExpert ? 'Start / join Zoom' : 'Join Zoom room'}</a>
+        <p style="color:#777;font-size:.9rem;line-height:1.6;">You can also reopen this booking in PeaceFlow: <a href="${portalLink}">${portalLink}</a>.</p>
+      </div>
+    ` : `
       <div style="font-family:sans-serif;max-width:520px;margin:0 auto;padding:32px 24px;">
         <h2 style="color:#2D6A4F;">Lịch hẹn đã có phòng Zoom</h2>
         <p style="color:#555;line-height:1.6;">Xin chào ${recipientName || 'bạn'}, chuyên gia <strong>${expertName}</strong> đã xác nhận lịch tư vấn với <strong>${clientName}</strong>.</p>
         <table style="width:100%;border-collapse:collapse;color:#333;margin:16px 0;">
-          <tr><td style="padding:6px 0;color:#888;width:140px;">Hình thức</td><td><strong>${SESSION_LABELS[sessionType] || sessionType}</strong></td></tr>
-          <tr><td style="padding:6px 0;color:#888;">Thời gian</td><td><strong>${formatBookingTime(startsAt)}</strong></td></tr>
+          <tr><td style="padding:6px 0;color:#888;width:140px;">Hình thức</td><td><strong>${sessionLabel}</strong></td></tr>
+          <tr><td style="padding:6px 0;color:#888;">Thời gian</td><td><strong>${formatBookingTime(startsAt, locale)}</strong></td></tr>
           <tr><td style="padding:6px 0;color:#888;">Thời lượng</td><td><strong>${durationMinutes} phút</strong></td></tr>
         </table>
         <a href="${actionUrl}" style="display:inline-block;margin:16px 0;padding:12px 28px;background:#52B788;color:#fff;border-radius:8px;text-decoration:none;font-weight:700;">${isExpert ? 'Bắt đầu / vào Zoom' : 'Vào phòng Zoom'}</a>
@@ -289,13 +391,27 @@ function ensureMailConfigured() {
 }
 
 // Cảnh báo bảo mật: phương thức nhận thanh toán (payout) vừa thay đổi.
-export async function sendPayoutMethodChangedEmail({ to, name, bankName, accountMasked }) {
+export async function sendPayoutMethodChangedEmail({ to, name, bankName, accountMasked, locale = 'vi' }) {
   ensureMailConfigured();
   await sendMail({
     from: FROM,
     to,
-    subject: '🔔 Phương thức nhận thanh toán đã thay đổi — PeaceFlow',
-    html: `
+    subject: locale === 'en' ? '🔔 Your payout method has changed — PeaceFlow' : '🔔 Phương thức nhận thanh toán đã thay đổi — PeaceFlow',
+    html: locale === 'en' ? `
+      <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:32px 24px;">
+        <h2 style="color:#2D6A4F;margin-bottom:8px;">Hi ${name || 'there'}</h2>
+        <p style="color:#555;line-height:1.6;">
+          Your PeaceFlow payout account has just been updated:
+        </p>
+        <div style="background:#F6F4EF;border:1px solid #E8CBA7;border-radius:10px;padding:14px 16px;margin:14px 0;color:#4A3728;">
+          🏦 <strong>${bankName || ''}</strong><br>Account number: <strong>${accountMasked || ''}</strong>
+        </div>
+        <p style="color:#999;font-size:0.85rem;line-height:1.6;">
+          If this <strong>wasn't you</strong>, change your password immediately and contact the PeaceFlow team —
+          this could be a sign your account has been compromised.
+        </p>
+      </div>
+    ` : `
       <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:32px 24px;">
         <h2 style="color:#2D6A4F;margin-bottom:8px;">Xin chào ${name || 'bạn'}</h2>
         <p style="color:#555;line-height:1.6;">

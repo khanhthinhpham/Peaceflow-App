@@ -5,7 +5,7 @@ import { buildUserContext } from './ai.context.js';
 import { logAiUsage } from './ai.usage.js';
 import { detectCrisisSignals, ensureCrisisResources, logCrisisFlag } from './ai.safety.js';
 
-async function callRAG(ctx, sessionId) {
+async function callRAG(ctx, sessionId, locale = 'vi') {
     const response = await fetch(`${env.ragBaseUrl}/recommend`, {
         method: 'POST',
         headers: {
@@ -15,7 +15,7 @@ async function callRAG(ctx, sessionId) {
         body: JSON.stringify({
             metrics: ctx,
             session_id: sessionId,
-            language: 'vi',
+            language: locale,
         }),
     });
 
@@ -27,9 +27,9 @@ async function callRAG(ctx, sessionId) {
     return response.json();
 }
 
-export async function getRecommendedTask(userId) {
+export async function getRecommendedTask(userId, locale = 'vi') {
     const ctx = await buildUserContext(userId);
-    const raw = await callRAG(ctx, `peaceflow_task_${userId}`);
+    const raw = await callRAG(ctx, `peaceflow_task_${userId}`, locale);
     try {
         const clean = raw.replace(/^```[a-z]*\n?/i, '').replace(/\n?```$/i, '').trim();
         return JSON.parse(clean);
@@ -38,9 +38,9 @@ export async function getRecommendedTask(userId) {
     }
 }
 
-export async function getWeeklyInsight(userId) {
+export async function getWeeklyInsight(userId, locale = 'vi') {
     const ctx = await buildUserContext(userId);
-    return callRAG(ctx, `peaceflow_insight_${userId}`);
+    return callRAG(ctx, `peaceflow_insight_${userId}`, locale);
 }
 
 // ===== Catalog rút gọn gửi cho LLM =====
@@ -60,7 +60,7 @@ async function getCatalog() {
     const [tasksRes, expertsRes] = await Promise.all([
         db.query(
             `select id, code, title, category, difficulty, duration_minutes, xp_reward, description,
-                    metadata->>'icon' as icon
+                    metadata->>'icon' as icon, title_en, description_en
              from tasks where active = true order by code`
         ),
         db.query(
@@ -394,8 +394,9 @@ async function callGeminiWithTool(systemInstruction, contents, schema, sessionId
 
 // Không gửi danh sách bài tập trong prompt này nữa (tính năng không còn gợi ý bài tập),
 // nhờ đó prompt nhẹ đi khoảng 1.600 token mỗi lượt gọi.
-function buildAssessmentSystemInstruction() {
+function buildAssessmentSystemInstruction(locale = 'vi') {
     return `Bạn là trợ lý tâm lý của app PeaceFlow. Người dùng sẽ gửi tên bài test tự đánh giá cùng điểm số của họ.
+NGÔN NGỮ TRẢ LỜI: ${locale === 'en' ? 'viết summary và interpretation bằng tiếng Anh (English)' : 'viết summary và interpretation bằng tiếng Việt'}.
 Trả về 2 nội dung:
 
 1. summary — LỜI KHUYÊN (3-5 câu): nói với người dùng bằng giọng ấm áp, đồng cảm, ngôi thứ hai ("bạn"). Ghi nhận cảm giác họ có thể đang trải qua, rồi đưa ra hướng thiết thực họ có thể làm để dễ chịu hơn. Không dùng markdown, không dùng thuật ngữ chuyên môn khó hiểu.
@@ -498,13 +499,14 @@ function resolveCachedTasks(catalog, tasks) {
         .filter(Boolean);
 }
 
-function buildAssessmentCacheKey({ assessmentName, totalScore, severity, dimensionScores }) {
+function buildAssessmentCacheKey({ assessmentName, totalScore, severity, dimensionScores, locale = 'vi' }) {
     // Sắp xếp key của dimensionScores để 2 object cùng nội dung nhưng khác thứ tự key
     // vẫn cho ra cùng 1 cache_key.
     const dims = dimensionScores && typeof dimensionScores === 'object'
         ? Object.keys(dimensionScores).sort().map((k) => `${k}=${JSON.stringify(dimensionScores[k])}`).join('&')
         : '';
-    const raw = [ASSESSMENT_PROMPT_VERSION, assessmentName, String(totalScore), severity || '', dims].join('|');
+    // locale trong key để user tiếng Anh không nhận nhầm cache tiếng Việt (và ngược lại).
+    const raw = [ASSESSMENT_PROMPT_VERSION, assessmentName, String(totalScore), severity || '', dims, locale].join('|');
     return createHash('sha256').update(raw).digest('hex');
 }
 
@@ -514,8 +516,8 @@ function buildAssessmentCacheKey({ assessmentName, totalScore, severity, dimensi
 //
 // Có cache kết quả: đầu vào không chứa gì riêng tư nên 2 người cùng bài test + cùng điểm
 // dùng lại được kết quả của nhau, tốn 0 token (xem giải thích ở migration 0045).
-export async function getAssessmentAiSummary({ userId = null, assessmentName, totalScore, severity, dimensionScores }) {
-    const cacheKey = buildAssessmentCacheKey({ assessmentName, totalScore, severity, dimensionScores });
+export async function getAssessmentAiSummary({ userId = null, assessmentName, totalScore, severity, dimensionScores, locale = 'vi' }) {
+    const cacheKey = buildAssessmentCacheKey({ assessmentName, totalScore, severity, dimensionScores, locale });
 
     // --- Thử lấy từ cache trước ---
     const cached = await readSummaryCache(cacheKey);
@@ -546,7 +548,7 @@ ${dimensionLines ? `Điểm theo từng khía cạnh:\n${dimensionLines}` : ''}`
     let parsed;
     let usage;
     try {
-        ({ parsed, usage } = await callGeminiJson(buildAssessmentSystemInstruction(), [{ parts: [{ text: userContent }] }], RECOMMENDATION_SCHEMA));
+        ({ parsed, usage } = await callGeminiJson(buildAssessmentSystemInstruction(locale), [{ parts: [{ text: userContent }] }], RECOMMENDATION_SCHEMA));
     } catch (error) {
         logAiUsage({
             userId,
@@ -594,10 +596,10 @@ const DAILY_MESSAGE_SCHEMA = {
     required: ['message', 'exercises']
 };
 
-function buildDailySystemInstruction(catalog) {
+function buildDailySystemInstruction(catalog, locale = 'vi') {
     return `Bạn là trợ lý tâm lý của app PeaceFlow. Người dùng sẽ gửi dữ liệu tổng hợp về trạng thái cảm xúc gần đây của họ.
 Nhiệm vụ:
-1. message: viết lời khuyên ngắn gọn (2-4 câu) bằng tiếng Việt, giọng văn ấm áp, đồng cảm.
+1. message: viết lời khuyên ngắn gọn (2-4 câu) bằng ${locale === 'en' ? 'tiếng Anh (English)' : 'tiếng Việt'}, giọng văn ấm áp, đồng cảm.
    CHỈ NÓI VỀ CẢM XÚC VÀ TÂM TRẠNG của người dùng: họ đang cảm thấy thế nào, điều đó ảnh hưởng ra sao, và họ có thể làm gì để dễ chịu hơn.
    TUYỆT ĐỐI KHÔNG nhắc tới: chuỗi ngày liên tục (streak), điểm XP, cấp độ, số lần check-in, số bài test đã làm, tên thể loại bài tập, hay bất kỳ con số/chỉ số nào. Đây là những thứ về game hóa và thống kê, không phải cảm xúc — nhắc tới sẽ làm lời khuyên khô khan và lệch trọng tâm.
    Đừng đọc lại số liệu cho người dùng; hãy diễn đạt bằng cảm xúc (ví dụ nói "khoảng thời gian này khá nhiều áp lực với bạn" thay vì "điểm stress của bạn là 4/5").
@@ -684,13 +686,13 @@ function formatMoodContext(ctx) {
 // cho tới khi dữ liệu của họ đổi — kể cả khi dùng nhiều thiết bị hoặc server khởi động lại
 // (khác với cache trong RAM ở route, vốn mất mỗi lần Vercel tạo container mới).
 // Chi dung noi bo boi generateUserInsight (khong con route nao goi truc tiep).
-async function getDailyMessage(userId, ctx = null) {
+async function getDailyMessage(userId, ctx = null, locale = 'vi') {
     if (!ctx) ctx = await buildUserContext(userId);
     const catalog = await getCatalog();
 
     const moodContext = formatInsightContext(ctx);
     const cacheKey = createHash('sha256')
-        .update([DAILY_PROMPT_VERSION, moodContext].join('|'))
+        .update([DAILY_PROMPT_VERSION, moodContext, locale].join('|'))
         .digest('hex');
 
     const cached = await readSummaryCache(cacheKey);
@@ -715,7 +717,7 @@ async function getDailyMessage(userId, ctx = null) {
     let parsed;
     let usage;
     try {
-        ({ parsed, usage } = await callGeminiJson(buildDailySystemInstruction(catalog), [{ parts: [{ text: moodContext }] }], DAILY_MESSAGE_SCHEMA));
+        ({ parsed, usage } = await callGeminiJson(buildDailySystemInstruction(catalog, locale), [{ parts: [{ text: moodContext }] }], DAILY_MESSAGE_SCHEMA));
     } catch (error) {
         logAiUsage({
             userId,
@@ -785,12 +787,13 @@ function roundHalf(value) {
     return (Math.round(Number(value) * 2) / 2).toFixed(1);
 }
 
-function buildInsightSignature(ctx) {
+function buildInsightSignature(ctx, locale = 'vi') {
     const mood = ctx.moodTrend || {};
     const assessment = ctx.assessmentTrend || {};
 
     const parts = [
         INSIGHT_PROMPT_VERSION,
+        `locale=${locale}`,
         `mood=${roundHalf(mood.mood_avg)}`,
         `anx=${roundHalf(mood.anxiety_avg)}`,
         `str=${roundHalf(mood.stress_avg)}`,
@@ -829,9 +832,9 @@ export async function getStoredUserInsight(userId) {
 //   - Dữ liệu chưa thay đổi đáng kể so với lần chạy gần nhất => trả lại ĐÚNG lời khuyên cũ,
 //     không gọi AI (changed = false).
 //   - Dữ liệu đã thay đổi => gọi AI, ghi đè, trả về lời khuyên mới (changed = true).
-export async function generateUserInsight(userId) {
+export async function generateUserInsight(userId, locale = 'vi') {
     const ctx = await buildUserContext(userId);
-    const signature = buildInsightSignature(ctx);
+    const signature = buildInsightSignature(ctx, locale);
 
     const stored = await getStoredUserInsight(userId);
     if (stored && stored.signature === signature) {
@@ -850,7 +853,7 @@ export async function generateUserInsight(userId) {
 
     // Dữ liệu đã đổi -> sinh mới. getDailyMessage vẫn có cache theo nội dung ngữ cảnh nên
     // nếu có người khác cùng ngữ cảnh thì vẫn không tốn token.
-    const fresh = await getDailyMessage(userId, ctx);
+    const fresh = await getDailyMessage(userId, ctx, locale);
 
     await db.query(
         `insert into ai_user_insights (user_id, signature, summary, tasks, generated_at, updated_at)
@@ -991,7 +994,7 @@ Giọng bình tĩnh, ấm, không phán xét, không giảng giải, không hứ
 `
         : '';
 
-    return `Bạn là PeaceCat — không phải trợ lý tư vấn, mà là người bạn thân đang ngồi cạnh người dùng. Nhắn tin tiếng Việt như người thật: ấm, thật lòng, không lên giọng chuyên gia.
+    return `Bạn là PeaceCat — không phải trợ lý tư vấn, mà là người bạn thân đang ngồi cạnh người dùng. Nhắn tin ${options.locale === 'en' ? 'bằng tiếng Anh (English)' : 'tiếng Việt'} như người thật: ấm, thật lòng, không lên giọng chuyên gia.
 
 ${crisisBlock}NHIỆM VỤ SỐ 1 — GỌI TÊN VẤN ĐỀ CỐT LÕI BÊN TRONG HỌ:
 Điều họ kể chỉ là bề mặt; bên dưới luôn có một mất mát, một nỗi sợ, một nhu cầu chưa được đáp ứng, hoặc một điều họ tự nghĩ xấu về bản thân. Ví dụ "thất tình, buồn quá" — cốt lõi có thể là sợ mình không đủ tốt để được yêu, hoặc trống rỗng vì mất chỗ dựa mỗi tối.
@@ -1077,7 +1080,7 @@ async function resolveTask(catalog, rawCode, fallbackText) {
     if (!vector) return null;
     const { rows } = await db.query(
         `select id, code, title, category, difficulty, duration_minutes, xp_reward, description,
-                metadata->>'icon' as icon, embedding <=> $1::vector as distance
+                metadata->>'icon' as icon, title_en, description_en, embedding <=> $1::vector as distance
          from tasks
          where active = true and embedding is not null
          order by distance asc
@@ -1123,7 +1126,7 @@ async function resolveExpert(catalog, rawCode, fallbackText) {
 //    một câu sẽ nhận đúng từng chữ câu trả lời cũ.
 // 3. Hiệu quả gần như bằng 0: tin nhắn là văn bản tự do, cộng thêm lịch sử hội thoại và
 //    dữ liệu cá nhân khác nhau ở mỗi người, nên gần như không bao giờ trùng khóa cache.
-export async function getChatReply({ userId, message, history = [] }) {
+export async function getChatReply({ userId, message, history = [], locale = 'vi' }) {
     const trimmedHistory = history.slice(-MAX_CHAT_HISTORY);
     const [ctx, catalog] = await Promise.all([buildUserContext(userId), getCatalog()]);
 
@@ -1168,6 +1171,7 @@ export async function getChatReply({ userId, message, history = [] }) {
                 previousTurnSuggested,
                 includeTaskList,
                 crisisDetected,
+                locale,
                 // Cùng điều kiện với callGeminiWithTool: chưa cấu hình kho tài liệu thì
                 // không khai báo tool VÀ không nhắc tool trong prompt.
                 toolAvailable: isKbConfigured()

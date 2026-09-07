@@ -2,8 +2,8 @@
   <div class="auth-container">
     <div class="paper-card auth-card">
       <div class="auth-logo">🌿</div>
-      <h1 class="auth-title">Chào mừng trở lại</h1>
-      <p class="auth-subtitle">Tiếp tục hành trình tìm kiếm sự bình yên của bạn.</p>
+      <h1 class="auth-title">{{ t('login.title') }}</h1>
+      <p class="auth-subtitle">{{ t('login.subtitle') }}</p>
 
       <div v-if="message" :class="['auth-message', messageType]" v-html="message"></div>
 
@@ -18,36 +18,36 @@
         :disabled="nativeGoogleLoading"
         @click="handleNativeGoogleLogin"
       >
-        <span v-if="nativeGoogleLoading">Đang mở Google...</span>
-        <span v-else>Đăng nhập với Google</span>
+        <span v-if="nativeGoogleLoading">{{ t('login.googleOpening') }}</span>
+        <span v-else>{{ t('login.googleButton') }}</span>
       </button>
       <div v-else id="btnGoogleLogin" ref="googleBtnEl" style="display:flex;justify-content:center;"></div>
-      <p class="auth-google-hint">Thuận tiện — Nhanh chóng</p>
+      <p class="auth-google-hint">{{ t('login.googleHint') }}</p>
 
-      <div class="divider" style="margin:18px 0;">hoặc dùng email</div>
+      <div class="divider" style="margin:18px 0;">{{ t('login.dividerEmail') }}</div>
 
       <form class="auth-form" @submit.prevent="handleSubmit">
         <div class="form-group">
-          <label class="form-label">Email</label>
-          <input v-model="email" type="email" class="form-input" placeholder="Nhập email của bạn" required autocomplete="email">
+          <label class="form-label">{{ t('login.emailLabel') }}</label>
+          <input v-model="email" type="email" class="form-input" :placeholder="t('login.emailPlaceholder')" required autocomplete="email">
         </div>
         <div class="form-group" style="margin-bottom: 8px;">
-          <label class="form-label">Mật khẩu</label>
-          <input v-model="password" type="password" class="form-input" placeholder="Nhập mật khẩu" required autocomplete="current-password">
+          <label class="form-label">{{ t('login.passwordLabel') }}</label>
+          <input v-model="password" type="password" class="form-input" :placeholder="t('login.passwordPlaceholder')" required autocomplete="current-password">
         </div>
         <div style="text-align:right;margin-bottom:16px;">
-          <router-link to="/forgot-password" style="font-size:0.82rem;color:var(--text-light);">Quên mật khẩu?</router-link>
+          <router-link to="/forgot-password" style="font-size:0.82rem;color:var(--text-light);">{{ t('login.forgotPassword') }}</router-link>
         </div>
         <button type="submit" class="btn-secondary-auth" :disabled="submitting">
-          {{ submitting ? 'Đang đăng nhập...' : 'Đăng nhập bằng email' }}
+          {{ submitting ? t('login.submitting') : t('login.submit') }}
         </button>
       </form>
 
       <div class="auth-links">
-        Chưa có tài khoản? <router-link to="/signup">Đăng ký ngay</router-link>
+        {{ t('login.noAccount') }} <router-link to="/signup">{{ t('login.signupNow') }}</router-link>
       </div>
       <div class="auth-links" style="margin-top: 10px;">
-        <router-link to="/" style="color: var(--text-light); font-weight: normal;">&larr; Quay lại trang chủ</router-link>
+        <router-link to="/" style="color: var(--text-light); font-weight: normal;">&larr; {{ t('login.backHome') }}</router-link>
       </div>
     </div>
   </div>
@@ -55,15 +55,18 @@
 
 <script setup>
 import { ref, onMounted } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useRoute, useRouter } from 'vue-router';
 import { useAuthStore } from '../stores/auth';
 import { apiClient } from '../lib/apiClient';
 import { goToLegacyPage, resolveAppRedirect } from '../lib/legacyApp';
 import { isNativeApp } from '../lib/native';
+import { getCurrentLocale } from '../locales';
 
 const GOOGLE_CLIENT_ID = '287402483358-uiec013q9obn1m8j82ejhkdmuoi3ku6v.apps.googleusercontent.com';
 const nativeGoogleLoading = ref(false);
 
+const { t } = useI18n();
 const auth = useAuthStore();
 const route = useRoute();
 const router = useRouter();
@@ -90,20 +93,34 @@ function escapeHtml(v) {
   return String(v ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
-function getLoginErrorMessage(error) {
+// Trả về KEY để dịch (t(key)) thay vì chuỗi hiển thị cứng — phần SO KHỚP vẫn phải dựa vào
+// nguyên văn tiếng Việt backend trả về, vì backend hiện chỉ nói tiếng Việt (chưa nằm trong
+// phạm vi đợt dịch này). Người dùng chọn tiếng Anh vẫn thấy lỗi hiển thị đúng tiếng Anh nhờ
+// bước dịch key này — chỉ riêng nhánh "không nhận diện được" (fallback cuối) là hiển thị
+// nguyên văn tiếng Việt từ backend, vì không có gì để dịch.
+function getLoginErrorKey(error) {
   const msg = String(error?.message || '').trim();
 
-  if (msg === 'Account not found' || msg === 'Không tìm thấy tài khoản.') return 'Không tìm thấy tài khoản.';
-  if (msg === 'Incorrect password' || msg === 'Sai mật khẩu.') return 'Sai mật khẩu.';
-  if (msg === 'Account is inactive' || msg === 'Tài khoản hiện đang bị vô hiệu hóa.') return 'Tài khoản hiện đang bị vô hiệu hóa.';
+  if (msg === 'Account not found' || msg === 'Không tìm thấy tài khoản.') return 'login.errors.accountNotFound';
+  if (msg === 'Incorrect password' || msg === 'Sai mật khẩu.') return 'login.errors.wrongPassword';
+  if (msg === 'Account is inactive' || msg === 'Tài khoản hiện đang bị vô hiệu hóa.') return 'login.errors.accountInactive';
   if (msg === 'EMAIL_NOT_VERIFIED') return '__EMAIL_NOT_VERIFIED__';
   if (msg === 'GOOGLE_ACCOUNT') return '__GOOGLE_ACCOUNT__';
   if (msg === 'Hồ sơ chuyên gia của bạn đang chờ admin duyệt.') return '__EXPERT_PENDING__';
-  if (msg === 'Invalid email or password') return 'Email hoặc mật khẩu không đúng.';
+  if (msg === 'Invalid email or password') return 'login.errors.invalidCredentials';
 
-  // message.value được render qua v-html (một số nhánh khác cần chèn link resend-verify) —
-  // escape trước khi trả ra để phòng trường hợp backend sau này đổi và phản chiếu input người dùng.
-  return msg ? escapeHtml(msg) : 'Đăng nhập thất bại.';
+  return msg ? `__RAW__${msg}` : 'login.errors.loginFailed';
+}
+
+// Chuyển key ở trên thành chuỗi hiển thị thật — tách riêng khỏi getLoginErrorKey() vì các
+// nhánh đặc biệt (__EMAIL_NOT_VERIFIED__...) cần lắp thêm HTML, không chỉ dịch đơn thuần.
+function resolveErrorDisplay(key) {
+  if (key.startsWith('__RAW__')) {
+    // message.value được render qua v-html (nhánh __EMAIL_NOT_VERIFIED__ cần chèn link
+    // resend-verify) — escape để phòng backend sau này phản chiếu input người dùng.
+    return escapeHtml(key.slice('__RAW__'.length));
+  }
+  return t(key);
 }
 
 function getPostLoginRedirect() {
@@ -153,13 +170,13 @@ async function redirectAfterLogin() {
 }
 
 async function handleGoogleCredential(response) {
-  showMessage('Đang xác thực với Google...', 'info');
+  showMessage(t('login.authenticatingGoogle'), 'info');
   try {
     await auth.loginWithGoogle(response.credential);
-    showMessage('Đăng nhập thành công!', 'success');
+    showMessage(t('login.success'), 'success');
     setTimeout(() => redirectAfterLogin(), 700);
   } catch (err) {
-    showMessage(err.message ? escapeHtml(err.message) : 'Đăng nhập Google thất bại.', 'error');
+    showMessage(err.message ? escapeHtml(err.message) : t('login.errors.googleLoginFailed'), 'error');
   }
 }
 
@@ -177,13 +194,13 @@ async function handleNativeGoogleLogin() {
     const res = await SocialLogin.login({ provider: 'google' });
     const idToken = res?.result?.idToken;
     if (!idToken) {
-      throw new Error('Không lấy được thông tin xác thực từ Google.');
+      throw new Error(t('login.errors.noGoogleCredential'));
     }
     await handleGoogleCredential({ credential: idToken });
   } catch (err) {
     const cancelled = /cancel/i.test(err?.message || '') || /cancel/i.test(String(err?.code || ''));
     if (!cancelled) {
-      showMessage(err?.message ? escapeHtml(err.message) : 'Đăng nhập Google thất bại.', 'error');
+      showMessage(err?.message ? escapeHtml(err.message) : t('login.errors.googleLoginFailed'), 'error');
     }
   } finally {
     nativeGoogleLoading.value = false;
@@ -197,11 +214,11 @@ async function handleSubmit() {
   const passwordValue = password.value;
 
   if (!emailValue) {
-    showMessage('Vui lòng nhập email.', 'error');
+    showMessage(t('login.errors.pleaseEnterEmail'), 'error');
     return;
   }
   if (!passwordValue) {
-    showMessage('Vui lòng nhập mật khẩu.', 'error');
+    showMessage(t('login.errors.pleaseEnterPassword'), 'error');
     return;
   }
 
@@ -209,35 +226,34 @@ async function handleSubmit() {
 
   try {
     await auth.login(emailValue, passwordValue);
-    showMessage('Đăng nhập thành công!', 'success');
+    showMessage(t('login.success'), 'success');
     setTimeout(() => redirectAfterLogin(), 700);
   } catch (err) {
-    const errMsg = getLoginErrorMessage(err);
-    if (errMsg === '__GOOGLE_ACCOUNT__') {
+    const errKey = getLoginErrorKey(err);
+    if (errKey === '__GOOGLE_ACCOUNT__') {
       messageType.value = 'info';
       message.value = [
-        'Email này đăng ký bằng Google.<br>',
-        '<span style="font-size:0.85rem;">Hãy bấm nút "Đăng nhập với Google" bên dưới. ',
-        'Nếu muốn dùng mật khẩu, hãy chọn "Quên mật khẩu?" để đặt mật khẩu mới.</span>'
+        `${t('login.googleAccountLine1')}<br>`,
+        `<span style="font-size:0.85rem;">${t('login.googleAccountLine2')}</span>`
       ].join('');
-    } else if (errMsg === '__EMAIL_NOT_VERIFIED__') {
+    } else if (errKey === '__EMAIL_NOT_VERIFIED__') {
       messageType.value = 'info';
-      message.value = `📧 Email chưa được xác nhận.<br>
-        <span style="font-size:0.85rem;">Kiểm tra hộp thư của bạn và nhấn vào liên kết xác nhận.
-        <a href="#" id="resendVerify" style="color:var(--mint-dark);font-weight:700;">Gửi lại email</a></span>`;
+      message.value = `${t('login.emailNotVerifiedTitle')}<br>
+        <span style="font-size:0.85rem;">${t('login.emailNotVerifiedHint')}
+        <a href="#" id="resendVerify" style="color:var(--mint-dark);font-weight:700;">${t('login.resendLink')}</a></span>`;
       setTimeout(() => {
         document.getElementById('resendVerify')?.addEventListener('click', async (e) => {
           e.preventDefault();
           try {
             await apiClient.post('/auth/resend-verification', { email: emailValue });
-            e.target.textContent = 'Đã gửi!';
+            e.target.textContent = t('login.resendSent');
           } catch (_) {}
         });
       }, 0);
-    } else if (errMsg === '__EXPERT_PENDING__') {
-      showMessage('Hồ sơ chuyên gia của bạn đang chờ admin duyệt. Vui lòng kiểm tra email để nhận thông báo khi hồ sơ được chấp thuận.', 'info');
+    } else if (errKey === '__EXPERT_PENDING__') {
+      showMessage(t('login.errors.expertPending'), 'info');
     } else {
-      showMessage(errMsg, 'error');
+      showMessage(resolveErrorDisplay(errKey), 'error');
     }
   } finally {
     submitting.value = false;
@@ -246,7 +262,7 @@ async function handleSubmit() {
 
 onMounted(async () => {
   if (route.query.verified === '1') {
-    showMessage('Email đã được xác minh. Bạn có thể đăng nhập ngay.', 'success');
+    showMessage(t('login.emailVerifiedNotice'), 'success');
   }
 
   const authenticated = await auth.waitForAuth();
@@ -274,7 +290,7 @@ onMounted(async () => {
       width,
       text: 'signin_with',
       shape: 'pill',
-      locale: 'vi'
+      locale: getCurrentLocale()
     });
   };
 

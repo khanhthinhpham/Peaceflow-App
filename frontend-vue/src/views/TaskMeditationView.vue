@@ -2,36 +2,36 @@
   <div class="task-meditation-page">
     <main class="main-content" style="margin-left: 0;">
       <div class="breadcrumb">
-        <router-link to="/dashboard">🏡 Tổng quan</router-link><span>›</span>
-        <router-link :to="tasksLink">🎮 Nhiệm vụ</router-link><span>›</span>
-        <span>🧘 Thiền</span>
+        <router-link to="/dashboard">{{ t('taskMeditation.breadcrumbDashboard') }}</router-link><span>›</span>
+        <router-link :to="tasksLink">{{ t('taskMeditation.breadcrumbTasks') }}</router-link><span>›</span>
+        <span>{{ t('taskMeditation.breadcrumbCurrent') }}</span>
       </div>
 
       <div v-if="guestEmergencyMode" class="guest-emergency-note">
-        <div class="guest-emergency-note-title">Bạn đang ở chế độ hỗ trợ khẩn cấp</div>
+        <div class="guest-emergency-note-title">{{ t('taskMeditation.guestNote.title') }}</div>
         <div class="guest-emergency-note-text">
-          Bài thiền này luôn mở cho mọi người, không cần đăng nhập. Đăng nhập để lưu tiến trình và nhận XP.
+          {{ t('taskMeditation.guestNote.text') }}
         </div>
       </div>
 
       <div class="page-layout">
         <div class="paper-card meditation-arena" v-show="!showFeedback">
-          <div class="ma-title">🧘 Thiền Chánh Niệm</div>
-          <div class="ma-subtitle">Tập trung vào hiện tại</div>
+          <div class="ma-title">{{ t('taskMeditation.arena.title') }}</div>
+          <div class="ma-subtitle">{{ t('taskMeditation.arena.subtitle') }}</div>
           <div class="visual-container">
             <div class="lotus"></div>
             <div class="timer-display">{{ timerLabel }}</div>
           </div>
           <div class="med-controls">
-            <button v-if="!isRunning" class="mc-btn mc-start" @click="startMeditation">▶ Bắt đầu</button>
+            <button v-if="!isRunning" class="mc-btn mc-start" @click="startMeditation">{{ t('taskMeditation.arena.startBtn') }}</button>
           </div>
         </div>
 
         <div class="paper-card feedback-card" :class="{ show: showFeedback }">
-          <h2>Tuyệt vời! 🎉</h2>
+          <h2>{{ t('taskMeditation.feedback.title') }}</h2>
           <div class="xp-badge"><span class="xp-num">+{{ xpEarned }} XP</span></div>
           <br>
-          <router-link :to="tasksLink" class="btn-primary" style="text-decoration:none;">Quay lại nhiệm vụ</router-link>
+          <router-link :to="tasksLink" class="btn-primary" style="text-decoration:none;">{{ t('taskMeditation.feedback.backToTasksBtn') }}</router-link>
         </div>
       </div>
     </main>
@@ -41,6 +41,7 @@
 <script setup>
 import { ref, reactive, computed, onMounted, onBeforeUnmount } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
+import { useI18n } from 'vue-i18n';
 import { apiClient } from '../lib/apiClient';
 import { useAuthStore } from '../stores/auth';
 import { isGuestEmergencyModeActive } from '../lib/guestEmergency';
@@ -48,6 +49,7 @@ import { isGuestEmergencyModeActive } from '../lib/guestEmergency';
 const route = useRoute();
 const router = useRouter();
 const auth = useAuthStore();
+const { t } = useI18n();
 
 const guestEmergencyMode = ref(false);
 const tasksLink = computed(() => (guestEmergencyMode.value ? { path: '/tasks', query: { guest_emergency: '1' } } : '/tasks'));

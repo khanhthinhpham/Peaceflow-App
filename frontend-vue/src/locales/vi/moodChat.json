@@ -1,0 +1,107 @@
+{
+  "moodChat": {
+    "emergency": {
+      "title": "Bạn không đơn độc",
+      "text": "Chúng tôi nhận thấy bạn đang trải qua giai đoạn rất khó khăn. Hãy để ai đó giúp bạn ngay bây giờ nhé.",
+      "hotlineLabel": "Đường dây nóng sức khỏe tâm thần — Miễn phí, 24/7",
+      "callHotline": "📞 Gọi ngay hotline",
+      "chatExpert": "💬 Chat với chuyên gia thật",
+      "callRescue": "🆘 Gọi cấp cứu 115",
+      "imOk": "Tôi ổn, tiếp tục trò chuyện",
+      "quote": "\"Rồi chuyện này sẽ qua. Hãy cho phép ai đó giúp bạn.\" 🌿"
+    },
+    "result": {
+      "mascotTitle": "Bức tranh tâm trạng của bạn 🎨",
+      "subtitle": "Dựa trên cuộc trò chuyện vừa rồi — PeaceCat đã phân tích xong!",
+      "scoresTitle": "📊 Chỉ số tâm lý ước tính",
+      "aiInsightTitle": "🤖 Nhận xét từ PeaceCat AI",
+      "tasksTitle": "🎯 Nhiệm vụ được gợi ý",
+      "noTasks": "Chưa có gợi ý nhiệm vụ nào.",
+      "taskDefaultTitle": "Nhiệm vụ",
+      "taskDefaultCategory": "task",
+      "taskDefaultDifficulty": "easy",
+      "disclaimer": "⚠️ Đây là phân tích tham khảo, <strong>không phải chẩn đoán y khoa</strong>. Nếu bạn lo lắng, hãy tham khảo chuyên gia.",
+      "startTasksBtn": "🎮 Bắt đầu nhiệm vụ",
+      "continueChatBtn": "💬 Chat tiếp",
+      "dashboardBtn": "🏡 Dashboard"
+    },
+    "topbar": {
+      "back": "← Quay lại",
+      "mascotName": "PeaceCat AI",
+      "statusListening": "Đang lắng nghe bạn...",
+      "statusTyping": "PeaceCat đang phản hồi...",
+      "statusRecording": "Đang nghe giọng nói...",
+      "messageCountLabel": "{n} tin nhắn",
+      "viewResultBtn": "📊 Xem kết quả",
+      "clearChatBtn": "🗑️ Xóa chat",
+      "emergencyBtn": "🆘 Khẩn cấp"
+    },
+    "chat": {
+      "inputPlaceholder": "Chia sẻ với PeaceCat... (Enter để gửi, Shift+Enter xuống dòng)",
+      "voiceTitle": "Nhập bằng giọng nói",
+      "sendTitle": "Gửi",
+      "minutesUnit": "{n} phút",
+      "defaultExpertDegree": "Chuyên gia tâm lý",
+      "voiceNotSupported": "Trình duyệt này chưa hỗ trợ nhập giọng nói."
+    },
+    "sidebar": {
+      "realtimeTitle": "📊 Phân tích realtime",
+      "realtimeDesc": "AI đang phân tích từng tin nhắn của bạn",
+      "anxietyLabel": "😰 Lo âu",
+      "stressLabel": "🌀 Stress",
+      "moodLabel": "💚 Tâm trạng",
+      "depressionLabel": "🌧️ Trầm cảm",
+      "keywordsTitle": "🏷️ Từ khóa phát hiện",
+      "noKeywords": "Chưa có dữ liệu",
+      "portraitTitle": "🎨 Bức tranh tâm trạng",
+      "emotionLabel": "Cảm xúc",
+      "physicalLabel": "Thể chất",
+      "socialLabel": "Xã hội",
+      "cognitiveLabel": "Nhận thức",
+      "fullReportBtn": "📋 Xem báo cáo đầy đủ",
+      "suggestedTasksTitle": "🎯 Gợi ý nhiệm vụ",
+      "noSuggestedTasksYet": "Nhiệm vụ sẽ được gợi ý sau khi bạn chia sẻ thêm...",
+      "safetyTitle": "⚠️ Lưu ý an toàn",
+      "safetyText": "PeaceCat AI là bạn đồng hành, <strong>không phải bác sĩ</strong>. Nếu bạn cần hỗ trợ khẩn cấp:",
+      "safetyBtn": "🆘 Hỗ trợ khẩn cấp ngay"
+    },
+    "quickReplies": [
+      "Mình khá căng thẳng",
+      "Hôm nay mình thấy buồn",
+      "Mình đang rất mệt",
+      "Mình hơi tức giận",
+      "Hôm nay mình ổn hơn"
+    ],
+    "defaultUserName": "bạn",
+    "welcome": {
+      "intro": "Chào {name}! 🌿 Mình là PeaceCat.",
+      "moodSentence": "Mood gần nhất của bạn là <strong>{score}/10</strong>.",
+      "noMoodSentence": "Mình chưa thấy check-in mood gần đây của bạn.",
+      "recentSignal": "<br><br><strong>Tín hiệu gần đây:</strong> {text}",
+      "closing": "Đây vẫn là không gian riêng tư để bạn nói ra điều đang diễn ra. <strong>Hôm nay bạn thấy thế nào?</strong>",
+      "justNow": "Vừa xong"
+    },
+    "botDefaultReply": "Xin lỗi, mình chưa nghĩ ra câu trả lời phù hợp lúc này.",
+    "botErrorReply": "Xin lỗi, mình đang gặp chút trục trặc, bạn thử lại sau ít phút nhé. Nếu cần hỗ trợ ngay, hãy bấm \"🆘 Khẩn cấp\" ở trên.",
+    "loadFailedStatus": "Không tải được dữ liệu thật",
+    "scoreLabels": {
+      "anxiety": "Lo âu",
+      "stress": "Stress",
+      "mood": "Tâm trạng",
+      "depression": "Trầm cảm"
+    },
+    "scoreLevels": {
+      "low": "Thấp",
+      "medium": "Trung bình",
+      "high": "Cao",
+      "positive": "Tích cực",
+      "needsAttention": "Cần chú ý"
+    },
+    "insight": {
+      "positive": "Tâm trạng của bạn đang khá tích cực trong cuộc trò chuyện này. Hãy tiếp tục duy trì những điều đang giúp bạn cảm thấy tốt hơn nhé! 🌿",
+      "highStress": "PeaceCat nhận thấy bạn đang có dấu hiệu lo âu/stress khá cao. Hãy thử một bài tập thở ngắn, hoặc trò chuyện với chuyên gia nếu cảm giác này kéo dài.",
+      "keywordsFound": "Một số từ khóa nổi bật trong cuộc trò chuyện: {keywords}. PeaceCat sẽ tiếp tục đồng hành cùng bạn.",
+      "defaultMessage": "PeaceCat chưa thấy tín hiệu đáng lo trong cuộc trò chuyện này. Hãy tiếp tục chia sẻ để mình hiểu bạn hơn nhé!"
+    }
+  }
+}

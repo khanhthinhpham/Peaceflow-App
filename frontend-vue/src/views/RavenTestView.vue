@@ -2,24 +2,20 @@
   <div class="rv-wrap">
     <div class="rv-top">
       <div class="rv-title">🧩 Coloured Progressive Matrices</div>
-      <router-link class="rv-back" to="/mood-assessment">← Quay lại</router-link>
+      <router-link class="rv-back" to="/mood-assessment">{{ t('ravenTest.back') }}</router-link>
     </div>
 
-    <div class="rv-disclaimer">
-      <strong>Lưu ý:</strong> Đây là trắc nghiệm phi ngôn ngữ (Raven). Ứng dụng tự chấm điểm theo đáp án gốc và quy đổi
-      ra chỉ số IQ (nếu có đủ tuổi, áp dụng cho trẻ 4-11 tuổi), nhưng kết quả chỉ mang tính <strong>sàng lọc tham
-      khảo</strong> — hãy để <strong>chuyên gia</strong> xác nhận và đưa ra kết luận cuối cùng.
-    </div>
+    <div class="rv-disclaimer" v-html="t('ravenTest.disclaimer')"></div>
 
     <div v-if="phase === 'test'" class="rv-card">
       <div class="rv-progress-row">
-        <span>Câu {{ index + 1 }} / {{ ITEMS.length }}</span>
+        <span>{{ t('ravenTest.questionLabel', { n: index + 1, total: ITEMS.length }) }}</span>
         <span>{{ progressPct }}%</span>
       </div>
       <div class="rv-progress-bar"><div class="rv-progress-fill" :style="{ width: progressPct + '%' }"></div></div>
 
       <div class="rv-image-box">
-        <img :src="currentItem.image" :alt="`Câu ${currentItem.key}`">
+        <img :src="currentItem.image" :alt="t('ravenTest.imageAlt', { key: currentItem.key })">
       </div>
 
       <div class="rv-options">
@@ -31,23 +27,23 @@
           @click="selectOption(n)"
         >{{ n }}</div>
       </div>
-      <div v-show="answers[index] === 'skip'" style="color:var(--text-secondary);font-style:italic;margin-top:8px;">Câu này đã được bỏ qua — không tính điểm.</div>
+      <div v-show="answers[index] === 'skip'" style="color:var(--text-secondary);font-style:italic;margin-top:8px;">{{ t('ravenTest.skippedNote') }}</div>
 
       <div class="rv-nav">
-        <button class="rv-btn" :disabled="index === 0" @click="rvPrev">← Câu trước</button>
-        <button class="rv-btn" @click="rvSkip">Bỏ qua câu này</button>
-        <button class="rv-btn primary" :disabled="answers[index] === null" @click="rvNext">{{ index === ITEMS.length - 1 ? 'Hoàn thành' : 'Câu tiếp →' }}</button>
+        <button class="rv-btn" :disabled="index === 0" @click="rvPrev">{{ t('ravenTest.nav.prevBtn') }}</button>
+        <button class="rv-btn" @click="rvSkip">{{ t('ravenTest.nav.skipBtn') }}</button>
+        <button class="rv-btn primary" :disabled="answers[index] === null" @click="rvNext">{{ index === ITEMS.length - 1 ? t('ravenTest.nav.finishBtn') : t('ravenTest.nav.nextBtn') }}</button>
       </div>
     </div>
 
     <div class="rv-result" :class="{ active: phase === 'result' }">
       <div class="emoji">✅</div>
-      <h2>Đã hoàn thành bài làm</h2>
+      <h2>{{ t('ravenTest.result.completedTitle') }}</h2>
       <div class="rv-card" style="text-align:left;">
-        <div><strong>Điểm thô:</strong> {{ scored?.rawTotal }} / 36 (Tập A: {{ scored?.bySet.A }}/12, Tập AB: {{ scored?.bySet.AB }}/12, Tập B: {{ scored?.bySet.B }}/12)</div>
+        <div><strong>{{ t('ravenTest.result.rawScoreLabel') }}</strong> {{ t('ravenTest.result.rawScoreDetail', { total: scored?.rawTotal, a: scored?.bySet.A, ab: scored?.bySet.AB, b: scored?.bySet.B }) }}</div>
         <template v-if="scored?.standardScore !== null">
-          <div style="margin-top:8px;"><strong>Chỉ số chuẩn hoá (Standard Score):</strong> {{ scored?.standardScore }} — Percentile {{ scored?.percentile }}</div>
-          <div style="margin-top:4px;"><strong>Xếp loại:</strong> {{ scored?.iqLabel }}</div>
+          <div style="margin-top:8px;"><strong>{{ t('ravenTest.result.standardScoreLabel') }}</strong> {{ scored?.standardScore }}{{ t('ravenTest.result.percentileSuffix', { pct: scored?.percentile }) }}</div>
+          <div style="margin-top:4px;"><strong>{{ t('ravenTest.result.classificationLabel') }}</strong> {{ scored?.iqLabel }}</div>
         </template>
         <div v-else-if="scored?.ageBracketNote" style="margin-top:8px;color:var(--text-secondary);font-style:italic;">{{ scored?.ageBracketNote }}</div>
       </div>
@@ -56,27 +52,27 @@
       <div v-if="aiSummaryLoading || aiSummaryText" class="rv-ai-summary" style="text-align:left;margin:20px 0;">
         <div class="rv-ai-summary-header">
           <span class="rv-ai-summary-icon">🤖</span>
-          <span class="rv-ai-summary-title">Nhận xét từ AI</span>
+          <span class="rv-ai-summary-title">{{ t('ravenTest.aiSummary.title') }}</span>
         </div>
-        <p v-if="aiSummaryLoading" class="rv-ai-summary-loading">Đang phân tích kết quả...</p>
+        <p v-if="aiSummaryLoading" class="rv-ai-summary-loading">{{ t('ravenTest.aiSummary.loading') }}</p>
         <p v-else class="rv-ai-summary-text">{{ aiSummaryText }}</p>
         <template v-if="aiInterpretation">
-          <div class="rv-ai-summary-title" style="margin-top:14px;">🔎 Phán đoán hỗ trợ về tình trạng</div>
+          <div class="rv-ai-summary-title" style="margin-top:14px;">{{ t('ravenTest.aiSummary.judgmentTitle') }}</div>
           <p class="rv-ai-summary-text">{{ aiInterpretation }}</p>
         </template>
       </div>
 
       <div v-if="showAttachCard" class="rv-card" style="text-align:left;margin:20px 0;">
-        <h3 style="margin-top:0;">📷 Đính kèm ảnh (nếu có)</h3>
-        <p style="color:var(--text-secondary);font-size:0.85rem;">Nếu bạn làm bài trên phiếu giấy gốc, hãy chụp/tải ảnh phiếu trả lời lên đây để chuyên gia xem khi chấm điểm.</p>
+        <h3 style="margin-top:0;">{{ t('ravenTest.attach.title') }}</h3>
+        <p style="color:var(--text-secondary);font-size:0.85rem;">{{ t('ravenTest.attach.desc') }}</p>
         <div class="rv-field">
           <input type="file" ref="attachInputEl" accept="image/*">
         </div>
-        <button class="rv-btn primary" :disabled="attachUploading" @click="rvUploadAttachment">Tải ảnh lên</button>
+        <button class="rv-btn primary" :disabled="attachUploading" @click="rvUploadAttachment">{{ t('ravenTest.attach.uploadBtn') }}</button>
         <p style="font-style: italic; font-size: 0.85rem;">{{ attachStatus }}</p>
       </div>
 
-      <router-link class="rv-btn primary" to="/mood-assessment">Về danh sách bài test</router-link>
+      <router-link class="rv-btn primary" to="/mood-assessment">{{ t('ravenTest.backToList') }}</router-link>
     </div>
   </div>
 </template>
@@ -84,6 +80,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
+import { useI18n } from 'vue-i18n';
 import { apiClient } from '../lib/apiClient';
 import { useAuthStore } from '../stores/auth';
 import { ITEMS, RAVEN_ANSWER_KEY, scoreRavenTest } from '../lib/ravenTest';
@@ -92,6 +89,7 @@ const RESPONDENT_STORAGE_KEY = 'peaceflow_respondent_info';
 
 const auth = useAuthStore();
 const router = useRouter();
+const { t, locale } = useI18n();
 
 const phase = ref('loading'); // 'loading' | 'test' | 'result'
 const index = ref(0);
@@ -122,7 +120,7 @@ function getSavedRespondentInfo() {
 
 function getAccountOwnerName() {
   const user = auth.user;
-  return (user && (user.display_name || user.full_name)) || 'Chủ tài khoản';
+  return (user && (user.display_name || user.full_name)) || t('ravenTest.defaultOwnerName');
 }
 
 function selectOption(n) {
@@ -156,8 +154,11 @@ async function finish() {
   phase.value = 'result';
 
   const info = respondentInfo.value;
-  scored.value = scoreRavenTest(answers.value, info.age, info.ageMonths);
+  scored.value = scoreRavenTest(answers.value, info.age, info.ageMonths, locale.value);
 
+  // severity/answerLabel/note dưới đây là dữ liệu LƯU VÀO HỒ SƠ cho chuyên gia (người Việt) xem
+  // khi chấm bài — không phải text hiển thị trên trang này, nên cố ý giữ nguyên tiếng Việt bất kể
+  // ngôn ngữ giao diện, giống cách đã xử lý ở ExpertsView.vue (chủ đề/mức độ đặt lịch).
   const severity = scored.value.standardScore !== null
     ? `${scored.value.iqLabel} (SS ${scored.value.standardScore})`
     : `Điểm thô ${scored.value.rawTotal}/36 (chưa quy đổi IQ)`;
@@ -194,11 +195,11 @@ async function finish() {
       note: info.note || null
     });
     savedResultId.value = saved?.id || null;
-    saveStatus.value = 'Đã lưu vào hồ sơ.';
+    saveStatus.value = t('ravenTest.status.savedToProfile');
     loadAiSummary(savedResultId.value);
   } catch (error) {
     console.error('Raven submit failed:', error);
-    saveStatus.value = 'Chưa lưu được vào hồ sơ, vui lòng thử lại sau.';
+    saveStatus.value = t('ravenTest.status.saveFailed');
     showAttachCard.value = false;
   }
 }
@@ -222,24 +223,24 @@ async function loadAiSummary(resultId) {
 async function rvUploadAttachment() {
   const file = attachInputEl.value?.files?.[0];
   if (!file) {
-    attachStatus.value = 'Vui lòng chọn 1 ảnh trước.';
+    attachStatus.value = t('ravenTest.status.chooseImageFirst');
     return;
   }
   if (!savedResultId.value) {
-    attachStatus.value = 'Chưa nộp được bài nên chưa thể đính kèm ảnh. Vui lòng thử lại.';
+    attachStatus.value = t('ravenTest.status.notSubmittedYet');
     return;
   }
 
   attachUploading.value = true;
-  attachStatus.value = 'Đang tải ảnh lên...';
+  attachStatus.value = t('ravenTest.status.uploading');
   try {
     const formData = new FormData();
     formData.set('image', file);
     await apiClient.postForm(`/assessments/results/${savedResultId.value}/attachment`, formData);
-    attachStatus.value = '✅ Đã gửi ảnh cho chuyên gia.';
+    attachStatus.value = t('ravenTest.status.uploadSuccess');
   } catch (error) {
     console.error('Raven attachment upload failed:', error);
-    attachStatus.value = 'Không tải được ảnh, vui lòng thử lại.';
+    attachStatus.value = t('ravenTest.status.uploadFailed');
   } finally {
     attachUploading.value = false;
   }

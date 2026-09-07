@@ -40,7 +40,7 @@ import {
   sendExpertRejectedEmail
 } from '../../common/services/email.service.js';
 
-export async function register(data) {
+export async function register(data, locale = 'vi') {
   const normalizedEmail = String(data.email || '').trim().toLowerCase();
   const { password, full_name, display_name, ...consents } = data;
 
@@ -71,7 +71,7 @@ export async function register(data) {
   const verifyToken = generateSecureToken();
   await createEmailVerificationToken(user.id, verifyToken);
   try {
-    await sendVerificationEmail(user, verifyToken);
+    await sendVerificationEmail(user, verifyToken, locale);
   } catch (e) {
     // Vẫn không chặn việc tạo tài khoản khi gửi mail lỗi, nhưng PHẢI kêu to. Ngày
     // 28/08/2026 Resend hết quota ngày (100 mail) mà lỗi bị ẩn hoàn toàn nên hơn 500
@@ -82,7 +82,7 @@ export async function register(data) {
   return { user };
 }
 
-export async function registerExpert(data) {
+export async function registerExpert(data, locale = 'vi') {
   const normalizedEmail = String(data.email || '').trim().toLowerCase();
 
   const existing = await findUserByEmail(normalizedEmail);
@@ -109,7 +109,7 @@ export async function registerExpert(data) {
   const verifyToken = generateSecureToken();
   await createEmailVerificationToken(user.id, verifyToken);
   try {
-    await sendVerificationEmail(user, verifyToken);
+    await sendVerificationEmail(user, verifyToken, locale);
   } catch (e) {
     console.error('[MAIL_FAIL] expert verification email:', user.email, '|', e.message);
   }
@@ -207,19 +207,23 @@ export async function approveExpertApplication(token) {
   // Thông báo in-app (chuông) cho chuyên gia.
   try {
     await db.query(
-      `insert into notifications (recipient_id, actor_name, type, message) values ($1, $2, $3, $4)`,
-      [application.user_id, 'PeaceFlow', 'expert_approved', 'Hồ sơ chuyên gia của bạn đã được duyệt! Bạn có thể vào khu chuyên gia ngay.']
+      `insert into notifications (recipient_id, actor_name, type, message, params) values ($1, $2, $3, $4, $5::jsonb)`,
+      [application.user_id, 'PeaceFlow', 'expert_approved', 'Hồ sơ chuyên gia của bạn đã được duyệt! Bạn có thể vào khu chuyên gia ngay.', JSON.stringify({ code: 'expert_approved' })]
     );
   } catch (e) {
     console.error('Failed to create approval notification:', e.message);
   }
 
   try {
+    // Email này được gửi sau khi ADMIN bấm link duyệt, không phải request của chính
+    // chuyên gia, nên phải tra ngôn ngữ ưa thích đã lưu (users.locale) thay vì req.locale.
+    const localeRes = await db.query(`select locale from users where id = $1 limit 1`, [application.user_id]);
+    const emailLocale = localeRes.rows[0]?.locale === 'en' ? 'en' : 'vi';
     await sendExpertApprovedEmail({
       email: application.email,
       display_name: application.display_name,
       full_name: application.user_full_name || application.full_name
-    });
+    }, emailLocale);
   } catch (e) {
     console.error('Failed to send expert approved email:', e.message);
   }
@@ -241,19 +245,21 @@ export async function rejectExpertApplication(token) {
   // Thông báo in-app (chuông) cho người nộp.
   try {
     await db.query(
-      `insert into notifications (recipient_id, actor_name, type, message) values ($1, $2, $3, $4)`,
-      [application.user_id, 'PeaceFlow', 'expert_rejected', 'Hồ sơ chuyên gia của bạn chưa được duyệt. Bạn có thể cập nhật và gửi lại.']
+      `insert into notifications (recipient_id, actor_name, type, message, params) values ($1, $2, $3, $4, $5::jsonb)`,
+      [application.user_id, 'PeaceFlow', 'expert_rejected', 'Hồ sơ chuyên gia của bạn chưa được duyệt. Bạn có thể cập nhật và gửi lại.', JSON.stringify({ code: 'expert_rejected' })]
     );
   } catch (e) {
     console.error('Failed to create rejection notification:', e.message);
   }
 
   try {
+    const localeRes = await db.query(`select locale from users where id = $1 limit 1`, [application.user_id]);
+    const emailLocale = localeRes.rows[0]?.locale === 'en' ? 'en' : 'vi';
     await sendExpertRejectedEmail({
       email: application.email,
       display_name: application.display_name,
       full_name: application.user_full_name || application.full_name
-    });
+    }, emailLocale);
   } catch (e) {
     console.error('Failed to send expert rejected email:', e.message);
   }
@@ -333,22 +339,22 @@ export async function verifyEmail(token) {
   return { verified: true, email: record.email };
 }
 
-export async function resendVerificationEmail(email) {
+export async function resendVerificationEmail(email, locale = 'vi') {
   const user = await findUserByEmail(String(email || '').trim().toLowerCase());
   if (!user || user.email_verified) return;
 
   const token = generateSecureToken();
   await createEmailVerificationToken(user.id, token);
-  await sendVerificationEmail(user, token);
+  await sendVerificationEmail(user, token, locale);
 }
 
-export async function forgotPassword(email) {
+export async function forgotPassword(email, locale = 'vi') {
   const user = await findUserByEmail(String(email || '').trim().toLowerCase());
   if (!user) return;
 
   const token = generateSecureToken();
   await createPasswordResetToken(user.id, token);
-  await sendPasswordResetEmail(user, token);
+  await sendPasswordResetEmail(user, token, locale);
 }
 
 export async function resetPassword(token, newPassword) {

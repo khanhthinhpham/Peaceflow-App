@@ -25,7 +25,7 @@ router.get('/me/ai-context', requireAuth, async (req, res) => {
     }
 });
 
-function serializeInsight(insight) {
+function serializeInsight(insight, locale) {
     if (!insight) return null;
     return {
         summary: insight.summary,
@@ -33,7 +33,7 @@ function serializeInsight(insight) {
         changed: insight.changed ?? null,
         exercises: (insight.exercises || []).map((t) => ({
             id: t.id,
-            title: t.title,
+            title: (locale === 'en' && t.title_en) || t.title,
             category: t.category,
             difficulty: t.difficulty,
             duration_minutes: t.duration_minutes,
@@ -49,7 +49,7 @@ function serializeInsight(insight) {
 router.get('/ai/insight', requireAuth, async (req, res) => {
     try {
         const insight = await getStoredUserInsight(req.user.sub);
-        return res.json({ success: true, data: serializeInsight(insight) });
+        return res.json({ success: true, data: serializeInsight(insight, req.locale) });
     } catch (error) {
         console.error('[AI] get insight error:', error);
         return res.status(500).json({ success: false, message: 'Không tải được lời khuyên.' });
@@ -61,8 +61,8 @@ router.get('/ai/insight', requireAuth, async (req, res) => {
 // (changed = false, không gọi AI). Đã thay đổi => gọi AI sinh mới (changed = true).
 router.post('/ai/insight', requireAuth, aiRateLimit, async (req, res) => {
     try {
-        const insight = await generateUserInsight(req.user.sub);
-        return res.json({ success: true, data: serializeInsight(insight) });
+        const insight = await generateUserInsight(req.user.sub, req.locale);
+        return res.json({ success: true, data: serializeInsight(insight, req.locale) });
     } catch (error) {
         console.error('[AI] generate insight error:', error);
         return res.status(500).json({ success: false, message: 'Không thể tạo lời khuyên lúc này.' });
@@ -72,7 +72,7 @@ router.post('/ai/insight', requireAuth, aiRateLimit, async (req, res) => {
 // POST /ai/recommend-task — gợi ý bài tập phù hợp hôm nay
 router.post('/ai/recommend-task', requireAuth, aiRateLimit, async (req, res) => {
     try {
-        const recommendation = await getRecommendedTask(req.user.sub);
+        const recommendation = await getRecommendedTask(req.user.sub, req.locale);
         return res.json({ success: true, data: recommendation });
     } catch (error) {
         console.error('[AI] recommend-task error:', error);
@@ -83,7 +83,7 @@ router.post('/ai/recommend-task', requireAuth, aiRateLimit, async (req, res) => 
 // POST /ai/weekly-insight — nhận xét tuần
 router.post('/ai/weekly-insight', requireAuth, aiRateLimit, async (req, res) => {
     try {
-        const insight = await getWeeklyInsight(req.user.sub);
+        const insight = await getWeeklyInsight(req.user.sub, req.locale);
         return res.json({ success: true, data: { insight } });
     } catch (error) {
         console.error('[AI] weekly-insight error:', error);
@@ -120,7 +120,7 @@ router.post('/ai/chat', requireAuth, aiRateLimit, async (req, res) => {
                 text: item.text.trim().slice(0, MAX_CHAT_MESSAGE_LENGTH)
             }));
 
-        const result = await getChatReply({ userId: req.user.sub, message, history });
+        const result = await getChatReply({ userId: req.user.sub, message, history, locale: req.locale });
 
         return res.json({
             success: true,
@@ -129,7 +129,7 @@ router.post('/ai/chat', requireAuth, aiRateLimit, async (req, res) => {
                 suggested_task: result.suggestedTask
                     ? {
                         id: result.suggestedTask.id,
-                        title: result.suggestedTask.title,
+                        title: (req.locale === 'en' && result.suggestedTask.title_en) || result.suggestedTask.title,
                         category: result.suggestedTask.category,
                         duration_minutes: result.suggestedTask.duration_minutes,
                         xp_reward: result.suggestedTask.xp_reward,

@@ -1,0 +1,91 @@
+{
+  "tasksPage": {
+    "title": "🎮 Exercises",
+    "subtitleGuest": "Only emergency exercises are shown for guests who aren't signed in.",
+    "subtitleUser": "You have {n} exercises available from suggestions and the exercise library.",
+    "checkinBtn": "💭 Mood check-in",
+    "emergencyBtn": "🆘 Emergency",
+    "guestNote": {
+      "title": "You're in emergency support mode",
+      "text": "PeaceFlow currently only opens emergency exercises to help you stabilize first. Sign in to see the full exercise library, journal, and personalized suggestions.",
+      "loginCta": "Sign in to see more exercises"
+    },
+    "xpTopbar": {
+      "guestTitle": "Emergency support mode",
+      "guestDesc": "No account needed to start basic stabilizing exercises.",
+      "levelRange": "Level {level} · {min} – {max} XP"
+    },
+    "aiSuggestion": {
+      "guestTitle": "Start with a short exercise",
+      "guestDesc": "If you're feeling overwhelmed, pick a breathing or emergency meditation exercise below. Sign in when you need more — it opens PeaceFlow's full exercise library.",
+      "title": "🤖 PeaceCat's suggestion for today",
+      "viewBtn": "View suggestion →",
+      "aiText": "PeaceCat (AI) suggests {n} exercises based on your recent mood: {names}.",
+      "moodRecent": "Latest mood {score}/10",
+      "moodNone": "No recent mood check-in",
+      "ruleBasedText": "PeaceCat picked {n} exercises that fit right now. {moodText} and a {risk} risk level are being used to prioritize the list.",
+      "noSuggestion": "No clear personalized suggestion yet — you can still pick any exercise that fits your current energy."
+    },
+    "risk": {
+      "critical": "very high",
+      "high": "high",
+      "moderate": "needing monitoring",
+      "stable": "stable"
+    },
+    "challenge": {
+      "guestTitle": "You don't have to do everything at once",
+      "guestDesc": "Prioritize one short exercise to let your body settle first. Then you can sign in to track your progress and unlock more exercises.",
+      "defaultTitle": "This week's goal",
+      "defaultDesc": "Keep a steady rhythm of completing exercises this week.",
+      "defaultReward": "Keep up your self-care rhythm",
+      "daysLeft": "{n} days left",
+      "tasksMeta": "exercises"
+    },
+    "filters": {
+      "all": "🌿 All",
+      "emergency": "🔴 Emergency",
+      "easy": "🟢 Easy",
+      "medium": "🟡 Medium",
+      "hard": "🟠 Advanced",
+      "completed": "✅ Completed",
+      "searchPlaceholder": "🔍 Search exercises..."
+    },
+    "list": {
+      "loading": "Loading exercises from the system...",
+      "empty": "No exercises match the current filter.",
+      "loadError": "Couldn't load exercises from the API. Please sign in again or check the backend."
+    },
+    "sections": {
+      "emergencyTitle": "🔴 Emergency",
+      "emergencyDesc": "Do these first when your emotions feel overwhelming.",
+      "easyTitle": "🟢 Easy",
+      "easyDesc": "Short exercises to keep a daily self-care rhythm.",
+      "mediumTitle": "🟡 Medium",
+      "mediumDesc": "Needs a bit more focus time or a quiet space.",
+      "hardTitle": "🟠 Advanced",
+      "hardDesc": "Longer exercises, best when you have the energy to go deeper.",
+      "count": "{n} exercises"
+    },
+    "card": {
+      "defaultTitle": "Exercise",
+      "defaultDuration": "Flexible",
+      "oneMinute": "1 min",
+      "minutes": "{n} min",
+      "suggestedToday": "⭐ Suggested today",
+      "inProgress": "⏳ In progress",
+      "completedCount": "✓ Completed {n} times",
+      "defaultDescription": "This exercise doesn't have a detailed description yet.",
+      "reviewBtn": "Review",
+      "continueBtn": "Continue",
+      "startBtn": "Start"
+    },
+    "emergency": {
+      "title": "You're not alone",
+      "text": "If things feel really hard right now, let someone help you.",
+      "hotlineLabel": "Mental health support hotline — Free, 24/7",
+      "callBtn": "📞 Call hotline now",
+      "connectExpertBtn": "💬 Connect with an expert",
+      "closeBtn": "I'm okay, close this"
+    }
+  }
+}

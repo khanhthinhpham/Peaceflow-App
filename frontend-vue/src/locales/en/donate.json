@@ -1,0 +1,12 @@
+{
+  "donate": {
+    "title": "Support PeaceFlow",
+    "subtitle": "Your contribution helps PeaceFlow stay free for everyone. Thank you 🌿",
+    "customAmount": "Custom",
+    "loadingQr": "Loading QR code…",
+    "qrAlt": "QR code to support PeaceFlow",
+    "scanNotePrefix": "Scan the QR with your banking app · Amount:",
+    "contentLabel": "Content:",
+    "loadFailed": "Couldn't load donation info. Please try again."
+  }
+}

@@ -124,6 +124,8 @@ router.get('/achievements', requireAuth, async (req, res) => {
            b.code,
            b.name,
            b.description,
+           b.name_en,
+           b.description_en,
            b.criteria,
            b.icon,
            b.rarity,
@@ -342,13 +344,13 @@ router.get('/achievements', requireAuth, async (req, res) => {
       return {
         id: badge.id,
         code: badge.code,
-        name: badge.name,
-        description: badge.description,
+        name: (req.locale === 'en' && badge.name_en) || badge.name,
+        description: (req.locale === 'en' && badge.description_en) || badge.description,
         icon: badge.icon || '🏅',
         rarity: badge.rarity || 'common',
         category: getBadgeCategory(badge.criteria || {}),
         criteria: badge.criteria || {},
-        condition: describeBadgeCriteria(badge.criteria || {}),
+        condition: describeBadgeCriteria(badge.criteria || {}, req.locale),
         target_value: progressInfo.target,
         current_value: progressInfo.current,
         progress_percent: progressInfo.progressPercent,
@@ -519,8 +521,34 @@ function getBadgeCategory(criteria) {
   }
 }
 
-function describeBadgeCriteria(criteria) {
+function describeBadgeCriteria(criteria, locale = 'vi') {
   const value = Number(criteria?.value || 0);
+
+  if (locale === 'en') {
+    switch (criteria?.type) {
+      case 'task_count':
+        return `Complete ${value} tasks`;
+      case 'streak':
+        return `Keep a ${value}-day streak`;
+      case 'task_tag_count':
+        if (criteria.tag === 'meditation') return `Complete ${value} meditation sessions`;
+        if (criteria.tag === 'kindness') return `Complete ${value} kindness tasks`;
+        return `Complete ${value} tasks in the ${criteria.tag || 'special'} group`;
+      case 'task_difficulty_count':
+        if (criteria.difficulty === 'hard') return `Complete ${value} hard tasks`;
+        return `Complete ${value} ${criteria.difficulty || 'any'}-difficulty tasks`;
+      case 'crisis_recovery':
+        return 'Made it through a high-stress period and stabilized over the past 14 days';
+      case 'xp':
+        return `Reach a total of ${value} XP`;
+      case 'journal_count':
+        return `Write ${value} journal entries`;
+      case 'mood_checkin_count':
+        return `Complete ${value} mood check-ins`;
+      default:
+        return 'Meet a special condition';
+    }
+  }
 
   switch (criteria?.type) {
     case 'task_count':

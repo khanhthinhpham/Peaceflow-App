@@ -59,6 +59,20 @@ router.put('/me', requireAuth, async (req, res) => {
   }
 });
 
+// PATCH /api/v1/me/locale — lưu bền ngôn ngữ ưa thích (khác với header x-locale chỉ có
+// trong lúc user đang thao tác) — dùng cho email/push gửi từ webhook, cron, không có
+// request nào của user để đọc x-locale.
+router.patch('/me/locale', requireAuth, async (req, res) => {
+  try {
+    const locale = req.body?.locale === 'en' ? 'en' : 'vi';
+    await db.query(`update users set locale = $2, updated_at = now() where id = $1`, [req.user.sub, locale]);
+    return res.json({ success: true });
+  } catch (error) {
+    console.error('Error updating user locale:', error);
+    return res.status(500).json({ success: false, message: 'Could not update locale' });
+  }
+});
+
 // GET /api/v1/me/export — xuất toàn bộ dữ liệu cá nhân (GDPR)
 router.get('/me/export', requireAuth, async (req, res) => {
   try {

@@ -5,12 +5,12 @@
       <h1 style="font-size:1.4rem;margin-bottom:8px;">{{ title }}</h1>
       <p style="color:var(--text-secondary);font-size:0.9rem;line-height:1.6;">{{ desc }}</p>
       <div style="margin-top:24px;">
-        <router-link v-if="verified" to="/login?verified=1" class="btn-primary" style="display:inline-block;padding:10px 24px;">Đăng nhập ngay →</router-link>
+        <router-link v-if="verified" to="/login?verified=1" class="btn-primary" style="display:inline-block;padding:10px 24px;">{{ t('verifyEmail.loginNowBtn') }}</router-link>
         <form v-else-if="showResend" style="display:flex;flex-direction:column;gap:10px;" @submit.prevent="handleResend">
-          <input v-model="resendEmail" type="email" required placeholder="Email bạn đã đăng ký" style="padding:10px 14px;border:1px solid var(--mint-light);border-radius:8px;font:inherit;">
-          <button type="submit" class="btn-primary" style="padding:10px 24px;" :disabled="resending">{{ resending ? 'Đang gửi...' : 'Gửi lại email xác nhận' }}</button>
+          <input v-model="resendEmail" type="email" required :placeholder="t('verifyEmail.emailPlaceholder')" style="padding:10px 14px;border:1px solid var(--mint-light);border-radius:8px;font:inherit;">
+          <button type="submit" class="btn-primary" style="padding:10px 24px;" :disabled="resending">{{ resending ? t('verifyEmail.resending') : t('verifyEmail.resendBtn') }}</button>
           <p style="font-size:0.85rem;color:var(--text-secondary);margin:0;">{{ resendMsg }}</p>
-          <router-link to="/login" style="font-size:0.85rem;">Về trang đăng nhập</router-link>
+          <router-link to="/login" style="font-size:0.85rem;">{{ t('verifyEmail.backToLogin') }}</router-link>
         </form>
       </div>
     </div>
@@ -18,49 +18,69 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
+import { useI18n } from 'vue-i18n';
 import { apiClient } from '../lib/apiClient';
 
-const FAILURE_TEXT = {
-  TOKEN_EXPIRED: 'Link xác nhận đã hết hạn (24 giờ). Hãy nhập email để nhận link mới.',
-  TOKEN_USED: 'Link này đã được dùng rồi. Nếu bạn chưa kích hoạt được, hãy nhập email để nhận link mới.',
-  TOKEN_INVALID: 'Link xác nhận không hợp lệ. Hãy kiểm tra lại hoặc nhập email để nhận link mới.'
-};
-
 const route = useRoute();
+const { t } = useI18n();
 
-const icon = ref('⏳');
-const title = ref('Đang xác nhận...');
-const desc = ref('Vui lòng chờ trong giây lát.');
+const KNOWN_FAILURE_CODES = ['TOKEN_EXPIRED', 'TOKEN_USED', 'TOKEN_INVALID'];
+
+// Trạng thái thuần (không phải chuỗi đã dịch) — icon/title/desc computed từ đây, tránh kẹt bản
+// dịch cũ nếu người dùng đổi ngôn ngữ trong lúc trang đang ở một trạng thái nhất định.
+const status = ref({ kind: 'verifying' }); // 'verifying' | 'noToken' | 'success' | 'failure'
 const verified = ref(false);
 const showResend = ref(false);
 const resendEmail = ref('');
 const resending = ref(false);
-const resendMsg = ref('');
+const resendMsgKey = ref('');
+const resendMsgParams = ref({});
+const resendMsgRaw = ref(''); // dùng khi backend trả message riêng (không có khoá dịch tương ứng)
+const resendMsg = computed(() => (resendMsgKey.value ? t(resendMsgKey.value, resendMsgParams.value) : resendMsgRaw.value));
+
+const icon = computed(() => {
+  if (status.value.kind === 'verifying') return '⏳';
+  if (status.value.kind === 'success') return '✅';
+  return '❌';
+});
+const title = computed(() => {
+  const s = status.value;
+  if (s.kind === 'verifying') return t('verifyEmail.status.verifyingTitle');
+  if (s.kind === 'noToken') return t('verifyEmail.status.noTokenTitle');
+  if (s.kind === 'success') return s.alreadyVerified ? t('verifyEmail.status.successTitleAlready') : t('verifyEmail.status.successTitleFirst');
+  return t('verifyEmail.status.failureTitle');
+});
+const desc = computed(() => {
+  const s = status.value;
+  if (s.kind === 'verifying') return t('verifyEmail.status.verifyingDesc');
+  if (s.kind === 'noToken') return t('verifyEmail.status.noTokenDesc');
+  if (s.kind === 'success') return t('verifyEmail.status.successDesc');
+  if (s.kind === 'failure') {
+    return KNOWN_FAILURE_CODES.includes(s.code)
+      ? t(`verifyEmail.failureReasons.${s.code}`)
+      : t('verifyEmail.status.failureDefault');
+  }
+  return '';
+});
 
 function showFailure(code) {
-  icon.value = '❌';
-  title.value = 'Xác nhận thất bại';
-  desc.value = FAILURE_TEXT[code] || 'Không xác nhận được email. Hãy nhập email để nhận link mới.';
+  status.value = { kind: 'failure', code };
   showResend.value = true;
 }
 
 async function verify() {
   const token = route.query.token;
   if (!token) {
-    icon.value = '❌';
-    title.value = 'Link không hợp lệ';
-    desc.value = 'Không tìm thấy token xác nhận trong link này. Hãy nhập email để nhận link mới.';
+    status.value = { kind: 'noToken' };
     showResend.value = true;
     return;
   }
 
   try {
     const data = await apiClient.get(`/auth/verify-email?token=${encodeURIComponent(token)}`, { noCache: true });
-    icon.value = '✅';
-    title.value = data?.already_verified ? 'Email đã được xác nhận trước đó' : 'Email đã được xác nhận!';
-    desc.value = 'Tài khoản đã kích hoạt. Hãy đăng nhập để bắt đầu hành trình.';
+    status.value = { kind: 'success', alreadyVerified: Boolean(data?.already_verified) };
     verified.value = true;
   } catch (err) {
     showFailure(String(err?.message || ''));
@@ -69,13 +89,19 @@ async function verify() {
 
 async function handleResend() {
   resending.value = true;
-  resendMsg.value = '';
+  resendMsgKey.value = '';
+  resendMsgRaw.value = '';
   const email = resendEmail.value.trim().toLowerCase();
   try {
     await apiClient.post('/auth/resend-verification', { email });
-    resendMsg.value = `Nếu ${email} đã đăng ký và chưa xác minh, link mới đã được gửi. Hãy kiểm tra cả hộp thư rác.`;
+    resendMsgKey.value = 'verifyEmail.resendMsg.success';
+    resendMsgParams.value = { email };
   } catch (err) {
-    resendMsg.value = err?.message || 'Không gửi được email. Vui lòng thử lại sau.';
+    if (err?.message) {
+      resendMsgRaw.value = err.message;
+    } else {
+      resendMsgKey.value = 'verifyEmail.resendMsg.failed';
+    }
   } finally {
     resending.value = false;
   }

@@ -68,6 +68,16 @@ const RAVEN_IQ_BANDS = [
     { max: 999, label: 'Chỉ số rất xuất sắc' }
 ];
 
+const RAVEN_IQ_BANDS_EN = [
+    { max: 69, label: 'Intellectual disability' },
+    { max: 79, label: 'Borderline' },
+    { max: 89, label: 'Below average' },
+    { max: 109, label: 'Average' },
+    { max: 119, label: 'Above average' },
+    { max: 129, label: 'Superior' },
+    { max: 999, label: 'Very superior' }
+];
+
 function ravenParseRange(str) {
     if (!str || str === '-') return null;
     const parts = str.split('-').map((s) => Number(s.trim()));
@@ -82,7 +92,7 @@ function ravenFindAgeBracketIndex(totalMonths) {
 
 // Tính điểm thô (số câu đúng) theo đáp án gốc, rồi quy đổi sang Standard Score/IQ
 // theo đúng độ tuổi (nếu có đủ thông tin tuổi và tuổi nằm trong phạm vi 4-11).
-function scoreRavenTest(choices, ageYears, ageMonthsExtra) {
+function scoreRavenTest(choices, ageYears, ageMonthsExtra, locale = 'vi') {
     const bySet = { A: 0, AB: 0, B: 0 };
     let rawTotal = 0;
     ITEMS.forEach((item, i) => {
@@ -106,7 +116,9 @@ function scoreRavenTest(choices, ageYears, ageMonthsExtra) {
 
     const age = Number(ageYears);
     if (!Number.isFinite(age) || age <= 0) {
-        result.ageBracketNote = 'Chưa có tuổi — chỉ tính được điểm thô, chưa quy đổi ra chỉ số IQ.';
+        result.ageBracketNote = locale === 'en'
+            ? 'No age provided — only the raw score could be calculated, not converted to an IQ score.'
+            : 'Chưa có tuổi — chỉ tính được điểm thô, chưa quy đổi ra chỉ số IQ.';
         return result;
     }
 
@@ -115,11 +127,15 @@ function scoreRavenTest(choices, ageYears, ageMonthsExtra) {
     const bracketIdx = ravenFindAgeBracketIndex(totalMonths);
 
     if (bracketIdx === -1) {
-        result.ageBracketNote = 'Trẻ dưới 4 tuổi — ngoài phạm vi chuẩn hoá của Raven CPM, chỉ tính điểm thô.';
+        result.ageBracketNote = locale === 'en'
+            ? 'Under 4 years old — outside the Raven CPM norm range, only the raw score is calculated.'
+            : 'Trẻ dưới 4 tuổi — ngoài phạm vi chuẩn hoá của Raven CPM, chỉ tính điểm thô.';
         return result;
     }
     if (bracketIdx === -2) {
-        result.ageBracketNote = 'Trên 11 tuổi — ngoài phạm vi chuẩn hoá của Raven CPM, chỉ tính điểm thô.';
+        result.ageBracketNote = locale === 'en'
+            ? 'Over 11 years old — outside the Raven CPM norm range, only the raw score is calculated.'
+            : 'Trên 11 tuổi — ngoài phạm vi chuẩn hoá của Raven CPM, chỉ tính điểm thô.';
         return result;
     }
 
@@ -133,7 +149,8 @@ function scoreRavenTest(choices, ageYears, ageMonthsExtra) {
 
     result.standardScore = matchedRow.ss;
     result.percentile = matchedRow.pctl;
-    const iqBand = RAVEN_IQ_BANDS.find((b) => matchedRow.ss <= b.max) || RAVEN_IQ_BANDS[RAVEN_IQ_BANDS.length - 1];
+    const bands = locale === 'en' ? RAVEN_IQ_BANDS_EN : RAVEN_IQ_BANDS;
+    const iqBand = bands.find((b) => matchedRow.ss <= b.max) || bands[bands.length - 1];
     result.iqLabel = iqBand.label;
 
     return result;

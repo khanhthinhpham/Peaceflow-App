@@ -1,0 +1,114 @@
+{
+  "onboarding": {
+    "stepLabels": ["Welcome", "Sign up", "Profile", "Commitment", "Devices", "Done"],
+    "quotes": [
+      "\"Everyone experiences stress to some degree. You are not alone.\"",
+      "\"This too shall pass. Stay calm.\"",
+      "\"Your happiness is created by you.\"",
+      "\"Every day is a new chance to start again.\"",
+      "\"We need patience — take it slow and steady.\""
+    ],
+    "welcome": {
+      "titlePre": "You are",
+      "titleHighlight": "not alone",
+      "titleSuffix": "on this journey 🌿",
+      "sub": "PeaceFlow walks with you — gently, without judgment, one step at a time.<br>It only takes <strong>2 minutes</strong> to start.",
+      "statsUsers": "Users",
+      "statsExercises": "Exercises",
+      "statsExperts": "Experts",
+      "cta": "🚀 Start the journey"
+    },
+    "auth": {
+      "title": "Create your account",
+      "subtitle": "Choose how you'd like to sign up — quick and secure",
+      "google": "Continue with Google",
+      "apple": "Continue with Apple",
+      "dividerOr": "or sign up with email",
+      "emailPlaceholder": "✉️  Your email",
+      "passwordPlaceholder": "🔒  Password (min. 8 characters)",
+      "createAccount": "Create account →",
+      "tryAnonNote": "<strong>Want to try first?</strong> You can try anonymously — data stays on your device, sign up later.",
+      "tryAnonBtn": "Try anonymously →",
+      "encryptedNote": "Data is <strong>AES-256 encrypted</strong>. Only you have access. We never sell your data to third parties.",
+      "back": "← Back"
+    },
+    "profileStep": {
+      "title": "What should I call you?",
+      "subtitle": "Just a few quick questions to get to know you!",
+      "nameLabel": "Your name or nickname?",
+      "namePlaceholder": "e.g. Minh, Hana, PeaceUser...",
+      "ageLabel": "Which age group are you in?",
+      "avatarLabel": "Pick your Paper Flow avatar",
+      "reasonLabel": "What brings you here today?",
+      "back": "← Back",
+      "continue": "Continue →"
+    },
+    "ages": ["16 – 24 years old", "25 – 34 years old", "35 – 44 years old", "45 and above"],
+    "reasons": {
+      "stressed": "I'm feeling stressed",
+      "understandSelf": "I want to understand myself better",
+      "curious": "I'm curious to try it out",
+      "referred": "Someone referred me"
+    },
+    "mindset": {
+      "title": "Let's walk this path the right way",
+      "subtitle": "Before we begin, let's go through 4 small principles together. <strong>Tap each card</strong> to flip and read more — like turning a page in a journal 📖",
+      "progressLabel": "{n}/4 cards read",
+      "back": "← Back",
+      "agreeBtn": "I agree ✓"
+    },
+    "mindsetCards": {
+      "aiSupport": {
+        "title": "AI only supports — it doesn't replace people",
+        "description": "PeaceFlow is a virtual companion — not a doctor, it doesn't diagnose conditions or prescribe medication. When you need deeper support, please connect with a real expert."
+      },
+      "release": {
+        "title": "Don't suppress emotions — release them",
+        "description": "Every emotion has value — including sadness, anger, or fear. Instead of suppressing them, recognize and release them through positive actions. Emotions aren't the enemy."
+      },
+      "selfHelp": {
+        "title": "Only you can truly help yourself",
+        "description": "PeaceFlow creates the environment and tools, but the real strength comes from you. Every small step you take is your own victory. We're just here to cheer you on! 🎉"
+      },
+      "patience": {
+        "title": "Patience — slow and steady",
+        "description": "Change doesn't happen overnight. It's okay if you miss a task some days — we don't punish, only reward. Go at your own pace. 🌿"
+      }
+    },
+    "device": {
+      "optionalBadge": "✨ Optional",
+      "title": "Connect a smart device",
+      "subtitle": "Sync your watch so PeaceFlow can understand you more accurately. Totally skippable!",
+      "dataCollectedLabel": "📊 Data that will be collected:",
+      "connectBtn": "Connect",
+      "connectedBtn": "✓ Connected",
+      "back": "← Back",
+      "skipBtn": "Skip",
+      "continueBtn": "Continue →"
+    },
+    "dataTags": ["💓 Heart rate", "🧠 HRV", "😴 Sleep", "👟 Steps", "🌡️ Skin temperature"],
+    "devices": {
+      "appleWatch": { "desc": "Requires iOS 14+ and Apple Health" },
+      "garmin": { "desc": "Connect via Garmin Connect API" },
+      "fitbit": { "desc": "Connect via Fitbit Web API" },
+      "googleFit": { "desc": "Sync Android health data" }
+    },
+    "complete": {
+      "titlePrefix": "Welcome,",
+      "titleSuffix": "! 🎉",
+      "defaultName": "friend",
+      "desc": "Your journey has officially begun!<br>PeaceFlow will always be here, walking with you every day. 💚",
+      "xpLabel": "Starting XP",
+      "badgeLabel": "Badge",
+      "badgeValue": "Sprout",
+      "taskLabel": "Tasks",
+      "taskValue": "Ready",
+      "firstTaskLabel": "🎯 Your first task",
+      "firstTaskName": "💨 Deep breathing — 4-4-4 exercise",
+      "firstTaskMeta": "⏱ 2 min &nbsp;|&nbsp; ⭐ 10 XP &nbsp;|&nbsp; 🟢 Level 0 — Emergency",
+      "warningNote": "⚠️ <strong>Note:</strong> This app is a support tool, <strong>not a substitute for medical diagnosis</strong>. If you're in an emergency: <strong>📞 0931773637</strong> (Free, 24/7)",
+      "startCheckinBtn": "🌿 Start a mood check-in",
+      "dashboardBtn": "Go to Dashboard first →"
+    }
+  }
+}

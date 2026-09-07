@@ -1,0 +1,45 @@
+{
+  "ravenTest": {
+    "back": "← Quay lại",
+    "disclaimer": "<strong>Lưu ý:</strong> Đây là trắc nghiệm phi ngôn ngữ (Raven). Ứng dụng tự chấm điểm theo đáp án gốc và quy đổi ra chỉ số IQ (nếu có đủ tuổi, áp dụng cho trẻ 4-11 tuổi), nhưng kết quả chỉ mang tính <strong>sàng lọc tham khảo</strong> — hãy để <strong>chuyên gia</strong> xác nhận và đưa ra kết luận cuối cùng.",
+    "questionLabel": "Câu {n} / {total}",
+    "imageAlt": "Câu {key}",
+    "skippedNote": "Câu này đã được bỏ qua — không tính điểm.",
+    "nav": {
+      "prevBtn": "← Câu trước",
+      "skipBtn": "Bỏ qua câu này",
+      "nextBtn": "Câu tiếp →",
+      "finishBtn": "Hoàn thành"
+    },
+    "result": {
+      "completedTitle": "Đã hoàn thành bài làm",
+      "rawScoreLabel": "Điểm thô:",
+      "rawScoreDetail": "{total} / 36 (Tập A: {a}/12, Tập AB: {ab}/12, Tập B: {b}/12)",
+      "standardScoreLabel": "Chỉ số chuẩn hoá (Standard Score):",
+      "percentileSuffix": " — Percentile {pct}",
+      "classificationLabel": "Xếp loại:"
+    },
+    "aiSummary": {
+      "title": "Nhận xét từ AI",
+      "loading": "Đang phân tích kết quả...",
+      "judgmentTitle": "🔎 Phán đoán hỗ trợ về tình trạng"
+    },
+    "attach": {
+      "title": "📷 Đính kèm ảnh (nếu có)",
+      "desc": "Nếu bạn làm bài trên phiếu giấy gốc, hãy chụp/tải ảnh phiếu trả lời lên đây để chuyên gia xem khi chấm điểm.",
+      "uploadBtn": "Tải ảnh lên"
+    },
+    "backToList": "Về danh sách bài test",
+    "status": {
+      "savedToProfile": "Đã lưu vào hồ sơ.",
+      "saveFailed": "Chưa lưu được vào hồ sơ, vui lòng thử lại sau.",
+      "chooseImageFirst": "Vui lòng chọn 1 ảnh trước.",
+      "notSubmittedYet": "Chưa nộp được bài nên chưa thể đính kèm ảnh. Vui lòng thử lại.",
+      "uploading": "Đang tải ảnh lên...",
+      "uploadSuccess": "✅ Đã gửi ảnh cho chuyên gia.",
+      "uploadFailed": "Không tải được ảnh, vui lòng thử lại."
+    },
+    "severityRawFallback": "Điểm thô {n}/36 (chưa quy đổi IQ)",
+    "defaultOwnerName": "Chủ tài khoản"
+  }
+}

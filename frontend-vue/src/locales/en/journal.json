@@ -1,0 +1,122 @@
+{
+  "journal": {
+    "breadcrumbDashboard": "Overview",
+    "breadcrumbJournal": "Emotional journal",
+    "title": "📝 Emotional Journal",
+    "subtitle": "A private space — AES-256 encrypted — only you can read it",
+    "historyBtn": "📚 Browse",
+    "newBtn": "✏️ New entry",
+    "tabEditor": "✏️ Write",
+    "tabHistory": "📚 Library",
+    "untitled": "Untitled entry",
+    "editor": {
+      "todayMoodLabel": "Today's mood:",
+      "private": "Private",
+      "public": "Public",
+      "promptLabel": "💡 Prompt:",
+      "refreshPromptTitle": "Another prompt",
+      "bold": "Bold",
+      "italic": "Italic",
+      "underline": "Underline",
+      "emojiFun": "Fun",
+      "emojiThought": "Thought",
+      "emojiGrowth": "Growth",
+      "emojiLove": "Love",
+      "emojiAmazing": "Amazing",
+      "linedPaper": "Lined paper",
+      "fontBigger": "Bigger text",
+      "fontSmaller": "Smaller text",
+      "titlePlaceholder": "Entry title... (optional)",
+      "contentPlaceholder": "Start writing... This is entirely your space. There's no right or wrong. Let your feelings flow naturally through the words... 🌿",
+      "wordCountLabel": "{n} words · {m} characters",
+      "tagsLabel": "Tags:",
+      "clearBtn": "🗑️ Clear",
+      "saveBtn": "💾 Save entry (+15 XP)"
+    },
+    "ai": {
+      "analyzingTitle": "PeaceCat is analyzing your emotions...",
+      "analyzingSub": "Real-time NLP analysis — completely private",
+      "positive": "Positive",
+      "stress": "Stress",
+      "clarity": "Clarity",
+      "keywordsLabel": "🏷️ Detected emotional keywords:",
+      "listening": "listening",
+      "suggestionTitle": "💡 PeaceCat suggests these exercises:",
+      "insightPositive": "This entry leans lighter and shows several positive signals. You seem to be processing your emotions with more clarity.",
+      "insightNegative": "This content shows you're carrying a lot of pressure or heavy emotion. Writing it out right now is genuinely valuable for reducing cognitive load.",
+      "insightNeutral": "This entry is in a neutral state. Keep writing more deeply about what's not quite settled yet, or what's holding you up.",
+      "detailInsightPositive": "This entry carries a positive tone or shows signs of emotional recovery.",
+      "detailInsightNegative": "This entry shows fairly clear pressure. If you need to, pair it with a short exercise afterward.",
+      "detailInsightNeutral": "This entry reflects a neutral, steady inner state."
+    },
+    "history": {
+      "noEntries": "No entries match the current filter.",
+      "searchPlaceholder": "🔍 Search your journal...",
+      "wordsUnit": "words"
+    },
+    "filters": {
+      "all": "📚 All",
+      "happy": "😊 Happy",
+      "calm": "😌 Comfortable",
+      "sad": "😢 Sad",
+      "anxious": "😟 Anxious",
+      "grateful": "🙏 Grateful"
+    },
+    "modal": {
+      "aiAnalysisTitle": "🐱 PeaceCat's analysis"
+    },
+    "sentiment": {
+      "positive": "Positive",
+      "negative": "Heavy",
+      "neutral": "Neutral"
+    },
+    "moods": {
+      "happy": "Happy",
+      "calm": "Comfortable",
+      "neutral": "Normal",
+      "anxious": "Anxious",
+      "sad": "Sad",
+      "angry": "Angry"
+    },
+    "tags": {
+      "emotion": "#emotion",
+      "grateful": "#grateful",
+      "reflection": "#reflection",
+      "goal": "#goal",
+      "anger": "#anger",
+      "happiness": "#happiness"
+    },
+    "sidebar": {
+      "calendarLegend": "● Has an entry",
+      "statsTitle": "📊 Journal stats",
+      "statEntries": "Entries",
+      "statStreak": "Writing streak",
+      "statTotalWords": "Total words",
+      "statPositive": "Positive",
+      "moodTrendTitle": "📈 7-day mood",
+      "noMoodData": "Not enough 7-day mood data yet.",
+      "promptsTitle": "💡 Today's writing prompts",
+      "tipText": "Journaling regularly reduces anxiety by 25% and improves emotional processing. Just 10 minutes a day! 💚",
+      "securityTitle": "Fully secure:",
+      "securityText": "Your journal is AES-256 encrypted. Even the PeaceFlow team can't read it. You can delete everything at any time."
+    },
+    "weekdaysMonFirst": ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"],
+    "alerts": {
+      "emptyContent": "Please write something before saving.",
+      "saveFailed": "Couldn't save your entry to the server. Please try again."
+    },
+    "toast": {
+      "xpEarned": "+{n} XP earned!"
+    },
+    "prompts": [
+      "What made you feel like you tried hard enough today?",
+      "Is there a feeling that's been staying with you for a long time today?",
+      "If you had to name today's energy in one sentence, what would it be?",
+      "What's making you feel a little lighter than yesterday?",
+      "Is there anything you want to forgive yourself for today?",
+      "What's one small but memorable moment from today?",
+      "If you wake up feeling lighter tomorrow, what do you think will have changed?",
+      "Do you really need rest, help, or more clarity right now?"
+    ]
+  }
+}

@@ -2,15 +2,24 @@ import { Router } from 'express';
 import { requireAuth } from '../../common/middleware/auth.middleware.js';
 import { db } from '../../config/db.js';
 import { sendPushToUser } from '../notifications/notification.routes.js';
+import { buildNotificationMessage } from '../notifications/notification-messages.js';
+
+// Ngôn ngữ ưa thích đã lưu của người NHẬN thông báo — không dùng req.locale ở đây vì
+// req.locale phản ánh ngôn ngữ của người ĐANG bình luận/thả cảm xúc, không phải người
+// nhận thông báo (2 người khác nhau).
+async function getUserLocale(userId) {
+  const { rows } = await db.query(`select locale from users where id = $1 limit 1`, [userId]);
+  return rows[0]?.locale === 'en' ? 'en' : 'vi';
+}
 
 const router = Router();
 
-async function insertNotification(recipientId, actorName, type, postId, message) {
+async function insertNotification(recipientId, actorName, type, postId, message, params = null) {
   const groupKey = `${type}:${postId}:${recipientId}`;
   await db.query(
-    `insert into notifications (recipient_id, actor_name, type, post_id, message, group_key)
-     values ($1, $2, $3, $4, $5, $6)`,
-    [recipientId, actorName, type, postId, message, groupKey]
+    `insert into notifications (recipient_id, actor_name, type, post_id, message, group_key, params)
+     values ($1, $2, $3, $4, $5, $6, $7::jsonb)`,
+    [recipientId, actorName, type, postId, message, groupKey, params ? JSON.stringify(params) : null]
   );
 }
 const CATEGORY_MAP = {
@@ -270,11 +279,19 @@ router.post('/community/posts/:id/comments', requireAuth, async (req, res) => {
       if (postOwnerId && postOwnerId !== commenterId) recipients.add(postOwnerId);
       prevCommenters.rows.forEach(r => { if (r.user_id !== commenterId) recipients.add(r.user_id); });
       for (const recipientId of recipients) {
-        const msg = recipientId === postOwnerId
+        const isOwnPost = recipientId === postOwnerId;
+        const code = isOwnPost ? 'comment_own_post' : 'comment_participant_post';
+        const msg = isOwnPost
           ? `${commenterName} đã bình luận bài viết của bạn.`
           : `${commenterName} cũng đã bình luận trong bài viết bạn tham gia.`;
-        sendPushToUser(recipientId, '💬 Bình luận mới', msg, 'pages/community.html').catch(() => {});
-        insertNotification(recipientId, commenterName, 'comment', postId, msg).catch(() => {});
+        getUserLocale(recipientId).then((pushLocale) => {
+          const pushBody = buildNotificationMessage(code, { actorName: commenterName }, pushLocale) || msg;
+          sendPushToUser(recipientId, pushLocale === 'en' ? '💬 New comment' : '💬 Bình luận mới', pushBody, 'pages/community.html').catch(() => {});
+        }).catch(() => {});
+        insertNotification(recipientId, commenterName, 'comment', postId, msg, {
+          code,
+          actorName: commenterName
+        }).catch(() => {});
       }
     })().catch(e => console.error('[BG] comment notify:', e.message));
 
@@ -336,9 +353,13 @@ router.post('/community/posts/:id/reactions', requireAuth, async (req, res) => {
         if (!postOwnerId || postOwnerId === actorId) return;
         const emojiMap = { heart: '❤️', hug: '🤗', strong: '💪', star: '⭐' };
         const actorName = actorRes.rows[0]?.name || 'Ai đó';
-        const msg = `${actorName} đã thả ${emojiMap[reactionType] || '👍'} vào bài viết của bạn.`;
-        sendPushToUser(postOwnerId, `${emojiMap[reactionType] || '👍'} Cảm xúc mới`, msg, 'pages/community.html').catch(() => {});
-        insertNotification(postOwnerId, actorName, 'reaction', postId, msg).catch(() => {});
+        const emoji = emojiMap[reactionType] || '👍';
+        const msg = `${actorName} đã thả ${emoji} vào bài viết của bạn.`;
+        getUserLocale(postOwnerId).then((pushLocale) => {
+          const pushBody = buildNotificationMessage('reaction_post', { actorName, emoji }, pushLocale) || msg;
+          sendPushToUser(postOwnerId, pushLocale === 'en' ? `${emoji} New reaction` : `${emoji} Cảm xúc mới`, pushBody, 'pages/community.html').catch(() => {});
+        }).catch(() => {});
+        insertNotification(postOwnerId, actorName, 'reaction', postId, msg, { code: 'reaction_post', actorName, emoji }).catch(() => {});
       })().catch(e => console.error('[BG] reaction notify:', e.message));
     }
 

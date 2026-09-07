@@ -2,23 +2,23 @@
   <div class="auth-container">
     <div class="paper-card auth-card">
       <div class="auth-logo">🔐</div>
-      <h1 style="font-size:1.4rem;margin-bottom:8px;">Quên mật khẩu?</h1>
-      <p style="color:var(--text-secondary);font-size:0.9rem;margin-bottom:24px;">Nhập email và chúng tôi sẽ gửi link đặt lại mật khẩu.</p>
+      <h1 style="font-size:1.4rem;margin-bottom:8px;">{{ t('forgotPassword.title') }}</h1>
+      <p style="color:var(--text-secondary);font-size:0.9rem;margin-bottom:24px;">{{ t('forgotPassword.subtitle') }}</p>
 
       <div v-if="message" :class="['auth-message', messageType]">{{ message }}</div>
 
       <form v-if="!sent" style="text-align:left;" @submit.prevent="handleSubmit">
         <div class="form-group">
-          <label class="form-label">Email</label>
-          <input v-model="email" type="email" class="form-input" placeholder="Nhập email của bạn" required autocomplete="email">
+          <label class="form-label">{{ t('forgotPassword.emailLabel') }}</label>
+          <input v-model="email" type="email" class="form-input" :placeholder="t('forgotPassword.emailPlaceholder')" required autocomplete="email">
         </div>
         <button type="submit" class="btn-primary" style="width:100%;font-size:1rem;padding:12px;margin-top:8px;" :disabled="submitting">
-          {{ submitting ? 'Đang gửi...' : 'Gửi link đặt lại' }}
+          {{ submitting ? t('forgotPassword.submitting') : t('forgotPassword.submitBtn') }}
         </button>
       </form>
 
       <div class="auth-links">
-        <router-link to="/login">← Quay lại đăng nhập</router-link>
+        <router-link to="/login">{{ t('forgotPassword.backToLogin') }}</router-link>
       </div>
     </div>
   </div>
@@ -26,7 +26,10 @@
 
 <script setup>
 import { ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { apiClient } from '../lib/apiClient';
+
+const { t } = useI18n();
 
 const email = ref('');
 const submitting = ref(false);
@@ -38,11 +41,11 @@ async function handleSubmit() {
   submitting.value = true;
   try {
     await apiClient.post('/auth/forgot-password', { email: email.value.trim().toLowerCase() });
-    message.value = 'Nếu email tồn tại, bạn sẽ nhận được link đặt lại mật khẩu trong vài phút.';
+    message.value = t('forgotPassword.messages.success');
     messageType.value = 'success';
     sent.value = true;
   } catch (err) {
-    message.value = err.message || 'Có lỗi xảy ra. Vui lòng thử lại.';
+    message.value = err.message || t('forgotPassword.messages.genericError');
     messageType.value = 'error';
   } finally {
     submitting.value = false;

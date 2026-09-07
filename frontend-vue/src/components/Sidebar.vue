@@ -6,8 +6,8 @@
     </router-link>
 
     <nav class="sidebar-nav">
-      <template v-for="section in NAV_SECTIONS" :key="section.label">
-        <div class="nav-section-label" style="margin-top:8px;">{{ section.label }}</div>
+      <template v-for="section in NAV_SECTIONS" :key="section.key">
+        <div class="nav-section-label" style="margin-top:8px;">{{ t(section.labelKey) }}</div>
         <template v-for="item in section.items" :key="item.key">
           <router-link
             v-if="item.route"
@@ -15,20 +15,20 @@
             class="nav-item"
             :class="{ active: activeKey === item.key }"
           >
-            <span class="ni">{{ item.icon }}</span> {{ item.label }}
+            <span class="ni">{{ item.icon }}</span> {{ t(item.labelKey) }}
           </router-link>
           <a v-else href="#" class="nav-item" @click.prevent="goToLegacyPage(item.legacy)">
-            <span class="ni">{{ item.icon }}</span> {{ item.label }}
+            <span class="ni">{{ item.icon }}</span> {{ t(item.labelKey) }}
           </a>
         </template>
-        <template v-if="section.label === 'Kết nối'">
+        <template v-if="section.key === 'connect'">
           <router-link
             v-if="expertRole"
             :to="isExpert ? { name: 'expert-dashboard' } : '/expert-apply'"
             class="nav-item"
             style="color:var(--mint-dark); font-weight:700;"
           >
-            <span class="ni">🧑‍⚕️</span> {{ isExpert ? 'Quản lý chuyên gia' : 'Hồ sơ chuyên gia' }}
+            <span class="ni">🧑‍⚕️</span> {{ isExpert ? t('sidebar.expertManage') : t('sidebar.expertProfile') }}
           </router-link>
           <router-link
             v-if="isAdmin"
@@ -36,7 +36,7 @@
             class="nav-item"
             style="color:var(--coral); font-weight:700;"
           >
-            <span class="ni">🛡️</span> Trang quản trị
+            <span class="ni">🛡️</span> {{ t('sidebar.adminPanel') }}
           </router-link>
         </template>
       </template>
@@ -48,7 +48,7 @@
         style="color:var(--coral); margin-top: 10px; border-top: 1px dashed var(--kraft-light); padding-top: 15px;"
         @click.prevent="handleLogout"
       >
-        <span class="ni">🚪</span> Đăng xuất
+        <span class="ni">🚪</span> {{ t('sidebar.logout') }}
       </a>
       <router-link
         v-else
@@ -56,7 +56,7 @@
         class="nav-item"
         style="color:var(--coral); margin-top: 10px; border-top: 1px dashed var(--kraft-light); padding-top: 15px;"
       >
-        <span class="ni">🔐</span> Đăng nhập
+        <span class="ni">🔐</span> {{ t('sidebar.login') }}
       </router-link>
     </nav>
 
@@ -66,21 +66,21 @@
           🔔
           <span v-if="notif.unread > 0" class="notif-badge">{{ Math.min(notif.unread, 9) }}</span>
         </span>
-        Thông báo
+        {{ t('sidebar.notifications') }}
       </button>
       <div class="user-card-mini">
         <div class="user-avatar-mini" :style="avatarStyle">{{ avatarEmoji }}</div>
         <div class="user-info-mini">
           <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
             <div class="user-name">{{ displayName }}</div>
-            <span v-if="isExpert" class="tag-expert">Chuyên gia</span>
-            <span v-if="isAdmin" class="tag-admin">Admin</span>
+            <span v-if="isExpert" class="tag-expert">{{ t('sidebar.tagExpert') }}</span>
+            <span v-if="isAdmin" class="tag-admin">{{ t('sidebar.tagAdmin') }}</span>
           </div>
           <div class="user-level">⭐ {{ xp ?? '--' }} XP · Level {{ level ?? '--' }}</div>
         </div>
       </div>
       <router-link to="/emergency" class="emergency-btn">
-        🆘 Hỗ trợ khẩn cấp
+        🆘 {{ t('sidebar.emergencySupport') }}
       </router-link>
     </div>
   </aside>
@@ -88,6 +88,7 @@
 
 <script setup>
 import { computed, ref, onMounted, onBeforeUnmount } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useRoute, useRouter } from 'vue-router';
 import { useAuthStore } from '../stores/auth';
 import { useNotificationsStore } from '../stores/notifications';
@@ -96,36 +97,46 @@ import { goToLegacyPage } from '../lib/legacyApp';
 defineProps({ sidebarOpen: { type: Boolean, default: false } });
 const emit = defineEmits(['navigate']);
 
+const { t } = useI18n();
+
+// `key` ỔN ĐỊNH (không đổi theo ngôn ngữ) để so khớp mục đang active và tìm đúng nhóm
+// "Kết nối" khi chèn thêm mục chuyên gia/admin; `labelKey` chỉ dùng để hiển thị. Trước đây
+// so khớp bằng chính chuỗi label tiếng Việt ("Kết nối") — đổi ngôn ngữ là vỡ ngay (giống
+// lỗi đã gặp và sửa ở DEMO_TAGS bên IndexView.vue).
 const NAV_SECTIONS = [
   {
-    label: 'Chính',
+    key: 'main',
+    labelKey: 'nav.groupMain',
     items: [
-      { key: 'dashboard', icon: '🏡', label: 'Tổng quan', route: 'dashboard' },
-      { key: 'mood', icon: '💭', label: 'Tâm trạng', route: 'mood-checkin' },
-      { key: 'tests', icon: '📋', label: 'Bài test', route: 'mood-assessment' },
-      { key: 'tasks', icon: '🎮', label: 'Nhiệm vụ', route: 'tasks' },
-      { key: 'journal', icon: '📝', label: 'Nhật ký', route: 'journal' }
+      { key: 'dashboard', icon: '🏡', labelKey: 'nav.dashboard', route: 'dashboard' },
+      { key: 'mood', icon: '💭', labelKey: 'nav.mood', route: 'mood-checkin' },
+      { key: 'tests', icon: '📋', labelKey: 'nav.tests', route: 'mood-assessment' },
+      { key: 'tasks', icon: '🎮', labelKey: 'nav.tasks', route: 'tasks' },
+      { key: 'journal', icon: '📝', labelKey: 'nav.journal', route: 'journal' }
     ]
   },
   {
-    label: 'Kết nối',
+    key: 'connect',
+    labelKey: 'nav.groupConnect',
     items: [
-      { key: 'experts', icon: '🩺', label: 'Chuyên gia', route: 'experts' },
-      { key: 'community', icon: '👥', label: 'Cộng đồng', route: 'community' }
+      { key: 'experts', icon: '🩺', labelKey: 'nav.experts', route: 'experts' },
+      { key: 'community', icon: '👥', labelKey: 'nav.community', route: 'community' }
     ]
   },
   {
-    label: 'Phân tích',
+    key: 'analyze',
+    labelKey: 'nav.groupAnalyze',
     items: [
-      { key: 'report', icon: '📊', label: 'Báo cáo', route: 'report' },
-      { key: 'achievements', icon: '🏅', label: 'Thành tích', route: 'achievements' }
+      { key: 'report', icon: '📊', labelKey: 'nav.report', route: 'report' },
+      { key: 'achievements', icon: '🏅', labelKey: 'nav.achievements', route: 'achievements' }
     ]
   },
   {
-    label: 'Cài đặt',
+    key: 'settings',
+    labelKey: 'nav.groupSettings',
     items: [
-      { key: 'profile', icon: '👤', label: 'Hồ sơ', route: 'profile' },
-      { key: 'settings', icon: '⚙️', label: 'Cài đặt', route: 'settings' }
+      { key: 'profile', icon: '👤', labelKey: 'nav.profile', route: 'profile' },
+      { key: 'settings', icon: '⚙️', labelKey: 'nav.settings', route: 'settings' }
     ]
   }
 ];
@@ -139,7 +150,7 @@ const activeKey = computed(() => route.meta?.navKey || null);
 const isExpert = computed(() => Boolean(auth.user?.is_expert));
 const expertRole = computed(() => Boolean(auth.user?.is_expert || auth.user?.role === 'expert'));
 const isAdmin = computed(() => Boolean(auth.user?.role === 'admin' || auth.user?.is_admin));
-const displayName = computed(() => auth.user?.display_name || auth.user?.full_name || 'Người dùng');
+const displayName = computed(() => auth.user?.display_name || auth.user?.full_name || t('sidebar.defaultUserLabel'));
 
 const avatarEmoji = computed(() => {
   const url = auth.user?.avatar_url;

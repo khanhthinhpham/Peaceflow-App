@@ -1,0 +1,119 @@
+{
+  "taskDetail": {
+    "emergency": {
+      "title": "Bạn không đơn độc",
+      "text": "Nếu bạn đang cảm thấy rất khó khăn, hãy để ai đó giúp bạn ngay bây giờ.",
+      "hotlineLabel": "Đường dây nóng sức khỏe tâm thần — Miễn phí, 24/7",
+      "callHotline": "📞 Gọi ngay hotline",
+      "connectExpert": "💬 Kết nối chuyên gia",
+      "imOk": "Tôi ổn, đóng lại"
+    },
+    "breadcrumbDashboard": "🏡 Tổng quan",
+    "breadcrumbTasks": "🎮 Nhiệm vụ",
+    "hero": {
+      "startBtn": "▶ Bắt đầu ngay",
+      "saveFavorite": "🤍 Lưu yêu thích",
+      "shareBtn": "📤 Chia sẻ",
+      "emergencyBtn": "🆘 Khẩn cấp"
+    },
+    "phases": {
+      "prepare": "Chuẩn bị",
+      "execute": "Thực hiện",
+      "complete": "Hoàn thành"
+    },
+    "phase1": {
+      "prepareTitle": "🎒 Chuẩn bị",
+      "instructionsTitle": "📋 Hướng dẫn từng bước",
+      "noChecklist": "Nhiệm vụ này chưa có checklist chi tiết.",
+      "safetyTitle": "⚠️ Lưu ý an toàn",
+      "objectiveTitle": "🎯 Mục tiêu",
+      "startBtn": "▶ Bắt đầu ngay"
+    },
+    "phase2": {
+      "timerTitle": "🧘 Thực hiện — {title}",
+      "remainingLabel": "còn lại",
+      "pauseBtn": "⏸ Tạm dừng",
+      "resumeBtn": "▶ Tiếp tục",
+      "completeBtn": "✓ Hoàn thành",
+      "resetBtn": "↩ Bắt đầu lại"
+    },
+    "phase3": {
+      "xpAddedLabel": "đã được cộng vào tài khoản!",
+      "moodQuestion": "Bạn cảm thấy thế nào sau khi thiền?",
+      "notePlaceholder": "Ghi chú thêm cảm nhận của bạn... (tùy chọn)",
+      "nextTaskBtn": "🎮 Nhiệm vụ tiếp theo",
+      "journalBtn": "📝 Ghi nhật ký",
+      "dashboardBtn": "🏡 Dashboard"
+    },
+    "info": {
+      "title": "📊 Thông tin nhiệm vụ",
+      "codeLabel": "Mã nhiệm vụ",
+      "levelLabel": "Cấp độ",
+      "timeLabel": "Thời gian",
+      "rewardLabel": "Phần thưởng",
+      "categoryLabel": "Danh mục",
+      "statusLabel": "Trạng thái"
+    },
+    "status": {
+      "completedTimes": "Đã hoàn thành {n} lần",
+      "inProgress": "Đang thực hiện",
+      "notStarted": "Chưa bắt đầu"
+    },
+    "yourStatus": {
+      "title": "🧭 Trạng thái của bạn",
+      "timesCompletedLabel": "lần bạn đã hoàn thành nhiệm vụ này",
+      "recommendedYes": "Có trong gợi ý hôm nay",
+      "recommendedNo": "Không nằm trong nhóm ưu tiên hôm nay",
+      "stepsCountLabel": "{n} bước thực hiện",
+      "tagsLabel": " · tags: {tags}"
+    },
+    "benefits": {
+      "title": "✨ Lợi ích khoa học",
+      "noData": "Chưa có ghi chú lợi ích khoa học riêng cho nhiệm vụ này."
+    },
+    "related": {
+      "title": "🔗 Nhiệm vụ cùng cấp độ",
+      "noData": "Chưa có nhiệm vụ liên quan trong cùng nhóm."
+    },
+    "difficulty": {
+      "emergency": "🔴 Khẩn cấp",
+      "medium": "🟡 Trung bình",
+      "hard": "🟠 Nâng cao",
+      "easy": "🟢 Dễ"
+    },
+    "durationOptional": "Tùy chọn",
+    "minutesUnit": "{n} phút",
+    "defaultDescription": "Nhiệm vụ này chưa có mô tả chi tiết.",
+    "defaultQuote": "Mỗi nhiệm vụ nhỏ hoàn thành là một bước tiến rõ ràng của quá trình hồi phục.",
+    "guestDisplayName": "Khách khẩn cấp",
+    "defaultDisplayName": "Bạn",
+    "categoryDefault": "general",
+    "feedback": {
+      "guestTitle": "Bạn vừa hoàn thành một bài hỗ trợ khẩn cấp",
+      "userTitle": "Tuyệt vời, {name}! 🎉",
+      "guestSubtitle": "Bạn đã hoàn thành \"{title}\". Đăng nhập để lưu lịch sử và mở thêm nhiều bài tập khác.",
+      "userSubtitle": "Bạn vừa hoàn thành \"{title}\". Hệ thống đã ghi nhận kết quả vào lịch sử nhiệm vụ của bạn."
+    },
+    "timerText": {
+      "default": "Đi theo từng bước và nhấn Hoàn thành khi đã xong.",
+      "breathing": "Giữ nhịp thở theo vòng lặp hiển thị.",
+      "steps": "Bắt đầu thực hiện theo các bước ở phần chuẩn bị.",
+      "breathingReady": "Hít vào chậm và sâu theo nhịp hiển thị.",
+      "paused": "Đã tạm dừng.",
+      "resumed": "Tiếp tục theo nhịp của bạn.",
+      "reset": "Đã đưa nhiệm vụ về trạng thái sẵn sàng."
+    },
+    "shareCopied": "Đã sao chép liên kết nhiệm vụ vào clipboard.",
+    "stressFacts": [
+      "Bạn không hề đơn độc. Mỗi lần hoàn thành một nhiệm vụ nhỏ đều là một tín hiệu phục hồi có thật.",
+      "Đi từng bước nhỏ vẫn là tiến lên. Nhịp ổn định quan trọng hơn tốc độ.",
+      "Khi cơ thể dịu lại, tâm trí sẽ theo sau. Hãy cho mình thêm một chút thời gian.",
+      "Một nhiệm vụ đơn giản nhưng hoàn thành trọn vẹn thường hiệu quả hơn rất nhiều so với cố gắng quá sức."
+    ],
+    "breathPhases": {
+      "inhale": "Hít vào",
+      "hold": "Giữ",
+      "exhale": "Thở ra"
+    }
+  }
+}

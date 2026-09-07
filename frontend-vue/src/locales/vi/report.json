@@ -1,0 +1,140 @@
+{
+  "report": {
+    "breadcrumbDashboard": "🏡 Tổng quan",
+    "breadcrumbCurrent": "📊 Báo cáo sức khỏe",
+    "pageTitle": "📊 Báo Cáo Sức Khỏe",
+    "subtitle": "Nhìn lại hành trình — hiểu bản thân sâu hơn mỗi ngày 🌱",
+    "exportPdfBtn": "📄 Xuất PDF",
+    "periods": {
+      "week": "📅 Tuần này",
+      "month": "📆 Tháng này",
+      "threeMonth": "📈 3 Tháng",
+      "weekLabel": "7 ngày gần đây",
+      "monthLabel": "30 ngày gần đây",
+      "threeMonthLabel": "90 ngày gần đây"
+    },
+    "periodOffsetSuffix": "({n} kỳ trước)",
+    "chart": {
+      "title": "💭 Biểu đồ tâm trạng",
+      "legendMood": "Tâm trạng",
+      "legendAnxiety": "Lo âu",
+      "legendStress": "Stress",
+      "noData": "Chưa có dữ liệu mood.",
+      "svgNoData": "Chưa có dữ liệu tâm trạng để vẽ biểu đồ"
+    },
+    "radar": {
+      "title": "🎯 Radar sức khỏe tổng thể",
+      "noData": "Chưa có dữ liệu sức khỏe tổng thể.",
+      "svgNoData": "Chưa có dữ liệu radar",
+      "labels": {
+        "emotion": "Cảm xúc",
+        "calm": "Bình tĩnh",
+        "security": "Độ an tâm",
+        "energy": "Năng lượng",
+        "sleep": "Giấc ngủ",
+        "pace": "Nhịp độ"
+      }
+    },
+    "breakdown": {
+      "title": "✅ Nhiệm vụ theo loại",
+      "labels": {
+        "emergency": "🔴 Khẩn cấp",
+        "easy": "🟢 Dễ",
+        "medium": "🟡 Trung bình",
+        "hard": "🟠 Nâng cao"
+      }
+    },
+    "insight": {
+      "title": "PeaceCat phân tích hành trình của bạn",
+      "subtitle": "Dựa trên dữ liệu tâm trạng, nhiệm vụ và nhật ký",
+      "typePositive": "✅ Tích cực",
+      "typeWarning": "⚠️ Lưu ý",
+      "typeTip": "💡 Gợi ý",
+      "moodUp": "Tâm trạng trung bình đang nhích lên {n} điểm so với kỳ trước.",
+      "moodDown": "Tâm trạng trung bình đang giảm {n} điểm so với kỳ trước.",
+      "riskHigh": "Chỉ số rủi ro hiện đang cao. Nên ưu tiên các task ngắn, điều hòa nhịp thở và cân nhắc kết nối chuyên gia.",
+      "riskLow": "Mức rủi ro hiện tại đang trong vùng có thể theo dõi. Duy trì check-in và nhiệm vụ đều đặn sẽ giúp dữ liệu ổn định hơn.",
+      "anxietyDown": "Lo âu trung bình đã giảm {n} điểm trong kỳ này.",
+      "anxietyUp": "Lo âu trung bình tăng {n} điểm trong kỳ này, nên chú ý các ngày giữa tuần hoặc sau các đợt áp lực.",
+      "topTask": "Nhiệm vụ mang lại nhịp hoạt động rõ nhất trong kỳ này là \"{title}\". Bạn có thể dùng nó như anchor khi tâm trạng xuống.",
+      "journalRate": "Khoảng {pct}% bài journal trong kỳ mang sắc thái tích cực. Việc viết đều đang giúp bạn quan sát cảm xúc rõ hơn."
+    },
+    "heatmap": {
+      "title": "🗓️ Bản đồ tâm trạng tháng",
+      "low": "Thấp",
+      "high": "Cao",
+      "noDataTooltip": "{date}: Không có dữ liệu",
+      "dataTooltip": "{date}: mood {mood}/10",
+      "weekdayLabels": ["CN", "T2", "T3", "T4", "T5", "T6", "T7"]
+    },
+    "assessmentHistory": {
+      "title": "📋 Lịch sử bài kiểm tra tâm lý",
+      "noData": "Chưa có kết quả assessment nào được lưu trong DB.",
+      "disclaimer": "⚠️ Đây là công cụ sàng lọc, không phải chẩn đoán y khoa. Nếu điểm số cao, hãy tham khảo ý kiến chuyên gia."
+    },
+    "severity": {
+      "unclassified": "Chưa phân loại",
+      "minimal": "Rất thấp",
+      "mild": "Nhẹ",
+      "moderate": "Trung bình",
+      "moderately_severe": "Khá cao",
+      "severe": "Cao",
+      "good": "Tốt"
+    },
+    "exportCard": {
+      "title": "Xuất báo cáo",
+      "desc": "Chia sẻ với chuyên gia hoặc lưu lại hành trình của bạn",
+      "pdfBtn": "📄 Xuất PDF báo cáo",
+      "jsonBtn": "📦 Xuất dữ liệu JSON",
+      "shareBtn": "🔗 Chia sẻ với chuyên gia"
+    },
+    "periodSummary": {
+      "title": "📌 Tóm tắt kỳ này",
+      "goodMoodDays": "Ngày tâm trạng tốt",
+      "completedTasks": "Nhiệm vụ hoàn thành",
+      "journalEntries": "Bài nhật ký",
+      "practiceMinutes": "Phút thực hành",
+      "minutesUnit": "{n} phút"
+    },
+    "comparison": {
+      "title": "📊 So sánh kỳ trước",
+      "mood": "Tâm trạng",
+      "anxiety": "Lo âu",
+      "tasks": "Nhiệm vụ",
+      "xp": "XP"
+    },
+    "nextActions": {
+      "title": "🔗 Hành động tiếp theo",
+      "moodCheckin": "Check-in tâm trạng",
+      "doTasks": "Làm nhiệm vụ hôm nay",
+      "expertConsult": "Tư vấn chuyên gia",
+      "takeTest": "Làm bài kiểm tra"
+    },
+    "disclaimer": "⚠️ <strong>Lưu ý:</strong> Báo cáo này chỉ mang tính tham khảo, không phải chẩn đoán y khoa. Nếu bạn lo ngại về sức khỏe tâm thần, hãy liên hệ chuyên gia hoặc gọi <strong>0931773637</strong>.",
+    "summaryCards": {
+      "moodAvg": "Tâm trạng TB",
+      "completedTasks": "Nhiệm vụ hoàn thành",
+      "journalEntries": "Bài nhật ký",
+      "xpInPeriod": "XP trong kỳ"
+    },
+    "delta": {
+      "notEnoughData": "Chưa đủ dữ liệu",
+      "noPreviousPeriod": "Chưa có kỳ trước để so sánh",
+      "noChange": "Không đổi{suffix}",
+      "vsLastPeriod": " so với kỳ trước",
+      "taskUnit": " task",
+      "entryUnit": " bài",
+      "xpUnit": " XP"
+    },
+    "toast": {
+      "atLatestPeriod": "Bạn đang ở kỳ mới nhất",
+      "noMoreData": "Không còn dữ liệu xa hơn trong khoảng 90 ngày",
+      "preparingPdf": "Đang chuẩn bị xuất PDF...",
+      "jsonExported": "Đã xuất JSON",
+      "shareOpened": "Đã mở chia sẻ báo cáo",
+      "shareReady": "Báo cáo đã sẵn sàng để chia sẻ với chuyên gia",
+      "loadFailed": "Không tải được báo cáo từ API"
+    },
+    "shareSummary": "Mood TB {mood}/10, {tasks} nhiệm vụ, {journals} bài journal"
+  }
+}

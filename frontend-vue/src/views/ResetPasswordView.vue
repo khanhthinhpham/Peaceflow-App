@@ -2,26 +2,26 @@
   <div class="auth-container">
     <div class="paper-card auth-card">
       <div class="auth-logo">🔑</div>
-      <h1 style="font-size:1.4rem;margin-bottom:8px;">Đặt lại mật khẩu</h1>
-      <p style="color:var(--text-secondary);font-size:0.9rem;margin-bottom:24px;">Tạo mật khẩu mới cho tài khoản của bạn.</p>
+      <h1 style="font-size:1.4rem;margin-bottom:8px;">{{ t('resetPassword.title') }}</h1>
+      <p style="color:var(--text-secondary);font-size:0.9rem;margin-bottom:24px;">{{ t('resetPassword.subtitle') }}</p>
 
       <div v-if="message" :class="['auth-message', messageType]">{{ message }}</div>
       <div v-if="invalidToken" style="color:var(--coral-dark);text-align:center;">
-        Link đặt lại mật khẩu không hợp lệ hoặc đã hết hạn.<br>
-        <router-link to="/forgot-password" style="color:var(--mint-dark);font-weight:700;">Yêu cầu link mới</router-link>
+        {{ t('resetPassword.invalidToken.text') }}<br>
+        <router-link to="/forgot-password" style="color:var(--mint-dark);font-weight:700;">{{ t('resetPassword.invalidToken.requestNewLink') }}</router-link>
       </div>
 
       <form v-if="token && !invalidToken && !done" style="text-align:left;" @submit.prevent="handleSubmit">
         <div class="form-group">
-          <label class="form-label">Mật khẩu mới</label>
-          <input v-model="password" type="password" class="form-input" placeholder="Ít nhất 8 ký tự" required minlength="8" autocomplete="new-password">
+          <label class="form-label">{{ t('resetPassword.form.newPasswordLabel') }}</label>
+          <input v-model="password" type="password" class="form-input" :placeholder="t('resetPassword.form.newPasswordPlaceholder')" required minlength="8" autocomplete="new-password">
         </div>
         <div class="form-group">
-          <label class="form-label">Xác nhận mật khẩu</label>
-          <input v-model="confirmPassword" type="password" class="form-input" placeholder="Nhập lại mật khẩu" required minlength="8" autocomplete="new-password">
+          <label class="form-label">{{ t('resetPassword.form.confirmPasswordLabel') }}</label>
+          <input v-model="confirmPassword" type="password" class="form-input" :placeholder="t('resetPassword.form.confirmPasswordPlaceholder')" required minlength="8" autocomplete="new-password">
         </div>
         <button type="submit" class="btn-primary" style="width:100%;font-size:1rem;padding:12px;margin-top:8px;" :disabled="submitting">
-          {{ submitting ? 'Đang cập nhật...' : 'Đặt lại mật khẩu' }}
+          {{ submitting ? t('resetPassword.form.submitting') : t('resetPassword.form.submitBtn') }}
         </button>
       </form>
     </div>
@@ -31,10 +31,12 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
+import { useI18n } from 'vue-i18n';
 import { apiClient } from '../lib/apiClient';
 
 const route = useRoute();
 const router = useRouter();
+const { t } = useI18n();
 
 const token = ref('');
 const password = ref('');
@@ -52,7 +54,7 @@ onMounted(() => {
 
 async function handleSubmit() {
   if (password.value !== confirmPassword.value) {
-    message.value = 'Mật khẩu xác nhận không khớp.';
+    message.value = t('resetPassword.messages.passwordMismatch');
     messageType.value = 'error';
     return;
   }
@@ -60,15 +62,17 @@ async function handleSubmit() {
   submitting.value = true;
   try {
     await apiClient.post('/auth/reset-password', { token: token.value, password: password.value });
-    message.value = 'Mật khẩu đã được đặt lại thành công!';
+    message.value = t('resetPassword.messages.success');
     messageType.value = 'success';
     done.value = true;
     setTimeout(() => router.push('/login'), 2000);
   } catch (err) {
+    // Backend luôn trả message tiếng Việt (không đổi theo ngôn ngữ UI) — so khớp chuỗi gốc để
+    // phát hiện lỗi token hết hạn/không hợp lệ, không liên quan tới bản dịch hiển thị.
     if (err.message?.includes('hợp lệ') || err.message?.includes('hết hạn')) {
       invalidToken.value = true;
     } else {
-      message.value = err.message || 'Có lỗi xảy ra. Vui lòng thử lại.';
+      message.value = err.message || t('resetPassword.messages.genericError');
       messageType.value = 'error';
     }
   } finally {

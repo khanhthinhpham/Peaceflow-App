@@ -1,0 +1,212 @@
+{
+  "settingsPage": {
+    "breadcrumbDashboard": "🏡 Tổng quan",
+    "breadcrumbCurrent": "⚙️ Cài đặt",
+    "pageTitle": "⚙️ Cài Đặt",
+    "pageSubtitle": "Tùy chỉnh PeaceFlow theo cách của bạn 🌿",
+    "saveAll": "💾 Lưu tất cả",
+    "nav": {
+      "notifications": "Thông báo",
+      "appearance": "Giao diện",
+      "checkin": "Check-in",
+      "ai": "PeaceCat AI",
+      "devices": "Thiết bị",
+      "privacy": "Quyền riêng tư",
+      "security": "Bảo mật",
+      "data": "Dữ liệu",
+      "about": "Về PeaceFlow",
+      "danger": "Vùng nguy hiểm"
+    },
+    "notifications": {
+      "title": "Thông báo",
+      "subtitle": "Kiểm soát khi nào và loại thông báo nào bạn nhận",
+      "masterTitle": "Bật thông báo",
+      "masterDesc": "Cho phép PeaceFlow gửi thông báo đến thiết bị của bạn",
+      "morningTitle": "🌅 Nhắc check-in buổi sáng",
+      "morningDesc": "Nhắc nhở check-in tâm trạng khi bắt đầu ngày mới",
+      "morningTimeLabel": "⏰ Giờ nhắc buổi sáng",
+      "eveningTitle": "🌙 Nhắc check-in buổi tối",
+      "eveningDesc": "Nhắc nhở check-in tâm trạng trước khi ngủ",
+      "eveningTimeLabel": "⏰ Giờ nhắc buổi tối",
+      "tasksTitle": "🎮 Nhắc nhiệm vụ hàng ngày",
+      "tasksDesc": "Gợi ý nhiệm vụ phù hợp với tâm trạng hiện tại",
+      "streakTitle": "🔥 Nhắc giữ streak",
+      "streakDesc": "Thông báo khi bạn sắp mất chuỗi hoạt động liên tục",
+      "achievementsTitle": "🏅 Thông báo thành tích",
+      "achievementsDesc": "Khi bạn đạt huy hiệu mới hoặc lên cấp độ",
+      "insightsTitle": "💡 Insight hàng tuần",
+      "insightsDesc": "Phân tích tâm trạng và gợi ý cải thiện mỗi tuần",
+      "expertTitle": "🩺 Cập nhật từ chuyên gia",
+      "expertDesc": "Khi chuyên gia gửi nhiệm vụ hoặc tin nhắn mới",
+      "communityTitle": "👥 Hoạt động cộng đồng",
+      "communityDesc": "Khi có người phản hồi bài viết của bạn",
+      "note": "💡 PeaceFlow tối đa <strong>2-3 thông báo/ngày</strong> — không bao giờ spam hay gây áp lực cho bạn.",
+      "save": "💾 Lưu cài đặt"
+    },
+    "appearance": {
+      "title": "Giao diện",
+      "subtitle": "Tùy chỉnh màu sắc, font chữ và hiệu ứng",
+      "themeSectionTitle": "🌈 Chủ đề màu sắc",
+      "themeSectionDesc": "Chọn giao diện phù hợp với tâm trạng của bạn",
+      "themes": {
+        "paper": "🌿 Paper Flow",
+        "ocean": "🌊 Đại Dương",
+        "sunset": "🌅 Hoàng Hôn",
+        "forest": "🌲 Rừng Xanh",
+        "lavender": "💜 Oải Hương",
+        "dark": "🌙 Tối (Sắp ra)"
+      },
+      "fontSizeTitle": "🔤 Cỡ chữ",
+      "fontSmall": "Nhỏ",
+      "fontMedium": "Vừa",
+      "fontLarge": "Lớn",
+      "languageTitle": "🌐 Ngôn ngữ / Language",
+      "animationsTitle": "✨ Hiệu ứng animation",
+      "animationsDesc": "Bật/tắt các hiệu ứng chuyển động trong ứng dụng",
+      "soundsTitle": "🎵 Âm thanh nền",
+      "soundsDesc": "Nhạc thiền và âm thanh tự nhiên trong bài tập",
+      "hapticsTitle": "📳 Rung phản hồi",
+      "hapticsDesc": "Rung nhẹ khi hoàn thành nhiệm vụ hoặc đạt thành tích",
+      "save": "💾 Lưu giao diện"
+    },
+    "checkin": {
+      "title": "Check-in tâm trạng",
+      "subtitle": "Tùy chỉnh cách bạn theo dõi tâm trạng hàng ngày",
+      "defaultModeTitle": "📋 Phương thức check-in mặc định",
+      "defaultModeDesc": "Cách bạn muốn check-in tâm trạng chủ yếu",
+      "modes": {
+        "quickEmoji": "😊 Chọn emoji nhanh",
+        "chat": "💬 Chat với PeaceCat",
+        "assessment": "📊 Bài kiểm tra chuẩn hóa"
+      },
+      "notesTitle": "📝 Ghi chú sau check-in",
+      "notesDesc": "Hiển thị ô ghi chú ngắn sau mỗi lần check-in",
+      "tagsTitle": "🏷️ Gợi ý tag nguyên nhân",
+      "tagsDesc": "Hiển thị các tag gợi ý (Công việc, Gia đình, ...) sau check-in",
+      "assessmentReminderTitle": "📊 Nhắc kiểm tra DASS-21 định kỳ",
+      "assessmentReminderDesc": "Gợi ý làm bài kiểm tra chuẩn hóa mỗi 2 tuần",
+      "reminderFreqTitle": "📅 Tần suất nhắc kiểm tra",
+      "freq": {
+        "weekly": "Hàng tuần",
+        "biweekly": "2 tuần/lần",
+        "monthly": "Hàng tháng",
+        "never": "Chỉ khi tôi muốn"
+      },
+      "voiceTitle": "🎤 Phân tích giọng nói (opt-in)",
+      "voiceDesc": "Cho phép AI phân tích giọng nói để hiểu tâm trạng chính xác hơn",
+      "selfieTitle": "📸 Selfie check-in (opt-in)",
+      "selfieDesc": "Phân tích biểu cảm khuôn mặt để hỗ trợ đánh giá tâm trạng",
+      "note": "🔒 Phân tích giọng nói và selfie hoàn toàn opt-in. Dữ liệu được xử lý cục bộ và không được lưu trữ.",
+      "save": "💾 Lưu cài đặt"
+    },
+    "ai": {
+      "title": "PeaceCat AI",
+      "subtitle": "Tùy chỉnh cách PeaceCat đồng hành cùng bạn",
+      "styleTitle": "💬 Phong cách giao tiếp",
+      "styleDesc": "Cách PeaceCat nói chuyện với bạn",
+      "styles": {
+        "friendly": "😊 Thân thiện, vui vẻ",
+        "calm": "🧘 Bình tĩnh, sâu lắng",
+        "energetic": "💪 Khích lệ, năng động",
+        "empathetic": "🤗 Ấm áp, đồng cảm"
+      },
+      "taskSuggestionsTitle": "🎯 Gợi ý nhiệm vụ thông minh",
+      "taskSuggestionsDesc": "PeaceCat tự động gợi ý nhiệm vụ dựa trên tâm trạng và lịch sử",
+      "insightsTitle": "💡 Insight tự động",
+      "insightsDesc": "PeaceCat phân tích và đưa ra nhận xét về hành trình của bạn",
+      "crisisTitle": "🚨 Phát hiện từ khóa cảnh báo",
+      "crisisDesc": "AI tự động phát hiện dấu hiệu nguy hiểm và kích hoạt hỗ trợ khẩn cấp",
+      "journalTitle": "📊 Phân tích nhật ký",
+      "journalDesc": "AI đọc và phân tích cảm xúc trong nhật ký của bạn",
+      "mascotTitle": "🐱 Hiển thị mascot PeaceCat",
+      "mascotDesc": "Hiện mascot mèo origami trong giao diện",
+      "note": "🐱 <strong>Lưu ý:</strong> PeaceCat AI chỉ là người bạn đồng hành, không thay thế chuyên gia tâm lý. Tính năng phát hiện cảnh báo không thể tắt để đảm bảo an toàn của bạn.",
+      "save": "💾 Lưu cài đặt AI"
+    },
+    "devices": {
+      "title": "Thiết bị kết nối",
+      "subtitle": "Phiên hiện tại và trạng thái tích hợp thiết bị thật",
+      "currentSessionMeta": "Phiên hiện tại · Đăng nhập lúc {time}",
+      "statusActive": "Đang hoạt động",
+      "logout": "Đăng xuất",
+      "wearableName": "Thiết bị đeo sức khỏe",
+      "wearableDesc": "Chưa có API kết nối thật trong backend hiện tại",
+      "statusUnsupported": "Chưa hỗ trợ",
+      "wearableInfoBtn": "Thông tin",
+      "note": "PeaceFlow hiện chưa có backend đồng bộ Apple Watch/Fitbit thật. Trang này chỉ hiển thị phiên đăng nhập hiện tại và trạng thái tích hợp một cách trung thực."
+    },
+    "privacy": {
+      "title": "Quyền riêng tư",
+      "subtitle": "Kiểm soát cách dữ liệu của bạn được dùng trong sản phẩm",
+      "shareDataTitle": "📤 Chia sẻ dữ liệu để cá nhân hóa",
+      "shareDataDesc": "Cho phép hệ thống dùng mood, journal và task để đưa gợi ý tốt hơn",
+      "analyticsTitle": "📈 Phân tích ẩn danh",
+      "analyticsDesc": "Gửi thống kê ẩn danh để cải thiện sản phẩm, không kèm nội dung riêng tư",
+      "visibilityTitle": "👁️ Hiển thị hồ sơ",
+      "visibilityDesc": "Mức hiển thị hồ sơ của bạn trên các tính năng cộng đồng",
+      "visibility": {
+        "private": "Chỉ mình tôi",
+        "friends": "Chỉ kết nối tin cậy",
+        "community": "Cộng đồng PeaceFlow"
+      },
+      "save": "💾 Lưu quyền riêng tư"
+    },
+    "security": {
+      "title": "Bảo mật",
+      "subtitle": "Quản lý phiên hiện tại và cơ chế xác thực",
+      "userLabel": "Người dùng:",
+      "accessTokenLabel": "Access token:",
+      "refreshTokenLabel": "Refresh token:",
+      "lastUpdateLabel": "Lần cập nhật hồ sơ gần nhất:",
+      "yes": "Có",
+      "no": "Thiếu",
+      "autoRefreshTitle": "🔄 Tự làm mới phiên đăng nhập",
+      "autoRefreshDesc": "Access token ngắn hạn sẽ được refresh tự động khi còn refresh token hợp lệ",
+      "checkSession": "Kiểm tra phiên",
+      "logoutBtn": "🚪 Đăng xuất khỏi thiết bị này"
+    },
+    "data": {
+      "title": "Dữ liệu",
+      "subtitle": "Xuất dữ liệu thật từ tài khoản và quản lý cache cục bộ",
+      "exportNote": "Xuất JSON sẽ gom dữ liệu thật từ hồ sơ, tiến trình, badge và báo cáo chi tiết. Các thiết lập giao diện vẫn nằm cục bộ trên trình duyệt này.",
+      "resetLocal": "🧹 Xóa cài đặt cục bộ",
+      "exportJson": "📥 Xuất JSON"
+    },
+    "about": {
+      "title": "Về PeaceFlow",
+      "subtitle": "Trạng thái ứng dụng và môi trường đang chạy",
+      "versionLabel": "Phiên bản giao diện:",
+      "apiLabel": "API:",
+      "timezoneLabel": "Múi giờ trình duyệt:",
+      "currentUserLabel": "Người dùng hiện tại:",
+      "unknownTimezone": "Không xác định"
+    },
+    "danger": {
+      "title": "Vùng nguy hiểm",
+      "subtitle": "Các thao tác nhạy cảm. Chỉ chạy khi bạn thực sự cần.",
+      "note": "Backend hiện chưa có endpoint xóa tài khoản. Trang này chỉ cho phép xóa cài đặt local và đăng xuất, không giả lập việc xóa dữ liệu trên server.",
+      "resetCache": "🔄 Xóa cache local",
+      "deleteAccountBtn": "🗑️ Yêu cầu xóa tài khoản"
+    },
+    "toast": {
+      "savedAll": "Đã lưu toàn bộ cài đặt.",
+      "savedSection": "Đã lưu cài đặt {section}.",
+      "saveFailed": "Không lưu được cài đặt lên máy chủ.",
+      "themeDarkComingSoon": "Chủ đề tối chưa được triển khai.",
+      "wearableNotSupported": "Backend chưa có kết nối wearable thật.",
+      "logoutOnly": "Chỉ có thể đăng xuất khỏi phiên hiện tại trên trang này.",
+      "exportJsonOnly": "Trang này hiện chỉ hỗ trợ xuất JSON.",
+      "exported": "Đã xuất dữ liệu JSON.",
+      "exportFailed": "Không xuất được dữ liệu.",
+      "resetConfirm": "Xóa toàn bộ cài đặt local trên trình duyệt này? Dữ liệu trên server sẽ không bị ảnh hưởng.",
+      "resetDone": "Đã xóa cài đặt cục bộ.",
+      "deleteAccountNotSupported": "Backend chưa có endpoint xóa tài khoản.",
+      "loadFailed": "Không tải được cài đặt từ máy chủ."
+    },
+    "defaults": {
+      "notAvailable": "Chưa có",
+      "defaultUserName": "Người dùng",
+      "unknownBrowser": "Trình duyệt hiện tại"
+    }
+  }
+}

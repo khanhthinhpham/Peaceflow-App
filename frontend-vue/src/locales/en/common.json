@@ -1,0 +1,45 @@
+{
+  "nav": {
+    "groupMain": "Main",
+    "groupConnect": "Connect",
+    "groupAnalyze": "Analyze",
+    "groupSettings": "Settings",
+    "dashboard": "Overview",
+    "mood": "Mood",
+    "tests": "Tests",
+    "tasks": "Tasks",
+    "journal": "Journal",
+    "experts": "Experts",
+    "community": "Community",
+    "report": "Report",
+    "achievements": "Achievements",
+    "profile": "Profile",
+    "settings": "Settings"
+  },
+  "sidebar": {
+    "expertManage": "Manage expert profile",
+    "expertProfile": "Expert profile",
+    "adminPanel": "Admin panel",
+    "logout": "Sign out",
+    "login": "Sign in",
+    "notifications": "Notifications",
+    "emergencySupport": "Emergency support",
+    "tagExpert": "Expert",
+    "tagAdmin": "Admin",
+    "defaultUserLabel": "User"
+  },
+  "notifPanel": {
+    "title": "Notifications",
+    "closeAria": "Close notifications",
+    "empty": "No notifications",
+    "enablePush": "🔔 Enable push notifications for reminders"
+  },
+  "common": {
+    "back": "Back",
+    "cancel": "Cancel",
+    "save": "Save",
+    "close": "Close",
+    "loading": "Loading...",
+    "confirm": "Confirm"
+  }
+}

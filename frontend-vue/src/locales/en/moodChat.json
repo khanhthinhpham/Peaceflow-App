@@ -1,0 +1,107 @@
+{
+  "moodChat": {
+    "emergency": {
+      "title": "You are not alone",
+      "text": "We can see you're going through a really tough time. Let someone help you right now.",
+      "hotlineLabel": "Mental health hotline — Free, 24/7",
+      "callHotline": "📞 Call the hotline now",
+      "chatExpert": "💬 Chat with a real expert",
+      "callRescue": "🆘 Call emergency 115",
+      "imOk": "I'm okay, continue chatting",
+      "quote": "\"This too shall pass. Let someone help you.\" 🌿"
+    },
+    "result": {
+      "mascotTitle": "Your mood portrait 🎨",
+      "subtitle": "Based on your recent conversation — PeaceCat has finished analyzing!",
+      "scoresTitle": "📊 Estimated psychological scores",
+      "aiInsightTitle": "🤖 PeaceCat AI's remarks",
+      "tasksTitle": "🎯 Suggested tasks",
+      "noTasks": "No task suggestions yet.",
+      "taskDefaultTitle": "Task",
+      "taskDefaultCategory": "task",
+      "taskDefaultDifficulty": "easy",
+      "disclaimer": "⚠️ This is a reference analysis, <strong>not a medical diagnosis</strong>. If you're concerned, please consult an expert.",
+      "startTasksBtn": "🎮 Start a task",
+      "continueChatBtn": "💬 Keep chatting",
+      "dashboardBtn": "🏡 Dashboard"
+    },
+    "topbar": {
+      "back": "← Back",
+      "mascotName": "PeaceCat AI",
+      "statusListening": "Listening to you...",
+      "statusTyping": "PeaceCat is replying...",
+      "statusRecording": "Listening to your voice...",
+      "messageCountLabel": "{n} messages",
+      "viewResultBtn": "📊 View results",
+      "clearChatBtn": "🗑️ Clear chat",
+      "emergencyBtn": "🆘 Emergency"
+    },
+    "chat": {
+      "inputPlaceholder": "Share with PeaceCat... (Enter to send, Shift+Enter for a new line)",
+      "voiceTitle": "Voice input",
+      "sendTitle": "Send",
+      "minutesUnit": "{n} min",
+      "defaultExpertDegree": "Psychologist",
+      "voiceNotSupported": "This browser doesn't support voice input."
+    },
+    "sidebar": {
+      "realtimeTitle": "📊 Realtime analysis",
+      "realtimeDesc": "AI is analyzing each of your messages",
+      "anxietyLabel": "😰 Anxiety",
+      "stressLabel": "🌀 Stress",
+      "moodLabel": "💚 Mood",
+      "depressionLabel": "🌧️ Depression",
+      "keywordsTitle": "🏷️ Detected keywords",
+      "noKeywords": "No data yet",
+      "portraitTitle": "🎨 Mood portrait",
+      "emotionLabel": "Emotion",
+      "physicalLabel": "Physical",
+      "socialLabel": "Social",
+      "cognitiveLabel": "Cognitive",
+      "fullReportBtn": "📋 View full report",
+      "suggestedTasksTitle": "🎯 Suggested tasks",
+      "noSuggestedTasksYet": "Tasks will be suggested once you share more...",
+      "safetyTitle": "⚠️ Safety note",
+      "safetyText": "PeaceCat AI is a companion, <strong>not a doctor</strong>. If you need emergency support:",
+      "safetyBtn": "🆘 Get emergency support now"
+    },
+    "quickReplies": [
+      "I'm feeling pretty stressed",
+      "I feel sad today",
+      "I'm really tired",
+      "I'm a bit angry",
+      "I'm feeling better today"
+    ],
+    "defaultUserName": "friend",
+    "welcome": {
+      "intro": "Hi {name}! 🌿 I'm PeaceCat.",
+      "moodSentence": "Your latest mood was <strong>{score}/10</strong>.",
+      "noMoodSentence": "I haven't seen a recent mood check-in from you.",
+      "recentSignal": "<br><br><strong>Recent signal:</strong> {text}",
+      "closing": "This is still a private space to share what's going on. <strong>How are you feeling today?</strong>",
+      "justNow": "Just now"
+    },
+    "botDefaultReply": "Sorry, I couldn't come up with a good response right now.",
+    "botErrorReply": "Sorry, I'm having a bit of trouble — please try again in a few minutes. If you need help right away, tap \"🆘 Emergency\" above.",
+    "loadFailedStatus": "Couldn't load real data",
+    "scoreLabels": {
+      "anxiety": "Anxiety",
+      "stress": "Stress",
+      "mood": "Mood",
+      "depression": "Depression"
+    },
+    "scoreLevels": {
+      "low": "Low",
+      "medium": "Medium",
+      "high": "High",
+      "positive": "Positive",
+      "needsAttention": "Needs attention"
+    },
+    "insight": {
+      "positive": "Your mood has been quite positive in this conversation. Keep doing whatever's helping you feel better! 🌿",
+      "highStress": "PeaceCat is noticing signs of fairly high anxiety/stress. Try a short breathing exercise, or talk to an expert if this feeling continues.",
+      "keywordsFound": "Some standout keywords from this conversation: {keywords}. PeaceCat will keep walking with you.",
+      "defaultMessage": "PeaceCat hasn't seen any concerning signals in this conversation yet. Keep sharing so I can understand you better!"
+    }
+  }
+}

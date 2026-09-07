@@ -5,56 +5,56 @@
         <span class="logo-icon">🌿</span> Peace<span>Flow</span>
       </div>
       <div class="apply-actions">
-        <router-link to="/dashboard" class="btn-outline">🏠 Về app người dùng</router-link>
-        <button type="button" class="btn-outline" @click="auth.logout()">Đăng xuất</button>
+        <router-link to="/dashboard" class="btn-outline">{{ t('applyExpert.backToApp') }}</router-link>
+        <button type="button" class="btn-outline" @click="auth.logout()">{{ t('applyExpert.logout') }}</button>
       </div>
     </header>
 
     <main class="apply-wrap">
       <div class="apply-card">
-        <p class="apply-kicker">PeaceFlow Expert</p>
-        <h1 class="apply-title">Gửi hồ sơ chuyên gia</h1>
-        <p class="apply-sub">Hoàn tất hồ sơ chuyên môn và tải lên bằng cấp để admin xét duyệt. Sau khi được duyệt, bạn mới vào được khu chuyên gia.</p>
+        <p class="apply-kicker">{{ t('applyExpert.kicker') }}</p>
+        <h1 class="apply-title">{{ t('applyExpert.title') }}</h1>
+        <p class="apply-sub">{{ t('applyExpert.subtitle') }}</p>
 
         <div class="apply-banner" :class="{ show: !!banner.message, [banner.type]: !!banner.message }">{{ banner.message }}</div>
 
-        <div v-if="loading" style="padding:30px 12px;text-align:center;color:var(--text-light);">Đang tải trạng thái hồ sơ…</div>
+        <div v-if="loading" style="padding:30px 12px;text-align:center;color:var(--text-light);">{{ t('applyExpert.loadingStatus') }}</div>
 
         <form v-if="showForm" @submit.prevent="submit">
           <div class="apply-grid">
             <div class="form-group full">
-              <label class="form-label" for="fullName">Họ tên chuyên gia</label>
-              <input v-model="fullName" type="text" id="fullName" class="form-input" placeholder="Nhập họ tên đầy đủ" required>
+              <label class="form-label" for="fullName">{{ t('applyExpert.form.fullNameLabel') }}</label>
+              <input v-model="fullName" type="text" id="fullName" class="form-input" :placeholder="t('applyExpert.form.fullNamePlaceholder')" required>
             </div>
             <div class="form-group">
-              <label class="form-label" for="phone">Số điện thoại</label>
-              <input v-model="phone" type="text" id="phone" class="form-input" placeholder="Số điện thoại liên hệ" required>
+              <label class="form-label" for="phone">{{ t('applyExpert.form.phoneLabel') }}</label>
+              <input v-model="phone" type="text" id="phone" class="form-input" :placeholder="t('applyExpert.form.phonePlaceholder')" required>
             </div>
             <div class="form-group">
-              <label class="form-label" for="experienceYears">Số năm kinh nghiệm</label>
+              <label class="form-label" for="experienceYears">{{ t('applyExpert.form.experienceLabel') }}</label>
               <input v-model="experienceYears" type="number" id="experienceYears" class="form-input" min="0" max="80" placeholder="0" required>
             </div>
             <div class="form-group full">
-              <label class="form-label" for="degree">Bằng cấp</label>
-              <input v-model="degree" type="text" id="degree" class="form-input" placeholder="Ví dụ: Thạc sĩ Tâm lý lâm sàng" required>
+              <label class="form-label" for="degree">{{ t('applyExpert.form.degreeLabel') }}</label>
+              <input v-model="degree" type="text" id="degree" class="form-input" :placeholder="t('applyExpert.form.degreePlaceholder')" required>
             </div>
             <div class="form-group full">
-              <label class="form-label" for="specialties">Chuyên môn</label>
-              <input v-model="specialties" type="text" id="specialties" class="form-input" placeholder="Ví dụ: trị liệu cá nhân, CBT, sang chấn">
-              <div class="field-hint">Ngăn cách bằng dấu phẩy.</div>
+              <label class="form-label" for="specialties">{{ t('applyExpert.form.specialtiesLabel') }}</label>
+              <input v-model="specialties" type="text" id="specialties" class="form-input" :placeholder="t('applyExpert.form.specialtiesPlaceholder')">
+              <div class="field-hint">{{ t('applyExpert.form.specialtiesHint') }}</div>
             </div>
             <div class="form-group full">
-              <label class="form-label" for="location">Nơi công tác</label>
-              <input v-model="location" type="text" id="location" class="form-input" placeholder="Bệnh viện, phòng khám, trung tâm...">
+              <label class="form-label" for="location">{{ t('applyExpert.form.locationLabel') }}</label>
+              <input v-model="location" type="text" id="location" class="form-input" :placeholder="t('applyExpert.form.locationPlaceholder')">
             </div>
             <div class="form-group full">
-              <label class="form-label" for="bio">Giới thiệu ngắn</label>
-              <textarea v-model="bio" id="bio" class="form-input" rows="5" placeholder="Kinh nghiệm, thế mạnh chuyên môn, cách bạn hỗ trợ thân chủ..."></textarea>
+              <label class="form-label" for="bio">{{ t('applyExpert.form.bioLabel') }}</label>
+              <textarea v-model="bio" id="bio" class="form-input" rows="5" :placeholder="t('applyExpert.form.bioPlaceholder')"></textarea>
             </div>
             <div class="form-group full">
-              <label class="form-label" for="credentialFile">File bằng cấp</label>
+              <label class="form-label" for="credentialFile">{{ t('applyExpert.form.credentialFileLabel') }}</label>
               <input ref="credentialFileInput" type="file" id="credentialFile" class="form-input" accept=".pdf,image/*,.doc,.docx,application/pdf" required>
-              <div class="field-hint">Hỗ trợ PDF hoặc ảnh, tối đa 10MB.</div>
+              <div class="field-hint">{{ t('applyExpert.form.credentialFileHint') }}</div>
             </div>
           </div>
 
@@ -66,9 +66,9 @@
 
         <div v-if="doneMessage" class="apply-done">
           <div class="done-ico">⏳</div>
-          <h2 style="margin:8px 0 6px;">Hồ sơ đang chờ duyệt</h2>
+          <h2 style="margin:8px 0 6px;">{{ t('applyExpert.done.title') }}</h2>
           <p style="color:var(--text-secondary);line-height:1.6;margin:0 auto 18px;max-width:440px;">{{ doneMessage }}</p>
-          <router-link to="/dashboard" class="btn-primary" style="text-decoration:none;">Về app người dùng</router-link>
+          <router-link to="/dashboard" class="btn-primary" style="text-decoration:none;">{{ t('applyExpert.done.backToApp') }}</router-link>
         </div>
       </div>
     </main>
@@ -78,10 +78,12 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
+import { useI18n } from 'vue-i18n';
 import { useAuthStore } from '../stores/auth';
 
 const router = useRouter();
 const auth = useAuthStore();
+const { t } = useI18n();
 
 const loading = ref(true);
 const showForm = ref(false);
@@ -99,7 +101,7 @@ const location = ref('');
 const bio = ref('');
 const credentialFileInput = ref(null);
 
-const submitLabel = computed(() => (submitting.value ? 'Đang gửi hồ sơ...' : 'Gửi hồ sơ chuyên gia'));
+const submitLabel = computed(() => (submitting.value ? t('applyExpert.form.submitting') : t('applyExpert.form.submitBtn')));
 
 function setBanner(message, type = 'info') {
   banner.value = { message: message || '', type };
@@ -126,10 +128,10 @@ function prefill(application) {
 async function submit() {
   const credentialFile = credentialFileInput.value?.files?.[0];
 
-  if (!fullName.value || fullName.value.trim().length < 2) { setBanner('Vui lòng nhập họ tên chuyên gia.', 'error'); return; }
-  if (!phone.value || phone.value.trim().length < 6) { setBanner('Vui lòng nhập số điện thoại hợp lệ.', 'error'); return; }
-  if (!degree.value || degree.value.trim().length < 2) { setBanner('Vui lòng nhập bằng cấp.', 'error'); return; }
-  if (!credentialFile) { setBanner('Vui lòng tải lên file bằng cấp.', 'error'); return; }
+  if (!fullName.value || fullName.value.trim().length < 2) { setBanner(t('applyExpert.banner.invalidFullName'), 'error'); return; }
+  if (!phone.value || phone.value.trim().length < 6) { setBanner(t('applyExpert.banner.invalidPhone'), 'error'); return; }
+  if (!degree.value || degree.value.trim().length < 2) { setBanner(t('applyExpert.banner.invalidDegree'), 'error'); return; }
+  if (!credentialFile) { setBanner(t('applyExpert.banner.missingFile'), 'error'); return; }
 
   submitting.value = true;
   try {
@@ -144,9 +146,9 @@ async function submit() {
     formData.set('credential_file', credentialFile);
 
     await auth.submitExpertApplication(formData);
-    showWaiting('Cảm ơn bạn! Admin sẽ xem xét bằng cấp & thông tin chuyên môn và phản hồi qua email. Khi được duyệt, bạn sẽ vào được khu chuyên gia.');
+    showWaiting(t('applyExpert.banner.submitSuccess'));
   } catch (error) {
-    setBanner(error.message || 'Không thể gửi hồ sơ. Vui lòng thử lại.', 'error');
+    setBanner(error.message || t('applyExpert.banner.submitFailed'), 'error');
     submitting.value = false;
   }
 }
@@ -163,7 +165,7 @@ onMounted(async () => {
     state = await auth.getMyExpertApplication();
   } catch (_e) {
     loading.value = false;
-    setBanner('Không tải được trạng thái hồ sơ. Vui lòng tải lại trang.', 'error');
+    setBanner(t('applyExpert.banner.loadFailed'), 'error');
     showForm.value = false;
     return;
   }
@@ -175,14 +177,14 @@ onMounted(async () => {
 
   if (!state?.email_verified) {
     loading.value = false;
-    setBanner('Bạn cần xác minh email trước khi gửi hồ sơ chuyên gia.', 'info');
+    setBanner(t('applyExpert.banner.needsEmailVerification'), 'info');
     showForm.value = false;
     return;
   }
 
   const status = state?.application?.status;
   if (status === 'pending') {
-    showWaiting('Hồ sơ của bạn đang được admin xem xét. Chúng tôi sẽ phản hồi qua email sớm nhất.');
+    showWaiting(t('applyExpert.banner.pendingReview'));
     return;
   }
 
@@ -190,10 +192,10 @@ onMounted(async () => {
   showForm.value = true;
   if (status === 'rejected') {
     prefill(state.application);
-    setBanner('Hồ sơ trước đó chưa được duyệt. Bạn có thể cập nhật và gửi lại.', 'error');
-    helperText.value = 'Bạn có thể gửi lại hồ sơ với thông tin/bằng cấp cập nhật.';
+    setBanner(t('applyExpert.banner.rejected'), 'error');
+    helperText.value = t('applyExpert.helper.resubmit');
   } else {
-    helperText.value = 'Email đã xác minh. Điền đầy đủ thông tin và tải bằng cấp để gửi hồ sơ.';
+    helperText.value = t('applyExpert.helper.verifiedReady');
   }
 });
 </script>

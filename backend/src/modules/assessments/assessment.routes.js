@@ -29,6 +29,7 @@ router.get('/assessments', requireAuth, async (req, res) => {
          a.name,
          a.version,
          a.description,
+         a.description_en,
          latest_result.id as latest_result_id,
          latest_result.total_score as latest_total_score,
          latest_result.severity as latest_severity,
@@ -66,8 +67,9 @@ router.get('/assessments', requireAuth, async (req, res) => {
 
     return res.json({
       success: true,
-      data: result.rows.map((row) => ({
+      data: result.rows.map(({ description_en, ...row }) => ({
         ...row,
+        description: (req.locale === 'en' && description_en) || row.description,
         latest_total_score: row.latest_total_score === null ? null : Number(row.latest_total_score)
       }))
     });
@@ -274,7 +276,8 @@ router.post('/assessments/results/:id/ai-summary', requireAuth, async (req, res)
       assessmentName: result.assessment_name,
       totalScore: Number(result.total_score || 0),
       severity: result.severity,
-      dimensionScores: result.dimension_scores
+      dimensionScores: result.dimension_scores,
+      locale: req.locale
     });
 
     return res.json({

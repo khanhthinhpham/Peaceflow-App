@@ -2,17 +2,14 @@
   <div class="auth-container">
     <div class="paper-card auth-card" style="border-color: var(--peach);">
       <div class="auth-logo">🌸</div>
-      <h1 class="auth-title">Bắt đầu hành trình</h1>
-      <p class="auth-subtitle">
-        Tạo tài khoản để lưu giữ nhật ký, tiến trình hồi phục
-        và trải nghiệm cá nhân hóa cùng PeaceFlow.
-      </p>
+      <h1 class="auth-title">{{ t('signup.title') }}</h1>
+      <p class="auth-subtitle">{{ t('signup.subtitle') }}</p>
 
       <div v-if="message" :class="['auth-message', messageType]">
         {{ message }}
         <div v-if="showResend" style="margin-top:10px;">
           <button type="button" class="btn-primary" style="padding: 8px 18px;" :disabled="resending" @click="handleResend">
-            {{ resending ? 'Đang gửi...' : 'Gửi lại email xác nhận' }}
+            {{ resending ? t('signup.resendingEmail') : t('signup.resendConfirmationEmail') }}
           </button>
           <p style="font-size:0.85rem;margin:8px 0 0;">{{ resendNote }}</p>
         </div>
@@ -30,59 +27,59 @@
           :disabled="nativeGoogleLoading"
           @click="handleNativeGoogleLogin"
         >
-          <span v-if="nativeGoogleLoading">Đang mở Google...</span>
-          <span v-else>Đăng ký với Google</span>
+          <span v-if="nativeGoogleLoading">{{ t('signup.googleOpening') }}</span>
+          <span v-else>{{ t('signup.googleButton') }}</span>
         </button>
         <div v-else ref="googleBtnEl" style="display:flex;justify-content:center;"></div>
-        <p class="auth-google-hint">thuận tiện — Nhanh chóng</p>
-        <div class="divider" style="margin:18px 0;">hoặc dùng email</div>
+        <p class="auth-google-hint">{{ t('signup.googleHint') }}</p>
+        <div class="divider" style="margin:18px 0;">{{ t('signup.dividerEmail') }}</div>
       </template>
 
       <form v-if="!success" class="auth-form" @submit.prevent="handleSubmit">
-        <div class="account-toggle" aria-label="Loại tài khoản">
-          <button type="button" :class="['toggle-chip', { active: mode === 'user' }]" @click="setMode('user')">Người dùng</button>
-          <button type="button" :class="['toggle-chip', { active: mode === 'expert' }]" @click="setMode('expert')">Chuyên gia</button>
+        <div class="account-toggle" :aria-label="t('signup.userTypeAria')">
+          <button type="button" :class="['toggle-chip', { active: mode === 'user' }]" @click="setMode('user')">{{ t('signup.userTypeUser') }}</button>
+          <button type="button" :class="['toggle-chip', { active: mode === 'expert' }]" @click="setMode('expert')">{{ t('signup.userTypeExpert') }}</button>
         </div>
 
         <div class="form-group">
-          <label class="form-label" for="name">Tên hiển thị</label>
-          <input v-model="name" type="text" id="name" class="form-input" placeholder="Bạn muốn được gọi là gì?" required maxlength="80" autocomplete="name">
+          <label class="form-label" for="name">{{ t('signup.displayNameLabel') }}</label>
+          <input v-model="name" type="text" id="name" class="form-input" :placeholder="t('signup.displayNamePlaceholder')" required maxlength="80" autocomplete="name">
         </div>
 
         <div class="form-group">
-          <label class="form-label" for="email">Email</label>
-          <input v-model="email" type="email" id="email" class="form-input" placeholder="Nhập email của bạn" required autocomplete="email">
+          <label class="form-label" for="email">{{ t('signup.emailLabel') }}</label>
+          <input v-model="email" type="email" id="email" class="form-input" :placeholder="t('signup.emailPlaceholder')" required autocomplete="email">
         </div>
 
         <div class="form-group">
-          <label class="form-label" for="password">Mật khẩu</label>
-          <input v-model="password" type="password" id="password" class="form-input" placeholder="Tạo mật khẩu (ít nhất 8 ký tự)" required minlength="8" autocomplete="new-password">
-          <div class="field-hint">Nên dùng ít nhất 8 ký tự, bao gồm chữ và số để tăng độ an toàn.</div>
+          <label class="form-label" for="password">{{ t('signup.passwordLabel') }}</label>
+          <input v-model="password" type="password" id="password" class="form-input" :placeholder="t('signup.passwordPlaceholder')" required minlength="8" autocomplete="new-password">
+          <div class="field-hint">{{ t('signup.passwordHint') }}</div>
         </div>
 
         <div class="form-group">
-          <label class="form-label" for="confirmPassword">Xác nhận mật khẩu</label>
-          <input v-model="confirmPassword" type="password" id="confirmPassword" class="form-input" placeholder="Nhập lại mật khẩu" required minlength="8" autocomplete="new-password">
+          <label class="form-label" for="confirmPassword">{{ t('signup.confirmPasswordLabel') }}</label>
+          <input v-model="confirmPassword" type="password" id="confirmPassword" class="form-input" :placeholder="t('signup.confirmPasswordPlaceholder')" required minlength="8" autocomplete="new-password">
         </div>
 
         <label class="checkbox-group">
           <input v-model="agreeTerms" type="checkbox" required>
           <span>
-            Tôi đồng ý với
-            <a href="#" @click.prevent="goToLegacyPage('terms.html')">Điều khoản sử dụng</a>
-            và
-            <a href="#" @click.prevent="goToLegacyPage('privacy.html')">Chính sách quyền riêng tư</a>
-            của PeaceFlow.
+            {{ t('signup.agreeTermsPrefix') }}
+            <a href="#" @click.prevent="goToLegacyPage('terms.html')">{{ t('signup.termsLink') }}</a>
+            {{ t('signup.and') }}
+            <a href="#" @click.prevent="goToLegacyPage('privacy.html')">{{ t('signup.privacyLink') }}</a>
+            {{ t('signup.ofPeaceflow') }}
           </span>
         </label>
 
         <button type="submit" class="btn-secondary-auth" :disabled="submitting">
-          {{ submitting ? 'Đang tạo tài khoản...' : 'Đăng ký bằng email' }}
+          {{ submitting ? t('signup.submitting') : t('signup.submit') }}
         </button>
       </form>
 
       <div class="auth-links">
-        Đã có tài khoản? <router-link to="/login">Đăng nhập</router-link>
+        {{ t('signup.haveAccount') }} <router-link to="/login">{{ t('signup.loginNow') }}</router-link>
       </div>
     </div>
   </div>
@@ -90,15 +87,18 @@
 
 <script setup>
 import { ref, onMounted } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '../stores/auth';
 import { apiClient } from '../lib/apiClient';
 import { goToLegacyPage } from '../lib/legacyApp';
 import { isNativeApp } from '../lib/native';
+import { getCurrentLocale } from '../locales';
 
 const GOOGLE_CLIENT_ID = '287402483358-uiec013q9obn1m8j82ejhkdmuoi3ku6v.apps.googleusercontent.com';
 const nativeGoogleLoading = ref(false);
 
+const { t } = useI18n();
 const auth = useAuthStore();
 const router = useRouter();
 
@@ -125,26 +125,28 @@ function showMessage(text, type = 'info') {
 function setMode(next) {
   mode.value = next === 'expert' ? 'expert' : 'user';
   if (mode.value === 'expert') {
-    showMessage('Chuyên gia sẽ xác minh email trước. Sau khi đăng nhập, bạn sẽ được chuyển sang bước nộp hồ sơ và file bằng cấp.', 'info');
+    showMessage(t('signup.expertNotice'), 'info');
   } else {
     showMessage('');
   }
 }
 
+// Giữ nguyên logic SO KHỚP theo tiếng Việt backend trả về (backend chưa nằm trong phạm vi
+// đợt dịch này) — chỉ đổi phần HIỂN THỊ sang key i18n. Xem giải thích tương tự ở LoginView.
 function getSignupErrorMessage(error) {
   const msg = String(error?.message || '').trim();
 
-  if (!msg) return 'Đăng ký thất bại.';
-  if (msg === 'EMAIL_UNVERIFIED') return 'Email này đã đăng ký nhưng chưa xác minh.';
-  if (msg === 'Email already registered' || msg === 'Email đã được đăng ký.') return 'Email đã được đăng ký.';
+  if (!msg) return t('signup.errors.signupFailed');
+  if (msg === 'EMAIL_UNVERIFIED') return t('signup.errors.emailUnverified');
+  if (msg === 'Email already registered' || msg === 'Email đã được đăng ký.') return t('signup.errors.emailRegistered');
   if (
     msg === 'Failed to fetch' ||
     msg === 'Load failed' ||
     msg.includes('NetworkError') ||
     msg === 'Không kết nối được máy chủ.' ||
     msg === 'Mất kết nối máy chủ.'
-  ) return 'Không kết nối được máy chủ.';
-  if (msg === 'Invalid email') return 'Email chưa hợp lệ.';
+  ) return t('signup.errors.serverUnreachable');
+  if (msg === 'Invalid email') return t('signup.errors.invalidEmail');
   return msg;
 }
 
@@ -153,23 +155,23 @@ async function handleResend() {
   resendNote.value = '';
   try {
     await apiClient.post('/auth/resend-verification', { email: email.value.trim().toLowerCase() });
-    resendNote.value = `Đã gửi link xác nhận mới tới ${email.value}. Hãy kiểm tra cả hộp thư rác.`;
+    resendNote.value = t('signup.resendSentTo', { email: email.value });
     showResend.value = false;
   } catch (err) {
-    resendNote.value = err?.message || 'Không gửi được email. Vui lòng thử lại sau.';
+    resendNote.value = err?.message || t('signup.resendFailed');
   } finally {
     resending.value = false;
   }
 }
 
 async function handleGoogleCredential(response) {
-  showMessage('Đang xác thực với Google...', 'info');
+  showMessage(t('signup.authenticatingGoogle'), 'info');
   try {
     await auth.loginWithGoogle(response.credential);
-    showMessage('Đăng ký thành công! Đang chuyển hướng...', 'success');
+    showMessage(t('signup.successRedirecting'), 'success');
     setTimeout(() => router.push('/dashboard'), 700);
   } catch (err) {
-    showMessage(err.message || 'Đăng nhập Google thất bại.', 'error');
+    showMessage(err.message || t('signup.errors.googleLoginFailed'), 'error');
   }
 }
 
@@ -187,13 +189,13 @@ async function handleNativeGoogleLogin() {
     const res = await SocialLogin.login({ provider: 'google' });
     const idToken = res?.result?.idToken;
     if (!idToken) {
-      throw new Error('Không lấy được thông tin xác thực từ Google.');
+      throw new Error(t('signup.errors.noGoogleCredential'));
     }
     await handleGoogleCredential({ credential: idToken });
   } catch (err) {
     const cancelled = /cancel/i.test(err?.message || '') || /cancel/i.test(String(err?.code || ''));
     if (!cancelled) {
-      showMessage(err?.message || 'Đăng nhập Google thất bại.', 'error');
+      showMessage(err?.message || t('signup.errors.googleLoginFailed'), 'error');
     }
   } finally {
     nativeGoogleLoading.value = false;
@@ -206,23 +208,23 @@ async function handleSubmit() {
   const isExpert = mode.value === 'expert';
 
   if (!fullName || fullName.length < 2) {
-    showMessage('Vui lòng nhập tên hiển thị ít nhất 2 ký tự.', 'error');
+    showMessage(t('signup.errors.nameTooShort'), 'error');
     return;
   }
   if (!emailValue || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailValue)) {
-    showMessage('Email chưa hợp lệ.', 'error');
+    showMessage(t('signup.errors.invalidEmail'), 'error');
     return;
   }
   if (!password.value || password.value.length < 8) {
-    showMessage('Mật khẩu cần có ít nhất 8 ký tự.', 'error');
+    showMessage(t('signup.errors.passwordTooShort'), 'error');
     return;
   }
   if (password.value !== confirmPassword.value) {
-    showMessage('Mật khẩu xác nhận không khớp.', 'error');
+    showMessage(t('signup.errors.passwordMismatch'), 'error');
     return;
   }
   if (!agreeTerms.value) {
-    showMessage('Bạn cần đồng ý điều khoản để tiếp tục.', 'error');
+    showMessage(t('signup.errors.mustAgreeTerms'), 'error');
     return;
   }
 
@@ -253,8 +255,8 @@ async function handleSubmit() {
     success.value = true;
     showMessage(
       isExpert
-        ? `✅ Tài khoản chuyên gia đã được tạo cho ${emailValue}. Hãy xác minh email, đăng nhập để gửi hồ sơ + bằng cấp, và chờ admin duyệt trước khi vào khu chuyên gia.`
-        : `✅ Đăng ký thành công! Chúng tôi đã gửi email xác nhận đến ${emailValue}. Vui lòng kiểm tra hộp thư và nhấn vào liên kết để kích hoạt tài khoản.`,
+        ? t('signup.expertCreatedSuccess', { email: emailValue })
+        : t('signup.userCreatedSuccess', { email: emailValue }),
       'success'
     );
   } catch (error) {
@@ -285,7 +287,7 @@ onMounted(() => {
       width,
       text: 'signup_with',
       shape: 'pill',
-      locale: 'vi'
+      locale: getCurrentLocale()
     });
   };
 

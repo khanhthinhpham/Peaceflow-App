@@ -6,12 +6,12 @@
       <div style="display:flex;justify-content:flex-end;margin-bottom:12px;">
         <button class="mnp-close" @click="closeMobileNav">✕</button>
       </div>
-      <a href="#features" class="mnp-link" @click="closeMobileNav">✨ Tính năng</a>
-      <a href="#how-it-works" class="mnp-link" @click="closeMobileNav">💡 Cách hoạt động</a>
-      <router-link to="/mood-assessment" class="mnp-link">📋 Bài test</router-link>
-      <router-link to="/experts" class="mnp-link">🩺 Chuyên gia</router-link>
-      <router-link to="/community" class="mnp-link">👥 Cộng đồng</router-link>
-      <router-link to="/emergency" class="mnp-link" style="color:var(--coral);">🆘 Khẩn cấp</router-link>
+      <a href="#features" class="mnp-link" @click="closeMobileNav">✨ {{ t('landing.nav.features') }}</a>
+      <a href="#how-it-works" class="mnp-link" @click="closeMobileNav">💡 {{ t('landing.nav.howItWorks') }}</a>
+      <router-link to="/mood-assessment" class="mnp-link">📋 {{ t('landing.nav.tests') }}</router-link>
+      <router-link to="/experts" class="mnp-link">🩺 {{ t('landing.nav.experts') }}</router-link>
+      <router-link to="/community" class="mnp-link">👥 {{ t('landing.nav.community') }}</router-link>
+      <router-link to="/emergency" class="mnp-link" style="color:var(--coral);">🆘 {{ t('landing.nav.emergency') }}</router-link>
       <div class="mobile-auth-user" :class="{ open: isAuthenticated }">
         <div class="mobile-auth-avatar" :class="{ 'has-image': hasAvatarImage }" :style="avatarStyle">{{ hasAvatarImage ? '' : avatarFallback }}</div>
         <div>
@@ -24,27 +24,27 @@
           v-if="!isAuthenticated"
           :to="{ path: '/tasks', query: { guest_emergency: '1' } }"
           style="display:block;padding:12px;border:2px solid var(--coral);border-radius:var(--radius-full);background:var(--coral-light);color:var(--coral-dark);font-weight:800;font-size:0.85rem;text-align:center;"
-        >🆘 Bài tập khẩn cấp</router-link>
+        >🆘 {{ t('landing.nav.emergencyTask') }}</router-link>
         <router-link
           v-if="!isAuthenticated"
           to="/signup"
           style="display:block;padding:12px;border:2px solid var(--mint-dark);border-radius:var(--radius-full);background:var(--mint);color:var(--text-primary);font-weight:700;font-size:0.85rem;text-align:center;"
-        >🌿 Đăng ký miễn phí</router-link>
+        >🌿 {{ t('landing.nav.signupFree') }}</router-link>
         <router-link
           v-if="!isAuthenticated"
           to="/login"
           style="display:block;padding:11px;border:2px solid var(--kraft-light);border-radius:var(--radius-full);color:var(--text-secondary);font-weight:600;font-size:0.82rem;text-align:center;"
-        >Đăng nhập</router-link>
+        >{{ t('landing.nav.login') }}</router-link>
         <router-link
           v-if="isAuthenticated"
           to="/dashboard"
           style="display:block;padding:12px;border:2px solid var(--mint-dark);border-radius:var(--radius-full);background:var(--mint);color:var(--text-primary);font-weight:700;font-size:0.85rem;text-align:center;"
-        >🌿 Vào PeaceFlow</router-link>
+        >🌿 {{ t('landing.nav.enterApp') }}</router-link>
         <button
           v-if="isAuthenticated"
           style="padding:11px;border:2px solid var(--coral);border-radius:var(--radius-full);background:var(--coral-light);color:var(--coral-dark);font-weight:700;font-size:0.82rem;text-align:center;cursor:pointer;width:100%;"
           @click="handleLogout"
-        >Đăng xuất</button>
+        >{{ t('landing.nav.logout') }}</button>
       </div>
     </div>
 
@@ -55,20 +55,20 @@
         <div class="logo-text">Peace<span>Flow</span></div>
       </router-link>
       <div class="nav-links">
-        <a href="#features" class="nav-link">Tính năng</a>
-        <a href="#how-it-works" class="nav-link">Cách hoạt động</a>
-        <router-link to="/mood-assessment" class="nav-link">Bài test</router-link>
-        <router-link to="/experts" class="nav-link">Chuyên gia</router-link>
-        <router-link to="/community" class="nav-link">Cộng đồng</router-link>
-        <router-link to="/emergency" class="nav-link" style="color:var(--coral);">🆘 Khẩn cấp</router-link>
+        <a href="#features" class="nav-link">{{ t('landing.nav.features') }}</a>
+        <a href="#how-it-works" class="nav-link">{{ t('landing.nav.howItWorks') }}</a>
+        <router-link to="/mood-assessment" class="nav-link">{{ t('landing.nav.tests') }}</router-link>
+        <router-link to="/experts" class="nav-link">{{ t('landing.nav.experts') }}</router-link>
+        <router-link to="/community" class="nav-link">{{ t('landing.nav.community') }}</router-link>
+        <router-link to="/emergency" class="nav-link" style="color:var(--coral);">🆘 {{ t('landing.nav.emergency') }}</router-link>
       </div>
       <div class="nav-cta">
-        <router-link v-if="!isAuthenticated" :to="{ path: '/tasks', query: { guest_emergency: '1' } }"><button class="btn-nav-emergency">🆘 Khẩn cấp</button></router-link>
-        <router-link v-if="!isAuthenticated" to="/login"><button class="btn-nav-outline">Đăng nhập</button></router-link>
-        <router-link v-if="!isAuthenticated" to="/signup"><button class="btn-nav-primary">🌿 Đăng ký miễn phí</button></router-link>
-        <router-link v-if="isAuthenticated" to="/dashboard"><button class="btn-nav-primary">🌿 Vào PeaceFlow</button></router-link>
+        <router-link v-if="!isAuthenticated" :to="{ path: '/tasks', query: { guest_emergency: '1' } }"><button class="btn-nav-emergency">🆘 {{ t('landing.nav.emergency') }}</button></router-link>
+        <router-link v-if="!isAuthenticated" to="/login"><button class="btn-nav-outline">{{ t('landing.nav.login') }}</button></router-link>
+        <router-link v-if="!isAuthenticated" to="/signup"><button class="btn-nav-primary">🌿 {{ t('landing.nav.signupFree') }}</button></router-link>
+        <router-link v-if="isAuthenticated" to="/dashboard"><button class="btn-nav-primary">🌿 {{ t('landing.nav.enterApp') }}</button></router-link>
         <div v-if="isAuthenticated" class="nav-auth-menu">
-          <button class="nav-avatar-btn" :class="{ 'has-image': hasAvatarImage }" :style="avatarStyle" type="button" aria-label="Tài khoản" @click.stop="navDropdownOpen = !navDropdownOpen">{{ hasAvatarImage ? '' : avatarFallback }}</button>
+          <button class="nav-avatar-btn" :class="{ 'has-image': hasAvatarImage }" :style="avatarStyle" type="button" :aria-label="t('landing.nav.accountAria')" @click.stop="navDropdownOpen = !navDropdownOpen">{{ hasAvatarImage ? '' : avatarFallback }}</button>
           <div class="nav-auth-dropdown" :class="{ open: navDropdownOpen }">
             <div class="nav-auth-user">
               <div class="nav-auth-user-avatar" :class="{ 'has-image': hasAvatarImage }" :style="avatarStyle">{{ hasAvatarImage ? '' : avatarFallback }}</div>
@@ -77,8 +77,8 @@
                 <div class="nav-auth-user-email">{{ auth.user?.email || '' }}</div>
               </div>
             </div>
-            <router-link to="/dashboard" class="nav-auth-action" style="text-decoration:none;">Vào PeaceFlow</router-link>
-            <button class="nav-auth-action logout" type="button" @click="handleLogout">Đăng xuất</button>
+            <router-link to="/dashboard" class="nav-auth-action" style="text-decoration:none;">{{ t('landing.nav.enterApp') }}</router-link>
+            <button class="nav-auth-action logout" type="button" @click="handleLogout">{{ t('landing.nav.logout') }}</button>
           </div>
         </div>
       </div>
@@ -93,61 +93,61 @@
         <div class="hbd-circle hbd-3"></div>
       </div>
       <div class="hero-content">
-        <div class="hero-badge">🌟 Nền tảng sức khỏe tâm thần #1 Việt Nam</div>
+        <div class="hero-badge">{{ t('landing.hero.badge') }}</div>
         <h1 class="hero-title">
-          Đồng hành<br>
-          <span class="ht-accent">vượt qua stress</span><br>
-          mỗi ngày 🌿
+          {{ t('landing.hero.titleLine1') }}<br>
+          <span class="ht-accent">{{ t('landing.hero.titleAccent') }}</span><br>
+          {{ t('landing.hero.titleLine2') }}
         </h1>
-        <p class="hero-subtitle">Theo dõi tâm trạng, hoàn thành nhiệm vụ chữa lành và kết nối với chuyên gia tâm lý — tất cả trong một nền tảng ấm áp, thủ công.</p>
+        <p class="hero-subtitle">{{ t('landing.hero.subtitle') }}</p>
         <div class="hero-message">
           <div class="hero-message-text">"{{ heroQuote }}"</div>
         </div>
         <div class="hero-actions">
-          <router-link :to="isAuthenticated ? '/dashboard' : '/signup'" class="btn-hero-primary">{{ isAuthenticated ? '🌿 Vào PeaceFlow' : '🚀 Đăng ký miễn phí' }}</router-link>
-          <a href="#how-it-works" class="btn-hero-outline">📖 Tìm hiểu thêm</a>
+          <router-link :to="isAuthenticated ? '/dashboard' : '/signup'" class="btn-hero-primary">{{ isAuthenticated ? t('landing.hero.ctaEnterApp') : t('landing.hero.ctaSignup') }}</router-link>
+          <a href="#how-it-works" class="btn-hero-outline">{{ t('landing.hero.ctaLearnMore') }}</a>
         </div>
         <div class="hero-stats">
           <div class="hs-item">
             <div class="hs-num">10K+</div>
-            <div class="hs-label">Người dùng</div>
+            <div class="hs-label">{{ t('landing.hero.statUsers') }}</div>
           </div>
           <div class="hs-item">
             <div class="hs-num">30+</div>
-            <div class="hs-label">Chuyên gia</div>
+            <div class="hs-label">{{ t('landing.hero.statExperts') }}</div>
           </div>
           <div class="hs-item">
             <div class="hs-num">95%</div>
-            <div class="hs-label">Hài lòng</div>
+            <div class="hs-label">{{ t('landing.hero.statSatisfaction') }}</div>
           </div>
           <div class="hs-item">
             <div class="hs-num">4.9⭐</div>
-            <div class="hs-label">Đánh giá</div>
+            <div class="hs-label">{{ t('landing.hero.statRating') }}</div>
           </div>
         </div>
       </div>
       <div class="hero-visual">
-        <div class="float-badge fb-1">🔥 7 ngày streak!</div>
-        <div class="float-badge fb-2">🏅 Huy hiệu mới: Thiền Sư</div>
-        <div class="float-badge fb-3">+25 XP ⭐</div>
+        <div class="float-badge fb-1">{{ t('landing.hero.floatStreak') }}</div>
+        <div class="float-badge fb-2">{{ t('landing.hero.floatBadge') }}</div>
+        <div class="float-badge fb-3">{{ t('landing.hero.floatXp') }}</div>
         <div class="hero-phone-mockup">
           <div class="hpm-bar"></div>
           <div class="hpm-mood">
             <div class="hpm-mood-emoji">😊</div>
-            <div class="hpm-mood-text">Tâm trạng hôm nay: Tốt</div>
+            <div class="hpm-mood-text">{{ t('landing.hero.phoneMoodLabel') }}</div>
           </div>
           <div class="hpm-task">
             <div class="hpm-task-icon">🧘</div>
-            <div class="hpm-task-text">Thiền 5 phút</div>
+            <div class="hpm-task-text">{{ t('landing.hero.phoneTask1') }}</div>
             <div class="hpm-task-xp">+25 XP</div>
           </div>
           <div class="hpm-task">
             <div class="hpm-task-icon">💨</div>
-            <div class="hpm-task-text">Thở vuông 5 vòng</div>
+            <div class="hpm-task-text">{{ t('landing.hero.phoneTask2') }}</div>
             <div class="hpm-task-xp">+20 XP</div>
           </div>
           <div class="hpm-xp">
-            <div class="hpm-xp-text">⭐ -- XP · Level 2</div>
+            <div class="hpm-xp-text">{{ t('landing.hero.phoneLevel') }}</div>
             <div class="hpm-xp-bar">
               <div class="hpm-xp-fill"></div>
             </div>
@@ -159,34 +159,34 @@
     <!-- HOW IT WORKS -->
     <section class="how-section" id="how-it-works">
       <div style="text-align:center;">
-        <div class="section-badge">🗺️ Cách hoạt động</div>
-        <h2 class="section-title">Hành trình tự chữa lành<br>chỉ trong 4 bước 🌱</h2>
-        <p class="section-subtitle" style="margin:0 auto;">Đơn giản, không áp lực — mỗi bước nhỏ đều có ý nghĩa.</p>
+        <div class="section-badge">{{ t('landing.howItWorks.badge') }}</div>
+        <h2 class="section-title">{{ t('landing.howItWorks.titleLine1') }}<br>{{ t('landing.howItWorks.titleLine2') }}</h2>
+        <p class="section-subtitle" style="margin:0 auto;">{{ t('landing.howItWorks.subtitle') }}</p>
       </div>
       <div class="steps-grid">
         <div class="step-card">
           <div class="step-num">1</div>
           <span class="step-icon">📝</span>
-          <div class="step-title">Đăng ký & thiết lập</div>
-          <div class="step-desc">Tạo hồ sơ trong 2 phút. Chọn avatar Paper Flow dễ thương và chia sẻ điều bạn cần hỗ trợ.</div>
+          <div class="step-title">{{ t('landing.howItWorks.step1Title') }}</div>
+          <div class="step-desc">{{ t('landing.howItWorks.step1Desc') }}</div>
         </div>
         <div class="step-card">
           <div class="step-num">2</div>
           <span class="step-icon">💭</span>
-          <div class="step-title">Check-in tâm trạng</div>
-          <div class="step-desc">Mỗi ngày check-in 30 giây. AI phân tích và hiểu bạn đang cảm thấy thế nào.</div>
+          <div class="step-title">{{ t('landing.howItWorks.step2Title') }}</div>
+          <div class="step-desc">{{ t('landing.howItWorks.step2Desc') }}</div>
         </div>
         <div class="step-card">
           <div class="step-num">3</div>
           <span class="step-icon">🎮</span>
-          <div class="step-title">Hoàn thành nhiệm vụ</div>
-          <div class="step-desc">AI gợi ý nhiệm vụ phù hợp. Thiền, thở, viết nhật ký — mỗi bước đều nhận XP.</div>
+          <div class="step-title">{{ t('landing.howItWorks.step3Title') }}</div>
+          <div class="step-desc">{{ t('landing.howItWorks.step3Desc') }}</div>
         </div>
         <div class="step-card">
           <div class="step-num">4</div>
           <span class="step-icon">🌱</span>
-          <div class="step-title">Phát triển mỗi ngày</div>
-          <div class="step-desc">Theo dõi tiến trình, nhận huy hiệu và kết nối chuyên gia khi cần hỗ trợ sâu hơn.</div>
+          <div class="step-title">{{ t('landing.howItWorks.step4Title') }}</div>
+          <div class="step-desc">{{ t('landing.howItWorks.step4Desc') }}</div>
         </div>
       </div>
     </section>
@@ -194,45 +194,45 @@
     <!-- FEATURES -->
     <section id="features" style="background:var(--cream);padding:80px 5%;">
       <div style="text-align:center;margin-bottom:48px;">
-        <div class="section-badge">✨ Tính năng</div>
-        <h2 class="section-title">Mọi thứ bạn cần<br>để chăm sóc tâm hồn 💚</h2>
+        <div class="section-badge">{{ t('landing.features.badge') }}</div>
+        <h2 class="section-title">{{ t('landing.features.titleLine1') }}<br>{{ t('landing.features.titleLine2') }}</h2>
       </div>
       <div class="features-grid">
         <router-link to="/mood-checkin" class="feature-card">
           <div class="fc-icon-wrap" style="background:var(--mint-light);border-color:var(--mint);">💭</div>
-          <div class="fc-title">Check-in tâm trạng AI</div>
-          <div class="fc-desc">PeaceCat AI lắng nghe và phân tích tâm trạng của bạn qua emoji, slider và trò chuyện tự nhiên. Phát hiện dấu hiệu cảnh báo sớm.</div>
-          <span class="fc-link">Thử ngay →</span>
+          <div class="fc-title">{{ t('landing.features.moodTitle') }}</div>
+          <div class="fc-desc">{{ t('landing.features.moodDesc') }}</div>
+          <span class="fc-link">{{ t('landing.features.moodLink') }}</span>
         </router-link>
         <router-link to="/tasks" class="feature-card">
           <div class="fc-icon-wrap" style="background:var(--peach-light);border-color:var(--peach);">🎮</div>
-          <div class="fc-title">Nhiệm vụ game hóa</div>
-          <div class="fc-desc">80+ nhiệm vụ từ dễ đến khó. Thiền, thở, nhật ký, kết nối xã hội — mỗi hoàn thành nhận XP và huy hiệu.</div>
-          <span class="fc-link">Xem nhiệm vụ →</span>
+          <div class="fc-title">{{ t('landing.features.tasksTitle') }}</div>
+          <div class="fc-desc">{{ t('landing.features.tasksDesc') }}</div>
+          <span class="fc-link">{{ t('landing.features.tasksLink') }}</span>
         </router-link>
         <router-link to="/experts" class="feature-card">
           <div class="fc-icon-wrap" style="background:var(--lavender-light);border-color:var(--lavender);">🩺</div>
-          <div class="fc-title">Kết nối chuyên gia</div>
-          <div class="fc-desc">30+ chuyên gia tâm lý được chứng nhận. Chat, gọi thoại hoặc video call — đặt lịch trong 2 phút.</div>
-          <span class="fc-link">Tìm chuyên gia →</span>
+          <div class="fc-title">{{ t('landing.features.expertsTitle') }}</div>
+          <div class="fc-desc">{{ t('landing.features.expertsDesc') }}</div>
+          <span class="fc-link">{{ t('landing.features.expertsLink') }}</span>
         </router-link>
         <router-link to="/mood-assessment" class="feature-card">
           <div class="fc-icon-wrap" style="background:var(--sky-light);border-color:var(--sky);">📊</div>
-          <div class="fc-title">Bài kiểm tra chuẩn hóa</div>
-          <div class="fc-desc">DASS-21, GAD-7, PHQ-9, PSQI — các thang đo tâm lý lâm sàng được trình bày thân thiện, không gây áp lực.</div>
-          <span class="fc-link">Làm bài kiểm tra →</span>
+          <div class="fc-title">{{ t('landing.features.testsTitle') }}</div>
+          <div class="fc-desc">{{ t('landing.features.testsDesc') }}</div>
+          <span class="fc-link">{{ t('landing.features.testsLink') }}</span>
         </router-link>
         <router-link to="/journal" class="feature-card">
           <div class="fc-icon-wrap" style="background:var(--gold-light);border-color:var(--gold);">📝</div>
-          <div class="fc-title">Nhật ký cảm xúc</div>
-          <div class="fc-desc">Không gian riêng tư, mã hóa AES-256. AI phân tích cảm xúc và đưa ra gợi ý nhẹ nhàng sau mỗi bài viết.</div>
-          <span class="fc-link">Viết nhật ký →</span>
+          <div class="fc-title">{{ t('landing.features.journalTitle') }}</div>
+          <div class="fc-desc">{{ t('landing.features.journalDesc') }}</div>
+          <span class="fc-link">{{ t('landing.features.journalLink') }}</span>
         </router-link>
         <router-link to="/emergency" class="feature-card">
           <div class="fc-icon-wrap" style="background:var(--coral-light);border-color:var(--coral);">🆘</div>
-          <div class="fc-title">Hỗ trợ khẩn cấp 24/7</div>
-          <div class="fc-desc">Phát hiện từ khóa nguy hiểm tự động. Bài tập ổn định tức thì, hotline miễn phí và kết nối chuyên gia ngay lập tức.</div>
-          <span class="fc-link" style="color:var(--coral);">Tìm hiểu →</span>
+          <div class="fc-title">{{ t('landing.features.emergencyTitle') }}</div>
+          <div class="fc-desc">{{ t('landing.features.emergencyDesc') }}</div>
+          <span class="fc-link" style="color:var(--coral);">{{ t('landing.features.emergencyLink') }}</span>
         </router-link>
       </div>
     </section>
@@ -240,12 +240,12 @@
     <!-- MOOD DEMO -->
     <section class="mood-demo-section" id="mood-demo">
       <div style="text-align:center;margin-bottom:0;">
-        <div class="section-badge">💭 Demo tương tác</div>
-        <h2 class="section-title">Thử check-in tâm trạng<br>ngay bây giờ 🐱</h2>
+        <div class="section-badge">{{ t('landing.moodDemo.badge') }}</div>
+        <h2 class="section-title">{{ t('landing.moodDemo.titleLine1') }}<br>{{ t('landing.moodDemo.titleLine2') }}</h2>
       </div>
       <div class="mood-demo-layout">
         <div class="mood-demo-card">
-          <div class="mdc-title">🐱 PeaceCat hỏi: Hôm nay bạn thế nào?</div>
+          <div class="mdc-title">{{ t('landing.moodDemo.cardTitle') }}</div>
           <div class="mood-emoji-row">
             <button
               v-for="emoji in ['😊', '😌', '😐', '😟', '😰', '😢']"
@@ -257,20 +257,20 @@
             >{{ emoji }}</button>
           </div>
           <div class="demo-slider-wrap">
-            <div class="demo-slider-label"><span>😔 Rất thấp</span><span>😊 Rất cao</span></div>
+            <div class="demo-slider-label"><span>{{ t('landing.moodDemo.sliderLow') }}</span><span>{{ t('landing.moodDemo.sliderHigh') }}</span></div>
             <input type="range" class="demo-slider" min="1" max="10" v-model.number="selectedScore">
-            <div style="text-align:center;font-size:0.78rem;font-weight:700;color:var(--mint-dark);margin-top:4px;">Mức độ: {{ selectedScore }}/10</div>
+            <div style="text-align:center;font-size:0.78rem;font-weight:700;color:var(--mint-dark);margin-top:4px;">{{ t('landing.moodDemo.levelLabel', { score: selectedScore }) }}</div>
           </div>
-          <div style="font-size:0.72rem;font-weight:700;color:var(--text-secondary);margin-bottom:6px;">🏷️ Nguyên nhân (tùy chọn):</div>
+          <div style="font-size:0.72rem;font-weight:700;color:var(--text-secondary);margin-bottom:6px;">{{ t('landing.moodDemo.tagsLabel') }}</div>
           <div class="demo-tags">
             <span
               v-for="tag in DEMO_TAGS"
-              :key="tag"
+              :key="tag.id"
               class="demo-tag"
-              :class="{ active: selectedTags.has(tag) }"
-              :style="selectedTags.has(tag) ? { background: 'var(--mint-dark)', color: 'white' } : null"
-              @click="toggleDemoTag(tag)"
-            >{{ tag }}</span>
+              :class="{ active: selectedTags.has(tag.id) }"
+              :style="selectedTags.has(tag.id) ? { background: 'var(--mint-dark)', color: 'white' } : null"
+              @click="toggleDemoTag(tag.id)"
+            >{{ t(tag.labelKey) }}</span>
           </div>
           <button class="demo-save-btn" @click="saveDemoMood">{{ demoSaveLabel }}</button>
         </div>
@@ -278,15 +278,15 @@
           <div class="mdi-item">
             <div class="mdi-icon">🤖</div>
             <div>
-              <div class="mdi-title">AI phân tích realtime</div>
-              <div class="mdi-desc">PeaceCat phân tích tâm trạng và gợi ý nhiệm vụ phù hợp nhất với trạng thái hiện tại của bạn.</div>
+              <div class="mdi-title">{{ t('landing.moodDemo.aiTitle') }}</div>
+              <div class="mdi-desc">{{ t('landing.moodDemo.aiDesc') }}</div>
             </div>
           </div>
           <div class="mdi-item">
             <div class="mdi-icon">📈</div>
             <div>
-              <div class="mdi-title">Theo dõi tiến triển</div>
-              <div class="mdi-desc">Tâm trạng của bạn được lưu lại thành biểu đồ để nhìn lại hành trình tự chữa lành.</div>
+              <div class="mdi-title">{{ t('landing.moodDemo.trackTitle') }}</div>
+              <div class="mdi-desc">{{ t('landing.moodDemo.trackDesc') }}</div>
             </div>
           </div>
         </div>
@@ -301,40 +301,44 @@
             <div class="fb-logo-icon">🌿</div>
             <div class="fb-logo-text">Peace<span>Flow</span></div>
           </div>
-          <p>Nền tảng hỗ trợ sức khỏe tinh thần, giúp bạn vượt qua căng thẳng, tìm lại sự bình yên mỗi ngày bằng các nhiệm vụ game hóa thú vị.</p>
+          <p>{{ t('landing.footer.brandDesc') }}</p>
           <div class="footer-hotline">
             <div class="fh-num">📞 0931773637</div>
-            <div class="fh-label">Đường dây nóng hỗ trợ tâm lý 24/7</div>
+            <div class="fh-label">{{ t('landing.footer.hotlineLabel') }}</div>
           </div>
         </div>
         <div>
-          <div class="footer-col-title">Về PeaceFlow</div>
-          <a href="#" class="footer-link">Câu chuyện của chúng tôi</a>
-          <a href="#" class="footer-link">Đội ngũ chuyên gia</a>
-          <a href="#" class="footer-link">Nghiên cứu khoa học</a>
-          <a href="#" class="footer-link">Báo chí nói về chúng tôi</a>
+          <div class="footer-col-title">{{ t('landing.footer.aboutTitle') }}</div>
+          <a href="#" class="footer-link">{{ t('landing.footer.aboutStory') }}</a>
+          <a href="#" class="footer-link">{{ t('landing.footer.aboutTeam') }}</a>
+          <a href="#" class="footer-link">{{ t('landing.footer.aboutResearch') }}</a>
+          <a href="#" class="footer-link">{{ t('landing.footer.aboutPress') }}</a>
         </div>
         <div>
-          <div class="footer-col-title">Tính năng chính</div>
-          <router-link to="/tasks" class="footer-link">Nhiệm vụ chữa lành</router-link>
-          <router-link to="/mood-checkin" class="footer-link">Kiểm tra tâm trạng</router-link>
-          <router-link to="/community" class="footer-link">Cộng đồng PeaceFlow</router-link>
-          <router-link to="/experts" class="footer-link">Kết nối chuyên gia</router-link>
+          <div class="footer-col-title">{{ t('landing.footer.featuresTitle') }}</div>
+          <router-link to="/tasks" class="footer-link">{{ t('landing.footer.featureTasks') }}</router-link>
+          <router-link to="/mood-checkin" class="footer-link">{{ t('landing.footer.featureMood') }}</router-link>
+          <router-link to="/community" class="footer-link">{{ t('landing.footer.featureCommunity') }}</router-link>
+          <router-link to="/experts" class="footer-link">{{ t('landing.footer.featureExperts') }}</router-link>
         </div>
         <div>
-          <div class="footer-col-title">Hỗ trợ</div>
-          <router-link to="/emergency" class="footer-link">Trung tâm khẩn cấp</router-link>
-          <a href="#" class="footer-link">Câu hỏi thường gặp</a>
-          <a href="#" class="footer-link">Chính sách bảo mật</a>
-          <a href="#" class="footer-link">Điều khoản sử dụng</a>
+          <div class="footer-col-title">{{ t('landing.footer.supportTitle') }}</div>
+          <router-link to="/emergency" class="footer-link">{{ t('landing.footer.supportEmergency') }}</router-link>
+          <a href="#" class="footer-link">{{ t('landing.footer.supportFaq') }}</a>
+          <a href="#" class="footer-link">{{ t('landing.footer.supportPrivacy') }}</a>
+          <a href="#" class="footer-link">{{ t('landing.footer.supportTerms') }}</a>
+          <a href="/docs/tong-hop-chinh-sach-hoat-dong.pdf" target="_blank" rel="noopener" class="footer-link">{{ t('landing.footer.supportOperatingPolicy') }}</a>
         </div>
       </div>
       <div style="border-top:1px solid rgba(255,255,255,0.1);padding-top:24px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;">
-        <div style="font-size:0.75rem;color:rgba(255,255,255,0.5);">© 2026 PeaceFlow. Mọi quyền được bảo lưu.</div>
-        <div style="font-size:0.85rem;color:rgba(255,255,255,0.5);display:flex;gap:16px;">
-          <span style="cursor:pointer;" title="Facebook">FB</span>
-          <span style="cursor:pointer;" title="Instagram">IG</span>
-          <span style="cursor:pointer;" title="TikTok">TT</span>
+        <div style="font-size:0.75rem;color:rgba(255,255,255,0.5);">{{ t('landing.footer.copyright') }}</div>
+        <div style="display:flex;align-items:center;gap:20px;flex-wrap:wrap;">
+          <LanguageSwitcher />
+          <div style="font-size:0.85rem;color:rgba(255,255,255,0.5);display:flex;gap:16px;">
+            <span style="cursor:pointer;" title="Facebook">FB</span>
+            <span style="cursor:pointer;" title="Instagram">IG</span>
+            <span style="cursor:pointer;" title="TikTok">TT</span>
+          </div>
         </div>
       </div>
     </footer>
@@ -343,43 +347,29 @@
 
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useAuthStore } from '../stores/auth';
+import LanguageSwitcher from '../components/LanguageSwitcher.vue';
 
+const { t, tm } = useI18n();
 const auth = useAuthStore();
 
-const SLOGANS = [
-  'Ai cũng gặp stress ở một mức độ nào đó. Bạn không hề đơn độc.',
-  'Dù cảm xúc có nặng nề đến đâu, vẫn luôn có cơ hội phục hồi.',
-  'Rồi chuyện này sẽ qua, hãy bình tâm.',
-  'AI chỉ hỗ trợ, không thay thế sự kết nối giữa người với người.',
-  'Hạnh phúc do chính bạn tạo ra, hãy sống có trách nhiệm với đời mình.',
-  'Sự hồi phục cần sự kiên nhẫn, kiên trì và từ từ.',
-  'Đừng đè nén, hãy giải phóng cảm xúc qua hoạt động tích cực.',
-  'Mọi cảm xúc mãnh liệt đều là trải nghiệm quý giá.',
-  'Bạn không đơn độc, hãy mở lòng để thấy nhẹ nhõm hơn.',
-  'Sức khỏe hài hòa giữa thể chất và tinh thần là chìa khóa của hạnh phúc.',
-  'Chỉ có bạn mới là người thực sự giúp được chính mình.',
-  'Góc tối trong ta cần được hiểu rõ, thay vì chôn giấu.',
-  'Hầu hết những điều bạn lo sợ sẽ không bao giờ xảy ra.',
-  'Hãy tử tế với bản thân - bạn là món quà của thế giới này.',
-  'Bảo vệ sự chú ý, ưu tiên Sức khỏe, Công việc và Gia đình.',
-  'Tình yêu gia đình là một phần cuộc đời, đừng để nó chi phối tất cả.',
-  'Hãy tha thứ và yêu bản thân mình nhiều hơn.',
-  'Nghiện ngập là dấu hiệu cơ thể cần được khỏa lấp, chữa lành.',
-  'Sống với cảm xúc thực là quyền tự do lớn nhất của bạn.',
-  'Đổ mồ hôi bằng vận động là cách tuyệt vời để vượt qua stress.',
-  'Khoái lạc là hệ quả của hạnh phúc, không phải nguyên nhân.',
-  'Sự không hoàn hảo chính là nét hoàn hảo nhất của cuộc sống.',
-  'Giảm kỳ vọng là một cách thông minh để giảm stress.',
-  'Mọi thứ không tệ như ta nghĩ, con người có sức bật đáng kinh ngạc.',
-  'Liệu việc này có đáng để căng thẳng không? Nếu không, bỏ qua.',
-  'Stress ở mức vừa phải giúp bạn tập trung và mạnh mẽ hơn.',
-  "Vượt qua stress sẽ tạo ra 'kháng sinh tự nhiên' cho tinh thần bạn."
+// Danh sách slogan lấy từ chính file dịch (landing.slogans, mảng 27 câu) — không giữ bản
+// cứng ở đây nữa, để đổi ngôn ngữ thì slogan cũng đổi theo mà không cần đụng code.
+const SLOGAN_INDEX = Math.floor(Math.random() * 27);
+const heroQuote = computed(() => tm('landing.slogans')[SLOGAN_INDEX]);
+
+// id ỔN ĐỊNH (không đổi theo ngôn ngữ) để so khớp lựa chọn; labelKey để hiển thị đúng
+// ngôn ngữ hiện tại. Trước đây dùng thẳng chuỗi tiếng Việt vừa làm khoá vừa làm hiển thị —
+// đổi ngôn ngữ là toggle/so khớp vỡ ngay vì chuỗi hiển thị đã đổi nhưng Set lưu id cũ.
+const DEMO_TAGS = [
+  { id: 'work', labelKey: 'landing.moodDemo.tagWork' },
+  { id: 'family', labelKey: 'landing.moodDemo.tagFamily' },
+  { id: 'finance', labelKey: 'landing.moodDemo.tagFinance' },
+  { id: 'sleep', labelKey: 'landing.moodDemo.tagSleep' },
+  { id: 'relationship', labelKey: 'landing.moodDemo.tagRelationship' },
+  { id: 'unknown', labelKey: 'landing.moodDemo.tagUnknown' }
 ];
-
-const DEMO_TAGS = ['💼 Công việc', '👨‍👩‍👧 Gia đình', '💰 Tài chính', '😴 Mất ngủ', '💔 Tình cảm', '❓ Không rõ'];
-
-const heroQuote = ref(SLOGANS[Math.floor(Math.random() * SLOGANS.length)]);
 
 const mobileNavOpen = ref(false);
 function openMobileNav() { mobileNavOpen.value = true; document.body.style.overflow = 'hidden'; }
@@ -387,7 +377,7 @@ function closeMobileNav() { mobileNavOpen.value = false; document.body.style.ove
 
 const navDropdownOpen = ref(false);
 const isAuthenticated = computed(() => auth.isAuthenticated);
-const userLabel = computed(() => auth.user?.display_name || auth.user?.full_name || auth.user?.email || 'Người dùng');
+const userLabel = computed(() => auth.user?.display_name || auth.user?.full_name || auth.user?.email || t('landing.nav.defaultUserLabel'));
 const avatarFallback = computed(() => {
   const label = userLabel.value.trim();
   return label ? label.charAt(0).toUpperCase() : 'PF';
@@ -404,7 +394,10 @@ async function handleLogout() {
 const selectedMood = ref(null);
 const selectedScore = ref(6);
 const selectedTags = ref(new Set());
-const demoSaveLabel = ref('✅ Lưu tâm trạng & nhận gợi ý');
+// Trạng thái thay vì chuỗi tĩnh: nếu chỉ gán ref = t('...') một lần lúc setup, đổi ngôn
+// ngữ sau đó (mà chưa bấm nút) sẽ không tự cập nhật vì không phải computed theo locale.
+const demoSaved = ref(false);
+const demoSaveLabel = computed(() => t(demoSaved.value ? 'landing.moodDemo.saveDone' : 'landing.moodDemo.saveDefault'));
 
 const glowingMood = ref(null);
 function demoMoodBtnStyle(emoji) {
@@ -426,16 +419,16 @@ function selectDemoMood(emoji) {
   }, 500);
 }
 
-function toggleDemoTag(tag) {
+function toggleDemoTag(tagId) {
   const next = new Set(selectedTags.value);
-  if (next.has(tag)) next.delete(tag);
-  else next.add(tag);
+  if (next.has(tagId)) next.delete(tagId);
+  else next.add(tagId);
   selectedTags.value = next;
 }
 
 function saveDemoMood() {
   if (!selectedMood.value) {
-    alert('Vui lòng chọn một biểu tượng cảm xúc để cho PeaceCat biết bạn đang cảm thấy thế nào nhé! 🐱');
+    alert(t('landing.moodDemo.pickMoodAlert'));
     return;
   }
 
@@ -443,10 +436,9 @@ function saveDemoMood() {
     date: new Date().toISOString(),
     mood: selectedMood.value,
     score: selectedScore.value,
-    tags: Array.from(selectedTags.value).map((tag) => {
-      const clean = tag.replace(/[^\p{L}\p{M}\s0-9]/gu, '').trim();
-      return clean === 'Không rõ' ? 'Khong_ro' : clean;
-    }),
+    // Giờ đã là id ổn định ('work', 'unknown'...) thay vì phải tách chữ từ nhãn hiển thị
+    // tiếng Việt như trước — không còn phụ thuộc ngôn ngữ hiện tại.
+    tags: Array.from(selectedTags.value),
     createdAt: Date.now()
   };
 
@@ -458,7 +450,7 @@ function saveDemoMood() {
   logs.push(entry);
   localStorage.setItem('PeaceFlow_logs', JSON.stringify(logs));
 
-  demoSaveLabel.value = '✅ Đã lưu! Đang chuyển đến vườn tâm hồn...';
+  demoSaved.value = true;
 
   setTimeout(() => {
     window.location.href = isAuthenticated.value ? '/mood-checkin' : '/signup';

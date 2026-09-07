@@ -1,0 +1,45 @@
+{
+  "nav": {
+    "groupMain": "Chính",
+    "groupConnect": "Kết nối",
+    "groupAnalyze": "Phân tích",
+    "groupSettings": "Cài đặt",
+    "dashboard": "Tổng quan",
+    "mood": "Tâm trạng",
+    "tests": "Bài test",
+    "tasks": "Nhiệm vụ",
+    "journal": "Nhật ký",
+    "experts": "Chuyên gia",
+    "community": "Cộng đồng",
+    "report": "Báo cáo",
+    "achievements": "Thành tích",
+    "profile": "Hồ sơ",
+    "settings": "Cài đặt"
+  },
+  "sidebar": {
+    "expertManage": "Quản lý chuyên gia",
+    "expertProfile": "Hồ sơ chuyên gia",
+    "adminPanel": "Trang quản trị",
+    "logout": "Đăng xuất",
+    "login": "Đăng nhập",
+    "notifications": "Thông báo",
+    "emergencySupport": "Hỗ trợ khẩn cấp",
+    "tagExpert": "Chuyên gia",
+    "tagAdmin": "Admin",
+    "defaultUserLabel": "Người dùng"
+  },
+  "notifPanel": {
+    "title": "Thông báo",
+    "closeAria": "Đóng thông báo",
+    "empty": "Không có thông báo nào",
+    "enablePush": "🔔 Bật thông báo push để nhận nhắc nhở"
+  },
+  "common": {
+    "back": "Quay lại",
+    "cancel": "Hủy",
+    "save": "Lưu",
+    "close": "Đóng",
+    "loading": "Đang tải...",
+    "confirm": "Xác nhận"
+  }
+}

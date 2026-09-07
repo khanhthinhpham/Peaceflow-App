@@ -1,0 +1,20 @@
+{
+  "taskMeditation": {
+    "breadcrumbDashboard": "🏡 Overview",
+    "breadcrumbTasks": "🎮 Tasks",
+    "breadcrumbCurrent": "🧘 Meditation",
+    "guestNote": {
+      "title": "You're in emergency support mode",
+      "text": "This meditation is always open to everyone, no sign-in required. Sign in to save your progress and earn XP."
+    },
+    "arena": {
+      "title": "🧘 Mindfulness Meditation",
+      "subtitle": "Focus on the present moment",
+      "startBtn": "▶ Start"
+    },
+    "feedback": {
+      "title": "Great job! 🎉",
+      "backToTasksBtn": "Back to tasks"
+    }
+  }
+}

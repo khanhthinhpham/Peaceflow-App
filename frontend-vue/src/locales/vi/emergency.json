@@ -1,0 +1,166 @@
+{
+  "emergency": {
+    "breadcrumbDashboard": "🏡 Tổng quan",
+    "breadcrumbCurrent": "🆘 Hỗ trợ khẩn cấp",
+    "taskModal": {
+      "timeRemainingLabel": "Thời gian còn lại",
+      "startBtn": "▶ Bắt đầu",
+      "closeBtn": "Đóng"
+    },
+    "hero": {
+      "titlePre": "Bạn",
+      "titleHighlight": "không đơn độc",
+      "subtitle": "Dù bạn đang cảm thấy thế nào lúc này — chúng tôi ở đây bên bạn. Hãy thở chậm lại và chọn một hành động nhỏ bên dưới. Rồi chuyện này sẽ qua. 🌱",
+      "reassure": "💚 Bạn đã dũng cảm khi tìm kiếm sự giúp đỡ"
+    },
+    "hotlines": {
+      "sectionTitle": "📞 Liên hệ ngay — Miễn phí, 24/7",
+      "mainLabel": "Đường dây nóng sức khỏe tâm thần",
+      "mainDesc": "Chuyên gia lắng nghe 24/7",
+      "mainBadge": "Miễn phí · Bảo mật",
+      "expertNum": "Chat ngay",
+      "expertLabel": "Kết nối chuyên gia tâm lý",
+      "expertDesc": "Đặt lịch hoặc chat ngay",
+      "expertBadge": "Có chuyên gia online",
+      "rescueLabel": "Cấp cứu y tế khẩn cấp",
+      "rescueDesc": "Khi cần hỗ trợ y tế ngay lập tức",
+      "rescueBadge": "Khẩn cấp"
+    },
+    "breathing": {
+      "title": "💨 Hít thở để ổn định ngay — Thở vuông 4-4-4",
+      "desc": "Kỹ thuật này giúp hệ thần kinh bình tĩnh trong vòng 2 phút",
+      "startBtn": "▶ Bắt đầu thở",
+      "stopBtn": "⏹ Dừng"
+    },
+    "breathPhases": {
+      "inhaleLabel": "Hít vào... (4 giây)",
+      "holdLabel": "Giữ hơi... (4 giây)",
+      "exhaleLabel": "Thở ra... (4 giây)",
+      "restLabel": "Nghỉ... (2 giây)",
+      "inhaleText": "Hít vào",
+      "holdText": "Giữ",
+      "exhaleText": "Thở ra",
+      "restText": "Nghỉ",
+      "startText": "Bắt đầu",
+      "startHint": "Nhấn vào vòng tròn để bắt đầu",
+      "completedLabel": "🎉 Tuyệt vời! Bạn đã hoàn thành 5 vòng thở!"
+    },
+    "tasksSectionTitle": "⚡ Bài tập ổn định tức thì",
+    "tasks": {
+      "detach": {
+        "title": "Tách biệt môi trường",
+        "desc": "Tìm một không gian yên tĩnh, ngồi xuống và đặt tay lên ngực.",
+        "time": "2-5 phút",
+        "steps": ["Rời khỏi không gian ồn ào", "Tìm chỗ ngồi yên tĩnh", "Đặt tay lên ngực, cảm nhận nhịp tim", "Nhắm mắt và thở chậm 5 lần", "Mở mắt, nhìn xung quanh"]
+      },
+      "stopDropBreathe": {
+        "title": "Stop-Drop-Breathe",
+        "desc": "Dừng mọi suy nghĩ tiêu cực và tập trung vào hơi thở ngay lập tức.",
+        "time": "1-2 phút",
+        "steps": ["STOP — Dừng lại hoàn toàn", "DROP — Buông bỏ mọi suy nghĩ", "BREATHE — Hít thở sâu 3 lần", "Thay thế bằng: \"Tôi an toàn. Tôi ổn.\""]
+      },
+      "coldWater": {
+        "title": "Rửa mặt nước lạnh",
+        "desc": "Nước lạnh kích hoạt phản xạ làm chậm nhịp tim, giảm lo âu ngay.",
+        "time": "1 phút",
+        "steps": ["Đến bồn rửa mặt", "Mở nước lạnh", "Rửa mặt 3-5 lần", "Cảm nhận cảm giác mát lạnh", "Nhìn vào gương và thở chậm"]
+      },
+      "warmCup": {
+        "title": "Cầm cốc nước ấm",
+        "desc": "Nhiệt ấm giúp hệ thần kinh bình tĩnh và kéo tâm trí về hiện tại.",
+        "time": "3 phút",
+        "steps": ["Pha một cốc nước ấm hoặc trà", "Cầm cốc bằng cả hai tay", "Cảm nhận hơi ấm truyền qua lòng bàn tay", "Hít thở mùi thơm nếu có", "Uống từng ngụm chậm rãi"]
+      },
+      "selfForgive": {
+        "title": "Tha thứ cho bản thân",
+        "desc": "Viết ra điều bạn đang tự trách và buông bỏ nó.",
+        "time": "3-5 phút",
+        "steps": ["Lấy giấy bút hoặc mở nhật ký", "Viết: \"Tôi đang tự trách mình vì...\"", "Viết tiếp: \"Nhưng tôi tha thứ cho bản thân vì...\"", "Đọc to lên 3 lần", "Xé tờ giấy đó đi (tượng trưng buông bỏ)"]
+      },
+      "cryIfNeeded": {
+        "title": "Khóc nếu cần",
+        "desc": "Khóc là cơ chế tự nhiên giải phóng căng thẳng — hãy cho phép bản thân.",
+        "time": "Không giới hạn",
+        "steps": ["Tìm không gian riêng tư", "Bật nhạc nhẹ nhàng nếu muốn", "Cho phép bản thân khóc tự nhiên", "Không phán xét cảm xúc của mình", "Sau đó uống nước và nghỉ ngơi"]
+      }
+    },
+    "grounding": {
+      "sectionTitle": "🌍 Bài tập 5-4-3-2-1 Grounding",
+      "subtitle": "Kéo tâm trí trở về hiện tại — nhấn vào từng bước khi hoàn thành:",
+      "resetBtn": "🔄 Làm lại từ đầu",
+      "completedToast": "🌍 Tuyệt vời! Bạn đã hoàn thành bài tập Grounding 5-4-3-2-1!"
+    },
+    "groundingSteps": {
+      "see": { "title": "5 thứ bạn NHÌN thấy", "desc": "Nhìn xung quanh và đặt tên 5 vật thể bạn thấy ngay lúc này" },
+      "touch": { "title": "4 thứ bạn CÓ THỂ CHẠM", "desc": "Chạm vào 4 bề mặt khác nhau — bàn, ghế, quần áo, tường..." },
+      "hear": { "title": "3 âm thanh bạn NGHE", "desc": "Lắng nghe và nhận ra 3 âm thanh đang xảy ra xung quanh bạn" },
+      "smell": { "title": "2 mùi bạn NGỬI được", "desc": "Ngửi không khí, quần áo, hoặc bất cứ thứ gì gần bạn" },
+      "taste": { "title": "1 thứ bạn NẾM được", "desc": "Uống một ngụm nước hoặc cảm nhận vị trong miệng" }
+    },
+    "affirmation": {
+      "sectionTitle": "💬 Lời khẳng định tích cực",
+      "hint": "👆 Nhấn để xem lời khẳng định tiếp theo"
+    },
+    "affirmations": [
+      "Mọi cảm xúc của tôi hiện tại đều hợp lệ và đáng được tôn trọng.",
+      "Tôi cho phép bản thân mình được nghỉ ngơi mà không cảm thấy tội lỗi.",
+      "Tôi buông bỏ những điều nằm ngoài tầm kiểm soát của mình.",
+      "Điều này rồi cũng sẽ qua.",
+      "Tôi không nhất thiết phải giải quyết mọi thứ ngay trong lúc này.",
+      "Tôi chấp nhận rằng mình không hoàn hảo, và điều đó hoàn toàn ổn.",
+      "Tôi hít vào sự bình tĩnh và thở ra những căng thẳng.",
+      "Tôi đủ mạnh mẽ để vượt qua khoảnh khắc khó khăn này.",
+      "Tôi đã từng vượt qua nhiều thử thách, và lần này tôi cũng sẽ làm được.",
+      "Áp lực hiện tại là để tôi trưởng thành, không phải để quật ngã tôi.",
+      "Tôi có khả năng tìm ra giải pháp cho mọi vấn đề tôi đối mặt.",
+      "Sự lo lắng không làm thay đổi tương lai, nhưng sự bình tĩnh sẽ giúp tôi xử lý nó.",
+      "Tôi tin tưởng vào khả năng xoay sở và khả năng phục hồi của bản thân.",
+      "Tôi là người làm chủ tâm trí mình, không phải là nô lệ của nỗi sợ.",
+      "Ngay lúc này, tôi đang an toàn.",
+      "Tôi chọn tập trung vào từng bước nhỏ trước mắt thay vì lo lắng cho cả hành trình.",
+      "Tôi làm chủ hơi thở của mình, và hơi thở sẽ dẫn lối tôi về sự bình yên.",
+      "Quá khứ đã qua, tương lai chưa tới, tôi chỉ sống cho hiện tại này.",
+      "Mỗi nhịp thở giúp tôi cảm thấy vững chãi và kết nối với mặt đất hơn.",
+      "Thế giới vẫn đang vận hành, và tôi có quyền sống chậm lại một chút.",
+      "Tôi chọn tin tưởng vào bản thân mình."
+    ],
+    "disclaimer": "⚠️ <strong>Lưu ý quan trọng:</strong> Ứng dụng này cung cấp công cụ hỗ trợ sức khỏe tinh thần, KHÔNG phải dịch vụ y tế hoặc chẩn đoán lâm sàng. Nếu bạn đang trong tình trạng khẩn cấp hoặc có ý định tự hại, hãy gọi ngay <strong>0931773637</strong> hoặc <strong>115</strong>.",
+    "expertQuick": {
+      "title": "🩺 Chuyên gia đang online",
+      "online": "🟢 Đang online",
+      "offline": "⚫ Offline",
+      "chatBtn": "Chat ngay",
+      "scheduleBtn": "Đặt lịch",
+      "viewAllBtn": "Xem tất cả chuyên gia →"
+    },
+    "safePlan": {
+      "title": "📋 Kế hoạch an toàn cá nhân",
+      "subtitle": "Khi cảm thấy không ổn, hãy làm theo thứ tự:",
+      "step1": "Hít thở sâu 5 lần chậm rãi",
+      "step2": "Gọi cho người thân hoặc bạn bè tin tưởng",
+      "step3": "Gọi đường dây nóng 0931773637",
+      "step4": "Chat với PeaceCat hoặc chuyên gia",
+      "step5": "Đến cơ sở y tế gần nhất nếu cần",
+      "customizeBtn": "✏️ Tùy chỉnh kế hoạch của tôi"
+    },
+    "peaceCatMessages": [
+      "\"Mình ở đây bên bạn. Hãy thở chậm lại — bạn đang làm rất tốt khi tìm kiếm sự giúp đỡ. Từng bước nhỏ thôi nhé. 💚\"",
+      "\"Bạn không cần mạnh mẽ một mình. Chỉ cần đi từng bước nhỏ trong lúc này thôi. 🌿\"",
+      "\"Khoảnh khắc khó khăn này không kéo dài mãi. Mình sẽ ở đây cùng bạn. 🐱\"",
+      "\"Bạn xứng đáng được an toàn, được lắng nghe và được yêu thương. ✨\""
+    ],
+    "resources": {
+      "title": "📚 Tài nguyên hỗ trợ",
+      "aiChat": "Chat với PeaceCat AI",
+      "tasks": "Nhiệm vụ khẩn cấp",
+      "journal": "Viết nhật ký cảm xúc",
+      "community": "Chia sẻ với cộng đồng"
+    },
+    "toast": {
+      "breathingDone": "🌬️ Hoàn thành bài thở! Bạn cảm thấy tốt hơn chưa?",
+      "taskDone": "✨ Bài tập kết thúc! Bạn làm tốt lắm.",
+      "connectingExpert": "🚀 Đang kết nối với {name}...",
+      "safePlanComingSoon": "📝 Tính năng tùy chỉnh kế hoạch sẽ sớm ra mắt!"
+    }
+  }
+}

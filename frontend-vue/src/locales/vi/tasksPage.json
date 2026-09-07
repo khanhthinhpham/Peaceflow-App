@@ -1,0 +1,91 @@
+{
+  "tasksPage": {
+    "title": "🎮 Nhiệm Vụ",
+    "subtitleGuest": "Chỉ hiển thị các bài tập khẩn cấp dành cho khách chưa đăng nhập.",
+    "subtitleUser": "Bạn đang có {n} nhiệm vụ khả dụng từ hệ thống gợi ý và thư viện bài tập.",
+    "checkinBtn": "💭 Check-in tâm trạng",
+    "emergencyBtn": "🆘 Khẩn cấp",
+    "guestNote": {
+      "title": "Bạn đang ở chế độ hỗ trợ khẩn cấp",
+      "text": "Hiện tại PeaceFlow chỉ mở các bài tập khẩn cấp để bạn ổn định lại trước. Đăng nhập để xem đầy đủ thư viện nhiệm vụ, nhật ký và các gợi ý cá nhân hóa.",
+      "loginCta": "Đăng nhập để xem thêm nhiều bài tập"
+    },
+    "xpTopbar": {
+      "guestTitle": "Chế độ hỗ trợ khẩn cấp",
+      "guestDesc": "Không cần tài khoản để bắt đầu các bài tập ổn định cảm xúc cơ bản.",
+      "levelRange": "Level {level} · {min} – {max} XP"
+    },
+    "aiSuggestion": {
+      "guestTitle": "Hãy bắt đầu với một bài tập ngắn",
+      "guestDesc": "Nếu bạn đang quá tải, hãy chọn một bài thở hoặc thiền khẩn cấp bên dưới. Khi cần thêm nội dung, hãy đăng nhập để mở toàn bộ nhiệm vụ của PeaceFlow.",
+      "title": "🤖 PeaceCat gợi ý hôm nay",
+      "viewBtn": "Xem gợi ý →",
+      "aiText": "PeaceCat (AI) gợi ý {n} nhiệm vụ dựa trên tâm trạng gần đây của bạn: {names}.",
+      "moodRecent": "Mood gần nhất {score}/10",
+      "moodNone": "Chưa có mood check-in gần đây",
+      "ruleBasedText": "PeaceCat chọn {n} nhiệm vụ phù hợp lúc này. {moodText} và mức rủi ro {risk} đang được dùng để ưu tiên danh sách.",
+      "noSuggestion": "Chưa có gợi ý cá nhân hóa rõ ràng, bạn vẫn có thể chọn bất kỳ nhiệm vụ nào phù hợp với năng lượng hiện tại."
+    },
+    "risk": {
+      "critical": "rất cao",
+      "high": "cao",
+      "moderate": "đang cần theo dõi",
+      "stable": "ổn định"
+    },
+    "challenge": {
+      "guestTitle": "Bạn không cần làm mọi thứ cùng lúc",
+      "guestDesc": "Hãy ưu tiên một bài tập ngắn để cơ thể hạ nhịp trước. Sau đó bạn có thể đăng nhập để theo dõi tiến trình và mở thêm nhiều bài tập khác.",
+      "defaultTitle": "Mục tiêu tuần này",
+      "defaultDesc": "Giữ nhịp hoàn thành nhiệm vụ đều đặn trong tuần này.",
+      "defaultReward": "Giữ nhịp chăm sóc bản thân",
+      "daysLeft": "{n} ngày còn lại",
+      "tasksMeta": "nhiệm vụ"
+    },
+    "filters": {
+      "all": "🌿 Tất cả",
+      "emergency": "🔴 Khẩn cấp",
+      "easy": "🟢 Dễ",
+      "medium": "🟡 Trung bình",
+      "hard": "🟠 Nâng cao",
+      "completed": "✅ Đã hoàn thành",
+      "searchPlaceholder": "🔍 Tìm nhiệm vụ..."
+    },
+    "list": {
+      "loading": "Đang tải danh sách nhiệm vụ từ hệ thống...",
+      "empty": "Không tìm thấy nhiệm vụ phù hợp với bộ lọc hiện tại.",
+      "loadError": "Không tải được nhiệm vụ từ API. Hãy đăng nhập lại hoặc kiểm tra backend."
+    },
+    "sections": {
+      "emergencyTitle": "🔴 Khẩn Cấp",
+      "emergencyDesc": "Ưu tiên thực hiện ngay khi cảm xúc đang quá tải.",
+      "easyTitle": "🟢 Dễ",
+      "easyDesc": "Các nhiệm vụ ngắn để giữ nhịp chăm sóc bản thân mỗi ngày.",
+      "mediumTitle": "🟡 Trung Bình",
+      "mediumDesc": "Cần thêm chút thời gian tập trung hoặc không gian yên tĩnh.",
+      "hardTitle": "🟠 Nâng Cao",
+      "hardDesc": "Nhiệm vụ dài hơn, phù hợp khi bạn có đủ năng lượng để đào sâu.",
+      "count": "{n} nhiệm vụ"
+    },
+    "card": {
+      "defaultTitle": "Nhiệm vụ",
+      "defaultDuration": "Tùy chọn",
+      "oneMinute": "1 phút",
+      "minutes": "{n} phút",
+      "suggestedToday": "⭐ Gợi ý hôm nay",
+      "inProgress": "⏳ Đang thực hiện",
+      "completedCount": "✓ Đã hoàn thành {n} lần",
+      "defaultDescription": "Nhiệm vụ này chưa có mô tả chi tiết.",
+      "reviewBtn": "Xem lại",
+      "continueBtn": "Tiếp tục",
+      "startBtn": "Bắt đầu"
+    },
+    "emergency": {
+      "title": "Bạn không đơn độc",
+      "text": "Nếu bạn đang cảm thấy rất khó khăn, hãy để ai đó giúp bạn ngay bây giờ.",
+      "hotlineLabel": "Đường dây nóng sức khỏe tâm thần — Miễn phí, 24/7",
+      "callBtn": "📞 Gọi ngay hotline",
+      "connectExpertBtn": "💬 Kết nối chuyên gia",
+      "closeBtn": "Tôi ổn, đóng lại"
+    }
+  }
+}

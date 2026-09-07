@@ -5,59 +5,59 @@
     <!-- Report Modal -->
     <div class="modal-overlay" :class="{ show: reportOpen }" @click="closeReportIfOutside">
       <div v-if="reportOpen" class="report-modal">
-        <div class="rm-title">🚩 Báo cáo bài viết</div>
-        <div class="report-option"><label><input type="radio" name="report" value="spam" v-model="reportReason"> Spam hoặc quảng cáo</label></div>
-        <div class="report-option"><label><input type="radio" name="report" value="harmful" v-model="reportReason"> Nội dung có hại / tiêu cực</label></div>
-        <div class="report-option"><label><input type="radio" name="report" value="crisis" v-model="reportReason"> ⚠️ Người dùng có thể đang trong khủng hoảng</label></div>
-        <div class="report-option"><label><input type="radio" name="report" value="inappropriate" v-model="reportReason"> Nội dung không phù hợp</label></div>
-        <div class="report-option"><label><input type="radio" name="report" value="other" v-model="reportReason"> Lý do khác</label></div>
+        <div class="rm-title">{{ t('community.reportModal.title') }}</div>
+        <div class="report-option"><label><input type="radio" name="report" value="spam" v-model="reportReason"> {{ t('community.reportModal.reasonSpam') }}</label></div>
+        <div class="report-option"><label><input type="radio" name="report" value="harmful" v-model="reportReason"> {{ t('community.reportModal.reasonHarmful') }}</label></div>
+        <div class="report-option"><label><input type="radio" name="report" value="crisis" v-model="reportReason"> {{ t('community.reportModal.reasonCrisis') }}</label></div>
+        <div class="report-option"><label><input type="radio" name="report" value="inappropriate" v-model="reportReason"> {{ t('community.reportModal.reasonInappropriate') }}</label></div>
+        <div class="report-option"><label><input type="radio" name="report" value="other" v-model="reportReason"> {{ t('community.reportModal.reasonOther') }}</label></div>
         <div style="display:flex;gap:8px;margin-top:14px;justify-content:flex-end;">
-          <button class="btn-outline" @click="reportOpen = false">Hủy</button>
-          <button class="btn-primary" @click="submitReport">Gửi báo cáo</button>
+          <button class="btn-outline" @click="reportOpen = false">{{ t('community.reportModal.cancelBtn') }}</button>
+          <button class="btn-primary" @click="submitReport">{{ t('community.reportModal.submitBtn') }}</button>
         </div>
       </div>
     </div>
 
     <main class="main-content" style="margin-left: 0;" >
       <div class="breadcrumb">
-        <router-link to="/dashboard">🏡 Tổng quan</router-link><span>›</span>
-        <span>👥 Cộng đồng</span>
+        <router-link to="/dashboard">{{ t('community.breadcrumbDashboard') }}</router-link><span>›</span>
+        <span>{{ t('community.breadcrumbCurrent') }}</span>
       </div>
 
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px;">
         <div>
-          <div style="font-size:1.5rem;font-weight:800;">👥 Cộng Đồng PeaceFlow</div>
-          <div style="font-size:0.85rem;color:var(--text-secondary);">Không gian chia sẻ ẩn danh — không phán xét — chỉ có yêu thương 💚</div>
+          <div style="font-size:1.5rem;font-weight:800;">{{ t('community.pageTitle') }}</div>
+          <div style="font-size:0.85rem;color:var(--text-secondary);">{{ t('community.pageSubtitle') }}</div>
         </div>
-        <button class="btn-primary" @click="scrollToComposer">✏️ Chia sẻ ngay</button>
+        <button class="btn-primary" @click="scrollToComposer">{{ t('community.shareNowBtn') }}</button>
       </div>
 
       <div class="comm-stats">
-        <div class="paper-card cs-item"><div class="cs-num">{{ formatCompactNumber(summary?.members) }}</div><div class="cs-label">Thành viên</div></div>
-        <div class="paper-card cs-item"><div class="cs-num">{{ formatCompactNumber(summary?.posts) }}</div><div class="cs-label">Bài chia sẻ</div></div>
-        <div class="paper-card cs-item"><div class="cs-num">{{ formatCompactNumber(summary?.reactions) }}</div><div class="cs-label">Lượt reaction ❤️</div></div>
-        <div class="paper-card cs-item"><div class="cs-num">{{ formatPercent(summary?.positive_rate ?? 100) }}</div><div class="cs-label">Tích cực</div></div>
+        <div class="paper-card cs-item"><div class="cs-num">{{ formatCompactNumber(summary?.members) }}</div><div class="cs-label">{{ t('community.stats.members') }}</div></div>
+        <div class="paper-card cs-item"><div class="cs-num">{{ formatCompactNumber(summary?.posts) }}</div><div class="cs-label">{{ t('community.stats.posts') }}</div></div>
+        <div class="paper-card cs-item"><div class="cs-num">{{ formatCompactNumber(summary?.reactions) }}</div><div class="cs-label">{{ t('community.stats.reactions') }}</div></div>
+        <div class="paper-card cs-item"><div class="cs-num">{{ formatPercent(summary?.positive_rate ?? 100) }}</div><div class="cs-label">{{ t('community.stats.positive') }}</div></div>
       </div>
 
       <div v-if="challenge" class="paper-card challenge-banner">
         <div class="cb-deco">🧘</div>
         <div class="cb-top">
-          <div><div class="cb-badge">🔥 Thử thách tuần này</div></div>
-          <button class="cb-join-btn" :disabled="joinedChallenge" :style="{ opacity: joinedChallenge ? 0.8 : 1 }" @click="joinChallenge">{{ joinedChallenge ? 'Đã tham gia' : 'Tham gia ngay' }}</button>
+          <div><div class="cb-badge">{{ t('community.challengeBanner.badge') }}</div></div>
+          <button class="cb-join-btn" :disabled="joinedChallenge" :style="{ opacity: joinedChallenge ? 0.8 : 1 }" @click="joinChallenge">{{ joinedChallenge ? t('community.challengeBanner.joined') : t('community.challengeBanner.joinNow') }}</button>
         </div>
         <div class="cb-title">{{ challenge.title }}</div>
         <div class="cb-desc">{{ challenge.description }}</div>
         <div class="cb-progress-wrap">
           <div class="cb-progress-label">
-            <span>⏱ {{ formatCompactNumber(challenge.total_minutes) }} / {{ formatCompactNumber(challenge.goal) }} phút</span>
-            <span>{{ challenge.progress_percent }}% hoàn thành</span>
+            <span>{{ t('community.challengeBanner.progressUnit', { curr: formatCompactNumber(challenge.total_minutes), goal: formatCompactNumber(challenge.goal) }) }}</span>
+            <span>{{ t('community.challengeBanner.progressPercent', { pct: challenge.progress_percent }) }}</span>
           </div>
           <div class="cb-progress-bar"><div class="cb-progress-fill" :style="{ width: Math.min(100, Number(challenge.progress_percent || 0)) + '%' }"></div></div>
         </div>
         <div class="cb-stats">
-          <div class="cb-stat">👥 <strong>{{ formatCompactNumber(challenge.participants) }}</strong> người tham gia</div>
-          <div class="cb-stat">⏰ Còn <strong>{{ formatCompactNumber(challenge.days_left) }}</strong> ngày</div>
-          <div class="cb-stat">🏆 Phần thưởng: <strong>+100 XP</strong> + huy hiệu cộng đồng</div>
+          <div class="cb-stat">👥 <strong>{{ formatCompactNumber(challenge.participants) }}</strong> {{ t('community.challengeBanner.participants') }}</div>
+          <div class="cb-stat">{{ t('community.challengeBanner.daysLeftLabel') }} <strong>{{ formatCompactNumber(challenge.days_left) }}</strong> {{ t('community.challengeBanner.daysLeftUnit') }}</div>
+          <div class="cb-stat">{{ t('community.challengeBanner.rewardLabel') }} <strong>{{ t('community.challengeBanner.rewardValue') }}</strong> {{ t('community.challengeBanner.rewardBadge') }}</div>
         </div>
       </div>
 
@@ -66,7 +66,7 @@
         <div>
           <div class="mod-note">
             <span>🤖</span>
-            <span>Cộng đồng này được AI và moderator giám sát 24/7. Mọi nội dung tiêu cực, có hại hoặc vi phạm quy tắc sẽ bị gỡ bỏ. Hãy chia sẻ với tình yêu thương! 💚</span>
+            <span>{{ t('community.modNote') }}</span>
           </div>
 
           <!-- Post Composer -->
@@ -74,38 +74,38 @@
             <div class="pc-header">
               <div class="pc-avatar">{{ anonymousPosting ? '🌿' : '🐱' }}</div>
               <div style="flex:1;">
-                <div style="font-size:0.82rem;font-weight:700;margin-bottom:2px;">Chia sẻ với cộng đồng</div>
-                <div style="font-size:0.68rem;color:var(--text-light);">Câu chuyện của bạn có thể truyền cảm hứng cho ai đó</div>
+                <div style="font-size:0.82rem;font-weight:700;margin-bottom:2px;">{{ t('community.composer.title') }}</div>
+                <div style="font-size:0.68rem;color:var(--text-light);">{{ t('community.composer.subtitle') }}</div>
               </div>
               <div class="pc-anon-toggle" :class="{ active: anonymousPosting }" @click="anonymousPosting = !anonymousPosting">
                 <span>{{ anonymousPosting ? '🌿' : '👤' }}</span>
-                <span>{{ anonymousPosting ? 'Ẩn danh: Bật' : 'Ẩn danh' }}</span>
+                <span>{{ anonymousPosting ? t('community.composer.anonOn') : t('community.composer.anonOff') }}</span>
               </div>
             </div>
-            <textarea ref="postTextareaEl" class="pc-textarea" v-model="postContent" placeholder="Hôm nay bạn muốn chia sẻ điều gì? Một câu chuyện, một cảm xúc, một bài học, hay đơn giản là 'Tôi vẫn ổn'... 🌿" maxlength="500"></textarea>
+            <textarea ref="postTextareaEl" class="pc-textarea" v-model="postContent" :placeholder="t('community.composer.placeholder')" maxlength="500"></textarea>
             <div style="font-size:0.65rem;color:var(--text-light);text-align:right;margin-top:2px;"><span>{{ postContent.length }}</span>/500</div>
             <div class="pc-footer">
               <div class="pc-tags">
-                <span style="font-size:0.68rem;color:var(--text-light);">Chủ đề:</span>
-                <div v-for="tag in POST_TAGS" :key="tag" class="pc-tag" :class="{ active: selectedTags.includes(tag) }" @click="toggleSelectedTag(tag)">{{ tag }}</div>
+                <span style="font-size:0.68rem;color:var(--text-light);">{{ t('community.composer.tagsLabel') }}</span>
+                <div v-for="tag in POST_TAG_OPTIONS" :key="tag.id" class="pc-tag" :class="{ active: selectedTags.includes(tag.id) }" @click="toggleSelectedTag(tag.id)">{{ t(tag.labelKey) }}</div>
               </div>
               <div class="pc-actions">
-                <div class="pc-anon-note">{{ anonymousPosting ? 'Đang đăng ẩn danh' : `Đăng với tên ${currentUserName}` }}</div>
-                <button class="btn-primary" style="padding:8px 18px;font-size:0.82rem;" @click="handleSubmitPost">📤 Đăng bài</button>
+                <div class="pc-anon-note">{{ anonymousPosting ? t('community.composer.postingAnon') : t('community.composer.postingAs', { name: currentUserName }) }}</div>
+                <button class="btn-primary" style="padding:8px 18px;font-size:0.82rem;" @click="handleSubmitPost">{{ t('community.composer.submitBtn') }}</button>
               </div>
             </div>
           </div>
 
           <div class="feed-filters">
-            <button v-for="f in FEED_FILTERS" :key="f.id" class="ff-btn" :class="{ active: currentFilter === f.id }" @click="currentFilter = f.id">{{ f.label }}</button>
+            <button v-for="f in FEED_FILTERS" :key="f.id" class="ff-btn" :class="{ active: currentFilter === f.id }" @click="currentFilter = f.id">{{ t(f.labelKey) }}</button>
           </div>
 
           <div class="post-feed">
             <div v-if="!filteredPosts.length" class="paper-card post-card" style="text-align:center;padding:32px 20px;">
               <div style="font-size:2rem;margin-bottom:10px;">💬</div>
-              <div style="font-weight:700;color:var(--text-primary);margin-bottom:6px;">{{ currentFilter === 'all' ? 'Cộng đồng chưa có bài viết nào' : 'Chưa có bài viết cho bộ lọc này' }}</div>
-              <div style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:16px;line-height:1.6;">{{ currentFilter === 'all' ? 'Hãy là người đầu tiên chia sẻ cảm xúc, câu chuyện hoặc mẹo hay với cộng đồng!' : 'Thử chọn bộ lọc khác hoặc đăng bài mới.' }}</div>
-              <button style="padding:10px 22px;background:var(--mint-dark);color:white;border:none;border-radius:50px;font-weight:700;font-size:0.85rem;cursor:pointer;" @click="scrollToComposer">✍️ Viết bài ngay</button>
+              <div style="font-weight:700;color:var(--text-primary);margin-bottom:6px;">{{ currentFilter === 'all' ? t('community.feed.emptyAllTitle') : t('community.feed.emptyFilterTitle') }}</div>
+              <div style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:16px;line-height:1.6;">{{ currentFilter === 'all' ? t('community.feed.emptyAllDesc') : t('community.feed.emptyFilterDesc') }}</div>
+              <button style="padding:10px 22px;background:var(--mint-dark);color:white;border:none;border-radius:50px;font-weight:700;font-size:0.85rem;cursor:pointer;" @click="scrollToComposer">{{ t('community.feed.writeNowBtn') }}</button>
             </div>
 
             <article v-for="post in filteredPosts" :key="post.id" class="paper-card post-card">
@@ -114,37 +114,37 @@
                   <div class="pa-avatar" :class="post.anon ? 'anon' : 'user'">{{ post.avatar || '🌿' }}</div>
                   <div>
                     <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
-                      <div class="pa-name">{{ post.name || 'Người dùng' }}</div>
-                      <span v-if="post.isAdmin" style="font-size:0.6rem;font-weight:800;background:var(--coral);color:#fff;padding:1px 6px;border-radius:6px;border:1px solid var(--coral-dark);white-space:nowrap;">🛡️ Admin</span>
-                      <span v-if="post.isExpert" style="font-size:0.6rem;font-weight:800;background:var(--mint);color:var(--text-primary);padding:1px 6px;border-radius:6px;border:1px solid var(--mint-dark);white-space:nowrap;">🩺 Chuyên gia</span>
+                      <div class="pa-name">{{ post.name || t('community.post.defaultAuthor') }}</div>
+                      <span v-if="post.isAdmin" style="font-size:0.6rem;font-weight:800;background:var(--coral);color:#fff;padding:1px 6px;border-radius:6px;border:1px solid var(--coral-dark);white-space:nowrap;">{{ t('community.post.adminBadge') }}</span>
+                      <span v-if="post.isExpert" style="font-size:0.6rem;font-weight:800;background:var(--mint);color:var(--text-primary);padding:1px 6px;border-radius:6px;border:1px solid var(--mint-dark);white-space:nowrap;">{{ t('community.post.expertBadge') }}</span>
                       <span v-if="post.level" class="pa-level">{{ post.level }}</span>
                     </div>
-                    <div class="pa-meta">{{ post.time || 'Vừa xong' }}</div>
+                    <div class="pa-meta">{{ post.time || t('community.post.justNow') }}</div>
                   </div>
                 </div>
                 <div class="post-menu-wrapper">
-                  <button class="post-menu" title="Tùy chọn" @click="togglePostMenu(post.id)">⋯</button>
+                  <button class="post-menu" :title="t('community.post.optionsTitle')" @click="togglePostMenu(post.id)">⋯</button>
                   <div class="post-menu-dropdown" :class="{ open: openMenuPostId === post.id }">
                     <template v-if="isOwnPost(post)">
-                      <button @click="editPost(post)">✏️ Sửa bài</button>
-                      <button @click="deletePost(post.id)">🗑️ Xóa bài</button>
+                      <button @click="editPost(post)">{{ t('community.post.editBtn') }}</button>
+                      <button @click="deletePost(post.id)">{{ t('community.post.deleteBtn') }}</button>
                     </template>
-                    <button v-else @click="openReportModal(post.id)">🚩 Báo cáo</button>
+                    <button v-else @click="openReportModal(post.id)">{{ t('community.post.reportBtn') }}</button>
                   </div>
                 </div>
               </div>
-              <div class="post-tag" :class="post.tagClass || ''">{{ post.tagLabel || '📖 Câu chuyện' }}</div>
+              <div class="post-tag" :class="post.tagClass || ''">{{ post.tagLabel || t('community.post.defaultTag') }}</div>
 
               <template v-if="editingPostId === post.id">
                 <textarea class="post-edit-input" v-model="postEditText" maxlength="1000"></textarea>
                 <div class="post-edit-actions">
-                  <button class="comment-send" @click="savePostEdit(post.id)">Lưu</button>
-                  <button class="btn-ghost" style="font-size:0.8rem;padding:4px 12px;" @click="editingPostId = null">Hủy</button>
+                  <button class="comment-send" @click="savePostEdit(post.id)">{{ t('community.post.saveBtn') }}</button>
+                  <button class="btn-ghost" style="font-size:0.8rem;padding:4px 12px;" @click="editingPostId = null">{{ t('community.post.cancelBtn') }}</button>
                 </div>
               </template>
               <template v-else>
                 <div class="post-content" :class="{ collapsed: isLongPost(post.content) && !expandedPosts.has(post.id) }">{{ post.content || '' }}</div>
-                <div v-if="isLongPost(post.content)" class="read-more" @click="togglePostExpand(post.id)">{{ expandedPosts.has(post.id) ? 'Thu gọn' : 'Xem thêm' }}</div>
+                <div v-if="isLongPost(post.content)" class="read-more" @click="togglePostExpand(post.id)">{{ expandedPosts.has(post.id) ? t('community.post.collapseBtn') : t('community.post.expandBtn') }}</div>
               </template>
 
               <div class="post-reactions">
@@ -156,23 +156,23 @@
                   @click="handleToggleReaction(post.id, key)"
                 >
                   <span>{{ meta.icon }}</span>
-                  <span>{{ meta.label }}</span>
+                  <span>{{ t(meta.labelKey) }}</span>
                   <span class="reaction-count">{{ formatCompactNumber(post.reactions?.[key] || 0) }}</span>
                 </button>
-                <button class="comment-btn" @click="toggleComments(post.id)">💬 {{ formatCompactNumber(post.comments?.length || 0) }} bình luận</button>
+                <button class="comment-btn" @click="toggleComments(post.id)">{{ t('community.post.commentsBtn', { n: formatCompactNumber(post.comments?.length || 0) }) }}</button>
               </div>
 
               <div class="comments-section" :class="{ show: openComments.has(post.id) }">
                 <template v-if="!topLevelComments(post).length">
-                  <div style="font-size:0.72rem;color:var(--text-light);margin-bottom:8px;">Chưa có bình luận nào. Bạn có thể mở lời trước.</div>
+                  <div style="font-size:0.72rem;color:var(--text-light);margin-bottom:8px;">{{ t('community.post.noComments') }}</div>
                 </template>
                 <template v-for="comment in topLevelComments(post)" :key="comment.id">
                   <CommunityComment :post="post" :comment="comment" :is-reply="false" :state="commentUiState(comment)" @edit="editComment(post.id, comment)" @save-edit="saveCommentEdit(post.id, comment.id, $event)" @cancel-edit="editingCommentId = null" @delete="deleteComment(post.id, comment.id)" @toggle-reply="toggleReply(post.id, comment.id)" @submit-reply="submitReply(post.id, comment.id, $event)" />
                   <CommunityComment v-for="reply in repliesFor(post, comment.id)" :key="reply.id" :post="post" :comment="reply" :is-reply="true" :state="commentUiState(reply)" @edit="editComment(post.id, reply)" @save-edit="saveCommentEdit(post.id, reply.id, $event)" @cancel-edit="editingCommentId = null" @delete="deleteComment(post.id, reply.id)" />
                 </template>
                 <div class="comment-input-row">
-                  <input class="comment-input" v-model="newCommentDraft[post.id]" placeholder="Viết lời nhắn dịu dàng..." maxlength="240">
-                  <button class="comment-send" @click="handleSubmitComment(post.id)">Gửi</button>
+                  <input class="comment-input" v-model="newCommentDraft[post.id]" :placeholder="t('community.post.commentPlaceholder')" maxlength="240">
+                  <button class="comment-send" @click="handleSubmitComment(post.id)">{{ t('community.post.sendBtn') }}</button>
                 </div>
               </div>
             </article>
@@ -182,72 +182,72 @@
         <!-- RIGHT: Sidebar -->
         <div>
           <div class="paper-card leaderboard-card">
-            <div class="lc-title">🏆 Bảng xếp hạng</div>
+            <div class="lc-title">{{ t('community.leaderboard.title') }}</div>
             <div class="lb-tabs">
-              <div class="lb-tab" :class="{ active: leaderboardTab === 'xp' }" @click="leaderboardTab = 'xp'">⭐ XP</div>
-              <div class="lb-tab" :class="{ active: leaderboardTab === 'streak' }" @click="leaderboardTab = 'streak'">🔥 Streak</div>
-              <div class="lb-tab" :class="{ active: leaderboardTab === 'tasks' }" @click="leaderboardTab = 'tasks'">✅ Tasks</div>
+              <div class="lb-tab" :class="{ active: leaderboardTab === 'xp' }" @click="leaderboardTab = 'xp'">{{ t('community.leaderboard.xpTab') }}</div>
+              <div class="lb-tab" :class="{ active: leaderboardTab === 'streak' }" @click="leaderboardTab = 'streak'">{{ t('community.leaderboard.streakTab') }}</div>
+              <div class="lb-tab" :class="{ active: leaderboardTab === 'tasks' }" @click="leaderboardTab = 'tasks'">{{ t('community.leaderboard.tasksTab') }}</div>
             </div>
             <div class="lb-list">
-              <div v-if="leaderboardHidden" style="font-size:0.75rem;color:var(--text-secondary);padding:8px 0;">Bảng xếp hạng đang được ẩn trên thiết bị này.</div>
+              <div v-if="leaderboardHidden" style="font-size:0.75rem;color:var(--text-secondary);padding:8px 0;">{{ t('community.leaderboard.hidden') }}</div>
               <template v-else>
-                <div v-if="!currentLeaderboard.length" style="font-size:0.75rem;color:var(--text-secondary);padding:8px 0;">Chưa có dữ liệu xếp hạng.</div>
+                <div v-if="!currentLeaderboard.length" style="font-size:0.75rem;color:var(--text-secondary);padding:8px 0;">{{ t('community.leaderboard.noData') }}</div>
                 <div v-for="(item, index) in currentLeaderboard" :key="index" class="lb-item" :class="{ me: isMe(item) }">
                   <div class="lb-rank" :class="index === 0 ? 'gold' : index === 1 ? 'silver' : index === 2 ? 'bronze' : ''">{{ index + 1 }}</div>
                   <div style="flex:1;">
-                    <div style="font-size:0.76rem;font-weight:700;">{{ item.name || 'Người dùng' }}</div>
+                    <div style="font-size:0.76rem;font-weight:700;">{{ item.name || t('community.leaderboard.defaultName') }}</div>
                     <div style="font-size:0.66rem;color:var(--text-light);">{{ item.subtitle || '' }}</div>
                   </div>
                   <div style="font-size:0.78rem;font-weight:800;color:var(--mint-dark);">{{ formatCompactNumber(item.value) }}</div>
                 </div>
               </template>
             </div>
-            <div class="lb-hide-toggle" @click="toggleLeaderboardHidden">{{ leaderboardHidden ? '👁 Hiện lại bảng xếp hạng' : '👁 Ẩn khỏi bảng xếp hạng' }}</div>
+            <div class="lb-hide-toggle" @click="toggleLeaderboardHidden">{{ leaderboardHidden ? t('community.leaderboard.showBtn') : t('community.leaderboard.hideBtn') }}</div>
           </div>
 
           <div class="paper-card challenges-card">
-            <div class="cc-title">🎯 Thử thách đang diễn ra</div>
+            <div class="cc-title">{{ t('community.challengesCard.title') }}</div>
             <div class="challenge-item">
-              <div class="ci-header"><div class="ci-name">🧘 Thiền 1,000 phút</div><div class="ci-xp">+100 XP</div></div>
+              <div class="ci-header"><div class="ci-name">{{ t('community.challengesCard.meditation.name') }}</div><div class="ci-xp">+100 XP</div></div>
               <div class="ci-progress"><div class="ci-fill" style="width:74%"></div></div>
-              <div class="ci-meta">742/1,000 phút · 4 ngày còn lại</div>
+              <div class="ci-meta">{{ t('community.challengesCard.meditation.meta') }}</div>
             </div>
             <div class="challenge-item">
-              <div class="ci-header"><div class="ci-name">📝 7 ngày viết nhật ký</div><div class="ci-xp">+80 XP</div></div>
+              <div class="ci-header"><div class="ci-name">{{ t('community.challengesCard.journal.name') }}</div><div class="ci-xp">+80 XP</div></div>
               <div class="ci-progress"><div class="ci-fill" style="width:57%"></div></div>
-              <div class="ci-meta">4/7 ngày · Cá nhân</div>
+              <div class="ci-meta">{{ t('community.challengesCard.journal.meta') }}</div>
             </div>
             <div class="challenge-item">
-              <div class="ci-header"><div class="ci-name">💨 Thở 5 ngày liên tục</div><div class="ci-xp">+50 XP</div></div>
+              <div class="ci-header"><div class="ci-name">{{ t('community.challengesCard.breathing.name') }}</div><div class="ci-xp">+50 XP</div></div>
               <div class="ci-progress"><div class="ci-fill" style="width:40%"></div></div>
-              <div class="ci-meta">2/5 ngày · Cá nhân</div>
+              <div class="ci-meta">{{ t('community.challengesCard.breathing.meta') }}</div>
             </div>
           </div>
 
           <div class="paper-card mentor-card">
-            <div class="mc-title">🌟 Mentor cộng đồng</div>
-            <div style="font-size:0.72rem;color:var(--text-secondary);margin-bottom:10px;line-height:1.5;">Những thành viên Level 5+ sẵn sàng đồng hành cùng bạn</div>
+            <div class="mc-title">{{ t('community.mentor.title') }}</div>
+            <div style="font-size:0.72rem;color:var(--text-secondary);margin-bottom:10px;line-height:1.5;">{{ t('community.mentor.subtitle') }}</div>
             <div>
-              <div v-if="!mentors.length" style="font-size:0.72rem;color:var(--text-secondary);">Chưa có mentor cộng đồng khả dụng.</div>
+              <div v-if="!mentors.length" style="font-size:0.72rem;color:var(--text-secondary);">{{ t('community.mentor.noMentors') }}</div>
               <div v-for="(mentor, index) in mentors" :key="index" class="mentor-item">
                 <div class="mi-avatar">{{ ['🌟', '🧘', '🌿'][index % 3] }}</div>
                 <div class="mi-info">
-                  <div class="mi-name">{{ mentor.name || 'Mentor' }}</div>
-                  <div class="mi-level">Level {{ mentor.current_level || 5 }} · {{ formatCompactNumber(mentor.total_xp || 0) }} XP · streak {{ formatCompactNumber(mentor.current_streak || 0) }}</div>
+                  <div class="mi-name">{{ mentor.name || t('community.mentor.defaultName') }}</div>
+                  <div class="mi-level">{{ t('community.mentor.statsLabel', { level: mentor.current_level || 5, xp: formatCompactNumber(mentor.total_xp || 0), streak: formatCompactNumber(mentor.current_streak || 0) }) }}</div>
                 </div>
-                <button class="mi-btn" @click="showToast('Tính năng nhắn mentor sẽ được nối ở bước sau.')">Nhắn</button>
+                <button class="mi-btn" @click="showToast(t('community.toast.mentorMessageComingSoon'))">{{ t('community.mentor.messageBtn') }}</button>
               </div>
             </div>
-            <div style="font-size:0.72rem;color:var(--text-light);margin-top:6px;text-align:center;">Đạt Level 5 để trở thành Mentor 🌟</div>
+            <div style="font-size:0.72rem;color:var(--text-light);margin-top:6px;text-align:center;">{{ t('community.mentor.footerHint') }}</div>
           </div>
 
           <div class="paper-card" style="padding:14px;margin-bottom:14px;">
-            <div style="font-size:0.82rem;font-weight:700;margin-bottom:8px;">📜 Quy tắc cộng đồng</div>
+            <div style="font-size:0.82rem;font-weight:700;margin-bottom:8px;">{{ t('community.rules.title') }}</div>
             <div style="display:flex;flex-direction:column;gap:5px;">
-              <div style="font-size:0.72rem;color:var(--text-secondary);display:flex;gap:5px;"><span>💚</span><span>Chia sẻ với tình yêu thương, không phán xét</span></div>
-              <div style="font-size:0.72rem;color:var(--text-secondary);display:flex;gap:5px;"><span>🔒</span><span>Tôn trọng sự riêng tư của người khác</span></div>
-              <div style="font-size:0.72rem;color:var(--text-secondary);display:flex;gap:5px;"><span>🚫</span><span>Không spam, quảng cáo, nội dung tiêu cực</span></div>
-              <div style="font-size:0.72rem;color:var(--text-secondary);display:flex;gap:5px;"><span>🆘</span><span>Nếu ai đó cần giúp đỡ khẩn cấp, hãy báo cáo ngay</span></div>
+              <div style="font-size:0.72rem;color:var(--text-secondary);display:flex;gap:5px;"><span>💚</span><span>{{ t('community.rules.rule1') }}</span></div>
+              <div style="font-size:0.72rem;color:var(--text-secondary);display:flex;gap:5px;"><span>🔒</span><span>{{ t('community.rules.rule2') }}</span></div>
+              <div style="font-size:0.72rem;color:var(--text-secondary);display:flex;gap:5px;"><span>🚫</span><span>{{ t('community.rules.rule3') }}</span></div>
+              <div style="font-size:0.72rem;color:var(--text-secondary);display:flex;gap:5px;"><span>🆘</span><span>{{ t('community.rules.rule4') }}</span></div>
             </div>
           </div>
         </div>
@@ -258,30 +258,44 @@
 
 <script setup>
 import { ref, reactive, computed, onMounted, nextTick, h } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { apiClient } from '../lib/apiClient';
 import { useAuthStore } from '../stores/auth';
 
+const { t, locale } = useI18n();
+
 const REACTION_META = {
-  heart: { icon: '❤️', label: 'Thương' },
-  hug: { icon: '🤗', label: 'Ôm' },
-  strong: { icon: '💪', label: 'Cố lên' },
-  star: { icon: '⭐', label: 'Hay quá' }
+  heart: { icon: '❤️', labelKey: 'community.reactions.heart' },
+  hug: { icon: '🤗', labelKey: 'community.reactions.hug' },
+  strong: { icon: '💪', labelKey: 'community.reactions.strong' },
+  star: { icon: '⭐', labelKey: 'community.reactions.star' }
 };
-const POST_TAGS = ['#biếtơn', '#câuchuyện', '#milestone', '#hỏiđáp', '#mẹohay'];
+// id giữ nguyên hashtag tiếng Việt gốc — đây là giá trị thật sự được lưu vào selectedTags rồi
+// gửi lên backend (tags[]) và dùng để suy ra category qua mapTagToCategory()/normalizeVietnamese()
+// bên dưới; chỉ labelKey đổi theo ngôn ngữ hiển thị.
+const POST_TAG_OPTIONS = [
+  { id: '#biếtơn', labelKey: 'community.tags.gratitude' },
+  { id: '#câuchuyện', labelKey: 'community.tags.story' },
+  { id: '#milestone', labelKey: 'community.tags.milestone' },
+  { id: '#hỏiđáp', labelKey: 'community.tags.qa' },
+  { id: '#mẹohay', labelKey: 'community.tags.tip' }
+];
 const FEED_FILTERS = [
-  { id: 'all', label: '🌿 Tất cả' },
-  { id: 'gratitude', label: '🙏 Biết ơn' },
-  { id: 'story', label: '📖 Câu chuyện' },
-  { id: 'milestone', label: '🏆 Cột mốc' },
-  { id: 'question', label: '❓ Hỏi đáp' },
-  { id: 'tip', label: '💡 Mẹo hay' }
+  { id: 'all', labelKey: 'community.filters.all' },
+  { id: 'gratitude', labelKey: 'community.filters.gratitude' },
+  { id: 'story', labelKey: 'community.filters.story' },
+  { id: 'milestone', labelKey: 'community.filters.milestone' },
+  { id: 'question', labelKey: 'community.filters.question' },
+  { id: 'tip', labelKey: 'community.filters.tip' }
 ];
 
 // Component con hiển thị 1 bình luận (dùng lại cho cả top-level & reply, khớp renderSingleComment gốc).
+// Đây là component object thuần (không phải <script setup>) nên tự gọi useI18n() riêng trong setup().
 const CommunityComment = {
   props: ['post', 'comment', 'isReply', 'state'],
   emits: ['edit', 'save-edit', 'cancel-edit', 'delete', 'toggle-reply', 'submit-reply'],
   setup(props, { emit }) {
+    const { t } = useI18n();
     const draft = ref(props.comment.text || '');
     const replyDraft = ref('');
     return () => h('div', null, [
@@ -289,30 +303,30 @@ const CommunityComment = {
         h('div', { class: 'ci-avatar' }, props.comment.avatar || '🌿'),
         h('div', { class: 'ci-bubble' }, [
           h('div', { class: 'ci-name', style: 'display:flex;align-items:center;gap:6px;flex-wrap:wrap;' }, [
-            props.comment.name || 'Người dùng',
-            props.comment.isAdmin ? h('span', { style: 'font-size:0.6rem;font-weight:800;background:var(--coral);color:#fff;padding:1px 6px;border-radius:6px;border:1px solid var(--coral-dark);white-space:nowrap;' }, '🛡️ Admin') : null,
-            props.comment.isExpert ? h('span', { style: 'font-size:0.6rem;font-weight:800;background:var(--mint);color:var(--text-primary);padding:1px 6px;border-radius:6px;border:1px solid var(--mint-dark);white-space:nowrap;' }, '🩺 Chuyên gia') : null
+            props.comment.name || t('community.comment.defaultAuthor'),
+            props.comment.isAdmin ? h('span', { style: 'font-size:0.6rem;font-weight:800;background:var(--coral);color:#fff;padding:1px 6px;border-radius:6px;border:1px solid var(--coral-dark);white-space:nowrap;' }, t('community.comment.adminBadge')) : null,
+            props.comment.isExpert ? h('span', { style: 'font-size:0.6rem;font-weight:800;background:var(--mint);color:var(--text-primary);padding:1px 6px;border-radius:6px;border:1px solid var(--mint-dark);white-space:nowrap;' }, t('community.comment.expertBadge')) : null
           ]),
           props.state.editing
             ? h('div', null, [
               h('textarea', { class: 'comment-edit-input', maxlength: 240, value: draft.value, onInput: (e) => { draft.value = e.target.value; } }),
               h('div', { class: 'comment-edit-actions' }, [
-                h('button', { class: 'comment-send', onClick: () => emit('save-edit', draft.value) }, 'Lưu'),
-                h('button', { class: 'btn-ghost', style: 'font-size:0.75rem;padding:3px 8px;', onClick: () => emit('cancel-edit') }, 'Hủy')
+                h('button', { class: 'comment-send', onClick: () => emit('save-edit', draft.value) }, t('community.comment.saveBtn')),
+                h('button', { class: 'btn-ghost', style: 'font-size:0.75rem;padding:3px 8px;', onClick: () => emit('cancel-edit') }, t('community.comment.cancelBtn'))
               ])
             ])
             : h('div', { class: 'ci-text' }, props.comment.text || ''),
           !props.state.editing ? h('div', { class: 'ci-actions' }, [
-            !props.isReply ? h('button', { class: 'ci-action-btn', onClick: () => emit('toggle-reply') }, 'Trả lời') : null,
-            props.state.isOwn ? h('button', { class: 'ci-action-btn', onClick: () => emit('edit') }, 'Sửa') : null,
-            props.state.isOwn ? h('button', { class: 'ci-action-btn danger', onClick: () => emit('delete') }, 'Xóa') : null
+            !props.isReply ? h('button', { class: 'ci-action-btn', onClick: () => emit('toggle-reply') }, t('community.comment.replyBtn')) : null,
+            props.state.isOwn ? h('button', { class: 'ci-action-btn', onClick: () => emit('edit') }, t('community.comment.editBtn')) : null,
+            props.state.isOwn ? h('button', { class: 'ci-action-btn danger', onClick: () => emit('delete') }, t('community.comment.deleteBtn')) : null
           ]) : null
         ])
       ]),
       (!props.isReply && props.state.replying)
         ? h('div', { class: 'reply-input-row' }, [
-          h('input', { class: 'comment-input', placeholder: `Trả lời ${props.comment.name || ''}...`, maxlength: 240, value: replyDraft.value, onInput: (e) => { replyDraft.value = e.target.value; } }),
-          h('button', { class: 'comment-send', onClick: () => emit('submit-reply', replyDraft.value) }, 'Gửi')
+          h('input', { class: 'comment-input', placeholder: t('community.comment.replyPlaceholder', { name: props.comment.name || '' }), maxlength: 240, value: replyDraft.value, onInput: (e) => { replyDraft.value = e.target.value; } }),
+          h('button', { class: 'comment-send', onClick: () => emit('submit-reply', replyDraft.value) }, t('community.comment.sendBtn'))
         ])
         : null
     ]);
@@ -362,7 +376,7 @@ function showToast(message) {
 }
 
 function formatCompactNumber(value) {
-  return Number(value || 0).toLocaleString('vi-VN');
+  return Number(value || 0).toLocaleString(locale.value === 'en' ? 'en-US' : 'vi-VN');
 }
 function formatPercent(value) {
   return `${Math.round(Number(value || 0))}%`;
@@ -393,7 +407,7 @@ function isLongPost(content) {
   return String(content || '').length > 220;
 }
 
-const currentUserName = computed(() => auth.user?.display_name || auth.user?.full_name || auth.user?.email || 'Bạn');
+const currentUserName = computed(() => auth.user?.display_name || auth.user?.full_name || auth.user?.email || t('community.defaultUserName'));
 
 function toggleSelectedTag(tag) {
   if (selectedTags.value.includes(tag)) {
@@ -440,7 +454,7 @@ function updatePostState(postId, patcher) {
 async function handleSubmitPost() {
   const content = postContent.value.trim();
   if (!content) {
-    showToast('Hãy viết điều bạn muốn chia sẻ trước khi đăng.');
+    showToast(t('community.toast.emptyPost'));
     return;
   }
 
@@ -457,9 +471,9 @@ async function handleSubmitPost() {
 
     postContent.value = '';
     selectedTags.value = [];
-    showToast('Bài viết đã được chia sẻ lên cộng đồng.');
+    showToast(t('community.toast.postSuccess'));
   } catch (error) {
-    showToast(error.message || 'Không thể đăng bài lúc này.');
+    showToast(error.message || t('community.toast.postFailed'));
   }
 }
 
@@ -498,7 +512,7 @@ async function handleToggleReaction(postId, reactionType) {
       reactions: { ...current.reactions, [reactionType]: Math.max(0, (current.reactions?.[reactionType] || 0) + (wasReacted ? 1 : -1)) },
       myReactions: { ...(current.myReactions || {}), [reactionType]: wasReacted }
     }));
-    showToast(error.message || 'Không thể cập nhật reaction.');
+    showToast(error.message || t('community.toast.reactionFailed'));
   }
 }
 
@@ -521,31 +535,31 @@ function editPost(post) {
 }
 async function savePostEdit(postId) {
   const content = postEditText.value.trim();
-  if (!content) { showToast('Nội dung không được để trống.'); return; }
+  if (!content) { showToast(t('community.toast.emptyEdit')); return; }
   try {
     await apiClient.put(`/community/posts/${postId}`, { content });
     updatePostState(postId, (post) => ({ ...post, content }));
     editingPostId.value = null;
-    showToast('Đã lưu chỉnh sửa.');
+    showToast(t('community.toast.editSaved'));
   } catch (error) {
-    showToast(error.message || 'Không thể lưu chỉnh sửa.');
+    showToast(error.message || t('community.toast.editFailed'));
   }
 }
 async function deletePost(postId) {
-  if (!confirm('Bạn chắc chắn muốn xóa bài viết này?')) return;
+  if (!confirm(t('community.confirm.deletePost'))) return;
   try {
     await apiClient.delete(`/community/posts/${postId}`);
     posts.value = posts.value.filter((p) => p.id !== postId);
     openMenuPostId.value = null;
-    showToast('Đã xóa bài viết.');
+    showToast(t('community.toast.postDeleted'));
   } catch (error) {
-    showToast(error.message || 'Không thể xóa bài viết.');
+    showToast(error.message || t('community.toast.postDeleteFailed'));
   }
 }
 
 async function handleSubmitComment(postId) {
   const content = (newCommentDraft[postId] || '').trim();
-  if (!content) { showToast('Hãy viết bình luận trước khi gửi.'); return; }
+  if (!content) { showToast(t('community.toast.emptyComment')); return; }
 
   const optimisticComment = {
     id: `temp-${Date.now()}`, userId: auth.user?.id, parentId: null, avatar: '🐱',
@@ -572,7 +586,7 @@ async function handleSubmitComment(postId) {
   } catch (error) {
     updatePostState(postId, (post) => ({ ...post, comments: (post.comments || []).filter((c) => c.id !== optimisticComment.id) }));
     newCommentDraft[postId] = content;
-    showToast(error.message || 'Không thể gửi bình luận.');
+    showToast(error.message || t('community.toast.commentFailed'));
   }
 }
 
@@ -581,24 +595,24 @@ function editComment(postId, comment) {
 }
 async function saveCommentEdit(postId, commentId, content) {
   const trimmed = content.trim();
-  if (!trimmed) { showToast('Nội dung không được để trống.'); return; }
+  if (!trimmed) { showToast(t('community.toast.emptyEdit')); return; }
   try {
     await apiClient.put(`/community/posts/${postId}/comments/${commentId}`, { content: trimmed });
     updatePostState(postId, (post) => ({ ...post, comments: (post.comments || []).map((c) => c.id === commentId ? { ...c, text: trimmed } : c) }));
     editingCommentId.value = null;
-    showToast('Đã lưu chỉnh sửa.');
+    showToast(t('community.toast.editSaved'));
   } catch (error) {
-    showToast(error.message || 'Không thể lưu chỉnh sửa.');
+    showToast(error.message || t('community.toast.editFailed'));
   }
 }
 async function deleteComment(postId, commentId) {
-  if (!confirm('Xóa bình luận này?')) return;
+  if (!confirm(t('community.confirm.deleteComment'))) return;
   try {
     await apiClient.delete(`/community/posts/${postId}/comments/${commentId}`);
     updatePostState(postId, (post) => ({ ...post, comments: (post.comments || []).filter((c) => c.id !== commentId && c.parentId !== commentId) }));
-    showToast('Đã xóa bình luận.');
+    showToast(t('community.toast.commentDeleted'));
   } catch (error) {
-    showToast(error.message || 'Không thể xóa bình luận.');
+    showToast(error.message || t('community.toast.commentDeleteFailed'));
   }
 }
 function toggleReply(postId, commentId) {
@@ -606,7 +620,7 @@ function toggleReply(postId, commentId) {
 }
 async function submitReply(postId, parentCommentId, content) {
   const trimmed = content.trim();
-  if (!trimmed) { showToast('Hãy viết nội dung trả lời.'); return; }
+  if (!trimmed) { showToast(t('community.toast.emptyReply')); return; }
 
   const optimisticReply = {
     id: `temp-${Date.now()}`, userId: auth.user?.id, parentId: parentCommentId, avatar: '🐱',
@@ -631,7 +645,7 @@ async function submitReply(postId, parentCommentId, content) {
     });
   } catch (error) {
     updatePostState(postId, (post) => ({ ...post, comments: (post.comments || []).filter((c) => c.id !== optimisticReply.id) }));
-    showToast(error.message || 'Không thể gửi trả lời.');
+    showToast(error.message || t('community.toast.replyFailed'));
   }
 }
 
@@ -644,7 +658,7 @@ function joinChallenge() {
   if (joinedChallenge.value) return;
   joinedChallenge.value = true;
   localStorage.setItem('peaceflow_joined_community_challenge', '1');
-  showToast('Bạn đã tham gia thử thách cộng đồng tuần này.');
+  showToast(t('community.toast.challengeJoined'));
 }
 
 function openReportModal(postId) {
@@ -658,7 +672,7 @@ function closeReportIfOutside(event) {
 function submitReport() {
   reportOpen.value = false;
   if (reportPostId.value) {
-    showToast('Bài viết đã được ghi nhận báo cáo để moderator xem xét.');
+    showToast(t('community.toast.reportSubmitted'));
   }
   reportPostId.value = null;
 }

@@ -3,7 +3,7 @@ import { requireAuth } from '../../common/middleware/auth.middleware.js';
 import { db } from '../../config/db.js';
 import { RecommendationEngineService } from '../risk/recommendation-engine.service.js';
 import { BadgeAwardService } from '../progress/badge-award.service.js';
-import { getActiveTasks } from './tasks.cache.js';
+import { getActiveTasks, localizeTask } from './tasks.cache.js';
 
 function sortTasks(tasks) {
   return [...tasks].sort((a, b) => {
@@ -45,7 +45,7 @@ router.get('/tasks', requireAuth, async (req, res) => {
     const inProgressSet = new Set(inProgressRes.rows.map((r) => r.task_id));
 
     const data = sortTasks(tasks.map((t) => ({
-      ...t,
+      ...localizeTask(t, req.locale),
       completed: completionMap.has(t.id),
       in_progress: inProgressSet.has(t.id),
       completion_count: completionMap.get(t.id) || 0
@@ -59,7 +59,7 @@ router.get('/tasks', requireAuth, async (req, res) => {
 });
 
 // GET /api/v1/tasks/public-emergency
-router.get('/tasks/public-emergency', async (_req, res) => {
+router.get('/tasks/public-emergency', async (req, res) => {
   try {
     const tasks = await getActiveTasks();
     const isEmergency = (t) => {
@@ -70,7 +70,7 @@ router.get('/tasks/public-emergency', async (_req, res) => {
     };
 
     const data = sortTasks(
-      tasks.filter(isEmergency).map((t) => ({ ...t, completed: false, in_progress: false, completion_count: 0 }))
+      tasks.filter(isEmergency).map((t) => ({ ...localizeTask(t, req.locale), completed: false, in_progress: false, completion_count: 0 }))
     ).sort((a, b) => {
       // sortTasks không so sánh theo code — giữ đúng tie-break gốc cho danh sách công khai này.
       const primary = (a.category === 'emergency' ? 0 : 1) - (b.category === 'emergency' ? 0 : 1)
@@ -93,7 +93,7 @@ router.get('/tasks/recommended', requireAuth, async (req, res) => {
     const recommendations = await RecommendationEngineService.recommendTasks(req.user.sub);
     return res.json({
       success: true,
-      data: recommendations.today_priority_tasks
+      data: recommendations.today_priority_tasks.map((t) => localizeTask(t, req.locale))
     });
   } catch (error) {
     console.error('Recommendation error:', error);

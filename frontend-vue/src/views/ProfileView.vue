@@ -1,8 +1,8 @@
 <template>
   <main class="main-content profile-page" style="margin-left: 0;">
     <div class="breadcrumb">
-      <router-link to="/dashboard">🏡 Tổng quan</router-link><span>›</span>
-      <span>👤 Hồ sơ cá nhân</span>
+      <router-link to="/dashboard">{{ t('profile.breadcrumbDashboard') }}</router-link><span>›</span>
+      <span>{{ t('profile.breadcrumbCurrent') }}</span>
     </div>
 
     <!-- Profile Hero -->
@@ -10,16 +10,16 @@
       <div class="ph-deco">🌿</div>
       <div class="ph-content">
         <div class="ph-avatar-wrap">
-          <div class="ph-avatar" @click="switchTab('info')" title="Đổi avatar">{{ heroAvatar }}</div>
+          <div class="ph-avatar" @click="switchTab('info')" :title="t('profile.hero.changeAvatarTitle')">{{ heroAvatar }}</div>
           <div class="ph-avatar-edit">✏️</div>
         </div>
         <div class="ph-info">
           <div class="ph-name">{{ heroName }}</div>
           <div class="ph-tagline">{{ heroTaglineText }}</div>
           <div class="ph-meta">
-            <div class="ph-meta-item">📅 Tham gia: {{ heroJoinDate }}</div>
+            <div class="ph-meta-item">{{ t('profile.hero.joined', { date: heroJoinDate }) }}</div>
             <div class="ph-meta-item">📍 {{ heroLocation }}</div>
-            <div class="ph-meta-item">🔥 Streak: {{ heroStreak }} ngày</div>
+            <div class="ph-meta-item">{{ t('profile.hero.streakDays', { n: heroStreak }) }}</div>
           </div>
           <div style="margin-top:10px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
             <div class="ph-level-badge">{{ heroLevelBadgeText }}</div>
@@ -36,11 +36,11 @@
 
     <!-- Profile Tabs -->
     <div class="profile-tabs">
-      <div class="profile-tab" :class="{ active: activeTab === 'info' }" @click="switchTab('info')">👤 Thông tin</div>
-      <div class="profile-tab" :class="{ active: activeTab === 'badges' }" @click="switchTab('badges')">🏅 Thành tích</div>
-      <div class="profile-tab" :class="{ active: activeTab === 'activity' }" @click="switchTab('activity')">📊 Hoạt động</div>
-      <div class="profile-tab" :class="{ active: activeTab === 'settings' }" @click="switchTab('settings')">⚙️ Cài đặt</div>
-      <div class="profile-tab" :class="{ active: activeTab === 'privacy' }" @click="switchTab('privacy')">🔒 Bảo mật</div>
+      <div class="profile-tab" :class="{ active: activeTab === 'info' }" @click="switchTab('info')">{{ t('profile.tabs.info') }}</div>
+      <div class="profile-tab" :class="{ active: activeTab === 'badges' }" @click="switchTab('badges')">{{ t('profile.tabs.badges') }}</div>
+      <div class="profile-tab" :class="{ active: activeTab === 'activity' }" @click="switchTab('activity')">{{ t('profile.tabs.activity') }}</div>
+      <div class="profile-tab" :class="{ active: activeTab === 'settings' }" @click="switchTab('settings')">{{ t('profile.tabs.settings') }}</div>
+      <div class="profile-tab" :class="{ active: activeTab === 'privacy' }" @click="switchTab('privacy')">{{ t('profile.tabs.privacy') }}</div>
     </div>
 
     <div class="profile-layout">
@@ -49,64 +49,58 @@
         <!-- TAB: INFO -->
         <div class="tab-panel" :class="{ active: activeTab === 'info' }">
           <div class="paper-card section-card">
-            <div class="sc-title">👤 Thông tin cá nhân</div>
+            <div class="sc-title">{{ t('profile.info.sectionTitle') }}</div>
             <div class="form-row">
               <div class="form-group">
-                <label class="form-label">Tên hiển thị *</label>
+                <label class="form-label">{{ t('profile.info.displayName') }}</label>
                 <input type="text" class="form-input" v-model="formDisplayName">
               </div>
               <div class="form-group">
-                <label class="form-label">Biệt danh (tùy chọn)</label>
-                <input type="text" class="form-input" placeholder="Tên bạn muốn PeaceCat gọi..." v-model="formNickname">
+                <label class="form-label">{{ t('profile.info.nickname') }}</label>
+                <input type="text" class="form-input" :placeholder="t('profile.info.nicknamePlaceholder')" v-model="formNickname">
               </div>
             </div>
             <div class="form-row">
               <div class="form-group">
-                <label class="form-label">Email</label>
+                <label class="form-label">{{ t('profile.info.email') }}</label>
                 <input type="email" class="form-input" v-model="formEmail">
               </div>
               <div class="form-group">
-                <label class="form-label">Số điện thoại (tùy chọn)</label>
-                <input type="tel" class="form-input" placeholder="0xxx xxx xxx" v-model="formPhone">
+                <label class="form-label">{{ t('profile.info.phone') }}</label>
+                <input type="tel" class="form-input" :placeholder="t('profile.info.phonePlaceholder')" v-model="formPhone">
               </div>
             </div>
             <div class="form-row">
               <div class="form-group">
-                <label class="form-label">Độ tuổi</label>
+                <label class="form-label">{{ t('profile.info.ageGroup') }}</label>
                 <select class="form-select" v-model="formAgeGroup">
-                  <option>16-24 tuổi</option>
-                  <option>25-34 tuổi</option>
-                  <option>35-44 tuổi</option>
-                  <option>45+ tuổi</option>
+                  <option v-for="opt in AGE_OPTIONS" :key="opt.id" :value="opt.id">{{ t(opt.labelKey) }}</option>
                 </select>
               </div>
               <div class="form-group">
-                <label class="form-label">Giới tính</label>
+                <label class="form-label">{{ t('profile.info.gender') }}</label>
                 <select class="form-select" v-model="formGender">
-                  <option>Nữ</option>
-                  <option>Nam</option>
-                  <option>Khác</option>
-                  <option>Không muốn tiết lộ</option>
+                  <option v-for="opt in GENDER_OPTIONS" :key="opt.id" :value="opt.id">{{ t(opt.labelKey) }}</option>
                 </select>
               </div>
             </div>
             <div class="form-group">
-              <label class="form-label">Khẩu hiệu cá nhân</label>
+              <label class="form-label">{{ t('profile.info.tagline') }}</label>
               <input type="text" class="form-input" v-model="formTagline">
-              <span class="form-hint">Hiển thị trên trang hồ sơ của bạn</span>
+              <span class="form-hint">{{ t('profile.info.taglineHint') }}</span>
             </div>
             <div class="form-group">
-              <label class="form-label">Giới thiệu bản thân (tùy chọn)</label>
-              <textarea class="form-textarea" rows="3" placeholder="Kể một chút về hành trình của bạn..." v-model="formBio"></textarea>
+              <label class="form-label">{{ t('profile.info.bio') }}</label>
+              <textarea class="form-textarea" rows="3" :placeholder="t('profile.info.bioPlaceholder')" v-model="formBio"></textarea>
             </div>
             <div style="display:flex;justify-content:flex-end;gap:10px;">
-              <button class="btn-outline" @click="resetForm">Hủy thay đổi</button>
-              <button class="btn-primary" @click="saveProfile">{{ savingProfile ? 'Đang lưu...' : '💾 Lưu thay đổi' }}</button>
+              <button class="btn-outline" @click="resetForm">{{ t('profile.info.cancel') }}</button>
+              <button class="btn-primary" @click="saveProfile">{{ savingProfile ? t('profile.info.saving') : t('profile.info.save') }}</button>
             </div>
           </div>
 
           <div class="paper-card section-card">
-            <div class="sc-title">🎭 Chọn Avatar Paper Flow</div>
+            <div class="sc-title">{{ t('profile.info.avatarSectionTitle') }}</div>
             <div class="avatar-grid">
               <div
                 v-for="avatar in AVATARS"
@@ -116,41 +110,37 @@
                 @click="selectAvatar(avatar)"
               >{{ avatar }}</div>
             </div>
-            <div style="font-size:0.72rem;color:var(--text-light);">Avatar của bạn sẽ xuất hiện trong cộng đồng và bảng xếp hạng</div>
+            <div style="font-size:0.72rem;color:var(--text-light);">{{ t('profile.info.avatarHint') }}</div>
           </div>
 
           <div class="paper-card section-card">
-            <div class="sc-title">🎯 Mục tiêu & Ưu tiên</div>
+            <div class="sc-title">{{ t('profile.info.goalsSectionTitle') }}</div>
             <div class="form-group">
-              <label class="form-label">Mục tiêu chính khi dùng PeaceFlow</label>
+              <label class="form-label">{{ t('profile.info.goalsLabel') }}</label>
               <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px;">
                 <div
                   v-for="goal in GOAL_OPTIONS"
-                  :key="goal"
+                  :key="goal.id"
                   class="goal-chip"
-                  :class="{ selected: selectedGoals.includes(goal) }"
-                  @click="toggleGoal(goal)"
-                >{{ goal }}</div>
+                  :class="{ selected: selectedGoals.includes(goal.id) }"
+                  @click="toggleGoal(goal.id)"
+                >{{ t(goal.labelKey) }}</div>
               </div>
             </div>
             <div class="form-row" style="margin-top:8px;">
               <div class="form-group">
-                <label class="form-label">Thời gian thiền mục tiêu/ngày</label>
+                <label class="form-label">{{ t('profile.info.goalDurationLabel') }}</label>
                 <select class="form-select" v-model="formGoalDuration">
-                  <option>5 phút</option>
-                  <option>10 phút</option>
-                  <option>15 phút</option>
-                  <option>20 phút</option>
-                  <option>30 phút</option>
+                  <option v-for="n in GOAL_DURATION_OPTIONS" :key="n" :value="n">{{ t('profile.info.minutesUnit', { n }) }}</option>
                 </select>
               </div>
               <div class="form-group">
-                <label class="form-label">Nhắc nhở hàng ngày lúc</label>
+                <label class="form-label">{{ t('profile.info.reminderLabel') }}</label>
                 <input type="time" class="form-input" v-model="formReminderTime">
               </div>
             </div>
             <div style="display:flex;justify-content:flex-end;">
-              <button class="btn-primary" @click="saveGoals">{{ savingGoals ? 'Đang lưu...' : '💾 Lưu mục tiêu' }}</button>
+              <button class="btn-primary" @click="saveGoals">{{ savingGoals ? t('profile.info.saving') : t('profile.info.saveGoals') }}</button>
             </div>
           </div>
         </div>
@@ -158,20 +148,20 @@
         <!-- TAB: BADGES -->
         <div class="tab-panel" :class="{ active: activeTab === 'badges' }">
           <div class="paper-card section-card">
-            <div class="sc-title">🏅 Huy hiệu đã đạt được ({{ achievements?.summary?.badges_earned || 0 }}/{{ achievements?.summary?.badges_total || 0 }})</div>
+            <div class="sc-title">{{ t('profile.badges.earnedTitle', { earned: achievements?.summary?.badges_earned || 0, total: achievements?.summary?.badges_total || 0 }) }}</div>
             <div class="badges-grid">
               <template v-if="badgesList.length">
                 <div v-for="(badge, idx) in badgesList" :key="idx" class="badge-item" :class="badge.earned ? 'earned' : 'locked'">
                   <div class="bi-icon">{{ badge.icon || '🏅' }}</div>
                   <div class="bi-name">{{ badge.name }}</div>
-                  <div class="bi-desc">{{ badge.earned ? (badge.earned_at ? `Đạt ${formatDate(badge.earned_at)}` : 'Đã đạt') : `${badge.current_value}/${badge.target_value}` }}</div>
+                  <div class="bi-desc">{{ badge.earned ? (badge.earned_at ? t('profile.badges.earnedOn', { date: formatDate(badge.earned_at) }) : t('profile.badges.earned')) : t('profile.badges.progress', { current: badge.current_value, target: badge.target_value }) }}</div>
                 </div>
               </template>
-              <div v-else style="grid-column:1/-1;color:var(--text-secondary);">Chưa có badge nào trong hồ sơ.</div>
+              <div v-else style="grid-column:1/-1;color:var(--text-secondary);">{{ t('profile.badges.noBadges') }}</div>
             </div>
           </div>
           <div class="paper-card section-card">
-            <div class="sc-title">📈 Tiến trình cấp độ</div>
+            <div class="sc-title">{{ t('profile.badges.levelProgressTitle') }}</div>
             <div>
               <div
                 v-for="level in levelsList"
@@ -186,9 +176,9 @@
                   }"
                 >{{ level.is_completed ? '✓' : level.level }}</div>
                 <div style="flex:1;">
-                  <div style="font-size:0.86rem;font-weight:800;">Level {{ level.level }} — {{ level.title }}</div>
+                  <div style="font-size:0.86rem;font-weight:800;">{{ t('profile.badges.levelLabel', { level: level.level, title: level.title }) }}</div>
                   <div style="font-size:0.72rem;color:var(--text-secondary);margin:4px 0 6px;">
-                    {{ Number.isFinite(level.maxXP) ? `${level.minXP} - ${level.maxXP} XP` : `${level.minXP}+ XP` }}
+                    {{ Number.isFinite(level.maxXP) ? t('profile.badges.xpRange', { min: level.minXP, max: level.maxXP }) : t('profile.badges.xpMinPlus', { min: level.minXP }) }}
                   </div>
                   <div class="ph-xp-bar" style="height:8px;">
                     <div class="ph-xp-fill" :style="{ width: level.progress_percent + '%' }"></div>
@@ -204,23 +194,23 @@
           <div class="stats-grid-4" style="margin-bottom:16px;">
             <div class="paper-card stat-box">
               <div class="sb-num">{{ activityStats.tasks }}</div>
-              <div class="sb-label">Nhiệm vụ hoàn thành</div>
+              <div class="sb-label">{{ t('profile.activity.tasksCompleted') }}</div>
             </div>
             <div class="paper-card stat-box">
               <div class="sb-num">{{ activityStats.journals }}</div>
-              <div class="sb-label">Bài nhật ký</div>
+              <div class="sb-label">{{ t('profile.activity.journalEntries') }}</div>
             </div>
             <div class="paper-card stat-box">
               <div class="sb-num">{{ activityStats.assessments }}</div>
-              <div class="sb-label">Bài test tâm lý</div>
+              <div class="sb-label">{{ t('profile.activity.assessments') }}</div>
             </div>
             <div class="paper-card stat-box">
               <div class="sb-num">{{ activityStats.streak }} 🔥</div>
-              <div class="sb-label">Streak hiện tại</div>
+              <div class="sb-label">{{ t('profile.activity.currentStreak') }}</div>
             </div>
           </div>
           <div class="paper-card section-card">
-            <div class="sc-title">📋 Hoạt động gần đây</div>
+            <div class="sc-title">{{ t('profile.activity.recentActivityTitle') }}</div>
             <div class="activity-timeline">
               <template v-if="activityTimeline.length">
                 <div v-for="(item, idx) in activityTimeline" :key="idx" style="display:flex;gap:10px;padding:12px 0;border-bottom:1px dashed var(--kraft-light);">
@@ -234,7 +224,7 @@
                   <div style="font-size:0.68rem;color:var(--text-light);white-space:nowrap;">{{ formatRelativeDate(item.date) }}</div>
                 </div>
               </template>
-              <div v-else style="color:var(--text-secondary);">Chưa có hoạt động nào được ghi nhận.</div>
+              <div v-else style="color:var(--text-secondary);">{{ t('profile.activity.noActivity') }}</div>
             </div>
           </div>
         </div>
@@ -242,7 +232,7 @@
         <!-- TAB: SETTINGS -->
         <div class="tab-panel" :class="{ active: activeTab === 'settings' }">
           <div class="paper-card section-card">
-            <div class="sc-title">🔔 Thông báo</div>
+            <div class="sc-title">{{ t('profile.settings.notifTitle') }}</div>
             <div>
               <div v-for="row in notifRows" :key="row.key" class="toggle-row">
                 <div class="tr-left">
@@ -257,87 +247,84 @@
             </div>
           </div>
           <div class="paper-card section-card">
-            <div class="sc-title">🌐 Ngôn ngữ & Hiển thị</div>
+            <div class="sc-title">{{ t('profile.settings.languageDisplayTitle') }}</div>
             <div class="form-row">
               <div class="form-group">
-                <label class="form-label">Ngôn ngữ</label>
-                <select class="form-select">
-                  <option selected>🇻🇳 Tiếng Việt</option>
-                  <option>🇬🇧 English</option>
-                </select>
+                <label class="form-label">{{ t('profile.settings.languageLabel') }}</label>
+                <LanguageSwitcher />
               </div>
               <div class="form-group">
-                <label class="form-label">Giao diện</label>
+                <label class="form-label">{{ t('profile.settings.themeLabel') }}</label>
                 <select class="form-select">
-                  <option selected>☀️ Sáng (Paper Flow)</option>
-                  <option>🌙 Tối (sắp ra mắt)</option>
+                  <option selected>{{ t('profile.settings.themeLight') }}</option>
+                  <option>{{ t('profile.settings.themeDark') }}</option>
                 </select>
               </div>
             </div>
             <div class="toggle-row">
               <div class="tr-left">
-                <div class="tr-title">Hiệu ứng animation</div>
-                <div class="tr-desc">Bật/tắt các hiệu ứng chuyển động trong ứng dụng</div>
+                <div class="tr-title">{{ t('profile.settings.animationTitle') }}</div>
+                <div class="tr-desc">{{ t('profile.settings.animationDesc') }}</div>
               </div>
               <label class="toggle-switch"><input type="checkbox" checked><span class="toggle-slider"></span></label>
             </div>
             <div class="toggle-row">
               <div class="tr-left">
-                <div class="tr-title">Âm thanh nền</div>
-                <div class="tr-desc">Nhạc thiền và âm thanh tự nhiên trong bài tập</div>
+                <div class="tr-title">{{ t('profile.settings.soundTitle') }}</div>
+                <div class="tr-desc">{{ t('profile.settings.soundDesc') }}</div>
               </div>
               <label class="toggle-switch"><input type="checkbox" checked><span class="toggle-slider"></span></label>
             </div>
             <div style="display:flex;justify-content:flex-end;margin-top:10px;">
-              <button class="btn-primary" @click="saveSettings">💾 Lưu cài đặt</button>
+              <button class="btn-primary" @click="saveSettings">{{ t('profile.settings.saveSettings') }}</button>
             </div>
           </div>
           <div class="paper-card section-card">
-            <div class="sc-title">📱 Thiết bị kết nối</div>
+            <div class="sc-title">{{ t('profile.settings.devicesTitle') }}</div>
             <div>
               <div style="padding:10px 0;border-bottom:1px dashed var(--kraft-light);">
-                <div style="font-size:0.8rem;font-weight:800;">Trình duyệt hiện tại</div>
-                <div style="font-size:0.72rem;color:var(--text-secondary);">Đã đăng nhập gần đây • Đồng bộ qua session hiện tại</div>
+                <div style="font-size:0.8rem;font-weight:800;">{{ t('profile.settings.currentBrowser') }}</div>
+                <div style="font-size:0.72rem;color:var(--text-secondary);">{{ t('profile.settings.currentBrowserDesc') }}</div>
               </div>
               <div style="padding-top:10px;font-size:0.74rem;color:var(--text-light);">
-                Danh sách thiết bị chi tiết chưa có bảng quản lý riêng trên backend.
+                {{ t('profile.settings.devicesNote') }}
               </div>
             </div>
-            <button class="btn-outline" style="margin-top:8px;" @click="showToast('Tính năng sắp ra mắt! 🚀')">+ Kết nối thiết bị mới</button>
+            <button class="btn-outline" style="margin-top:8px;" @click="showToast(t('profile.settings.deviceComingSoon'))">{{ t('profile.settings.connectNewDevice') }}</button>
           </div>
         </div>
 
         <!-- TAB: PRIVACY -->
         <div class="tab-panel" :class="{ active: activeTab === 'privacy' }">
           <div class="paper-card section-card">
-            <div class="sc-title">🔐 Bảo mật tài khoản</div>
+            <div class="sc-title">{{ t('profile.privacy.securityTitle') }}</div>
             <div class="form-group">
-              <label class="form-label">Mật khẩu hiện tại</label>
+              <label class="form-label">{{ t('profile.privacy.currentPassword') }}</label>
               <input type="password" class="form-input" placeholder="••••••••">
             </div>
             <div class="form-row">
               <div class="form-group">
-                <label class="form-label">Mật khẩu mới</label>
+                <label class="form-label">{{ t('profile.privacy.newPassword') }}</label>
                 <input type="password" class="form-input" placeholder="••••••••">
               </div>
               <div class="form-group">
-                <label class="form-label">Xác nhận mật khẩu mới</label>
+                <label class="form-label">{{ t('profile.privacy.confirmPassword') }}</label>
                 <input type="password" class="form-input" placeholder="••••••••">
               </div>
             </div>
             <div class="toggle-row">
               <div class="tr-left">
-                <div class="tr-title">Xác thực 2 bước (2FA)</div>
-                <div class="tr-desc">Bảo vệ tài khoản bằng mã OTP qua SMS hoặc app</div>
+                <div class="tr-title">{{ t('profile.privacy.twoFaTitle') }}</div>
+                <div class="tr-desc">{{ t('profile.privacy.twoFaDesc') }}</div>
               </div>
               <label class="toggle-switch"><input type="checkbox"><span class="toggle-slider"></span></label>
             </div>
             <div style="display:flex;justify-content:flex-end;margin-top:10px;">
-              <button class="btn-primary" @click="savePassword">🔐 Cập nhật mật khẩu</button>
+              <button class="btn-primary" @click="savePassword">{{ t('profile.privacy.updatePassword') }}</button>
             </div>
           </div>
           <div class="paper-card section-card">
-            <div class="sc-title">🔒 Quyền riêng tư dữ liệu</div>
+            <div class="sc-title">{{ t('profile.privacy.dataPrivacyTitle') }}</div>
             <div>
               <div v-for="row in privacyRows" :key="row.key" class="toggle-row">
                 <div class="tr-left">
@@ -352,36 +339,36 @@
             </div>
           </div>
           <div class="paper-card section-card">
-            <div class="sc-title">📤 Xuất dữ liệu</div>
+            <div class="sc-title">{{ t('profile.privacy.exportTitle') }}</div>
             <div style="font-size:0.82rem;color:var(--text-secondary);margin-bottom:12px;line-height:1.6;">
-              Tải xuống toàn bộ dữ liệu của bạn dưới dạng file JSON hoặc PDF. Dữ liệu bao gồm: nhật ký, kết quả khảo sát, lịch sử nhiệm vụ.
+              {{ t('profile.privacy.exportDesc') }}
             </div>
             <div style="display:flex;gap:8px;flex-wrap:wrap;">
-              <button class="btn-outline" @click="exportData('json')">📄 Xuất JSON</button>
-              <button class="btn-outline" @click="exportData('pdf')">📋 Xuất PDF báo cáo</button>
+              <button class="btn-outline" @click="exportData('json')">{{ t('profile.privacy.exportJson') }}</button>
+              <button class="btn-outline" @click="exportData('pdf')">{{ t('profile.privacy.exportPdf') }}</button>
             </div>
           </div>
           <div class="paper-card danger-zone">
-            <div class="dz-title">⚠️ Vùng nguy hiểm</div>
+            <div class="dz-title">{{ t('profile.privacy.dangerZoneTitle') }}</div>
             <div class="dz-item">
               <div>
-                <div class="dz-text">Xóa toàn bộ dữ liệu</div>
-                <div class="dz-sub">Xóa vĩnh viễn nhật ký, kết quả khảo sát, lịch sử nhiệm vụ</div>
+                <div class="dz-text">{{ t('profile.privacy.deleteDataTitle') }}</div>
+                <div class="dz-sub">{{ t('profile.privacy.deleteDataDesc') }}</div>
               </div>
               <button
                 class="btn-danger"
-                @click="confirmAction('deleteData', '🗑️', 'Xóa toàn bộ dữ liệu?', 'Hành động này không thể hoàn tác. Tất cả nhật ký, kết quả khảo sát và lịch sử sẽ bị xóa vĩnh viễn.')"
-              >🗑️ Xóa dữ liệu</button>
+                @click="confirmAction('deleteData', '🗑️', t('profile.privacy.deleteDataConfirmTitle'), t('profile.privacy.deleteDataConfirmMsg'))"
+              >{{ t('profile.privacy.deleteDataBtn') }}</button>
             </div>
             <div class="dz-item">
               <div>
-                <div class="dz-text">Xóa tài khoản</div>
-                <div class="dz-sub">Xóa vĩnh viễn tài khoản và toàn bộ dữ liệu liên quan</div>
+                <div class="dz-text">{{ t('profile.privacy.deleteAccountTitle') }}</div>
+                <div class="dz-sub">{{ t('profile.privacy.deleteAccountDesc') }}</div>
               </div>
               <button
                 class="btn-danger"
-                @click="confirmAction('deleteAccount', '💔', 'Xóa tài khoản?', 'Hành động này không thể hoàn tác. Tài khoản và toàn bộ dữ liệu sẽ bị xóa vĩnh viễn sau 30 ngày.')"
-              >💔 Xóa tài khoản</button>
+                @click="confirmAction('deleteAccount', '💔', t('profile.privacy.deleteAccountConfirmTitle'), t('profile.privacy.deleteAccountConfirmMsg'))"
+              >{{ t('profile.privacy.deleteAccountBtn') }}</button>
             </div>
           </div>
         </div>
@@ -391,30 +378,30 @@
       <div>
         <!-- Streak & XP -->
         <div class="paper-card right-card">
-          <div class="rc-title">🔥 Chuỗi hoạt động</div>
+          <div class="rc-title">{{ t('profile.sidebar.streakTitle') }}</div>
           <div class="streak-display">
             <div class="sd-num">{{ streakCard.streak }} 🔥</div>
-            <div class="sd-label">ngày liên tục</div>
+            <div class="sd-label">{{ t('profile.sidebar.daysInARow') }}</div>
           </div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
             <div style="text-align:center;padding:8px;background:var(--cream);border-radius:var(--border-radius-sm);border:1.5px solid var(--kraft-light);">
               <div style="font-size:1rem;font-weight:800;color:var(--mint-dark);">{{ streakCard.totalXp }}</div>
-              <div style="font-size:0.62rem;color:var(--text-secondary);">Tổng XP</div>
+              <div style="font-size:0.62rem;color:var(--text-secondary);">{{ t('profile.sidebar.totalXp') }}</div>
             </div>
             <div style="text-align:center;padding:8px;background:var(--cream);border-radius:var(--border-radius-sm);border:1.5px solid var(--kraft-light);">
               <div style="font-size:1rem;font-weight:800;color:var(--lavender);">Level {{ streakCard.level }}</div>
-              <div style="font-size:0.62rem;color:var(--text-secondary);">Cấp độ</div>
+              <div style="font-size:0.62rem;color:var(--text-secondary);">{{ t('profile.sidebar.level') }}</div>
             </div>
           </div>
         </div>
 
         <!-- Quick Links -->
         <div class="paper-card right-card">
-          <div class="rc-title">🔗 Truy cập nhanh</div>
-          <router-link to="/dashboard" class="quick-link"><span class="ql-icon">🏡</span><span class="ql-text">Tổng quan</span><span class="ql-arrow">›</span></router-link>
-          <router-link to="/journal" class="quick-link"><span class="ql-icon">📝</span><span class="ql-text">Nhật ký cảm xúc</span><span class="ql-arrow">›</span></router-link>
-          <router-link to="/mood-assessment" class="quick-link"><span class="ql-icon">📊</span><span class="ql-text">Kiểm tra tâm lý</span><span class="ql-arrow">›</span></router-link>
-          <router-link to="/experts" class="quick-link"><span class="ql-icon">🩺</span><span class="ql-text">Kết nối chuyên gia</span><span class="ql-arrow">›</span></router-link>
+          <div class="rc-title">{{ t('profile.sidebar.quickLinksTitle') }}</div>
+          <router-link to="/dashboard" class="quick-link"><span class="ql-icon">🏡</span><span class="ql-text">{{ t('profile.sidebar.dashboard') }}</span><span class="ql-arrow">›</span></router-link>
+          <router-link to="/journal" class="quick-link"><span class="ql-icon">📝</span><span class="ql-text">{{ t('profile.sidebar.journal') }}</span><span class="ql-arrow">›</span></router-link>
+          <router-link to="/mood-assessment" class="quick-link"><span class="ql-icon">📊</span><span class="ql-text">{{ t('profile.sidebar.moodCheck') }}</span><span class="ql-arrow">›</span></router-link>
+          <router-link to="/experts" class="quick-link"><span class="ql-icon">🩺</span><span class="ql-text">{{ t('profile.sidebar.experts') }}</span><span class="ql-arrow">›</span></router-link>
         </div>
 
         <!-- PeaceCat Tip -->
@@ -434,23 +421,75 @@
 
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { apiClient } from '../lib/apiClient';
 import { EventLogger } from '../lib/eventLogger';
 import { useAuthStore } from '../stores/auth';
+import LanguageSwitcher from '../components/LanguageSwitcher.vue';
 
+const { t, locale } = useI18n();
 const auth = useAuthStore();
+const intlLocale = computed(() => (locale.value === 'en' ? 'en-US' : 'vi-VN'));
 
 const AVATARS = ['🐱', '🌱', '🌿', '🧘', '🌤️', '🌙', '💚', '🦋', '🍀', '☁️', '🌸', '⭐'];
 const LOCAL_SETTINGS_KEY = 'peaceflow_profile_settings';
-const GOAL_OPTIONS = [
-  '😌 Giảm lo âu',
-  '😴 Cải thiện giấc ngủ',
-  '💪 Tăng cường sức khỏe',
-  '🎯 Tăng tập trung',
-  '💼 Giảm stress công việc',
-  '❤️ Cải thiện mối quan hệ',
-  '🌱 Phát triển bản thân'
+
+// id = giá trị lưu vào onboarding_answers.ageGroup (backend không so khớp text, chỉ lưu opaque JSON,
+// nên an toàn để đổi từ chuỗi tiếng Việt sang mã cố định). Dữ liệu cũ dạng "25-34 tuổi" được
+// quy đổi sang mã mới trong normalizeAgeGroup() khi load.
+const AGE_OPTIONS = [
+  { id: '16-24', labelKey: 'profile.ageOptions.a1624' },
+  { id: '25-34', labelKey: 'profile.ageOptions.a2534' },
+  { id: '35-44', labelKey: 'profile.ageOptions.a3544' },
+  { id: '45+', labelKey: 'profile.ageOptions.a45plus' }
 ];
+const LEGACY_AGE_MAP = {
+  '16-24 tuổi': '16-24',
+  '25-34 tuổi': '25-34',
+  '35-44 tuổi': '35-44',
+  '45+ tuổi': '45+'
+};
+function normalizeAgeGroup(value) {
+  if (!value) return '25-34';
+  if (AGE_OPTIONS.some((opt) => opt.id === value)) return value;
+  return LEGACY_AGE_MAP[value] || '25-34';
+}
+
+// id giữ nguyên các giá trị tiếng Việt cũ ('Nam'/'Nữ'/...) vì mapGenderToDisplay/mapDisplayToGender
+// bên dưới đã dùng đúng các chuỗi này làm input/output — chỉ đổi CHỮ HIỂN THỊ (labelKey), không đổi id.
+const GENDER_OPTIONS = [
+  { id: 'Nữ', labelKey: 'profile.genderOptions.female' },
+  { id: 'Nam', labelKey: 'profile.genderOptions.male' },
+  { id: 'Khác', labelKey: 'profile.genderOptions.other' },
+  { id: 'Không muốn tiết lộ', labelKey: 'profile.genderOptions.preferNot' }
+];
+
+const GOAL_DURATION_OPTIONS = [5, 10, 15, 20, 30];
+
+// id = giá trị lưu vào profile.goals trên backend (không có logic so khớp theo text ở backend,
+// chỉ lưu mảng opaque). Dữ liệu cũ (chuỗi tiếng Việt) được quy đổi sang id mới trong renderGoals().
+const GOAL_OPTIONS = [
+  { id: 'reduce_anxiety', labelKey: 'profile.goalOptions.reduceAnxiety' },
+  { id: 'improve_sleep', labelKey: 'profile.goalOptions.improveSleep' },
+  { id: 'boost_health', labelKey: 'profile.goalOptions.boostHealth' },
+  { id: 'boost_focus', labelKey: 'profile.goalOptions.boostFocus' },
+  { id: 'reduce_work_stress', labelKey: 'profile.goalOptions.reduceWorkStress' },
+  { id: 'improve_relationships', labelKey: 'profile.goalOptions.improveRelationships' },
+  { id: 'self_growth', labelKey: 'profile.goalOptions.selfGrowth' }
+];
+const LEGACY_GOAL_MAP = {
+  '😌 Giảm lo âu': 'reduce_anxiety',
+  '😴 Cải thiện giấc ngủ': 'improve_sleep',
+  '💪 Tăng cường sức khỏe': 'boost_health',
+  '🎯 Tăng tập trung': 'boost_focus',
+  '💼 Giảm stress công việc': 'reduce_work_stress',
+  '❤️ Cải thiện mối quan hệ': 'improve_relationships',
+  '🌱 Phát triển bản thân': 'self_growth'
+};
+function normalizeGoal(value) {
+  if (GOAL_OPTIONS.some((opt) => opt.id === value)) return value;
+  return LEGACY_GOAL_MAP[value] || null;
+}
 
 function loadLocalSettings() {
   try {
@@ -475,8 +514,8 @@ function mapDisplayToGender(value) {
 }
 
 function formatDate(value) {
-  if (!value) return 'Chưa có';
-  return new Intl.DateTimeFormat('vi-VN', {
+  if (!value) return t('profile.hero.defaultJoinDate');
+  return new Intl.DateTimeFormat(intlLocale.value, {
     day: '2-digit',
     month: '2-digit',
     year: 'numeric',
@@ -485,12 +524,12 @@ function formatDate(value) {
 }
 
 function formatRelativeDate(value) {
-  if (!value) return 'Chưa có hoạt động';
+  if (!value) return t('profile.activity.noActivity');
   const target = new Date(value);
   const diff = Math.floor((Date.now() - target.getTime()) / (24 * 60 * 60 * 1000));
-  if (diff <= 0) return 'Hôm nay';
-  if (diff === 1) return '1 ngày trước';
-  return `${diff} ngày trước`;
+  if (diff <= 0) return t('profile.activity.today');
+  if (diff === 1) return t('profile.activity.oneDayAgo');
+  return t('profile.activity.daysAgo', { n: diff });
 }
 
 const user = ref(null);
@@ -507,35 +546,32 @@ const formDisplayName = ref('');
 const formNickname = ref('');
 const formEmail = ref('');
 const formPhone = ref('');
-const formAgeGroup = ref('25-34 tuổi');
+const formAgeGroup = ref('25-34');
 const formGender = ref('Không muốn tiết lộ');
-const formTagline = ref('Hôm nay là một ngày mới để tiến bộ 🌱');
+const formTagline = ref('');
 const formBio = ref('');
-const formGoalDuration = ref('10 phút');
+const formGoalDuration = ref(10);
 const formReminderTime = ref('08:00');
-
-const heroAvatar = ref('🐱');
-const heroName = ref('Người dùng');
-const heroTaglineText = ref('"Hôm nay là một ngày mới để tiến bộ 🌱"');
-const heroJoinDate = ref('Chưa có');
-const heroLocation = ref('Chưa cập nhật vị trí');
-const heroStreak = ref(0);
-const heroLevelBadgeText = ref('');
-const heroXpLeft = ref('0 XP');
-const heroXpRight = ref('');
-const heroXpFillPct = ref(0);
 
 const savingProfile = ref(false);
 const savingGoals = ref(false);
 
 const toastVisible = ref(false);
-const toastText = ref('Đã lưu thay đổi!');
+const toastText = ref('');
 let toastTimer = null;
+
+// Backend hardcode title cấp độ bằng tiếng Việt (progress.routes.js LEVELS), trùng đúng 5 mốc
+// XP với dashboard.levels.l1..l5 — nên bỏ qua `title` backend trả, tự dịch lại theo `level`
+// (số nguyên, không đổi theo ngôn ngữ) giống cách DashboardView.vue đã làm với radar/garden.
+function translateLevelTitle(level) {
+  const key = `dashboard.levels.l${level}`;
+  const translated = t(key);
+  return translated === key ? t('dashboard.levels.defaultTitle') : translated;
+}
 
 function getLevelInfo() {
   return achievements.value?.progress?.level_info || {
     level: 1,
-    title: 'Người Bắt Đầu',
     progress_percent: 0,
     xp_to_next: 100,
     maxXP: 100
@@ -544,12 +580,42 @@ function getLevelInfo() {
 
 function getDisplayName() {
   const onboarding = profile.value?.onboarding_answers || {};
-  return user.value?.display_name || onboarding.nickname || user.value?.full_name || 'Người dùng';
+  return user.value?.display_name || onboarding.nickname || user.value?.full_name || t('profile.hero.defaultUserName');
 }
 
 function getAvatarEmoji() {
   return selectedAvatar.value || profile.value?.onboarding_answers?.avatar_emoji || '🐱';
 }
+
+// Computed thay vì gán ref một lần trong renderHero() — đảm bảo hero card cập nhật ngay khi
+// đổi ngôn ngữ, không bị kẹt lại bản dịch cũ (lỗi reactive-gap đã gặp nhiều lần ở các file khác).
+const heroAvatar = computed(() => getAvatarEmoji());
+const heroName = computed(() => getDisplayName());
+const heroTaglineText = computed(() => `"${formTagline.value || t('profile.hero.defaultTagline')}"`);
+const heroJoinDate = computed(() => formatDate(user.value?.created_at));
+const heroLocation = computed(() => [user.value?.city, user.value?.country].filter(Boolean).join(', ') || t('profile.hero.defaultLocation'));
+const heroStreak = computed(() => progress.value?.current_streak || 0);
+
+const heroLevelInfo = computed(() => getLevelInfo());
+const heroCurrentLevel = computed(() => progress.value?.current_level || heroLevelInfo.value.level || 1);
+const heroLevelBadgeText = computed(() => t('profile.hero.levelBadge', {
+  level: heroCurrentLevel.value,
+  title: translateLevelTitle(heroLevelInfo.value.level || heroCurrentLevel.value)
+}));
+
+const heroXpLeft = computed(() => {
+  const totalXp = progress.value?.total_xp || 0;
+  const maxXP = heroLevelInfo.value.maxXP;
+  if (!Number.isFinite(maxXP) && maxXP === totalXp) return t('profile.hero.xpMax', { xp: totalXp });
+  return t('profile.hero.xp', { xp: totalXp });
+});
+const heroXpRight = computed(() => {
+  const info = heroLevelInfo.value;
+  return info.xp_to_next > 0
+    ? t('profile.hero.xpToNext', { n: info.xp_to_next, level: heroCurrentLevel.value + 1 })
+    : t('profile.hero.atMax');
+});
+const heroXpFillPct = computed(() => heroLevelInfo.value.progress_percent || 0);
 
 function syncStoredUser() {
   if (!user.value) return;
@@ -573,47 +639,26 @@ function renderForm() {
   formNickname.value = onboarding.nickname || '';
   formEmail.value = user.value?.email || '';
   formPhone.value = user.value?.phone || '';
-  formAgeGroup.value = onboarding.ageGroup || '25-34 tuổi';
+  formAgeGroup.value = normalizeAgeGroup(onboarding.ageGroup);
   formGender.value = mapGenderToDisplay(user.value?.gender);
-  formTagline.value = onboarding.tagline || 'Hôm nay là một ngày mới để tiến bộ 🌱';
+  formTagline.value = onboarding.tagline || '';
   formBio.value = onboarding.bio || '';
-  formGoalDuration.value = `${support.goal_duration_minutes || 10} phút`;
+  formGoalDuration.value = Number(support.goal_duration_minutes) || 10;
   formReminderTime.value = support.reminder_time || '08:00';
-}
-
-function renderHero() {
-  const levelInfo = getLevelInfo();
-  const totalXp = progress.value?.total_xp || 0;
-  const currentLevel = progress.value?.current_level || levelInfo.level || 1;
-  const streak = progress.value?.current_streak || 0;
-  const location = [user.value?.city, user.value?.country].filter(Boolean).join(', ') || 'Chưa cập nhật vị trí';
-  const avatar = getAvatarEmoji();
-
-  heroAvatar.value = avatar;
-  heroName.value = getDisplayName();
-  heroTaglineText.value = `"${formTagline.value || 'Hôm nay là một ngày mới để tiến bộ 🌱'}"`;
-  heroJoinDate.value = formatDate(user.value?.created_at);
-  heroLocation.value = location;
-  heroStreak.value = streak;
-  heroLevelBadgeText.value = `⭐ Level ${currentLevel} — ${levelInfo.title || 'Hành trình'}`;
-
-  const target = Number.isFinite(levelInfo.maxXP) ? levelInfo.maxXP : totalXp;
-  if (!Number.isFinite(levelInfo.maxXP) && target === totalXp) {
-    heroXpLeft.value = `${totalXp} XP • MAX`;
-  } else {
-    heroXpLeft.value = `${totalXp} XP`;
-  }
-  heroXpRight.value = levelInfo.xp_to_next > 0 ? `Còn ${levelInfo.xp_to_next} XP → Level ${currentLevel + 1}` : 'Đang ở mốc cao nhất hiện tại';
-  heroXpFillPct.value = levelInfo.progress_percent || 0;
 }
 
 function renderGoals() {
   const goals = Array.isArray(profile.value?.goals) ? profile.value.goals : [];
-  selectedGoals.value = [...goals];
+  selectedGoals.value = [...new Set(goals.map(normalizeGoal).filter(Boolean))];
 }
 
 const badgesList = computed(() => achievements.value?.badges || []);
-const levelsList = computed(() => achievements.value?.levels || []);
+// Backend trả `title` tiếng Việt cứng cho từng cấp — bỏ qua, tự dịch lại theo `level`
+// (xem translateLevelTitle ở trên), giữ nguyên các cờ trạng thái (is_current/is_completed/...).
+const levelsList = computed(() => (achievements.value?.levels || []).map((level) => ({
+  ...level,
+  title: translateLevelTitle(level.level)
+})));
 
 const activityStats = computed(() => ({
   tasks: report.value?.task_history?.length || 0,
@@ -623,38 +668,40 @@ const activityStats = computed(() => ({
 }));
 
 const activityTimeline = computed(() => {
+  // item.title (task/assessment tên) là nội dung động từ backend — ngoài phạm vi dịch UI tĩnh,
+  // giữ nguyên; chỉ dịch phần "meta" (nhãn tĩnh do frontend tự ghép).
   const timeline = [
     ...(report.value?.task_history || []).slice(0, 6).map((item) => ({
       type: 'task',
       date: item.created_at,
       title: item.title,
-      meta: `+${item.xp_earned || 0} XP • ${item.category || 'Nhiệm vụ'}`
+      meta: t('profile.activity.taskXpMeta', { n: item.xp_earned || 0, category: item.category || t('profile.activity.taskCategoryDefault') })
     })),
     ...(report.value?.journal_history || []).slice(0, 6).map((item) => ({
       type: 'journal',
       date: item.created_at,
-      title: item.title || 'Nhật ký cảm xúc',
-      meta: 'Đã lưu vào hồ sơ cảm xúc'
+      title: item.title || t('profile.activity.journalDefaultTitle'),
+      meta: t('profile.activity.journalMeta')
     })),
     ...(report.value?.assessments || []).slice(0, 6).map((item) => ({
       type: 'assessment',
       date: item.created_at,
       title: item.name,
-      meta: `${item.severity || 'Đã hoàn thành'} • ${item.total_score || 0} điểm`
+      meta: t('profile.activity.assessmentMeta', { status: item.severity || t('profile.activity.assessmentStatusDefault'), score: item.total_score || 0 })
     }))
   ].sort((left, right) => new Date(right.date) - new Date(left.date)).slice(0, 8);
   return timeline;
 });
 
 const notifRows = computed(() => [
-  { key: 'moodReminder', title: 'Nhắc mood check-in', desc: 'Lưu cục bộ trên thiết bị này.' },
-  { key: 'journalReminder', title: 'Nhắc viết nhật ký', desc: 'Hiện chưa có bảng settings riêng trên backend.' },
-  { key: 'badgeAlerts', title: 'Thông báo badge mới', desc: 'Hiển thị khi hệ thống award badge.' }
+  { key: 'moodReminder', title: t('profile.notifRows.moodReminder.title'), desc: t('profile.notifRows.moodReminder.desc') },
+  { key: 'journalReminder', title: t('profile.notifRows.journalReminder.title'), desc: t('profile.notifRows.journalReminder.desc') },
+  { key: 'badgeAlerts', title: t('profile.notifRows.badgeAlerts.title'), desc: t('profile.notifRows.badgeAlerts.desc') }
 ]);
 
 const privacyRows = computed(() => [
-  { key: 'hideCommunity', title: 'Ẩn hồ sơ khỏi cộng đồng', desc: 'Chưa có backend settings riêng, hiện lưu cục bộ.' },
-  { key: 'hideAchievements', title: 'Ẩn thành tích công khai', desc: 'Ảnh hưởng tới cách hiển thị hồ sơ về sau.' }
+  { key: 'hideCommunity', title: t('profile.privacyRows.hideCommunity.title'), desc: t('profile.privacyRows.hideCommunity.desc') },
+  { key: 'hideAchievements', title: t('profile.privacyRows.hideAchievements.title'), desc: t('profile.privacyRows.hideAchievements.desc') }
 ]);
 
 if (localSettings.moodReminder === undefined) localSettings.moodReminder = true;
@@ -672,8 +719,8 @@ const streakCard = computed(() => ({
 const tipCardText = computed(() => {
   const nextBadge = achievements.value?.next_badge;
   return nextBadge
-    ? `Hồ sơ của bạn đang khá đồng bộ. Mốc gần nhất là ${nextBadge.name} với tiến độ ${nextBadge.current_value}/${nextBadge.target_value}.`
-    : 'Hồ sơ của bạn đã được đồng bộ với tiến trình hiện tại trên hệ thống.';
+    ? t('profile.sidebar.tipWithBadge', { badge: nextBadge.name, current: nextBadge.current_value, target: nextBadge.target_value })
+    : t('profile.sidebar.tipDefault');
 });
 
 async function loadData() {
@@ -697,7 +744,6 @@ async function loadData() {
 function renderPage() {
   renderForm();
   renderGoals();
-  renderHero();
 }
 
 async function saveProfile() {
@@ -730,11 +776,11 @@ async function saveProfile() {
     syncStoredUser();
     EventLogger.log('profile', 'save:success');
     renderPage();
-    showToast('Đã lưu thông tin hồ sơ.');
+    showToast(t('profile.toast.profileSaved'));
   } catch (error) {
     EventLogger.error('profile', 'save:failed', error);
     console.error('Profile save failed:', error);
-    showToast('Không lưu được hồ sơ.', 'error');
+    showToast(t('profile.toast.profileSaveFailed'), 'error');
   } finally {
     savingProfile.value = false;
   }
@@ -748,7 +794,7 @@ async function saveGoals() {
     const profileData = await apiClient.put('/profile', {
       goals: [...selectedGoals.value],
       support_preferences: {
-        goal_duration_minutes: Number((formGoalDuration.value || '10').replace(/\D+/g, '')) || 10,
+        goal_duration_minutes: Number(formGoalDuration.value) || 10,
         reminder_time: formReminderTime.value || '08:00'
       }
     });
@@ -756,11 +802,11 @@ async function saveGoals() {
     profile.value = profileData;
     EventLogger.log('profile', 'goals:save:success');
     renderPage();
-    showToast('Đã lưu mục tiêu.');
+    showToast(t('profile.toast.goalsSaved'));
   } catch (error) {
     EventLogger.error('profile', 'goals:save:failed', error);
     console.error('Goals save failed:', error);
-    showToast('Không lưu được mục tiêu.', 'error');
+    showToast(t('profile.toast.goalsSaveFailed'), 'error');
   } finally {
     savingGoals.value = false;
   }
@@ -769,16 +815,16 @@ async function saveGoals() {
 function resetForm() {
   renderForm();
   renderGoals();
-  showToast('Đã khôi phục dữ liệu từ hồ sơ hiện tại.', 'info');
+  showToast(t('profile.toast.formReset'), 'info');
 }
 
-function toggleGoal(label) {
-  const wasSelected = selectedGoals.value.includes(label);
+function toggleGoal(id) {
+  const wasSelected = selectedGoals.value.includes(id);
   EventLogger.log('profile', 'goal:toggle');
   if (wasSelected) {
-    selectedGoals.value = selectedGoals.value.filter((goal) => goal !== label);
+    selectedGoals.value = selectedGoals.value.filter((goal) => goal !== id);
   } else {
-    selectedGoals.value = [...selectedGoals.value, label];
+    selectedGoals.value = [...selectedGoals.value, id];
   }
 }
 
@@ -790,11 +836,11 @@ function switchTab(tab) {
 function saveSettings() {
   EventLogger.log('profile', 'settings:save:local');
   localStorage.setItem(LOCAL_SETTINGS_KEY, JSON.stringify({ ...localSettings }));
-  showToast('Đã lưu cài đặt cục bộ trên thiết bị này.', 'info');
+  showToast(t('profile.toast.settingsSaved'), 'info');
 }
 
 function savePassword() {
-  showToast('Backend hiện chưa có endpoint đổi mật khẩu trên trang này.', 'info');
+  showToast(t('profile.toast.passwordNotSupported'), 'info');
 }
 
 function exportData(format) {
@@ -815,23 +861,22 @@ function exportData(format) {
     link.download = 'peaceflow-profile-export.json';
     link.click();
     URL.revokeObjectURL(link.href);
-    showToast('Đã xuất dữ liệu JSON.');
+    showToast(t('profile.toast.dataExported'));
     return;
   }
 
-  showToast('Xuất PDF chưa được nối backend ở trang này.', 'info');
+  showToast(t('profile.toast.pdfNotSupported'), 'info');
 }
 
 function confirmAction(action, _icon, title, message) {
   const confirmed = window.confirm(`${title}\n\n${message}`);
   if (!confirmed) return;
-  showToast(`Chức năng ${action} chưa được backend hỗ trợ trực tiếp trên trang này.`, 'info');
+  showToast(t('profile.toast.actionNotSupported', { action }), 'info');
 }
 
 function selectAvatar(avatar) {
   EventLogger.log('profile', 'avatar:select');
   selectedAvatar.value = avatar;
-  renderHero();
 }
 
 onMounted(async () => {
@@ -840,7 +885,7 @@ onMounted(async () => {
     renderPage();
   } catch (error) {
     console.error('Profile init failed:', error);
-    showToast('Không tải được hồ sơ từ máy chủ.', 'error');
+    showToast(t('profile.toast.loadFailed'), 'error');
   }
 });
 </script>

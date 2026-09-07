@@ -1,0 +1,167 @@
+{
+  "community": {
+    "breadcrumbDashboard": "🏡 Tổng quan",
+    "breadcrumbCurrent": "👥 Cộng đồng",
+    "pageTitle": "👥 Cộng Đồng PeaceFlow",
+    "pageSubtitle": "Không gian chia sẻ ẩn danh — không phán xét — chỉ có yêu thương 💚",
+    "shareNowBtn": "✏️ Chia sẻ ngay",
+    "stats": {
+      "members": "Thành viên",
+      "posts": "Bài chia sẻ",
+      "reactions": "Lượt reaction ❤️",
+      "positive": "Tích cực"
+    },
+    "challengeBanner": {
+      "badge": "🔥 Thử thách tuần này",
+      "joined": "Đã tham gia",
+      "joinNow": "Tham gia ngay",
+      "progressUnit": "⏱ {curr} / {goal} phút",
+      "progressPercent": "{pct}% hoàn thành",
+      "participants": "người tham gia",
+      "daysLeftLabel": "⏰ Còn",
+      "daysLeftUnit": "ngày",
+      "rewardLabel": "🏆 Phần thưởng:",
+      "rewardValue": "+100 XP",
+      "rewardBadge": "+ huy hiệu cộng đồng"
+    },
+    "modNote": "Cộng đồng này được AI và moderator giám sát 24/7. Mọi nội dung tiêu cực, có hại hoặc vi phạm quy tắc sẽ bị gỡ bỏ. Hãy chia sẻ với tình yêu thương! 💚",
+    "composer": {
+      "title": "Chia sẻ với cộng đồng",
+      "subtitle": "Câu chuyện của bạn có thể truyền cảm hứng cho ai đó",
+      "anonOn": "Ẩn danh: Bật",
+      "anonOff": "Ẩn danh",
+      "placeholder": "Hôm nay bạn muốn chia sẻ điều gì? Một câu chuyện, một cảm xúc, một bài học, hay đơn giản là 'Tôi vẫn ổn'... 🌿",
+      "tagsLabel": "Chủ đề:",
+      "postingAnon": "Đang đăng ẩn danh",
+      "postingAs": "Đăng với tên {name}",
+      "submitBtn": "📤 Đăng bài"
+    },
+    "tags": {
+      "gratitude": "#biếtơn",
+      "story": "#câuchuyện",
+      "milestone": "#milestone",
+      "qa": "#hỏiđáp",
+      "tip": "#mẹohay"
+    },
+    "filters": {
+      "all": "🌿 Tất cả",
+      "gratitude": "🙏 Biết ơn",
+      "story": "📖 Câu chuyện",
+      "milestone": "🏆 Cột mốc",
+      "question": "❓ Hỏi đáp",
+      "tip": "💡 Mẹo hay"
+    },
+    "feed": {
+      "emptyAllTitle": "Cộng đồng chưa có bài viết nào",
+      "emptyFilterTitle": "Chưa có bài viết cho bộ lọc này",
+      "emptyAllDesc": "Hãy là người đầu tiên chia sẻ cảm xúc, câu chuyện hoặc mẹo hay với cộng đồng!",
+      "emptyFilterDesc": "Thử chọn bộ lọc khác hoặc đăng bài mới.",
+      "writeNowBtn": "✍️ Viết bài ngay"
+    },
+    "post": {
+      "defaultAuthor": "Người dùng",
+      "adminBadge": "🛡️ Admin",
+      "expertBadge": "🩺 Chuyên gia",
+      "justNow": "Vừa xong",
+      "optionsTitle": "Tùy chọn",
+      "editBtn": "✏️ Sửa bài",
+      "deleteBtn": "🗑️ Xóa bài",
+      "reportBtn": "🚩 Báo cáo",
+      "defaultTag": "📖 Câu chuyện",
+      "saveBtn": "Lưu",
+      "cancelBtn": "Hủy",
+      "collapseBtn": "Thu gọn",
+      "expandBtn": "Xem thêm",
+      "commentsBtn": "💬 {n} bình luận",
+      "noComments": "Chưa có bình luận nào. Bạn có thể mở lời trước.",
+      "commentPlaceholder": "Viết lời nhắn dịu dàng...",
+      "sendBtn": "Gửi"
+    },
+    "reactions": {
+      "heart": "Thương",
+      "hug": "Ôm",
+      "strong": "Cố lên",
+      "star": "Hay quá"
+    },
+    "comment": {
+      "defaultAuthor": "Người dùng",
+      "adminBadge": "🛡️ Admin",
+      "expertBadge": "🩺 Chuyên gia",
+      "saveBtn": "Lưu",
+      "cancelBtn": "Hủy",
+      "replyBtn": "Trả lời",
+      "editBtn": "Sửa",
+      "deleteBtn": "Xóa",
+      "sendBtn": "Gửi",
+      "replyPlaceholder": "Trả lời {name}..."
+    },
+    "leaderboard": {
+      "title": "🏆 Bảng xếp hạng",
+      "xpTab": "⭐ XP",
+      "streakTab": "🔥 Streak",
+      "tasksTab": "✅ Tasks",
+      "hidden": "Bảng xếp hạng đang được ẩn trên thiết bị này.",
+      "noData": "Chưa có dữ liệu xếp hạng.",
+      "defaultName": "Người dùng",
+      "showBtn": "👁 Hiện lại bảng xếp hạng",
+      "hideBtn": "👁 Ẩn khỏi bảng xếp hạng"
+    },
+    "challengesCard": {
+      "title": "🎯 Thử thách đang diễn ra",
+      "meditation": { "name": "🧘 Thiền 1,000 phút", "meta": "742/1,000 phút · 4 ngày còn lại" },
+      "journal": { "name": "📝 7 ngày viết nhật ký", "meta": "4/7 ngày · Cá nhân" },
+      "breathing": { "name": "💨 Thở 5 ngày liên tục", "meta": "2/5 ngày · Cá nhân" }
+    },
+    "mentor": {
+      "title": "🌟 Mentor cộng đồng",
+      "subtitle": "Những thành viên Level 5+ sẵn sàng đồng hành cùng bạn",
+      "noMentors": "Chưa có mentor cộng đồng khả dụng.",
+      "defaultName": "Mentor",
+      "statsLabel": "Level {level} · {xp} XP · streak {streak}",
+      "messageBtn": "Nhắn",
+      "footerHint": "Đạt Level 5 để trở thành Mentor 🌟"
+    },
+    "rules": {
+      "title": "📜 Quy tắc cộng đồng",
+      "rule1": "Chia sẻ với tình yêu thương, không phán xét",
+      "rule2": "Tôn trọng sự riêng tư của người khác",
+      "rule3": "Không spam, quảng cáo, nội dung tiêu cực",
+      "rule4": "Nếu ai đó cần giúp đỡ khẩn cấp, hãy báo cáo ngay"
+    },
+    "reportModal": {
+      "title": "🚩 Báo cáo bài viết",
+      "reasonSpam": "Spam hoặc quảng cáo",
+      "reasonHarmful": "Nội dung có hại / tiêu cực",
+      "reasonCrisis": "⚠️ Người dùng có thể đang trong khủng hoảng",
+      "reasonInappropriate": "Nội dung không phù hợp",
+      "reasonOther": "Lý do khác",
+      "cancelBtn": "Hủy",
+      "submitBtn": "Gửi báo cáo"
+    },
+    "confirm": {
+      "deletePost": "Bạn chắc chắn muốn xóa bài viết này?",
+      "deleteComment": "Xóa bình luận này?"
+    },
+    "defaultUserName": "Bạn",
+    "toast": {
+      "emptyPost": "Hãy viết điều bạn muốn chia sẻ trước khi đăng.",
+      "postFailed": "Không thể đăng bài lúc này.",
+      "postSuccess": "Bài viết đã được chia sẻ lên cộng đồng.",
+      "reactionFailed": "Không thể cập nhật reaction.",
+      "emptyEdit": "Nội dung không được để trống.",
+      "editSaved": "Đã lưu chỉnh sửa.",
+      "editFailed": "Không thể lưu chỉnh sửa.",
+      "postDeleted": "Đã xóa bài viết.",
+      "postDeleteFailed": "Không thể xóa bài viết.",
+      "emptyComment": "Hãy viết bình luận trước khi gửi.",
+      "commentFailed": "Không thể gửi bình luận.",
+      "commentDeleted": "Đã xóa bình luận.",
+      "commentDeleteFailed": "Không thể xóa bình luận.",
+      "emptyReply": "Hãy viết nội dung trả lời.",
+      "replyFailed": "Không thể gửi trả lời.",
+      "challengeJoined": "Bạn đã tham gia thử thách cộng đồng tuần này.",
+      "reportSubmitted": "Bài viết đã được ghi nhận báo cáo để moderator xem xét.",
+      "mentorMessageComingSoon": "Tính năng nhắn mentor sẽ được nối ở bước sau."
+    }
+  }
+}

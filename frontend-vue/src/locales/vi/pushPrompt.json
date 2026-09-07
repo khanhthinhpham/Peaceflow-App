@@ -1,0 +1,8 @@
+{
+  "pushPrompt": {
+    "title": "Bật nhắc nhở hàng ngày?",
+    "desc": "PeaceFlow sẽ nhắc check-in tâm trạng và cảnh báo khi streak sắp mất.",
+    "acceptBtn": "Bật thông báo",
+    "laterBtn": "Để sau"
+  }
+}

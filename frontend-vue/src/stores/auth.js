@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia';
 import { apiClient } from '../lib/apiClient';
 import { EventLogger } from '../lib/eventLogger';
+import { setSuggestedLocale } from '../locales';
 
 function readStoredUser() {
   const raw = localStorage.getItem('user');
@@ -55,6 +56,9 @@ export const useAuthStore = defineStore('auth', {
         consent_terms: payload?.consent_terms ?? true
       });
       EventLogger.log('auth', 'signup_expert:success');
+      // Không gọi setSession() ở nhánh này (chuyên gia chưa tự đăng nhập ngay), nhưng vẫn
+      // là một điểm đăng ký hợp lệ nên áp dụng gợi ý ngôn ngữ theo IP tương tự.
+      if (data.locale) setSuggestedLocale(data.locale);
       return data;
     },
 
@@ -104,6 +108,11 @@ export const useAuthStore = defineStore('auth', {
       const accessToken = data.session?.access_token || data.access_token;
       const refreshToken = data.session?.refresh_token || data.refresh_token;
       const user = data.user;
+
+      // Ngôn ngữ mặc định theo NƠI ĐĂNG NHẬP/ĐĂNG KÝ — backend suy đoán từ IP (xem
+      // detectLocale() trong auth.controller.js), chỉ áp dụng khi người dùng chưa từng tự
+      // chọn ngôn ngữ (xem setSuggestedLocale trong locales/index.js).
+      if (data.locale) setSuggestedLocale(data.locale);
 
       // Dọn cache SWR ngay khi có phiên đăng nhập mới — tránh việc /me (hay bất kỳ GET nào
       // khác) còn giữ dữ liệu của tài khoản/phiên trước đó (vd: vừa đăng xuất rồi đăng nhập

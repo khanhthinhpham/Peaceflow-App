@@ -1,0 +1,29 @@
+{
+  "verifyEmail": {
+    "loginNowBtn": "Log in now →",
+    "emailPlaceholder": "The email you registered with",
+    "resendBtn": "Resend confirmation email",
+    "resending": "Sending...",
+    "backToLogin": "Back to login",
+    "status": {
+      "verifyingTitle": "Verifying...",
+      "verifyingDesc": "Please wait a moment.",
+      "noTokenTitle": "Invalid link",
+      "noTokenDesc": "No verification token was found in this link. Enter your email to get a new one.",
+      "successTitleFirst": "Email verified!",
+      "successTitleAlready": "Email was already verified",
+      "successDesc": "Your account is now active. Log in to start your journey.",
+      "failureTitle": "Verification failed",
+      "failureDefault": "Couldn't verify this email. Enter your email to get a new link."
+    },
+    "failureReasons": {
+      "TOKEN_EXPIRED": "This verification link has expired (24 hours). Enter your email to get a new one.",
+      "TOKEN_USED": "This link has already been used. If your account isn't active yet, enter your email to get a new one.",
+      "TOKEN_INVALID": "This verification link is invalid. Please check it, or enter your email to get a new one."
+    },
+    "resendMsg": {
+      "success": "If {email} is registered and not yet verified, a new link has been sent. Please check your spam folder too.",
+      "failed": "Couldn't send the email. Please try again later."
+    }
+  }
+}

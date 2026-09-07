@@ -1,0 +1,29 @@
+{
+  "verifyEmail": {
+    "loginNowBtn": "Đăng nhập ngay →",
+    "emailPlaceholder": "Email bạn đã đăng ký",
+    "resendBtn": "Gửi lại email xác nhận",
+    "resending": "Đang gửi...",
+    "backToLogin": "Về trang đăng nhập",
+    "status": {
+      "verifyingTitle": "Đang xác nhận...",
+      "verifyingDesc": "Vui lòng chờ trong giây lát.",
+      "noTokenTitle": "Link không hợp lệ",
+      "noTokenDesc": "Không tìm thấy token xác nhận trong link này. Hãy nhập email để nhận link mới.",
+      "successTitleFirst": "Email đã được xác nhận!",
+      "successTitleAlready": "Email đã được xác nhận trước đó",
+      "successDesc": "Tài khoản đã kích hoạt. Hãy đăng nhập để bắt đầu hành trình.",
+      "failureTitle": "Xác nhận thất bại",
+      "failureDefault": "Không xác nhận được email. Hãy nhập email để nhận link mới."
+    },
+    "failureReasons": {
+      "TOKEN_EXPIRED": "Link xác nhận đã hết hạn (24 giờ). Hãy nhập email để nhận link mới.",
+      "TOKEN_USED": "Link này đã được dùng rồi. Nếu bạn chưa kích hoạt được, hãy nhập email để nhận link mới.",
+      "TOKEN_INVALID": "Link xác nhận không hợp lệ. Hãy kiểm tra lại hoặc nhập email để nhận link mới."
+    },
+    "resendMsg": {
+      "success": "Nếu {email} đã đăng ký và chưa xác minh, link mới đã được gửi. Hãy kiểm tra cả hộp thư rác.",
+      "failed": "Không gửi được email. Vui lòng thử lại sau."
+    }
+  }
+}

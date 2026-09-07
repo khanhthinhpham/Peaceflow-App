@@ -1,0 +1,50 @@
+{
+  "applyExpert": {
+    "backToApp": "🏠 Back to the app",
+    "logout": "Log out",
+    "kicker": "PeaceFlow Expert",
+    "title": "Submit your expert application",
+    "subtitle": "Complete your professional profile and upload your credentials for admin review. Once approved, you'll get access to the expert area.",
+    "loadingStatus": "Loading application status…",
+    "form": {
+      "fullNameLabel": "Expert's full name",
+      "fullNamePlaceholder": "Enter your full name",
+      "phoneLabel": "Phone number",
+      "phonePlaceholder": "Contact phone number",
+      "experienceLabel": "Years of experience",
+      "degreeLabel": "Degree",
+      "degreePlaceholder": "e.g. Master's in Clinical Psychology",
+      "specialtiesLabel": "Specialties",
+      "specialtiesPlaceholder": "e.g. individual therapy, CBT, trauma",
+      "specialtiesHint": "Separate with commas.",
+      "locationLabel": "Workplace",
+      "locationPlaceholder": "Hospital, clinic, center...",
+      "bioLabel": "Short bio",
+      "bioPlaceholder": "Your experience, professional strengths, how you support clients...",
+      "credentialFileLabel": "Credential file",
+      "credentialFileHint": "PDF or image supported, up to 10MB.",
+      "submitBtn": "Submit expert application",
+      "submitting": "Submitting application..."
+    },
+    "helper": {
+      "verifiedReady": "Email verified. Fill in the details and upload your credentials to submit.",
+      "resubmit": "You can resubmit with updated information/credentials."
+    },
+    "done": {
+      "title": "Application under review",
+      "backToApp": "Back to the app"
+    },
+    "banner": {
+      "needsEmailVerification": "You need to verify your email before submitting an expert application.",
+      "pendingReview": "Your application is being reviewed by admin. We'll respond by email as soon as possible.",
+      "rejected": "Your previous application wasn't approved. You can update and resubmit it.",
+      "loadFailed": "Couldn't load your application status. Please reload the page.",
+      "submitSuccess": "Thank you! Admin will review your credentials & professional information and respond by email. Once approved, you'll get access to the expert area.",
+      "submitFailed": "Couldn't submit your application. Please try again.",
+      "invalidFullName": "Please enter the expert's full name.",
+      "invalidPhone": "Please enter a valid phone number.",
+      "invalidDegree": "Please enter a degree.",
+      "missingFile": "Please upload your credential file."
+    }
+  }
+}

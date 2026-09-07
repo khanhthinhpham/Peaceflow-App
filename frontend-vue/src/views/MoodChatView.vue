@@ -3,19 +3,19 @@
   <div class="emergency-overlay mood-chat-page" :class="{ show: emergencyOpen }">
     <div class="emergency-popup">
       <div class="ep-icon">❤️</div>
-      <div class="ep-title">Bạn không đơn độc</div>
-      <p class="ep-text">Chúng tôi nhận thấy bạn đang trải qua giai đoạn rất khó khăn. Hãy để ai đó giúp bạn ngay bây giờ nhé.</p>
+      <div class="ep-title">{{ t('moodChat.emergency.title') }}</div>
+      <p class="ep-text">{{ t('moodChat.emergency.text') }}</p>
       <div class="ep-hotline">
         <div class="eph-num">📞 0931773637</div>
-        <div class="eph-label">Đường dây nóng sức khỏe tâm thần — Miễn phí, 24/7</div>
+        <div class="eph-label">{{ t('moodChat.emergency.hotlineLabel') }}</div>
       </div>
       <div class="ep-actions">
-        <a href="tel:0931773637" class="ep-btn ep-btn-red">📞 Gọi ngay hotline</a>
-        <router-link to="/experts" class="ep-btn ep-btn-green">💬 Chat với chuyên gia thật</router-link>
-        <a href="tel:115" class="ep-btn ep-btn-green" style="background:var(--coral-light);color:#c05050;border-color:var(--coral);">🆘 Gọi cấp cứu 115</a>
-        <button class="ep-btn ep-btn-ghost" @click="closeEmergency">Tôi ổn, tiếp tục trò chuyện</button>
+        <a href="tel:0931773637" class="ep-btn ep-btn-red">{{ t('moodChat.emergency.callHotline') }}</a>
+        <router-link to="/experts" class="ep-btn ep-btn-green">{{ t('moodChat.emergency.chatExpert') }}</router-link>
+        <a href="tel:115" class="ep-btn ep-btn-green" style="background:var(--coral-light);color:#c05050;border-color:var(--coral);">{{ t('moodChat.emergency.callRescue') }}</a>
+        <button class="ep-btn ep-btn-ghost" @click="closeEmergency">{{ t('moodChat.emergency.imOk') }}</button>
       </div>
-      <p style="text-align:center;font-size:0.72rem;color:var(--text-light);margin-top:10px;font-style:italic;">"Rồi chuyện này sẽ qua. Hãy cho phép ai đó giúp bạn." 🌿</p>
+      <p style="text-align:center;font-size:0.72rem;color:var(--text-light);margin-top:10px;font-style:italic;">{{ t('moodChat.emergency.quote') }}</p>
     </div>
   </div>
 
@@ -24,11 +24,11 @@
     <div class="result-popup">
       <div class="rp-header">
         <div class="rp-mascot">🐱</div>
-        <div class="rp-title">Bức tranh tâm trạng của bạn 🎨</div>
-        <div class="rp-subtitle">Dựa trên cuộc trò chuyện vừa rồi — PeaceCat đã phân tích xong!</div>
+        <div class="rp-title">{{ t('moodChat.result.mascotTitle') }}</div>
+        <div class="rp-subtitle">{{ t('moodChat.result.subtitle') }}</div>
       </div>
       <div class="rp-body">
-        <div class="rp-section-title">📊 Chỉ số tâm lý ước tính</div>
+        <div class="rp-section-title">{{ t('moodChat.result.scoresTitle') }}</div>
         <div class="rp-scores">
           <div v-for="item in resultScores" :key="item.key" class="rps-item" :class="item.level">
             <div class="rps-icon">{{ item.icon }}</div>
@@ -38,29 +38,27 @@
           </div>
         </div>
         <div class="rp-insight paper-card" style="margin-bottom:14px;">
-          <div class="rp-section-title">🤖 Nhận xét từ PeaceCat AI</div>
+          <div class="rp-section-title">{{ t('moodChat.result.aiInsightTitle') }}</div>
           <div class="rp-insight-text">{{ resultInsight }}</div>
         </div>
         <div class="rp-tasks">
-          <div class="rp-section-title">🎯 Nhiệm vụ được gợi ý</div>
+          <div class="rp-section-title">{{ t('moodChat.result.tasksTitle') }}</div>
           <div>
-            <div v-if="!suggestedTasks.length" style="font-size:0.75rem;color:var(--text-light);font-style:italic;">Chưa có gợi ý nhiệm vụ nào.</div>
+            <div v-if="!suggestedTasks.length" style="font-size:0.75rem;color:var(--text-light);font-style:italic;">{{ t('moodChat.result.noTasks') }}</div>
             <div v-for="task in suggestedTasks" :key="task.id" class="rp-task-item" @click="goToTask(task.id)">
               <div class="ts-icon">🎯</div>
               <div class="ts-info">
-                <div class="ts-name">{{ task.title || 'Nhiệm vụ' }}</div>
-                <div class="ts-meta">{{ task.category || 'task' }} · {{ task.difficulty || 'easy' }}</div>
+                <div class="ts-name">{{ task.title || t('moodChat.result.taskDefaultTitle') }}</div>
+                <div class="ts-meta">{{ task.category || t('moodChat.result.taskDefaultCategory') }} · {{ task.difficulty || t('moodChat.result.taskDefaultDifficulty') }}</div>
               </div>
             </div>
           </div>
         </div>
-        <div style="padding:10px 12px;background:rgba(255,203,164,0.2);border:1.5px solid var(--peach);border-radius:var(--border-radius-sm);font-size:0.75rem;color:var(--text-secondary);margin-bottom:14px;">
-          ⚠️ Đây là phân tích tham khảo, <strong>không phải chẩn đoán y khoa</strong>. Nếu bạn lo lắng, hãy tham khảo chuyên gia.
-        </div>
+        <div style="padding:10px 12px;background:rgba(255,203,164,0.2);border:1.5px solid var(--peach);border-radius:var(--border-radius-sm);font-size:0.75rem;color:var(--text-secondary);margin-bottom:14px;" v-html="t('moodChat.result.disclaimer')"></div>
         <div class="rp-actions">
-          <router-link to="/tasks" class="btn-primary">🎮 Bắt đầu nhiệm vụ</router-link>
-          <button class="btn-outline" @click="closeResult">💬 Chat tiếp</button>
-          <router-link to="/dashboard" class="btn-outline">🏡 Dashboard</router-link>
+          <router-link to="/tasks" class="btn-primary">{{ t('moodChat.result.startTasksBtn') }}</router-link>
+          <button class="btn-outline" @click="closeResult">{{ t('moodChat.result.continueChatBtn') }}</button>
+          <router-link to="/dashboard" class="btn-outline">{{ t('moodChat.result.dashboardBtn') }}</router-link>
         </div>
       </div>
     </div>
@@ -69,20 +67,20 @@
   <main class="main-content mood-chat-page" style="margin-left: 0;">
     <!-- Chat Topbar -->
     <div class="chat-topbar">
-      <router-link to="/mood-checkin" class="ct-back">← Quay lại</router-link>
+      <router-link to="/mood-checkin" class="ct-back">{{ t('moodChat.topbar.back') }}</router-link>
       <div class="ct-mascot">{{ topbarMascot }}</div>
       <div class="ct-info">
-        <div class="ct-name">PeaceCat AI</div>
+        <div class="ct-name">{{ t('moodChat.topbar.mascotName') }}</div>
         <div class="ct-status">
           <span class="status-dot"></span>
           <span>{{ statusText }}</span>
         </div>
       </div>
       <div class="ct-actions">
-        <span class="badge-pill badge-mint">{{ userMessageCount }} tin nhắn</span>
-        <button class="ct-action-btn" @click="showResult">📊 Xem kết quả</button>
-        <button class="ct-action-btn" @click="clearChat">🗑️ Xóa chat</button>
-        <button class="ct-action-btn danger" @click="showEmergency">🆘 Khẩn cấp</button>
+        <span class="badge-pill badge-mint">{{ t('moodChat.topbar.messageCountLabel', { n: userMessageCount }) }}</span>
+        <button class="ct-action-btn" @click="showResult">{{ t('moodChat.topbar.viewResultBtn') }}</button>
+        <button class="ct-action-btn" @click="clearChat">{{ t('moodChat.topbar.clearChatBtn') }}</button>
+        <button class="ct-action-btn danger" @click="showEmergency">{{ t('moodChat.topbar.emergencyBtn') }}</button>
       </div>
     </div>
 
@@ -99,14 +97,14 @@
                 <span class="msg-suggestion-icon">{{ item.suggestedTask.icon || '🎯' }}</span>
                 <div class="msg-suggestion-info">
                   <div class="msg-suggestion-title">{{ item.suggestedTask.title }}</div>
-                  <div class="msg-suggestion-meta">⏱ {{ item.suggestedTask.duration_minutes || 0 }} phút</div>
+                  <div class="msg-suggestion-meta">{{ t('moodChat.chat.minutesUnit', { n: item.suggestedTask.duration_minutes || 0 }) }}</div>
                 </div>
               </div>
               <div v-if="item.suggestedExpert" class="msg-suggestion" @click="router.push('/experts')">
                 <span class="msg-suggestion-icon">🩺</span>
                 <div class="msg-suggestion-info">
                   <div class="msg-suggestion-title">{{ item.suggestedExpert.name }}</div>
-                  <div class="msg-suggestion-meta">{{ item.suggestedExpert.degree || 'Chuyên gia tâm lý' }} · ⭐ {{ item.suggestedExpert.rating || '?' }}/5</div>
+                  <div class="msg-suggestion-meta">{{ item.suggestedExpert.degree || t('moodChat.chat.defaultExpertDegree') }} · ⭐ {{ item.suggestedExpert.rating || '?' }}/5</div>
                 </div>
               </div>
               <div class="msg-time">{{ item.time }}</div>
@@ -129,11 +127,11 @@
 
         <!-- Input Area -->
         <div class="chat-input-area">
-          <button class="voice-btn" :class="{ recording: isRecording }" title="Nhập bằng giọng nói" @click="toggleVoice">🎤</button>
+          <button class="voice-btn" :class="{ recording: isRecording }" :title="t('moodChat.chat.voiceTitle')" @click="toggleVoice">🎤</button>
           <div class="input-wrap">
             <textarea
               class="chat-input"
-              placeholder="Chia sẻ với PeaceCat... (Enter để gửi, Shift+Enter xuống dòng)"
+              :placeholder="t('moodChat.chat.inputPlaceholder')"
               rows="1"
               ref="chatInputEl"
               v-model="chatInputValue"
@@ -142,7 +140,7 @@
             ></textarea>
             <span class="char-count">{{ chatInputValue.length }}/{{ MAX_MESSAGE_LENGTH }}</span>
           </div>
-          <button class="send-btn" title="Gửi" @click="sendMessage">➤</button>
+          <button class="send-btn" :title="t('moodChat.chat.sendTitle')" @click="sendMessage">➤</button>
         </div>
       </div>
 
@@ -150,32 +148,32 @@
       <div class="chat-sidebar">
         <!-- Realtime Analysis -->
         <div class="paper-card cs-card">
-          <div class="cs-title">📊 Phân tích realtime</div>
-          <div style="font-size:0.7rem;color:var(--text-light);margin-bottom:10px;">AI đang phân tích từng tin nhắn của bạn</div>
+          <div class="cs-title">{{ t('moodChat.sidebar.realtimeTitle') }}</div>
+          <div style="font-size:0.7rem;color:var(--text-light);margin-bottom:10px;">{{ t('moodChat.sidebar.realtimeDesc') }}</div>
 
           <div class="sent-bar-wrap">
-            <div class="sb-row"><span class="sb-label">😰 Lo âu</span><span class="sb-val" style="color:var(--coral);">{{ Math.round(analysis.anxiety) }}%</span></div>
+            <div class="sb-row"><span class="sb-label">{{ t('moodChat.sidebar.anxietyLabel') }}</span><span class="sb-val" style="color:var(--coral);">{{ Math.round(analysis.anxiety) }}%</span></div>
             <div class="sb-bar"><div class="sb-fill sb-anxiety" :style="{ width: analysis.anxiety + '%' }"></div></div>
           </div>
           <div class="sent-bar-wrap">
-            <div class="sb-row"><span class="sb-label">🌀 Stress</span><span class="sb-val" style="color:#8a6aaa;">{{ Math.round(analysis.stress) }}%</span></div>
+            <div class="sb-row"><span class="sb-label">{{ t('moodChat.sidebar.stressLabel') }}</span><span class="sb-val" style="color:#8a6aaa;">{{ Math.round(analysis.stress) }}%</span></div>
             <div class="sb-bar"><div class="sb-fill sb-stress" :style="{ width: analysis.stress + '%' }"></div></div>
           </div>
           <div class="sent-bar-wrap">
-            <div class="sb-row"><span class="sb-label">💚 Tâm trạng</span><span class="sb-val" style="color:var(--mint-dark);">{{ Math.round(analysis.mood) }}%</span></div>
+            <div class="sb-row"><span class="sb-label">{{ t('moodChat.sidebar.moodLabel') }}</span><span class="sb-val" style="color:var(--mint-dark);">{{ Math.round(analysis.mood) }}%</span></div>
             <div class="sb-bar"><div class="sb-fill sb-mood" :style="{ width: analysis.mood + '%' }"></div></div>
           </div>
           <div class="sent-bar-wrap">
-            <div class="sb-row"><span class="sb-label">🌧️ Trầm cảm</span><span class="sb-val" style="color:#8a6aaa;">{{ Math.round(analysis.depression) }}%</span></div>
+            <div class="sb-row"><span class="sb-label">{{ t('moodChat.sidebar.depressionLabel') }}</span><span class="sb-val" style="color:#8a6aaa;">{{ Math.round(analysis.depression) }}%</span></div>
             <div class="sb-bar"><div class="sb-fill sb-depression" :style="{ width: analysis.depression + '%' }"></div></div>
           </div>
         </div>
 
         <!-- Keywords -->
         <div class="paper-card cs-card">
-          <div class="cs-title">🏷️ Từ khóa phát hiện</div>
+          <div class="cs-title">{{ t('moodChat.sidebar.keywordsTitle') }}</div>
           <div class="kw-grid">
-            <span v-if="!keywords.length" style="font-size:0.72rem;color:var(--text-light);font-style:italic;">Chưa có dữ liệu</span>
+            <span v-if="!keywords.length" style="font-size:0.72rem;color:var(--text-light);font-style:italic;">{{ t('moodChat.sidebar.noKeywords') }}</span>
             <div
               v-for="keyword in keywords.slice(0, 10)"
               :key="keyword"
@@ -195,33 +193,33 @@
 
         <!-- Mood Portrait -->
         <div class="paper-card portrait-card">
-          <div class="portrait-title">🎨 Bức tranh tâm trạng</div>
+          <div class="portrait-title">{{ t('moodChat.sidebar.portraitTitle') }}</div>
           <div class="portrait-bars">
-            <div class="pb-item"><span class="pb-label">Cảm xúc</span>
+            <div class="pb-item"><span class="pb-label">{{ t('moodChat.sidebar.emotionLabel') }}</span>
               <div class="pb-bar"><div class="pb-fill" :style="{ width: analysis.emotion + '%', background: 'var(--mint-dark)' }"></div></div>
             </div>
-            <div class="pb-item"><span class="pb-label">Thể chất</span>
+            <div class="pb-item"><span class="pb-label">{{ t('moodChat.sidebar.physicalLabel') }}</span>
               <div class="pb-bar"><div class="pb-fill" :style="{ width: analysis.physical + '%', background: 'var(--sky)' }"></div></div>
             </div>
-            <div class="pb-item"><span class="pb-label">Xã hội</span>
+            <div class="pb-item"><span class="pb-label">{{ t('moodChat.sidebar.socialLabel') }}</span>
               <div class="pb-bar"><div class="pb-fill" :style="{ width: analysis.social + '%', background: 'var(--lavender)' }"></div></div>
             </div>
-            <div class="pb-item"><span class="pb-label">Nhận thức</span>
+            <div class="pb-item"><span class="pb-label">{{ t('moodChat.sidebar.cognitiveLabel') }}</span>
               <div class="pb-bar"><div class="pb-fill" :style="{ width: analysis.cognitive + '%', background: 'var(--peach-dark)' }"></div></div>
             </div>
           </div>
           <div style="margin-top:10px;">
             <button class="btn-primary" style="width:100%;justify-content:center;font-size:0.8rem;padding:9px 16px;" @click="showResult">
-              📋 Xem báo cáo đầy đủ
+              {{ t('moodChat.sidebar.fullReportBtn') }}
             </button>
           </div>
         </div>
 
         <!-- Suggested Tasks -->
         <div class="paper-card cs-card">
-          <div class="cs-title">🎯 Gợi ý nhiệm vụ</div>
+          <div class="cs-title">{{ t('moodChat.sidebar.suggestedTasksTitle') }}</div>
           <div>
-            <div v-if="!suggestedTasks.length" style="font-size:0.75rem;color:var(--text-light);font-style:italic;">Nhiệm vụ sẽ được gợi ý sau khi bạn chia sẻ thêm...</div>
+            <div v-if="!suggestedTasks.length" style="font-size:0.75rem;color:var(--text-light);font-style:italic;">{{ t('moodChat.sidebar.noSuggestedTasksYet') }}</div>
             <div
               v-for="task in suggestedTasks"
               :key="task.id"
@@ -230,8 +228,8 @@
             >
               <div class="ts-icon">🎯</div>
               <div class="ts-info">
-                <div class="ts-name">{{ task.title || 'Nhiệm vụ' }}</div>
-                <div class="ts-meta">{{ task.category || 'task' }} · {{ task.difficulty || 'easy' }}</div>
+                <div class="ts-name">{{ task.title || t('moodChat.result.taskDefaultTitle') }}</div>
+                <div class="ts-meta">{{ task.category || t('moodChat.result.taskDefaultCategory') }} · {{ task.difficulty || t('moodChat.result.taskDefaultDifficulty') }}</div>
               </div>
             </div>
           </div>
@@ -239,11 +237,9 @@
 
         <!-- Safety Note -->
         <div class="paper-card cs-card" style="background:rgba(255,139,139,0.05);border-color:var(--coral);">
-          <div class="cs-title" style="color:var(--coral);">⚠️ Lưu ý an toàn</div>
-          <div style="font-size:0.75rem;color:var(--text-secondary);line-height:1.6;margin-bottom:8px;">
-            PeaceCat AI là bạn đồng hành, <strong>không phải bác sĩ</strong>. Nếu bạn cần hỗ trợ khẩn cấp:
-          </div>
-          <button class="emergency-btn-side" style="width:100%;justify-content:center;" @click="showEmergency">🆘 Hỗ trợ khẩn cấp ngay</button>
+          <div class="cs-title" style="color:var(--coral);">{{ t('moodChat.sidebar.safetyTitle') }}</div>
+          <div style="font-size:0.75rem;color:var(--text-secondary);line-height:1.6;margin-bottom:8px;" v-html="t('moodChat.sidebar.safetyText')"></div>
+          <button class="emergency-btn-side" style="width:100%;justify-content:center;" @click="showEmergency">{{ t('moodChat.sidebar.safetyBtn') }}</button>
         </div>
       </div>
     </div>
@@ -253,16 +249,24 @@
 <script setup>
 import { ref, reactive, computed, nextTick, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
+import { useI18n } from 'vue-i18n';
 import { apiClient } from '../lib/apiClient';
 import { useAuthStore } from '../stores/auth';
 
 const router = useRouter();
 const auth = useAuthStore();
+const { t, tm, locale } = useI18n();
 
 const STORAGE_KEY = 'peaceflow_mood_chat_state_v1';
 const MAX_MESSAGE_LENGTH = 500;
 const MAX_CONVERSATION_ITEMS = 20;
 
+// Các bộ từ khoá này so khớp trực tiếp trên NỘI DUNG người dùng gõ (tiếng Việt), không phải
+// text giao diện — không thể "dịch" mà không phá vỡ khả năng phát hiện. DANGER_KEYWORDS đặc
+// biệt quan trọng vì dùng để tự động mở popup hỗ trợ khẩn cấp. Đây là khoảng trống tính năng
+// thật với người dùng viết tiếng Anh (client-side sẽ không bắt được, nhưng server có bộ từ
+// khoá riêng rộng hơn kiểm tra lại — xem comment ở sendMessage()). Cần một bộ từ khoá tiếng Anh
+// riêng để xử lý đầy đủ, nằm ngoài phạm vi dịch giao diện tĩnh lần này.
 const DANGER_KEYWORDS = ['tự tử', 'muốn chết', 'không muốn sống', 'tự hại', 'cắt tay', 'kết thúc tất cả', 'tuyệt vọng hoàn toàn', 'không còn lý do'];
 const NEGATIVE_KW = ['căng thẳng', 'lo lắng', 'mệt mỏi', 'buồn', 'tức giận', 'kiệt sức', 'áp lực', 'mất ngủ', 'chán nản', 'sợ hãi', 'cô đơn', 'thất bại', 'khóc', 'đau', 'bế tắc', 'không ngủ được', 'deadline', 'sếp', 'công việc'];
 const POSITIVE_KW = ['vui', 'hạnh phúc', 'tốt', 'ổn', 'bình tĩnh', 'thư giãn', 'hy vọng', 'cảm ơn', 'biết ơn', 'yêu', 'tự hào', 'tiến bộ'];
@@ -302,7 +306,14 @@ const conversation = ref([]);
 const isTyping = ref(false);
 const isRecording = ref(false);
 const topbarMascot = ref('🐱');
-const statusText = ref('Đang lắng nghe bạn...');
+// Trạng thái thuần, không phải chuỗi đã dịch — computed bên dưới tự dịch lại khi đổi ngôn ngữ.
+const statusKind = ref('listening'); // 'listening' | 'typing' | 'recording' | 'error'
+const statusText = computed(() => {
+  if (statusKind.value === 'typing') return t('moodChat.topbar.statusTyping');
+  if (statusKind.value === 'recording') return t('moodChat.topbar.statusRecording');
+  if (statusKind.value === 'error') return t('moodChat.loadFailedStatus');
+  return t('moodChat.topbar.statusListening');
+});
 const chatInputValue = ref('');
 const chatMessagesEl = ref(null);
 const chatInputEl = ref(null);
@@ -317,16 +328,10 @@ const userMessageCount = ref(0);
 
 function getUserName() {
   const user = report.value?.user || dashboard.value?.user || auth.user || {};
-  return user.display_name || user.full_name || 'bạn';
+  return user.display_name || user.full_name || t('moodChat.defaultUserName');
 }
 
-const quickReplies = [
-  'Mình khá căng thẳng',
-  'Hôm nay mình thấy buồn',
-  'Mình đang rất mệt',
-  'Mình hơi tức giận',
-  'Hôm nay mình ổn hơn'
-];
+const quickReplies = computed(() => tm('moodChat.quickReplies'));
 
 function getLatestPhqAssessment() {
   return (report.value?.assessments || []).find((item) => String(item.code || '').toLowerCase().includes('phq')) || null;
@@ -447,14 +452,15 @@ function buildWelcomeMessage() {
   const latestMood = dashboard.value?.latest_mood || report.value?.latest_mood;
   const insight = dashboard.value?.insight;
   const moodSentence = latestMood?.mood_score !== null && latestMood?.mood_score !== undefined
-    ? `Mood gần nhất của bạn là <strong>${latestMood.mood_score}/10</strong>.`
-    : 'Mình chưa thấy check-in mood gần đây của bạn.';
+    ? t('moodChat.welcome.moodSentence', { score: latestMood.mood_score })
+    : t('moodChat.welcome.noMoodSentence');
 
   const insightSentence = (insight?.title || insight?.body)
-    ? `<br><br><strong>Tín hiệu gần đây:</strong> ${escapeHtml(insight.title || insight.body)}`
+    ? t('moodChat.welcome.recentSignal', { text: escapeHtml(insight.title || insight.body) })
     : '';
 
-  return `Chào <span data-user-field="display_name">${escapeHtml(getUserName())}</span>! 🌿 Mình là PeaceCat.<br><br>${moodSentence}${insightSentence}<br><br>Đây vẫn là không gian riêng tư để bạn nói ra điều đang diễn ra. <strong>Hôm nay bạn thấy thế nào?</strong>`;
+  const nameHtml = `<span data-user-field="display_name">${escapeHtml(getUserName())}</span>`;
+  return `${t('moodChat.welcome.intro', { name: nameHtml })}<br><br>${moodSentence}${insightSentence}<br><br>${t('moodChat.welcome.closing')}`;
 }
 
 function addMessage(role, text, options = {}) {
@@ -476,13 +482,13 @@ function addMessage(role, text, options = {}) {
 function showTyping() {
   if (isTyping.value) return;
   isTyping.value = true;
-  statusText.value = 'PeaceCat đang phản hồi...';
+  statusKind.value = 'typing';
   scrollToBottom();
 }
 
 function hideTyping() {
   isTyping.value = false;
-  statusText.value = 'Đang lắng nghe bạn...';
+  statusKind.value = 'listening';
 }
 
 function detectMoodType(text) {
@@ -520,7 +526,7 @@ function applyAiMoodAnalysis(moodAnalysis) {
 function resetChat(withWelcome = true) {
   conversation.value = [];
   if (withWelcome) {
-    addMessage('bot', '', { html: buildWelcomeMessage(), time: 'Vừa xong' });
+    addMessage('bot', '', { html: buildWelcomeMessage(), time: t('moodChat.welcome.justNow') });
   }
   updateMessageCount();
   saveConversation();
@@ -587,7 +593,7 @@ async function sendMessage() {
     const res = await apiClient.post('/ai/chat', { message: text, history });
     hideTyping();
     applyAiMoodAnalysis(res?.mood_analysis);
-    addMessage('bot', res?.reply || 'Xin lỗi, mình chưa nghĩ ra câu trả lời phù hợp lúc này.', {
+    addMessage('bot', res?.reply || t('moodChat.botDefaultReply'), {
       suggestedTask: res?.suggested_task || null,
       suggestedExpert: res?.suggested_expert || null,
       offeredTask: res?.offered_task || false
@@ -600,7 +606,7 @@ async function sendMessage() {
   } catch (error) {
     console.error('Chat AI failed:', error);
     hideTyping();
-    addMessage('bot', 'Xin lỗi, mình đang gặp chút trục trặc, bạn thử lại sau ít phút nhé. Nếu cần hỗ trợ ngay, hãy bấm "🆘 Khẩn cấp" ở trên.');
+    addMessage('bot', t('moodChat.botErrorReply'));
   }
 }
 
@@ -617,7 +623,7 @@ function toggleVoice() {
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
   if (!SpeechRecognition) {
-    alert('Trình duyệt này chưa hỗ trợ nhập giọng nói.');
+    alert(t('moodChat.chat.voiceNotSupported'));
     return;
   }
 
@@ -628,13 +634,13 @@ function toggleVoice() {
 
   const recognition = new SpeechRecognition();
   recognitionRef = recognition;
-  recognition.lang = 'vi-VN';
+  recognition.lang = locale.value === 'en' ? 'en-US' : 'vi-VN';
   recognition.interimResults = false;
   recognition.maxAlternatives = 1;
 
   recognition.onstart = () => {
     isRecording.value = true;
-    statusText.value = 'Đang nghe giọng nói...';
+    statusKind.value = 'recording';
   };
 
   recognition.onresult = (event) => {
@@ -644,12 +650,12 @@ function toggleVoice() {
   };
 
   recognition.onerror = () => {
-    statusText.value = 'Đang lắng nghe bạn...';
+    statusKind.value = 'listening';
   };
 
   recognition.onend = () => {
     isRecording.value = false;
-    statusText.value = 'Đang lắng nghe bạn...';
+    statusKind.value = 'listening';
   };
 
   recognition.start();
@@ -683,27 +689,27 @@ function scoreLevel(value, { good, medium }) {
 }
 
 function scoreLevelLabel(value, { good, medium }) {
-  return value <= good ? 'Thấp' : value <= medium ? 'Trung bình' : 'Cao';
+  return value <= good ? t('moodChat.scoreLevels.low') : value <= medium ? t('moodChat.scoreLevels.medium') : t('moodChat.scoreLevels.high');
 }
 
 const resultScores = computed(() => [
-  { key: 'anxiety', icon: '😰', label: 'Lo âu', value: analysis.anxiety, level: scoreLevel(analysis.anxiety, { good: 35, medium: 65 }), levelLabel: scoreLevelLabel(analysis.anxiety, { good: 35, medium: 65 }) },
-  { key: 'stress', icon: '🌀', label: 'Stress', value: analysis.stress, level: scoreLevel(analysis.stress, { good: 35, medium: 65 }), levelLabel: scoreLevelLabel(analysis.stress, { good: 35, medium: 65 }) },
-  { key: 'mood', icon: '💚', label: 'Tâm trạng', value: analysis.mood, level: analysis.mood >= 65 ? 'good' : analysis.mood >= 35 ? 'medium' : 'bad', levelLabel: analysis.mood >= 65 ? 'Tích cực' : analysis.mood >= 35 ? 'Trung bình' : 'Cần chú ý' },
-  { key: 'depression', icon: '🌧️', label: 'Trầm cảm', value: analysis.depression, level: scoreLevel(analysis.depression, { good: 35, medium: 65 }), levelLabel: scoreLevelLabel(analysis.depression, { good: 35, medium: 65 }) }
+  { key: 'anxiety', icon: '😰', label: t('moodChat.scoreLabels.anxiety'), value: analysis.anxiety, level: scoreLevel(analysis.anxiety, { good: 35, medium: 65 }), levelLabel: scoreLevelLabel(analysis.anxiety, { good: 35, medium: 65 }) },
+  { key: 'stress', icon: '🌀', label: t('moodChat.scoreLabels.stress'), value: analysis.stress, level: scoreLevel(analysis.stress, { good: 35, medium: 65 }), levelLabel: scoreLevelLabel(analysis.stress, { good: 35, medium: 65 }) },
+  { key: 'mood', icon: '💚', label: t('moodChat.scoreLabels.mood'), value: analysis.mood, level: analysis.mood >= 65 ? 'good' : analysis.mood >= 35 ? 'medium' : 'bad', levelLabel: analysis.mood >= 65 ? t('moodChat.scoreLevels.positive') : analysis.mood >= 35 ? t('moodChat.scoreLevels.medium') : t('moodChat.scoreLevels.needsAttention') },
+  { key: 'depression', icon: '🌧️', label: t('moodChat.scoreLabels.depression'), value: analysis.depression, level: scoreLevel(analysis.depression, { good: 35, medium: 65 }), levelLabel: scoreLevelLabel(analysis.depression, { good: 35, medium: 65 }) }
 ]);
 
 const resultInsight = computed(() => {
   if (analysis.mood >= 65) {
-    return 'Tâm trạng của bạn đang khá tích cực trong cuộc trò chuyện này. Hãy tiếp tục duy trì những điều đang giúp bạn cảm thấy tốt hơn nhé! 🌿';
+    return t('moodChat.insight.positive');
   }
   if (analysis.anxiety >= 65 || analysis.stress >= 65) {
-    return 'PeaceCat nhận thấy bạn đang có dấu hiệu lo âu/stress khá cao. Hãy thử một bài tập thở ngắn, hoặc trò chuyện với chuyên gia nếu cảm giác này kéo dài.';
+    return t('moodChat.insight.highStress');
   }
   if (keywords.value.length) {
-    return `Một số từ khóa nổi bật trong cuộc trò chuyện: ${keywords.value.slice(0, 3).join(', ')}. PeaceCat sẽ tiếp tục đồng hành cùng bạn.`;
+    return t('moodChat.insight.keywordsFound', { keywords: keywords.value.slice(0, 3).join(', ') });
   }
-  return 'PeaceCat chưa thấy tín hiệu đáng lo trong cuộc trò chuyện này. Hãy tiếp tục chia sẻ để mình hiểu bạn hơn nhé!';
+  return t('moodChat.insight.defaultMessage');
 });
 
 async function initializePage() {
@@ -742,7 +748,7 @@ onMounted(async () => {
     await initializePage();
   } catch (error) {
     console.error('Failed to initialize mood chat page:', error);
-    statusText.value = 'Không tải được dữ liệu thật';
+    statusKind.value = 'error';
     resetChat(true);
   }
 });

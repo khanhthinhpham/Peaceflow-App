@@ -46,7 +46,9 @@ export const useDonateStore = defineStore('donate', {
       try {
         this.bankInfo = await apiClient.get('/donate/info', { noCache: true });
       } catch (_e) {
-        this.error = 'Không tải được thông tin ủng hộ. Vui lòng thử lại.';
+        // Trạng thái thuần (không phải chuỗi đã dịch) — nơi hiển thị (DonateModal.vue) tự dịch
+        // qua t('donate.loadFailed'), tránh kẹt bản dịch cũ nếu đổi ngôn ngữ khi modal đang mở.
+        this.error = true;
       } finally {
         this.loading = false;
       }

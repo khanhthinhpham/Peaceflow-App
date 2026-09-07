@@ -302,6 +302,7 @@ input:checked+.toggle-slider:before {
 
 .sr-left {
     flex: 1;
+    min-width: 0;
 }
 
 .sr-title {
@@ -315,7 +316,7 @@ input:checked+.toggle-slider:before {
     color: var(--text-secondary);
 }
 
-.form-select {
+.select-row .form-select {
     padding: 7px 12px;
     border: 2px solid var(--kraft-light);
     border-radius: var(--border-radius-sm);
@@ -326,6 +327,9 @@ input:checked+.toggle-slider:before {
     outline: none;
     cursor: pointer;
     transition: var(--transition);
+    width: auto;
+    max-width: 55%;
+    flex-shrink: 0;
 }
 
 .form-select:focus {

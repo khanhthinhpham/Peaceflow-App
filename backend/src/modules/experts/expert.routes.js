@@ -9,6 +9,7 @@ import { createZoomMeeting } from '../../common/services/zoom.service.js';
 import { generateOrderCode, transferContent, buildTransferContent, buildVietQrUrl, platformBankInfo, computeFee, isPayosEnabled, createPayosPayment, qrImageFromString, verifyPayosWebhook, lookupBankAccount, isVietqrLookupEnabled } from '../../common/services/payment.service.js';
 import { approveExpertApplication, rejectExpertApplication } from '../auth/auth.service.js';
 import { sendPushToUser } from '../notifications/notification.routes.js';
+import { buildNotificationMessage } from '../notifications/notification-messages.js';
 import { encryptBuffer, decryptBuffer, encryptText, decryptText } from '../../common/services/crypto.service.js';
 
 const router = Router();
@@ -893,9 +894,9 @@ router.post('/payments/webhook', async (req, res) => {
         [b.id]
       );
       const info = infoRes.rows[0];
-      await notify(b.user_id, null, 'booking_update', 'Đã nhận thanh toán — đang chờ chuyên gia nhận lịch.');
+      await notify(b.user_id, null, 'booking_update', 'Đã nhận thanh toán — đang chờ chuyên gia nhận lịch.', { code: 'booking_payment_received_awaiting_expert' });
       if (info?.expert_user_id) {
-        await notify(info.expert_user_id, info.client_name, 'booking_new', 'Có lịch đã thanh toán — mời bạn nhận hoặc từ chối.');
+        await notify(info.expert_user_id, info.client_name, 'booking_new', 'Có lịch đã thanh toán — mời bạn nhận hoặc từ chối.', { code: 'booking_new_paid_awaiting_response' });
       }
     }
 
@@ -942,7 +943,7 @@ router.post('/bookings/:id/claim-payment', requireAuth, async (req, res) => {
       await notify(admin.id, clientName, 'booking_update', `${clientName} báo đã chuyển khoản — cần đối chiếu & xác nhận thanh toán.`);
     }
     // Báo chuyên gia (thông tin, không cần thao tác): có lịch đã thanh toán đang chờ duyệt.
-    await notify(booking.expert_user_id, clientName, 'booking_new', `${clientName} đã đặt & thanh toán một lịch hẹn — đang chờ xác nhận.`);
+    await notify(booking.expert_user_id, clientName, 'booking_new', `${clientName} đã đặt & thanh toán một lịch hẹn — đang chờ xác nhận.`, { code: 'booking_client_deposited', clientName });
 
     return res.json({ success: true });
   } catch (error) {
@@ -985,7 +986,7 @@ router.post('/expert-bookings/:id/cancel', requireAuth, async (req, res) => {
       await creditWallet(req.user.sub, refund, 'refund', booking.id, `Hoàn ${pct}% do bạn huỷ lịch`);
     }
 
-    await notify(booking.expert_user_id, null, 'booking_update', `Một lịch hẹn đã bị thân chủ huỷ.`);
+    await notify(booking.expert_user_id, null, 'booking_update', `Một lịch hẹn đã bị thân chủ huỷ.`, { code: 'booking_cancelled_by_client' });
 
     return res.json({ success: true, data: { refunded: refund, refund_percent: pct } });
   } catch (error) {
@@ -1144,15 +1145,17 @@ router.patch('/expert-portal/bookings/:id', requireAuth, async (req, res) => {
 
     const labelMap = { confirmed: 'đã nhận lịch', completed: 'đã hoàn thành', cancelled: 'đã huỷ' };
     await notify(booking.user_id, expert.full_name, 'booking_update',
-      `Chuyên gia ${expert.full_name} ${labelMap[status]} lịch hẹn của bạn.`);
+      `Chuyên gia ${expert.full_name} ${labelMap[status]} lịch hẹn của bạn.`,
+      { code: 'booking_status_changed', expertName: expert.full_name, status });
 
     // Gửi email cho thân chủ về thay đổi trạng thái (best-effort).
     try {
       const clientRes = await db.query(
-        `select email, coalesce(display_name, full_name) as name from users where id = $1`,
+        `select email, coalesce(display_name, full_name) as name, locale from users where id = $1`,
         [booking.user_id]
       );
       const client = clientRes.rows[0];
+      const clientLocale = client?.locale === 'en' ? 'en' : 'vi';
       if (client?.email) {
         await sendBookingStatusEmail({
           to: client.email,
@@ -1160,7 +1163,8 @@ router.patch('/expert-portal/bookings/:id', requireAuth, async (req, res) => {
           expertName: expert.full_name,
           sessionType: updated.rows[0].session_type,
           startsAt: updated.rows[0].starts_at,
-          status
+          status,
+          locale: clientLocale
         });
       }
       if (status === 'confirmed' && zoomMeeting) {
@@ -1176,8 +1180,11 @@ router.patch('/expert-portal/bookings/:id', requireAuth, async (req, res) => {
             durationMinutes: b.duration_minutes,
             joinUrl: zoomMeeting.joinUrl,
             startUrl: null,
-            isExpert: false
+            isExpert: false,
+            locale: clientLocale
           }),
+          // req.user chính là chuyên gia đang gọi route này -> req.locale phản ánh đúng
+          // ngôn ngữ họ đang dùng, không cần tra DB.
           booking.expert_email && sendBookingConfirmedEmail({
             to: booking.expert_email,
             recipientName: expert.full_name,
@@ -1188,7 +1195,8 @@ router.patch('/expert-portal/bookings/:id', requireAuth, async (req, res) => {
             durationMinutes: b.duration_minutes,
             joinUrl: zoomMeeting.joinUrl,
             startUrl: zoomMeeting.startUrl,
-            isExpert: true
+            isExpert: true,
+            locale: req.locale
           })
           ]);
         } catch (e) {
@@ -2272,7 +2280,7 @@ router.post('/admin/bookings/:id/confirm-payment', requireAuth, async (req, res)
     if (!req.user.is_admin) return res.status(403).json({ success: false, message: 'Admin only' });
     const bRes = await db.query(
       `select b.*, e.user_id as expert_user_id, e.full_name as expert_name,
-              eu.email as expert_email,
+              eu.email as expert_email, eu.locale as expert_locale,
               coalesce(cu.display_name, cu.full_name, 'Một thân chủ') as client_name
        from expert_bookings b join experts e on e.id = b.expert_id
        left join users eu on eu.id = e.user_id
@@ -2283,13 +2291,14 @@ router.post('/admin/bookings/:id/confirm-payment', requireAuth, async (req, res)
     const b = bRes.rows[0];
     if (!b) return res.status(404).json({ success: false, message: 'Không tìm thấy lịch hẹn.' });
     if (b.status !== 'pending') return res.status(409).json({ success: false, message: 'Lịch không ở trạng thái chờ xác nhận thanh toán.' });
+    const expertLocale = b.expert_locale === 'en' ? 'en' : 'vi';
 
     // Đã nhận tiền → chuyển sang CHỜ CHUYÊN GIA NHẬN LỊCH (ghi sổ doanh thu khi chuyên gia nhận).
     await db.query(`update expert_bookings set status = 'awaiting_expert', paid_at = now() where id = $1`, [b.id]);
     await db.query(`update payments set status = 'paid', paid_at = now() where booking_id = $1 and status = 'pending'`, [b.id]);
 
-    await notify(b.user_id, null, 'booking_update', 'Đã xác nhận thanh toán — đang chờ chuyên gia nhận lịch.');
-    await notify(b.expert_user_id, null, 'booking_new', 'Có lịch đã thanh toán — mời bạn nhận hoặc từ chối.');
+    await notify(b.user_id, null, 'booking_update', 'Đã xác nhận thanh toán — đang chờ chuyên gia nhận lịch.', { code: 'booking_payment_confirmed_awaiting_expert' });
+    await notify(b.expert_user_id, null, 'booking_new', 'Có lịch đã thanh toán — mời bạn nhận hoặc từ chối.', { code: 'booking_new_paid_awaiting_response' });
 
     // Gửi email cho chuyên gia nếu Resend đã được cấu hình. Lỗi email không làm
     // thất bại thao tác xác nhận thanh toán đã ghi nhận thành công.
@@ -2300,7 +2309,8 @@ router.post('/admin/bookings/:id/confirm-payment', requireAuth, async (req, res)
           expertName: b.expert_name,
           clientName: b.client_name,
           sessionType: b.session_type,
-          startsAt: b.starts_at
+          startsAt: b.starts_at,
+          locale: expertLocale
         });
       }
     } catch (e) {
@@ -2309,11 +2319,13 @@ router.post('/admin/bookings/:id/confirm-payment', requireAuth, async (req, res)
 
     // Gửi Web Push tới các thiết bị mà chuyên gia đã đăng ký. Hàm này tự bỏ qua
     // nếu VAPID chưa cấu hình hoặc chuyên gia chưa cấp quyền push.
+    // Dùng users.locale (lưu bền) chứ không phải req.locale: route này do ADMIN gọi,
+    // không phải trực tiếp bởi trình duyệt của chuyên gia.
     try {
       await sendPushToUser(
         b.expert_user_id,
-        'Lịch hẹn mới',
-        'Có lịch đã thanh toán — mời bạn nhận hoặc từ chối.',
+        expertLocale === 'en' ? 'New booking' : 'Lịch hẹn mới',
+        buildNotificationMessage('booking_new_paid_awaiting_response', {}, expertLocale),
         `${env.frontendUrl}/expert/dashboard`
       );
     } catch (e) {
@@ -2338,7 +2350,7 @@ router.post('/admin/bookings/:id/reject-payment', requireAuth, async (req, res) 
 
     await db.query(`update expert_bookings set status = 'cancelled', cancelled_at = now(), cancel_reason = 'payment_failed' where id = $1`, [b.id]);
     await db.query(`update payments set status = 'failed' where booking_id = $1`, [b.id]);
-    await notify(b.user_id, null, 'booking_update', 'Chưa nhận được thanh toán cho lịch hẹn — đơn đã bị huỷ. Vui lòng đặt lại.');
+    await notify(b.user_id, null, 'booking_update', 'Chưa nhận được thanh toán cho lịch hẹn — đơn đã bị huỷ. Vui lòng đặt lại.', { code: 'booking_payment_failed_cancelled' });
 
     return res.json({ success: true });
   } catch (error) {
@@ -2394,8 +2406,8 @@ router.post('/bookings/:id/pay-wallet', requireAuth, async (req, res) => {
     await db.query(`update payments set status = 'paid', paid_at = now(), provider = 'wallet' where booking_id = $1 and status = 'pending'`, [b.id]);
     await db.query(`update expert_bookings set status = 'awaiting_expert', paid_at = now() where id = $1`, [b.id]);
 
-    await notify(b.user_id, null, 'booking_update', 'Đã thanh toán bằng ví — đang chờ chuyên gia nhận lịch.');
-    if (b.expert_user_id) await notify(b.expert_user_id, b.client_name, 'booking_new', 'Có lịch đã thanh toán — mời bạn nhận hoặc từ chối.');
+    await notify(b.user_id, null, 'booking_update', 'Đã thanh toán bằng ví — đang chờ chuyên gia nhận lịch.', { code: 'booking_payment_wallet_awaiting_expert' });
+    if (b.expert_user_id) await notify(b.expert_user_id, b.client_name, 'booking_new', 'Có lịch đã thanh toán — mời bạn nhận hoặc từ chối.', { code: 'booking_new_paid_awaiting_response' });
 
     return res.json({ success: true });
   } catch (error) {
@@ -2477,7 +2489,8 @@ router.put('/expert-portal/payment-method', requireAuth, async (req, res) => {
           to: u.email,
           name: u.name,
           bankName: p.payout_bank_name,
-          accountMasked: maskAccount(p.payout_account_number)
+          accountMasked: maskAccount(p.payout_account_number),
+          locale: req.locale
         });
       }
     } catch (e) {
@@ -2588,7 +2601,7 @@ router.post('/admin/payouts/:expertId', requireAuth, async (req, res) => {
     await db.query(`update expert_ledger set status = 'settled' where expert_id = $1 and status = 'payable'`, [exp.id]);
     await db.query(`update experts set balance = 0 where id = $1`, [exp.id]);
     if (exp.user_id) {
-      await notify(exp.user_id, null, 'booking_update', `Bạn đã được chi trả ${Number(exp.balance).toLocaleString('vi-VN')}đ.`);
+      await notify(exp.user_id, null, 'booking_update', `Bạn đã được chi trả ${Number(exp.balance).toLocaleString('vi-VN')}đ.`, { code: 'payout_paid', amount: exp.balance });
     }
     return res.json({ success: true, data: { amount: exp.balance } });
   } catch (error) {
@@ -2929,12 +2942,16 @@ function ensureArray(value) {
 }
 
 // Ghi một notification (best-effort, không làm hỏng request chính nếu lỗi).
-async function notify(recipientId, actorName, type, message) {
+// `params` (tuỳ chọn): { code, ...dữ liệu thô } — cho phép GET /notifications ghép lại câu
+// theo đúng locale của người đọc thay vì chỉ dùng `message` tiếng Việt đã ghép sẵn ở đây
+// (xem notification-messages.js). Không truyền `params` thì chỉ có `message` như trước
+// (dùng cho thông báo admin — nội bộ, không cần đa ngôn ngữ).
+async function notify(recipientId, actorName, type, message, params = null) {
   if (!recipientId) return;
   try {
     await db.query(
-      `insert into notifications (recipient_id, actor_name, type, message) values ($1, $2, $3, $4)`,
-      [recipientId, actorName, type, message]
+      `insert into notifications (recipient_id, actor_name, type, message, params) values ($1, $2, $3, $4, $5::jsonb)`,
+      [recipientId, actorName, type, message, params ? JSON.stringify(params) : null]
     );
   } catch (e) {
     console.error('[notify] failed:', e.message);

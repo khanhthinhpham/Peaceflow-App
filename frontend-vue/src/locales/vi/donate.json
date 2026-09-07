@@ -1,0 +1,12 @@
+{
+  "donate": {
+    "title": "Ủng hộ PeaceFlow",
+    "subtitle": "Đóng góp của bạn giúp PeaceFlow tiếp tục miễn phí cho mọi người. Cảm ơn bạn 🌿",
+    "customAmount": "Tuỳ tâm",
+    "loadingQr": "Đang tải mã QR…",
+    "qrAlt": "QR ủng hộ PeaceFlow",
+    "scanNotePrefix": "Quét QR bằng app ngân hàng · Số tiền:",
+    "contentLabel": "Nội dung:",
+    "loadFailed": "Không tải được thông tin ủng hộ. Vui lòng thử lại."
+  }
+}

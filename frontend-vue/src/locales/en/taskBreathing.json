@@ -1,0 +1,80 @@
+{
+  "taskBreathing": {
+    "breadcrumbDashboard": "🏡 Overview",
+    "breadcrumbTasks": "🎮 Tasks",
+    "breadcrumbCurrent": "💨 Breathing Exercise",
+    "guestNote": {
+      "title": "You're in emergency support mode",
+      "text": "This breathing exercise is always open to everyone, no sign-in required. Sign in to save your progress and earn XP."
+    },
+    "controls": {
+      "startBtn": "▶ Start",
+      "pauseBtn": "⏸ Pause",
+      "resumeBtn": "▶ Resume",
+      "resetBtn": "↩ Reset"
+    },
+    "phaseDefaults": {
+      "ready": "Ready",
+      "readyInstruction": "Tap start to begin practicing"
+    },
+    "secondsUnit": "sec",
+    "stats": {
+      "title": "📊 This session's stats",
+      "roundsLabel": "Rounds",
+      "timeLabel": "Time"
+    },
+    "feedback": {
+      "title": "Great job! 🎉",
+      "subtitle": "You've completed the breathing exercise.",
+      "retryBtn": "🔄 Practice again",
+      "backToTasksBtn": "🎮 Back to tasks"
+    },
+    "tipTitle": "🐱 PeaceCat Tip",
+    "techniques": {
+      "box": {
+        "name": "Box Breathing",
+        "fullName": "📦 Box Breathing",
+        "timeLabel": "4-4-4-4 · 5 min",
+        "subtitle": "Instant stress control technique",
+        "desc": "Box breathing regulates your breath in even 4-second cycles.",
+        "tip": "Box Breathing is a Navy SEAL technique! 🌊",
+        "phaseInhale": "Inhale",
+        "phaseHold": "Hold",
+        "phaseExhale": "Exhale",
+        "phasePause": "Pause"
+      },
+      "478": {
+        "name": "4-7-8",
+        "fullName": "🌙 4-7-8 Breathing",
+        "timeLabel": "Deep relaxation · 5 min",
+        "subtitle": "Helps you relax deeply and supports sleep",
+        "desc": "Helps you relax deeply and supports sleep.",
+        "tip": "4-7-8 is a natural sleep aid! 🌙",
+        "phaseInhale": "Inhale",
+        "phaseHold": "Hold",
+        "phaseExhale": "Exhale"
+      },
+      "coherent": {
+        "name": "Coherent",
+        "fullName": "💚 Coherent",
+        "timeLabel": "5-5 · 10 min",
+        "subtitle": "Optimizes HRV and heart rate",
+        "desc": "Optimizes HRV and heart rate.",
+        "tip": "Helps synchronize mind and body. 💚",
+        "phaseInhale": "Inhale",
+        "phaseExhale": "Exhale"
+      },
+      "diaphragm": {
+        "name": "Belly Breathing",
+        "fullName": "🌬️ Belly Breathing",
+        "timeLabel": "Basic · 5 min",
+        "subtitle": "The most natural and effective way to breathe",
+        "desc": "The most natural and effective way to breathe.",
+        "tip": "Feel your belly rise as you breathe in. 🌬️",
+        "phaseInhale": "Inhale",
+        "phaseHold": "Hold",
+        "phaseExhale": "Exhale"
+      }
+    }
+  }
+}

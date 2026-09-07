@@ -1,0 +1,140 @@
+{
+  "dashboard": {
+    "greeting": "🌿 Xin chào, {name}!",
+    "subtitle": "Hôm nay là một ngày mới để tiến bộ 🌱",
+    "weeklyReportBtn": "📊 Báo cáo tuần",
+    "checkinNowBtn": "💭 Check-in ngay",
+    "defaultUserLabel": "bạn",
+    "newUser": {
+      "title": "Chào mừng đến với PeaceFlow!",
+      "descLine1": "Hãy bắt đầu bằng cách check-in tâm trạng hôm nay.",
+      "descLine2": "Chỉ mất 30 giây — hệ thống sẽ gợi ý nhiệm vụ phù hợp nhất cho bạn.",
+      "tasksCta": "🎮 Xem nhiệm vụ",
+      "journalCta": "📝 Viết nhật ký"
+    },
+    "checkinPrompt": {
+      "title": "Chào buổi sáng! Hôm nay bạn cảm thấy thế nào? ☀️",
+      "sub": "Chỉ mất 30 giây — check-in để PeaceFlow gợi ý nhiệm vụ phù hợp nhất cho bạn nhé!",
+      "startBtn": "Bắt đầu →"
+    },
+    "emergencyBanner": {
+      "title": "🆘 Ưu tiên an toàn cho bạn lúc này",
+      "desc": "PeaceFlow phát hiện mức cần hỗ trợ cao từ dữ liệu gần đây. Bạn có thể mở khu hỗ trợ khẩn cấp hoặc liên hệ người tin tưởng.",
+      "openBtn": "Mở hỗ trợ khẩn cấp"
+    },
+    "stats": {
+      "moodLabel": "Tâm trạng hôm nay",
+      "moodTrendHas": "Dữ liệu mới nhất",
+      "moodTrendNone": "Chưa có dữ liệu",
+      "streakLabel": "Ngày streak liên tục",
+      "streakTrendHas": "Đang duy trì nhịp tốt",
+      "streakTrendNone": "Bắt đầu một chuỗi mới hôm nay",
+      "tasksLabel": "Nhiệm vụ tuần này",
+      "tasksTrendHas": "Đã hoàn thành {n} nhiệm vụ trong 7 ngày",
+      "tasksTrendNone": "Chưa có nhiệm vụ hoàn thành trong tuần",
+      "anxietyLabel": "Mức lo âu (2 tuần)",
+      "anxietyTrendHas": "Trung bình 14 ngày gần nhất",
+      "anxietyTrendNone": "Chưa đủ dữ liệu"
+    },
+    "chart": {
+      "title": "📈 Biểu đồ tâm trạng",
+      "tab7d": "7 ngày",
+      "tab30d": "30 ngày",
+      "tab3m": "3 tháng",
+      "noData": "Chưa có dữ liệu",
+      "noDataToDraw": "Chưa có đủ dữ liệu mood check-in để vẽ biểu đồ."
+    },
+    "insight": {
+      "analyzing": "PeaceCat AI đang phân tích...",
+      "adviceFrom": "Lời khuyên từ PeaceCat AI",
+      "adviceFromAt": "Lời khuyên từ PeaceCat AI · {label}",
+      "defaultTitle": "Insight từ dữ liệu của bạn",
+      "waitingData": "Đang chờ dữ liệu",
+      "loadingAdvice": "Đang tải gợi ý cá nhân hóa cho bạn...",
+      "noAnalysis": "Chưa có phân tích.",
+      "btnAnalyzing": "⏳ Đang phân tích...",
+      "btnUpdate": "🔄 Cập nhật lời khuyên",
+      "btnGet": "✨ Nhận lời khuyên từ AI",
+      "noteNotEnough": "Chưa đủ dữ liệu để đưa ra lời khuyên. Hãy check-in tâm trạng hoặc hoàn thành một nhiệm vụ trước nhé.",
+      "noteUnchanged": "Dữ liệu của bạn chưa thay đổi đáng kể so với lần trước nên lời khuyên được giữ nguyên.",
+      "noteUpdated": "Đã cập nhật theo dữ liệu mới nhất của bạn.",
+      "noteFailed": "Không tạo được lời khuyên lúc này, bạn thử lại sau ít phút nhé."
+    },
+    "wellness": {
+      "title": "Sức khỏe tổng thể",
+      "viewDetail": "Xem chi tiết →",
+      "notEnough": "Chưa có đủ dữ liệu để tổng hợp các chỉ số."
+    },
+    "tasks": {
+      "title": "Nhiệm vụ hôm nay",
+      "viewAll": "Xem tất cả →",
+      "minutesUnit": "phút",
+      "defaultDifficulty": "Dễ",
+      "empty": "Chưa có nhiệm vụ được đề xuất. Hãy hoàn thành mood check-in để hệ thống gợi ý phù hợp hơn."
+    },
+    "garden": {
+      "title": "Khu vườn tâm hồn",
+      "notEnough": "Chưa có đủ dữ liệu để nuôi khu vườn.",
+      "metrics": {
+        "emotion": "Cảm xúc",
+        "energy": "Năng lượng",
+        "sleep": "Giấc ngủ",
+        "calm": "Bình tĩnh",
+        "clarity": "Độ an tâm",
+        "consistency": "Nhịp độ"
+      },
+      "status": {
+        "excellent": "Rất tốt",
+        "good": "Ổn định",
+        "fair": "Cần chú ý",
+        "needs-care": "Cần chăm sóc",
+        "empty": "Chưa có dữ liệu"
+      }
+    },
+    "risk": {
+      "critical": "Rủi ro rất cao",
+      "high": "Rủi ro cao",
+      "moderate": "Cần theo dõi",
+      "stable": "Ổn định"
+    },
+    "levels": {
+      "l1": "Người Bắt Đầu",
+      "l2": "Người Khám Phá",
+      "l3": "Người Kiên Cường",
+      "l4": "Người Truyền Cảm Hứng",
+      "l5": "Bậc Thầy Bình Yên",
+      "defaultTitle": "Hành trình đang tiếp tục",
+      "maxLevel": "Bạn đang ở cấp cao nhất hiện tại",
+      "nextLevel": "Còn {xp} XP → Level {level}"
+    },
+    "streak": {
+      "label": "ngày streak liên tục"
+    },
+    "challenge": {
+      "title": "Mục tiêu tuần",
+      "empty": "Chưa có dữ liệu mục tiêu tuần này.",
+      "daysLeft": "{n} ngày còn lại",
+      "tasksMeta": "nhiệm vụ"
+    },
+    "expert": {
+      "title": "🩺 Phiên tư vấn sắp tới",
+      "statusPending": "Chờ xác nhận",
+      "statusConfirmed": "Đã xác nhận",
+      "typeChat": "Chat text",
+      "typeVoice": "Gọi thoại",
+      "typeVideo": "Video call",
+      "typeInPerson": "Gặp trực tiếp",
+      "typeDefault": "Tư vấn trực tuyến",
+      "viewBtn": "Xem",
+      "noSchedule": "Chưa có lịch tư vấn",
+      "helperHighRisk": "Bạn đang ở vùng cần ưu tiên hồi phục. Nếu cần thêm hỗ trợ, hãy cân nhắc kết nối chuyên gia.",
+      "helperDefault": "Hiện chưa có lịch tư vấn nào được lưu trong hệ thống.",
+      "viewExpertsBtn": "Xem chuyên gia"
+    },
+    "donate": {
+      "title": "Ủng hộ PeaceFlow",
+      "desc": "Mỗi đóng góp giúp PeaceFlow tiếp tục miễn phí cho mọi người.",
+      "btn": "Ủng hộ ngay"
+    }
+  }
+}

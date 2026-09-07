@@ -1,6 +1,8 @@
 // Cổng logic gọi API — giữ nguyên hành vi so với frontend cũ (public/js/api-client.js):
 // tự dò API_BASE_URL theo host/port khi chạy local, hỗ trợ refresh token, SWR cache cho GET.
 
+import { getCurrentLocale } from '../locales';
+
 const PRODUCTION_API_BASE_URL = 'https://peaceflow-app.vercel.app/api/v1';
 
 function normalizeApiBaseUrl(value) {
@@ -210,6 +212,9 @@ export const apiClient = {
 
     const headers = {
       'x-client-trace-id': traceId,
+      // Cho backend biết ngôn ngữ UI hiện tại để trả nội dung AI đúng ngôn ngữ
+      // (xem detectLocale/req.locale ở backend/src/app.js).
+      'x-locale': getCurrentLocale(),
       ...options.headers
     };
 

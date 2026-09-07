@@ -1,0 +1,45 @@
+{
+  "ravenTest": {
+    "back": "← Back",
+    "disclaimer": "<strong>Note:</strong> This is a non-verbal test (Raven). The app automatically grades against the original answer key and converts it to an IQ score (if age is provided, for children 4-11 years old), but the result is only a <strong>reference screening</strong> — let an <strong>expert</strong> confirm and provide the final conclusion.",
+    "questionLabel": "Question {n} / {total}",
+    "imageAlt": "Question {key}",
+    "skippedNote": "This question was skipped — not scored.",
+    "nav": {
+      "prevBtn": "← Previous",
+      "skipBtn": "Skip this question",
+      "nextBtn": "Next →",
+      "finishBtn": "Finish"
+    },
+    "result": {
+      "completedTitle": "Test completed",
+      "rawScoreLabel": "Raw score:",
+      "rawScoreDetail": "{total} / 36 (Set A: {a}/12, Set AB: {ab}/12, Set B: {b}/12)",
+      "standardScoreLabel": "Standard Score:",
+      "percentileSuffix": " — Percentile {pct}",
+      "classificationLabel": "Classification:"
+    },
+    "aiSummary": {
+      "title": "AI remarks",
+      "loading": "Analyzing your results...",
+      "judgmentTitle": "🔎 Supporting assessment of your condition"
+    },
+    "attach": {
+      "title": "📷 Attach an image (optional)",
+      "desc": "If you took the test on the original paper sheet, take a photo/upload the answer sheet here so an expert can review it during grading.",
+      "uploadBtn": "Upload image"
+    },
+    "backToList": "Back to test list",
+    "status": {
+      "savedToProfile": "Saved to your profile.",
+      "saveFailed": "Couldn't save to your profile, please try again later.",
+      "chooseImageFirst": "Please choose an image first.",
+      "notSubmittedYet": "The test hasn't been submitted yet, so an image can't be attached. Please try again.",
+      "uploading": "Uploading image...",
+      "uploadSuccess": "✅ Image sent to the expert.",
+      "uploadFailed": "Couldn't upload the image, please try again."
+    },
+    "severityRawFallback": "Raw score {n}/36 (not converted to IQ)",
+    "defaultOwnerName": "Account owner"
+  }
+}

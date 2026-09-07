@@ -1,0 +1,140 @@
+{
+  "dashboard": {
+    "greeting": "🌿 Hi, {name}!",
+    "subtitle": "Today is a new day to make progress 🌱",
+    "weeklyReportBtn": "📊 Weekly report",
+    "checkinNowBtn": "💭 Check in now",
+    "defaultUserLabel": "you",
+    "newUser": {
+      "title": "Welcome to PeaceFlow!",
+      "descLine1": "Start by checking in your mood today.",
+      "descLine2": "It only takes 30 seconds — the system will suggest the best exercise for you.",
+      "tasksCta": "🎮 View exercises",
+      "journalCta": "📝 Write a journal entry"
+    },
+    "checkinPrompt": {
+      "title": "Good morning! How are you feeling today? ☀️",
+      "sub": "Just 30 seconds — check in so PeaceFlow can suggest the best exercise for you!",
+      "startBtn": "Start →"
+    },
+    "emergencyBanner": {
+      "title": "🆘 Your safety comes first right now",
+      "desc": "PeaceFlow detected a high need for support from your recent data. You can open the emergency support area or reach out to someone you trust.",
+      "openBtn": "Open emergency support"
+    },
+    "stats": {
+      "moodLabel": "Today's mood",
+      "moodTrendHas": "Latest data",
+      "moodTrendNone": "No data yet",
+      "streakLabel": "Day streak",
+      "streakTrendHas": "Keeping a good rhythm",
+      "streakTrendNone": "Start a new streak today",
+      "tasksLabel": "Exercises this week",
+      "tasksTrendHas": "Completed {n} exercises in 7 days",
+      "tasksTrendNone": "No exercises completed this week yet",
+      "anxietyLabel": "Anxiety level (2 weeks)",
+      "anxietyTrendHas": "14-day average",
+      "anxietyTrendNone": "Not enough data yet"
+    },
+    "chart": {
+      "title": "📈 Mood chart",
+      "tab7d": "7 days",
+      "tab30d": "30 days",
+      "tab3m": "3 months",
+      "noData": "No data yet",
+      "noDataToDraw": "Not enough mood check-in data to draw a chart yet."
+    },
+    "insight": {
+      "analyzing": "PeaceCat AI is analyzing...",
+      "adviceFrom": "Advice from PeaceCat AI",
+      "adviceFromAt": "Advice from PeaceCat AI · {label}",
+      "defaultTitle": "Insight from your data",
+      "waitingData": "Waiting for data",
+      "loadingAdvice": "Loading a personalized suggestion for you...",
+      "noAnalysis": "No analysis yet.",
+      "btnAnalyzing": "⏳ Analyzing...",
+      "btnUpdate": "🔄 Update advice",
+      "btnGet": "✨ Get advice from AI",
+      "noteNotEnough": "Not enough data to give advice yet. Try a mood check-in or completing an exercise first.",
+      "noteUnchanged": "Your data hasn't changed much since last time, so the advice stays the same.",
+      "noteUpdated": "Updated based on your latest data.",
+      "noteFailed": "Couldn't generate advice right now — please try again in a few minutes."
+    },
+    "wellness": {
+      "title": "Overall wellness",
+      "viewDetail": "View details →",
+      "notEnough": "Not enough data yet to build these metrics."
+    },
+    "tasks": {
+      "title": "Today's exercises",
+      "viewAll": "View all →",
+      "minutesUnit": "min",
+      "defaultDifficulty": "Easy",
+      "empty": "No exercises suggested yet. Complete a mood check-in for better suggestions."
+    },
+    "garden": {
+      "title": "Your healing garden",
+      "notEnough": "Not enough data yet to grow your garden.",
+      "metrics": {
+        "emotion": "Mood",
+        "energy": "Energy",
+        "sleep": "Sleep",
+        "calm": "Calmness",
+        "clarity": "Peace of mind",
+        "consistency": "Consistency"
+      },
+      "status": {
+        "excellent": "Excellent",
+        "good": "Stable",
+        "fair": "Needs attention",
+        "needs-care": "Needs care",
+        "empty": "No data yet"
+      }
+    },
+    "risk": {
+      "critical": "Very high risk",
+      "high": "High risk",
+      "moderate": "Needs monitoring",
+      "stable": "Stable"
+    },
+    "levels": {
+      "l1": "Beginner",
+      "l2": "Explorer",
+      "l3": "Resilient One",
+      "l4": "Inspirer",
+      "l5": "Master of Peace",
+      "defaultTitle": "Your journey continues",
+      "maxLevel": "You're at the highest level right now",
+      "nextLevel": "{xp} XP to Level {level}"
+    },
+    "streak": {
+      "label": "day streak"
+    },
+    "challenge": {
+      "title": "Weekly goal",
+      "empty": "No weekly goal data yet.",
+      "daysLeft": "{n} days left",
+      "tasksMeta": "exercises"
+    },
+    "expert": {
+      "title": "🩺 Upcoming session",
+      "statusPending": "Pending confirmation",
+      "statusConfirmed": "Confirmed",
+      "typeChat": "Text chat",
+      "typeVoice": "Voice call",
+      "typeVideo": "Video call",
+      "typeInPerson": "In person",
+      "typeDefault": "Online session",
+      "viewBtn": "View",
+      "noSchedule": "No session scheduled",
+      "helperHighRisk": "You're in a zone that needs extra care right now. Consider connecting with an expert for more support.",
+      "helperDefault": "No session is currently on file.",
+      "viewExpertsBtn": "View experts"
+    },
+    "donate": {
+      "title": "Support PeaceFlow",
+      "desc": "Every contribution helps keep PeaceFlow free for everyone.",
+      "btn": "Donate now"
+    }
+  }
+}

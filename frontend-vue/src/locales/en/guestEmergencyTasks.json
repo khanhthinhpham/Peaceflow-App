@@ -1,0 +1,81 @@
+{
+  "guestEmergencyTasks": {
+    "E1_SEPARATE_ENV": {
+      "title": "Step away from your current environment",
+      "description": "Reduce sensory overload by leaving the current source of stimulation.",
+      "steps": [
+        "Pause any interaction for 10-20 seconds",
+        "Tell yourself: I need to step back a little to steady myself",
+        "Leave the source of stress if you can",
+        "Plant both feet on the ground",
+        "Breathe in for 4 seconds, out for 6 seconds, repeat 5 times"
+      ],
+      "safetyNotes": [
+        "This is an immediate support tool, not a substitute for medical care",
+        "If you feel at risk of self-harm, contact emergency support right away"
+      ],
+      "objective": "Create a safe distance so your body can slow down before continuing to handle the situation.",
+      "benefits": [
+        "Reduces the intensity of stimulation right away",
+        "Helps your body regain a sense of safety",
+        "Creates a pause before reacting further"
+      ],
+      "preparation": [
+        "Find a quieter corner or leave the situation if you can",
+        "Put your phone down or reduce surrounding stimulation"
+      ],
+      "quote": "You don't have to solve everything right now. Steadying yourself first is the first step."
+    },
+    "E2_DEEP_BREATHING": {
+      "title": "Deep breathing",
+      "description": "A short breathing exercise that activates your parasympathetic nervous system.",
+      "steps": [
+        "Sit up straight",
+        "Place your hand on your belly",
+        "Breathe in for 4 seconds",
+        "Hold for 4 seconds",
+        "Breathe out for 4 seconds",
+        "Repeat for 5 cycles"
+      ],
+      "safetyNotes": [
+        "If you feel dizzy, slow down or stop",
+        "If you're experiencing acute breathing difficulty, seek medical help"
+      ],
+      "objective": "Use a steady breathing rhythm to lower your body's alarm response and reduce panic intensity.",
+      "benefits": [
+        "Slows your heart rate",
+        "Reduces acute panic response",
+        "Increases your sense of control over your body"
+      ],
+      "preparation": [
+        "Find a stable place to sit or stand",
+        "Relax your shoulders and jaw before starting"
+      ],
+      "quote": "Just one deep enough breath can open up more space for your body to calm down."
+    },
+    "E4_SLOW_SPEAKING": {
+      "title": "Mindfully slow down your speech",
+      "description": "Regulate your breathing by slowing down how you speak.",
+      "steps": [
+        "Pause for 5 seconds before responding",
+        "Speak 20-30% slower than usual",
+        "Prefer short sentences",
+        "Notice your breathing as you speak"
+      ],
+      "safetyNotes": [
+        "If you're in a heated argument, prioritize stepping away from the situation first"
+      ],
+      "objective": "Slow down your reaction speed so your body and speech can slow down together.",
+      "benefits": [
+        "Lowers the intensity of conflict",
+        "Reduces rapid breathing during communication",
+        "Creates more time to think before reacting"
+      ],
+      "preparation": [
+        "Plant both feet firmly on the ground",
+        "Take a deep breath before you start speaking"
+      ],
+      "quote": "When speech slows down, the body gets a chance to slow down too."
+    }
+  }
+}

@@ -3,50 +3,50 @@
     <div class="page-header">
       <div>
         <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
-          <div class="page-title">🌿 Xin chào, {{ displayName }}!</div>
-          <span v-if="isExpert" class="header-tag" style="background:var(--mint); color:var(--text-primary); border:1px solid var(--mint-dark);">🩺 Chuyên gia</span>
-          <span v-if="isAdmin" class="header-tag" style="background:var(--coral); color:#fff; border:1px solid var(--coral-dark);">🛡️ Admin</span>
+          <div class="page-title">{{ t('dashboard.greeting', { name: displayName }) }}</div>
+          <span v-if="isExpert" class="header-tag" style="background:var(--mint); color:var(--text-primary); border:1px solid var(--mint-dark);">🩺 {{ t('sidebar.tagExpert') }}</span>
+          <span v-if="isAdmin" class="header-tag" style="background:var(--coral); color:#fff; border:1px solid var(--coral-dark);">🛡️ {{ t('sidebar.tagAdmin') }}</span>
         </div>
-        <div class="page-subtitle handwritten" style="font-size:1rem;color:var(--mint-dark);">"Hôm nay là một ngày mới để tiến bộ 🌱"</div>
+        <div class="page-subtitle handwritten" style="font-size:1rem;color:var(--mint-dark);">"{{ t('dashboard.subtitle') }}"</div>
       </div>
       <div class="header-actions">
-        <button class="btn-outline" @click.prevent>📊 Báo cáo tuần</button>
-        <router-link to="/mood-checkin" class="btn-primary">💭 Check-in ngay</router-link>
+        <button class="btn-outline" @click.prevent>{{ t('dashboard.weeklyReportBtn') }}</button>
+        <router-link to="/mood-checkin" class="btn-primary">{{ t('dashboard.checkinNowBtn') }}</router-link>
       </div>
     </div>
 
     <div v-if="isNewUser" style="background:linear-gradient(135deg,var(--mint-light),var(--peach-light));border:2px solid var(--mint);border-radius:16px;padding:24px;margin-bottom:20px;text-align:center;">
       <div style="font-size:2rem;margin-bottom:8px;">🌱</div>
-      <div style="font-size:1.1rem;font-weight:800;color:var(--text-primary);margin-bottom:6px;">Chào mừng đến với PeaceFlow!</div>
+      <div style="font-size:1.1rem;font-weight:800;color:var(--text-primary);margin-bottom:6px;">{{ t('dashboard.newUser.title') }}</div>
       <div style="font-size:0.88rem;color:var(--text-secondary);margin-bottom:20px;line-height:1.6;">
-        Hãy bắt đầu bằng cách check-in tâm trạng hôm nay.<br>
-        Chỉ mất 30 giây — hệ thống sẽ gợi ý nhiệm vụ phù hợp nhất cho bạn.
+        {{ t('dashboard.newUser.descLine1') }}<br>
+        {{ t('dashboard.newUser.descLine2') }}
       </div>
       <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
-        <router-link to="/mood-checkin" style="display:inline-block;padding:10px 22px;background:var(--mint-dark);color:white;border-radius:50px;font-weight:700;font-size:0.88rem;text-decoration:none;">💭 Check-in ngay</router-link>
-        <router-link to="/tasks" style="display:inline-block;padding:10px 22px;border:2px solid var(--kraft-light);border-radius:50px;font-weight:700;font-size:0.88rem;text-decoration:none;color:var(--text-secondary);">🎮 Xem nhiệm vụ</router-link>
-        <router-link to="/journal" style="display:inline-block;padding:10px 22px;border:2px solid var(--kraft-light);border-radius:50px;font-weight:700;font-size:0.88rem;text-decoration:none;color:var(--text-secondary);">📝 Viết nhật ký</router-link>
+        <router-link to="/mood-checkin" style="display:inline-block;padding:10px 22px;background:var(--mint-dark);color:white;border-radius:50px;font-weight:700;font-size:0.88rem;text-decoration:none;">{{ t('dashboard.checkinNowBtn') }}</router-link>
+        <router-link to="/tasks" style="display:inline-block;padding:10px 22px;border:2px solid var(--kraft-light);border-radius:50px;font-weight:700;font-size:0.88rem;text-decoration:none;color:var(--text-secondary);">{{ t('dashboard.newUser.tasksCta') }}</router-link>
+        <router-link to="/journal" style="display:inline-block;padding:10px 22px;border:2px solid var(--kraft-light);border-radius:50px;font-weight:700;font-size:0.88rem;text-decoration:none;color:var(--text-secondary);">{{ t('dashboard.newUser.journalCta') }}</router-link>
       </div>
     </div>
 
     <div class="paper-card checkin-prompt">
       <div class="cp-mascot">🐱</div>
       <div class="cp-text">
-        <div class="cp-title">Chào buổi sáng! Hôm nay bạn cảm thấy thế nào? ☀️</div>
-        <div class="cp-sub">Chỉ mất 30 giây — check-in để PeaceFlow gợi ý nhiệm vụ phù hợp nhất cho bạn nhé!</div>
+        <div class="cp-title">{{ t('dashboard.checkinPrompt.title') }}</div>
+        <div class="cp-sub">{{ t('dashboard.checkinPrompt.sub') }}</div>
       </div>
       <div class="cp-actions">
-        <router-link to="/mood-checkin" class="btn-primary" style="font-size:0.82rem;padding:9px 16px;">Bắt đầu →</router-link>
+        <router-link to="/mood-checkin" class="btn-primary" style="font-size:0.82rem;padding:9px 16px;">{{ t('dashboard.checkinPrompt.startBtn') }}</router-link>
       </div>
     </div>
 
     <div v-if="showEmergencyBanner" class="paper-card" style="margin:14px 0 20px;padding:16px 18px;border-color:var(--coral);background:rgba(255,139,139,0.08);">
       <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
         <div>
-          <div style="font-size:0.95rem;font-weight:800;color:#c05050;">🆘 Ưu tiên an toàn cho bạn lúc này</div>
-          <div style="font-size:0.82rem;color:var(--text-secondary);margin-top:4px;">PeaceFlow phát hiện mức cần hỗ trợ cao từ dữ liệu gần đây. Bạn có thể mở khu hỗ trợ khẩn cấp hoặc liên hệ người tin tưởng.</div>
+          <div style="font-size:0.95rem;font-weight:800;color:#c05050;">{{ t('dashboard.emergencyBanner.title') }}</div>
+          <div style="font-size:0.82rem;color:var(--text-secondary);margin-top:4px;">{{ t('dashboard.emergencyBanner.desc') }}</div>
         </div>
-        <router-link to="/emergency" class="btn-primary" style="white-space:nowrap;">Mở hỗ trợ khẩn cấp</router-link>
+        <router-link to="/emergency" class="btn-primary" style="white-space:nowrap;">{{ t('dashboard.emergencyBanner.openBtn') }}</router-link>
       </div>
     </div>
 
@@ -55,25 +55,25 @@
       <div class="paper-card stat-card">
         <div class="sc-icon mint">💭</div>
         <div class="sc-value">{{ stats.mood }}</div>
-        <div class="sc-label">Tâm trạng hôm nay</div>
+        <div class="sc-label">{{ t('dashboard.stats.moodLabel') }}</div>
         <div class="sc-change" :style="{ color: stats.moodColor }">{{ stats.moodTrend }}</div>
       </div>
       <div class="paper-card stat-card">
         <div class="sc-icon peach">🔥</div>
         <div class="sc-value">{{ stats.streak }}</div>
-        <div class="sc-label">Ngày streak liên tục</div>
+        <div class="sc-label">{{ t('dashboard.stats.streakLabel') }}</div>
         <div class="sc-change" :style="{ color: stats.streakColor }">{{ stats.streakTrend }}</div>
       </div>
       <div class="paper-card stat-card">
         <div class="sc-icon sky">✅</div>
         <div class="sc-value">{{ stats.tasks }}</div>
-        <div class="sc-label">Nhiệm vụ tuần này</div>
+        <div class="sc-label">{{ t('dashboard.stats.tasksLabel') }}</div>
         <div class="sc-change" :style="{ color: stats.tasksColor }">{{ stats.tasksTrend }}</div>
       </div>
       <div class="paper-card stat-card">
         <div class="sc-icon lavender">📉</div>
         <div class="sc-value">{{ stats.anxiety }}</div>
-        <div class="sc-label">Mức lo âu (2 tuần)</div>
+        <div class="sc-label">{{ t('dashboard.stats.anxietyLabel') }}</div>
         <div class="sc-change" :style="{ color: stats.anxietyColor }">{{ stats.anxietyTrend }}</div>
       </div>
     </div>
@@ -83,7 +83,7 @@
       <div>
         <div class="paper-card chart-card" style="margin-bottom:18px;">
           <div class="chart-header">
-            <div class="chart-title">📈 Biểu đồ tâm trạng</div>
+            <div class="chart-title">{{ t('dashboard.chart.title') }}</div>
             <div class="chart-tabs">
               <button
                 v-for="tab in CHART_TABS"
@@ -91,12 +91,12 @@
                 class="chart-tab"
                 :class="{ active: chartPeriod === tab.period }"
                 @click="switchChart(tab.period)"
-              >{{ tab.label }}</button>
+              >{{ t(tab.labelKey) }}</button>
             </div>
           </div>
           <div class="mood-chart-area" v-html="chartSvgHtml"></div>
           <div class="chart-labels">
-            <span v-if="!chartLabels.length">Chưa có dữ liệu</span>
+            <span v-if="!chartLabels.length">{{ t('dashboard.chart.noData') }}</span>
             <span v-for="(label, idx) in chartLabels" :key="idx">{{ label }}</span>
           </div>
         </div>
@@ -114,7 +114,7 @@
 
           <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:14px;">
             <button class="btn-primary" :disabled="insightMode === 'loading'" @click="requestAiInsight">
-              {{ insightMode === 'loading' ? '⏳ Đang phân tích...' : (aiRecommendation ? '🔄 Cập nhật lời khuyên' : '✨ Nhận lời khuyên từ AI') }}
+              {{ insightMode === 'loading' ? t('dashboard.insight.btnAnalyzing') : (aiRecommendation ? t('dashboard.insight.btnUpdate') : t('dashboard.insight.btnGet')) }}
             </button>
             <span v-if="insightNote" style="font-size:0.78rem;color:var(--text-secondary);">{{ insightNote }}</span>
           </div>
@@ -123,13 +123,13 @@
         <div class="paper-card radar-card" style="margin-bottom:18px;">
           <template v-if="radarMetrics.length">
             <div class="section-title">
-              <span class="st-icon">🕸️</span> Sức khỏe tổng thể
-              <a href="#" class="st-link" @click.prevent>Xem chi tiết →</a>
+              <span class="st-icon">🕸️</span> {{ t('dashboard.wellness.title') }}
+              <a href="#" class="st-link" @click.prevent>{{ t('dashboard.wellness.viewDetail') }}</a>
             </div>
             <div class="radar-wrap">
               <div class="radar-svg-wrap" v-html="radarSvgHtml"></div>
               <div class="radar-legend">
-                <div v-for="metric in radarMetrics" :key="metric.label" class="rl-item">
+                <div v-for="metric in radarMetrics" :key="metric.key" class="rl-item">
                   <div class="rl-dot" :style="{ background: metric.color }"></div>
                   <span class="rl-label">{{ metric.label }}</span>
                   <span class="rl-val">{{ metric.value ?? '--' }}</span>
@@ -138,15 +138,15 @@
             </div>
           </template>
           <template v-else>
-            <div class="section-title"><span class="st-icon">🕸️</span> Sức khỏe tổng thể</div>
-            <div style="padding:12px 0;color:var(--text-secondary);">Chưa có đủ dữ liệu để tổng hợp các chỉ số.</div>
+            <div class="section-title"><span class="st-icon">🕸️</span> {{ t('dashboard.wellness.title') }}</div>
+            <div style="padding:12px 0;color:var(--text-secondary);">{{ t('dashboard.wellness.notEnough') }}</div>
           </template>
         </div>
 
         <div class="paper-card" style="overflow:hidden;">
           <div style="padding:16px 18px;border-bottom:2px solid var(--kraft-light);display:flex;align-items:center;justify-content:space-between;">
-            <div class="section-title" style="margin-bottom:0;"><span class="st-icon">🎯</span> Nhiệm vụ hôm nay</div>
-            <router-link to="/tasks" class="st-link" style="font-size:0.75rem;color:var(--mint-dark);font-weight:600;text-decoration:none;">Xem tất cả →</router-link>
+            <div class="section-title" style="margin-bottom:0;"><span class="st-icon">🎯</span> {{ t('dashboard.tasks.title') }}</div>
+            <router-link to="/tasks" class="st-link" style="font-size:0.75rem;color:var(--mint-dark);font-weight:600;text-decoration:none;">{{ t('dashboard.tasks.viewAll') }}</router-link>
           </div>
           <template v-if="recommendedTasks.length">
             <template v-for="(task, idx) in recommendedTasks" :key="task.id">
@@ -154,7 +154,7 @@
                 <div class="task-icon-box" :class="String(task.difficulty || 'easy').toLowerCase()">{{ getTaskEmoji(task.category) }}</div>
                 <div class="task-info">
                   <div class="task-name">{{ task.title }}</div>
-                  <div class="task-meta"><span>⏱ {{ task.duration_minutes || 0 }} phút</span><span>🔴 {{ task.difficulty || 'Dễ' }}</span></div>
+                  <div class="task-meta"><span>⏱ {{ task.duration_minutes || 0 }} {{ t('dashboard.tasks.minutesUnit') }}</span><span>🔴 {{ task.difficulty || t('dashboard.tasks.defaultDifficulty') }}</span></div>
                 </div>
                 <span class="task-xp">+{{ task.xp_reward || 0 }} XP</span>
               </div>
@@ -162,7 +162,7 @@
             </template>
           </template>
           <div v-else style="padding:20px;text-align:center;color:var(--text-secondary);">
-            Chưa có nhiệm vụ được đề xuất. Hãy hoàn thành mood check-in để hệ thống gợi ý phù hợp hơn.
+            {{ t('dashboard.tasks.empty') }}
           </div>
         </div>
       </div>
@@ -172,7 +172,7 @@
         <div class="paper-card garden-card" style="margin-bottom:18px;">
           <template v-if="gardenMetrics.length">
             <div class="section-title">
-              <span class="st-icon">🌳</span> Khu vườn tâm hồn
+              <span class="st-icon">🌳</span> {{ t('dashboard.garden.title') }}
               <span class="badge-pill" :class="riskBadgeClass" style="margin-left:auto;">{{ riskLabel }}</span>
             </div>
             <div class="garden-scene">
@@ -188,15 +188,15 @@
               <div class="g-mascot">{{ riskLevel === 'critical' ? '🫶' : '🐱' }}</div>
             </div>
             <div class="garden-legend">
-              <div v-for="metric in gardenMetrics" :key="metric.label" class="gl-item">
+              <div v-for="metric in gardenMetrics" :key="metric.key" class="gl-item">
                 <div class="gl-dot" :style="{ background: metric.color }"></div>
                 {{ metric.label }} — {{ metric.status_text }} {{ metric.emoji }}
               </div>
             </div>
           </template>
           <template v-else>
-            <div class="section-title"><span class="st-icon">🌳</span> Khu vườn tâm hồn</div>
-            <div style="padding:12px 0;color:var(--text-secondary);">Chưa có đủ dữ liệu để nuôi khu vườn.</div>
+            <div class="section-title"><span class="st-icon">🌳</span> {{ t('dashboard.garden.title') }}</div>
+            <div style="padding:12px 0;color:var(--text-secondary);">{{ t('dashboard.garden.notEnough') }}</div>
           </template>
         </div>
 
@@ -224,7 +224,7 @@
         <div class="paper-card streak-card" style="margin-bottom:18px;">
           <div class="streak-fire">🔥</div>
           <div class="streak-number">{{ stats.streak }}</div>
-          <div class="streak-label">ngày streak liên tục</div>
+          <div class="streak-label">{{ t('dashboard.streak.label') }}</div>
           <div class="streak-days">
             <div v-for="(day, idx) in streakDays" :key="idx" class="streak-day" :class="day.className">{{ day.label }}</div>
           </div>
@@ -235,26 +235,26 @@
             <div class="challenge-header">
               <span style="font-size:1.3rem;">🏆</span>
               <div class="challenge-title">{{ challenge.title }}</div>
-              <span class="badge-pill badge-peach" style="margin-left:auto;">{{ challenge.days_left }} ngày còn lại</span>
+              <span class="badge-pill badge-peach" style="margin-left:auto;">{{ t('dashboard.challenge.daysLeft', { n: challenge.days_left }) }}</span>
             </div>
             <div class="challenge-desc">{{ challenge.description }}</div>
             <div class="challenge-progress-bar">
               <div class="challenge-progress-fill" :style="{ width: challenge.progress_percent + '%' }"></div>
             </div>
             <div class="challenge-meta">
-              <span>{{ challenge.completed }}/{{ challenge.goal }} nhiệm vụ</span>
+              <span>{{ challenge.completed }}/{{ challenge.goal }} {{ t('dashboard.challenge.tasksMeta') }}</span>
               <span>{{ challenge.reward_label }}</span>
             </div>
           </template>
           <template v-else>
-            <div class="section-title"><span class="st-icon">🏆</span> Mục tiêu tuần</div>
-            <div style="padding:12px 0;color:var(--text-secondary);">Chưa có dữ liệu mục tiêu tuần này.</div>
+            <div class="section-title"><span class="st-icon">🏆</span> {{ t('dashboard.challenge.title') }}</div>
+            <div style="padding:12px 0;color:var(--text-secondary);">{{ t('dashboard.challenge.empty') }}</div>
           </template>
         </div>
 
         <div class="paper-card" style="margin-bottom:0;overflow:hidden;">
           <div style="padding:14px 18px 8px;font-size:0.85rem;font-weight:700;border-bottom:1px solid var(--kraft-light);display:flex;align-items:center;justify-content:space-between;gap:8px;">
-            <span>🩺 Phiên tư vấn sắp tới</span>
+            <span>{{ t('dashboard.expert.title') }}</span>
             <span v-if="expertSession" style="padding:3px 9px;border-radius:999px;font-size:0.66rem;font-weight:800;" :style="{ color: expertStatus.color, background: expertStatus.bg }">{{ expertStatus.label }}</span>
           </div>
           <template v-if="expertSession">
@@ -265,21 +265,21 @@
                 <div class="expert-type">{{ expertTypeLabel }}</div>
                 <div class="expert-time">{{ expertTimeLabel }}</div>
               </div>
-              <router-link class="btn-outline" style="font-size:0.72rem;padding:6px 12px;" to="/experts">Xem</router-link>
+              <router-link class="btn-outline" style="font-size:0.72rem;padding:6px 12px;" to="/experts">{{ t('dashboard.expert.viewBtn') }}</router-link>
             </div>
           </template>
           <div v-else style="padding:18px;">
-            <div style="font-size:0.9rem;font-weight:800;margin-bottom:6px;">Chưa có lịch tư vấn</div>
+            <div style="font-size:0.9rem;font-weight:800;margin-bottom:6px;">{{ t('dashboard.expert.noSchedule') }}</div>
             <div style="font-size:0.8rem;color:var(--text-secondary);margin-bottom:14px;">{{ noExpertHelperText }}</div>
-            <router-link to="/experts" class="btn-outline" style="font-size:0.78rem;">Xem chuyên gia</router-link>
+            <router-link to="/experts" class="btn-outline" style="font-size:0.78rem;">{{ t('dashboard.expert.viewExpertsBtn') }}</router-link>
           </div>
         </div>
 
         <div class="paper-card" style="margin-top:18px;text-align:center;padding:18px;">
           <div style="font-size:1.6rem;">❤️</div>
-          <div style="font-weight:800;margin-top:2px;">Ủng hộ PeaceFlow</div>
-          <p style="font-size:0.82rem;color:var(--text-secondary);margin:6px 0 12px;line-height:1.5;">Mỗi đóng góp giúp PeaceFlow tiếp tục miễn phí cho mọi người.</p>
-          <button type="button" class="btn-primary" style="width:100%;" @click="donate.openModal()">Ủng hộ ngay</button>
+          <div style="font-weight:800;margin-top:2px;">{{ t('dashboard.donate.title') }}</div>
+          <p style="font-size:0.82rem;color:var(--text-secondary);margin:6px 0 12px;line-height:1.5;">{{ t('dashboard.donate.desc') }}</p>
+          <button type="button" class="btn-primary" style="width:100%;" @click="donate.openModal()">{{ t('dashboard.donate.btn') }}</button>
         </div>
       </div>
     </div>
@@ -288,6 +288,7 @@
 
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 import { apiClient } from '../lib/apiClient';
 import { useAuthStore } from '../stores/auth';
@@ -298,11 +299,12 @@ import {
 } from '../lib/dashboardHelpers';
 
 const CHART_TABS = [
-  { period: '7d', label: '7 ngày' },
-  { period: '30d', label: '30 ngày' },
-  { period: '3m', label: '3 tháng' }
+  { period: '7d', labelKey: 'dashboard.chart.tab7d' },
+  { period: '30d', labelKey: 'dashboard.chart.tab30d' },
+  { period: '3m', labelKey: 'dashboard.chart.tab3m' }
 ];
 
+const { t, locale } = useI18n();
 const auth = useAuthStore();
 const router = useRouter();
 const donate = useDonateStore();
@@ -317,7 +319,11 @@ const insightGeneratedAt = ref(null);
 const aiRecommendation = ref('');
 const aiExercises = ref([]);
 
-const displayName = computed(() => auth.user?.display_name || auth.user?.full_name || 'bạn');
+// Locale cho Intl.DateTimeFormat — 'vi' -> 'vi-VN', 'en' -> 'en-US'. Trước đây hardcode
+// 'vi-VN' nên đổi ngôn ngữ app không đổi được cách hiển thị ngày giờ.
+const intlLocale = computed(() => (locale.value === 'en' ? 'en-US' : 'vi-VN'));
+
+const displayName = computed(() => auth.user?.display_name || auth.user?.full_name || t('dashboard.defaultUserLabel'));
 const isExpert = computed(() => Boolean(auth.user?.is_expert));
 const isAdmin = computed(() => Boolean(auth.user?.role === 'admin' || auth.user?.is_admin));
 
@@ -339,40 +345,42 @@ const stats = computed(() => {
 
   return {
     mood: hasMood ? mood.mood_score : '--',
-    moodTrend: hasMood ? 'Dữ liệu mới nhất' : 'Chưa có dữ liệu',
+    moodTrend: hasMood ? t('dashboard.stats.moodTrendHas') : t('dashboard.stats.moodTrendNone'),
     moodColor: hasMood ? 'var(--mint-dark)' : 'var(--text-light)',
     streak,
-    streakTrend: streak > 0 ? 'Đang duy trì nhịp tốt' : 'Bắt đầu một chuỗi mới hôm nay',
+    streakTrend: streak > 0 ? t('dashboard.stats.streakTrendHas') : t('dashboard.stats.streakTrendNone'),
     streakColor: streak > 0 ? 'var(--peach-dark)' : 'var(--text-light)',
     tasks: weeklyTasks,
-    tasksTrend: weeklyTasks > 0 ? `Đã hoàn thành ${weeklyTasks} nhiệm vụ trong 7 ngày` : 'Chưa có nhiệm vụ hoàn thành trong tuần',
+    tasksTrend: weeklyTasks > 0 ? t('dashboard.stats.tasksTrendHas', { n: weeklyTasks }) : t('dashboard.stats.tasksTrendNone'),
     tasksColor: weeklyTasks > 0 ? 'var(--sky)' : 'var(--text-light)',
     anxiety: hasAnxiety ? anxietyAverage : '--',
-    anxietyTrend: hasAnxiety ? 'Trung bình 14 ngày gần nhất' : 'Chưa đủ dữ liệu',
+    anxietyTrend: hasAnxiety ? t('dashboard.stats.anxietyTrendHas') : t('dashboard.stats.anxietyTrendNone'),
     anxietyColor: hasAnxiety ? 'var(--lavender)' : 'var(--text-light)'
   };
 });
 
-const chartSvgHtml = computed(() => renderChartSvg(data.value?.mood_chart?.[chartPeriod.value]));
+const chartSvgHtml = computed(() => renderChartSvg(data.value?.mood_chart?.[chartPeriod.value], t('dashboard.chart.noDataToDraw')));
 const chartLabels = computed(() => (data.value?.mood_chart?.[chartPeriod.value]?.points || []).map((p) => escapeHtml(p.label || '--')));
 
 const insightTitle = computed(() => {
-  if (insightMode.value === 'loading') return 'PeaceCat AI đang phân tích...';
+  if (insightMode.value === 'loading') return t('dashboard.insight.analyzing');
   if (insightMode.value === 'ai') {
     // Ghi rõ lời khuyên được sinh lúc nào, vì giờ nó chỉ đổi khi người dùng bấm nút
     // (và dữ liệu của họ đã thay đổi) — không còn tự làm mới mỗi ngày.
     const at = insightGeneratedAt.value;
-    if (!at) return 'Lời khuyên từ PeaceCat AI';
+    if (!at) return t('dashboard.insight.adviceFrom');
     try {
-      const label = new Intl.DateTimeFormat('vi-VN', {
+      const label = new Intl.DateTimeFormat(intlLocale.value, {
         day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Bangkok'
       }).format(new Date(at));
-      return `Lời khuyên từ PeaceCat AI · ${label}`;
+      return t('dashboard.insight.adviceFromAt', { label });
     } catch (_e) {
-      return 'Lời khuyên từ PeaceCat AI';
+      return t('dashboard.insight.adviceFrom');
     }
   }
-  return data.value?.insight?.title || 'Insight từ dữ liệu của bạn';
+  // data.value?.insight?.title là NHẬN XÉT DO BACKEND/AI SINH RA (tiếng Việt) — chưa nằm
+  // trong phạm vi đợt dịch tĩnh này, chỉ dịch phần fallback khi backend chưa có insight.
+  return data.value?.insight?.title || t('dashboard.insight.defaultTitle');
 });
 const insightBadge = computed(() => (insightMode.value === 'ai' || insightMode.value === 'loading' ? 'AI' : 'DB'));
 const insightTags = computed(() => {
@@ -380,11 +388,13 @@ const insightTags = computed(() => {
   const tags = data.value?.insight?.tags;
   const classes = ['badge-mint', 'badge-peach', 'badge-lavender'];
   if (tags?.length) return tags.map((tag, i) => ({ text: tag, cls: classes[i % classes.length] }));
-  return [{ text: 'Đang chờ dữ liệu', cls: 'badge-mint' }];
+  return [{ text: t('dashboard.insight.waitingData'), cls: 'badge-mint' }];
 });
 const insightBodyHtml = computed(() => {
-  if (insightMode.value === 'loading') return 'Đang tải gợi ý cá nhân hóa cho bạn...';
+  if (insightMode.value === 'loading') return t('dashboard.insight.loadingAdvice');
   if (insightMode.value === 'ai') {
+    // aiRecommendation/ex.title/ex.reason là nội dung PeaceCat AI SINH RA (tiếng Việt) —
+    // ngoài phạm vi đợt dịch tĩnh này, xem ai.service.js.
     let exercisesHtml = '';
     if (aiExercises.value.length) {
       const items = aiExercises.value.map((ex) => {
@@ -397,7 +407,7 @@ const insightBodyHtml = computed(() => {
     }
     return `${escapeHtml(aiRecommendation.value)}${exercisesHtml}`;
   }
-  return escapeHtml(data.value?.insight?.body || 'Chưa có phân tích.').replace(/\n/g, '<br>');
+  return escapeHtml(data.value?.insight?.body || t('dashboard.insight.noAnalysis')).replace(/\n/g, '<br>');
 });
 
 function handleInsightClick(event) {
@@ -406,13 +416,26 @@ function handleInsightClick(event) {
   router.push({ path: '/task-detail', query: { id: link.getAttribute('data-task-id') } });
 }
 
-const radarMetrics = computed(() => data.value?.wellness?.radar || []);
+// Backend (report.routes.js) trả `label`/`status_text` bằng tiếng Việt cứng — đây là bản
+// đồ trạng thái TĨNH (key cố định 'emotion'/'energy'/... và status 'excellent'/'good'/...),
+// không phải nội dung AI sinh tự do, nên dịch được. Bỏ qua 2 field đó, tự dịch lại từ
+// `metric.key`/`metric.status` (backend đã gửi kèm) để khớp ngôn ngữ đang chọn — nếu không
+// tiêu đề card đã dịch nhưng nội dung bên trong vẫn tiếng Việt, nhìn dịch nửa vời.
+function translateMetric(metric) {
+  return {
+    ...metric,
+    label: t(`dashboard.garden.metrics.${metric.key}`),
+    status_text: t(`dashboard.garden.status.${metric.status}`)
+  };
+}
+
+const radarMetrics = computed(() => (data.value?.wellness?.radar || []).map(translateMetric));
 const radarSvgHtml = computed(() => buildRadarSvg(radarMetrics.value));
 
-const gardenMetrics = computed(() => data.value?.wellness?.garden || []);
+const gardenMetrics = computed(() => (data.value?.wellness?.garden || []).map(translateMetric));
 const gardenTreesHtml = computed(() => buildGardenTreesHtml(gardenMetrics.value));
 const riskLevel = computed(() => summary.value?.risk_level);
-const riskLabel = computed(() => getRiskLabel(riskLevel.value));
+const riskLabel = computed(() => getRiskLabel(riskLevel.value, t));
 const riskBadgeClass = computed(() => getRiskBadgeClass(riskLevel.value));
 
 const xpInfo = computed(() => {
@@ -424,30 +447,40 @@ const xpInfo = computed(() => {
   const maxXP = levelInfo?.maxXP ?? levelInfo.maxXP;
   const minXP = levelInfo?.minXP ?? levelInfo.minXP;
   const xpToNext = levelInfo?.xp_to_next ?? (maxXP === Infinity ? 0 : Math.max(0, maxXP - xp));
-  const nextLabel = maxXP === Infinity ? 'Bạn đang ở cấp cao nhất hiện tại' : `Còn ${xpToNext} XP → Level ${currentLevel + 1}`;
-  return { xp, currentLevel, title: levelInfo.title || 'Hành trình đang tiếp tục', minXP, maxXPLabel: maxXP === Infinity ? '∞' : maxXP, percent, nextLabel };
+  const nextLabel = maxXP === Infinity
+    ? t('dashboard.levels.maxLevel')
+    : t('dashboard.levels.nextLevel', { xp: xpToNext, level: currentLevel + 1 });
+  // levelInfo.title là dữ liệu BACKEND trả về (progress?.level_info, tiếng Việt) khi có;
+  // chỉ khi rơi về fallback cục bộ (getLevelInfo) mới dùng labelKey tự dịch được.
+  const title = levelInfo.title || (levelInfo.labelKey ? t(levelInfo.labelKey) : t('dashboard.levels.defaultTitle'));
+  return { xp, currentLevel, title, minXP, maxXPLabel: maxXP === Infinity ? '∞' : maxXP, percent, nextLabel };
 });
 
-const streakDays = computed(() => buildStreakDays(stats.value.streak));
+const streakDays = computed(() => buildStreakDays(stats.value.streak, locale.value));
 
 const challenge = computed(() => data.value?.challenge || null);
 
 const expertSession = computed(() => data.value?.expert_session || null);
 const expertStatus = computed(() => {
   const statusMap = {
-    pending: { label: 'Chờ xác nhận', color: '#bf6f00', bg: 'rgba(245,180,80,.18)' },
-    confirmed: { label: 'Đã xác nhận', color: '#2f8f5b', bg: 'rgba(47,143,91,.14)' }
+    pending: { label: t('dashboard.expert.statusPending'), color: '#bf6f00', bg: 'rgba(245,180,80,.18)' },
+    confirmed: { label: t('dashboard.expert.statusConfirmed'), color: '#2f8f5b', bg: 'rgba(47,143,91,.14)' }
   };
   return statusMap[expertSession.value?.status] || statusMap.confirmed;
 });
 const expertTypeLabel = computed(() => {
-  const typeMap = { chat: 'Chat text', voice: 'Gọi thoại', video: 'Video call', inperson: 'Gặp trực tiếp' };
-  return typeMap[expertSession.value?.session_type] || expertSession.value?.session_type || 'Tư vấn trực tuyến';
+  const typeMap = {
+    chat: t('dashboard.expert.typeChat'),
+    voice: t('dashboard.expert.typeVoice'),
+    video: t('dashboard.expert.typeVideo'),
+    inperson: t('dashboard.expert.typeInPerson')
+  };
+  return typeMap[expertSession.value?.session_type] || expertSession.value?.session_type || t('dashboard.expert.typeDefault');
 });
 const expertTimeLabel = computed(() => {
   if (!expertSession.value) return '';
   try {
-    return new Intl.DateTimeFormat('vi-VN', {
+    return new Intl.DateTimeFormat(intlLocale.value, {
       weekday: 'short', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Bangkok'
     }).format(new Date(expertSession.value.starts_at));
   } catch (_e) {
@@ -456,8 +489,8 @@ const expertTimeLabel = computed(() => {
 });
 const noExpertHelperText = computed(() => (
   ['high', 'critical'].includes(summary.value?.risk_level)
-    ? 'Bạn đang ở vùng cần ưu tiên hồi phục. Nếu cần thêm hỗ trợ, hãy cân nhắc kết nối chuyên gia.'
-    : 'Hiện chưa có lịch tư vấn nào được lưu trong hệ thống.'
+    ? t('dashboard.expert.helperHighRisk')
+    : t('dashboard.expert.helperDefault')
 ));
 
 const recommendedTasks = computed(() => aiTasks.value || data.value?.tasks || []);
@@ -523,16 +556,16 @@ async function requestAiInsight() {
     const res = await apiClient.post('/ai/insight', {});
     const ok = applyInsight(res);
     if (!ok) {
-      insightNote.value = 'Chưa đủ dữ liệu để đưa ra lời khuyên. Hãy check-in tâm trạng hoặc hoàn thành một nhiệm vụ trước nhé.';
+      insightNote.value = t('dashboard.insight.noteNotEnough');
       insightMode.value = data.value?.insight ? 'server' : 'ai';
       return;
     }
     insightNote.value = res?.changed === false
-      ? 'Dữ liệu của bạn chưa thay đổi đáng kể so với lần trước nên lời khuyên được giữ nguyên.'
-      : 'Đã cập nhật theo dữ liệu mới nhất của bạn.';
+      ? t('dashboard.insight.noteUnchanged')
+      : t('dashboard.insight.noteUpdated');
   } catch (e) {
     console.warn('[AI] tạo lời khuyên thất bại:', e.message);
-    insightNote.value = 'Không tạo được lời khuyên lúc này, bạn thử lại sau ít phút nhé.';
+    insightNote.value = t('dashboard.insight.noteFailed');
     insightMode.value = aiRecommendation.value ? 'ai' : (data.value?.insight ? 'server' : 'server');
   }
 }

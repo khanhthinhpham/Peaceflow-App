@@ -32,7 +32,7 @@ const corsOptionsDelegate = (req, callback) => {
       origin: '*',
       credentials: false,
       methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-      allowedHeaders: ['Content-Type', 'Authorization', 'x-client-trace-id', 'ngrok-skip-browser-warning'],
+      allowedHeaders: ['Content-Type', 'Authorization', 'x-client-trace-id', 'ngrok-skip-browser-warning', 'x-locale'],
       optionsSuccessStatus: 204
     });
     return;
@@ -43,7 +43,7 @@ const corsOptionsDelegate = (req, callback) => {
       origin: requestOrigin,
       credentials: true,
       methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-      allowedHeaders: ['Content-Type', 'Authorization', 'x-client-trace-id', 'ngrok-skip-browser-warning'],
+      allowedHeaders: ['Content-Type', 'Authorization', 'x-client-trace-id', 'ngrok-skip-browser-warning', 'x-locale'],
       optionsSuccessStatus: 204
     });
     return;
@@ -62,7 +62,7 @@ app.use((req, res, next) => {
     res.setHeader('Vary', 'Origin');
     res.setHeader(
       'Access-Control-Allow-Headers',
-      'Content-Type, Authorization, x-client-trace-id, ngrok-skip-browser-warning'
+      'Content-Type, Authorization, x-client-trace-id, ngrok-skip-browser-warning, x-locale'
     );
     res.setHeader(
       'Access-Control-Allow-Methods',
@@ -74,7 +74,7 @@ app.use((req, res, next) => {
     res.setHeader('Access-Control-Allow-Credentials', 'true');
     res.setHeader(
       'Access-Control-Allow-Headers',
-      'Content-Type, Authorization, x-client-trace-id, ngrok-skip-browser-warning'
+      'Content-Type, Authorization, x-client-trace-id, ngrok-skip-browser-warning, x-locale'
     );
     res.setHeader(
       'Access-Control-Allow-Methods',
@@ -104,6 +104,9 @@ app.use((req, res, next) => {
 
   req.requestId = reqId;
   res.setHeader('x-request-id', reqId);
+  // Ngôn ngữ UI hiện tại của client (frontend gửi kèm mọi request, xem apiClient.js) —
+  // dùng để AI trả lời đúng ngôn ngữ (xem ai.service.js). Chỉ nhận 'vi'/'en', mặc định 'vi'.
+  req.locale = req.header('x-locale') === 'en' ? 'en' : 'vi';
 
   console.info(
     `[API_REQ] id=${reqId} method=${req.method} path=${req.path} ip=${req.ip}`

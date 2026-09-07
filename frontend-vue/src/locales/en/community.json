@@ -1,0 +1,167 @@
+{
+  "community": {
+    "breadcrumbDashboard": "🏡 Overview",
+    "breadcrumbCurrent": "👥 Community",
+    "pageTitle": "👥 PeaceFlow Community",
+    "pageSubtitle": "An anonymous space for sharing — no judgment, only love 💚",
+    "shareNowBtn": "✏️ Share now",
+    "stats": {
+      "members": "Members",
+      "posts": "Posts shared",
+      "reactions": "Reactions ❤️",
+      "positive": "Positive"
+    },
+    "challengeBanner": {
+      "badge": "🔥 This week's challenge",
+      "joined": "Joined",
+      "joinNow": "Join now",
+      "progressUnit": "⏱ {curr} / {goal} min",
+      "progressPercent": "{pct}% complete",
+      "participants": "participants",
+      "daysLeftLabel": "⏰",
+      "daysLeftUnit": "days left",
+      "rewardLabel": "🏆 Reward:",
+      "rewardValue": "+100 XP",
+      "rewardBadge": "+ community badge"
+    },
+    "modNote": "This community is monitored by AI and moderators 24/7. Any negative, harmful, or rule-breaking content will be removed. Please share with kindness! 💚",
+    "composer": {
+      "title": "Share with the community",
+      "subtitle": "Your story could inspire someone else",
+      "anonOn": "Anonymous: On",
+      "anonOff": "Anonymous",
+      "placeholder": "What would you like to share today? A story, a feeling, a lesson, or simply 'I'm okay'... 🌿",
+      "tagsLabel": "Topic:",
+      "postingAnon": "Posting anonymously",
+      "postingAs": "Posting as {name}",
+      "submitBtn": "📤 Post"
+    },
+    "tags": {
+      "gratitude": "#gratitude",
+      "story": "#story",
+      "milestone": "#milestone",
+      "qa": "#q&a",
+      "tip": "#tip"
+    },
+    "filters": {
+      "all": "🌿 All",
+      "gratitude": "🙏 Gratitude",
+      "story": "📖 Stories",
+      "milestone": "🏆 Milestones",
+      "question": "❓ Q&A",
+      "tip": "💡 Tips"
+    },
+    "feed": {
+      "emptyAllTitle": "No posts in the community yet",
+      "emptyFilterTitle": "No posts for this filter yet",
+      "emptyAllDesc": "Be the first to share a feeling, story, or helpful tip with the community!",
+      "emptyFilterDesc": "Try a different filter or post something new.",
+      "writeNowBtn": "✍️ Write a post"
+    },
+    "post": {
+      "defaultAuthor": "User",
+      "adminBadge": "🛡️ Admin",
+      "expertBadge": "🩺 Expert",
+      "justNow": "Just now",
+      "optionsTitle": "Options",
+      "editBtn": "✏️ Edit post",
+      "deleteBtn": "🗑️ Delete post",
+      "reportBtn": "🚩 Report",
+      "defaultTag": "📖 Story",
+      "saveBtn": "Save",
+      "cancelBtn": "Cancel",
+      "collapseBtn": "Show less",
+      "expandBtn": "Read more",
+      "commentsBtn": "💬 {n} comments",
+      "noComments": "No comments yet. You could be the first to say something.",
+      "commentPlaceholder": "Write a kind message...",
+      "sendBtn": "Send"
+    },
+    "reactions": {
+      "heart": "Love",
+      "hug": "Hug",
+      "strong": "Stay strong",
+      "star": "Nice"
+    },
+    "comment": {
+      "defaultAuthor": "User",
+      "adminBadge": "🛡️ Admin",
+      "expertBadge": "🩺 Expert",
+      "saveBtn": "Save",
+      "cancelBtn": "Cancel",
+      "replyBtn": "Reply",
+      "editBtn": "Edit",
+      "deleteBtn": "Delete",
+      "sendBtn": "Send",
+      "replyPlaceholder": "Reply to {name}..."
+    },
+    "leaderboard": {
+      "title": "🏆 Leaderboard",
+      "xpTab": "⭐ XP",
+      "streakTab": "🔥 Streak",
+      "tasksTab": "✅ Tasks",
+      "hidden": "The leaderboard is hidden on this device.",
+      "noData": "No leaderboard data yet.",
+      "defaultName": "User",
+      "showBtn": "👁 Show leaderboard",
+      "hideBtn": "👁 Hide from leaderboard"
+    },
+    "challengesCard": {
+      "title": "🎯 Ongoing challenges",
+      "meditation": { "name": "🧘 Meditate 1,000 minutes", "meta": "742/1,000 min · 4 days left" },
+      "journal": { "name": "📝 7-day journaling streak", "meta": "4/7 days · Personal" },
+      "breathing": { "name": "💨 5 days of breathing exercises", "meta": "2/5 days · Personal" }
+    },
+    "mentor": {
+      "title": "🌟 Community mentors",
+      "subtitle": "Level 5+ members ready to walk alongside you",
+      "noMentors": "No community mentors available yet.",
+      "defaultName": "Mentor",
+      "statsLabel": "Level {level} · {xp} XP · streak {streak}",
+      "messageBtn": "Message",
+      "footerHint": "Reach Level 5 to become a Mentor 🌟"
+    },
+    "rules": {
+      "title": "📜 Community rules",
+      "rule1": "Share with kindness, without judgment",
+      "rule2": "Respect other people's privacy",
+      "rule3": "No spam, ads, or negative content",
+      "rule4": "If someone needs urgent help, report it right away"
+    },
+    "reportModal": {
+      "title": "🚩 Report post",
+      "reasonSpam": "Spam or advertising",
+      "reasonHarmful": "Harmful / negative content",
+      "reasonCrisis": "⚠️ This user may be in crisis",
+      "reasonInappropriate": "Inappropriate content",
+      "reasonOther": "Other reason",
+      "cancelBtn": "Cancel",
+      "submitBtn": "Submit report"
+    },
+    "confirm": {
+      "deletePost": "Are you sure you want to delete this post?",
+      "deleteComment": "Delete this comment?"
+    },
+    "defaultUserName": "You",
+    "toast": {
+      "emptyPost": "Write something you'd like to share before posting.",
+      "postFailed": "Couldn't post right now.",
+      "postSuccess": "Your post has been shared with the community.",
+      "reactionFailed": "Couldn't update the reaction.",
+      "emptyEdit": "Content can't be empty.",
+      "editSaved": "Changes saved.",
+      "editFailed": "Couldn't save changes.",
+      "postDeleted": "Post deleted.",
+      "postDeleteFailed": "Couldn't delete the post.",
+      "emptyComment": "Write a comment before sending.",
+      "commentFailed": "Couldn't send the comment.",
+      "commentDeleted": "Comment deleted.",
+      "commentDeleteFailed": "Couldn't delete the comment.",
+      "emptyReply": "Write a reply first.",
+      "replyFailed": "Couldn't send the reply.",
+      "challengeJoined": "You've joined this week's community challenge.",
+      "reportSubmitted": "The post has been reported to moderators for review.",
+      "mentorMessageComingSoon": "Mentor messaging is coming in a future update."
+    }
+  }
+}

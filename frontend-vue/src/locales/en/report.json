@@ -1,0 +1,140 @@
+{
+  "report": {
+    "breadcrumbDashboard": "🏡 Overview",
+    "breadcrumbCurrent": "📊 Health report",
+    "pageTitle": "📊 Health Report",
+    "subtitle": "Look back on your journey — understand yourself a little more each day 🌱",
+    "exportPdfBtn": "📄 Export PDF",
+    "periods": {
+      "week": "📅 This week",
+      "month": "📆 This month",
+      "threeMonth": "📈 3 Months",
+      "weekLabel": "Last 7 days",
+      "monthLabel": "Last 30 days",
+      "threeMonthLabel": "Last 90 days"
+    },
+    "periodOffsetSuffix": "({n} periods ago)",
+    "chart": {
+      "title": "💭 Mood chart",
+      "legendMood": "Mood",
+      "legendAnxiety": "Anxiety",
+      "legendStress": "Stress",
+      "noData": "No mood data yet.",
+      "svgNoData": "No mood data available to draw the chart"
+    },
+    "radar": {
+      "title": "🎯 Overall wellness radar",
+      "noData": "No overall wellness data yet.",
+      "svgNoData": "No radar data available",
+      "labels": {
+        "emotion": "Emotion",
+        "calm": "Calm",
+        "security": "Security",
+        "energy": "Energy",
+        "sleep": "Sleep",
+        "pace": "Pace"
+      }
+    },
+    "breakdown": {
+      "title": "✅ Tasks by type",
+      "labels": {
+        "emergency": "🔴 Emergency",
+        "easy": "🟢 Easy",
+        "medium": "🟡 Medium",
+        "hard": "🟠 Advanced"
+      }
+    },
+    "insight": {
+      "title": "PeaceCat's analysis of your journey",
+      "subtitle": "Based on your mood, task, and journal data",
+      "typePositive": "✅ Positive",
+      "typeWarning": "⚠️ Note",
+      "typeTip": "💡 Tip",
+      "moodUp": "Your average mood has risen {n} points compared to last period.",
+      "moodDown": "Your average mood has dropped {n} points compared to last period.",
+      "riskHigh": "Your risk level is currently high. Prioritize short tasks, breathing regulation, and consider connecting with an expert.",
+      "riskLow": "Your current risk level is within a trackable range. Keeping up with check-ins and regular tasks will help stabilize your data further.",
+      "anxietyDown": "Average anxiety has dropped {n} points this period.",
+      "anxietyUp": "Average anxiety has risen {n} points this period — pay attention to midweek days or after periods of pressure.",
+      "topTask": "The task that gave you the clearest sense of activity this period was \"{title}\". You could use it as an anchor when your mood dips.",
+      "journalRate": "About {pct}% of journal entries this period had a positive tone. Writing regularly is helping you observe your emotions more clearly."
+    },
+    "heatmap": {
+      "title": "🗓️ Monthly mood map",
+      "low": "Low",
+      "high": "High",
+      "noDataTooltip": "{date}: No data",
+      "dataTooltip": "{date}: mood {mood}/10",
+      "weekdayLabels": ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"]
+    },
+    "assessmentHistory": {
+      "title": "📋 Psychological test history",
+      "noData": "No assessment results saved in the database yet.",
+      "disclaimer": "⚠️ This is a screening tool, not a medical diagnosis. If your score is high, please consult an expert."
+    },
+    "severity": {
+      "unclassified": "Unclassified",
+      "minimal": "Minimal",
+      "mild": "Mild",
+      "moderate": "Moderate",
+      "moderately_severe": "Fairly high",
+      "severe": "High",
+      "good": "Good"
+    },
+    "exportCard": {
+      "title": "Export report",
+      "desc": "Share with an expert or keep a record of your journey",
+      "pdfBtn": "📄 Export PDF report",
+      "jsonBtn": "📦 Export JSON data",
+      "shareBtn": "🔗 Share with an expert"
+    },
+    "periodSummary": {
+      "title": "📌 This period's summary",
+      "goodMoodDays": "Good mood days",
+      "completedTasks": "Tasks completed",
+      "journalEntries": "Journal entries",
+      "practiceMinutes": "Practice minutes",
+      "minutesUnit": "{n} min"
+    },
+    "comparison": {
+      "title": "📊 Comparison with last period",
+      "mood": "Mood",
+      "anxiety": "Anxiety",
+      "tasks": "Tasks",
+      "xp": "XP"
+    },
+    "nextActions": {
+      "title": "🔗 Next actions",
+      "moodCheckin": "Mood check-in",
+      "doTasks": "Do today's tasks",
+      "expertConsult": "Consult an expert",
+      "takeTest": "Take a test"
+    },
+    "disclaimer": "⚠️ <strong>Note:</strong> This report is for reference only and is not a medical diagnosis. If you're concerned about your mental health, please contact an expert or call <strong>0931773637</strong>.",
+    "summaryCards": {
+      "moodAvg": "Avg. mood",
+      "completedTasks": "Tasks completed",
+      "journalEntries": "Journal entries",
+      "xpInPeriod": "XP this period"
+    },
+    "delta": {
+      "notEnoughData": "Not enough data",
+      "noPreviousPeriod": "No previous period to compare",
+      "noChange": "No change{suffix}",
+      "vsLastPeriod": " vs. last period",
+      "taskUnit": " tasks",
+      "entryUnit": " entries",
+      "xpUnit": " XP"
+    },
+    "toast": {
+      "atLatestPeriod": "You're at the most recent period",
+      "noMoreData": "No further data available within 90 days",
+      "preparingPdf": "Preparing PDF export...",
+      "jsonExported": "JSON exported",
+      "shareOpened": "Share dialog opened",
+      "shareReady": "Report is ready to share with an expert",
+      "loadFailed": "Couldn't load the report from the API"
+    },
+    "shareSummary": "Avg. mood {mood}/10, {tasks} tasks, {journals} journal entries"
+  }
+}

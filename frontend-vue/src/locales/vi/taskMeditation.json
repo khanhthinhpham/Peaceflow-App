@@ -1,0 +1,20 @@
+{
+  "taskMeditation": {
+    "breadcrumbDashboard": "🏡 Tổng quan",
+    "breadcrumbTasks": "🎮 Nhiệm vụ",
+    "breadcrumbCurrent": "🧘 Thiền",
+    "guestNote": {
+      "title": "Bạn đang ở chế độ hỗ trợ khẩn cấp",
+      "text": "Bài thiền này luôn mở cho mọi người, không cần đăng nhập. Đăng nhập để lưu tiến trình và nhận XP."
+    },
+    "arena": {
+      "title": "🧘 Thiền Chánh Niệm",
+      "subtitle": "Tập trung vào hiện tại",
+      "startBtn": "▶ Bắt đầu"
+    },
+    "feedback": {
+      "title": "Tuyệt vời! 🎉",
+      "backToTasksBtn": "Quay lại nhiệm vụ"
+    }
+  }
+}

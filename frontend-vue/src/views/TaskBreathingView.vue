@@ -4,31 +4,31 @@
 
     <main class="main-content" style="margin-left: 0;">
       <div class="breadcrumb">
-        <router-link to="/dashboard">🏡 Tổng quan</router-link><span>›</span>
-        <router-link :to="tasksLink">🎮 Nhiệm vụ</router-link><span>›</span>
-        <span>💨 Bài Tập Thở</span>
+        <router-link to="/dashboard">{{ t('taskBreathing.breadcrumbDashboard') }}</router-link><span>›</span>
+        <router-link :to="tasksLink">{{ t('taskBreathing.breadcrumbTasks') }}</router-link><span>›</span>
+        <span>{{ t('taskBreathing.breadcrumbCurrent') }}</span>
       </div>
 
       <div v-if="guestEmergencyMode" class="guest-emergency-note">
-        <div class="guest-emergency-note-title">Bạn đang ở chế độ hỗ trợ khẩn cấp</div>
+        <div class="guest-emergency-note-title">{{ t('taskBreathing.guestNote.title') }}</div>
         <div class="guest-emergency-note-text">
-          Bài tập thở này luôn mở cho mọi người, không cần đăng nhập. Đăng nhập để lưu tiến trình và nhận XP.
+          {{ t('taskBreathing.guestNote.text') }}
         </div>
       </div>
 
       <div class="technique-tabs">
         <div v-for="(tech, key) in TECHNIQUES" :key="key" class="tech-tab" :class="{ active: currentKey === key }" @click="selectTechnique(key)">
           <div class="tt-icon">{{ tech.icon }}</div>
-          <div class="tt-name">{{ tech.name }}</div>
-          <div class="tt-time">{{ tech.timeLabel }}</div>
+          <div class="tt-name">{{ t(tech.nameKey) }}</div>
+          <div class="tt-time">{{ t(tech.timeLabelKey) }}</div>
         </div>
       </div>
 
       <div class="page-layout">
         <div>
           <div class="paper-card breathing-arena">
-            <div class="ba-title">{{ current.icon }} {{ current.fullName }}</div>
-            <div class="ba-subtitle">{{ current.subtitle }}</div>
+            <div class="ba-title">{{ current.icon }} {{ t(current.fullNameKey) }}</div>
+            <div class="ba-subtitle">{{ t(current.subtitleKey) }}</div>
             <div class="breath-stage">
               <div class="breath-outer"></div>
               <div class="breath-mid"></div>
@@ -42,58 +42,58 @@
               <div v-for="i in current.rounds" :key="i" class="rd" :class="{ done: i - 1 < currentRound, active: i - 1 === currentRound && isRunning }"></div>
             </div>
             <div class="breath-controls">
-              <button v-if="!isRunning" class="ctrl-btn ctrl-start" @click="startBreathing">▶ Bắt đầu</button>
-              <button v-if="isRunning && !isPaused" class="ctrl-btn ctrl-pause" @click="pauseBreathing">⏸ Tạm dừng</button>
-              <button v-if="isRunning && isPaused" class="ctrl-btn ctrl-pause" @click="startBreathing">▶ Tiếp tục</button>
-              <button v-if="isRunning" class="ctrl-btn ctrl-reset" @click="resetBreathing">↩ Đặt lại</button>
+              <button v-if="!isRunning" class="ctrl-btn ctrl-start" @click="startBreathing">{{ t('taskBreathing.controls.startBtn') }}</button>
+              <button v-if="isRunning && !isPaused" class="ctrl-btn ctrl-pause" @click="pauseBreathing">{{ t('taskBreathing.controls.pauseBtn') }}</button>
+              <button v-if="isRunning && isPaused" class="ctrl-btn ctrl-pause" @click="startBreathing">{{ t('taskBreathing.controls.resumeBtn') }}</button>
+              <button v-if="isRunning" class="ctrl-btn ctrl-reset" @click="resetBreathing">{{ t('taskBreathing.controls.resetBtn') }}</button>
             </div>
           </div>
 
           <div class="paper-card technique-info">
             <div class="ti-header">
               <div class="ti-icon">{{ current.icon }}</div>
-              <div class="ti-title">{{ current.fullName }}</div>
+              <div class="ti-title">{{ t(current.fullNameKey) }}</div>
             </div>
-            <div class="ti-desc">{{ current.desc }}</div>
+            <div class="ti-desc">{{ t(current.descKey) }}</div>
             <div class="ti-pattern">
               <div v-for="(phase, idx) in current.phases" :key="idx" class="tp-item" :class="phase.c">
                 <div class="tp-num">{{ phase.d }}</div>
-                <div class="tp-label">{{ phase.n }}</div>
-                <div class="tp-unit">giây</div>
+                <div class="tp-label">{{ t(phase.nameKey) }}</div>
+                <div class="tp-unit">{{ t('taskBreathing.secondsUnit') }}</div>
               </div>
             </div>
           </div>
 
           <div class="paper-card session-stats">
-            <div class="ss-title">📊 Thống kê phiên này</div>
+            <div class="ss-title">{{ t('taskBreathing.stats.title') }}</div>
             <div class="ss-grid">
               <div class="ss-item">
                 <div class="ss-num">{{ currentRound }}</div>
-                <div class="ss-label">Vòng</div>
+                <div class="ss-label">{{ t('taskBreathing.stats.roundsLabel') }}</div>
               </div>
               <div class="ss-item">
                 <div class="ss-num">{{ sessionTimeLabel }}</div>
-                <div class="ss-label">Thời gian</div>
+                <div class="ss-label">{{ t('taskBreathing.stats.timeLabel') }}</div>
               </div>
             </div>
           </div>
 
           <div class="paper-card feedback-section" :class="{ show: showFeedback }">
             <div class="fs-mascot">🐱</div>
-            <div class="fs-title">Tuyệt vời! 🎉</div>
-            <div class="fs-sub">Bạn đã hoàn thành bài tập thở.</div>
+            <div class="fs-title">{{ t('taskBreathing.feedback.title') }}</div>
+            <div class="fs-sub">{{ t('taskBreathing.feedback.subtitle') }}</div>
             <div class="xp-badge"><span class="xp-num">+{{ xpEarned }} XP</span></div>
             <div class="fs-actions">
-              <button class="btn-primary" @click="location.reload()">🔄 Luyện tập lại</button>
-              <router-link :to="tasksLink" class="btn-outline">🎮 Quay lại nhiệm vụ</router-link>
+              <button class="btn-primary" @click="location.reload()">{{ t('taskBreathing.feedback.retryBtn') }}</button>
+              <router-link :to="tasksLink" class="btn-outline">{{ t('taskBreathing.feedback.backToTasksBtn') }}</router-link>
             </div>
           </div>
         </div>
 
         <div>
           <div class="paper-card right-card">
-            <div class="rc-title">🐱 PeaceCat Tip</div>
-            <div class="tip-box">{{ current.tip }}</div>
+            <div class="rc-title">{{ t('taskBreathing.tipTitle') }}</div>
+            <div class="tip-box">{{ t(current.tipKey) }}</div>
           </div>
         </div>
       </div>
@@ -104,6 +104,7 @@
 <script setup>
 import { ref, reactive, computed, onMounted, onBeforeUnmount } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
+import { useI18n } from 'vue-i18n';
 import { apiClient } from '../lib/apiClient';
 import { useAuthStore } from '../stores/auth';
 import { goToLegacyPage } from '../lib/legacyApp';
@@ -112,12 +113,13 @@ import { isGuestEmergencyModeActive } from '../lib/guestEmergency';
 const route = useRoute();
 const router = useRouter();
 const auth = useAuthStore();
+const { t } = useI18n();
 
 const TECHNIQUES = {
-  box: { icon: '📦', name: 'Thở Vuông', fullName: '📦 Thở Vuông (Box Breathing)', timeLabel: '4-4-4-4 · 5 phút', subtitle: 'Kỹ thuật kiểm soát stress tức thì', dur: 4, rounds: 5, xp: 20, desc: 'Thở vuông là kỹ thuật điều hòa hơi thở theo chu kỳ 4 giây đều nhau.', tip: 'Box Breathing là kỹ thuật của Navy SEAL! 🌊', phases: [{ n: 'Hít vào', d: 4, c: 'inhale' }, { n: 'Giữ', d: 4, c: 'hold' }, { n: 'Thở ra', d: 4, c: 'exhale' }, { n: 'Nghỉ', d: 4, c: 'pause' }] },
-  '478': { icon: '🌙', name: '4-7-8', fullName: '🌙 Thở 4-7-8', timeLabel: 'Thư giãn sâu · 5 phút', subtitle: 'Giúp thư giãn sâu và hỗ trợ giấc ngủ', dur: 19, rounds: 4, xp: 20, desc: 'Giúp thư giãn sâu và hỗ trợ giấc ngủ.', tip: '4-7-8 là thuốc ngủ tự nhiên! 🌙', phases: [{ n: 'Hít vào', d: 4, c: 'inhale' }, { n: 'Giữ', d: 7, c: 'hold' }, { n: 'Thở ra', d: 8, c: 'exhale' }] },
-  coherent: { icon: '💚', name: 'Coherent', fullName: '💚 Coherent', timeLabel: '5-5 · 10 phút', subtitle: 'Tối ưu hóa HRV và nhịp tim', dur: 10, rounds: 6, xp: 25, desc: 'Tối ưu hóa HRV và nhịp tim.', tip: 'Giúp đồng bộ hóa tâm trí và cơ thể. 💚', phases: [{ n: 'Hít vào', d: 5, c: 'inhale' }, { n: 'Thở ra', d: 5, c: 'exhale' }] },
-  diaphragm: { icon: '🌬️', name: 'Thở Bụng', fullName: '🌬️ Thở Bụng', timeLabel: 'Cơ bản · 5 phút', subtitle: 'Cách thở tự nhiên và hiệu quả nhất', dur: 12, rounds: 6, xp: 15, desc: 'Cách thở tự nhiên và hiệu quả nhất.', tip: 'Hãy cảm nhận bụng phồng lên khi hít vào. 🌬️', phases: [{ n: 'Hít vào', d: 4, c: 'inhale' }, { n: 'Giữ', d: 2, c: 'hold' }, { n: 'Thở ra', d: 6, c: 'exhale' }] }
+  box: { icon: '📦', nameKey: 'taskBreathing.techniques.box.name', fullNameKey: 'taskBreathing.techniques.box.fullName', timeLabelKey: 'taskBreathing.techniques.box.timeLabel', subtitleKey: 'taskBreathing.techniques.box.subtitle', dur: 4, rounds: 5, xp: 20, descKey: 'taskBreathing.techniques.box.desc', tipKey: 'taskBreathing.techniques.box.tip', phases: [{ nameKey: 'taskBreathing.techniques.box.phaseInhale', d: 4, c: 'inhale' }, { nameKey: 'taskBreathing.techniques.box.phaseHold', d: 4, c: 'hold' }, { nameKey: 'taskBreathing.techniques.box.phaseExhale', d: 4, c: 'exhale' }, { nameKey: 'taskBreathing.techniques.box.phasePause', d: 4, c: 'pause' }] },
+  '478': { icon: '🌙', nameKey: 'taskBreathing.techniques.478.name', fullNameKey: 'taskBreathing.techniques.478.fullName', timeLabelKey: 'taskBreathing.techniques.478.timeLabel', subtitleKey: 'taskBreathing.techniques.478.subtitle', dur: 19, rounds: 4, xp: 20, descKey: 'taskBreathing.techniques.478.desc', tipKey: 'taskBreathing.techniques.478.tip', phases: [{ nameKey: 'taskBreathing.techniques.478.phaseInhale', d: 4, c: 'inhale' }, { nameKey: 'taskBreathing.techniques.478.phaseHold', d: 7, c: 'hold' }, { nameKey: 'taskBreathing.techniques.478.phaseExhale', d: 8, c: 'exhale' }] },
+  coherent: { icon: '💚', nameKey: 'taskBreathing.techniques.coherent.name', fullNameKey: 'taskBreathing.techniques.coherent.fullName', timeLabelKey: 'taskBreathing.techniques.coherent.timeLabel', subtitleKey: 'taskBreathing.techniques.coherent.subtitle', dur: 10, rounds: 6, xp: 25, descKey: 'taskBreathing.techniques.coherent.desc', tipKey: 'taskBreathing.techniques.coherent.tip', phases: [{ nameKey: 'taskBreathing.techniques.coherent.phaseInhale', d: 5, c: 'inhale' }, { nameKey: 'taskBreathing.techniques.coherent.phaseExhale', d: 5, c: 'exhale' }] },
+  diaphragm: { icon: '🌬️', nameKey: 'taskBreathing.techniques.diaphragm.name', fullNameKey: 'taskBreathing.techniques.diaphragm.fullName', timeLabelKey: 'taskBreathing.techniques.diaphragm.timeLabel', subtitleKey: 'taskBreathing.techniques.diaphragm.subtitle', dur: 12, rounds: 6, xp: 15, descKey: 'taskBreathing.techniques.diaphragm.desc', tipKey: 'taskBreathing.techniques.diaphragm.tip', phases: [{ nameKey: 'taskBreathing.techniques.diaphragm.phaseInhale', d: 4, c: 'inhale' }, { nameKey: 'taskBreathing.techniques.diaphragm.phaseHold', d: 2, c: 'hold' }, { nameKey: 'taskBreathing.techniques.diaphragm.phaseExhale', d: 6, c: 'exhale' }] }
 };
 
 const guestEmergencyMode = ref(false);
@@ -135,8 +137,12 @@ const sessionTime = ref(0);
 const showFeedback = ref(false);
 const xpEarned = ref(0);
 const phaseClass = ref('');
-const phaseText = ref('Sẵn sàng');
-const instructionText = ref('Nhấn bắt đầu để luyện tập');
+// Trạng thái thuần (không phải chuỗi đã dịch) — phaseText computed từ đây, tránh kẹt bản dịch
+// cũ khi đổi ngôn ngữ giữa lúc đang thở. instructionText chưa từng đổi giá trị trong suốt vòng
+// đời trang này nên chỉ cần computed hằng số, không cần state riêng.
+const phaseTextKey = ref('taskBreathing.phaseDefaults.ready');
+const phaseText = computed(() => t(phaseTextKey.value));
+const instructionText = computed(() => t('taskBreathing.phaseDefaults.readyInstruction'));
 
 const state = reactive({ task: null, progress: null });
 let mainInterval = null;
@@ -186,7 +192,7 @@ function selectTechnique(key) {
 
 function nextPhase() {
   const phase = current.value.phases[currentPhaseIdx.value];
-  phaseText.value = phase.n;
+  phaseTextKey.value = phase.nameKey;
   phaseClass.value = phase.c;
   currentCount.value = phase.d;
 
@@ -254,8 +260,7 @@ function resetBreathing() {
   currentRound.value = 0;
   currentPhaseIdx.value = 0;
   sessionTime.value = 0;
-  phaseText.value = 'Sẵn sàng';
-  instructionText.value = 'Nhấn bắt đầu để luyện tập';
+  phaseTextKey.value = 'taskBreathing.phaseDefaults.ready';
   phaseClass.value = '';
   currentCount.value = 0;
 }

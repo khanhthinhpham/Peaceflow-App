@@ -3,11 +3,11 @@
     <div class="push-prompt-body">
       <div class="push-prompt-emoji">🔔</div>
       <div style="flex:1;">
-        <div class="push-prompt-title">Bật nhắc nhở hàng ngày?</div>
-        <div class="push-prompt-desc">PeaceFlow sẽ nhắc check-in tâm trạng và cảnh báo khi streak sắp mất.</div>
+        <div class="push-prompt-title">{{ t('pushPrompt.title') }}</div>
+        <div class="push-prompt-desc">{{ t('pushPrompt.desc') }}</div>
         <div class="push-prompt-actions">
-          <button class="push-prompt-yes" @click="notif.acceptPushPrompt()">Bật thông báo</button>
-          <button class="push-prompt-no" @click="notif.dismissPushPrompt()">Để sau</button>
+          <button class="push-prompt-yes" @click="notif.acceptPushPrompt()">{{ t('pushPrompt.acceptBtn') }}</button>
+          <button class="push-prompt-no" @click="notif.dismissPushPrompt()">{{ t('pushPrompt.laterBtn') }}</button>
         </div>
       </div>
     </div>
@@ -15,8 +15,10 @@
 </template>
 
 <script setup>
+import { useI18n } from 'vue-i18n';
 import { useNotificationsStore } from '../stores/notifications';
 
+const { t } = useI18n();
 const notif = useNotificationsStore();
 </script>
 

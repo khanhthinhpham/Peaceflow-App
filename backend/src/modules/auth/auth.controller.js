@@ -10,6 +10,18 @@ import {
 import * as authService from './auth.service.js';
 import { z } from 'zod';
 
+// Ngôn ngữ mặc định theo NƠI ĐĂNG NHẬP/ĐĂNG KÝ — dựa vào quốc gia suy ra từ IP.
+// Vercel tự gắn header 'x-vercel-ip-country' (mã ISO 2 ký tự, vd 'VN', 'US') cho mọi
+// serverless function khi chạy trên nền tảng của họ — không cần gọi dịch vụ geoip ngoài,
+// không tốn thêm request. Chạy local (dev, hay script test) không có header này thì mặc
+// định 'vi' vì thị trường gốc của app là Việt Nam.
+// Đây chỉ là gợi ý MẶC ĐỊNH cho lần đầu — client tự lưu lựa chọn của người dùng và ưu
+// tiên nó hơn giá trị này ở các lần sau (xem src/locales/index.js phía frontend).
+function detectLocale(req) {
+  const country = String(req.headers['x-vercel-ip-country'] || '').toUpperCase();
+  return country && country !== 'VN' ? 'en' : 'vi';
+}
+
 function sendAuthError(res, error, fallbackStatus = 400) {
   if (error instanceof ZodError) {
     return res.status(400).json({
@@ -36,11 +48,11 @@ function sendAuthError(res, error, fallbackStatus = 400) {
 export async function register(req, res) {
   try {
     const payload = registerSchema.parse(req.body);
-    const result = await authService.register(payload);
+    const result = await authService.register(payload, req.locale);
 
     return res.status(201).json({
       success: true,
-      data: result
+      data: { ...result, locale: detectLocale(req) }
     });
   } catch (error) {
     return sendAuthError(res, error);
@@ -50,11 +62,11 @@ export async function register(req, res) {
 export async function registerExpert(req, res) {
   try {
     const payload = registerExpertSchema.parse(req.body);
-    const result = await authService.registerExpert(payload);
+    const result = await authService.registerExpert(payload, req.locale);
 
     return res.status(201).json({
       success: true,
-      data: result
+      data: { ...result, locale: detectLocale(req) }
     });
   } catch (error) {
     return sendAuthError(res, error);
@@ -94,7 +106,7 @@ export async function login(req, res) {
 
     return res.json({
       success: true,
-      data: result
+      data: { ...result, locale: detectLocale(req) }
     });
   } catch (error) {
     return sendAuthError(res, error, 500);
@@ -133,7 +145,7 @@ export async function googleLogin(req, res) {
   try {
     const { id_token } = z.object({ id_token: z.string().min(1) }).parse(req.body);
     const result = await authService.loginWithGoogle(id_token);
-    return res.json({ success: true, data: result });
+    return res.json({ success: true, data: { ...result, locale: detectLocale(req) } });
   } catch (error) {
     return sendAuthError(res, error, 401);
   }
@@ -158,7 +170,7 @@ export async function verifyEmail(req, res) {
 export async function resendVerification(req, res) {
   try {
     const { email } = z.object({ email: z.string().email() }).parse(req.body);
-    await authService.resendVerificationEmail(email);
+    await authService.resendVerificationEmail(email, req.locale);
     return res.json({ success: true, data: { message: 'Email xác nhận đã được gửi lại.' } });
   } catch (error) {
     return sendAuthError(res, error);
@@ -168,7 +180,7 @@ export async function resendVerification(req, res) {
 export async function forgotPassword(req, res) {
   try {
     const { email } = z.object({ email: z.string().email() }).parse(req.body);
-    await authService.forgotPassword(email);
+    await authService.forgotPassword(email, req.locale);
     // Luôn trả về success để tránh email enumeration
     return res.json({ success: true, data: { message: 'Nếu email tồn tại, bạn sẽ nhận được link đặt lại mật khẩu.' } });
   } catch (error) {

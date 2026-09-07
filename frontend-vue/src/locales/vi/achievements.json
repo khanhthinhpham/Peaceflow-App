@@ -1,0 +1,115 @@
+{
+  "achievements": {
+    "breadcrumbDashboard": "🏡 Tổng quan",
+    "breadcrumbCurrent": "🏅 Huy hiệu & Thành tích",
+    "badgeModal": {
+      "defaultName": "Huy hiệu",
+      "defaultDesc": "Không có mô tả",
+      "defaultCondition": "Không có điều kiện",
+      "earnedOnDate": "Đạt ngày {date}",
+      "earnedNoDate": "Đã đạt từ dữ liệu thực tế, chưa có mốc thời gian lưu riêng",
+      "progressLabel": "Tiến độ hiện tại: {current} / {target}",
+      "closeBtn": "Tuyệt vời! 🎉"
+    },
+    "hero": {
+      "levelLine": "⭐ Level {level} — {title}",
+      "xpLeft": "Còn {n} XP → Level {level}",
+      "atMaxLevel": "Đã ở level hiện tại cao nhất",
+      "badgesEarnedLabel": "Huy hiệu đạt",
+      "tasksCompletedLabel": "Nhiệm vụ xong",
+      "streakDaysLabel": "Streak ngày",
+      "challengesLabel": "Thử thách"
+    },
+    "tabs": {
+      "badges": "🏅 Huy hiệu",
+      "levels": "📈 Cấp độ",
+      "streak": "🔥 Streak",
+      "challenges": "🎯 Thử thách",
+      "hof": "🌟 Vinh danh"
+    },
+    "badgeFilters": {
+      "all": "Tất cả",
+      "earned": "Đã đạt",
+      "locked": "Chưa đạt",
+      "milestone": "Cột mốc",
+      "task": "Nhiệm vụ",
+      "streak": "Streak",
+      "journal": "Nhật ký",
+      "mood": "Tâm trạng"
+    },
+    "badges": {
+      "noneForFilter": "Chưa có huy hiệu phù hợp với bộ lọc này.",
+      "earnedOnDate": "Đạt ngày {date}",
+      "earnedNoDate": "Đã đạt từ dữ liệu hiện tại"
+    },
+    "levels": {
+      "title": "📈 Lộ trình cấp độ PeaceFlow",
+      "levelLine": "Level {level} — {title}",
+      "currentLabel": "Hiện tại",
+      "doneLabel": "Đã đạt",
+      "lockedLabel": "Chưa mở",
+      "xpRange": "{min} - {max} XP",
+      "xpMinPlus": "{min}+ XP"
+    },
+    "streak": {
+      "daysUnit": "{n} ngày",
+      "currentLabel": "Chuỗi hoạt động hiện tại",
+      "recordLabel": "🏆 Kỷ lục cá nhân: {n} ngày",
+      "statsTitle": "📊 Thống kê streak",
+      "currentStreakLabel": "Streak hiện tại",
+      "recordShort": "Kỷ lục",
+      "totalActiveDaysLabel": "Tổng ngày active",
+      "catNote": "🐱 <strong>PeaceCat nói:</strong> Bạn còn {n} XP để lên cấp tiếp theo. Chỉ cần giữ nhịp hoạt động đều là progress sẽ tự đẩy lên.",
+      "legendDone": "Hoàn thành",
+      "legendMissed": "Bỏ lỡ",
+      "legendToday": "Hôm nay",
+      "weekdayLabels": ["CN", "T2", "T3", "T4", "T5", "T6", "T7"]
+    },
+    "challenges": {
+      "sectionTitle": "🎯 Thử thách đặc biệt — Tham gia để nhận phần thưởng độc quyền!",
+      "completedLabel": "Hoàn thành",
+      "progressUnit": "{current}/{target}"
+    },
+    "challengeDefs": {
+      "weekly_tasks": { "title": "Nhịp hoàn thành nhiệm vụ", "description": "Hoàn thành 5 nhiệm vụ trong 7 ngày để giữ nhịp phục hồi.", "reward": "Tăng tốc XP và giữ streak" },
+      "weekly_journal": { "title": "Nhật ký đều", "description": "Viết ít nhất 2 entry trong 7 ngày để lưu vết cảm xúc.", "reward": "Làm đầy hơn phần insight" },
+      "weekly_mood": { "title": "Check-in tâm trạng", "description": "Hoàn thành 4 lần mood check-in trong 7 ngày.", "reward": "Cải thiện chất lượng gợi ý" }
+    },
+    "hof": {
+      "title": "🌟 Bảng Vinh Danh PeaceFlow",
+      "subtitle": "Những người dùng xuất sắc nhất tháng này",
+      "noData": "Chưa có đủ dữ liệu xếp hạng.",
+      "youSuffix": " (Bạn)",
+      "positionTitle": "📍 Vị trí của bạn",
+      "topPercentText": "Bạn đang ở top {pct}% người dùng theo XP.",
+      "noRankYet": "Điểm xếp hạng sẽ cập nhật khi có thêm dữ liệu.",
+      "needMoreData": "Cần thêm dữ liệu progress để xếp hạng."
+    },
+    "nextBadge": {
+      "title": "🎯 Huy hiệu tiếp theo",
+      "allUnlockedName": "Đã mở hết",
+      "allUnlockedDesc": "Tất cả badge trong hệ thống hiện tại đã được bạn chạm mốc.",
+      "progressLabel": "{current} / {target} ({pct}%)"
+    },
+    "overview": {
+      "title": "📊 Tổng quan thành tích",
+      "badgesLabel": "Huy hiệu",
+      "levelLabel": "Cấp độ",
+      "totalXpLabel": "Tổng XP",
+      "challengesLabel": "Thử thách"
+    },
+    "recentBadges": {
+      "title": "🆕 Huy hiệu gần đây",
+      "noData": "Chưa có badge nào được mở gần đây. Hãy hoàn thành thêm nhiệm vụ hoặc check-in để tạo tiến triển mới.",
+      "earnedOnDate": "Đạt ngày {date}",
+      "earnedNoDate": "Đã đạt từ dữ liệu hiện tại"
+    },
+    "defaultUserName": "Người dùng",
+    "defaultLevelTitle": "Hành trình",
+    "defaultDate": "Đã đạt",
+    "motivational": {
+      "near": "\"Bạn đang tiến gần tới {name}. Chỉ cần thêm {n} bước nhỏ nữa để chạm huy hiệu tiếp theo.\"",
+      "allUnlocked": "\"Toàn bộ badge hiện có đã được mở. Hành trình của bạn đang ở vùng rất ổn định.\""
+    }
+  }
+}

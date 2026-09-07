@@ -1,0 +1,105 @@
+{
+  "moodCheckin": {
+    "title": "💭 Mood Check-in",
+    "subtitle": "Pick the method that fits — PeaceCat is always listening 🐱",
+    "backDashboard": "← Dashboard",
+    "todayDone": "✅ Today's check-in: Done",
+    "todayNotDone": "✅ Today's check-in: Not yet",
+    "modes": {
+      "quickTitle": "Quick check-in",
+      "quickDesc": "Pick your mood, intensity, and cause",
+      "quickTime": "⏱ 30 seconds",
+      "chatTitle": "Chat with PeaceCat",
+      "chatDesc": "Natural conversation, AI analyzes your emotions",
+      "chatTime": "⏱ 3-5 minutes",
+      "testTitle": "Standardized assessment",
+      "testDesc": "DASS-21, GAD-7, HARS, PHQ-9, PSQI",
+      "testTime": "⏱ 5-15 minutes"
+    },
+    "step1": {
+      "mascotGreeting": "Hi {name}! How are you feeling today? Tap the expression that best fits you right now 😊",
+      "title": "How's your mood today?",
+      "sub": "Pick the expression closest to how you feel right now",
+      "continueBtn": "Continue →"
+    },
+    "moods": {
+      "veryHappy": "Very happy",
+      "comfortable": "Comfortable",
+      "normal": "Normal",
+      "slightlyStressed": "A bit stressed",
+      "veryStressed": "Very stressed",
+      "sad": "Sad",
+      "angry": "Angry"
+    },
+    "step2": {
+      "mascotWithMood": "You're feeling \"{mood}\". Can you tell me how strong this feeling is?",
+      "mascotDefault": "Got it. Can you tell me how strong that feeling is?",
+      "title": "How intense is it?",
+      "sub": "Drag the slider to show the intensity",
+      "sliderLow": "😌 Mild",
+      "sliderHigh": "😰 Very intense",
+      "backBtn": "← Back",
+      "continueBtn": "Continue →",
+      "level1": "Very intense. Needs care!",
+      "level2": "A bit tired / Mildly stressed",
+      "level3": "Normal / Stable",
+      "level4": "Pretty good / Comfortable",
+      "level5": "Amazing"
+    },
+    "step3": {
+      "mascotText": "Thanks for sharing! What might be affecting your mood? (Optional)",
+      "title": "What might be the cause?",
+      "sub": "Pick one or more — or skip if you're not sure",
+      "backBtn": "← Back",
+      "saving": "Saving...",
+      "saveBtn": "Save & see result ✓"
+    },
+    "tags": {
+      "work": "💼 Work",
+      "family": "👨‍👩‍👧 Family",
+      "relationship": "💕 Relationship",
+      "finance": "💰 Finance",
+      "health": "🏥 Health",
+      "lonely": "😔 Loneliness",
+      "sleep_loss": "😴 Insomnia",
+      "social_media": "📱 Social media",
+      "study": "🎓 Studies",
+      "unknown": "❓ Not sure"
+    },
+    "step4": {
+      "defaultMoodLabel": "Normal",
+      "levelBadge": "Level {score}/10",
+      "tasksHeading": "🎯 Suggested exercises for you",
+      "noTasks": "No new suggestions yet. You can browse the exercise list to pick one that fits.",
+      "minutesUnit": "min",
+      "viewAllTasksBtn": "🎮 View all exercises",
+      "checkinAgainBtn": "↩ Check in again",
+      "dashboardBtn": "🏡 Dashboard",
+      "savingTitle": "Saving your mood...",
+      "savingMsg": "PeaceFlow is recording your data and generating suggestions.",
+      "savingBadge": "Saving...",
+      "savedTitle": "Mood saved!",
+      "savedMsg": "Your check-in data has been saved and suggestions updated.",
+      "savedBadge": "Saved!",
+      "failedTitle": "Couldn't save your mood",
+      "failedMsg": "You can try again in a few seconds.",
+      "failedBadge": "Save failed",
+      "pendingBadge": "Not saved yet"
+    },
+    "emergency": {
+      "title": "You're not alone",
+      "text": "We noticed you're going through a really hard time. Let someone help you right now.",
+      "hotlineLabel": "Mental health support hotline — Free, 24/7",
+      "callBtn": "📞 Call now",
+      "chatExpertBtn": "💬 Chat with an expert",
+      "emergencyCallBtn": "🆘 Call 115 for emergency",
+      "closeBtn": "I'm okay, continue",
+      "footer": "\"This too shall pass. Let someone help you.\""
+    },
+    "alerts": {
+      "pickMoodFirst": "Please pick a mood first!",
+      "pleaseLogin": "Please sign in to save your mood data.",
+      "saveFailed": "Couldn't save your mood to the server. Please try again."
+    }
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "pushPrompt": {
+    "title": "Turn on daily reminders?",
+    "desc": "PeaceFlow will remind you to check in your mood and alert you before your streak is lost.",
+    "acceptBtn": "Enable notifications",
+    "laterBtn": "Maybe later"
+  }
+}

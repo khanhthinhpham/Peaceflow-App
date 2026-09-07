@@ -1,0 +1,115 @@
+{
+  "achievements": {
+    "breadcrumbDashboard": "🏡 Overview",
+    "breadcrumbCurrent": "🏅 Badges & Achievements",
+    "badgeModal": {
+      "defaultName": "Badge",
+      "defaultDesc": "No description",
+      "defaultCondition": "No condition",
+      "earnedOnDate": "Earned on {date}",
+      "earnedNoDate": "Earned from real activity data, no exact date recorded",
+      "progressLabel": "Current progress: {current} / {target}",
+      "closeBtn": "Awesome! 🎉"
+    },
+    "hero": {
+      "levelLine": "⭐ Level {level} — {title}",
+      "xpLeft": "{n} XP left → Level {level}",
+      "atMaxLevel": "Already at the highest level",
+      "badgesEarnedLabel": "Badges earned",
+      "tasksCompletedLabel": "Tasks completed",
+      "streakDaysLabel": "Streak days",
+      "challengesLabel": "Challenges"
+    },
+    "tabs": {
+      "badges": "🏅 Badges",
+      "levels": "📈 Levels",
+      "streak": "🔥 Streak",
+      "challenges": "🎯 Challenges",
+      "hof": "🌟 Hall of Fame"
+    },
+    "badgeFilters": {
+      "all": "All",
+      "earned": "Earned",
+      "locked": "Locked",
+      "milestone": "Milestone",
+      "task": "Task",
+      "streak": "Streak",
+      "journal": "Journal",
+      "mood": "Mood"
+    },
+    "badges": {
+      "noneForFilter": "No badges match this filter.",
+      "earnedOnDate": "Earned on {date}",
+      "earnedNoDate": "Earned from current data"
+    },
+    "levels": {
+      "title": "📈 PeaceFlow level roadmap",
+      "levelLine": "Level {level} — {title}",
+      "currentLabel": "Current",
+      "doneLabel": "Reached",
+      "lockedLabel": "Locked",
+      "xpRange": "{min} - {max} XP",
+      "xpMinPlus": "{min}+ XP"
+    },
+    "streak": {
+      "daysUnit": "{n} days",
+      "currentLabel": "Current activity streak",
+      "recordLabel": "🏆 Personal record: {n} days",
+      "statsTitle": "📊 Streak stats",
+      "currentStreakLabel": "Current streak",
+      "recordShort": "Record",
+      "totalActiveDaysLabel": "Total active days",
+      "catNote": "🐱 <strong>PeaceCat says:</strong> You need {n} more XP to level up. Just keep a steady activity pace and your progress will climb on its own.",
+      "legendDone": "Done",
+      "legendMissed": "Missed",
+      "legendToday": "Today",
+      "weekdayLabels": ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"]
+    },
+    "challenges": {
+      "sectionTitle": "🎯 Special challenges — Join to earn exclusive rewards!",
+      "completedLabel": "Completed",
+      "progressUnit": "{current}/{target}"
+    },
+    "challengeDefs": {
+      "weekly_tasks": { "title": "Task completion streak", "description": "Complete 5 tasks in 7 days to keep your recovery pace.", "reward": "Boost XP and keep your streak" },
+      "weekly_journal": { "title": "Consistent journaling", "description": "Write at least 2 entries in 7 days to track your emotions.", "reward": "Enrich your insights" },
+      "weekly_mood": { "title": "Mood check-in", "description": "Complete 4 mood check-ins in 7 days.", "reward": "Improve suggestion quality" }
+    },
+    "hof": {
+      "title": "🌟 PeaceFlow Hall of Fame",
+      "subtitle": "This month's top-performing users",
+      "noData": "Not enough ranking data yet.",
+      "youSuffix": " (You)",
+      "positionTitle": "📍 Your position",
+      "topPercentText": "You're in the top {pct}% of users by XP.",
+      "noRankYet": "Your ranking will update as more data comes in.",
+      "needMoreData": "Needs more progress data to be ranked."
+    },
+    "nextBadge": {
+      "title": "🎯 Next badge",
+      "allUnlockedName": "All unlocked",
+      "allUnlockedDesc": "You've reached every badge currently available in the system.",
+      "progressLabel": "{current} / {target} ({pct}%)"
+    },
+    "overview": {
+      "title": "📊 Achievement overview",
+      "badgesLabel": "Badges",
+      "levelLabel": "Level",
+      "totalXpLabel": "Total XP",
+      "challengesLabel": "Challenges"
+    },
+    "recentBadges": {
+      "title": "🆕 Recent badges",
+      "noData": "No badges unlocked recently. Complete more tasks or check-ins to make new progress.",
+      "earnedOnDate": "Earned on {date}",
+      "earnedNoDate": "Earned from current data"
+    },
+    "defaultUserName": "User",
+    "defaultLevelTitle": "Journey",
+    "defaultDate": "Earned",
+    "motivational": {
+      "near": "\"You're getting close to {name}. Just {n} more small steps to reach the next badge.\"",
+      "allUnlocked": "\"Every available badge has been unlocked. Your journey is in a very stable place.\""
+    }
+  }
+}

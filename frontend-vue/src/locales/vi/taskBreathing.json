@@ -1,0 +1,80 @@
+{
+  "taskBreathing": {
+    "breadcrumbDashboard": "🏡 Tổng quan",
+    "breadcrumbTasks": "🎮 Nhiệm vụ",
+    "breadcrumbCurrent": "💨 Bài Tập Thở",
+    "guestNote": {
+      "title": "Bạn đang ở chế độ hỗ trợ khẩn cấp",
+      "text": "Bài tập thở này luôn mở cho mọi người, không cần đăng nhập. Đăng nhập để lưu tiến trình và nhận XP."
+    },
+    "controls": {
+      "startBtn": "▶ Bắt đầu",
+      "pauseBtn": "⏸ Tạm dừng",
+      "resumeBtn": "▶ Tiếp tục",
+      "resetBtn": "↩ Đặt lại"
+    },
+    "phaseDefaults": {
+      "ready": "Sẵn sàng",
+      "readyInstruction": "Nhấn bắt đầu để luyện tập"
+    },
+    "secondsUnit": "giây",
+    "stats": {
+      "title": "📊 Thống kê phiên này",
+      "roundsLabel": "Vòng",
+      "timeLabel": "Thời gian"
+    },
+    "feedback": {
+      "title": "Tuyệt vời! 🎉",
+      "subtitle": "Bạn đã hoàn thành bài tập thở.",
+      "retryBtn": "🔄 Luyện tập lại",
+      "backToTasksBtn": "🎮 Quay lại nhiệm vụ"
+    },
+    "tipTitle": "🐱 PeaceCat Tip",
+    "techniques": {
+      "box": {
+        "name": "Thở Vuông",
+        "fullName": "📦 Thở Vuông (Box Breathing)",
+        "timeLabel": "4-4-4-4 · 5 phút",
+        "subtitle": "Kỹ thuật kiểm soát stress tức thì",
+        "desc": "Thở vuông là kỹ thuật điều hòa hơi thở theo chu kỳ 4 giây đều nhau.",
+        "tip": "Box Breathing là kỹ thuật của Navy SEAL! 🌊",
+        "phaseInhale": "Hít vào",
+        "phaseHold": "Giữ",
+        "phaseExhale": "Thở ra",
+        "phasePause": "Nghỉ"
+      },
+      "478": {
+        "name": "4-7-8",
+        "fullName": "🌙 Thở 4-7-8",
+        "timeLabel": "Thư giãn sâu · 5 phút",
+        "subtitle": "Giúp thư giãn sâu và hỗ trợ giấc ngủ",
+        "desc": "Giúp thư giãn sâu và hỗ trợ giấc ngủ.",
+        "tip": "4-7-8 là thuốc ngủ tự nhiên! 🌙",
+        "phaseInhale": "Hít vào",
+        "phaseHold": "Giữ",
+        "phaseExhale": "Thở ra"
+      },
+      "coherent": {
+        "name": "Coherent",
+        "fullName": "💚 Coherent",
+        "timeLabel": "5-5 · 10 phút",
+        "subtitle": "Tối ưu hóa HRV và nhịp tim",
+        "desc": "Tối ưu hóa HRV và nhịp tim.",
+        "tip": "Giúp đồng bộ hóa tâm trí và cơ thể. 💚",
+        "phaseInhale": "Hít vào",
+        "phaseExhale": "Thở ra"
+      },
+      "diaphragm": {
+        "name": "Thở Bụng",
+        "fullName": "🌬️ Thở Bụng",
+        "timeLabel": "Cơ bản · 5 phút",
+        "subtitle": "Cách thở tự nhiên và hiệu quả nhất",
+        "desc": "Cách thở tự nhiên và hiệu quả nhất.",
+        "tip": "Hãy cảm nhận bụng phồng lên khi hít vào. 🌬️",
+        "phaseInhale": "Hít vào",
+        "phaseHold": "Giữ",
+        "phaseExhale": "Thở ra"
+      }
+    }
+  }
+}

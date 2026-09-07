@@ -3,16 +3,16 @@
     <div class="emergency-overlay" :class="{ show: emergencyOpen }">
       <div class="emergency-popup">
         <div class="ep-icon">❤️</div>
-        <div class="ep-title">Bạn không đơn độc</div>
-        <p class="ep-text">Nếu bạn đang cảm thấy rất khó khăn, hãy để ai đó giúp bạn ngay bây giờ.</p>
+        <div class="ep-title">{{ t('tasksPage.emergency.title') }}</div>
+        <p class="ep-text">{{ t('tasksPage.emergency.text') }}</p>
         <div class="ep-hotline">
           <div class="eph-num">📞 0931773637</div>
-          <div class="eph-label">Đường dây nóng sức khỏe tâm thần — Miễn phí, 24/7</div>
+          <div class="eph-label">{{ t('tasksPage.emergency.hotlineLabel') }}</div>
         </div>
         <div class="ep-actions">
-          <a href="tel:0931773637" class="ep-btn ep-btn-red">📞 Gọi ngay hotline</a>
-          <router-link to="/experts" class="ep-btn ep-btn-green">💬 Kết nối chuyên gia</router-link>
-          <button class="ep-btn ep-btn-ghost" @click="emergencyOpen = false">Tôi ổn, đóng lại</button>
+          <a href="tel:0931773637" class="ep-btn ep-btn-red">{{ t('tasksPage.emergency.callBtn') }}</a>
+          <router-link to="/experts" class="ep-btn ep-btn-green">{{ t('tasksPage.emergency.connectExpertBtn') }}</router-link>
+          <button class="ep-btn ep-btn-ghost" @click="emergencyOpen = false">{{ t('tasksPage.emergency.closeBtn') }}</button>
         </div>
       </div>
     </div>
@@ -20,23 +20,23 @@
     <main class="main-content" style="margin-left: 0;" >
       <div class="page-header">
         <div>
-          <div class="page-title">🎮 Nhiệm Vụ</div>
+          <div class="page-title">{{ t('tasksPage.title') }}</div>
           <div class="page-subtitle">{{ subtitleText }}</div>
         </div>
         <div style="display:flex;gap:8px;">
-          <router-link v-if="!guestEmergencyMode" to="/mood-checkin" class="btn-outline">💭 Check-in tâm trạng</router-link>
-          <router-link v-else to="/login" class="btn-outline">💭 Check-in tâm trạng</router-link>
-          <button class="btn-primary" @click="emergencyOpen = true">🆘 Khẩn cấp</button>
+          <router-link v-if="!guestEmergencyMode" to="/mood-checkin" class="btn-outline">{{ t('tasksPage.checkinBtn') }}</router-link>
+          <router-link v-else to="/login" class="btn-outline">{{ t('tasksPage.checkinBtn') }}</router-link>
+          <button class="btn-primary" @click="emergencyOpen = true">{{ t('tasksPage.emergencyBtn') }}</button>
         </div>
       </div>
 
       <div v-if="guestEmergencyMode" class="guest-emergency-note">
-        <div class="guest-emergency-note-title">Bạn đang ở chế độ hỗ trợ khẩn cấp</div>
+        <div class="guest-emergency-note-title">{{ t('tasksPage.guestNote.title') }}</div>
         <div class="guest-emergency-note-text">
-          Hiện tại PeaceFlow chỉ mở các bài tập khẩn cấp để bạn ổn định lại trước. Đăng nhập để xem đầy đủ thư viện nhiệm vụ, nhật ký và các gợi ý cá nhân hóa.
+          {{ t('tasksPage.guestNote.text') }}
         </div>
         <div class="guest-emergency-note-actions">
-          <router-link to="/login" class="btn-primary" style="text-decoration:none;">Đăng nhập để xem thêm nhiều bài tập</router-link>
+          <router-link to="/login" class="btn-primary" style="text-decoration:none;">{{ t('tasksPage.guestNote.loginCta') }}</router-link>
         </div>
       </div>
 
@@ -45,15 +45,15 @@
         <template v-if="guestEmergencyMode">
           <div class="xp-level-badge">!</div>
           <div class="xp-info">
-            <div class="xi-name">Chế độ hỗ trợ khẩn cấp</div>
-            <div class="xi-range">Không cần tài khoản để bắt đầu các bài tập ổn định cảm xúc cơ bản.</div>
+            <div class="xi-name">{{ t('tasksPage.xpTopbar.guestTitle') }}</div>
+            <div class="xi-range">{{ t('tasksPage.xpTopbar.guestDesc') }}</div>
           </div>
         </template>
         <template v-else>
           <div class="xp-level-badge">{{ xpInfo.level }}</div>
           <div class="xp-info">
             <div class="xi-name">{{ xpInfo.title }}</div>
-            <div class="xi-range">Level {{ xpInfo.level }} · {{ xpInfo.minXP }} – {{ xpInfo.maxXPLabel }} XP</div>
+            <div class="xi-range">{{ t('tasksPage.xpTopbar.levelRange', { level: xpInfo.level, min: xpInfo.minXP, max: xpInfo.maxXPLabel }) }}</div>
           </div>
           <div class="xp-bar-wrap">
             <div class="xp-bar-bg">
@@ -70,21 +70,21 @@
         <template v-if="guestEmergencyMode">
           <div class="ai-mascot">🆘</div>
           <div class="ai-text">
-            <div class="at-title">Hãy bắt đầu với một bài tập ngắn</div>
-            <div class="at-sub">Nếu bạn đang quá tải, hãy chọn một bài thở hoặc thiền khẩn cấp bên dưới. Khi cần thêm nội dung, hãy đăng nhập để mở toàn bộ nhiệm vụ của PeaceFlow.</div>
+            <div class="at-title">{{ t('tasksPage.aiSuggestion.guestTitle') }}</div>
+            <div class="at-sub">{{ t('tasksPage.aiSuggestion.guestDesc') }}</div>
           </div>
           <div class="ai-actions">
-            <router-link to="/login" class="btn-primary" style="text-decoration:none;">Đăng nhập để xem thêm nhiều bài tập</router-link>
+            <router-link to="/login" class="btn-primary" style="text-decoration:none;">{{ t('tasksPage.guestNote.loginCta') }}</router-link>
           </div>
         </template>
         <template v-else>
           <div class="ai-mascot">🐱</div>
           <div class="ai-text">
-            <div class="at-title">🤖 PeaceCat gợi ý hôm nay</div>
+            <div class="at-title">{{ t('tasksPage.aiSuggestion.title') }}</div>
             <div class="at-sub">{{ suggestionBannerText }}</div>
           </div>
           <div class="ai-actions">
-            <button class="btn-primary" @click="scrollToSuggested">Xem gợi ý →</button>
+            <button class="btn-primary" @click="scrollToSuggested">{{ t('tasksPage.aiSuggestion.viewBtn') }}</button>
           </div>
         </template>
       </div>
@@ -94,51 +94,51 @@
         <template v-if="guestEmergencyMode">
           <div class="wc-header">
             <span style="font-size:1.3rem;">💛</span>
-            <div class="wc-title">Bạn không cần làm mọi thứ cùng lúc</div>
+            <div class="wc-title">{{ t('tasksPage.challenge.guestTitle') }}</div>
           </div>
-          <div class="wc-desc">Hãy ưu tiên một bài tập ngắn để cơ thể hạ nhịp trước. Sau đó bạn có thể đăng nhập để theo dõi tiến trình và mở thêm nhiều bài tập khác.</div>
+          <div class="wc-desc">{{ t('tasksPage.challenge.guestDesc') }}</div>
         </template>
         <template v-else>
           <div class="wc-header">
             <span style="font-size:1.3rem;">🏆</span>
-            <div class="wc-title">{{ challenge?.title || 'Mục tiêu tuần này' }}</div>
-            <span class="badge-pill badge-peach" style="margin-left:auto;">{{ challenge?.days_left ?? 0 }} ngày còn lại</span>
+            <div class="wc-title">{{ challenge?.title || t('tasksPage.challenge.defaultTitle') }}</div>
+            <span class="badge-pill badge-peach" style="margin-left:auto;">{{ t('tasksPage.challenge.daysLeft', { n: challenge?.days_left ?? 0 }) }}</span>
           </div>
-          <div class="wc-desc">{{ challenge?.description || 'Giữ nhịp hoàn thành nhiệm vụ đều đặn trong tuần này.' }}</div>
+          <div class="wc-desc">{{ challenge?.description || t('tasksPage.challenge.defaultDesc') }}</div>
           <div class="wc-progress-bar">
             <div class="wc-progress-fill" :style="{ width: challengePercent + '%' }"></div>
           </div>
-          <div class="wc-meta"><span>{{ challenge?.completed ?? 0 }}/{{ challenge?.goal ?? 7 }} nhiệm vụ</span><span>{{ challenge?.reward_label || 'Giữ nhịp chăm sóc bản thân' }}</span></div>
+          <div class="wc-meta"><span>{{ challenge?.completed ?? 0 }}/{{ challenge?.goal ?? 7 }} {{ t('tasksPage.challenge.tasksMeta') }}</span><span>{{ challenge?.reward_label || t('tasksPage.challenge.defaultReward') }}</span></div>
         </template>
       </div>
 
       <!-- Filter Bar -->
       <div class="filter-bar">
         <template v-if="!guestEmergencyMode">
-          <button class="filter-btn" :class="{ active: activeFilter === 'all' }" @click="setFilter('all')">🌿 Tất cả</button>
-          <button class="filter-btn emergency-filter" :class="{ active: activeFilter === 'emergency' }" @click="setFilter('emergency')">🔴 Khẩn cấp</button>
-          <button class="filter-btn easy-filter" :class="{ active: activeFilter === 'easy' }" @click="setFilter('easy')">🟢 Dễ</button>
-          <button class="filter-btn medium-filter" :class="{ active: activeFilter === 'medium' }" @click="setFilter('medium')">🟡 Trung bình</button>
-          <button class="filter-btn hard-filter" :class="{ active: activeFilter === 'hard' }" @click="setFilter('hard')">🟠 Nâng cao</button>
-          <button class="filter-btn" :class="{ active: activeFilter === 'completed' }" @click="setFilter('completed')">✅ Đã hoàn thành</button>
-          <input type="text" class="search-input" placeholder="🔍 Tìm nhiệm vụ..." :value="searchQuery" @input="searchQuery = $event.target.value">
+          <button class="filter-btn" :class="{ active: activeFilter === 'all' }" @click="setFilter('all')">{{ t('tasksPage.filters.all') }}</button>
+          <button class="filter-btn emergency-filter" :class="{ active: activeFilter === 'emergency' }" @click="setFilter('emergency')">{{ t('tasksPage.filters.emergency') }}</button>
+          <button class="filter-btn easy-filter" :class="{ active: activeFilter === 'easy' }" @click="setFilter('easy')">{{ t('tasksPage.filters.easy') }}</button>
+          <button class="filter-btn medium-filter" :class="{ active: activeFilter === 'medium' }" @click="setFilter('medium')">{{ t('tasksPage.filters.medium') }}</button>
+          <button class="filter-btn hard-filter" :class="{ active: activeFilter === 'hard' }" @click="setFilter('hard')">{{ t('tasksPage.filters.hard') }}</button>
+          <button class="filter-btn" :class="{ active: activeFilter === 'completed' }" @click="setFilter('completed')">{{ t('tasksPage.filters.completed') }}</button>
+          <input type="text" class="search-input" :placeholder="t('tasksPage.filters.searchPlaceholder')" :value="searchQuery" @input="searchQuery = $event.target.value">
         </template>
         <template v-else>
-          <button class="filter-btn emergency-filter active">🔴 Khẩn cấp</button>
+          <button class="filter-btn emergency-filter active">{{ t('tasksPage.filters.emergency') }}</button>
         </template>
       </div>
 
       <!-- Task Sections -->
       <div v-if="loadError" style="text-align:center;padding:40px;color:var(--coral);">{{ loadError }}</div>
-      <div v-else-if="loading" style="text-align:center;padding:40px;color:var(--text-secondary);">Đang tải danh sách nhiệm vụ từ hệ thống...</div>
-      <div v-else-if="!filteredTasks.length" style="text-align:center;padding:40px;color:var(--text-secondary);">Không tìm thấy nhiệm vụ phù hợp với bộ lọc hiện tại.</div>
+      <div v-else-if="loading" style="text-align:center;padding:40px;color:var(--text-secondary);">{{ t('tasksPage.list.loading') }}</div>
+      <div v-else-if="!filteredTasks.length" style="text-align:center;padding:40px;color:var(--text-secondary);">{{ t('tasksPage.list.empty') }}</div>
       <div v-else id="taskSections">
         <div v-for="section in groupedSections" :key="section.id" class="task-section">
           <div class="section-header">
             <div class="sh-icon" :class="section.iconClass">⭐</div>
-            <div class="sh-title">{{ section.title }}</div>
-            <div class="sh-count">{{ section.tasks.length }} nhiệm vụ</div>
-            <div class="sh-desc">{{ section.description }}</div>
+            <div class="sh-title">{{ t(section.titleKey) }}</div>
+            <div class="sh-count">{{ t('tasksPage.sections.count', { n: section.tasks.length }) }}</div>
+            <div class="sh-desc">{{ t(section.descKey) }}</div>
           </div>
           <div class="task-grid">
             <div
@@ -151,12 +151,12 @@
               <div class="tc-top">
                 <div class="tc-icon" :class="getTaskSectionId(task)">{{ getTaskIcon(task) }}</div>
                 <div class="tc-info">
-                  <div class="tc-name">{{ task.title || 'Nhiệm vụ' }}</div>
+                  <div class="tc-name">{{ task.title || t('tasksPage.card.defaultTitle') }}</div>
                   <div class="tc-meta">
                     <div class="tc-meta-item">⏱ {{ getTaskDurationLabel(task) }}</div>
-                    <div v-if="recommendedIds.has(task.id)" class="tc-meta-item" style="color:var(--peach-dark);">⭐ Gợi ý hôm nay</div>
-                    <div v-if="task.in_progress && !task.completed" class="tc-meta-item" style="color:var(--blue);">⏳ Đang thực hiện</div>
-                    <div v-if="task.completed" class="tc-meta-item" style="color:var(--mint-dark);">✓ Đã hoàn thành {{ task.completion_count || 1 }} lần</div>
+                    <div v-if="recommendedIds.has(task.id)" class="tc-meta-item" style="color:var(--peach-dark);">{{ t('tasksPage.card.suggestedToday') }}</div>
+                    <div v-if="task.in_progress && !task.completed" class="tc-meta-item" style="color:var(--blue);">{{ t('tasksPage.card.inProgress') }}</div>
+                    <div v-if="task.completed" class="tc-meta-item" style="color:var(--mint-dark);">{{ t('tasksPage.card.completedCount', { n: task.completion_count || 1 }) }}</div>
                   </div>
                 </div>
               </div>
@@ -167,7 +167,7 @@
                   class="tc-start-btn"
                   :class="{ emergency: getTaskSectionId(task) === 'emergency' }"
                   @click.stop="goToTask(task)"
-                >{{ task.completed ? 'Xem lại' : task.in_progress ? 'Tiếp tục' : 'Bắt đầu' }}</button>
+                >{{ task.completed ? t('tasksPage.card.reviewBtn') : task.in_progress ? t('tasksPage.card.continueBtn') : t('tasksPage.card.startBtn') }}</button>
               </div>
             </div>
           </div>
@@ -179,20 +179,23 @@
 
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 import { apiClient } from '../lib/apiClient';
 import { useAuthStore } from '../stores/auth';
 import { isGuestEmergencyModeActive } from '../lib/guestEmergency';
-import { GUEST_EMERGENCY_TASKS_FALLBACK } from '../lib/taskFallbackData';
+import { buildGuestEmergencyTasksFallback } from '../lib/taskFallbackData';
 import { getLevelInfo, getLevelProgress } from '../lib/dashboardHelpers';
 
+// titleKey/descKey thay vì chuỗi tiếng Việt cứng — dịch qua t() ở nơi dùng (template).
 const SECTION_CONFIG = [
-  { id: 'emergency', title: '🔴 Khẩn Cấp', description: 'Ưu tiên thực hiện ngay khi cảm xúc đang quá tải.', iconClass: 'emergency' },
-  { id: 'easy', title: '🟢 Dễ', description: 'Các nhiệm vụ ngắn để giữ nhịp chăm sóc bản thân mỗi ngày.', iconClass: 'easy' },
-  { id: 'medium', title: '🟡 Trung Bình', description: 'Cần thêm chút thời gian tập trung hoặc không gian yên tĩnh.', iconClass: 'medium' },
-  { id: 'hard', title: '🟠 Nâng Cao', description: 'Nhiệm vụ dài hơn, phù hợp khi bạn có đủ năng lượng để đào sâu.', iconClass: 'hard' }
+  { id: 'emergency', titleKey: 'tasksPage.sections.emergencyTitle', descKey: 'tasksPage.sections.emergencyDesc', iconClass: 'emergency' },
+  { id: 'easy', titleKey: 'tasksPage.sections.easyTitle', descKey: 'tasksPage.sections.easyDesc', iconClass: 'easy' },
+  { id: 'medium', titleKey: 'tasksPage.sections.mediumTitle', descKey: 'tasksPage.sections.mediumDesc', iconClass: 'medium' },
+  { id: 'hard', titleKey: 'tasksPage.sections.hardTitle', descKey: 'tasksPage.sections.hardDesc', iconClass: 'hard' }
 ];
 
+const { t, tm } = useI18n();
 const auth = useAuthStore();
 const router = useRouter();
 
@@ -212,11 +215,14 @@ function getTaskIcon(task) {
 }
 function getTaskDurationLabel(task) {
   const minutes = Number(task?.duration_minutes || 0);
-  if (!minutes) return 'Tùy chọn';
-  return minutes === 1 ? '1 phút' : `${minutes} phút`;
+  if (!minutes) return t('tasksPage.card.defaultDuration');
+  return minutes === 1 ? t('tasksPage.card.oneMinute') : t('tasksPage.card.minutes', { n: minutes });
 }
 function getTaskDescription(task) {
-  return task?.description || task?.metadata?.objective || 'Nhiệm vụ này chưa có mô tả chi tiết.';
+  // task?.description/metadata?.objective là NỘI DUNG NHIỆM VỤ thật (từ API hoặc file
+  // fallback khẩn cấp) — ngoài phạm vi đợt dịch tĩnh này (giống task.title ở Dashboard).
+  // Chỉ dịch câu dự phòng khi nhiệm vụ chưa có mô tả.
+  return task?.description || task?.metadata?.objective || t('tasksPage.card.defaultDescription');
 }
 function isEmergencyTask(task) {
   return task?.category === 'emergency';
@@ -263,34 +269,37 @@ const groupedSections = computed(() => SECTION_CONFIG
   .filter((section) => section.tasks.length));
 
 const subtitleText = computed(() => {
-  if (guestEmergencyMode.value) return 'Chỉ hiển thị các bài tập khẩn cấp dành cho khách chưa đăng nhập.';
-  return `Bạn đang có ${allTasks.value.length} nhiệm vụ khả dụng từ hệ thống gợi ý và thư viện bài tập.`;
+  if (guestEmergencyMode.value) return t('tasksPage.subtitleGuest');
+  return t('tasksPage.subtitleUser', { n: allTasks.value.length });
 });
 
+// Đây là bản đồ trạng thái tĩnh (key cố định 'critical'/'high'/...), không phải nội dung
+// AI sinh tự do — dịch được, giống getRiskLabel bên dashboardHelpers.js.
 function getRiskLabel(level) {
-  if (level === 'critical') return 'rất cao';
-  if (level === 'high') return 'cao';
-  if (level === 'moderate') return 'đang cần theo dõi';
-  return 'ổn định';
+  if (level === 'critical') return t('tasksPage.risk.critical');
+  if (level === 'high') return t('tasksPage.risk.high');
+  if (level === 'moderate') return t('tasksPage.risk.moderate');
+  return t('tasksPage.risk.stable');
 }
 
 const suggestionBannerText = computed(() => {
   // Ưu tiên bài tập AI (Gemini) đã chọn ở daily message trên Dashboard — cùng nguồn
   // dữ liệu tâm trạng/xu hướng gần đây, cụ thể hơn bộ máy quy tắc chung (dashboard.tasks).
+  // ex.title là tên nhiệm vụ THẬT (dữ liệu backend/AI) — không dịch, chỉ dịch câu bao quanh.
   if (aiExercises.value.length) {
     const names = aiExercises.value.map((ex) => ex.title).filter(Boolean).join(', ');
-    return `PeaceCat (AI) gợi ý ${aiExercises.value.length} nhiệm vụ dựa trên tâm trạng gần đây của bạn: ${names}.`;
+    return t('tasksPage.aiSuggestion.aiText', { n: aiExercises.value.length, names });
   }
 
   const recommendedTasks = Array.isArray(dashboard.value?.tasks) ? dashboard.value.tasks : [];
   const latestMood = dashboard.value?.latest_mood;
   const summary = dashboard.value?.summary || {};
   const moodText = latestMood?.mood_score !== null && latestMood?.mood_score !== undefined
-    ? `Mood gần nhất ${latestMood.mood_score}/10`
-    : 'Chưa có mood check-in gần đây';
+    ? t('tasksPage.aiSuggestion.moodRecent', { score: latestMood.mood_score })
+    : t('tasksPage.aiSuggestion.moodNone');
   return recommendedTasks.length
-    ? `PeaceCat chọn ${recommendedTasks.length} nhiệm vụ phù hợp lúc này. ${moodText} và mức rủi ro ${getRiskLabel(summary.risk_level)} đang được dùng để ưu tiên danh sách.`
-    : 'Chưa có gợi ý cá nhân hóa rõ ràng, bạn vẫn có thể chọn bất kỳ nhiệm vụ nào phù hợp với năng lượng hiện tại.';
+    ? t('tasksPage.aiSuggestion.ruleBasedText', { n: recommendedTasks.length, moodText, risk: getRiskLabel(summary.risk_level) })
+    : t('tasksPage.aiSuggestion.noSuggestion');
 });
 
 const challenge = computed(() => dashboard.value?.challenge || null);
@@ -304,9 +313,12 @@ const xpInfo = computed(() => {
   const percent = levelInfo?.progress_percent ?? getLevelProgress(xp);
   const maxXP = levelInfo.maxXP === Infinity ? '∞' : levelInfo.maxXP;
   const nextLabel = levelInfo.maxXP === Infinity
-    ? 'Bạn đang ở cấp cao nhất hiện tại'
-    : `Còn ${levelInfo.xp_to_next ?? 0} XP → Level ${level + 1}`;
-  return { xp, level, title: levelInfo.title || `Level ${level}`, minXP: levelInfo.minXP ?? 0, maxXPLabel: maxXP, percent, nextLabel };
+    ? t('dashboard.levels.maxLevel')
+    : t('dashboard.levels.nextLevel', { xp: levelInfo.xp_to_next ?? 0, level: level + 1 });
+  // levelInfo.title là dữ liệu BACKEND (progress?.level_info, tiếng Việt) khi có; fallback
+  // cục bộ (getLevelInfo) giờ chỉ có labelKey — xem giải thích tương tự ở DashboardView.vue.
+  const title = levelInfo.title || (levelInfo.labelKey ? t(levelInfo.labelKey) : `Level ${level}`);
+  return { xp, level, title, minXP: levelInfo.minXP ?? 0, maxXPLabel: maxXP, percent, nextLabel };
 });
 
 function setFilter(cat) {
@@ -339,6 +351,9 @@ function goToTask(task) {
     router.push({ path: '/task-breathing', query });
     return;
   }
+  // title.includes('thiền') so khớp NHIỆM VỤ THẬT từ backend (chưa dịch, ngoài phạm vi đợt
+  // này — xem getTaskDescription ở trên) — không phụ thuộc ngôn ngữ UI đang chọn nên vẫn an
+  // toàn dù đây là fallback cuối, sau 3 điều kiện khác đáng tin cậy hơn.
   if (meta.legacy_code === '2.3' || task.code === '2.3' || task.category === 'meditation' || title.includes('thiền')) {
     router.push({ path: '/task-meditation', query });
     return;
@@ -359,7 +374,7 @@ async function loadTaskPage() {
       const publicEmergencyTasks = await apiClient.request('/tasks/public-emergency', { method: 'GET' }, { retryAuth: false });
       const guestTasks = Array.isArray(publicEmergencyTasks) && publicEmergencyTasks.length
         ? publicEmergencyTasks
-        : GUEST_EMERGENCY_TASKS_FALLBACK;
+        : buildGuestEmergencyTasksFallback(t, tm);
 
       allTasks.value = guestTasks;
       recommendedIds.clear();
@@ -400,7 +415,7 @@ async function loadTaskPage() {
     }
   } catch (error) {
     console.error('Failed to load tasks page:', error);
-    loadError.value = 'Không tải được nhiệm vụ từ API. Hãy đăng nhập lại hoặc kiểm tra backend.';
+    loadError.value = t('tasksPage.list.loadError');
   } finally {
     loading.value = false;
   }

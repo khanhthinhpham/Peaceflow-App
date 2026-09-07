@@ -1,0 +1,212 @@
+{
+  "settingsPage": {
+    "breadcrumbDashboard": "🏡 Overview",
+    "breadcrumbCurrent": "⚙️ Settings",
+    "pageTitle": "⚙️ Settings",
+    "pageSubtitle": "Customize PeaceFlow to fit you 🌿",
+    "saveAll": "💾 Save all",
+    "nav": {
+      "notifications": "Notifications",
+      "appearance": "Appearance",
+      "checkin": "Check-in",
+      "ai": "PeaceCat AI",
+      "devices": "Devices",
+      "privacy": "Privacy",
+      "security": "Security",
+      "data": "Data",
+      "about": "About PeaceFlow",
+      "danger": "Danger zone"
+    },
+    "notifications": {
+      "title": "Notifications",
+      "subtitle": "Control when and what kind of notifications you receive",
+      "masterTitle": "Enable notifications",
+      "masterDesc": "Allow PeaceFlow to send notifications to your device",
+      "morningTitle": "🌅 Morning check-in reminder",
+      "morningDesc": "Reminds you to check in your mood at the start of the day",
+      "morningTimeLabel": "⏰ Morning reminder time",
+      "eveningTitle": "🌙 Evening check-in reminder",
+      "eveningDesc": "Reminds you to check in your mood before sleep",
+      "eveningTimeLabel": "⏰ Evening reminder time",
+      "tasksTitle": "🎮 Daily task reminder",
+      "tasksDesc": "Suggests tasks that fit your current mood",
+      "streakTitle": "🔥 Streak reminder",
+      "streakDesc": "Notifies you when you're about to lose your activity streak",
+      "achievementsTitle": "🏅 Achievement notifications",
+      "achievementsDesc": "When you earn a new badge or level up",
+      "insightsTitle": "💡 Weekly insight",
+      "insightsDesc": "Mood analysis and improvement suggestions every week",
+      "expertTitle": "🩺 Expert updates",
+      "expertDesc": "When an expert sends you a new task or message",
+      "communityTitle": "👥 Community activity",
+      "communityDesc": "When someone responds to your posts",
+      "note": "💡 PeaceFlow sends at most <strong>2-3 notifications/day</strong> — never spamming or pressuring you.",
+      "save": "💾 Save settings"
+    },
+    "appearance": {
+      "title": "Appearance",
+      "subtitle": "Customize colors, font, and effects",
+      "themeSectionTitle": "🌈 Color theme",
+      "themeSectionDesc": "Pick the theme that matches your mood",
+      "themes": {
+        "paper": "🌿 Paper Flow",
+        "ocean": "🌊 Ocean",
+        "sunset": "🌅 Sunset",
+        "forest": "🌲 Forest",
+        "lavender": "💜 Lavender",
+        "dark": "🌙 Dark (coming soon)"
+      },
+      "fontSizeTitle": "🔤 Font size",
+      "fontSmall": "Small",
+      "fontMedium": "Medium",
+      "fontLarge": "Large",
+      "languageTitle": "🌐 Ngôn ngữ / Language",
+      "animationsTitle": "✨ Animation effects",
+      "animationsDesc": "Toggle motion effects across the app",
+      "soundsTitle": "🎵 Background sound",
+      "soundsDesc": "Meditation music and nature sounds during exercises",
+      "hapticsTitle": "📳 Haptic feedback",
+      "hapticsDesc": "Light vibration when completing tasks or earning achievements",
+      "save": "💾 Save appearance"
+    },
+    "checkin": {
+      "title": "Mood check-in",
+      "subtitle": "Customize how you track your daily mood",
+      "defaultModeTitle": "📋 Default check-in method",
+      "defaultModeDesc": "How you prefer to check in your mood",
+      "modes": {
+        "quickEmoji": "😊 Quick emoji pick",
+        "chat": "💬 Chat with PeaceCat",
+        "assessment": "📊 Standardized test"
+      },
+      "notesTitle": "📝 Notes after check-in",
+      "notesDesc": "Show a short notes field after each check-in",
+      "tagsTitle": "🏷️ Cause tag suggestions",
+      "tagsDesc": "Show suggested tags (Work, Family, ...) after check-in",
+      "assessmentReminderTitle": "📊 Periodic DASS-21 reminder",
+      "assessmentReminderDesc": "Suggest taking the standardized test every 2 weeks",
+      "reminderFreqTitle": "📅 Reminder frequency",
+      "freq": {
+        "weekly": "Weekly",
+        "biweekly": "Every 2 weeks",
+        "monthly": "Monthly",
+        "never": "Only when I want"
+      },
+      "voiceTitle": "🎤 Voice analysis (opt-in)",
+      "voiceDesc": "Let AI analyze your voice to better understand your mood",
+      "selfieTitle": "📸 Selfie check-in (opt-in)",
+      "selfieDesc": "Analyze facial expressions to support mood assessment",
+      "note": "🔒 Voice and selfie analysis are entirely opt-in. Data is processed locally and never stored.",
+      "save": "💾 Save settings"
+    },
+    "ai": {
+      "title": "PeaceCat AI",
+      "subtitle": "Customize how PeaceCat accompanies you",
+      "styleTitle": "💬 Communication style",
+      "styleDesc": "How PeaceCat talks to you",
+      "styles": {
+        "friendly": "😊 Friendly, cheerful",
+        "calm": "🧘 Calm, reflective",
+        "energetic": "💪 Encouraging, energetic",
+        "empathetic": "🤗 Warm, empathetic"
+      },
+      "taskSuggestionsTitle": "🎯 Smart task suggestions",
+      "taskSuggestionsDesc": "PeaceCat automatically suggests tasks based on your mood and history",
+      "insightsTitle": "💡 Automatic insight",
+      "insightsDesc": "PeaceCat analyzes and comments on your journey",
+      "crisisTitle": "🚨 Crisis keyword detection",
+      "crisisDesc": "AI automatically detects danger signs and triggers emergency support",
+      "journalTitle": "📊 Journal analysis",
+      "journalDesc": "AI reads and analyzes emotions in your journal",
+      "mascotTitle": "🐱 Show PeaceCat mascot",
+      "mascotDesc": "Show the origami cat mascot in the interface",
+      "note": "🐱 <strong>Note:</strong> PeaceCat AI is only a companion, not a replacement for a mental health professional. The crisis detection feature cannot be turned off, to keep you safe.",
+      "save": "💾 Save AI settings"
+    },
+    "devices": {
+      "title": "Connected devices",
+      "subtitle": "Current session and real device integration status",
+      "currentSessionMeta": "Current session · Signed in at {time}",
+      "statusActive": "Active",
+      "logout": "Log out",
+      "wearableName": "Wearable health device",
+      "wearableDesc": "No real connection API in the backend yet",
+      "statusUnsupported": "Not supported",
+      "wearableInfoBtn": "Info",
+      "note": "PeaceFlow doesn't have a real Apple Watch/Fitbit sync backend yet. This page only shows the current session and integration status honestly."
+    },
+    "privacy": {
+      "title": "Privacy",
+      "subtitle": "Control how your data is used within the product",
+      "shareDataTitle": "📤 Share data for personalization",
+      "shareDataDesc": "Let the system use mood, journal, and task data for better suggestions",
+      "analyticsTitle": "📈 Anonymous analytics",
+      "analyticsDesc": "Send anonymous statistics to improve the product, without private content",
+      "visibilityTitle": "👁️ Profile visibility",
+      "visibilityDesc": "How visible your profile is on community features",
+      "visibility": {
+        "private": "Only me",
+        "friends": "Trusted connections only",
+        "community": "PeaceFlow community"
+      },
+      "save": "💾 Save privacy"
+    },
+    "security": {
+      "title": "Security",
+      "subtitle": "Manage the current session and authentication",
+      "userLabel": "User:",
+      "accessTokenLabel": "Access token:",
+      "refreshTokenLabel": "Refresh token:",
+      "lastUpdateLabel": "Last profile update:",
+      "yes": "Present",
+      "no": "Missing",
+      "autoRefreshTitle": "🔄 Auto-refresh session",
+      "autoRefreshDesc": "The short-lived access token is refreshed automatically while the refresh token is valid",
+      "checkSession": "Check session",
+      "logoutBtn": "🚪 Log out of this device"
+    },
+    "data": {
+      "title": "Data",
+      "subtitle": "Export your real account data and manage local cache",
+      "exportNote": "JSON export bundles real data from your profile, progress, badges, and detailed report. Appearance settings stay local to this browser.",
+      "resetLocal": "🧹 Clear local settings",
+      "exportJson": "📥 Export JSON"
+    },
+    "about": {
+      "title": "About PeaceFlow",
+      "subtitle": "App status and runtime environment",
+      "versionLabel": "Interface version:",
+      "apiLabel": "API:",
+      "timezoneLabel": "Browser timezone:",
+      "currentUserLabel": "Current user:",
+      "unknownTimezone": "Unknown"
+    },
+    "danger": {
+      "title": "Danger zone",
+      "subtitle": "Sensitive actions. Only run these when you really need to.",
+      "note": "The backend doesn't have an account-deletion endpoint yet. This page only lets you clear local settings and log out — it doesn't simulate deleting data on the server.",
+      "resetCache": "🔄 Clear local cache",
+      "deleteAccountBtn": "🗑️ Request account deletion"
+    },
+    "toast": {
+      "savedAll": "All settings saved.",
+      "savedSection": "{section} settings saved.",
+      "saveFailed": "Couldn't save settings to the server.",
+      "themeDarkComingSoon": "Dark theme isn't available yet.",
+      "wearableNotSupported": "The backend doesn't have a real wearable connection yet.",
+      "logoutOnly": "This page can only log you out of the current session.",
+      "exportJsonOnly": "This page currently only supports JSON export.",
+      "exported": "JSON data exported.",
+      "exportFailed": "Couldn't export data.",
+      "resetConfirm": "Clear all local settings on this browser? Data on the server won't be affected.",
+      "resetDone": "Local settings cleared.",
+      "deleteAccountNotSupported": "The backend doesn't have an account-deletion endpoint yet.",
+      "loadFailed": "Couldn't load settings from the server."
+    },
+    "defaults": {
+      "notAvailable": "Not available",
+      "defaultUserName": "User",
+      "unknownBrowser": "Current browser"
+    }
+  }
+}

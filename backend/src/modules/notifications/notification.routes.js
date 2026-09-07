@@ -3,6 +3,7 @@ import webpush from 'web-push';
 import { requireAuth } from '../../common/middleware/auth.middleware.js';
 import { db } from '../../config/db.js';
 import { env } from '../../config/env.js';
+import { buildNotificationMessage } from './notification-messages.js';
 
 const router = Router();
 
@@ -74,7 +75,8 @@ router.get('/notifications', requireAuth, async (req, res) => {
       db.query(
         `select group_key, type, post_id, message, count(*)::int as total,
                 max(created_at) as latest, min(actor_name) as actor_name,
-                bool_and(is_read) as all_read
+                bool_and(is_read) as all_read,
+                (array_agg(params order by created_at desc))[1] as params
          from notifications
          where recipient_id = $1
            and created_at >= now() - interval '30 days'
@@ -91,14 +93,17 @@ router.get('/notifications', requireAuth, async (req, res) => {
       ).catch(() => ({ rows: [] }))
     ]);
 
+    const locale = req.locale;
+    const L = (vi, en) => (locale === 'en' ? en : vi);
+
     // Badge mới unlock
     badgesRes.rows.forEach((badge) => {
       notifications.push({
         id: `badge-${badge.name}-${new Date(badge.earned_at).getTime()}`,
         type: 'achievement',
         icon: badge.icon || '🏅',
-        title: `Huy hiệu mới: ${badge.name}`,
-        body: 'Bạn vừa mở khóa huy hiệu mới!',
+        title: L(`Huy hiệu mới: ${badge.name}`, `New badge: ${badge.name}`),
+        body: L('Bạn vừa mở khóa huy hiệu mới!', "You've just unlocked a new badge!"),
         action: 'achievements.html',
         created_at: badge.earned_at
       });
@@ -117,8 +122,8 @@ router.get('/notifications', requireAuth, async (req, res) => {
           id: 'streak-warning',
           type: 'warning',
           icon: '🔥',
-          title: `Streak ${progress.current_streak} ngày sắp bị phá!`,
-          body: 'Hoàn thành ít nhất 1 nhiệm vụ hoặc check-in hôm nay.',
+          title: L(`Streak ${progress.current_streak} ngày sắp bị phá!`, `Your ${progress.current_streak}-day streak is about to break!`),
+          body: L('Hoàn thành ít nhất 1 nhiệm vụ hoặc check-in hôm nay.', 'Complete at least 1 task or check in today.'),
           action: 'tasks.html',
           // Mốc ỔN ĐỊNH theo NGÀY (không phải new Date() mỗi lần gọi API) — xem giải
           // thích ở startOfVnDay().
@@ -138,8 +143,10 @@ router.get('/notifications', requireAuth, async (req, res) => {
         id: 'checkin-reminder',
         type: 'reminder',
         icon: '💭',
-        title: hoursSinceMood === Infinity ? 'Check-in tâm trạng đầu tiên' : 'Đã đến giờ check-in!',
-        body: 'Ghi nhận tâm trạng mỗi ngày giúp hệ thống gợi ý chính xác hơn.',
+        title: hoursSinceMood === Infinity
+          ? L('Check-in tâm trạng đầu tiên', 'Your first mood check-in')
+          : L('Đã đến giờ check-in!', 'Time to check in!'),
+        body: L('Ghi nhận tâm trạng mỗi ngày giúp hệ thống gợi ý chính xác hơn.', 'Logging your mood every day helps the system give you better suggestions.'),
         action: 'mood-checkin.html',
         // Mốc ỔN ĐỊNH = mốc MUỘN HƠN giữa "đến hạn" (22 giờ sau lần check-in gần nhất) và
         // "đầu ngày hôm nay".
@@ -156,6 +163,11 @@ router.get('/notifications', requireAuth, async (req, res) => {
 
     // Tương tác cộng đồng từ bảng notifications (đã gộp theo group_key)
     communityNotifsRes.rows.forEach((row) => {
+      const params = row.params || null;
+      // Có code nhận diện được (thông báo tạo sau migration 0058) -> ghép lại theo locale;
+      // không có (thông báo cũ, hoặc code lạ) -> dùng nguyên message tiếng Việt đã lưu.
+      const localizedBody = params?.code ? buildNotificationMessage(params.code, params, locale) : null;
+
       // Kết quả duyệt hồ sơ chuyên gia
       if (row.type === 'expert_approved' || row.type === 'expert_rejected') {
         const approved = row.type === 'expert_approved';
@@ -163,8 +175,8 @@ router.get('/notifications', requireAuth, async (req, res) => {
           id: `expert-${row.group_key || new Date(row.latest).getTime()}`,
           type: 'expert',
           icon: approved ? '✅' : '📋',
-          title: approved ? 'Hồ sơ đã được duyệt' : 'Kết quả hồ sơ chuyên gia',
-          body: row.message,
+          title: approved ? L('Hồ sơ đã được duyệt', 'Application approved') : L('Kết quả hồ sơ chuyên gia', 'Expert application result'),
+          body: localizedBody || row.message,
           action: approved ? 'expert/app.html?page=dashboard.html' : 'expert/apply.html',
           created_at: row.latest,
           // Dùng cờ đã đọc THẬT của nhóm (bool_and), không dùng mốc thời gian: loại này có
@@ -179,8 +191,8 @@ router.get('/notifications', requireAuth, async (req, res) => {
           id: `booking-${row.group_key || new Date(row.latest).getTime()}`,
           type: 'booking',
           icon: '📅',
-          title: row.type === 'booking_new' ? 'Lịch hẹn mới' : 'Cập nhật lịch hẹn',
-          body: row.message,
+          title: row.type === 'booking_new' ? L('Lịch hẹn mới', 'New booking') : L('Cập nhật lịch hẹn', 'Booking update'),
+          body: localizedBody || row.message,
           action: row.type === 'booking_new' ? 'expert/app.html?page=dashboard.html' : 'experts.html',
           created_at: row.latest,
           is_read: Boolean(row.all_read)
@@ -190,11 +202,14 @@ router.get('/notifications', requireAuth, async (req, res) => {
       const isComment = row.type === 'comment';
       const count = row.total;
       const title = isComment
-        ? (count > 1 ? `${count} bình luận mới` : 'Bình luận mới')
-        : (count > 1 ? `${count} cảm xúc mới` : 'Cảm xúc mới');
+        ? (count > 1 ? L(`${count} bình luận mới`, `${count} new comments`) : L('Bình luận mới', 'New comment'))
+        : (count > 1 ? L(`${count} cảm xúc mới`, `${count} new reactions`) : L('Cảm xúc mới', 'New reaction'));
       const body = count > 1
-        ? `${row.actor_name} và ${count - 1} người khác đã ${isComment ? 'bình luận' : 'thả cảm xúc'} bài viết của bạn.`
-        : row.message;
+        ? L(
+          `${row.actor_name} và ${count - 1} người khác đã ${isComment ? 'bình luận' : 'thả cảm xúc'} bài viết của bạn.`,
+          `${row.actor_name} and ${count - 1} others ${isComment ? 'commented on' : 'reacted to'} your post.`
+        )
+        : (localizedBody || row.message);
       notifications.push({
         id: `notif-${row.group_key}`,
         type: 'community',
@@ -211,8 +226,8 @@ router.get('/notifications', requireAuth, async (req, res) => {
     if (isTest && communityNotifsRes.rows.length === 0) {
       const commentCount = communityCommentRes.rows[0]?.total || 0;
       const reactionCount = communityReactionRes.rows[0]?.total || 0;
-      if (commentCount > 0) notifications.push({ id: 'test-comments', type: 'community', icon: '💬', title: `${commentCount} bình luận mới`, body: 'Ai đó vừa bình luận bài viết của bạn.', action: 'community.html', created_at: new Date().toISOString() });
-      if (reactionCount > 0) notifications.push({ id: 'test-reactions', type: 'community', icon: '❤️', title: `${reactionCount} cảm xúc mới`, body: 'Bài viết của bạn vừa nhận cảm xúc mới.', action: 'community.html', created_at: new Date().toISOString() });
+      if (commentCount > 0) notifications.push({ id: 'test-comments', type: 'community', icon: '💬', title: L(`${commentCount} bình luận mới`, `${commentCount} new comments`), body: L('Ai đó vừa bình luận bài viết của bạn.', 'Someone just commented on your post.'), action: 'community.html', created_at: new Date().toISOString() });
+      if (reactionCount > 0) notifications.push({ id: 'test-reactions', type: 'community', icon: '❤️', title: L(`${reactionCount} cảm xúc mới`, `${reactionCount} new reactions`), body: L('Bài viết của bạn vừa nhận cảm xúc mới.', 'Your post just got a new reaction.'), action: 'community.html', created_at: new Date().toISOString() });
     }
 
     // Sắp xếp: badge → community → streak warning → reminder

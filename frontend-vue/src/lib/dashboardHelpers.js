@@ -7,12 +7,15 @@ export function escapeHtml(value) {
     .replace(/'/g, '&#39;');
 }
 
+// `labelKey` thay vì chuỗi tiếng Việt cứng — hàm này không có quyền truy cập i18n (thuần
+// dữ liệu), nên chỉ trả về khoá; nơi gọi (DashboardView.vue, đã có t() qua useI18n()) tự
+// dịch bằng t(levelInfo.labelKey).
 const LEVELS = [
-  { level: 1, title: 'Người Bắt Đầu', minXP: 0, maxXP: 100 },
-  { level: 2, title: 'Người Khám Phá', minXP: 100, maxXP: 300 },
-  { level: 3, title: 'Người Kiên Cường', minXP: 300, maxXP: 600 },
-  { level: 4, title: 'Người Truyền Cảm Hứng', minXP: 600, maxXP: 1000 },
-  { level: 5, title: 'Bậc Thầy Bình Yên', minXP: 1000, maxXP: Infinity }
+  { level: 1, labelKey: 'dashboard.levels.l1', minXP: 0, maxXP: 100 },
+  { level: 2, labelKey: 'dashboard.levels.l2', minXP: 100, maxXP: 300 },
+  { level: 3, labelKey: 'dashboard.levels.l3', minXP: 300, maxXP: 600 },
+  { level: 4, labelKey: 'dashboard.levels.l4', minXP: 600, maxXP: 1000 },
+  { level: 5, labelKey: 'dashboard.levels.l5', minXP: 1000, maxXP: Infinity }
 ];
 
 export function getLevelInfo(xp) {
@@ -46,11 +49,13 @@ export function getGardenTone(status) {
   return '#E8CBA7';
 }
 
-export function getRiskLabel(level) {
-  if (level === 'critical') return 'Rủi ro rất cao';
-  if (level === 'high') return 'Rủi ro cao';
-  if (level === 'moderate') return 'Cần theo dõi';
-  return 'Ổn định';
+// `t` truyền vào từ nơi gọi (DashboardView.vue có sẵn qua useI18n()) — hàm này thuần dữ
+// liệu, không tự có quyền truy cập i18n.
+export function getRiskLabel(level, t) {
+  if (level === 'critical') return t('dashboard.risk.critical');
+  if (level === 'high') return t('dashboard.risk.high');
+  if (level === 'moderate') return t('dashboard.risk.moderate');
+  return t('dashboard.risk.stable');
 }
 
 export function getRiskBadgeClass(level) {
@@ -59,8 +64,17 @@ export function getRiskBadgeClass(level) {
   return 'badge-mint';
 }
 
-export function buildStreakDays(streak) {
-  const labels = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
+// Nhãn thứ trong tuần CỐ Ý không dùng Intl.DateTimeFormat({weekday:'short'}) — đã thử
+// (verify thật): 'vi' ra "Th 2".."Th 7" (dài hơn thiết kế gốc "T2".."T7"), 'en' ra
+// "Sun".."Sat" (3 ký tự) — cả hai đều dễ tràn khỏi ô 26x26px đang thiết kế cho 2 ký tự.
+// Giữ bảng tra cứu ngắn gọn thủ công để đúng ý đồ thiết kế.
+const WEEKDAY_LABELS = {
+  vi: ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'],
+  en: ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa']
+};
+
+export function buildStreakDays(streak, locale = 'vi') {
+  const labels = WEEKDAY_LABELS[locale] || WEEKDAY_LABELS.vi;
   const today = new Date().getDay();
   const activeIndexes = new Set();
 
@@ -76,14 +90,14 @@ export function buildStreakDays(streak) {
   });
 }
 
-export function renderChartSvg(chartData) {
+export function renderChartSvg(chartData, noDataText = 'Chưa có đủ dữ liệu mood check-in để vẽ biểu đồ.') {
   const points = chartData?.points || [];
   const numericPoints = points.filter((point) => point.value !== null && point.value !== undefined);
 
   if (!numericPoints.length) {
     return `
       <div style="height:100%;display:flex;align-items:center;justify-content:center;text-align:center;color:var(--text-light);padding:0 18px;">
-        Chưa có đủ dữ liệu mood check-in để vẽ biểu đồ.
+        ${escapeHtml(noDataText)}
       </div>
     `;
   }

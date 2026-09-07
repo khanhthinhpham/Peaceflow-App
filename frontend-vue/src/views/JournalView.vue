@@ -7,15 +7,15 @@
       <div class="entry-modal" v-if="activeEntry">
         <div class="em-header">
           <div>
-            <div class="em-title">{{ activeEntry.title || 'Nhật ký không tiêu đề' }}</div>
-            <div class="em-meta">{{ activeEntryPresentation.emoji }} {{ activeEntryPresentation.moodMeta.label }} · {{ formatDateTime(activeEntry.created_at) }}</div>
+            <div class="em-title">{{ activeEntry.title || t('journal.untitled') }}</div>
+            <div class="em-meta">{{ activeEntryPresentation.emoji }} {{ activeEntryPresentation.moodMeta.labelKey ? t(activeEntryPresentation.moodMeta.labelKey) : '' }} · {{ formatDateTime(activeEntry.created_at) }}</div>
           </div>
           <button class="em-close" @click="activeEntry = null">✕</button>
         </div>
         <div class="em-body">
           <div class="em-content">{{ activeEntry.content || '' }}</div>
           <div class="em-ai-section" style="display:block;">
-            <div class="em-ai-title">🐱 Phân tích của PeaceCat</div>
+            <div class="em-ai-title">{{ t('journal.modal.aiAnalysisTitle') }}</div>
             <div class="em-ai-text">{{ activeEntryInsight }}</div>
           </div>
         </div>
@@ -24,24 +24,24 @@
 
     <main class="main-content" style="margin-left: 0;" >
       <div class="breadcrumb">
-        <router-link to="/dashboard">🏡 Tổng quan</router-link><span>›</span>
-        <span>📝 Nhật ký cảm xúc</span>
+        <router-link to="/dashboard">🏡 {{ t('journal.breadcrumbDashboard') }}</router-link><span>›</span>
+        <span>📝 {{ t('journal.breadcrumbJournal') }}</span>
       </div>
 
       <div class="page-header">
         <div>
-          <div class="page-title">📝 Nhật Ký Cảm Xúc</div>
-          <div class="page-subtitle">Không gian riêng tư — mã hóa AES-256 — chỉ bạn mới có thể đọc</div>
+          <div class="page-title">{{ t('journal.title') }}</div>
+          <div class="page-subtitle">{{ t('journal.subtitle') }}</div>
         </div>
         <div style="display:flex;gap:8px;">
-          <button class="btn-outline" @click="showHistory">📚 Xem lại</button>
-          <button class="btn-primary" @click="showEditor">✏️ Viết mới</button>
+          <button class="btn-outline" @click="showHistory">{{ t('journal.historyBtn') }}</button>
+          <button class="btn-primary" @click="showEditor">{{ t('journal.newBtn') }}</button>
         </div>
       </div>
 
       <div class="view-tabs">
-        <div class="view-tab" :class="{ active: view === 'editor' }" @click="showEditor">✏️ Viết nhật ký</div>
-        <div class="view-tab" :class="{ active: view === 'history' }" @click="showHistory">📚 Thư viện</div>
+        <div class="view-tab" :class="{ active: view === 'editor' }" @click="showEditor">{{ t('journal.tabEditor') }}</div>
+        <div class="view-tab" :class="{ active: view === 'history' }" @click="showHistory">{{ t('journal.tabHistory') }}</div>
       </div>
 
       <div class="journal-layout">
@@ -53,14 +53,14 @@
               <div class="editor-top-bar">
                 <div class="etb-left">
                   <div class="etb-date">{{ editorDateLabel }}</div>
-                  <div style="font-size:0.72rem;color:var(--text-secondary);">Cảm xúc hôm nay:</div>
+                  <div style="font-size:0.72rem;color:var(--text-secondary);">{{ t('journal.editor.todayMoodLabel') }}</div>
                   <div class="etb-mood">
                     <div
                       v-for="mood in MOOD_LIST"
                       :key="mood"
                       class="mood-btn"
                       :class="{ selected: selectedMood === mood }"
-                      :title="MOOD_META[mood].label"
+                      :title="t(MOOD_META[mood].labelKey)"
                       @click="selectMood(mood)"
                     >{{ mood }}</div>
                   </div>
@@ -68,62 +68,62 @@
                 <div class="etb-right">
                   <div class="privacy-toggle" @click="togglePrivacy">
                     <span class="privacy-icon">{{ isPrivate ? '🔒' : '🔓' }}</span>
-                    <span>{{ isPrivate ? 'Riêng tư' : 'Công khai' }}</span>
+                    <span>{{ isPrivate ? t('journal.editor.private') : t('journal.editor.public') }}</span>
                   </div>
                 </div>
               </div>
 
               <div class="prompt-bar">
-                <span class="pb-label">💡 Gợi ý:</span>
-                <span class="pb-prompt">{{ JOURNAL_PROMPTS[currentPromptIndex] }}</span>
-                <button class="pb-refresh" title="Gợi ý khác" @click="refreshPrompt">🔄</button>
+                <span class="pb-label">{{ t('journal.editor.promptLabel') }}</span>
+                <span class="pb-prompt">{{ currentPrompt }}</span>
+                <button class="pb-refresh" :title="t('journal.editor.refreshPromptTitle')" @click="refreshPrompt">🔄</button>
               </div>
 
               <div class="editor-toolbar">
-                <button class="tb-btn" title="Đậm" @click="formatText('bold')"><strong>B</strong></button>
-                <button class="tb-btn" title="Nghiêng" @click="formatText('italic')"><em>I</em></button>
-                <button class="tb-btn" title="Gạch chân" @click="formatText('underline')"><u>U</u></button>
+                <button class="tb-btn" :title="t('journal.editor.bold')" @click="formatText('bold')"><strong>B</strong></button>
+                <button class="tb-btn" :title="t('journal.editor.italic')" @click="formatText('italic')"><em>I</em></button>
+                <button class="tb-btn" :title="t('journal.editor.underline')" @click="formatText('underline')"><u>U</u></button>
                 <div class="tb-sep"></div>
-                <button class="tb-btn" title="Emoji vui" @click="insertEmoji('😊')">😊</button>
-                <button class="tb-btn" title="Suy nghĩ" @click="insertEmoji('💭')">💭</button>
-                <button class="tb-btn" title="Tăng trưởng" @click="insertEmoji('🌱')">🌱</button>
-                <button class="tb-btn" title="Yêu thương" @click="insertEmoji('❤️')">❤️</button>
-                <button class="tb-btn" title="Tuyệt vời" @click="insertEmoji('✨')">✨</button>
+                <button class="tb-btn" :title="t('journal.editor.emojiFun')" @click="insertEmoji('😊')">😊</button>
+                <button class="tb-btn" :title="t('journal.editor.emojiThought')" @click="insertEmoji('💭')">💭</button>
+                <button class="tb-btn" :title="t('journal.editor.emojiGrowth')" @click="insertEmoji('🌱')">🌱</button>
+                <button class="tb-btn" :title="t('journal.editor.emojiLove')" @click="insertEmoji('❤️')">❤️</button>
+                <button class="tb-btn" :title="t('journal.editor.emojiAmazing')" @click="insertEmoji('✨')">✨</button>
                 <div class="tb-sep"></div>
-                <button class="tb-btn" title="Giấy kẻ dòng" @click="linedPaper = !linedPaper">📄</button>
-                <button class="tb-btn" title="Chữ lớn hơn" @click="increaseFontSize">A+</button>
-                <button class="tb-btn" title="Chữ nhỏ hơn" @click="decreaseFontSize">A-</button>
+                <button class="tb-btn" :title="t('journal.editor.linedPaper')" @click="linedPaper = !linedPaper">📄</button>
+                <button class="tb-btn" :title="t('journal.editor.fontBigger')" @click="increaseFontSize">A+</button>
+                <button class="tb-btn" :title="t('journal.editor.fontSmaller')" @click="decreaseFontSize">A-</button>
               </div>
 
               <div class="writing-area-wrap" :class="{ 'lined-paper': linedPaper }">
-                <input type="text" class="journal-title-input" v-model="title" placeholder="Tiêu đề bài viết... (tùy chọn)">
+                <input type="text" class="journal-title-input" v-model="title" :placeholder="t('journal.editor.titlePlaceholder')">
                 <textarea
                   ref="textareaEl"
                   class="journal-textarea"
                   v-model="content"
                   :style="{ fontSize: fontSize + 'px' }"
-                  placeholder="Bắt đầu viết... Đây là không gian hoàn toàn của bạn. Không có gì là đúng hay sai. Hãy để cảm xúc chảy tự nhiên qua những con chữ... 🌿"
+                  :placeholder="t('journal.editor.contentPlaceholder')"
                   rows="12"
                 ></textarea>
               </div>
 
               <div class="editor-bottom">
                 <div class="eb-meta">
-                  <span class="eb-wordcount">{{ wordCount }} từ · {{ content.length }} ký tự</span>
+                  <span class="eb-wordcount">{{ t('journal.editor.wordCountLabel', { n: wordCount, m: content.length }) }}</span>
                   <div class="eb-tags">
-                    <span style="font-size:0.68rem;color:var(--text-light);">Tags:</span>
+                    <span style="font-size:0.68rem;color:var(--text-light);">{{ t('journal.editor.tagsLabel') }}</span>
                     <div
                       v-for="tag in TAG_LIST"
-                      :key="tag"
+                      :key="tag.id"
                       class="tag-chip"
-                      :class="{ selected: selectedTags.has(tag) }"
-                      @click="toggleTag(tag)"
-                    >{{ tag }}</div>
+                      :class="{ selected: selectedTags.has(tag.id) }"
+                      @click="toggleTag(tag.id)"
+                    >{{ t(tag.labelKey) }}</div>
                   </div>
                 </div>
                 <div class="eb-actions">
-                  <button class="btn-outline" @click="clearEditor">🗑️ Xóa</button>
-                  <button class="btn-primary" @click="saveEntry">💾 Lưu nhật ký (+15 XP)</button>
+                  <button class="btn-outline" @click="clearEditor">{{ t('journal.editor.clearBtn') }}</button>
+                  <button class="btn-primary" @click="saveEntry">{{ t('journal.editor.saveBtn') }}</button>
                 </div>
               </div>
             </div>
@@ -133,33 +133,33 @@
               <div class="aac-header">
                 <span class="aac-mascot">🐱</span>
                 <div>
-                  <div class="aac-title">PeaceCat đang phân tích cảm xúc của bạn...</div>
-                  <div style="font-size:0.72rem;color:var(--text-secondary);">Phân tích NLP realtime — hoàn toàn riêng tư</div>
+                  <div class="aac-title">{{ t('journal.ai.analyzingTitle') }}</div>
+                  <div style="font-size:0.72rem;color:var(--text-secondary);">{{ t('journal.ai.analyzingSub') }}</div>
                 </div>
               </div>
               <template v-if="analysis">
                 <div class="aac-sentiment">
                   <div class="sent-bar">
-                    <div class="sb-label">Tích cực</div>
+                    <div class="sb-label">{{ t('journal.ai.positive') }}</div>
                     <div class="sb-track"><div class="sb-fill" :style="{ width: analysis.normalized + '%', background: 'var(--mint-dark)' }"></div></div>
                   </div>
                   <div class="sent-bar">
-                    <div class="sb-label">Căng thẳng</div>
+                    <div class="sb-label">{{ t('journal.ai.stress') }}</div>
                     <div class="sb-track"><div class="sb-fill" :style="{ width: analysis.stress + '%', background: 'var(--coral)' }"></div></div>
                   </div>
                   <div class="sent-bar">
-                    <div class="sb-label">Rõ ràng</div>
+                    <div class="sb-label">{{ t('journal.ai.clarity') }}</div>
                     <div class="sb-track"><div class="sb-fill" :style="{ width: analysis.clarity + '%', background: 'var(--sky)' }"></div></div>
                   </div>
                 </div>
-                <div style="font-size:0.72rem;font-weight:700;color:var(--text-secondary);margin-bottom:6px;">🏷️ Từ khóa cảm xúc phát hiện:</div>
+                <div style="font-size:0.72rem;font-weight:700;color:var(--text-secondary);margin-bottom:6px;">{{ t('journal.ai.keywordsLabel') }}</div>
                 <div class="aac-keywords">
-                  <span v-if="!analysis.keywords.length" class="keyword-tag">đang lắng nghe</span>
+                  <span v-if="!analysis.keywords.length" class="keyword-tag">{{ t('journal.ai.listening') }}</span>
                   <span v-for="kw in analysis.keywords" :key="kw" class="keyword-tag">{{ kw }}</span>
                 </div>
                 <div class="aac-insight">{{ analysis.insightText }}</div>
                 <div class="aac-suggestion" :style="{ display: analysis.recommendedTasks.length ? 'block' : 'none' }">
-                  <div class="as-title">💡 PeaceCat gợi ý bài tập phù hợp:</div>
+                  <div class="as-title">{{ t('journal.ai.suggestionTitle') }}</div>
                   <div class="as-tasks">
                     <a
                       v-for="task in analysis.recommendedTasks"
@@ -178,13 +178,13 @@
           <!-- HISTORY VIEW -->
           <div v-show="view === 'history'">
             <div class="history-filters">
-              <button v-for="f in FILTERS" :key="f.id" class="hf-btn" :class="{ active: activeFilter === f.id }" @click="filterEntries(f.id)">{{ f.label }}</button>
+              <button v-for="f in FILTERS" :key="f.id" class="hf-btn" :class="{ active: activeFilter === f.id }" @click="filterEntries(f.id)">{{ t(f.labelKey) }}</button>
             </div>
             <div class="search-bar">
-              <input type="text" class="search-input" placeholder="🔍 Tìm kiếm trong nhật ký..." :value="searchQuery" @input="searchQuery = $event.target.value">
+              <input type="text" class="search-input" :placeholder="t('journal.history.searchPlaceholder')" :value="searchQuery" @input="searchQuery = $event.target.value">
             </div>
             <div class="entry-list">
-              <div v-if="!filteredEntries.length" style="padding:32px;text-align:center;color:var(--text-secondary);">Chưa có bài nhật ký phù hợp với bộ lọc hiện tại.</div>
+              <div v-if="!filteredEntries.length" style="padding:32px;text-align:center;color:var(--text-secondary);">{{ t('journal.history.noEntries') }}</div>
               <div
                 v-for="entry in filteredEntries"
                 :key="entry.id"
@@ -194,18 +194,18 @@
               >
                 <div class="ec-header">
                   <div>
-                    <div class="ec-title">{{ entry.title || 'Nhật ký không tiêu đề' }}</div>
+                    <div class="ec-title">{{ entry.title || t('journal.untitled') }}</div>
                     <div class="ec-date">{{ formatDateTime(entry.created_at) }}</div>
                   </div>
                   <div class="ec-mood-emoji">{{ getEntryPresentation(entry).emoji }}</div>
                 </div>
                 <div class="ec-meta-row">
                   <span class="ec-sentiment" :class="getEntryPresentation(entry).sentiment">{{ getEntryPresentation(entry).sentimentLabel }}</span>
-                  <span class="ec-wordcount">{{ getEntryPresentation(entry).wordCount }} từ</span>
+                  <span class="ec-wordcount">{{ getEntryPresentation(entry).wordCount }} {{ t('journal.history.wordsUnit') }}</span>
                 </div>
                 <div class="ec-preview">{{ getEntryPresentation(entry).preview }}{{ getEntryPresentation(entry).preview.length >= 180 ? '…' : '' }}</div>
                 <div class="ec-tags-row">
-                  <span v-for="tag in normalizeArray(entry.tags).slice(0, 4)" :key="tag" class="ec-tag">{{ tag }}</span>
+                  <span v-for="tag in normalizeArray(entry.tags).slice(0, 4)" :key="tag" class="ec-tag">{{ tagDisplayLabel(tag) }}</span>
                 </div>
               </div>
             </div>
@@ -221,7 +221,7 @@
               <button class="mc-nav" @click="changeMiniMonth(1)">›</button>
             </div>
             <div class="mc-grid">
-              <div v-for="d in ['T2','T3','T4','T5','T6','T7','CN']" :key="d" class="mc-day-h">{{ d }}</div>
+              <div v-for="d in weekdayHeader" :key="d" class="mc-day-h">{{ d }}</div>
               <div v-for="n in calendarLeadingBlanks" :key="`b${n}`" class="mc-day empty"></div>
               <div
                 v-for="cell in calendarCells"
@@ -230,23 +230,23 @@
                 :class="{ 'has-entry': cell.hasEntry, today: cell.isToday }"
               >{{ cell.day }}</div>
             </div>
-            <div style="font-size:0.68rem;color:var(--text-light);margin-top:6px;text-align:center;">● Có bài viết</div>
+            <div style="font-size:0.68rem;color:var(--text-light);margin-top:6px;text-align:center;">{{ t('journal.sidebar.calendarLegend') }}</div>
           </div>
 
           <div class="paper-card stats-card">
-            <div class="sc-title">📊 Thống kê nhật ký</div>
+            <div class="sc-title">{{ t('journal.sidebar.statsTitle') }}</div>
             <div class="stats-grid">
-              <div class="stat-item"><div class="si-num">{{ stats.totalEntries }}</div><div class="si-label">Bài viết</div></div>
-              <div class="stat-item"><div class="si-num">{{ stats.streak }} 🔥</div><div class="si-label">Streak viết</div></div>
-              <div class="stat-item"><div class="si-num">{{ stats.totalWords.toLocaleString('vi-VN') }}</div><div class="si-label">Tổng từ</div></div>
-              <div class="stat-item"><div class="si-num">{{ stats.positiveRate }}%</div><div class="si-label">Tích cực</div></div>
+              <div class="stat-item"><div class="si-num">{{ stats.totalEntries }}</div><div class="si-label">{{ t('journal.sidebar.statEntries') }}</div></div>
+              <div class="stat-item"><div class="si-num">{{ stats.streak }} 🔥</div><div class="si-label">{{ t('journal.sidebar.statStreak') }}</div></div>
+              <div class="stat-item"><div class="si-num">{{ stats.totalWords.toLocaleString(intlLocale) }}</div><div class="si-label">{{ t('journal.sidebar.statTotalWords') }}</div></div>
+              <div class="stat-item"><div class="si-num">{{ stats.positiveRate }}%</div><div class="si-label">{{ t('journal.sidebar.statPositive') }}</div></div>
             </div>
           </div>
 
           <div class="paper-card mood-trend-card">
-            <div class="mt-title">📈 Tâm trạng 7 ngày</div>
+            <div class="mt-title">{{ t('journal.sidebar.moodTrendTitle') }}</div>
             <div class="mood-trend-chart">
-              <div v-if="!moodTrendPoints.length" style="font-size:0.72rem;color:var(--text-light);">Chưa có đủ dữ liệu mood 7 ngày.</div>
+              <div v-if="!moodTrendPoints.length" style="font-size:0.72rem;color:var(--text-light);">{{ t('journal.sidebar.noMoodData') }}</div>
               <div
                 v-for="(point, idx) in moodTrendPoints"
                 :key="idx"
@@ -261,22 +261,22 @@
           </div>
 
           <div class="paper-card prompts-card">
-            <div class="pc-title">💡 Gợi ý viết hôm nay</div>
+            <div class="pc-title">{{ t('journal.sidebar.promptsTitle') }}</div>
             <div class="prompt-list">
-              <div v-for="(prompt, idx) in JOURNAL_PROMPTS.slice(0, 5)" :key="idx" class="prompt-item" @click="usePrompt(idx)">{{ prompt }}</div>
+              <div v-for="(prompt, idx) in journalPrompts.slice(0, 5)" :key="idx" class="prompt-item" @click="usePrompt(idx)">{{ prompt }}</div>
             </div>
           </div>
 
           <div class="paper-card" style="padding:14px;margin-bottom:14px;">
             <div style="display:flex;gap:8px;align-items:flex-start;">
               <span style="font-size:1.2rem;">🐱</span>
-              <div style="font-size:0.78rem;color:var(--text-secondary);line-height:1.5;">Viết nhật ký đều đặn giúp giảm lo âu 25% và tăng khả năng xử lý cảm xúc. Chỉ cần 10 phút mỗi ngày! 💚</div>
+              <div style="font-size:0.78rem;color:var(--text-secondary);line-height:1.5;">{{ t('journal.sidebar.tipText') }}</div>
             </div>
           </div>
 
           <div class="paper-card" style="padding:14px;">
             <div style="font-size:0.72rem;color:var(--text-secondary);line-height:1.6;">
-              🔒 <strong>Bảo mật tuyệt đối:</strong> Nhật ký của bạn được mã hóa AES-256. Ngay cả đội ngũ PeaceFlow cũng không thể đọc. Bạn có thể xóa toàn bộ bất kỳ lúc nào.
+              🔒 <strong>{{ t('journal.sidebar.securityTitle') }}</strong> {{ t('journal.sidebar.securityText') }}
             </div>
           </div>
         </div>
@@ -287,38 +287,63 @@
 
 <script setup>
 import { ref, reactive, computed, onMounted, nextTick } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 import { apiClient } from '../lib/apiClient';
 
-const JOURNAL_PROMPTS = [
-  'Hôm nay điều gì khiến bạn thấy mình đã cố gắng đủ tốt?',
-  'Có cảm xúc nào đang ở lại rất lâu trong bạn hôm nay không?',
-  'Nếu phải gọi tên năng lượng của hôm nay bằng một câu, bạn sẽ viết gì?',
-  'Điều gì đang làm bạn nhẹ hơn một chút so với hôm qua?',
-  'Có điều gì bạn muốn tha thứ cho chính mình hôm nay không?',
-  'Một khoảnh khắc nhỏ nhưng đáng nhớ trong ngày là gì?',
-  'Nếu mai thức dậy nhẹ lòng hơn, bạn nghĩ điều gì đã thay đổi?',
-  'Bạn đang thật sự cần nghỉ, cần giúp đỡ, hay cần rõ ràng hơn?'
-];
+const { t, tm, locale } = useI18n();
 
+// Locale cho Intl/toLocaleString — 'vi' -> 'vi-VN', 'en' -> 'en-US'. Cùng mẫu đã dùng ở
+// DashboardView.vue — trước đây hardcode 'vi-VN' ở formatDateTime/editorDateLabel/
+// calendarMonthLabel/toLocaleString nên đổi ngôn ngữ app không đổi được ngày giờ/số.
+const intlLocale = computed(() => (locale.value === 'en' ? 'en-US' : 'vi-VN'));
+
+// `id` ỔN ĐỊNH dùng để so khớp/lưu trữ; `labelKey` chỉ dùng để HIỂN THỊ. Emoji tự nó đã là
+// khoá lưu trữ (mood_before tính từ score, tags lưu thẳng emoji) nên không đổi theo ngôn
+// ngữ — chỉ cần dịch phần label hiển thị (tooltip, chữ trong modal).
 const MOOD_META = {
-  '😊': { label: 'Vui vẻ', category: 'happy', score: 8, className: 'mood-happy' },
-  '😌': { label: 'Thoải mái', category: 'calm', score: 7, className: 'mood-calm' },
-  '😐': { label: 'Bình thường', category: 'neutral', score: 5, className: 'mood-neutral' },
-  '😟': { label: 'Lo lắng', category: 'anxious', score: 3, className: 'mood-anxious' },
-  '😢': { label: 'Buồn', category: 'sad', score: 2, className: 'mood-sad' },
-  '😡': { label: 'Tức giận', category: 'angry', score: 2, className: 'mood-anxious' }
+  '😊': { labelKey: 'journal.moods.happy', category: 'happy', score: 8, className: 'mood-happy' },
+  '😌': { labelKey: 'journal.moods.calm', category: 'calm', score: 7, className: 'mood-calm' },
+  '😐': { labelKey: 'journal.moods.neutral', category: 'neutral', score: 5, className: 'mood-neutral' },
+  '😟': { labelKey: 'journal.moods.anxious', category: 'anxious', score: 3, className: 'mood-anxious' },
+  '😢': { labelKey: 'journal.moods.sad', category: 'sad', score: 2, className: 'mood-sad' },
+  '😡': { labelKey: 'journal.moods.angry', category: 'angry', score: 2, className: 'mood-anxious' }
 };
 const MOOD_LIST = Object.keys(MOOD_META);
-const TAG_LIST = ['#cảmxúc', '#biếtơn', '#suyngẫm', '#mụctiêu', '#tứcgiận', '#hạnhphúc'];
-const FILTERS = [
-  { id: 'all', label: '📚 Tất cả' },
-  { id: 'happy', label: '😊 Vui vẻ' },
-  { id: 'calm', label: '😌 Thoải mái' },
-  { id: 'sad', label: '😢 Buồn' },
-  { id: 'anxious', label: '😟 Lo lắng' },
-  { id: 'grateful', label: '🙏 Biết ơn' }
+
+// `id` giữ NGUYÊN VĂN hashtag tiếng Việt cũ ('#biếtơn'...) — đây là giá trị THẬT lưu vào
+// entry.tags và backend, và getFilterMatch() bên dưới so khớp cứng '#biếtơn' cho bộ lọc
+// "Biết ơn". Đổi id theo ngôn ngữ sẽ làm gãy bộ lọc + dữ liệu cũ đã lưu. labelKey chỉ dùng
+// để HIỂN THỊ (xem tagDisplayLabel()).
+const TAG_LIST = [
+  { id: '#cảmxúc', labelKey: 'journal.tags.emotion' },
+  { id: '#biếtơn', labelKey: 'journal.tags.grateful' },
+  { id: '#suyngẫm', labelKey: 'journal.tags.reflection' },
+  { id: '#mụctiêu', labelKey: 'journal.tags.goal' },
+  { id: '#tứcgiận', labelKey: 'journal.tags.anger' },
+  { id: '#hạnhphúc', labelKey: 'journal.tags.happiness' }
 ];
+// Tra ngược id -> nhãn đã dịch để hiển thị tag của các bài viết CŨ (entry.tags từ backend
+// luôn là id gốc) — không tìm thấy (tag tự do người dùng gõ thêm ở phiên bản cũ, nếu có)
+// thì hiện nguyên văn thay vì mất trắng.
+function tagDisplayLabel(tagId) {
+  const found = TAG_LIST.find((tag) => tag.id === tagId);
+  return found ? t(found.labelKey) : tagId;
+}
+
+const FILTERS = [
+  { id: 'all', labelKey: 'journal.filters.all' },
+  { id: 'happy', labelKey: 'journal.filters.happy' },
+  { id: 'calm', labelKey: 'journal.filters.calm' },
+  { id: 'sad', labelKey: 'journal.filters.sad' },
+  { id: 'anxious', labelKey: 'journal.filters.anxious' },
+  { id: 'grateful', labelKey: 'journal.filters.grateful' }
+];
+
+// Gợi ý viết — lấy từ file dịch (journal.prompts, mảng 8 câu) qua tm() thay vì giữ bản
+// cứng ở đây, giống mẫu landing.slogans bên IndexView.vue.
+const journalPrompts = computed(() => tm('journal.prompts'));
+const currentPrompt = computed(() => journalPrompts.value[currentPromptIndex.value] || '');
 
 const router = useRouter();
 
@@ -339,7 +364,11 @@ const content = ref('');
 const textareaEl = ref(null);
 const activeEntry = ref(null);
 const toastVisible = ref(false);
-const toastText = ref('+15 XP đã được cộng!');
+// State + computed thay vì gán ref.value = t('...') một lần — cùng lỗi reactive đã gặp và
+// sửa ở demoSaveLabel (IndexView.vue) / resultPhase (MoodCheckinView.vue): đổi ngôn ngữ lúc
+// toast đang hiện sẽ không tự cập nhật nếu chỉ gán chuỗi tĩnh.
+const toastXp = ref(15);
+const toastText = computed(() => t('journal.toast.xpEarned', { n: toastXp.value }));
 
 function normalizeArray(value) {
   if (Array.isArray(value)) return value;
@@ -358,7 +387,7 @@ function countWords(text) {
   return c ? c.split(/\s+/).length : 0;
 }
 function formatDateTime(value) {
-  return new Date(value).toLocaleString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+  return new Date(value).toLocaleString(intlLocale.value, { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
 }
 function toIsoDate(value) {
   return new Date(value).toISOString().slice(0, 10);
@@ -388,7 +417,7 @@ function getEntryPresentation(entry) {
   const moodMeta = MOOD_META[emoji] || MOOD_META['😐'];
   const sentimentScore = Number(entry.sentiment_score || 0);
   const sentiment = sentimentScore > 0.5 ? 'positive' : sentimentScore < -0.5 ? 'negative' : 'neutral';
-  const sentimentLabel = sentiment === 'positive' ? 'Tích cực' : sentiment === 'negative' ? 'Nặng lòng' : 'Trung tính';
+  const sentimentLabel = t(`journal.sentiment.${sentiment}`);
   return {
     emoji,
     moodMeta,
@@ -399,7 +428,7 @@ function getEntryPresentation(entry) {
   };
 }
 
-const editorDateLabel = computed(() => `📅 ${new Date().toLocaleDateString('vi-VN', { weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric' })}`);
+const editorDateLabel = computed(() => `📅 ${new Date().toLocaleDateString(intlLocale.value, { weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric' })}`);
 const wordCount = computed(() => countWords(content.value));
 
 function selectMood(mood) {
@@ -413,10 +442,10 @@ function togglePrivacy() {
   isPrivate.value = !isPrivate.value;
 }
 function refreshPrompt() {
-  currentPromptIndex.value = (currentPromptIndex.value + 1) % JOURNAL_PROMPTS.length;
+  currentPromptIndex.value = (currentPromptIndex.value + 1) % journalPrompts.value.length;
 }
 function usePrompt(index) {
-  const prompt = JOURNAL_PROMPTS[index];
+  const prompt = journalPrompts.value[index];
   if (!prompt) return;
   content.value = content.value.trim() ? `${content.value.trim()}\n\n${prompt}\n` : `${prompt}\n\n`;
   nextTick(() => textareaEl.value?.focus());
@@ -456,13 +485,36 @@ function decreaseFontSize() {
   fontSize.value = Math.max(12, fontSize.value - 1);
 }
 
+// Dò từ khóa trực tiếp trong NỘI DUNG NGƯỜI DÙNG TỰ VIẾT (không phải chuỗi giao diện) — bộ từ
+// khóa phụ thuộc NGÔN NGỮ THẬT SỰ người dùng viết, không phải ngôn ngữ UI đang chọn (2 cái có
+// thể khác nhau, nhưng chọn theo UI locale là suy đoán hợp lý nhất khi không có bộ nhận diện
+// ngôn ngữ riêng). Luôn kiểm tra CẢ HAI bộ từ khóa (vi + en) bất kể locale, để không bỏ sót
+// nếu người dùng gõ lẫn — locale chỉ quyết định thứ tự ưu tiên khi cần mở rộng thêm ngôn ngữ.
+const SENTIMENT_KEYWORDS = {
+  vi: {
+    positive: ['biết ơn', 'vui', 'ổn', 'nhẹ', 'yên tâm', 'hạnh phúc', 'bình yên', 'tự hào'],
+    negative: ['lo', 'mệt', 'buồn', 'tức', 'áp lực', 'căng', 'kiệt sức', 'sợ', 'khó']
+  },
+  en: {
+    positive: ['grateful', 'happy', 'okay', 'relieved', 'calm', 'joy', 'peace', 'proud', 'good', 'glad'],
+    negative: ['anxious', 'tired', 'sad', 'angry', 'pressure', 'stress', 'stressed', 'exhausted', 'afraid', 'hard', 'difficult', 'worried', 'overwhelmed']
+  }
+};
+// So khớp theo TỪ TRỌN VẸN (không phải substring) — bắt buộc vì có từ khóa ASCII ngắn không
+// dấu (vd 'lo') dễ khớp nhầm bên trong từ tiếng Anh không liên quan (vd 'love', 'alone',
+// 'long') nếu chỉ dùng String.includes().
+function containsWord(haystack, word) {
+  const escaped = word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const boundary = '(?:^|[^\\p{L}\\p{N}])';
+  return new RegExp(`${boundary}${escaped}${boundary}`, 'u').test(haystack);
+}
 function analyzeSentiment(text) {
-  const c = String(text || '').toLowerCase();
-  const positive = ['biết ơn', 'vui', 'ổn', 'nhẹ', 'yên tâm', 'hạnh phúc', 'bình yên', 'tự hào'];
-  const negative = ['lo', 'mệt', 'buồn', 'tức', 'áp lực', 'căng', 'kiệt sức', 'sợ', 'khó'];
+  const c = ` ${String(text || '').toLowerCase()} `;
   let score = 0;
-  positive.forEach((w) => { if (c.includes(w)) score += 1; });
-  negative.forEach((w) => { if (c.includes(w)) score -= 1; });
+  Object.values(SENTIMENT_KEYWORDS).forEach(({ positive, negative }) => {
+    positive.forEach((w) => { if (containsWord(c, w)) score += 1; });
+    negative.forEach((w) => { if (containsWord(c, w)) score -= 1; });
+  });
   return Math.max(-5, Math.min(5, score));
 }
 function extractKeywords(text) {
@@ -484,10 +536,10 @@ const analysis = computed(() => {
   const recommendedTasks = (dashboard.value?.tasks || []).slice(0, 2);
 
   const insightText = score >= 2
-    ? 'Bài viết đang nghiêng về phía nhẹ hơn và có nhiều tín hiệu tích cực. Bạn có vẻ đang xử lý cảm xúc theo hướng rõ ràng hơn.'
+    ? t('journal.ai.insightPositive')
     : score <= -2
-      ? 'Nội dung cho thấy bạn đang mang nhiều áp lực hoặc cảm xúc nặng. Việc viết ra lúc này rất có giá trị để giảm tải nhận thức.'
-      : 'Bài viết đang ở trạng thái trung tính. Hãy tiếp tục viết sâu hơn về điều khiến bạn chưa thật sự yên tâm hoặc điều đang nâng đỡ bạn.';
+      ? t('journal.ai.insightNegative')
+      : t('journal.ai.insightNeutral');
 
   return { normalized, stress, clarity, keywords, insightText, recommendedTasks };
 });
@@ -530,7 +582,13 @@ const stats = computed(() => {
 
 const moodTrendPoints = computed(() => dashboard.value?.mood_chart?.['7d']?.points || []);
 
-const calendarMonthLabel = computed(() => calendarMonth.value.toLocaleDateString('vi-VN', { month: 'long', year: 'numeric' }));
+const calendarMonthLabel = computed(() => calendarMonth.value.toLocaleDateString(intlLocale.value, { month: 'long', year: 'numeric' }));
+// Nhãn thứ Hai-đầu-tuần cho lịch tháng — CỐ Ý không dùng Intl.DateTimeFormat({weekday:
+// 'short'}) vì đã verify thật ở dashboardHelpers.js: 'vi' ra "Th 2".."Th 7" (dài hơn thiết
+// kế 2 ký tự), 'en' ra "Sun".."Sat" (3 ký tự) — dễ tràn ô lịch nhỏ. Khác thứ tự với
+// WEEKDAY_LABELS bên dashboardHelpers.js (CN-đầu-tuần, theo getDay()) vì đây là lưới lịch
+// tháng theo quy ước Thứ Hai-đầu-tuần, không phải cùng ngữ cảnh.
+const weekdayHeader = computed(() => tm('journal.weekdaysMonFirst'));
 const calendarLeadingBlanks = computed(() => (calendarMonth.value.getDay() + 6) % 7);
 const calendarCells = computed(() => {
   const month = calendarMonth.value.getMonth();
@@ -577,7 +635,7 @@ function showEditor() { view.value = 'editor'; }
 function showHistory() { view.value = 'history'; }
 
 function showToast(xp) {
-  toastText.value = `+${xp} XP đã được cộng!`;
+  toastXp.value = xp;
   toastVisible.value = true;
   setTimeout(() => { toastVisible.value = false; }, 2500);
 }
@@ -594,20 +652,20 @@ function viewEntry(id) {
 function closeEntryModal(event) {
   if (event.target.classList.contains('modal-overlay')) activeEntry.value = null;
 }
-const activeEntryPresentation = computed(() => (activeEntry.value ? getEntryPresentation(activeEntry.value) : { emoji: '', moodMeta: { label: '' } }));
+const activeEntryPresentation = computed(() => (activeEntry.value ? getEntryPresentation(activeEntry.value) : { emoji: '', moodMeta: { labelKey: '' } }));
 const activeEntryInsight = computed(() => {
   if (!activeEntry.value) return '';
   const score = Number(activeEntry.value.sentiment_score || 0);
   return score >= 1
-    ? 'Bài viết này mang sắc thái tích cực hoặc đã có dấu hiệu hồi phục cảm xúc.'
+    ? t('journal.ai.detailInsightPositive')
     : score <= -1
-      ? 'Bài viết này cho thấy bạn đang mang áp lực khá rõ. Nếu cần, hãy kết hợp một bài task ngắn sau khi viết.'
-      : 'Bài viết này phản ánh trạng thái trung tính và quan sát nội tâm ổn định.';
+      ? t('journal.ai.detailInsightNegative')
+      : t('journal.ai.detailInsightNeutral');
 });
 
 async function saveEntry() {
   if (!content.value.trim()) {
-    alert('Vui lòng viết gì đó trước khi lưu.');
+    alert(t('journal.alerts.emptyContent'));
     return;
   }
 
@@ -651,7 +709,7 @@ async function saveEntry() {
     window.dispatchEvent(new CustomEvent('peaceflow:journal-saved'));
   } catch (error) {
     console.error('Could not save journal entry:', error);
-    alert('Không lưu được nhật ký lên server. Vui lòng thử lại.');
+    alert(t('journal.alerts.saveFailed'));
   }
 }
 

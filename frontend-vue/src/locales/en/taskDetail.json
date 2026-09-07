@@ -1,0 +1,119 @@
+{
+  "taskDetail": {
+    "emergency": {
+      "title": "You are not alone",
+      "text": "If you're feeling really overwhelmed right now, let someone help you.",
+      "hotlineLabel": "Mental health hotline — Free, 24/7",
+      "callHotline": "📞 Call the hotline now",
+      "connectExpert": "💬 Connect with an expert",
+      "imOk": "I'm okay, close"
+    },
+    "breadcrumbDashboard": "🏡 Overview",
+    "breadcrumbTasks": "🎮 Tasks",
+    "hero": {
+      "startBtn": "▶ Start now",
+      "saveFavorite": "🤍 Save as favorite",
+      "shareBtn": "📤 Share",
+      "emergencyBtn": "🆘 Emergency"
+    },
+    "phases": {
+      "prepare": "Prepare",
+      "execute": "Do it",
+      "complete": "Complete"
+    },
+    "phase1": {
+      "prepareTitle": "🎒 Preparation",
+      "instructionsTitle": "📋 Step-by-step instructions",
+      "noChecklist": "This task doesn't have a detailed checklist yet.",
+      "safetyTitle": "⚠️ Safety note",
+      "objectiveTitle": "🎯 Objective",
+      "startBtn": "▶ Start now"
+    },
+    "phase2": {
+      "timerTitle": "🧘 Doing — {title}",
+      "remainingLabel": "remaining",
+      "pauseBtn": "⏸ Pause",
+      "resumeBtn": "▶ Resume",
+      "completeBtn": "✓ Complete",
+      "resetBtn": "↩ Start over"
+    },
+    "phase3": {
+      "xpAddedLabel": "added to your account!",
+      "moodQuestion": "How do you feel after meditating?",
+      "notePlaceholder": "Add a note about how you're feeling... (optional)",
+      "nextTaskBtn": "🎮 Next task",
+      "journalBtn": "📝 Write a journal entry",
+      "dashboardBtn": "🏡 Dashboard"
+    },
+    "info": {
+      "title": "📊 Task information",
+      "codeLabel": "Task code",
+      "levelLabel": "Level",
+      "timeLabel": "Time",
+      "rewardLabel": "Reward",
+      "categoryLabel": "Category",
+      "statusLabel": "Status"
+    },
+    "status": {
+      "completedTimes": "Completed {n} times",
+      "inProgress": "In progress",
+      "notStarted": "Not started"
+    },
+    "yourStatus": {
+      "title": "🧭 Your status",
+      "timesCompletedLabel": "times you've completed this task",
+      "recommendedYes": "Included in today's suggestions",
+      "recommendedNo": "Not in today's priority group",
+      "stepsCountLabel": "{n} steps",
+      "tagsLabel": " · tags: {tags}"
+    },
+    "benefits": {
+      "title": "✨ Science-backed benefits",
+      "noData": "No specific science-backed benefit notes for this task yet."
+    },
+    "related": {
+      "title": "🔗 Tasks at the same level",
+      "noData": "No related tasks in the same group yet."
+    },
+    "difficulty": {
+      "emergency": "🔴 Emergency",
+      "medium": "🟡 Medium",
+      "hard": "🟠 Advanced",
+      "easy": "🟢 Easy"
+    },
+    "durationOptional": "Flexible",
+    "minutesUnit": "{n} min",
+    "defaultDescription": "This task doesn't have a detailed description yet.",
+    "defaultQuote": "Every small task completed is a clear step forward in the recovery process.",
+    "guestDisplayName": "Emergency guest",
+    "defaultDisplayName": "You",
+    "categoryDefault": "general",
+    "feedback": {
+      "guestTitle": "You just completed an emergency support exercise",
+      "userTitle": "Great job, {name}! 🎉",
+      "guestSubtitle": "You've completed \"{title}\". Sign in to save your history and unlock more exercises.",
+      "userSubtitle": "You just completed \"{title}\". The system has recorded this in your task history."
+    },
+    "timerText": {
+      "default": "Follow each step and tap Complete when you're done.",
+      "breathing": "Keep pace with the breathing loop shown.",
+      "steps": "Start following the steps from the preparation section.",
+      "breathingReady": "Breathe in slowly and deeply, following the shown rhythm.",
+      "paused": "Paused.",
+      "resumed": "Continuing at your own pace.",
+      "reset": "The task has been reset and is ready to go."
+    },
+    "shareCopied": "Task link copied to clipboard.",
+    "stressFacts": [
+      "You are not alone. Every small task you complete is a real sign of recovery.",
+      "Taking small steps is still moving forward. A steady pace matters more than speed.",
+      "When the body settles, the mind follows. Give yourself a little more time.",
+      "A simple task completed fully is often far more effective than pushing yourself too hard."
+    ],
+    "breathPhases": {
+      "inhale": "Breathe in",
+      "hold": "Hold",
+      "exhale": "Breathe out"
+    }
+  }
+}
