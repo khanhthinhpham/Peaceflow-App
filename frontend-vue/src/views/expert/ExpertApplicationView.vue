@@ -108,6 +108,19 @@
             <textarea v-model="bio" id="bio" class="form-input" rows="5" placeholder="Kinh nghiệm, thế mạnh chuyên môn, cách bạn hỗ trợ thân chủ..."></textarea>
           </div>
 
+          <template v-if="mode === 'profile'">
+            <div class="form-group full">
+              <label class="form-label" for="specialtiesEn">Chuyên môn (English) — không bắt buộc</label>
+              <input v-model="specialtiesEn" type="text" id="specialtiesEn" class="form-input" placeholder="e.g. individual therapy, CBT, trauma">
+              <div class="field-hint">Ngăn cách bằng dấu phẩy. Hiển thị cho người dùng chọn tiếng Anh; nếu để trống sẽ hiện bản tiếng Việt.</div>
+            </div>
+
+            <div class="form-group full">
+              <label class="form-label" for="bioEn">Giới thiệu ngắn (English) — không bắt buộc</label>
+              <textarea v-model="bioEn" id="bioEn" class="form-input" rows="5" placeholder="English version of your bio, shown to users who chose English. Leave blank to keep showing the Vietnamese bio."></textarea>
+            </div>
+          </template>
+
           <div class="form-group full">
             <label class="form-label" for="credentials">Chứng chỉ / thành tựu</label>
             <input v-model="credentials" type="text" id="credentials" class="form-input" placeholder="Ví dụ: CBT, EMDR, thành viên hội chuyên môn">
@@ -177,6 +190,8 @@ const location = ref('');
 const basePrice = ref('0');
 const nextSlotLabel = ref('');
 const bio = ref('');
+const bioEn = ref('');
+const specialtiesEn = ref('');
 const credentials = ref('');
 const approaches = ref('');
 const credentialFileInput = ref(null);
@@ -221,6 +236,8 @@ async function hydrateFromExpertProfile(expert) {
   basePrice.value = String(expert?.base_price ?? 0);
   nextSlotLabel.value = expert?.next_slot_label || '';
   bio.value = expert?.bio || '';
+  bioEn.value = expert?.bio_en || '';
+  specialtiesEn.value = Array.isArray(expert?.specialties_en) ? expert.specialties_en.join(', ') : '';
   credentials.value = Array.isArray(expert?.credentials) ? expert.credentials.join(', ') : '';
   approaches.value = Array.isArray(expert?.approaches) ? expert.approaches.join(', ') : '';
   await renderAvatarPhotoPreview(expert);
@@ -300,7 +317,9 @@ async function submit() {
         bio: bio.value.trim(),
         credentials: credentials.value.trim(),
         approaches: approaches.value.trim(),
-        next_slot_label: nextSlotLabel.value.trim()
+        next_slot_label: nextSlotLabel.value.trim(),
+        bio_en: bioEn.value.trim(),
+        specialties_en: specialtiesEn.value.trim()
       });
       expertPortal.overview = { ...expertPortal.overview, expert: updated };
       const user = { ...(auth.user || {}), full_name: trimmedFullName, display_name: trimmedFullName };

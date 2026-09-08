@@ -11,6 +11,7 @@ import { approveExpertApplication, rejectExpertApplication } from '../auth/auth.
 import { sendPushToUser } from '../notifications/notification.routes.js';
 import { buildNotificationMessage } from '../notifications/notification-messages.js';
 import { encryptBuffer, decryptBuffer, encryptText, decryptText } from '../../common/services/crypto.service.js';
+import { translateToEnglish, translateListToEnglish, isTranslateConfigured } from '../../common/services/translate.service.js';
 
 const router = Router();
 
@@ -54,6 +55,7 @@ router.get('/expert-portal/overview', requireAuth, async (req, res) => {
       `select id, code, full_name, degree, phone, avatar_emoji, (avatar_photo is not null) as has_avatar_photo,
               status, rating, sessions_count, satisfaction_rate,
               base_price, location, experience_years, specialties, bio, credentials, approaches, next_slot_label,
+              bio_en, specialties_en,
               active, created_at
        from experts
        where user_id = $1
@@ -122,7 +124,8 @@ router.get('/expert-portal/overview', requireAuth, async (req, res) => {
           ...expert,
           specialties: ensureArray(expert.specialties),
           credentials: ensureArray(expert.credentials),
-          approaches: ensureArray(expert.approaches)
+          approaches: ensureArray(expert.approaches),
+          specialties_en: ensureArray(expert.specialties_en)
         },
         stats: statsRes.rows[0] || {
           upcoming_sessions: 0,
@@ -146,6 +149,25 @@ router.put('/expert-portal/profile', requireAuth, async (req, res) => {
     }
 
     const payload = expertProfileSchema.parse(req.body);
+
+    // Chuyên gia không tự điền bản tiếng Anh -> tự động dịch bằng Gemini, chỉ dịch phần còn
+    // thiếu (không ghi đè nếu họ đã tự viết). Lỗi dịch (API lỗi/hết hạn ngạch) không được
+    // chặn việc lưu hồ sơ — bỏ qua lặng lẽ, giữ bio_en/specialties_en trống để lần lưu sau
+    // hoặc script backfill thử lại.
+    if (!payload.bio_en && payload.bio?.trim() && isTranslateConfigured()) {
+      try {
+        payload.bio_en = await translateToEnglish(payload.bio);
+      } catch (e) {
+        console.error('[EXPERT_PROFILE] auto-translate bio failed:', e.message);
+      }
+    }
+    if (!payload.specialties_en?.length && payload.specialties?.length && isTranslateConfigured()) {
+      try {
+        payload.specialties_en = await translateListToEnglish(payload.specialties);
+      } catch (e) {
+        console.error('[EXPERT_PROFILE] auto-translate specialties failed:', e.message);
+      }
+    }
 
     const expertRes = await db.query(
       `select id
@@ -175,12 +197,14 @@ router.put('/expert-portal/profile', requireAuth, async (req, res) => {
            credentials = $12::jsonb,
            approaches = $13::jsonb,
            next_slot_label = $14,
+           bio_en = $15,
+           specialties_en = $16::jsonb,
            updated_at = now()
        where id = $1
        returning id, code, full_name, degree, phone, avatar_emoji, (avatar_photo is not null) as has_avatar_photo,
                  status, rating, sessions_count,
                  satisfaction_rate, base_price, location, experience_years, specialties, bio,
-                 credentials, approaches, next_slot_label, active, created_at, updated_at`,
+                 credentials, approaches, next_slot_label, bio_en, specialties_en, active, created_at, updated_at`,
       [
         expert.id,
         payload.full_name,
@@ -195,7 +219,9 @@ router.put('/expert-portal/profile', requireAuth, async (req, res) => {
         payload.bio || null,
         JSON.stringify(payload.credentials || []),
         JSON.stringify(payload.approaches || []),
-        payload.next_slot_label || null
+        payload.next_slot_label || null,
+        payload.bio_en || null,
+        JSON.stringify(payload.specialties_en || [])
       ]
     );
 
@@ -215,7 +241,8 @@ router.put('/expert-portal/profile', requireAuth, async (req, res) => {
         ...row,
         specialties: ensureArray(row.specialties),
         credentials: ensureArray(row.credentials),
-        approaches: ensureArray(row.approaches)
+        approaches: ensureArray(row.approaches),
+        specialties_en: ensureArray(row.specialties_en)
       }
     });
   } catch (error) {
@@ -338,7 +365,7 @@ router.get('/experts', requireAuth, async (req, res) => {
 
     const matchingTags = buildMatchingTags(latestMoodRes.rows[0] || null, latestAssessmentRes.rows[0] || null);
     const returningExpertIds = new Set(returningExpertsRes.rows.map((row) => row.expert_id));
-    const experts = expertsRes.rows.map((row) => mapExpert(row, matchingTags, returningExpertIds.has(row.id)));
+    const experts = expertsRes.rows.map((row) => mapExpert(row, matchingTags, returningExpertIds.has(row.id), req.locale));
     const matchedExperts = experts.filter((expert) => expert.matched);
 
     const summary = {
@@ -385,7 +412,7 @@ router.get('/experts/:id', requireAuth, async (req, res) => {
 
     return res.json({
       success: true,
-      data: mapExpert(result.rows[0], new Set(), !!returningRes.rows[0])
+      data: mapExpert(result.rows[0], new Set(), !!returningRes.rows[0], req.locale)
     });
   } catch (error) {
     console.error('Expert detail error:', error);
@@ -887,6 +914,10 @@ router.post('/payments/webhook', async (req, res) => {
     );
     const b = upd.rows[0];
     if (b) {
+      // Tính "sessions" ngay khi thanh toán thành công (không đợi buổi hẹn hoàn thành) —
+      // theo yêu cầu: đặt lịch + trả tiền xong là tính, để hồ sơ chuyên gia phản ánh mức độ
+      // được tin dùng ngay, không cần chờ buổi hẹn diễn ra xong.
+      await db.query(`update experts set sessions_count = coalesce(sessions_count, 0) + 1 where id = $1`, [b.expert_id]);
       const infoRes = await db.query(
         `select e.user_id as expert_user_id, coalesce(u.display_name, u.full_name, 'Thân chủ') as client_name
          from expert_bookings bk join experts e on e.id = bk.expert_id join users u on u.id = bk.user_id
@@ -1136,9 +1167,10 @@ router.patch('/expert-portal/bookings/:id', requireAuth, async (req, res) => {
       await db.query(`update expert_bookings set cancelled_at = now(), cancel_reason = 'expert' where id = $1`, [b.id]);
     }
 
-    // Hoàn thành → cộng số dư + số buổi.
+    // Hoàn thành → cộng số dư (số buổi "sessions_count" giờ tính ngay lúc thanh toán thành
+    // công, không đợi tới đây nữa — xem các điểm update sessions_count ở webhook thanh toán/
+    // xác nhận chuyển khoản/thanh toán ví).
     if (status === 'completed') {
-      await db.query(`update experts set sessions_count = coalesce(sessions_count, 0) + 1 where id = $1`, [expert.id]);
       await db.query(`update expert_ledger set status = 'payable' where booking_id = $1 and status = 'pending'`, [b.id]);
       await db.query(`update experts set balance = coalesce(balance, 0) + coalesce((select expert_earning from expert_ledger where booking_id = $1 limit 1), 0) where id = $2`, [b.id, expert.id]);
     }
@@ -2296,6 +2328,8 @@ router.post('/admin/bookings/:id/confirm-payment', requireAuth, async (req, res)
     // Đã nhận tiền → chuyển sang CHỜ CHUYÊN GIA NHẬN LỊCH (ghi sổ doanh thu khi chuyên gia nhận).
     await db.query(`update expert_bookings set status = 'awaiting_expert', paid_at = now() where id = $1`, [b.id]);
     await db.query(`update payments set status = 'paid', paid_at = now() where booking_id = $1 and status = 'pending'`, [b.id]);
+    // Tính "sessions" ngay khi thanh toán được xác nhận, không đợi buổi hẹn hoàn thành.
+    await db.query(`update experts set sessions_count = coalesce(sessions_count, 0) + 1 where id = $1`, [b.expert_id]);
 
     await notify(b.user_id, null, 'booking_update', 'Đã xác nhận thanh toán — đang chờ chuyên gia nhận lịch.', { code: 'booking_payment_confirmed_awaiting_expert' });
     await notify(b.expert_user_id, null, 'booking_new', 'Có lịch đã thanh toán — mời bạn nhận hoặc từ chối.', { code: 'booking_new_paid_awaiting_response' });
@@ -2405,6 +2439,8 @@ router.post('/bookings/:id/pay-wallet', requireAuth, async (req, res) => {
     );
     await db.query(`update payments set status = 'paid', paid_at = now(), provider = 'wallet' where booking_id = $1 and status = 'pending'`, [b.id]);
     await db.query(`update expert_bookings set status = 'awaiting_expert', paid_at = now() where id = $1`, [b.id]);
+    // Tính "sessions" ngay khi thanh toán bằng ví thành công, không đợi buổi hẹn hoàn thành.
+    await db.query(`update experts set sessions_count = coalesce(sessions_count, 0) + 1 where id = $1`, [b.expert_id]);
 
     await notify(b.user_id, null, 'booking_update', 'Đã thanh toán bằng ví — đang chờ chuyên gia nhận lịch.', { code: 'booking_payment_wallet_awaiting_expert' });
     if (b.expert_user_id) await notify(b.expert_user_id, b.client_name, 'booking_new', 'Có lịch đã thanh toán — mời bạn nhận hoặc từ chối.', { code: 'booking_new_paid_awaiting_response' });
@@ -2904,8 +2940,13 @@ router.post('/expert-bookings/:id/review', requireAuth, async (req, res) => {
   }
 });
 
-function mapExpert(row, matchingTags, isReturningClient = false) {
+function mapExpert(row, matchingTags, isReturningClient = false, locale = 'vi') {
   const tags = ensureArray(row.tags);
+  // Bio/specialties tiếng Anh là do chính chuyên gia tự nhập (không máy dịch) — chỉ dùng khi
+  // đã điền, chưa điền thì fallback về bản tiếng Việt gốc để trang không bị thiếu nội dung.
+  const specialtiesEn = ensureArray(row.specialties_en);
+  const bioText = locale === 'en' && row.bio_en ? row.bio_en : (row.bio || '');
+  const specialtiesList = locale === 'en' && specialtiesEn.length ? specialtiesEn : ensureArray(row.specialties);
 
   return {
     id: row.id,
@@ -2921,11 +2962,11 @@ function mapExpert(row, matchingTags, isReturningClient = false) {
     price: row.base_price || 0,
     location: row.location || 'Online',
     experience: row.experience_years || 0,
-    specialties: ensureArray(row.specialties),
+    specialties: specialtiesList,
     tags,
-    bio: row.bio || '',
+    bio: bioText,
     matched: tags.some((tag) => matchingTags.has(tag)),
-    nextSlot: row.next_slot_label || 'Chưa có lịch trống',
+    nextSlot: row.next_slot_label || (locale === 'en' ? 'No available slots yet' : 'Chưa có lịch trống'),
     credentials: ensureArray(row.credentials),
     approaches: ensureArray(row.approaches),
     // Giá khám giờ áp dụng chung cho mọi chuyên gia (khám mới/tái khám × nhanh/tiêu
@@ -3029,7 +3070,11 @@ const expertProfileSchema = z.object({
   bio: z.string().optional().nullable(),
   credentials: csvOrArraySchema,
   approaches: csvOrArraySchema,
-  next_slot_label: z.string().max(255).optional().nullable()
+  next_slot_label: z.string().max(255).optional().nullable(),
+  // Bản tiếng Anh do chính chuyên gia tự nhập (không máy dịch) — để trống thì trang public
+  // vẫn fallback về bản tiếng Việt, xem mapExpert().
+  bio_en: z.string().optional().nullable(),
+  specialties_en: csvOrArraySchema
 });
 
 function round1(value) {

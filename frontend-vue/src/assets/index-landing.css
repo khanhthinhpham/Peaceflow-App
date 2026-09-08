@@ -1334,6 +1334,8 @@
     }
 
     .hero-actions {
+        flex-direction: column;
+        align-items: center;
         justify-content: center;
     }
 
@@ -1343,7 +1345,10 @@
 
     .hero-visual {
         width: 100%;
-        margin-top: 32px;
+        /* Đẩy hẳn xuống dưới mép màn hình đầu tiên (thay vì 32px cố định trước đây) — nội
+           dung phía trên (badge/tiêu đề/mô tả/quote/nút/số liệu) đã gần chạm 100vh, 32px là
+           không đủ nên mockup bị ló lên ngay từ màn hình đầu, chưa cuộn đã thấy 1 phần. */
+        margin-top: 14vh;
     }
 
     .steps-grid {
