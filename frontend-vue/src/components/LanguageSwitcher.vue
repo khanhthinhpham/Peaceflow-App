@@ -5,13 +5,28 @@
       class="lang-btn"
       :class="{ active: locale === 'vi' }"
       @click="chooseLocale('vi')"
-    >🇻🇳 Tiếng Việt</button>
+    >
+      <svg class="lang-flag" viewBox="0 0 60 40" aria-hidden="true">
+        <rect width="60" height="40" fill="#DA251D"/>
+        <polygon fill="#FFFF00" points="30,8 32.7,16.28 41.42,16.3 34.38,21.42 37.06,29.7 30,24.6 22.94,29.7 25.62,21.42 18.58,16.3 27.3,16.28"/>
+      </svg>
+      Tiếng Việt
+    </button>
     <button
       type="button"
       class="lang-btn"
       :class="{ active: locale === 'en' }"
       @click="chooseLocale('en')"
-    >🇬🇧 English</button>
+    >
+      <svg class="lang-flag" viewBox="0 0 60 40" aria-hidden="true">
+        <rect width="60" height="40" fill="#00247D"/>
+        <path d="M0,0 L60,40 M60,0 L0,40" stroke="#fff" stroke-width="8"/>
+        <path d="M0,0 L60,40 M60,0 L0,40" stroke="#CF142B" stroke-width="3.2"/>
+        <path d="M30,0 V40 M0,20 H60" stroke="#fff" stroke-width="13"/>
+        <path d="M30,0 V40 M0,20 H60" stroke="#CF142B" stroke-width="7.8"/>
+      </svg>
+      English
+    </button>
   </div>
 </template>
 
@@ -42,16 +57,26 @@ function chooseLocale(value) {
   gap: 8px;
 }
 .lang-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
   border: 2px solid var(--kraft-light, #d9c9a8);
   border-radius: 999px;
   background: #fff;
-  padding: 8px 14px;
+  padding: 6px 14px;
   font: inherit;
   font-size: 0.85rem;
   font-weight: 700;
   cursor: pointer;
   color: var(--text-secondary, #7a6555);
   transition: background 0.15s ease, border-color 0.15s ease;
+}
+.lang-flag {
+  width: 20px;
+  height: 14px;
+  border-radius: 3px;
+  flex-shrink: 0;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.12);
 }
 .lang-btn.active {
   background: var(--mint, #A8D5BA);
