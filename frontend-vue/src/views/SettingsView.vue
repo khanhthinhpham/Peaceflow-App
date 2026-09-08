@@ -1006,9 +1006,20 @@ function resetData() {
   showToast(t('settingsPage.toast.resetDone'));
 }
 
-function deleteAccount() {
+async function deleteAccount() {
   EventLogger.log('settings', 'account:delete:request');
-  showToast(t('settingsPage.toast.deleteAccountNotSupported'), 'info');
+  const confirmed = window.confirm(t('settingsPage.toast.deleteAccountConfirm'));
+  if (!confirmed) return;
+
+  EventLogger.log('settings', 'account:delete:confirmed');
+  try {
+    await apiClient.delete('/me');
+    await apiClient.logout();
+    showToast(t('settingsPage.toast.deleteAccountDone'));
+    router.push('/login');
+  } catch (error) {
+    showToast(error.message || t('settingsPage.toast.deleteAccountFailed'), 'error');
+  }
 }
 
 async function handleLogout() {

@@ -29,10 +29,15 @@
 /* ===== MAIN LAYOUT ===== */
 .main-content {
     margin-left: var(--sidebar-width);
-    height: 100vh;
+    /* style.css (global, dùng chung mọi trang) có .main-content { padding: var(--space-7) },
+       nhưng trang chat cần full-bleed (chat-topbar/chat-body/chat-input-area tự quản lý
+       padding riêng) -> phải reset về 0, nếu không padding đó lọt vào tạo khoảng viền xấu. */
+    padding: 0;
+    height: 94vh !important;
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    min-height: 0;
 }
 
 .chat-topbar {
@@ -195,7 +200,16 @@
     flex: 1;
     display: grid;
     grid-template-columns: 1fr 320px;
+    /* Hàng grid mặc định auto (co theo NỘI DUNG), không bám theo chiều cao khả dụng thật của
+       .chat-body dù .chat-body đã đúng kích thước (flex:1) -> minmax(0,1fr) ép lấp đầy phần
+       còn lại, cho .chat-main/.chat-messages bên trong co lại và tự cuộn được. */
+    grid-template-rows: minmax(0, 1fr);
     overflow: hidden;
+    /* Grid/flex item mặc định min-height:auto -> không co nhỏ hơn nội dung bên trong được,
+       khiến .chat-messages không nhường chỗ cho input, input bị .main-content{overflow:hidden}
+       cắt mất luôn (không phải tràn/scroll, mà biến mất hẳn) khi tổng nội dung vượt chiều cao
+       khả dụng. ĐÂY là nguyên nhân thật sự — không liên quan tới con số vh của .main-content. */
+    min-height: 0;
 }
 
 .chat-main {
@@ -203,10 +217,12 @@
     flex-direction: column;
     border-right: 2px solid var(--kraft-light);
     overflow: hidden;
+    min-height: 0;
 }
 
 .chat-messages {
     flex: 1;
+    min-height: 0;
     overflow-y: auto;
     padding: 20px 24px;
     display: flex;
@@ -427,7 +443,7 @@
 
 /* Quick replies */
 .quick-replies-area {
-    padding: 8px 24px 0;
+    padding: 8px 24px 8px;
     display: flex;
     gap: 7px;
     flex-wrap: wrap;
@@ -1209,7 +1225,7 @@
 
     .chat-topbar {
         padding: 10px 14px;
-        margin-top: 60px;
+        /* margin-top: 60px; */
     }
 }
 

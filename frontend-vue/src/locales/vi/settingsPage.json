@@ -184,7 +184,7 @@
     "danger": {
       "title": "Vùng nguy hiểm",
       "subtitle": "Các thao tác nhạy cảm. Chỉ chạy khi bạn thực sự cần.",
-      "note": "Backend hiện chưa có endpoint xóa tài khoản. Trang này chỉ cho phép xóa cài đặt local và đăng xuất, không giả lập việc xóa dữ liệu trên server.",
+      "note": "Xóa tài khoản là thao tác không thể hoàn tác. Dữ liệu tài khoản sẽ được đánh dấu đã xóa trên hệ thống ngay lập tức.",
       "resetCache": "🔄 Xóa cache local",
       "deleteAccountBtn": "🗑️ Yêu cầu xóa tài khoản"
     },
@@ -200,7 +200,9 @@
       "exportFailed": "Không xuất được dữ liệu.",
       "resetConfirm": "Xóa toàn bộ cài đặt local trên trình duyệt này? Dữ liệu trên server sẽ không bị ảnh hưởng.",
       "resetDone": "Đã xóa cài đặt cục bộ.",
-      "deleteAccountNotSupported": "Backend chưa có endpoint xóa tài khoản.",
+      "deleteAccountConfirm": "Bạn có chắc muốn xóa tài khoản? Toàn bộ dữ liệu (tâm trạng, nhật ký, kết quả bài test, lịch sử đặt lịch...) sẽ bị xóa vĩnh viễn và không thể khôi phục.",
+      "deleteAccountDone": "Đã xóa tài khoản. Hẹn gặp lại bạn.",
+      "deleteAccountFailed": "Không xóa được tài khoản, vui lòng thử lại.",
       "loadFailed": "Không tải được cài đặt từ máy chủ."
     },
     "defaults": {

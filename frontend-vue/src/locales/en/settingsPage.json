@@ -184,7 +184,7 @@
     "danger": {
       "title": "Danger zone",
       "subtitle": "Sensitive actions. Only run these when you really need to.",
-      "note": "The backend doesn't have an account-deletion endpoint yet. This page only lets you clear local settings and log out — it doesn't simulate deleting data on the server.",
+      "note": "Deleting your account cannot be undone. Your account data is marked deleted on our system immediately.",
       "resetCache": "🔄 Clear local cache",
       "deleteAccountBtn": "🗑️ Request account deletion"
     },
@@ -200,7 +200,9 @@
       "exportFailed": "Couldn't export data.",
       "resetConfirm": "Clear all local settings on this browser? Data on the server won't be affected.",
       "resetDone": "Local settings cleared.",
-      "deleteAccountNotSupported": "The backend doesn't have an account-deletion endpoint yet.",
+      "deleteAccountConfirm": "Are you sure you want to delete your account? All your data (mood entries, journal, test results, booking history...) will be permanently deleted and cannot be recovered.",
+      "deleteAccountDone": "Your account has been deleted. See you again sometime.",
+      "deleteAccountFailed": "Could not delete your account, please try again.",
       "loadFailed": "Couldn't load settings from the server."
     },
     "defaults": {
