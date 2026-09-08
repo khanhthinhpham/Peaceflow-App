@@ -891,13 +891,14 @@ const CHAT_SCHEMA = {
         mood_analysis: {
             type: 'object',
             properties: {
+                on_topic: { type: 'boolean' },
                 anxiety: { type: 'integer' },
                 stress: { type: 'integer' },
                 mood: { type: 'integer' },
                 depression: { type: 'integer' },
                 keywords: { type: 'array', items: { type: 'string' } }
             },
-            required: ['anxiety', 'stress', 'mood', 'depression', 'keywords']
+            required: ['on_topic', 'anxiety', 'stress', 'mood', 'depression', 'keywords']
         }
     },
     required: ['reply', 'mood_analysis']
@@ -1016,11 +1017,11 @@ Không bao giờ điền suggested_task_code ở lượt bạn chưa hỏi ý h�
 LƯU Ý RIÊNG LƯỢT NÀY: ${turnNote}
 
 ${toolBlock}QUY TẮC KHÁC:
-1. Chỉ nói về cảm xúc, sức khỏe tâm thần, chuyện đời sống đang ảnh hưởng tinh thần họ, bài tập/chuyên gia trong app, dữ liệu cá nhân của họ${options.toolAvailable ? ', và nội dung tài liệu/sách chuyên môn qua tool ở trên' : ''}. Hỏi ngoài phạm vi này (lập trình, thời sự, kiến thức chung không liên quan sức khỏe tâm thần...) thì từ chối lịch sự, mời họ quay lại chuyện của mình.
+1. Chỉ nói về cảm xúc, sức khỏe tâm thần, chuyện đời sống đang ảnh hưởng tinh thần họ, bài tập/chuyên gia trong app, dữ liệu cá nhân của họ${options.toolAvailable ? ', và nội dung tài liệu/sách chuyên môn qua tool ở trên' : ''}. Hỏi ngoài phạm vi này (lập trình, thời sự, kiến thức chung không liên quan sức khỏe tâm thần...) thì từ chối lịch sự, mời họ quay lại chuyện của mình, VÀ đặt on_topic = false cho lượt đó (xem quy tắc 5).
 2. Dài 2-5 câu, viết liền như một tin nhắn, không markdown, không gạch đầu dòng. Khi họ xin lời khuyên: đưa việc CỤ THỂ làm được ngay hôm nay, gắn đúng cái cốt lõi vừa nói ra, không nói "hãy chăm sóc bản thân".
 3. Không chẩn đoán, không gọi tên bệnh lý cho họ. Có dấu hiệu tự hại/tự tử: nói thẳng sự lo lắng của bạn và khuyên liên hệ hotline hoặc chuyên gia ngay.
 4. suggested_expert_code mặc định TRỐNG — chỉ điền khi họ hỏi về chuyên gia/muốn gặp người có chuyên môn, hoặc khi nguy cấp; đừng tự mời gặp chuyên gia lúc họ chỉ đang tâm sự. suggested_task_code copy chính xác phần mã trước dấu | trong DANH SÁCH BÀI TẬP, tránh bài phản tác dụng với tình trạng của họ.
-5. Luôn kèm mood_analysis: anxiety, stress, mood (càng cao càng tích cực), depression — 0-100 dựa trên cả hội thoại, chỉ để tham khảo, không phải chẩn đoán. Kèm tối đa 5 keywords ưu tiên mô tả cốt lõi ("sợ không đủ tốt", "mất chỗ dựa") thay vì từ chung ("buồn").
+5. Luôn kèm mood_analysis: anxiety, stress, mood (càng cao càng tích cực), depression — 0-100 dựa trên cả hội thoại, chỉ để tham khảo, không phải chẩn đoán. Kèm tối đa 5 keywords ưu tiên mô tả cốt lõi ("sợ không đủ tốt", "mất chỗ dựa") thay vì từ chung ("buồn"). on_topic = true nếu lượt này họ đang nói về phạm vi cho phép ở quy tắc 1; on_topic = false nếu lượt này là câu hỏi ngoài phạm vi bạn vừa từ chối — khi đó keywords phải để RỖNG ([]), TUYỆT ĐỐI không lấy lại từ khóa cảm xúc của các lượt trước đó trong hội thoại (câu hỏi ngoài phạm vi không liên quan gì tới cảm xúc, đừng gán ghép).
 
 --- Người dùng đang chat (dùng để hiểu họ, không đọc lại số liệu cho họ) ---
 ${formatMoodContext(ctx)}
@@ -1195,13 +1196,17 @@ export async function getChatReply({ userId, message, history = [], locale = 'vi
 
     // Chủ đề = từ khóa do chính AI rút ra (vd "mất ngủ", "áp lực công việc") — KHÔNG lưu
     // câu người dùng gõ hay câu AI trả lời, xem giải thích ở migration 0044.
+    // Không tin riêng vào việc model tự để keywords rỗng khi on_topic=false (model có thể
+    // vẫn lặp lại keywords cảm xúc từ các lượt trước trong hội thoại dù được dặn không làm
+    // vậy) — chặn cứng bằng code: lượt ngoài phạm vi thì luôn log ['off_topic'], không bao
+    // giờ log lẫn keywords tâm lý không liên quan tới nội dung lượt đó.
     logAiUsage({
         userId,
         feature: 'chat',
         model: usage.model,
         usage,
         latencyMs: Date.now() - startedAt,
-        topics: parsed.mood_analysis?.keywords || []
+        topics: parsed.mood_analysis?.on_topic === false ? ['off_topic'] : (parsed.mood_analysis?.keywords || [])
     });
 
     // Chặn cứng: chỉ resolve mã bài tập khi lượt này thực sự được cấp danh sách (tức là
