@@ -44,6 +44,11 @@ const { locale } = useI18n();
 
 function chooseLocale(value) {
   setExplicitLocale(value);
+  // Xoá SWR cache (apiClient.js, TTL "fresh" 30s) ngay khi đổi ngôn ngữ — nếu không, dữ liệu
+  // đã fetch gần đây (vd /notifications) vẫn được trả nguyên bản CŨ theo locale trước đó
+  // trong tối đa 30s tiếp theo, vì cache key không tính tới locale. Ảnh hưởng mọi GET đã
+  // cache trên toàn app (không riêng gì trang đang mở component này).
+  apiClient.clearCache();
   // Lưu bền lựa chọn vào users.locale (best-effort, không chặn UI) — cần cho email/push
   // gửi từ webhook/cron sau này, lúc đó không còn request nào của user để đọc x-locale.
   // Bỏ qua lỗi lặng lẽ: hay gặp nhất là chưa đăng nhập (nút này cũng dùng ở trang Login).
