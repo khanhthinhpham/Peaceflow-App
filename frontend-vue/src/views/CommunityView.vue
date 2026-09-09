@@ -133,7 +133,11 @@
                   </div>
                 </div>
               </div>
-              <div class="post-tag" :class="post.tagClass || ''">{{ post.tagLabel || t('community.post.defaultTag') }}</div>
+              <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+                <div class="post-tag" :class="post.tagClass || ''">{{ post.tagLabel || t('community.post.defaultTag') }}</div>
+                <span v-if="isOwnPost(post) && post.moderationStatus === 'pending'" style="font-size:0.68rem;font-weight:700;padding:2px 8px;border-radius:999px;background:rgba(255,193,7,.16);color:#8a6d00;border:1px solid rgba(255,193,7,.5);">{{ t('community.post.pendingBadge') }}</span>
+                <span v-else-if="isOwnPost(post) && post.moderationStatus === 'rejected'" style="font-size:0.68rem;font-weight:700;padding:2px 8px;border-radius:999px;background:rgba(255,139,139,.14);color:var(--coral-dark,#e05555);border:1px solid var(--coral,#ff8b8b);">{{ t('community.post.rejectedBadge') }}</span>
+              </div>
 
               <template v-if="editingPostId === post.id">
                 <textarea class="post-edit-input" v-model="postEditText" maxlength="1000"></textarea>

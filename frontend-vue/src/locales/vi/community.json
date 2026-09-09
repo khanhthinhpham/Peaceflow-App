@@ -68,6 +68,8 @@
       "deleteBtn": "🗑️ Xóa bài",
       "reportBtn": "🚩 Báo cáo",
       "defaultTag": "📖 Câu chuyện",
+      "pendingBadge": "⏳ Đang chờ duyệt",
+      "rejectedBadge": "⚠️ Chưa được duyệt",
       "saveBtn": "Lưu",
       "cancelBtn": "Hủy",
       "collapseBtn": "Thu gọn",

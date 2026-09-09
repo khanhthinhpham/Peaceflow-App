@@ -199,6 +199,49 @@ router.get('/notifications', requireAuth, async (req, res) => {
         });
         return;
       }
+      // Kết quả kiểm duyệt bài viết Cộng đồng của chính mình
+      if (row.type === 'community_post_approved' || row.type === 'community_post_rejected') {
+        const approved = row.type === 'community_post_approved';
+        notifications.push({
+          id: `community-mod-${row.group_key || new Date(row.latest).getTime()}`,
+          type: 'community',
+          icon: approved ? '✅' : '📝',
+          title: approved ? L('Bài viết đã được duyệt', 'Post approved') : L('Bài viết chưa được duyệt', 'Post not approved'),
+          body: localizedBody || row.message,
+          action: 'community.html',
+          created_at: row.latest,
+          is_read: Boolean(row.all_read)
+        });
+        return;
+      }
+      // Bài viết mới đang chờ duyệt (gửi cho admin)
+      if (row.type === 'community_post_pending') {
+        notifications.push({
+          id: `community-pending-${row.group_key || new Date(row.latest).getTime()}`,
+          type: 'community',
+          icon: '📝',
+          title: L('Bài viết chờ duyệt', 'Post pending review'),
+          body: row.message,
+          action: '/admin/community',
+          created_at: row.latest,
+          is_read: Boolean(row.all_read)
+        });
+        return;
+      }
+      // Trả lời bình luận
+      if (row.type === 'reply') {
+        notifications.push({
+          id: `notif-${row.group_key}`,
+          type: 'community',
+          icon: '↩️',
+          title: L('Trả lời mới', 'New reply'),
+          body: localizedBody || row.message,
+          action: 'community.html',
+          created_at: row.latest,
+          is_read: Boolean(row.all_read)
+        });
+        return;
+      }
       const isComment = row.type === 'comment';
       const count = row.total;
       const title = isComment

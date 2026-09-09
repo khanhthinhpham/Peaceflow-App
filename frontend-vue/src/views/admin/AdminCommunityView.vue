@@ -38,6 +38,7 @@
     <div v-else-if="loadError" class="admin-card admin-empty" style="color:var(--coral);">{{ loadError }}</div>
     <div v-else-if="!posts.length" class="admin-card admin-empty">
       <span v-if="currentFilter === 'hidden'">Không có bài nào đang bị ẩn.</span>
+      <span v-else-if="currentFilter === 'pending'"><span v-html="icon('star')"></span> Không có bài viết nào đang chờ duyệt.</span>
       <span v-else><span v-html="icon('star')"></span> Không có bài viết nào bị báo cáo.</span>
     </div>
     <template v-else>
@@ -59,9 +60,15 @@
         </div>
 
         <div style="display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;margin-top:14px;">
-          <button type="button" class="btn-outline" :disabled="actingId === p.id" style="font-size:.82rem;" @click="dismissReports(p)">Bỏ qua báo cáo</button>
-          <button type="button" :class="p.is_hidden ? 'btn-primary' : 'btn-outline'" :disabled="actingId === p.id" style="font-size:.82rem;" @click="toggleHide(p)">{{ p.is_hidden ? 'Hiện lại' : 'Ẩn bài' }}</button>
-          <button type="button" class="btn-outline" :disabled="actingId === p.id" style="font-size:.82rem;color:var(--coral-dark);border-color:var(--coral);" @click="removePost(p)">Gỡ bài</button>
+          <template v-if="currentFilter === 'pending'">
+            <button type="button" class="btn-primary" :disabled="actingId === p.id" style="font-size:.82rem;" @click="approvePost(p)">✅ Duyệt</button>
+            <button type="button" class="btn-outline" :disabled="actingId === p.id" style="font-size:.82rem;color:var(--coral-dark);border-color:var(--coral);" @click="rejectPost(p)">❌ Từ chối</button>
+          </template>
+          <template v-else>
+            <button type="button" class="btn-outline" :disabled="actingId === p.id" style="font-size:.82rem;" @click="dismissReports(p)">Bỏ qua báo cáo</button>
+            <button type="button" :class="p.is_hidden ? 'btn-primary' : 'btn-outline'" :disabled="actingId === p.id" style="font-size:.82rem;" @click="toggleHide(p)">{{ p.is_hidden ? 'Hiện lại' : 'Ẩn bài' }}</button>
+            <button type="button" class="btn-outline" :disabled="actingId === p.id" style="font-size:.82rem;color:var(--coral-dark);border-color:var(--coral);" @click="removePost(p)">Gỡ bài</button>
+          </template>
         </div>
       </div>
     </template>
@@ -90,7 +97,7 @@ function author(p) {
 
 const CATEGORY = { gratitude: 'Biết ơn', story: 'Câu chuyện', milestone: 'Cột mốc', question: 'Hỏi đáp', tip: 'Mẹo' };
 const REASON = { inappropriate: 'Không phù hợp', spam: 'Spam', harassment: 'Quấy rối', misinformation: 'Sai sự thật', other: 'Khác' };
-const TABS = [{ v: 'reported', l: 'Bị báo cáo' }, { v: 'hidden', l: 'Đã ẩn' }, { v: 'all', l: 'Tất cả' }];
+const TABS = [{ v: 'pending', l: 'Chờ duyệt' }, { v: 'reported', l: 'Bị báo cáo' }, { v: 'hidden', l: 'Đã ẩn' }, { v: 'all', l: 'Tất cả' }];
 
 function reasonCounts(p) {
   if (!Array.isArray(p.reports) || !p.reports.length) return [];
@@ -122,6 +129,8 @@ async function load(filter = currentFilter.value, p = page.value) {
   loadError.value = '';
   try {
     const qs = new URLSearchParams({ filter, limit: String(limit.value), offset: String(page.value * limit.value) });
+    // Vẫn cùng endpoint /admin/community/reports — thêm filter=pending ở backend để trả về
+    // danh sách bài đang chờ duyệt thay vì bài bị báo cáo.
     const data = await apiClient.get(`/admin/community/reports?${qs.toString()}`, { noCache: true });
     posts.value = data?.posts || [];
     total.value = data?.total || 0;
@@ -156,16 +165,23 @@ function removePost(p) {
   if (!window.confirm('Gỡ hẳn bài viết này? Hành động không thể hoàn tác (xoá cả bình luận & cảm xúc).')) return;
   act(() => apiClient.delete(`/admin/community/posts/${p.id}`), p);
 }
+function approvePost(p) {
+  act(() => apiClient.post(`/admin/community/posts/${p.id}/approve`, {}), p);
+}
+function rejectPost(p) {
+  if (!window.confirm('Từ chối bài viết này? Bài sẽ không hiển thị công khai trên Cộng đồng.')) return;
+  act(() => apiClient.post(`/admin/community/posts/${p.id}/reject`, {}), p);
+}
 
 async function refreshBadge() {
   try {
     const o = await apiClient.get('/admin/overview', { noCache: true });
-    badges.setBadge('community', o.reported_community_posts);
+    badges.setBadge('community', (Number(o.reported_community_posts) || 0) + (Number(o.pending_community_posts) || 0));
   } catch (_e) { /* ignore */ }
 }
 
 onMounted(() => {
-  load('reported');
+  load('pending');
   refreshBadge();
 });
 </script>

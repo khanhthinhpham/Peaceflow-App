@@ -60,6 +60,18 @@ const BUILDERS = {
         vi: ({ actorName, emoji }) => `${actorName} đã thả ${emoji} vào bài viết của bạn.`,
         en: ({ actorName, emoji }) => `${actorName} reacted ${emoji} to your post.`
     },
+    reply_comment: {
+        vi: ({ actorName }) => `${actorName} đã trả lời bình luận của bạn.`,
+        en: ({ actorName }) => `${actorName} replied to your comment.`
+    },
+    community_post_approved: {
+        vi: () => 'Bài viết của bạn đã được duyệt và hiển thị công khai trên Cộng đồng.',
+        en: () => 'Your post has been approved and is now visible on the Community feed.'
+    },
+    community_post_rejected: {
+        vi: () => 'Bài viết của bạn chưa được duyệt để hiển thị công khai.',
+        en: () => 'Your post was not approved for the public Community feed.'
+    },
     expert_approved: {
         vi: () => 'Hồ sơ chuyên gia của bạn đã được duyệt! Bạn có thể vào khu chuyên gia ngay.',
         en: () => 'Your expert application has been approved! You can access the expert area now.'

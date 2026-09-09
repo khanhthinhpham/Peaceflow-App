@@ -3,6 +3,7 @@ import { requireAuth } from '../../common/middleware/auth.middleware.js';
 import { db } from '../../config/db.js';
 import { sendPushToUser } from '../notifications/notification.routes.js';
 import { buildNotificationMessage } from '../notifications/notification-messages.js';
+import { sendCommunityPostToAdmin } from '../../common/services/email.service.js';
 
 // Ngôn ngữ ưa thích đã lưu của người NHẬN thông báo — không dùng req.locale ở đây vì
 // req.locale phản ánh ngôn ngữ của người ĐANG bình luận/thả cảm xúc, không phải người
@@ -87,6 +88,10 @@ router.get('/community', requireAuth, async (req, res) => {
            where post_id = p.id and user_id = $1
          ) mr on true
          where p.is_hidden = false
+           -- Chỉ hiện bài đã được admin duyệt trên feed công khai; riêng bài của CHÍNH
+           -- người đang xem thì vẫn hiện dù đang "pending" (kèm badge "Đang chờ duyệt" ở
+           -- frontend) để họ biết bài mình đã gửi đi, không bị mất tích khó hiểu.
+           and (p.moderation_status = 'approved' or (p.moderation_status = 'pending' and p.user_id = $1))
          group by p.id, u.display_name, u.full_name, u.role, u.is_admin
          order by p.created_at desc`,
         [userId]
@@ -200,15 +205,17 @@ router.post('/community/posts', requireAuth, async (req, res) => {
       [req.user.sub]
     );
 
+    const authorName = userRes.rows[0]?.name || 'Người dùng';
     const row = await db.query(
       `insert into community_posts (
-         user_id, author_name, author_avatar, content, category, tags, is_anonymous, is_positive
+         user_id, author_name, author_avatar, content, category, tags, is_anonymous, is_positive,
+         moderation_status
        )
-       values ($1, $2, $3, $4, $5, $6, $7, true)
+       values ($1, $2, $3, $4, $5, $6, $7, true, 'pending')
        returning *`,
       [
         req.user.sub,
-        userRes.rows[0]?.name || 'Người dùng',
+        authorName,
         is_anonymous ? '🌿' : '🐱',
         String(content).trim(),
         normalizeCategory(category),
@@ -216,12 +223,36 @@ router.post('/community/posts', requireAuth, async (req, res) => {
         Boolean(is_anonymous)
       ]
     );
+    const post = row.rows[0];
+
+    // Bài mới luôn ở trạng thái "pending" (chờ admin duyệt mới hiển thị công khai) — báo cho
+    // TOÀN BỘ admin qua cả 3 kênh: in-app, push, và email (không dùng magic-link 1-click như
+    // duyệt hồ sơ chuyên gia vì admin thường đã đăng nhập sẵn, chỉ cần điều hướng vào trang
+    // duyệt bài trong app). Chạy nền, không chặn response trả về cho người vừa đăng bài.
+    ;(async () => {
+      const adminsRes = await db.query(`select id from users where role = 'admin' or is_admin = true`);
+      const notifyName = Boolean(is_anonymous) ? 'Người ẩn danh' : authorName;
+      const msg = `${notifyName} vừa đăng 1 bài viết mới trên Cộng đồng, đang chờ duyệt.`;
+      for (const admin of adminsRes.rows) {
+        insertNotification(admin.id, notifyName, 'community_post_pending', post.id, msg, {
+          code: 'community_post_pending_admin'
+        }).catch(() => {});
+        sendPushToUser(admin.id, '📝 Bài viết chờ duyệt', msg, 'pages/admin/community.html').catch(() => {});
+      }
+      sendCommunityPostToAdmin({
+        postId: post.id,
+        authorName,
+        content: post.content,
+        category: post.category,
+        isAnonymous: Boolean(is_anonymous)
+      }).catch((e) => console.error('[MAIL_FAIL] community post to admin:', e.message));
+    })().catch((e) => console.error('[BG] community post admin notify:', e.message));
 
     return res.json({
       success: true,
       data: mapPost({
-        ...row.rows[0],
-        display_name: userRes.rows[0]?.name,
+        ...post,
+        display_name: authorName,
         comments: [],
         reactions: {},
         my_reactions: {}
@@ -270,25 +301,41 @@ router.post('/community/posts/:id/comments', requireAuth, async (req, res) => {
     const postId = req.params.id;
     const commenterId = req.user.sub;
     ;(async () => {
-      const [postRes, prevCommenters] = await Promise.all([
+      const [postRes, prevCommenters, parentRes] = await Promise.all([
         db.query(`select user_id from community_posts where id = $1 limit 1`, [postId]),
-        db.query(`select distinct user_id from community_comments where post_id = $1 and user_id != $2 limit 20`, [postId, commenterId])
+        db.query(`select distinct user_id from community_comments where post_id = $1 and user_id != $2 limit 20`, [postId, commenterId]),
+        parent_id
+          ? db.query(`select user_id from community_comments where id = $1 limit 1`, [parent_id])
+          : Promise.resolve({ rows: [] })
       ]);
       const postOwnerId = postRes.rows[0]?.user_id;
+      // Chủ của comment CHA (nếu đây là reply) — người này cần biết rõ "ai đó đã TRẢ LỜI
+      // bình luận của họ", khác hẳn "có bình luận mới trong bài" chung chung, dù họ vẫn
+      // nằm trong danh sách recipients thông thường (vì họ đã từng comment/là chủ bài).
+      const parentOwnerId = parentRes.rows[0]?.user_id;
       const recipients = new Set();
       if (postOwnerId && postOwnerId !== commenterId) recipients.add(postOwnerId);
       prevCommenters.rows.forEach(r => { if (r.user_id !== commenterId) recipients.add(r.user_id); });
       for (const recipientId of recipients) {
-        const isOwnPost = recipientId === postOwnerId;
-        const code = isOwnPost ? 'comment_own_post' : 'comment_participant_post';
-        const msg = isOwnPost
-          ? `${commenterName} đã bình luận bài viết của bạn.`
-          : `${commenterName} cũng đã bình luận trong bài viết bạn tham gia.`;
+        let code, msg;
+        if (parentOwnerId && recipientId === parentOwnerId) {
+          code = 'reply_comment';
+          msg = `${commenterName} đã trả lời bình luận của bạn.`;
+        } else {
+          const isOwnPost = recipientId === postOwnerId;
+          code = isOwnPost ? 'comment_own_post' : 'comment_participant_post';
+          msg = isOwnPost
+            ? `${commenterName} đã bình luận bài viết của bạn.`
+            : `${commenterName} cũng đã bình luận trong bài viết bạn tham gia.`;
+        }
         getUserLocale(recipientId).then((pushLocale) => {
           const pushBody = buildNotificationMessage(code, { actorName: commenterName }, pushLocale) || msg;
-          sendPushToUser(recipientId, pushLocale === 'en' ? '💬 New comment' : '💬 Bình luận mới', pushBody, 'pages/community.html').catch(() => {});
+          const pushTitle = code === 'reply_comment'
+            ? (pushLocale === 'en' ? '↩️ New reply' : '↩️ Có người trả lời')
+            : (pushLocale === 'en' ? '💬 New comment' : '💬 Bình luận mới');
+          sendPushToUser(recipientId, pushTitle, pushBody, 'pages/community.html').catch(() => {});
         }).catch(() => {});
-        insertNotification(recipientId, commenterName, 'comment', postId, msg, {
+        insertNotification(recipientId, commenterName, code === 'reply_comment' ? 'reply' : 'comment', postId, msg, {
           code,
           actorName: commenterName
         }).catch(() => {});
@@ -514,6 +561,7 @@ function mapPost(row) {
   return {
     id: row.id,
     userId: row.user_id,
+    moderationStatus: row.moderation_status || 'approved',
     anon: Boolean(row.is_anonymous),
     avatar: row.author_avatar || '🌿',
     name: row.is_anonymous

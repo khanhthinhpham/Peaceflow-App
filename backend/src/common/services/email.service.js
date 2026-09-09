@@ -92,6 +92,32 @@ export async function sendExpertApplicationToAdmin({ application, fileBuffer }) 
   });
 }
 
+export async function sendCommunityPostToAdmin({ postId, authorName, content, category, isAnonymous }) {
+  ensureMailConfigured();
+  const adminLink = `${APP_URL}/admin/community`;
+  const preview = String(content || '').slice(0, 300);
+  await sendMail({
+    from: FROM,
+    to: env.adminEmail,
+    subject: `📝 Bài viết Cộng đồng mới cần duyệt — ${authorName}`,
+    html: `
+      <div style="font-family:sans-serif;max-width:560px;margin:0 auto;padding:32px 24px;">
+        <h2 style="color:#2D6A4F;margin-bottom:8px;">Bài viết Cộng đồng mới đang chờ duyệt</h2>
+        <p style="color:#555;line-height:1.6;">Có bài viết mới trên Cộng đồng PeaceFlow cần bạn xem xét trước khi hiển thị công khai.</p>
+        <table style="width:100%;border-collapse:collapse;font-size:0.92rem;color:#333;margin:16px 0;">
+          <tr><td style="padding:6px 0;color:#888;width:120px;">Tác giả</td><td><strong>${isAnonymous ? 'Ẩn danh' : authorName}</strong></td></tr>
+          <tr><td style="padding:6px 0;color:#888;">Chuyên mục</td><td>${category || '-'}</td></tr>
+        </table>
+        <div style="padding:14px 16px;background:#F8F4EC;border:1.5px solid #E8CBA7;border-radius:10px;color:#4A3728;line-height:1.6;white-space:pre-wrap;">${preview}${content && content.length > 300 ? '…' : ''}</div>
+        <div style="margin:24px 0;">
+          <a href="${adminLink}" style="display:inline-block;padding:12px 28px;background:#52B788;color:#fff;border-radius:8px;text-decoration:none;font-weight:700;">Vào trang duyệt bài</a>
+        </div>
+        <p style="color:#999;font-size:0.8rem;">Mã bài viết: ${postId}</p>
+      </div>
+    `
+  });
+}
+
 export async function sendExpertApprovedEmail(user, locale = 'vi') {
   ensureMailConfigured();
   const link = `${APP_URL}/login`;

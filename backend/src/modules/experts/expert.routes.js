@@ -1577,6 +1577,7 @@ router.get('/admin/overview', requireAuth, async (req, res) => {
         `select
            count(*) filter (where coalesce(reports_count, 0) > 0)::int as reported_posts,
            count(*) filter (where is_hidden = true)::int as hidden_posts,
+           count(*) filter (where moderation_status = 'pending')::int as pending_posts,
            count(*)::int as total_posts,
            count(*) filter (where created_at >= now() - interval '1 day')::int as posts_today
          from community_posts`
@@ -1636,6 +1637,7 @@ router.get('/admin/overview', requireAuth, async (req, res) => {
         // Cộng đồng
         reported_community_posts: communityRes.rows[0]?.reported_posts || 0,
         hidden_community_posts: communityRes.rows[0]?.hidden_posts || 0,
+        pending_community_posts: communityRes.rows[0]?.pending_posts || 0,
         total_community_posts: communityRes.rows[0]?.total_posts || 0,
         community_posts_today: communityRes.rows[0]?.posts_today || 0
       }
@@ -2129,15 +2131,16 @@ router.get('/admin/community/reports', requireAuth, async (req, res) => {
 
     const limit = Math.min(Math.max(parseInt(req.query.limit, 10) || 50, 1), 100);
     const offset = Math.max(parseInt(req.query.offset, 10) || 0, 0);
-    const filter = ['reported', 'hidden', 'all'].includes(req.query.filter) ? req.query.filter : 'reported';
+    const filter = ['reported', 'hidden', 'all', 'pending'].includes(req.query.filter) ? req.query.filter : 'reported';
     let where = 'p.reports_count > 0';
     if (filter === 'hidden') where = 'p.is_hidden = true';
     else if (filter === 'all') where = '(p.reports_count > 0 or p.is_hidden = true)';
+    else if (filter === 'pending') where = "p.moderation_status = 'pending'";
 
     const countRes = await db.query(`select count(*)::int as total from community_posts p where ${where}`);
     const rowsRes = await db.query(
       `select p.id, p.content, p.category, p.author_name, p.is_anonymous, p.is_hidden,
-              p.reports_count, p.created_at, u.email as author_email,
+              p.reports_count, p.created_at, p.moderation_status, u.email as author_email,
               (select json_agg(json_build_object('reason', r.reason, 'created_at', r.created_at) order by r.created_at desc)
                  from community_reports r where r.post_id = p.id) as reports
        from community_posts p
@@ -2175,6 +2178,59 @@ router.patch('/admin/community/posts/:id', requireAuth, async (req, res) => {
   } catch (error) {
     console.error('Admin hide post error:', error);
     return res.status(500).json({ success: false, message: 'Could not update post' });
+  }
+});
+
+// Duyệt bài viết Cộng đồng đang chờ (moderation_status: pending -> approved) — báo cho tác giả.
+router.post('/admin/community/posts/:id/approve', requireAuth, async (req, res) => {
+  try {
+    if (!req.user.is_admin) return res.status(403).json({ success: false, message: 'Admin only' });
+    const r = await db.query(
+      `update community_posts
+       set moderation_status = 'approved', moderated_at = now(), moderated_by = $2, updated_at = now()
+       where id = $1
+       returning id, user_id`,
+      [req.params.id, req.user.sub]
+    );
+    if (!r.rows[0]) return res.status(404).json({ success: false, message: 'Không tìm thấy bài viết.' });
+
+    const authorId = r.rows[0].user_id;
+    if (authorId) {
+      const msg = 'Bài viết của bạn đã được duyệt và hiển thị công khai trên Cộng đồng.';
+      notify(authorId, 'PeaceFlow', 'community_post_approved', msg, { code: 'community_post_approved' }).catch(() => {});
+      sendPushToUser(authorId, '✅ Bài viết đã được duyệt', msg, 'pages/community.html').catch(() => {});
+    }
+    return res.json({ success: true, data: { id: r.rows[0].id } });
+  } catch (error) {
+    console.error('Admin approve post error:', error);
+    return res.status(500).json({ success: false, message: 'Could not approve post' });
+  }
+});
+
+// Từ chối bài viết Cộng đồng (moderation_status: pending -> rejected) — không xoá, chỉ ẩn
+// khỏi feed công khai (không khớp điều kiện approved/pending-của-chính-mình khi query feed).
+router.post('/admin/community/posts/:id/reject', requireAuth, async (req, res) => {
+  try {
+    if (!req.user.is_admin) return res.status(403).json({ success: false, message: 'Admin only' });
+    const r = await db.query(
+      `update community_posts
+       set moderation_status = 'rejected', moderated_at = now(), moderated_by = $2, updated_at = now()
+       where id = $1
+       returning id, user_id`,
+      [req.params.id, req.user.sub]
+    );
+    if (!r.rows[0]) return res.status(404).json({ success: false, message: 'Không tìm thấy bài viết.' });
+
+    const authorId = r.rows[0].user_id;
+    if (authorId) {
+      const msg = 'Bài viết của bạn chưa được duyệt để hiển thị công khai.';
+      notify(authorId, 'PeaceFlow', 'community_post_rejected', msg, { code: 'community_post_rejected' }).catch(() => {});
+      sendPushToUser(authorId, '📝 Bài viết chưa được duyệt', msg, 'pages/community.html').catch(() => {});
+    }
+    return res.json({ success: true, data: { id: r.rows[0].id } });
+  } catch (error) {
+    console.error('Admin reject post error:', error);
+    return res.status(500).json({ success: false, message: 'Could not reject post' });
   }
 });
 

@@ -27,6 +27,14 @@ function toastMetaFor(notif) {
       return { icon: '📅', title: 'Cập nhật lịch hẹn', action: 'experts.html' };
     case 'comment':
       return { icon: '💬', title: 'Bình luận mới', action: 'community.html' };
+    case 'reply':
+      return { icon: '↩️', title: 'Trả lời mới', action: 'community.html' };
+    case 'community_post_approved':
+      return { icon: '✅', title: 'Bài viết đã được duyệt', action: 'community.html' };
+    case 'community_post_rejected':
+      return { icon: '📝', title: 'Bài viết chưa được duyệt', action: 'community.html' };
+    case 'community_post_pending':
+      return { icon: '📝', title: 'Bài viết chờ duyệt', action: '/admin/community' };
     case 'expert_approved':
       return { icon: '✅', title: 'Hồ sơ đã được duyệt', action: 'expert/app.html?page=dashboard.html' };
     case 'expert_rejected':

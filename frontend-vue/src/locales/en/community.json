@@ -68,6 +68,8 @@
       "deleteBtn": "🗑️ Delete post",
       "reportBtn": "🚩 Report",
       "defaultTag": "📖 Story",
+      "pendingBadge": "⏳ Pending review",
+      "rejectedBadge": "⚠️ Not approved",
       "saveBtn": "Save",
       "cancelBtn": "Cancel",
       "collapseBtn": "Show less",
