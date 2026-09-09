@@ -865,8 +865,83 @@
         display: flex;
     }
 
+    /* Trước đây chỉ thêm flex-wrap mà không định lại flex-basis cho từng phần, nên các
+       item (info/progress bar/tổng XP) cùng cố co lại theo flex mặc định trên 1 hàng chật
+       hẹp -> "Người Khám Phá" và các số XP bị wrap từng chữ một. Định rõ: hàng 1 = badge +
+       tên cấp độ, hàng 2 = thanh tiến trình full-width, hàng 3 = tổng XP căn phải. */
     .xp-topbar {
         flex-wrap: wrap;
+        padding: 12px 14px;
+        gap: 8px 12px;
+    }
+
+    .xp-level-badge {
+        width: 36px;
+        height: 36px;
+        font-size: 0.95rem;
+    }
+
+    .xp-info {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .xp-info .xi-name {
+        font-size: 0.8rem;
+    }
+
+    .xp-info .xi-range {
+        font-size: 0.64rem;
+    }
+
+    .xp-bar-wrap {
+        flex-basis: 100%;
+        order: 3;
+    }
+
+    .xp-bar-label {
+        font-size: 0.6rem;
+    }
+
+    .xp-total {
+        font-size: 1.05rem;
+        margin-left: auto;
+    }
+
+    /* 2 banner còn lại (gợi ý AI + mục tiêu tuần) không bị vỡ dòng, chỉ thu nhỏ padding/chữ
+       cho đồng bộ, gọn hơn theo cùng tỉ lệ với thanh XP phía trên. */
+    .ai-suggestion {
+        padding: 12px 14px;
+        gap: 10px;
+    }
+
+    .ai-mascot {
+        font-size: 1.5rem;
+    }
+
+    .ai-text .at-title {
+        font-size: 0.82rem;
+    }
+
+    .ai-text .at-sub {
+        font-size: 0.7rem;
+    }
+
+    .weekly-challenge {
+        padding: 12px 14px;
+    }
+
+    .wc-title {
+        font-size: 0.84rem;
+    }
+
+    .wc-desc {
+        font-size: 0.72rem;
+        margin-bottom: 7px;
+    }
+
+    .wc-meta {
+        font-size: 0.64rem;
     }
 
     .ai-actions {
@@ -875,8 +950,61 @@
 }
 
 @media(max-width:600px) {
-    .task-grid {
-        grid-template-columns: 1fr;
+    /* .section-header trước đây ép icon+tiêu đề+số lượng+mô tả chung 1 hàng ngang cố định
+       không wrap -> trên màn hẹp, tiêu đề/số lượng bị bóp nghẹt xuống còn vài chữ 1 dòng
+       (kiểu "Khẩn" xuống dòng "Cấp", "19 nhiệm vụ" tách 3 dòng). Cho phép wrap: hàng đầu
+       giữ icon+tiêu đề+số lượng đủ chỗ, mô tả (dài nhất) tự động xuống hẳn dòng riêng bên
+       dưới, căn trái thay vì bị dồn sang phải với max-width cố định. */
+    .section-header {
+        flex-wrap: wrap;
+    }
+
+    .sh-desc {
+        flex-basis: 100%;
+        margin-left: 0;
+        max-width: 100%;
+        text-align: left;
+        margin-top: 4px;
+    }
+
+    /* Card nhiệm vụ trước đây min-width:280px + padding/chữ full-size khiến 1 thẻ chiếm gần
+       hết chiều rộng VÀ khá cao trên màn hình hẹp. Thu nhỏ min-width + padding + chữ để thẻ
+       gọn hơn hẳn, đồng thời lộ được rõ mép thẻ kế tiếp hơn khi vuốt ngang. */
+    .task-card {
+        flex: 0 0 78%;
+        min-width: 0;
+        padding: 12px 14px;
+    }
+
+    .tc-icon {
+        width: 34px;
+        height: 34px;
+        font-size: 1.05rem;
+    }
+
+    .tc-name {
+        font-size: 0.8rem;
+        margin-bottom: 2px;
+    }
+
+    .tc-meta-item {
+        font-size: 0.6rem;
+    }
+
+    .tc-desc {
+        font-size: 0.7rem;
+        margin-bottom: 7px;
+        line-height: 1.4;
+    }
+
+    .tc-xp {
+        font-size: 0.68rem;
+        padding: 2px 8px;
+    }
+
+    .tc-start-btn {
+        padding: 5px 11px;
+        font-size: 0.68rem;
     }
 
     .filter-bar {

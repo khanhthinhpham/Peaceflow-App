@@ -1123,6 +1123,25 @@
     font-size: 1.05rem;
 }
 
+.rc-title-toggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+.rc-toggle-arrow {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    transition: transform 0.2s ease;
+}
+
+.rc-toggle-arrow.open {
+    transform: rotate(180deg);
+}
+
 .respondent-card .rc-sub {
     font-size: 0.82rem;
     color: var(--text-secondary);
@@ -1206,8 +1225,41 @@
 }
 
 @media(max-width:600px) {
+    /* Lưới 2x2 thay vì danh sách dọc từng thẻ lớn — chỉ giữ icon + tên viết tắt + tên đầy
+       đủ, ẩn hẳn mô tả dài/badges/lần làm gần nhất (bấm vào thẻ vẫn vào làm bài bình thường,
+       phần chi tiết đó không cần thiết để CHỌN bài test, chỉ cần biết tên bài). */
     .test-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+    }
+
+    .test-select-card {
+        padding: 12px 10px;
+        text-align: center;
+    }
+
+    .tsc-icon {
+        width: 36px;
+        height: 36px;
+        font-size: 1.05rem;
+        margin: 0 auto 6px;
+    }
+
+    .tsc-name {
+        font-size: 0.82rem;
+        margin-bottom: 2px;
+    }
+
+    .tsc-fullname {
+        font-size: 0.6rem;
+        margin-bottom: 0;
+        line-height: 1.3;
+    }
+
+    .tsc-desc,
+    .tsc-meta,
+    .tsc-last {
+        display: none;
     }
 
     .likert-wrap.cols-4,
@@ -1222,6 +1274,27 @@
 
     .history-grid {
         grid-template-columns: 1fr;
+        gap: 8px;
+    }
+
+    /* Bố cục giữ nguyên (danh sách dọc), chỉ thu nhỏ padding/chữ để mỗi thẻ gọn hơn. */
+    .history-card {
+        padding: 10px 12px;
+    }
+
+    .hc-test {
+        font-size: 0.66rem;
+        margin-bottom: 2px;
+    }
+
+    .hc-date {
+        font-size: 0.64rem;
+        margin-bottom: 5px;
+    }
+
+    .hc-score-item {
+        font-size: 0.64rem;
+        padding: 1px 6px;
     }
 
     .result-actions {

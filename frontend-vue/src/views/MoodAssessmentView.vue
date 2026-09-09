@@ -38,8 +38,11 @@
         </div>
 
         <div class="respondent-card">
-          <h3>{{ t('moodAssessment.selector.respondentTitle') }}</h3>
-          <p class="rc-sub" v-html="t('moodAssessment.selector.respondentSub')"></p>
+          <h3 class="rc-title-toggle" @click="showRespondentHint = !showRespondentHint">
+            {{ t('moodAssessment.selector.respondentTitle') }}
+            <span class="rc-toggle-arrow" :class="{ open: showRespondentHint }">▾</span>
+          </h3>
+          <p v-show="showRespondentHint" class="rc-sub" v-html="t('moodAssessment.selector.respondentSub')"></p>
           <div class="rc-fields">
             <div class="rp-field">
               <label for="respondentName">{{ t('moodAssessment.selector.nameLabel') }}</label>
@@ -375,6 +378,7 @@ const assessments = ref([]);
 const history = ref([]);
 
 const respondent = reactive({ name: '', dob: '', age: '', ageMonths: '', note: '' });
+const showRespondentHint = ref(false);
 
 let isAdvancing = false;
 let hasFinishedCurrentTest = false;

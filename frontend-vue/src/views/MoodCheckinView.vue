@@ -516,7 +516,15 @@ onMounted(async () => {
   .main-content { margin-left: 0; padding: 16px 16px 20px; }
 }
 @media (max-width: 600px) {
-  .mode-selector { grid-template-columns: 1fr; }
+  /* Đổi từng thẻ từ bố cục dọc (icon-title-desc-time xếp chồng, cao gần hết màn hình) sang
+     bố cục ngang (icon bên trái, chữ bên phải) -> gọn hẳn theo chiều cao, cả 3 thẻ vừa
+     trong 1 màn hình thay vì phải cuộn qua từng thẻ lớn. */
+  .mode-selector { grid-template-columns: 1fr; gap: 10px; }
+  .mode-card { display: flex; align-items: center; gap: 12px; padding: 12px 14px; text-align: left; }
+  .mode-icon { font-size: 1.5rem; margin-bottom: 0; flex-shrink: 0; }
+  .mode-title { font-size: 0.85rem; margin-bottom: 2px; }
+  .mode-desc { font-size: 0.68rem; }
+  .mode-time { margin-top: 2px; }
   .mood-grid { grid-template-columns: repeat(3, 1fr); }
 }
 </style>

@@ -188,6 +188,54 @@
     flex-shrink: 0;
 }
 
+/* ===== MY BOOKINGS LIST ===== */
+.mb-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--kraft-light);
+}
+
+.mb-avatar {
+    font-size: 1.6rem;
+    flex: 0 0 auto;
+}
+
+.mb-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.mb-name {
+    font-weight: 700;
+}
+
+.mb-meta {
+    font-size: 0.82rem;
+    color: var(--text-secondary);
+}
+
+.mb-badge {
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 800;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.mb-actions {
+    flex: 0 0 auto;
+}
+
+.mb-action-row {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
 /* ===== STATS BAR ===== */
 .stats-bar {
     display: grid;
@@ -254,6 +302,13 @@
     gap: 8px;
     flex: 1;
     min-width: 220px;
+    position: relative;
+}
+
+/* Nút lọc gọn cạnh ô tìm kiếm — chỉ dùng ở bố cục mobile (xem @media bên dưới), ẩn hẳn ở
+   desktop/tablet vì desktop vẫn giữ hàng nút filter đầy đủ như cũ. */
+.filter-toggle-btn {
+    display: none;
 }
 
 .search-input {
@@ -307,6 +362,12 @@
 
 .ec-top-banner {
     height: 6px;
+}
+
+/* Nút ⋮ mở hồ sơ chi tiết — chỉ dùng ở bố cục mobile (xem @media bên dưới), ẩn hẳn ở
+   desktop/tablet vì desktop vẫn giữ 2 nút "Đặt lịch ngay"/"Xem hồ sơ" tách riêng như cũ. */
+.ec-menu-btn {
+    display: none;
 }
 
 .ec-top-banner.available {
@@ -1299,6 +1360,335 @@
 }
 
 @media(max-width:600px) {
+    /* Thiết kế lại card chuyên gia CHỈ cho mobile (desktop giữ nguyên): ảnh lớn full-width
+       lên đầu thay avatar tròn nhỏ, ấn cả card = đặt lịch ngay (xem handleExpertCardClick),
+       thông tin xuống dưới ảnh, nút ⋮ góc phải trên mới mở hồ sơ chi tiết — thay hẳn 2 nút
+       "Đặt lịch ngay"/"Xem hồ sơ" cũ (ẩn đi, không cần nữa vì hành vi đã gộp vào card+⋮). */
+    /* Thay hàng nút filter (nhiều dòng, chiếm nhiều chỗ dọc) bằng 1 nút lọc gọn cạnh ô tìm
+       kiếm — bấm vào mở dropdown chứa các lựa chọn thay vì hiện sẵn hết trên màn hình. */
+    .filter-row-buttons {
+        display: none;
+    }
+
+    .filter-toggle-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        width: 38px;
+        height: 38px;
+        border: 2px solid var(--kraft-light);
+        border-radius: 50%;
+        background: var(--warm-white);
+        font-size: 1rem;
+        cursor: pointer;
+    }
+
+    .filter-toggle-btn.active {
+        background: var(--mint-light);
+        border-color: var(--mint-dark);
+    }
+
+    .filter-dropdown {
+        position: absolute;
+        top: calc(100% + 6px);
+        left: 0;
+        z-index: 20;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        min-width: 200px;
+        max-height: 60vh;
+        overflow-y: auto;
+        padding: 8px;
+        background: var(--warm-white);
+        border: 2px solid var(--kraft-light);
+        border-radius: var(--radius-md);
+        box-shadow: var(--shadow-paper-hover);
+    }
+
+    .filter-dropdown-item {
+        padding: 9px 12px;
+        border: none;
+        border-radius: var(--radius-sm);
+        background: transparent;
+        text-align: left;
+        font-family: 'Nunito', sans-serif;
+        font-size: 0.82rem;
+        font-weight: 600;
+        color: var(--text-secondary);
+        cursor: pointer;
+    }
+
+    .filter-dropdown-item.active {
+        background: var(--mint-light);
+        color: var(--text-primary);
+        font-weight: 800;
+    }
+
+    /* Lưới danh sách chuyên gia: 2 cột (2x2) thay vì 1 cột full-width — mỗi card nhỏ lại
+       theo đúng yêu cầu, khớp với card gọn/rút bớt info bên dưới. */
+    .expert-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 10px;
+    }
+
+    .expert-card {
+        position: relative;
+        /* Viền nhẹ hơn — card 2 cột nhỏ, viền 2px + shadow + nhiều màu nhấn (badge vàng, tag
+           xanh, rating vàng) cùng lúc trông rối, giảm bớt 1 lớp để nhìn gọn gàng hơn. */
+        border-width: 1px;
+    }
+
+    .ec-body {
+        padding: 10px;
+    }
+
+    .ec-menu-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: absolute;
+        top: 8px;
+        right: 6px;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        border: none;
+        background: rgba(255, 255, 255, 0.85);
+        color: var(--text-primary);
+        font-size: 0.9rem;
+        font-weight: 800;
+        line-height: 1;
+        cursor: pointer;
+        z-index: 3;
+        box-shadow: var(--shadow-paper-sm);
+    }
+
+    /* .ec-header/.ec-info vốn là 2 lớp wrapper (flex) bao quanh avatar/tên/bằng cấp/đánh giá
+       cho layout desktop (avatar trái, info phải). display:contents "làm phẳng" chúng —
+       DOM giữ nguyên, chỉ bỏ khung box của riêng 2 lớp này — để avatar/tên/đánh giá trở
+       thành các ô độc lập, gán trực tiếp vào lưới .ec-body bên dưới bằng grid-area, xếp lại
+       đúng vị trí mong muốn (Tên → [Tag chuyên môn | Đánh giá] → Địa điểm/KN) mà KHÔNG phải
+       sửa cấu trúc HTML hay ảnh hưởng gì tới desktop (chỉ áp dụng trong media query này). */
+    .ec-header,
+    .ec-info {
+        display: contents;
+    }
+
+    .ec-body {
+        display: grid;
+        grid-template-columns: 1fr;
+        grid-template-areas:
+            "avatar"
+            "name"
+            "rating"
+            "tags"
+            "meta";
+        row-gap: 5px;
+        /* Khoảng cách ảnh -> tên tách riêng lớn hơn row-gap chung, cho card "thở" hơn thay
+           vì nội dung dồn sát mép ảnh ngay lập tức. */
+        padding-bottom: 6px;
+    }
+
+    .ec-name {
+        margin-top: 8px;
+    }
+
+    /* Badge "PeaceCat khuyên dùng": lần sửa trước vẫn dùng position:relative bên trong luồng
+       grid area "avatar" -> dù có margin âm để "kéo" nó lên đè ảnh, nó VẪN CHIẾM CHỖ thật sự
+       trong layout, đẩy/chồng lấn lên đúng hàng "tên" ngay sau đó (khiến tên bị che/cắt) —
+       lỗi giống hệt nút ⋮ trước khi sửa. Chuyển hẳn sang position:ABSOLUTE (định vị theo
+       .expert-card, giống nút ⋮) để nó thực sự nổi ĐÈ LÊN ảnh mà không chiếm bất kỳ không
+       gian nào trong luồng bố cục bên dưới — không thể ảnh hưởng tới tên được nữa. */
+    .ec-match-badge {
+        position: absolute;
+        top: 8px;
+        left: 8px;
+        z-index: 3;
+        font-size: 0.5rem;
+        padding: 2px 6px;
+        line-height: 1.3;
+        background: rgba(255, 249, 230, 0.95);
+        /* Chừa chỗ cho nút ⋮ (width 24px + right 6px) bên phải, không cho badge tràn dài
+           chạm vào nó — cho phép xuống 2 dòng thay vì ép 1 dòng dài sát mép. */
+        max-width: calc(100% - 42px);
+        white-space: normal;
+        border-radius: 8px;
+    }
+
+    .ec-avatar {
+        grid-area: avatar;
+        /* CHỈ ảnh mới kéo tràn ra khỏi padding 10px của .ec-body (đã thu nhỏ padding cho
+           card 2 cột) — bù width lại đúng phần đã kéo ra 2 bên (10px x 2 = 20px).
+           .expert-card có overflow:hidden nên ảnh tự bị cắt theo đúng góc bo của card. */
+        width: calc(100% + 20px);
+        margin: -10px -10px 8px -10px;
+        aspect-ratio: 1 / 1;
+        height: auto;
+        border-radius: 0;
+        border: none;
+        font-size: 2rem;
+    }
+
+    /* Thẻ <img> có sẵn inline style border-radius:50% (viết trực tiếp trong template cho
+       avatar tròn desktop) -> phải !important đè lại thành vuông, nếu không ảnh bị bo méo
+       thành hình oval/elip. */
+    .ec-avatar>img {
+        border-radius: 0 !important;
+    }
+
+    .ec-status-dot {
+        bottom: 6px;
+        right: 6px;
+        width: 12px;
+        height: 12px;
+    }
+
+    .ec-name {
+        grid-area: name;
+        font-size: 0.8rem;
+        line-height: 1.25;
+    }
+
+    /* Bằng cấp chung chung ("Chuyên gia tâm lý") không cần thiết ở card danh sách rút gọn —
+       xem đầy đủ khi mở hồ sơ. */
+    .ec-degree,
+    .ec-bio,
+    .ec-price-row,
+    .ec-actions {
+        display: none;
+    }
+
+    .ec-specialties {
+        grid-area: tags;
+        margin-bottom: 0;
+        align-self: center;
+    }
+
+    .ec-specialty {
+        font-size: 0.55rem;
+        padding: 1px 5px;
+        /* Tăng contrast chữ/nền — nền mint nhạt + chữ mint đậm trước đây hơi yếu tương phản,
+           đặc biệt khó đọc với tag dài. */
+        color: var(--mint-dark);
+        font-weight: 800;
+    }
+
+    .ec-specialty-more {
+        background: var(--kraft-light);
+        color: var(--text-secondary);
+        font-weight: 800;
+        cursor: pointer;
+    }
+
+    /* Rating cố định MỘT vị trí duy nhất (full-width, ngay dưới tên) cho MỌI card — tránh
+       tình trạng card có rating thật thì nằm 1 chỗ, card "0 sao" lại rơi xuống vị trí khác
+       (trước đây chia đôi hàng với tag) gây khó hiểu vị trí chuẩn ở đâu. */
+    .ec-rating {
+        grid-area: rating;
+        justify-self: start;
+        align-items: center;
+    }
+
+    .ec-rating-empty {
+        font-size: 0.68rem;
+        color: var(--text-secondary);
+        font-weight: 600;
+    }
+
+    .ec-stars {
+        font-size: 0.68rem;
+    }
+
+    .ec-rating-num {
+        font-size: 0.62rem;
+    }
+
+    .ec-sessions {
+        display: none;
+    }
+
+    .ec-meta {
+        grid-area: meta;
+        gap: 6px;
+        margin-bottom: 0;
+    }
+
+    .ec-meta-item {
+        font-size: 0.58rem;
+    }
+
+    /* Mỗi dòng lịch hẹn trước đây nhồi avatar+tên+badge+nút hành động chung 1 hàng ngang ->
+       phần tên/giờ hẹn (flex:1) bị ép còn rất hẹp, wrap qua rất nhiều dòng ngắn ("Phan /
+       Hoàng / Tú"). Đổi sang: hàng 1 = avatar+tên+badge, hàng 2 = giờ hẹn full-width, hàng 3
+       = nút hành động full-width căn trái (thay vì bị ép chung 1 dòng với mọi thứ khác). */
+    .mb-item {
+        flex-wrap: wrap;
+        gap: 6px 10px;
+        padding: 10px 0;
+    }
+
+    .mb-avatar {
+        font-size: 1.3rem;
+    }
+
+    .mb-name {
+        font-size: 0.86rem;
+    }
+
+    .mb-meta {
+        flex-basis: 100%;
+        font-size: 0.7rem;
+        order: 3;
+    }
+
+    .mb-actions {
+        flex-basis: 100%;
+        order: 4;
+        margin-top: 2px;
+    }
+
+    .mb-action-row {
+        justify-content: flex-start;
+    }
+
+    /* Ẩn hẳn banner đường dây nóng trên mobile (chỉ mobile — desktop vẫn giữ nguyên). */
+    .hotline-banner {
+        display: none;
+    }
+
+    .ai-match-banner {
+        flex-wrap: wrap;
+        padding: 12px 14px;
+        gap: 8px;
+    }
+
+    .amb-mascot {
+        font-size: 1.5rem;
+    }
+
+    .amb-text {
+        flex-basis: calc(100% - 40px);
+    }
+
+    .amb-text .at-title {
+        font-size: 0.82rem;
+    }
+
+    .amb-text .at-sub {
+        font-size: 0.7rem;
+    }
+
+    .amb-action {
+        flex-basis: 100%;
+        margin-left: 0;
+    }
+
+    .amb-action .btn-primary {
+        width: 100%;
+    }
+
     .stats-bar {
         grid-template-columns: repeat(2, 1fr);
     }
@@ -1447,11 +1837,71 @@
 }
 
 @media (max-width: 560px) {
+    /* Đổi hẳn bố cục: lưới 2x2 (4 bước vừa đúng 2 hàng x 2 cột) thay vì xếp dọc từng card
+       to xuống lần lượt — ẩn hẳn mô tả dài + tên tiếng Anh, chỉ giữ icon+tiêu đề để mỗi ô
+       đủ nhỏ gọn (bấm vào không có hành động gì, chỉ mang tính minh hoạ quy trình). */
     .sss-steps {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
     }
 
+    .sss-step-desc,
+    .sss-step-en {
+        display: none;
+    }
+
+    /* Chỉ thu gọn riêng cho mobile — desktop giữ nguyên kích thước cũ (không đụng ngoài
+       breakpoint này). */
     .session-structure-section {
-        padding: 20px;
+        padding: 16px 14px;
+    }
+
+    .sss-intro {
+        font-size: 0.82rem;
+        line-height: 1.5;
+        margin-bottom: 14px;
+    }
+
+    .sss-title {
+        font-size: 1rem;
+    }
+
+    .sss-sub {
+        font-size: 0.76rem;
+        margin-bottom: 14px;
+    }
+
+    .sss-step {
+        padding: 14px 12px;
+    }
+
+    .sss-step-badge {
+        width: 44px;
+        height: 44px;
+        margin-bottom: 8px;
+    }
+
+    .sss-step-icon {
+        font-size: 1.3rem;
+    }
+
+    .sss-step-num {
+        width: 19px;
+        height: 19px;
+        font-size: 0.62rem;
+    }
+
+    .sss-step-title {
+        font-size: 0.86rem;
+    }
+
+    .sss-step-en {
+        font-size: 0.65rem;
+        margin-bottom: 6px;
+    }
+
+    .sss-step-desc {
+        font-size: 0.74rem;
+        line-height: 1.4;
     }
 }

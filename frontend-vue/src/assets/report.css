@@ -232,6 +232,13 @@
     margin-bottom: 16px;
 }
 
+.report-charts-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
 .cc-header {
     display: flex;
     align-items: center;
@@ -896,6 +903,10 @@
         margin-left: 0;
         width: 100%;
         justify-content: center;
+    }
+
+    .report-charts-grid {
+        grid-template-columns: 1fr;
     }
 
     #radarTaskGrid {

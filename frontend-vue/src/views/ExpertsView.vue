@@ -410,23 +410,23 @@
           </div>
           <div style="max-height:360px;overflow-y:auto;">
             <div v-if="!visibleBookings.length" style="padding:16px 2px;color:var(--text-secondary);font-size:0.88rem;">{{ t('experts.myBookings.empty') }}</div>
-            <div v-for="b in visibleBookings" :key="b.id" style="display:flex;align-items:center;gap:14px;padding:12px 0;border-bottom:1px solid var(--kraft-light);">
-              <div style="font-size:1.6rem;flex:0 0 auto;">{{ b.expert_avatar || '👩‍⚕️' }}</div>
-              <div style="flex:1;min-width:0;">
-                <div style="font-weight:700;">{{ b.expert_name || t('experts.myBookings.defaultExpertName') }}</div>
-                <div style="font-size:0.82rem;color:var(--text-secondary);">{{ SESSION_CONFIG[b.session_type] ? t(SESSION_CONFIG[b.session_type].labelKey) : b.session_type }} · {{ formatDateTime(b.starts_at) }} · {{ t('experts.myBookings.minutesUnit', { n: b.duration_minutes }) }}</div>
+            <div v-for="b in visibleBookings" :key="b.id" class="mb-item">
+              <div class="mb-avatar">{{ b.expert_avatar || '👩‍⚕️' }}</div>
+              <div class="mb-info">
+                <div class="mb-name">{{ b.expert_name || t('experts.myBookings.defaultExpertName') }}</div>
+                <div class="mb-meta">{{ SESSION_CONFIG[b.session_type] ? t(SESSION_CONFIG[b.session_type].labelKey) : b.session_type }} · {{ formatDateTime(b.starts_at) }} · {{ t('experts.myBookings.minutesUnit', { n: b.duration_minutes }) }}</div>
               </div>
-              <span style="padding:4px 10px;border-radius:999px;font-size:0.72rem;font-weight:800;white-space:nowrap;" :style="{ color: bookingStatusBadge(b).color, background: bookingStatusBadge(b).bg }">{{ t(bookingStatusBadge(b).labelKey) }}</span>
-              <div style="flex:0 0 auto;">
+              <span class="mb-badge" :style="{ color: bookingStatusBadge(b).color, background: bookingStatusBadge(b).bg }">{{ t(bookingStatusBadge(b).labelKey) }}</span>
+              <div class="mb-actions">
                 <div v-if="b.status === 'completed'">
                   <div v-if="b.review_rating" style="color:#f5a623;font-weight:800;white-space:nowrap;">{{ '★'.repeat(b.review_rating) }}</div>
                   <button v-else class="btn-primary" style="padding:6px 14px;font-size:0.82rem;" @click="openReviewModal(b.id, b.expert_name)">{{ t('experts.myBookings.reviewBtn') }}</button>
                 </div>
-                <div v-else-if="b.status === 'pending_payment'" style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;">
+                <div v-else-if="b.status === 'pending_payment'" class="mb-action-row">
                   <button class="btn-primary" style="padding:6px 12px;font-size:0.8rem;" @click="reopenPayment(b.id, b.expert_id)">{{ t('experts.myBookings.payBtn') }}</button>
                   <button class="btn-outline" style="padding:6px 12px;font-size:0.8rem;" @click="cancelMyBooking(b.id)">{{ t('experts.myBookings.cancelBtn') }}</button>
                 </div>
-                <div v-else-if="['pending', 'awaiting_expert', 'confirmed'].includes(b.status)" style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:flex-end;">
+                <div v-else-if="['pending', 'awaiting_expert', 'confirmed'].includes(b.status)" class="mb-action-row">
                   <button v-if="b.status === 'confirmed' && b.zoom_join_url" type="button" class="btn-primary" style="padding:6px 12px;font-size:0.8rem;" @click="openZoomRoom(b.id)">{{ t('experts.myBookings.zoomBtn') }}</button>
                   <button class="btn-outline" style="padding:6px 12px;font-size:0.8rem;" @click="cancelMyBooking(b.id)">{{ t('experts.myBookings.cancelBtn') }}</button>
                 </div>
@@ -476,12 +476,31 @@
       </section>
 
       <div class="filter-section">
-        <div class="filter-row">
+        <div class="filter-row filter-row-buttons">
           <button v-for="f in FILTER_BUTTONS" :key="f.id" class="filter-btn" :class="{ active: currentFilter === f.id }" @click="filterExperts(f.id)">{{ t(f.labelKey) }}</button>
         </div>
         <div class="filter-row">
           <div class="search-wrap">
+            <!-- Mobile: thay hàng nút filter (chiếm nhiều dòng) bằng 1 nút lọc gọn cạnh ô
+                 tìm kiếm, bấm vào mở dropdown chọn tag — desktop vẫn giữ hàng nút cũ. -->
+            <button
+              type="button"
+              class="filter-toggle-btn"
+              :class="{ active: currentFilter !== 'all' }"
+              @click.stop="showFilterMenu = !showFilterMenu"
+              :aria-expanded="showFilterMenu"
+              :aria-label="t('experts.filterMenuLabel')"
+            >⚙️</button>
             <input type="text" class="search-input" :placeholder="t('experts.searchPlaceholder')" :value="search" @input="search = $event.target.value">
+            <div v-if="showFilterMenu" class="filter-dropdown" @click.stop>
+              <button
+                v-for="f in FILTER_BUTTONS"
+                :key="f.id"
+                class="filter-dropdown-item"
+                :class="{ active: currentFilter === f.id }"
+                @click="filterExperts(f.id); showFilterMenu = false"
+              >{{ t(f.labelKey) }}</button>
+            </div>
           </div>
           <select class="sort-select" :value="currentSort" @change="currentSort = $event.target.value">
             <option value="rating">{{ t('experts.sort.rating') }}</option>
@@ -497,33 +516,43 @@
         <div v-if="!filteredExperts.length" class="paper-card" style="padding:24px;text-align:center;color:var(--text-secondary);grid-column:1 / -1;">
           {{ t('experts.noExpertsMatch') }}
         </div>
-        <div v-for="expert in filteredExperts" :key="expert.id" class="paper-card expert-card" @click="openProfileModal(expert.id)">
+        <div v-for="expert in filteredExperts" :key="expert.id" class="paper-card expert-card" @click="handleExpertCardClick(expert.id)">
           <div class="ec-top-banner" :class="expert.status"></div>
+          <!-- Mobile: nút 3 chấm mở hồ sơ (card ấn vào thẳng để đặt lịch trên mobile, xem
+               hồ sơ chi tiết phải qua nút riêng này) — CSS ẩn nút này ở desktop. -->
+          <button type="button" class="ec-menu-btn" @click.stop="openProfileModal(expert.id)" :aria-label="t('experts.expertCard.viewProfileBtn')">⋮</button>
           <div class="ec-body">
             <div v-if="expert.matched" class="ec-match-badge">{{ t('experts.expertCard.matchedBadge') }}</div>
             <div class="ec-header">
               <div class="ec-avatar">
                 <img v-if="avatarUrls[expert.id]" :src="avatarUrls[expert.id]" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:block;">
                 <template v-else>{{ expert.avatar }}</template>
-                <div class="ec-status-dot" :class="expert.status"></div>
+                <div class="ec-status-dot" :class="expert.status" :title="statusDotLabel(expert.status)"></div>
               </div>
               <div class="ec-info">
                 <div class="ec-name">{{ expert.name }}</div>
                 <div class="ec-degree">{{ expert.degree }}</div>
-                <div class="ec-rating">
+                <div v-if="expert.rating" class="ec-rating">
                   <span class="ec-stars">{{ '⭐'.repeat(Math.max(1, Math.round(expert.rating || 0))) }}</span>
                   <span class="ec-rating-num">{{ expert.rating }}</span>
                   <span class="ec-sessions">{{ t('experts.expertCard.sessionsUnit', { n: expert.sessions }) }}</span>
                 </div>
+                <div v-else class="ec-rating ec-rating-empty">{{ t('experts.expertCard.noRatingYet') }}</div>
               </div>
             </div>
             <div class="ec-specialties">
-              <span v-for="s in expert.specialties" :key="s" class="ec-specialty">{{ s }}</span>
+              <span v-for="s in expert.specialties.slice(0, 3)" :key="s" class="ec-specialty">{{ s }}</span>
+              <span
+                v-if="expert.specialties.length > 3"
+                class="ec-specialty ec-specialty-more"
+                :title="expert.specialties.slice(3).join(', ')"
+                @click.stop="openProfileModal(expert.id)"
+              >+{{ expert.specialties.length - 3 }}</span>
             </div>
             <p class="ec-bio">{{ expert.bio }}</p>
             <div class="ec-meta">
-              <div class="ec-meta-item">📍 {{ expert.location }}</div>
-              <div class="ec-meta-item">📅 {{ t('experts.expertCard.yearsExp', { n: expert.experience }) }}</div>
+              <div class="ec-meta-item">● {{ expert.location }}</div>
+              <div class="ec-meta-item">▣ {{ t('experts.expertCard.yearsExp', { n: expert.experience }) }}</div>
             </div>
             <div class="ec-price-row">
               <div>
@@ -596,6 +625,10 @@ const aiMatch = ref(null);
 const upcomingBooking = ref(null);
 const currentFilter = ref('all');
 const currentSort = ref('rating');
+const showFilterMenu = ref(false);
+function closeFilterMenu() {
+  showFilterMenu.value = false;
+}
 const search = ref('');
 const currentExpertId = ref(null);
 const bookingMonthOffset = ref(0);
@@ -1074,6 +1107,17 @@ async function openZoomRoom(bookingId) {
 // ============================================================
 // PROFILE MODAL
 // ============================================================
+// Mobile: ấn thẳng vào card = đặt lịch ngay (xem hồ sơ chi tiết phải qua nút ⋮ riêng).
+// Desktop/tablet giữ hành vi cũ: ấn card = xem hồ sơ. Dùng matchMedia thay vì lưu cố định
+// lúc mount để vẫn đúng khi người dùng resize/xoay ngang màn hình.
+function handleExpertCardClick(id) {
+  if (window.matchMedia('(max-width: 600px)').matches) {
+    openBookingModal(id);
+  } else {
+    openProfileModal(id);
+  }
+}
+
 function openProfileModal(id) {
   currentExpertId.value = id;
   profileOpen.value = true;
@@ -1097,6 +1141,17 @@ const upcomingBookingsList = computed(() => myBookings.items.filter(isUpcomingBo
 const visibleBookings = computed(() => (myBookings.tab === 'upcoming' ? upcomingBookingsList.value : myBookings.items));
 function bookingStatusBadge(b) {
   return BOOKING_STATUS_BADGE[b.status] || BOOKING_STATUS_BADGE.pending;
+}
+
+// Chú thích ý nghĩa chấm màu trạng thái hoạt động trên avatar — hiện qua tooltip vì màu sắc
+// đơn thuần (xanh/cam/xám) không đủ tự giải thích, người dùng dễ phải đoán ý nghĩa.
+const STATUS_DOT_LABEL_KEYS = {
+  online: 'experts.expertCard.statusOnline',
+  busy: 'experts.expertCard.statusBusy',
+  offline: 'experts.expertCard.statusOffline'
+};
+function statusDotLabel(status) {
+  return t(STATUS_DOT_LABEL_KEYS[status] || STATUS_DOT_LABEL_KEYS.offline);
 }
 
 async function loadMyBookings() {
@@ -1182,9 +1237,11 @@ function handleBookingChanged() {
 onMounted(() => {
   init();
   window.addEventListener('peaceflow:booking-changed', handleBookingChanged);
+  document.addEventListener('click', closeFilterMenu);
 });
 onBeforeUnmount(() => {
   window.removeEventListener('peaceflow:booking-changed', handleBookingChanged);
+  document.removeEventListener('click', closeFilterMenu);
   stopPaymentCountdown();
   stopPaymentPoll();
   // Lưới an toàn: nếu người dùng điều hướng sang trang khác trong lúc modal (đặt lịch/hồ sơ/

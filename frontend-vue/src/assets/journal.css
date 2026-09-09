@@ -1319,6 +1319,14 @@
     .journal-layout {
         grid-template-columns: 1fr;
     }
+
+    /* Grid item mặc định min-width:auto (co theo NỘI DUNG, không co nhỏ hơn được) -> dù cột
+       đã ép về 1fr, cột sidebar vẫn giữ nguyên độ rộng tự nhiên của nội dung bên trong (câu
+       gợi ý dài không được phép wrap xuống dòng), tràn ngang khỏi màn hình. min-width:0 mới
+       cho phép grid item co lại đúng theo chiều rộng khả dụng, chữ bên trong tự wrap lại. */
+    .journal-layout>div {
+        min-width: 0;
+    }
 }
 
 @media(max-width:600px) {

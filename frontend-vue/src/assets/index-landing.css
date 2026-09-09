@@ -1368,11 +1368,66 @@
 }
 
 @media(max-width:480px) {
+    /* Giữ 2 cột (thay vì xếp dọc 1 cột) + thu nhỏ padding/chữ trong mỗi thẻ để cả cụm 4
+       bước "Cách hoạt động" gọn lại, vừa trong 1 màn hình thay vì phải cuộn qua nhiều
+       thẻ cao gần hết màn hình. */
     .steps-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+        margin-top: 24px;
     }
 
+    .step-card {
+        padding: 14px 10px;
+    }
+
+    .step-icon {
+        font-size: 1.6rem;
+        margin-bottom: 6px;
+    }
+
+    .step-title {
+        font-size: 0.76rem;
+        margin-bottom: 3px;
+    }
+
+    .step-desc {
+        font-size: 0.64rem;
+        line-height: 1.35;
+    }
+
+    /* Section "Tính năng": thay vì xếp dọc từng thẻ cao gần hết màn hình phải cuộn dài, đổi
+       sang thanh cuộn NGANG có snap — mỗi thẻ chiếm phần lớn chiều rộng màn hình, lướt qua
+       lại xem các tính năng khác, kèm hé lộ mép thẻ kế tiếp để gợi ý còn nội dung bên phải. */
+    .features-grid {
+        display: flex;
+        grid-template-columns: unset;
+        overflow-x: auto;
+        scroll-snap-type: x mandatory;
+        gap: 14px;
+        padding-bottom: 6px;
+        margin-left: -5%;
+        margin-right: -5%;
+        /* Padding 2 bên = (100% - 82% chiều rộng thẻ) / 2 = 9% -> để scroll-snap-align:center
+           canh đúng giữa được cả với thẻ ĐẦU và thẻ CUỐI (không đủ khoảng trống 2 bên thì
+           2 thẻ ngoài cùng sẽ bị lệch khỏi tâm vì hết chỗ để cuộn thêm). */
+        padding-left: 9%;
+        padding-right: 9%;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .features-grid::-webkit-scrollbar {
+        display: none;
+    }
+
+    .feature-card {
+        flex: 0 0 82%;
+        scroll-snap-align: center;
+    }
+
+    /* 4 khối con (brand + 3 cột liên kết) đúng khớp lưới 2x2, gọn hơn xếp dọc 1 cột dài. */
     .footer-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 24px 16px;
     }
 }

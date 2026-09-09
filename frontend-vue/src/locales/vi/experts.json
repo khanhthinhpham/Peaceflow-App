@@ -74,6 +74,7 @@
       "trauma": "🛡️ Trauma"
     },
     "searchPlaceholder": "🔍 Tìm chuyên gia...",
+    "filterMenuLabel": "Lọc theo chuyên môn",
     "sort": {
       "rating": "Sắp xếp: Đánh giá cao nhất",
       "sessions": "Nhiều phiên nhất",
@@ -85,6 +86,10 @@
     "expertCard": {
       "matchedBadge": "✨ PeaceCat khuyên dùng",
       "sessionsUnit": "({n} phiên)",
+      "noRatingYet": "Chưa có đánh giá",
+      "statusOnline": "Đang rảnh, có thể đặt lịch ngay",
+      "statusBusy": "Đang bận, cần đặt lịch trước",
+      "statusOffline": "Hiện không hoạt động",
       "yearsExp": "{n} năm kinh nghiệm",
       "newClientLabel": "Khám mới: {price}",
       "returningClientLabel": "Tái khám: {price}",

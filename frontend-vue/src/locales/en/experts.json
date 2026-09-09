@@ -74,6 +74,7 @@
       "trauma": "🛡️ Trauma"
     },
     "searchPlaceholder": "🔍 Search for an expert...",
+    "filterMenuLabel": "Filter by specialty",
     "sort": {
       "rating": "Sort by: Highest rated",
       "sessions": "Most sessions",
@@ -85,6 +86,10 @@
     "expertCard": {
       "matchedBadge": "✨ PeaceCat recommends",
       "sessionsUnit": "({n} sessions)",
+      "noRatingYet": "No ratings yet",
+      "statusOnline": "Available now, can book right away",
+      "statusBusy": "Busy, book in advance",
+      "statusOffline": "Currently unavailable",
       "yearsExp": "{n} years of experience",
       "newClientLabel": "New client: {price}",
       "returningClientLabel": "Returning client: {price}",

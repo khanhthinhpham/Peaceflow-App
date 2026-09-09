@@ -57,7 +57,7 @@
             </div>
           </div>
 
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+          <div class="report-charts-grid">
             <div class="paper-card chart-card" style="margin-bottom:0;">
               <div class="cc-title" style="margin-bottom:10px;">{{ t('report.radar.title') }}</div>
               <div class="radar-wrap">
