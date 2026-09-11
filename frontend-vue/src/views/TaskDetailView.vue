@@ -33,7 +33,7 @@
         <div class="detail-left">
           <div class="paper-card task-hero" :class="`cat-${sectionId}`">
             <div v-if="task.code && !brokenTaskImage" class="th-banner">
-              <img :src="`/task-images/${task.code}.png`" :alt="task.title" class="th-banner-img" @error="brokenTaskImage = true">
+              <img :src="`/task-images/${task.code}.png`" :alt="task.title" class="th-banner-img" loading="lazy" @error="brokenTaskImage = true">
             </div>
             <div class="th-title-row">
               <div class="th-icon" :class="sectionId">{{ taskIcon }}</div>

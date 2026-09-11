@@ -150,7 +150,7 @@
             >
               <div class="tc-top">
                 <div class="tc-icon" :class="getTaskSectionId(task)">
-                  <img v-if="task.code && !brokenTaskImages.has(task.code)" :src="`/task-images/${task.code}.png`" :alt="task.title" class="tc-icon-img" @error="brokenTaskImages.add(task.code)">
+                  <img v-if="task.code && !brokenTaskImages.has(task.code)" :src="`/task-images-thumb/${task.code}.png`" :alt="task.title" class="tc-icon-img" loading="lazy" @error="brokenTaskImages.add(task.code)">
                   <template v-else>{{ getTaskIcon(task) }}</template>
                 </div>
                 <div class="tc-info">
