@@ -99,6 +99,12 @@
     "footer": {
       "brandDesc": "A mental health support platform that helps you get through stress and find peace every day through fun, gamified exercises.",
       "hotlineLabel": "24/7 mental health support hotline",
+      "legalTitle": "Legal information",
+      "legalCompany": "Company",
+      "legalTaxId": "Business registration No.",
+      "legalLicenseDate": "License issued",
+      "legalRepresentative": "Legal representative",
+      "legalField": "Business field",
       "aboutTitle": "About PeaceFlow",
       "aboutStory": "Our story",
       "aboutTeam": "Our expert team",

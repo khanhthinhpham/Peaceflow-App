@@ -37,7 +37,8 @@
     </div>
 
     <div class="rv-result" :class="{ active: phase === 'result' }">
-      <div class="emoji">✅</div>
+      <img v-if="ravenImageUrl && !brokenRavenImage" :src="ravenImageUrl" :alt="scored?.iqLabel || ''" class="rv-result-img" @error="brokenRavenImage = true">
+      <div v-else class="emoji">✅</div>
       <h2>{{ t('ravenTest.result.completedTitle') }}</h2>
       <div class="rv-card" style="text-align:left;">
         <div><strong>{{ t('ravenTest.result.rawScoreLabel') }}</strong> {{ t('ravenTest.result.rawScoreDetail', { total: scored?.rawTotal, a: scored?.bySet.A, ab: scored?.bySet.AB, b: scored?.bySet.B }) }}</div>
@@ -97,6 +98,20 @@ const answers = ref(new Array(ITEMS.length).fill(null));
 const respondentInfo = ref({ name: '', age: '', note: '' });
 
 const scored = ref(null);
+const brokenRavenImage = ref(false);
+// Quy 7 mức IQ (RAVEN_IQ_BANDS) về 5 mức ảnh minh hoạ sẵn có (level-0..4, cùng thang
+// với 11 bài test tâm lý khác) — điểm càng thấp càng đáng chú ý (level-4), từ "trung
+// bình" trở lên coi là ổn (level-0).
+const ravenLevelClass = computed(() => {
+  const ss = scored.value?.standardScore;
+  if (ss === null || ss === undefined) return null;
+  if (ss <= 69) return 'level-4';
+  if (ss <= 79) return 'level-3';
+  if (ss <= 89) return 'level-2';
+  if (ss <= 109) return 'level-1';
+  return 'level-0';
+});
+const ravenImageUrl = computed(() => (ravenLevelClass.value ? `/assessment-images/raven/${ravenLevelClass.value}.png` : null));
 const saveStatus = ref('');
 const showAttachCard = ref(true);
 const attachStatus = ref('');
@@ -155,6 +170,7 @@ async function finish() {
 
   const info = respondentInfo.value;
   scored.value = scoreRavenTest(answers.value, info.age, info.ageMonths, locale.value);
+  brokenRavenImage.value = false;
 
   // severity/answerLabel/note dưới đây là dữ liệu LƯU VÀO HỒ SƠ cho chuyên gia (người Việt) xem
   // khi chấm bài — không phải text hiển thị trên trang này, nên cố ý giữ nguyên tiếng Việt bất kể
@@ -294,6 +310,7 @@ onMounted(async () => {
 .rv-result { display: none; text-align: center; padding: 30px 18px; }
 .rv-result.active { display: block; }
 .rv-result .emoji { font-size: 3rem; margin-bottom: 10px; }
+.rv-result-img { display: block; max-width: 320px; width: 100%; height: auto; margin: 0 auto 14px; border-radius: var(--border-radius-sm, 10px); }
 .rv-result h2 { margin: 0 0 8px; }
 .rv-result p { color: var(--text-secondary); line-height: 1.6; }
 @media (max-width: 480px) {

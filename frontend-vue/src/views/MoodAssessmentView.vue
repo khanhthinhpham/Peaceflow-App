@@ -247,17 +247,24 @@
         </div>
 
         <div class="paper-card result-header">
-          <div class="rh-mascot">{{ result.icon }}</div>
-          <div class="rh-title">{{ t('moodAssessment.result.title', { testName: result.testName }) }}</div>
-          <div class="rh-subtitle">{{ resultSubtitle }}</div>
-        </div>
+          <div v-if="resultImageUrl && !brokenResultImage" class="rh-banner">
+            <img :src="resultImageUrl" :alt="result.testName" class="rh-banner-img" @error="brokenResultImage = true">
+          </div>
+          <div class="rh-top">
+            <div v-if="!resultImageUrl || brokenResultImage" class="rh-mascot">{{ result.icon }}</div>
+            <div>
+              <div class="rh-title">{{ t('moodAssessment.result.title', { testName: result.testName }) }}</div>
+              <div class="rh-subtitle">{{ resultSubtitle }}</div>
+            </div>
+          </div>
 
-        <div class="result-scores-grid" :class="`rsg-${Math.min(3, result.cards.length)}`">
-          <div v-for="card in result.cards" :key="card.key" class="rs-card" :class="card.levelClass">
-            <div class="rs-icon">{{ card.icon }}</div>
-            <div class="rs-label">{{ card.displayLabel }}</div>
-            <div><span class="rs-score">{{ card.score }}</span><span class="rs-max">/ {{ result.maxScore }}</span></div>
-            <div class="rs-level-badge" style="background:rgba(255,255,255,0.4); border:1px solid currentColor;">{{ card.levelLabel }}</div>
+          <div class="result-scores-grid" :class="`rsg-${Math.min(3, result.cards.length)}`">
+            <div v-for="card in result.cards" :key="card.key" class="rs-card" :class="card.levelClass">
+              <div class="rs-icon">{{ card.icon }}</div>
+              <div class="rs-label">{{ card.displayLabel }}</div>
+              <div><span class="rs-score">{{ card.score }}</span><span class="rs-max">/ {{ result.maxScore }}</span></div>
+              <div class="rs-level-badge" style="background:rgba(255,255,255,0.4); border:1px solid currentColor;">{{ card.levelLabel }}</div>
+            </div>
           </div>
         </div>
 
@@ -392,6 +399,11 @@ const currentOptions = computed(() => currentQuestion.value?.likertOptions || cu
 const progressPct = computed(() => (currentTest.value ? Math.round((currentQIndex.value / currentTest.value.totalQ) * 100) : 0));
 const displayedProgressPct = computed(() => (forceFullProgress.value ? 100 : progressPct.value));
 const resultSubtitle = computed(() => `${resultSubtitleBase.value}${resultSaveNote.value}`);
+const brokenResultImage = ref(false);
+const resultImageUrl = computed(() => {
+  if (!result.value?.testId || !result.value?.overallLevelClass) return null;
+  return `/assessment-images/${result.value.testId}/${result.value.overallLevelClass}.png`;
+});
 
 function printResult() {
   window.print();
@@ -805,6 +817,14 @@ function finishTest() {
     });
   }
 
+  const overallSeverity = keys
+    .map((key) => {
+      const s = subScores[key];
+      const levelConfig = s.config.levels.find((l) => s.score <= l.max) || s.config.levels[s.config.levels.length - 1];
+      return { key, score: s.score, label: levelConfig.label, className: levelConfig.class };
+    })
+    .sort((left, right) => getSeverityRank(right.className) - getSeverityRank(left.className))[0];
+
   result.value = {
     testId: currentTestId.value,
     testName: testData.name,
@@ -813,17 +833,11 @@ function finishTest() {
     cards,
     interpretation,
     comparison,
-    isWarning
+    isWarning,
+    overallLevelClass: overallSeverity?.className || 'level-0'
   };
+  brokenResultImage.value = false;
   view.value = 'result';
-
-  const overallSeverity = keys
-    .map((key) => {
-      const s = subScores[key];
-      const levelConfig = s.config.levels.find((l) => s.score <= l.max) || s.config.levels[s.config.levels.length - 1];
-      return { key, score: s.score, label: levelConfig.label, className: levelConfig.class };
-    })
-    .sort((left, right) => getSeverityRank(right.className) - getSeverityRank(left.className))[0];
 
   onAssessmentFinished({
     testId: currentTestId.value,

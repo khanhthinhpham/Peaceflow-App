@@ -332,6 +332,16 @@
           <a href="/docs/thong-tin-ho-tro-truc-tuyen.pdf" target="_blank" rel="noopener" class="footer-link">{{ t('landing.footer.supportPolicyOnlineSupport') }}</a>
           <a href="/docs/phuong-thuc-cung-cap-cham-dut-hoan-tien.pdf" target="_blank" rel="noopener" class="footer-link">{{ t('landing.footer.supportPolicyServiceTerms') }}</a>
         </div>
+        <div>
+          <div class="footer-col-title">{{ t('landing.footer.legalTitle') }}</div>
+          <div class="footer-legal">
+            <div>{{ t('landing.footer.legalCompany') }}: Công ty TNHH Minh Vision</div>
+            <div>{{ t('landing.footer.legalTaxId') }}: 2902268055</div>
+            <div>{{ t('landing.footer.legalLicenseDate') }}: 16/03/2026</div>
+            <div>{{ t('landing.footer.legalRepresentative') }}: Phạm Khánh Thịnh</div>
+            <div>{{ t('landing.footer.legalField') }}: Tư vấn chiến lược kinh doanh, chuyển đổi số và Digital Marketing</div>
+          </div>
+        </div>
       </div>
       <div style="border-top:1px solid rgba(255,255,255,0.1);padding-top:24px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;">
         <div style="font-size:0.75rem;color:rgba(255,255,255,0.5);">{{ t('landing.footer.copyright') }}</div>

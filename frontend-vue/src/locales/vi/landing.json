@@ -99,6 +99,12 @@
     "footer": {
       "brandDesc": "Nền tảng hỗ trợ sức khỏe tinh thần, giúp bạn vượt qua căng thẳng, tìm lại sự bình yên mỗi ngày bằng các nhiệm vụ game hóa thú vị.",
       "hotlineLabel": "Đường dây nóng hỗ trợ tâm lý 24/7",
+      "legalTitle": "Thông tin pháp lý",
+      "legalCompany": "Công ty",
+      "legalTaxId": "Mã số doanh nghiệp",
+      "legalLicenseDate": "Ngày cấp giấy phép",
+      "legalRepresentative": "Người đại diện pháp luật",
+      "legalField": "Lĩnh vực hoạt động",
       "aboutTitle": "Về PeaceFlow",
       "aboutStory": "Câu chuyện của chúng tôi",
       "aboutTeam": "Đội ngũ chuyên gia",

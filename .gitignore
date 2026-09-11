@@ -31,6 +31,7 @@ client_secret_*.json
 # ban nen giu ban goc, khong can day len GitHub
 /Ảnh/
 /Ảnh.zip
+/Ảnh bài test/
 
 # File binary/tham khao ca nhan nam o goc repo - khong phai asset app can deploy
 # (chi anchor o goc "/" de KHONG anh huong file cung ten trong frontend-vue/public/docs/)
