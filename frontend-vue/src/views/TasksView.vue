@@ -149,7 +149,10 @@
               @click="goToTask(task)"
             >
               <div class="tc-top">
-                <div class="tc-icon" :class="getTaskSectionId(task)">{{ getTaskIcon(task) }}</div>
+                <div class="tc-icon" :class="getTaskSectionId(task)">
+                  <img v-if="task.code && !brokenTaskImages.has(task.code)" :src="`/task-images/${task.code}.png`" :alt="task.title" class="tc-icon-img" @error="brokenTaskImages.add(task.code)">
+                  <template v-else>{{ getTaskIcon(task) }}</template>
+                </div>
                 <div class="tc-info">
                   <div class="tc-name">{{ task.title || t('tasksPage.card.defaultTitle') }}</div>
                   <div class="tc-meta">
@@ -202,6 +205,7 @@ const router = useRouter();
 const allTasks = ref([]);
 const dashboard = ref(null);
 const recommendedIds = reactive(new Set());
+const brokenTaskImages = reactive(new Set());
 const aiExercises = ref([]);
 const activeFilter = ref('all');
 const searchQuery = ref('');

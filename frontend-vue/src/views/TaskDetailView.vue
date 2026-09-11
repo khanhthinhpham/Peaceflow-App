@@ -32,10 +32,15 @@
         <!-- LEFT COLUMN -->
         <div class="detail-left">
           <div class="paper-card task-hero" :class="`cat-${sectionId}`">
-            <div class="th-top">
+            <div v-if="task.code && !brokenTaskImage" class="th-banner">
+              <img :src="`/task-images/${task.code}.png`" :alt="task.title" class="th-banner-img" @error="brokenTaskImage = true">
+            </div>
+            <div class="th-title-row">
               <div class="th-icon" :class="sectionId">{{ taskIcon }}</div>
+              <div class="th-title">{{ task.title }}</div>
+            </div>
+            <div class="th-top">
               <div class="th-info">
-                <div class="th-title">{{ task.title }}</div>
                 <div class="th-meta">
                   <span class="badge-pill" :class="badgeClass">{{ difficultyLabel }}</span>
                   <span class="badge-pill badge-mint">⏱ {{ durationLabel }}</span>
@@ -281,6 +286,7 @@ const auth = useAuthStore();
 
 const allTasks = ref([]);
 const task = ref(null);
+const brokenTaskImage = ref(false);
 const guestEmergencyMode = ref(false);
 const emergencyOpen = ref(false);
 const confettiContainerEl = ref(null);
@@ -574,6 +580,7 @@ function goToTask(candidate) {
 
 function loadTaskInto(nextTask, recommendedIds = new Set()) {
   task.value = { ...nextTask, recommended: recommendedIds.has(nextTask.id) };
+  brokenTaskImage.value = false;
   totalSeconds.value = Math.max(60, Number(nextTask.duration_minutes || 5) * 60);
   remainingSeconds.value = totalSeconds.value;
   isPaused.value = false;
