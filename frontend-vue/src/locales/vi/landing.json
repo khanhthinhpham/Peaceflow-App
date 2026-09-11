@@ -114,7 +114,13 @@
       "supportFaq": "Câu hỏi thường gặp",
       "supportPrivacy": "Chính sách bảo mật",
       "supportTerms": "Điều khoản sử dụng",
-      "supportOperatingPolicy": "Tổng hợp chính sách hoạt động",
+      "supportPolicyConditions": "Điều kiện & hạn chế cung cấp dịch vụ",
+      "supportPolicyPricing": "Chính sách giá",
+      "supportPolicyPayment": "Chính sách thanh toán",
+      "supportPolicyPrivacyDoc": "Chính sách bảo mật",
+      "supportPolicyComplaints": "Phương thức tiếp nhận & xử lý khiếu nại",
+      "supportPolicyOnlineSupport": "Thông tin hỗ trợ trực tuyến",
+      "supportPolicyServiceTerms": "Phương thức cung cấp, chấm dứt dịch vụ & hoàn tiền",
       "copyright": "© 2026 PeaceFlow. Mọi quyền được bảo lưu."
     },
     "slogans": [

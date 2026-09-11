@@ -114,7 +114,13 @@
       "supportFaq": "FAQ",
       "supportPrivacy": "Privacy policy",
       "supportTerms": "Terms of service",
-      "supportOperatingPolicy": "Operating policy summary",
+      "supportPolicyConditions": "Service conditions & restrictions",
+      "supportPolicyPricing": "Pricing policy",
+      "supportPolicyPayment": "Payment policy",
+      "supportPolicyPrivacyDoc": "Privacy policy",
+      "supportPolicyComplaints": "Complaint handling procedure",
+      "supportPolicyOnlineSupport": "Online support information",
+      "supportPolicyServiceTerms": "Service delivery, termination & refund policy",
       "copyright": "© 2026 PeaceFlow. All rights reserved."
     },
     "slogans": [
