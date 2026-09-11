@@ -324,9 +324,6 @@
         <div>
           <div class="footer-col-title">{{ t('landing.footer.supportTitle') }}</div>
           <router-link to="/emergency" class="footer-link">{{ t('landing.footer.supportEmergency') }}</router-link>
-          <a href="#" class="footer-link">{{ t('landing.footer.supportFaq') }}</a>
-          <a href="#" class="footer-link">{{ t('landing.footer.supportPrivacy') }}</a>
-          <a href="#" class="footer-link">{{ t('landing.footer.supportTerms') }}</a>
           <a href="/docs/dieu-kien-han-che-dich-vu.pdf" target="_blank" rel="noopener" class="footer-link">{{ t('landing.footer.supportPolicyConditions') }}</a>
           <a href="/docs/chinh-sach-gia.pdf" target="_blank" rel="noopener" class="footer-link">{{ t('landing.footer.supportPolicyPricing') }}</a>
           <a href="/docs/chinh-sach-thanh-toan.pdf" target="_blank" rel="noopener" class="footer-link">{{ t('landing.footer.supportPolicyPayment') }}</a>
