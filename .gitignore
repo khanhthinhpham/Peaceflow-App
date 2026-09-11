@@ -23,3 +23,20 @@ postgres_data/
 
 # Script mo may ao Android - duong dan SDK co dinh theo may, khong dung chung duoc
 run-emulator.bat
+
+# Secret OAuth Google - KHONG duoc push len git (xem canh bao rieng)
+client_secret_*.json
+
+# Anh goc chua nen dung de tao frontend-vue/public/task-images/ - qua nang (>50MB),
+# ban nen giu ban goc, khong can day len GitHub
+/Ảnh/
+/Ảnh.zip
+
+# File binary/tham khao ca nhan nam o goc repo - khong phai asset app can deploy
+# (chi anchor o goc "/" de KHONG anh huong file cung ten trong frontend-vue/public/docs/)
+/*.pdf
+/*.docx
+/*.epub
+/*.xlsx
+/*.csv
+/app-debug.apk
