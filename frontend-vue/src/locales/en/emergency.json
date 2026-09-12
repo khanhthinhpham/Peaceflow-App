@@ -131,6 +131,7 @@
       "offline": "⚫ Offline",
       "chatBtn": "Chat now",
       "scheduleBtn": "Book",
+      "emptyState": "No experts to show right now.",
       "viewAllBtn": "View all experts →"
     },
     "safePlan": {

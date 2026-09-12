@@ -8,6 +8,10 @@
 
 /* ===== MAIN ===== */
 .main-content {
+    /* style.css (global) vẫn có rule .main-content { margin-left: var(--sidebar-width) }
+       — phải override thẳng bằng 0 ở đây, không thể chỉ "không khai báo" để nó tự mất,
+       vì rule global đó vẫn thắng nếu trang này không tự đặt lại giá trị. */
+    margin-left: 0;
     padding: 28px;
     min-height: 100vh;
 }

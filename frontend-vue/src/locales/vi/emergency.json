@@ -131,6 +131,7 @@
       "offline": "⚫ Offline",
       "chatBtn": "Chat ngay",
       "scheduleBtn": "Đặt lịch",
+      "emptyState": "Chưa có chuyên gia nào hiển thị lúc này.",
       "viewAllBtn": "Xem tất cả chuyên gia →"
     },
     "safePlan": {

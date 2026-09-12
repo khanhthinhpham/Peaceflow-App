@@ -149,14 +149,15 @@
           <div class="paper-card right-card">
             <div class="rc-title">{{ t('emergency.expertQuick.title') }}</div>
             <div class="expert-quick">
-              <div v-for="e in EXPERTS_ONLINE" :key="e.name" class="eq-item">
+              <div v-for="e in EXPERTS_ONLINE" :key="e.id" class="eq-item">
                 <div class="eq-avatar">{{ e.avatar }}</div>
                 <div class="eq-info">
                   <div class="eq-name">{{ e.name }}</div>
                   <div class="eq-status">{{ e.online ? t('emergency.expertQuick.online') : t('emergency.expertQuick.offline') }}</div>
                 </div>
-                <button class="eq-btn" @click="connectExpert(e.name)">{{ e.online ? t('emergency.expertQuick.chatBtn') : t('emergency.expertQuick.scheduleBtn') }}</button>
+                <button class="eq-btn" @click="connectExpert(e)">{{ e.online ? t('emergency.expertQuick.chatBtn') : t('emergency.expertQuick.scheduleBtn') }}</button>
               </div>
+              <div v-if="!EXPERTS_ONLINE.length" style="font-size:0.78rem;color:var(--text-secondary);font-style:italic;padding:8px 0;">{{ t('emergency.expertQuick.emptyState') }}</div>
             </div>
             <router-link
               to="/experts"
@@ -246,13 +247,25 @@ const GROUNDING_STEPS = [
 
 const AFFIRMATIONS = computed(() => tm('emergency.affirmations'));
 
-// Tên/avatar chuyên gia là dữ liệu demo cục bộ (không phải từ backend) — giữ nguyên tên,
-// chỉ dịch trạng thái online/offline và nhãn nút qua t() ở template.
-const EXPERTS_ONLINE = [
-  { name: 'ThS. Lan Anh', avatar: '👩‍⚕️', online: true },
-  { name: 'BS. Minh Tâm', avatar: '🧑‍⚕️', online: true },
-  { name: 'ThS. Hoài Phương', avatar: '👩', online: false }
-];
+// Danh sách chuyên gia thật, lấy từ /experts (trước đây là 3 cái tên demo hardcode —
+// hiển thị như người thật đang online là sai sự thật, nhất là ở trang hỗ trợ khẩn cấp.
+const EXPERTS_ONLINE = ref([]);
+
+async function loadExpertsOnline() {
+  try {
+    const data = await apiClient.get('/experts');
+    const list = data?.experts || [];
+    EXPERTS_ONLINE.value = [...list]
+      .sort((a, b) => {
+        const priority = { online: 0, busy: 1, offline: 2 };
+        return (priority[a.status] ?? 2) - (priority[b.status] ?? 2);
+      })
+      .slice(0, 3)
+      .map((e) => ({ id: e.id, name: e.name, avatar: e.avatar || '🧑‍⚕️', online: e.status === 'online' }));
+  } catch (_e) {
+    EXPERTS_ONLINE.value = [];
+  }
+}
 
 const PeaceCAT_MESSAGES = computed(() => tm('emergency.peaceCatMessages'));
 
@@ -420,9 +433,9 @@ function stopModalTimer() {
 }
 
 // Misc actions
-function connectExpert(name) {
-  logEmergencyEvent('expert_request', { expert_name: name });
-  showToast(t('emergency.toast.connectingExpert', { name }));
+function connectExpert(expert) {
+  logEmergencyEvent('expert_request', { expert_id: expert.id, expert_name: expert.name });
+  showToast(t('emergency.toast.connectingExpert', { name: expert.name }));
   setTimeout(() => router.push('/experts'), 1500);
 }
 
@@ -432,6 +445,7 @@ function editSafePlan() {
 
 onMounted(() => {
   rotatePeaceCatMessage();
+  loadExpertsOnline();
 });
 
 onBeforeUnmount(() => {
