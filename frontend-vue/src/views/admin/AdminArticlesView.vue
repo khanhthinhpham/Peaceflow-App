@@ -82,7 +82,13 @@
           🌐 {{ enOpen ? 'Ẩn' : 'Thêm' }} bản dịch tiếng Anh (không bắt buộc)
         </button>
         <div v-if="enOpen" style="display:flex;flex-direction:column;gap:12px;padding:14px;background:var(--cream,#fff8f0);border:1px dashed var(--kraft-light,#e8cba7);border-radius:10px;">
-          <div style="font-size:0.75rem;color:var(--text-secondary);">Để trống thì người dùng chọn tiếng Anh vẫn thấy bản tiếng Việt (không lỗi, chỉ chưa dịch).</div>
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">
+            <div style="font-size:0.75rem;color:var(--text-secondary);">Để trống thì người dùng chọn tiếng Anh vẫn thấy bản tiếng Việt (không lỗi, chỉ chưa dịch).</div>
+            <button type="button" class="btn-outline" style="font-size:0.78rem;white-space:nowrap;" :disabled="translating" @click="autoTranslate">
+              {{ translating ? 'Đang dịch...' : '✨ Tự động dịch' }}
+            </button>
+          </div>
+          <div v-if="translateError" style="color:var(--coral);font-size:0.8rem;">{{ translateError }}</div>
           <div>
             <label style="display:block;font-size:0.8rem;font-weight:700;margin-bottom:6px;">Title (English)</label>
             <input v-model="form.titleEn" type="text" class="admin-input" style="width:100%;" placeholder="English title...">
@@ -91,6 +97,7 @@
             <label style="display:block;font-size:0.8rem;font-weight:700;margin-bottom:6px;">Content (English)</label>
             <textarea v-model="form.contentEn" rows="8" class="admin-input" style="width:100%;font-family:inherit;" placeholder="English content..."></textarea>
           </div>
+          <div style="font-size:0.72rem;color:var(--text-light);">Dịch máy chỉ là bản nháp — nhớ đọc lại và chỉnh sửa trước khi lưu.</div>
         </div>
 
         <label style="display:flex;align-items:center;gap:8px;font-size:0.85rem;">
@@ -154,6 +161,30 @@ const coverPreview = ref('');
 
 const form = reactive({ title: '', category: 'khac', authorName: '', content: '', published: false, notifyUsers: false, titleEn: '', contentEn: '' });
 const enOpen = ref(false);
+const translating = ref(false);
+const translateError = ref('');
+
+async function autoTranslate() {
+  if (!form.title.trim() && !form.content.trim()) {
+    translateError.value = 'Cần nhập tiêu đề/nội dung tiếng Việt trước đã.';
+    return;
+  }
+  if ((form.titleEn || form.contentEn) && !window.confirm('Đã có bản dịch, ghi đè bằng bản dịch máy mới?')) return;
+  translating.value = true;
+  translateError.value = '';
+  try {
+    const data = await apiClient.post('/admin/articles/translate-preview', {
+      title: form.title,
+      content: form.content
+    });
+    form.titleEn = data.titleEn;
+    form.contentEn = data.contentEn;
+  } catch (e) {
+    translateError.value = e.message || 'Dịch thất bại, thử lại sau.';
+  } finally {
+    translating.value = false;
+  }
+}
 
 const catPanelOpen = ref(false);
 const catList = ref([]);

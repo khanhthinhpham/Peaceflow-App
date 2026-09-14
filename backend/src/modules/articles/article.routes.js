@@ -3,6 +3,7 @@ import multer from 'multer';
 import { requireAuth } from '../../common/middleware/auth.middleware.js';
 import { db } from '../../config/db.js';
 import { broadcastToUsers } from '../notifications/notification.routes.js';
+import { translateToEnglish } from '../../common/services/translate.service.js';
 
 const router = Router();
 
@@ -131,6 +132,27 @@ router.get('/articles/:id/cover', async (req, res) => {
 });
 
 // ===== ADMIN =====
+
+// Dịch nháp title/content sang tiếng Anh bằng MyMemory (miễn phí, xem translate.service.js)
+// — CHỈ trả về bản dịch để admin xem/sửa trên form, KHÔNG tự lưu vào DB, tránh đăng nhầm
+// bản dịch máy chưa ai kiểm tra.
+router.post('/admin/articles/translate-preview', requireAuth, async (req, res) => {
+  try {
+    if (!req.user.is_admin) return res.status(403).json({ success: false, message: 'Admin only' });
+    const { title, content } = req.body;
+    if (!title?.trim() && !content?.trim()) {
+      return res.status(400).json({ success: false, message: 'Thiếu tiêu đề hoặc nội dung để dịch.' });
+    }
+    const [titleEn, contentEn] = await Promise.all([
+      translateToEnglish(title || ''),
+      translateToEnglish(content || '')
+    ]);
+    return res.json({ success: true, data: { titleEn, contentEn } });
+  } catch (error) {
+    console.error('Translate preview error:', error.message);
+    return res.status(500).json({ success: false, message: 'Không dịch được lúc này, thử lại sau.' });
+  }
+});
 
 router.get('/admin/articles', requireAuth, async (req, res) => {
   try {
