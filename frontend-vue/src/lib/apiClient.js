@@ -320,6 +320,11 @@ export const apiClient = {
     return this.request(endpoint, { method: 'POST', body: formData, headers: {} });
   },
 
+  putForm(endpoint, formData) {
+    this._invalidateRelated(endpoint);
+    return this.request(endpoint, { method: 'PUT', body: formData, headers: {} });
+  },
+
   async getBlob(endpoint) {
     const token = getStoredAccessToken();
     const headers = {};

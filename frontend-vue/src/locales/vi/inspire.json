@@ -1,0 +1,14 @@
+{
+  "inspire": {
+    "breadcrumbDashboard": "Tổng quan",
+    "breadcrumbCurrent": "Góc chia sẻ",
+    "pageTitle": "💌 Góc chia sẻ",
+    "pageDesc": "Những bài viết truyền cảm hứng, câu chuyện thật và mẹo nhỏ giúp bạn chăm sóc sức khoẻ tinh thần mỗi ngày.",
+    "filterAll": "Tất cả",
+    "seeAll": "Xem tất cả →",
+    "loading": "Đang tải...",
+    "loadError": "Không tải được danh sách bài viết.",
+    "empty": "Chưa có bài viết nào trong danh mục này.",
+    "notFound": "Không tìm thấy bài viết hoặc bài viết chưa được đăng."
+  }
+}

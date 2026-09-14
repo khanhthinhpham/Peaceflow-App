@@ -306,6 +306,9 @@
             <div class="fh-num">📞 0931773637</div>
             <div class="fh-label">{{ t('landing.footer.hotlineLabel') }}</div>
           </div>
+          <a href="https://online.gov.vn/nen-tang/dbceffea-6475-46c3-80b7-21e803d8b6ec" target="_blank" rel="noopener" title="Đã xác nhận với Bộ Công Thương" style="display:inline-block;margin-top:16px;">
+            <img src="https://fileserver.online.gov.vn/uploads/Resources/iconxacnhan/DaThongBao.png" alt="Đã xác nhận" style="height:72px;">
+          </a>
         </div>
         <div>
           <div class="footer-col-title">{{ t('landing.footer.aboutTitle') }}</div>
@@ -348,9 +351,9 @@
         <div style="display:flex;align-items:center;gap:20px;flex-wrap:wrap;">
           <LanguageSwitcher />
           <div style="font-size:0.85rem;color:rgba(255,255,255,0.5);display:flex;gap:16px;">
-            <span style="cursor:pointer;" title="Facebook">FB</span>
-            <span style="cursor:pointer;" title="Instagram">IG</span>
-            <span style="cursor:pointer;" title="TikTok">TT</span>
+            <a href="https://www.facebook.com/profile.php?id=61594063631691" target="_blank" rel="noopener" style="color:inherit;text-decoration:none;cursor:pointer;" title="Facebook">FB</a>
+            <a href="https://www.instagram.com/peaceflow.vn/" target="_blank" rel="noopener" style="color:inherit;text-decoration:none;cursor:pointer;" title="Instagram">IG</a>
+            <a href="https://www.threads.com/@peaceflow.vn" target="_blank" rel="noopener" style="color:inherit;text-decoration:none;cursor:pointer;" title="Threads">TH</a>
           </div>
         </div>
       </div>

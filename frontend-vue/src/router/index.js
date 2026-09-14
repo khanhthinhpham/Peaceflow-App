@@ -31,6 +31,10 @@ import AdminBookingsView from '../views/admin/AdminBookingsView.vue';
 import AdminPaymentsView from '../views/admin/AdminPaymentsView.vue';
 import AdminUsersView from '../views/admin/AdminUsersView.vue';
 import AdminCommunityView from '../views/admin/AdminCommunityView.vue';
+import AdminArticlesView from '../views/admin/AdminArticlesView.vue';
+import AdminBroadcastView from '../views/admin/AdminBroadcastView.vue';
+import InspireView from '../views/InspireView.vue';
+import ArticleDetailView from '../views/ArticleDetailView.vue';
 import AdminAssessmentResultsView from '../views/admin/AdminAssessmentResultsView.vue';
 import AdminAiUsageView from '../views/admin/AdminAiUsageView.vue';
 import ExpertLayout from '../layouts/ExpertLayout.vue';
@@ -67,6 +71,8 @@ const router = createRouter({
         { path: 'journal', name: 'journal', component: JournalView, meta: { navKey: 'journal' } },
         { path: 'experts', name: 'experts', component: ExpertsView, meta: { navKey: 'experts' } },
         { path: 'community', name: 'community', component: CommunityView, meta: { navKey: 'community' } },
+        { path: 'inspire', name: 'inspire', component: InspireView, meta: { navKey: 'inspire' } },
+        { path: 'inspire/:id', name: 'inspire-detail', component: ArticleDetailView, meta: { navKey: 'inspire' } },
         { path: 'report', name: 'report', component: ReportView, meta: { navKey: 'report' } },
         { path: 'achievements', name: 'achievements', component: AchievementsView, meta: { navKey: 'achievements' } },
         { path: 'profile', name: 'profile', component: ProfileView, meta: { navKey: 'profile' } },
@@ -89,6 +95,8 @@ const router = createRouter({
         { path: 'payments', name: 'admin-payments', component: AdminPaymentsView, meta: { navKey: 'payments' } },
         { path: 'users', name: 'admin-users', component: AdminUsersView, meta: { navKey: 'users' } },
         { path: 'community', name: 'admin-community', component: AdminCommunityView, meta: { navKey: 'community' } },
+        { path: 'articles', name: 'admin-articles', component: AdminArticlesView, meta: { navKey: 'articles' } },
+        { path: 'broadcast', name: 'admin-broadcast', component: AdminBroadcastView, meta: { navKey: 'broadcast' } },
         { path: 'assessment-results', name: 'admin-assessment-results', component: AdminAssessmentResultsView, meta: { navKey: 'assessment-results' } },
         { path: 'ai-usage', name: 'admin-ai-usage', component: AdminAiUsageView, meta: { navKey: 'ai-usage' } }
       ]

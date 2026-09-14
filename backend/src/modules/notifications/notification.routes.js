@@ -4,6 +4,7 @@ import { requireAuth } from '../../common/middleware/auth.middleware.js';
 import { db } from '../../config/db.js';
 import { env } from '../../config/env.js';
 import { buildNotificationMessage } from './notification-messages.js';
+import { sendMail } from '../../common/services/mail-transport.js';
 
 const router = Router();
 
@@ -228,6 +229,20 @@ router.get('/notifications', requireAuth, async (req, res) => {
         });
         return;
       }
+      // Thông báo hàng loạt từ admin (xem broadcastToUsers)
+      if (row.type === 'broadcast') {
+        notifications.push({
+          id: `broadcast-${row.group_key || new Date(row.latest).getTime()}`,
+          type: 'community',
+          icon: '📣',
+          title: params?.title || L('Thông báo từ PeaceFlow', 'Notice from PeaceFlow'),
+          body: row.message,
+          action: params?.actionUrl || '/dashboard',
+          created_at: row.latest,
+          is_read: Boolean(row.all_read)
+        });
+        return;
+      }
       // Trả lời bình luận
       if (row.type === 'reply') {
         notifications.push({
@@ -368,6 +383,104 @@ router.delete('/notifications/unsubscribe', requireAuth, async (req, res) => {
     return res.json({ success: true });
   } catch (error) {
     return res.status(500).json({ success: false });
+  }
+});
+
+// ===== BROADCAST (thông báo hàng loạt cho admin) =====
+//
+// Kênh CHÍNH là in-app + push — KHÔNG giới hạn số lượng, dùng lại hạ tầng notifications/
+// push_subscriptions đã có. Email chỉ là lựa chọn PHỤ, giới hạn cứng ở EMAIL_SAFE_LIMIT vì
+// tổng quota Resend+Brevo chỉ ~400 mail/NGÀY cho TOÀN BỘ app (kể cả mail xác nhận đăng ký,
+// quên mật khẩu...) — xem cảnh báo trong mail-transport.js. Gửi hết 2800+ người dùng qua
+// email trong 1 lần sẽ lặp lại đúng sự cố 28/08/2026 (860 mail xác nhận bị từ chối âm thầm).
+const EMAIL_SAFE_LIMIT = 300;
+
+function audienceWhereClause(audience) {
+  if (audience === 'user') return `status = 'active' and role = 'user'`;
+  if (audience === 'expert') return `status = 'active' and role = 'expert'`;
+  return `status = 'active'`; // 'all' hoặc giá trị lạ -> mặc định an toàn là tất cả user active
+}
+
+// Dùng chung cho cả "Gửi thông báo hàng loạt" (admin bấm tay) lẫn tự động thông báo bài
+// viết mới (article.routes.js gọi khi admin tick "Gửi thông báo" lúc đăng bài).
+export async function broadcastToUsers({ title, message, audience = 'all', actionUrl = '/', sendEmail = false, emailSubject = null, emailHtml = null }) {
+  const where = audienceWhereClause(audience);
+  const usersRes = await db.query(`select id, email from users where ${where}`);
+  const recipients = usersRes.rows;
+  if (!recipients.length) return { targetCount: 0, emailedCount: 0 };
+
+  // 1 câu INSERT...SELECT cho toàn bộ người nhận — nhanh hơn nhiều so với insert từng dòng
+  // khi số lượng có thể lên tới hàng nghìn.
+  await db.query(
+    `insert into notifications (recipient_id, actor_name, type, message, params)
+     select id, 'PeaceFlow', 'broadcast', $1, $2::jsonb from users where ${where}`,
+    [message, JSON.stringify({ title, actionUrl })]
+  );
+
+  // Push + email: chạy NỀN, không chặn response — admin không cần đợi xong hết 2800 lượt
+  // gửi push mới thấy phản hồi. Giới hạn concurrency để không dội quá nhiều request cùng lúc.
+  (async () => {
+    const CHUNK = 25;
+    for (let i = 0; i < recipients.length; i += CHUNK) {
+      const chunk = recipients.slice(i, i + CHUNK);
+      await Promise.allSettled(chunk.map((u) => sendPushToUser(u.id, title, message, actionUrl)));
+    }
+
+    if (sendEmail) {
+      const emailTargets = recipients.filter((u) => u.email).slice(0, EMAIL_SAFE_LIMIT);
+      const subject = emailSubject || title;
+      const html = emailHtml || `<p>${message}</p>`;
+      let sent = 0;
+      let failed = 0;
+      for (const u of emailTargets) {
+        try {
+          await sendMail({ from: env.emailFrom, to: u.email, subject, html });
+          sent++;
+        } catch (e) {
+          failed++;
+          console.error('[BROADCAST_EMAIL_FAIL]', u.email, e.message);
+        }
+      }
+      console.log(`[BROADCAST] Email xong: ${sent} thành công, ${failed} lỗi, ${recipients.length - emailTargets.length} bị bỏ qua vì vượt giới hạn an toàn ${EMAIL_SAFE_LIMIT}/lần.`);
+    }
+  })().catch((e) => console.error('[BROADCAST] Lỗi nền:', e.message));
+
+  return { targetCount: recipients.length, emailTargetCount: sendEmail ? Math.min(recipients.length, EMAIL_SAFE_LIMIT) : 0 };
+}
+
+// GET /admin/broadcast/audience?audience=all|user|expert — đếm trước khi gửi, để admin thấy
+// rõ số lượng và biết trước bao nhiêu người sẽ KHÔNG nhận được email nếu vượt giới hạn an toàn.
+router.get('/admin/broadcast/audience', requireAuth, async (req, res) => {
+  try {
+    if (!req.user.is_admin) return res.status(403).json({ success: false, message: 'Admin only' });
+    const where = audienceWhereClause(req.query.audience);
+    const r = await db.query(`select count(*)::int as n from users where ${where}`);
+    return res.json({ success: true, data: { count: r.rows[0].n, emailSafeLimit: EMAIL_SAFE_LIMIT } });
+  } catch (error) {
+    console.error('Broadcast audience error:', error.message);
+    return res.status(500).json({ success: false, message: 'Could not count audience' });
+  }
+});
+
+// POST /admin/broadcast — gửi thông báo hàng loạt (in-app + push luôn; email tuỳ chọn).
+router.post('/admin/broadcast', requireAuth, async (req, res) => {
+  try {
+    if (!req.user.is_admin) return res.status(403).json({ success: false, message: 'Admin only' });
+    const { title, message, audience, sendEmail, actionUrl } = req.body;
+    if (!title?.trim() || !message?.trim()) {
+      return res.status(400).json({ success: false, message: 'Thiếu tiêu đề hoặc nội dung.' });
+    }
+    const result = await broadcastToUsers({
+      title: title.trim(),
+      message: message.trim(),
+      audience,
+      actionUrl: actionUrl || '/dashboard',
+      sendEmail: Boolean(sendEmail)
+    });
+    return res.json({ success: true, data: result });
+  } catch (error) {
+    console.error('Broadcast send error:', error.message, error.stack);
+    return res.status(500).json({ success: false, message: 'Could not send broadcast' });
   }
 });
 

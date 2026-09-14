@@ -1,0 +1,14 @@
+{
+  "inspire": {
+    "breadcrumbDashboard": "Overview",
+    "breadcrumbCurrent": "Inspiration Corner",
+    "pageTitle": "💌 Inspiration Corner",
+    "pageDesc": "Inspiring articles, real stories and small tips to help you take care of your mental health every day.",
+    "filterAll": "All",
+    "seeAll": "See all →",
+    "loading": "Loading...",
+    "loadError": "Could not load the article list.",
+    "empty": "No articles in this category yet.",
+    "notFound": "Article not found or not yet published."
+  }
+}

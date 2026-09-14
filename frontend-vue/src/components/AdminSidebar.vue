@@ -69,6 +69,8 @@ const NAV_ITEMS = [
   { route: 'admin-users', key: 'users', icon: '👥', label: 'Người dùng' },
   { route: 'admin-assessment-results', key: 'assessment-results', icon: '🧪', label: 'Bài test' },
   { route: 'admin-community', key: 'community', icon: '🛡️', label: 'Kiểm duyệt cộng đồng', badge: 'community' },
+  { route: 'admin-articles', key: 'articles', icon: '📰', label: 'Quản lý bài viết' },
+  { route: 'admin-broadcast', key: 'broadcast', icon: '📣', label: 'Gửi thông báo hàng loạt' },
   { route: 'admin-ai-usage', key: 'ai-usage', icon: '🤖', label: 'Quản lý AI' }
 ];
 

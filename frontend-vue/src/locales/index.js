@@ -61,10 +61,12 @@ import viPushPrompt from './vi/pushPrompt.json';
 import enPushPrompt from './en/pushPrompt.json';
 import viGuestEmergencyTasks from './vi/guestEmergencyTasks.json';
 import enGuestEmergencyTasks from './en/guestEmergencyTasks.json';
+import viInspire from './vi/inspire.json';
+import enInspire from './en/inspire.json';
 
 const messages = {
-  vi: { ...viCommon, ...viAuth, ...viLanding, ...viDashboard, ...viMoodCheckin, ...viTasksPage, ...viJournal, ...viProfile, ...viSettingsPage, ...viOnboarding, ...viEmergency, ...viMoodChat, ...viMoodAssessment, ...viCommunity, ...viExperts, ...viReport, ...viTaskDetail, ...viAchievements, ...viApplyExpert, ...viRavenTest, ...viTaskBreathing, ...viVerifyEmail, ...viResetPassword, ...viTaskMeditation, ...viForgotPassword, ...viDonate, ...viPushPrompt, ...viGuestEmergencyTasks },
-  en: { ...enCommon, ...enAuth, ...enLanding, ...enDashboard, ...enMoodCheckin, ...enTasksPage, ...enJournal, ...enProfile, ...enSettingsPage, ...enOnboarding, ...enEmergency, ...enMoodChat, ...enMoodAssessment, ...enCommunity, ...enExperts, ...enReport, ...enTaskDetail, ...enAchievements, ...enApplyExpert, ...enRavenTest, ...enTaskBreathing, ...enVerifyEmail, ...enResetPassword, ...enTaskMeditation, ...enForgotPassword, ...enDonate, ...enPushPrompt, ...enGuestEmergencyTasks }
+  vi: { ...viCommon, ...viAuth, ...viLanding, ...viDashboard, ...viMoodCheckin, ...viTasksPage, ...viJournal, ...viProfile, ...viSettingsPage, ...viOnboarding, ...viEmergency, ...viMoodChat, ...viMoodAssessment, ...viCommunity, ...viExperts, ...viReport, ...viTaskDetail, ...viAchievements, ...viApplyExpert, ...viRavenTest, ...viTaskBreathing, ...viVerifyEmail, ...viResetPassword, ...viTaskMeditation, ...viForgotPassword, ...viDonate, ...viPushPrompt, ...viGuestEmergencyTasks, ...viInspire },
+  en: { ...enCommon, ...enAuth, ...enLanding, ...enDashboard, ...enMoodCheckin, ...enTasksPage, ...enJournal, ...enProfile, ...enSettingsPage, ...enOnboarding, ...enEmergency, ...enMoodChat, ...enMoodAssessment, ...enCommunity, ...enExperts, ...enReport, ...enTaskDetail, ...enAchievements, ...enApplyExpert, ...enRavenTest, ...enTaskBreathing, ...enVerifyEmail, ...enResetPassword, ...enTaskMeditation, ...enForgotPassword, ...enDonate, ...enPushPrompt, ...enGuestEmergencyTasks, ...enInspire }
 };
 
 // ===== Chọn ngôn ngữ mặc định =====

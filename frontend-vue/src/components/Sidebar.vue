@@ -120,7 +120,8 @@ const NAV_SECTIONS = [
     labelKey: 'nav.groupConnect',
     items: [
       { key: 'experts', icon: '🩺', labelKey: 'nav.experts', route: 'experts' },
-      { key: 'community', icon: '👥', labelKey: 'nav.community', route: 'community' }
+      { key: 'community', icon: '👥', labelKey: 'nav.community', route: 'community' },
+      { key: 'inspire', icon: '💌', labelKey: 'nav.inspire', route: 'inspire' }
     ]
   },
   {
