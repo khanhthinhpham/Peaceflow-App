@@ -170,12 +170,26 @@ onMounted(load);
   grid-template-columns: repeat(3, 1fr);
 }
 @media (max-width: 700px) {
+  /* Ở màn hẹp, hero-row chuyển thành cột dọc -> trục "stretch" (chiều cao) của
+     .ins-hero-row không còn tác dụng nữa (main-axis đổi hướng), nên cột 3 card nhỏ không
+     còn được ép giãn theo card nổi bật -> để mỗi card tự cao theo nội dung, không ép chia
+     đều nữa (nếu không sẽ collapse về gần 0 như lỗi đã gặp). */
   .ins-hero-row {
     flex-direction: column;
+  }
+  .ins-side-col > * {
+    flex: none;
+    min-height: auto;
+  }
+  .ins-grid-cat {
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 @media (max-width: 600px) {
   .ins-grid {
+    grid-template-columns: 1fr;
+  }
+  .ins-grid-cat {
     grid-template-columns: 1fr;
   }
 }

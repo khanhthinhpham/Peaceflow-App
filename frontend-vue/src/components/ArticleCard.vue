@@ -147,5 +147,27 @@ const metaLine = computed(() => `${formatDate(props.article.publishedAt || props
   .ins-cover-featured {
     aspect-ratio: 16 / 9;
   }
+  /* .ins-hero-row đổi sang cột dọc trên mobile -> flex:2 1 0 (dành riêng cho lúc nằm NGANG
+     cạnh cột 3 card nhỏ) hết tác dụng đúng, còn khiến card này collapse gần về 0 chiều cao
+     (basis 0 + overflow:hidden làm mất luôn mốc tối thiểu theo nội dung) — reset lại. */
+  .ins-card-featured {
+    flex: none;
+  }
+  /* Không còn bị ép chia đều theo chiều cao card nổi bật ở màn hẹp (xem InspireView.vue)
+     -> quay về ảnh thumbnail vuông nhỏ NẰM NGANG cạnh chữ, tự cao theo nội dung, an toàn
+     với mọi chiều rộng màn hình. */
+  .ins-card-side {
+    flex-direction: row;
+    align-items: stretch;
+  }
+  .ins-card-side .ins-cover {
+    flex: none;
+    width: 84px;
+    aspect-ratio: 1 / 1;
+  }
+  .ins-card-side .ins-body {
+    flex: 1 1 auto;
+    justify-content: center;
+  }
 }
 </style>
