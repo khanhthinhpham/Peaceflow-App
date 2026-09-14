@@ -21,9 +21,25 @@ const coverUpload = multer({
 // /admin/article-categories — KHÔNG còn hardcode cứng trong code như trước (xem migration
 // 0062). Query lại mỗi request thay vì cache trong bộ nhớ vì tần suất gọi thấp (trang đọc
 // bài) và luôn cần phản ánh đúng thay đổi mới nhất của admin.
-async function getCategoriesMap() {
-  const r = await db.query(`select key, label from article_categories order by sort_order, created_at`);
-  return Object.fromEntries(r.rows.map((row) => [row.key, row.label]));
+// `locale` chỉ ảnh hưởng phía PUBLIC (trang đọc bài) — admin luôn thấy label tiếng Việt gốc
+// để quản lý (không truyền locale ở các route /admin/*), khớp label_en fallback về label
+// tiếng Việt nếu admin chưa dịch tên danh mục.
+async function getCategoriesMap(locale = 'vi') {
+  const r = await db.query(`select key, label, label_en from article_categories order by sort_order, created_at`);
+  return Object.fromEntries(r.rows.map((row) => [row.key, locale === 'en' ? (row.label_en || row.label) : row.label]));
+}
+
+// Chọn bản tiếng Anh khi có (locale === 'en') và đã nhập title_en/content_en, fallback về
+// bản tiếng Việt gốc nếu admin chưa dịch — cùng convention với localizeTask() bên
+// tasks.cache.js. Không đổi shape trả về (title/content) để frontend không cần biết có
+// bản dịch hay không.
+function localizeArticle(row, locale) {
+  if (locale !== 'en') return row;
+  return {
+    ...row,
+    title: row.title_en || row.title,
+    content: row.content_en || row.content
+  };
 }
 
 function mapArticle(row, categoriesMap, { withContent = false } = {}) {
@@ -49,7 +65,7 @@ router.get('/articles', async (req, res) => {
     const limit = Math.min(Math.max(parseInt(req.query.limit, 10) || 30, 1), 100);
     const offset = Math.max(parseInt(req.query.offset, 10) || 0, 0);
 
-    const categoriesMap = await getCategoriesMap();
+    const categoriesMap = await getCategoriesMap(req.locale);
     const where = ["status = 'published'"];
     const params = [];
     if (category && categoriesMap[category]) {
@@ -60,7 +76,7 @@ router.get('/articles', async (req, res) => {
     const countRes = await db.query(`select count(*)::int as total from articles where ${where.join(' and ')}`, params);
     params.push(limit, offset);
     const rowsRes = await db.query(
-      `select id, title, category, status, author_name, created_at, published_at,
+      `select id, title, title_en, category, status, author_name, created_at, published_at,
               (cover_image is not null) as has_cover
        from articles
        where ${where.join(' and ')}
@@ -72,7 +88,7 @@ router.get('/articles', async (req, res) => {
     return res.json({
       success: true,
       data: {
-        articles: rowsRes.rows.map((r) => mapArticle(r, categoriesMap)),
+        articles: rowsRes.rows.map((r) => mapArticle(localizeArticle(r, req.locale), categoriesMap)),
         total: countRes.rows[0]?.total || 0,
         categories: categoriesMap
       }
@@ -86,14 +102,14 @@ router.get('/articles', async (req, res) => {
 router.get('/articles/:id', async (req, res) => {
   try {
     const r = await db.query(
-      `select id, title, category, content, status, author_name, created_at, published_at,
+      `select id, title, title_en, category, content, content_en, status, author_name, created_at, published_at,
               (cover_image is not null) as has_cover
        from articles where id = $1 and status = 'published'`,
       [req.params.id]
     );
     if (!r.rows[0]) return res.status(404).json({ success: false, message: 'Không tìm thấy bài viết.' });
-    const categoriesMap = await getCategoriesMap();
-    return res.json({ success: true, data: mapArticle(r.rows[0], categoriesMap, { withContent: true }) });
+    const categoriesMap = await getCategoriesMap(req.locale);
+    return res.json({ success: true, data: mapArticle(localizeArticle(r.rows[0], req.locale), categoriesMap, { withContent: true }) });
   } catch (error) {
     console.error('Get article error:', error);
     return res.status(500).json({ success: false, message: 'Could not load article' });
@@ -152,14 +168,23 @@ router.get('/admin/articles/:id', requireAuth, async (req, res) => {
   try {
     if (!req.user.is_admin) return res.status(403).json({ success: false, message: 'Admin only' });
     const r = await db.query(
-      `select id, title, category, content, status, author_name, created_at, published_at,
+      `select id, title, title_en, category, content, content_en, status, author_name, created_at, published_at,
               (cover_image is not null) as has_cover
        from articles where id = $1`,
       [req.params.id]
     );
     if (!r.rows[0]) return res.status(404).json({ success: false, message: 'Không tìm thấy bài viết.' });
     const categoriesMap = await getCategoriesMap();
-    return res.json({ success: true, data: mapArticle(r.rows[0], categoriesMap, { withContent: true }) });
+    // Form sửa cần thấy CẢ 2 bản để chỉnh riêng từng ngôn ngữ — không đi qua localizeArticle
+    // (chỉ dành cho phía public, chọn 1 bản để hiển thị).
+    return res.json({
+      success: true,
+      data: {
+        ...mapArticle(r.rows[0], categoriesMap, { withContent: true }),
+        titleEn: r.rows[0].title_en || '',
+        contentEn: r.rows[0].content_en || ''
+      }
+    });
   } catch (error) {
     console.error('Admin get article error:', error);
     return res.status(500).json({ success: false, message: 'Could not load article' });
@@ -170,7 +195,7 @@ router.post('/admin/articles', requireAuth, coverUpload.single('cover'), async (
   try {
     if (!req.user.is_admin) return res.status(403).json({ success: false, message: 'Admin only' });
 
-    const { title, category, content, status, author_name, notify_users } = req.body;
+    const { title, category, content, status, author_name, notify_users, title_en, content_en } = req.body;
     if (!title || !content) {
       return res.status(400).json({ success: false, message: 'Thiếu tiêu đề hoặc nội dung.' });
     }
@@ -180,8 +205,8 @@ router.post('/admin/articles', requireAuth, coverUpload.single('cover'), async (
 
     const r = await db.query(
       `insert into articles
-        (title, category, content, status, author_name, created_by, cover_image, cover_image_mime, published_at)
-       values ($1, $2, $3, $4, $5, $6, $7, $8, case when $4::varchar = 'published' then now() else null end)
+        (title, category, content, status, author_name, created_by, cover_image, cover_image_mime, published_at, title_en, content_en)
+       values ($1, $2, $3, $4, $5, $6, $7, $8, case when $4::varchar = 'published' then now() else null end, $9, $10)
        returning id`,
       [
         title.trim(),
@@ -191,7 +216,9 @@ router.post('/admin/articles', requireAuth, coverUpload.single('cover'), async (
         (author_name || '').trim() || 'Đội ngũ PeaceFlow',
         req.user.sub,
         req.file?.buffer || null,
-        req.file?.mimetype || null
+        req.file?.mimetype || null,
+        (title_en || '').trim() || null,
+        (content_en || '').trim() || null
       ]
     );
     const newId = r.rows[0].id;
@@ -219,7 +246,7 @@ router.put('/admin/articles/:id', requireAuth, coverUpload.single('cover'), asyn
   try {
     if (!req.user.is_admin) return res.status(403).json({ success: false, message: 'Admin only' });
 
-    const { title, category, content, status, author_name, notify_users } = req.body;
+    const { title, category, content, status, author_name, notify_users, title_en, content_en } = req.body;
     const categoriesMap = await getCategoriesMap();
     const finalCategory = categoriesMap[category] ? category : 'khac';
     const finalStatus = status === 'published' ? 'published' : 'draft';
@@ -236,6 +263,8 @@ router.put('/admin/articles/:id', requireAuth, coverUpload.single('cover'), asyn
       content,
       finalStatus,
       (author_name || '').trim() || 'Đội ngũ PeaceFlow',
+      (title_en || '').trim() || null,
+      (content_en || '').trim() || null,
       req.params.id
     ];
     let coverClause = '';
@@ -251,10 +280,12 @@ router.put('/admin/articles/:id', requireAuth, coverUpload.single('cover'), asyn
            content = coalesce($3, content),
            status = $4,
            author_name = $5,
+           title_en = $6,
+           content_en = $7,
            published_at = case when $4::varchar = 'published' then coalesce(published_at, now()) else published_at end,
            updated_at = now()
            ${coverClause}
-       where id = $6`,
+       where id = $8`,
       params
     );
 

@@ -77,6 +77,22 @@
           <label style="display:block;font-size:0.8rem;font-weight:700;margin-bottom:6px;">Nội dung</label>
           <textarea v-model="form.content" rows="10" class="admin-input" style="width:100%;font-family:inherit;" placeholder="Nội dung bài viết..."></textarea>
         </div>
+
+        <button type="button" class="btn-outline" style="font-size:0.8rem;align-self:flex-start;" @click="enOpen = !enOpen">
+          🌐 {{ enOpen ? 'Ẩn' : 'Thêm' }} bản dịch tiếng Anh (không bắt buộc)
+        </button>
+        <div v-if="enOpen" style="display:flex;flex-direction:column;gap:12px;padding:14px;background:var(--cream,#fff8f0);border:1px dashed var(--kraft-light,#e8cba7);border-radius:10px;">
+          <div style="font-size:0.75rem;color:var(--text-secondary);">Để trống thì người dùng chọn tiếng Anh vẫn thấy bản tiếng Việt (không lỗi, chỉ chưa dịch).</div>
+          <div>
+            <label style="display:block;font-size:0.8rem;font-weight:700;margin-bottom:6px;">Title (English)</label>
+            <input v-model="form.titleEn" type="text" class="admin-input" style="width:100%;" placeholder="English title...">
+          </div>
+          <div>
+            <label style="display:block;font-size:0.8rem;font-weight:700;margin-bottom:6px;">Content (English)</label>
+            <textarea v-model="form.contentEn" rows="8" class="admin-input" style="width:100%;font-family:inherit;" placeholder="English content..."></textarea>
+          </div>
+        </div>
+
         <label style="display:flex;align-items:center;gap:8px;font-size:0.85rem;">
           <input v-model="form.published" type="checkbox">
           Công khai ngay (bỏ chọn = lưu nháp)
@@ -136,7 +152,8 @@ const formError = ref('');
 const coverFile = ref(null);
 const coverPreview = ref('');
 
-const form = reactive({ title: '', category: 'khac', authorName: '', content: '', published: false, notifyUsers: false });
+const form = reactive({ title: '', category: 'khac', authorName: '', content: '', published: false, notifyUsers: false, titleEn: '', contentEn: '' });
+const enOpen = ref(false);
 
 const catPanelOpen = ref(false);
 const catList = ref([]);
@@ -230,6 +247,9 @@ function resetForm() {
   form.content = '';
   form.published = false;
   form.notifyUsers = false;
+  form.titleEn = '';
+  form.contentEn = '';
+  enOpen.value = false;
   coverFile.value = null;
   coverPreview.value = '';
   formError.value = '';
@@ -252,6 +272,9 @@ async function openEdit(id) {
     form.authorName = data.authorName;
     form.content = data.content;
     form.published = data.status === 'published';
+    form.titleEn = data.titleEn || '';
+    form.contentEn = data.contentEn || '';
+    enOpen.value = Boolean(form.titleEn || form.contentEn);
     if (data.hasCover) {
       const blob = await apiClient.getBlob(`/articles/${id}/cover`);
       coverPreview.value = URL.createObjectURL(blob);
@@ -288,6 +311,8 @@ async function save() {
     fd.append('author_name', form.authorName.trim());
     fd.append('status', form.published ? 'published' : 'draft');
     fd.append('notify_users', form.published && form.notifyUsers ? 'true' : 'false');
+    fd.append('title_en', form.titleEn.trim());
+    fd.append('content_en', form.contentEn.trim());
     if (coverFile.value) fd.append('cover', coverFile.value);
 
     if (editingId.value) {
