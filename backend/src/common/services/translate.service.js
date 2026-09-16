@@ -1,10 +1,12 @@
-// Dịch nội dung tự do (bio/specialties chuyên gia tự viết) sang tiếng Anh bằng MyMemory
-// Translation API (https://mymemory.translated.net) — dịch vụ MIỄN PHÍ, không cần đăng ký/API
-// key. Giới hạn: mỗi lượt gọi tối đa ~500 byte văn bản nguồn, nên bio dài phải chia nhỏ theo
-// câu rồi ghép lại. Chất lượng dịch không bằng LLM (Gemini/Claude) nhưng đủ dùng làm bản nháp
-// tiếng Anh — chuyên gia luôn có thể tự sửa lại trong trang "Hồ sơ chuyên gia".
-const MYMEMORY_URL = 'https://api.mymemory.translated.net/get';
-const MAX_CHUNK_BYTES = 480; // chừa lề dưới giới hạn thật (~500 byte) của MyMemory
+// Dịch nội dung tự do (bio/specialties chuyên gia, bài viết Góc chia sẻ...) sang tiếng Anh
+// bằng endpoint web KHÔNG CHÍNH THỨC của Google Translate (translate.googleapis.com) — không
+// cần đăng ký/API key, không có hạn mức ký tự/ngày cố định như MyMemory (dịch vụ dùng trước
+// đây, giới hạn ~5.000 từ/ngày với lượt gọi ẩn danh — không đủ để dịch hàng loạt bài viết).
+// Đây không phải API chính thức của Google nên gọi tuần tự + có độ trễ giữa các lượt để
+// tránh bị chặn tạm thời khi dịch số lượng lớn. Chất lượng dịch không bằng LLM nhưng đủ dùng
+// làm bản nháp tiếng Anh — luôn có thể tự sửa lại trong trang quản trị.
+const GOOGLE_TRANSLATE_URL = 'https://translate.googleapis.com/translate_a/single';
+const MAX_CHUNK_BYTES = 1800; // chừa lề dưới giới hạn thực tế (~2000-5000 byte) của endpoint
 const TRANSLATE_TIMEOUT_MS = 12000;
 
 async function fetchWithTimeout(url, timeoutMs) {
@@ -18,7 +20,7 @@ async function fetchWithTimeout(url, timeoutMs) {
 }
 
 export function isTranslateConfigured() {
-  // MyMemory không cần API key -> luôn sẵn sàng.
+  // Endpoint Google Translate không chính thức không cần API key -> luôn sẵn sàng.
   return true;
 }
 
@@ -60,38 +62,73 @@ function splitIntoChunks(text) {
   return chunks;
 }
 
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+// Giãn cách tối thiểu giữa 2 lượt gọi liên tiếp (bất kể gọi từ đâu trong file) — nội dung
+// bài viết dài tách thành hàng chục dòng/đoạn, gọi dồn dập rất dễ bị chặn tạm thời vì đây
+// không phải API chính thức, không có quota riêng để "xin".
+const MIN_GAP_MS = 120;
+let lastCallAt = 0;
+async function throttle() {
+  const wait = lastCallAt + MIN_GAP_MS - Date.now();
+  if (wait > 0) await sleep(wait);
+  lastCallAt = Date.now();
+}
+
 async function translateChunk(text) {
-  const url = `${MYMEMORY_URL}?q=${encodeURIComponent(text)}&langpair=vi|en`;
+  await throttle();
+  const params = new URLSearchParams({ client: 'gtx', sl: 'vi', tl: 'en', dt: 't', q: text });
+  const url = `${GOOGLE_TRANSLATE_URL}?${params.toString()}`;
   const response = await fetchWithTimeout(url, TRANSLATE_TIMEOUT_MS);
   if (!response.ok) {
-    throw new Error(`MyMemory ${response.status}`);
+    throw new Error(`Google Translate ${response.status}`);
   }
   const data = await response.json();
-  if (data?.responseStatus && Number(data.responseStatus) !== 200) {
-    throw new Error(`MyMemory responseStatus ${data.responseStatus}: ${data.responseDetails || ''}`);
-  }
-  const translated = data?.responseData?.translatedText;
+  // Dạng trả về: [[["đoạn dịch 1","đoạn gốc 1",...], ["đoạn dịch 2",...], ...], null, "vi"]
+  // — endpoint tự tách câu nên phải ghép lại tất cả đoạn dịch trong mảng đầu tiên.
+  const segments = Array.isArray(data?.[0]) ? data[0] : [];
+  const translated = segments.map((seg) => seg?.[0] || '').join('');
   if (!translated) {
-    throw new Error('MyMemory không trả về bản dịch');
+    throw new Error('Google Translate không trả về bản dịch');
   }
   return translated;
+}
+
+async function translateLine(line) {
+  if (!line.trim()) return '';
+  const chunks = splitIntoChunks(line);
+  const translatedChunks = [];
+  for (const chunk of chunks) {
+    // Gọi tuần tự (không Promise.all) — throttle() ở translateChunk đã lo giãn cách.
+    translatedChunks.push(await translateChunk(chunk));
+  }
+  return translatedChunks.join(' ').replace(/[ \t]+/g, ' ').trim();
 }
 
 export async function translateToEnglish(text) {
   const trimmed = (text || '').trim();
   if (!trimmed) return '';
 
-  const chunks = splitIntoChunks(trimmed);
-  const translatedChunks = [];
-  for (const chunk of chunks) {
-    // Gọi tuần tự (không Promise.all) để tránh bị MyMemory rate-limit khi văn bản dài.
-    translatedChunks.push(await translateChunk(chunk));
+  // Giữ nguyên cấu trúc đoạn văn (\n\n) và xuống dòng đơn (\n) — dịch riêng từng dòng rồi
+  // ghép lại đúng chỗ, thay vì gộp hết thành 1 dòng như trước (mất định dạng khi hiển thị
+  // lại — xem renderedContent ở ArticleDetailView.vue tách đoạn theo \n\n).
+  const paragraphs = trimmed.split(/\n{2,}/);
+  const translatedParagraphs = [];
+  for (const paragraph of paragraphs) {
+    const lines = paragraph.split('\n');
+    const translatedLines = [];
+    for (const line of lines) {
+      translatedLines.push(await translateLine(line));
+    }
+    translatedParagraphs.push(translatedLines.join('\n'));
   }
-  return translatedChunks.join(' ').replace(/\s+/g, ' ').trim();
+  return translatedParagraphs.join('\n\n');
 }
 
 // Danh sách chuyên môn — dịch từng phần tử riêng (ngắn, không lo vượt giới hạn byte, và tránh
-// rủi ro MyMemory dịch lẫn dấu phân cách khi ghép chung một chuỗi).
+// rủi ro dịch lẫn dấu phân cách khi ghép chung một chuỗi).
 export async function translateListToEnglish(items) {
   const arr = Array.isArray(items) ? items.map((s) => (s || '').trim()).filter(Boolean) : [];
   if (!arr.length) return [];
