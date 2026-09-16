@@ -224,95 +224,9 @@ import { useRouter } from 'vue-router';
 import { apiClient } from '../lib/apiClient';
 import { useAuthStore } from '../stores/auth';
 import { getTaskEmoji } from '../lib/dashboardHelpers';
+import { MOOD_OPTIONS, TAGS, BODY_SYMPTOM_GROUPS, deriveMoodPayload as buildMoodPayload } from '../lib/moodCheckinOptions';
 
 const { t } = useI18n();
-
-// `id` ỔN ĐỊNH dùng để so khớp lựa chọn trong UI; `viLabel` là giá trị THẬT gửi lên backend
-// làm dominant_emotion — LUÔN LUÔN tiếng Việt, KHÔNG đổi theo ngôn ngữ đang chọn.
-// Lý do: backend (expert.routes.js) có dò `emotion.includes('buồn')` để gắn cờ "cần chuyên
-// gia trầm cảm" khi ghép chuyên gia phù hợp — nếu gửi nhãn tiếng Anh ("Sad") thì người dùng
-// tiếng Anh sẽ không bao giờ được gắn cờ này. `labelKey` chỉ dùng để HIỂN THỊ.
-const MOOD_OPTIONS = [
-  { id: 'veryHappy', score: 9, viLabel: 'Rất vui', labelKey: 'moodCheckin.moods.veryHappy', emoji: '😊' },
-  { id: 'comfortable', score: 7, viLabel: 'Thoải mái', labelKey: 'moodCheckin.moods.comfortable', emoji: '😌' },
-  { id: 'normal', score: 5, viLabel: 'Bình thường', labelKey: 'moodCheckin.moods.normal', emoji: '😐' },
-  { id: 'slightlyStressed', score: 4, viLabel: 'Hơi căng', labelKey: 'moodCheckin.moods.slightlyStressed', emoji: '😟' },
-  { id: 'veryStressed', score: 2, viLabel: 'Rất căng thẳng', labelKey: 'moodCheckin.moods.veryStressed', emoji: '😰' },
-  { id: 'sad', score: 2, viLabel: 'Buồn bã', labelKey: 'moodCheckin.moods.sad', emoji: '😢' },
-  { id: 'angry', score: 1, viLabel: 'Tức giận', labelKey: 'moodCheckin.moods.angry', emoji: '😡' }
-];
-
-// `id` ở đây CHÍNH LÀ token gửi lên backend làm `triggers` (khớp đúng danh sách cũ đã suy
-// ra qua normalizeTrigger/TRIGGER_MAP trước đây: 'work','family','relationship',...) — nên
-// không cần dò chuỗi tiếng Việt bỏ dấu nữa, độ tin cậy cao hơn hẳn cách cũ và không phụ
-// thuộc ngôn ngữ đang hiển thị.
-const TAGS = [
-  { id: 'work', labelKey: 'moodCheckin.tags.work' },
-  { id: 'family', labelKey: 'moodCheckin.tags.family' },
-  { id: 'relationship', labelKey: 'moodCheckin.tags.relationship' },
-  { id: 'finance', labelKey: 'moodCheckin.tags.finance' },
-  { id: 'health', labelKey: 'moodCheckin.tags.health' },
-  { id: 'lonely', labelKey: 'moodCheckin.tags.lonely' },
-  { id: 'sleep_loss', labelKey: 'moodCheckin.tags.sleep_loss' },
-  { id: 'social_media', labelKey: 'moodCheckin.tags.social_media' },
-  { id: 'study', labelKey: 'moodCheckin.tags.study' },
-  { id: 'unknown', labelKey: 'moodCheckin.tags.unknown' }
-];
-
-// Bước 4 (triệu chứng cơ thể): 2 cấp — tag cha bấm vào để MỞ RỘNG tag con (trừ "Mất ngủ"
-// không có tag con, bấm là chọn luôn nó làm triệu chứng). `id` gửi kèm notes giống cách
-// TAGS ở bước 3 đang làm, không cần đổi backend.
-const BODY_SYMPTOM_GROUPS = [
-  { id: 'insomnia', labelKey: 'moodCheckin.bodyGroups.insomnia', children: [] },
-  {
-    id: 'pain', labelKey: 'moodCheckin.bodyGroups.pain', children: [
-      { id: 'migraine', labelKey: 'moodCheckin.bodyTags.migraine' },
-      { id: 'severe_headache', labelKey: 'moodCheckin.bodyTags.severe_headache' },
-      { id: 'back_pain', labelKey: 'moodCheckin.bodyTags.back_pain' },
-      { id: 'fainting', labelKey: 'moodCheckin.bodyTags.fainting' },
-      { id: 'unclear_ache', labelKey: 'moodCheckin.bodyTags.unclear_ache' }
-    ]
-  },
-  {
-    id: 'palpitations', labelKey: 'moodCheckin.bodyGroups.palpitations', children: [
-      { id: 'breathless', labelKey: 'moodCheckin.bodyTags.breathless' },
-      { id: 'nervous', labelKey: 'moodCheckin.bodyTags.nervous' },
-      { id: 'short_of_breath', labelKey: 'moodCheckin.bodyTags.short_of_breath' },
-      { id: 'muscle_tension', labelKey: 'moodCheckin.bodyTags.muscle_tension' },
-      { id: 'chest_tightness', labelKey: 'moodCheckin.bodyTags.chest_tightness' },
-      { id: 'throat_lump', labelKey: 'moodCheckin.bodyTags.throat_lump' },
-      { id: 'dizzy', labelKey: 'moodCheckin.bodyTags.dizzy' }
-    ]
-  },
-  {
-    id: 'exhaustion', labelKey: 'moodCheckin.bodyGroups.exhaustion', children: [
-      { id: 'easily_sick', labelKey: 'moodCheckin.bodyTags.easily_sick' },
-      { id: 'fever', labelKey: 'moodCheckin.bodyTags.fever' },
-      { id: 'sweaty_hands', labelKey: 'moodCheckin.bodyTags.sweaty_hands' },
-      { id: 'numb_limbs', labelKey: 'moodCheckin.bodyTags.numb_limbs' },
-      { id: 'chills', labelKey: 'moodCheckin.bodyTags.chills' },
-      { id: 'rapid_weight_gain', labelKey: 'moodCheckin.bodyTags.rapid_weight_gain' },
-      { id: 'skin_issues', labelKey: 'moodCheckin.bodyTags.skin_issues' }
-    ]
-  },
-  {
-    id: 'appetite_loss', labelKey: 'moodCheckin.bodyGroups.appetite_loss', children: [
-      { id: 'indigestion', labelKey: 'moodCheckin.bodyTags.indigestion' },
-      { id: 'diarrhea_constipation', labelKey: 'moodCheckin.bodyTags.diarrhea_constipation' },
-      { id: 'abdominal_discomfort', labelKey: 'moodCheckin.bodyTags.abdominal_discomfort' },
-      { id: 'dry_mouth', labelKey: 'moodCheckin.bodyTags.dry_mouth' }
-    ]
-  },
-  {
-    id: 'psychological', labelKey: 'moodCheckin.bodyGroups.psychological', children: [
-      { id: 'restless', labelKey: 'moodCheckin.bodyTags.restless' },
-      { id: 'hypervigilance', labelKey: 'moodCheckin.bodyTags.hypervigilance' },
-      { id: 'poor_concentration', labelKey: 'moodCheckin.bodyTags.poor_concentration' },
-      { id: 'sleep_disturbance', labelKey: 'moodCheckin.bodyTags.sleep_disturbance' },
-      { id: 'fear_of_losing_control', labelKey: 'moodCheckin.bodyTags.fear_of_losing_control' }
-    ]
-  }
-];
 
 function isToday(value) {
   if (!value) return false;
@@ -427,34 +341,25 @@ function goStep(target) {
 function deriveMoodPayload() {
   // `tag.id` CHÍNH LÀ token gửi backend — không cần dò/chuẩn hoá chuỗi hiển thị nữa (xem
   // giải thích ở khai báo TAGS).
-  const triggers = checkinData.tags.map((tag) => tag.id);
-  const anxietyScore = checkinData.score <= 2 ? 9 : checkinData.score <= 4 ? 7 : checkinData.score <= 6 ? 5 : 3;
-  const stressScore = triggers.some((tag) => ['work', 'finance', 'study'].includes(tag))
-    ? Math.min(10, anxietyScore + 1)
-    : anxietyScore;
-  const energyScore = Math.max(1, Math.min(10, checkinData.score + (checkinData.score >= 7 ? 1 : 0)));
-  const sleepScore = triggers.includes('sleep_loss') ? 3 : null;
+  const triggerIds = checkinData.tags.map((tag) => tag.id);
+  // Ghép cả nguyên nhân (bước 3) lẫn triệu chứng cơ thể (bước 4) vào notes — chưa có cột
+  // riêng cho triệu chứng cơ thể ở backend nên tận dụng notes như đang làm với tags,
+  // không cần thêm migration.
+  const notes = [
+    checkinData.tags.map((tag) => t(tag.labelKey)).join(', '),
+    checkinData.bodySymptoms.length
+      ? `${t('moodCheckin.stepBody.notesPrefix')}: ${checkinData.bodySymptoms.map((tag) => t(tag.labelKey)).join(', ')}`
+      : ''
+  ].filter(Boolean).join(' | ') || null;
 
-  return {
-    mood_score: checkinData.score,
-    anxiety_score: anxietyScore,
-    stress_score: stressScore,
-    energy_score: energyScore,
-    sleep_quality_score: sleepScore,
+  return buildMoodPayload({
+    score: checkinData.score,
     // LUÔN gửi nhãn tiếng Việt (viLabel), bất kể ngôn ngữ UI đang chọn — xem giải thích ở
     // khai báo MOOD_OPTIONS.
-    dominant_emotion: selectedMoodOption.value?.viLabel || null,
-    triggers,
-    // Ghép cả nguyên nhân (bước 3) lẫn triệu chứng cơ thể (bước 4) vào notes — chưa có cột
-    // riêng cho triệu chứng cơ thể ở backend nên tận dụng notes như đang làm với tags,
-    // không cần thêm migration.
-    notes: [
-      checkinData.tags.map((tag) => t(tag.labelKey)).join(', '),
-      checkinData.bodySymptoms.length
-        ? `${t('moodCheckin.stepBody.notesPrefix')}: ${checkinData.bodySymptoms.map((tag) => t(tag.labelKey)).join(', ')}`
-        : ''
-    ].filter(Boolean).join(' | ') || null
-  };
+    moodViLabel: selectedMoodOption.value?.viLabel || null,
+    triggerIds,
+    notes
+  });
 }
 
 async function loadRemoteProgress() {
@@ -564,41 +469,6 @@ onMounted(async () => {
 @keyframes panel-enter { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
 
 .checkin-card { padding: 32px 36px; max-width: 680px; margin: 0 auto; }
-.checkin-step { display: none; }
-.checkin-step.active { display: block; animation: panel-enter 0.35s ease; }
-
-.step-indicator { display: flex; align-items: center; gap: 8px; margin-bottom: 24px; }
-.si-dot { width: 28px; height: 28px; border-radius: 50%; border: 2px solid var(--kraft-light); background: var(--cream); display: flex; align-items: center; justify-content: center; font-size: 0.72rem; font-weight: 800; color: var(--text-light); transition: var(--transition); }
-.si-dot.active { background: var(--mint); border-color: var(--mint-dark); color: white; box-shadow: 2px 2px 0px var(--mint-dark); }
-.si-dot.done { background: var(--mint-dark); border-color: var(--mint-dark); color: white; }
-.si-line { flex: 1; height: 2px; background: var(--kraft-light); border-radius: 1px; }
-.si-line.done { background: var(--mint-dark); }
-
-.checkin-title { font-size: 1.2rem; font-weight: 800; margin-bottom: 6px; }
-.checkin-sub { font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 22px; }
-
-.mascot-speech-box { display: flex; align-items: flex-start; gap: 12px; padding: 14px 16px; background: var(--mint-light); border: 1.5px solid var(--mint); border-radius: var(--radius-sm); margin-bottom: 20px; }
-.msb-avatar { font-size: 1.8rem; flex-shrink: 0; }
-.msb-text { font-size: 0.88rem; color: var(--text-secondary); line-height: 1.6; }
-
-.mood-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; margin-bottom: 20px; }
-.mood-btn { aspect-ratio: 1; border: 2px solid var(--kraft-light); border-radius: var(--radius-sm); background: var(--warm-white); cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; transition: var(--transition); box-shadow: var(--shadow-paper); padding: 4px; }
-.mood-btn:hover, .mood-btn.selected { border-color: var(--mint-dark); background: var(--mint-light); box-shadow: 3px 3px 0px var(--mint-dark); transform: translate(-1px, -1px); }
-.mood-emoji { font-size: 1.6rem; }
-.mood-label { font-size: 0.55rem; font-weight: 700; color: var(--text-secondary); text-align: center; line-height: 1.2; }
-
-.slider-wrap { margin-bottom: 20px; }
-.slider-labels { display: flex; justify-content: space-between; font-size: 0.72rem; color: var(--text-light); margin-bottom: 8px; }
-.mood-slider { width: 100%; height: 8px; -webkit-appearance: none; appearance: none; background: linear-gradient(90deg, var(--coral-light), var(--peach), var(--mint)); border-radius: 50px; outline: none; cursor: pointer; }
-.mood-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 24px; height: 24px; border-radius: 50%; background: var(--warm-white); border: 3px solid var(--mint-dark); box-shadow: 2px 2px 0px var(--mint-dark); cursor: pointer; }
-.slider-value-display { text-align: center; margin-top: 10px; }
-.slider-val { font-size: 2rem; font-weight: 800; color: var(--mint-dark); }
-.slider-val-label { font-size: 0.78rem; color: var(--text-secondary); }
-.slider-tree { font-size: 2rem; transition: var(--transition); }
-
-.tag-grid { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
-.tag-btn { padding: 7px 14px; border: 2px solid var(--kraft-light); border-radius: 50px; background: var(--warm-white); cursor: pointer; font-size: 0.8rem; font-weight: 600; color: var(--text-secondary); transition: var(--transition); box-shadow: var(--shadow-paper); }
-.tag-btn:hover, .tag-btn.selected { background: var(--peach-light); border-color: var(--peach-dark); color: var(--text-primary); box-shadow: 2px 2px 0px var(--peach-dark); }
 
 .rt-item { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border: 1.5px solid var(--kraft-light); border-radius: var(--radius-sm); background: var(--cream); margin-bottom: 8px; cursor: pointer; transition: var(--transition); }
 .rt-item:hover { background: var(--mint-light); border-color: var(--mint); }
@@ -639,6 +509,6 @@ onMounted(async () => {
   .mode-title { font-size: 0.85rem; margin-bottom: 2px; }
   .mode-desc { font-size: 0.68rem; }
   .mode-time { margin-top: 2px; }
-  .mood-grid { grid-template-columns: repeat(3, 1fr); }
 }
 </style>
+<style scoped src="../assets/moodCheckinWidget.css"></style>

@@ -1,0 +1,47 @@
+/* Giao diện luồng "Check-in nhanh" 4 bước (chọn tâm trạng → cường độ → nguyên nhân →
+   triệu chứng cơ thể) — dùng chung giữa trang /mood-checkin thật và widget demo trên trang
+   chủ, để 2 nơi luôn khớp giao diện (xem thêm giải thích ở lib/moodCheckinOptions.js). */
+
+@keyframes panel-enter {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.checkin-step { display: none; }
+.checkin-step.active { display: block; animation: panel-enter 0.35s ease; }
+
+.step-indicator { display: flex; align-items: center; gap: 8px; margin-bottom: 24px; }
+.si-dot { width: 28px; height: 28px; border-radius: 50%; border: 2px solid var(--kraft-light); background: var(--cream); display: flex; align-items: center; justify-content: center; font-size: 0.72rem; font-weight: 800; color: var(--text-light); transition: var(--transition); }
+.si-dot.active { background: var(--mint); border-color: var(--mint-dark); color: white; box-shadow: 2px 2px 0px var(--mint-dark); }
+.si-dot.done { background: var(--mint-dark); border-color: var(--mint-dark); color: white; }
+.si-line { flex: 1; height: 2px; background: var(--kraft-light); border-radius: 1px; }
+.si-line.done { background: var(--mint-dark); }
+
+.checkin-title { font-size: 1.2rem; font-weight: 800; margin-bottom: 6px; }
+.checkin-sub { font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 22px; }
+
+.mascot-speech-box { display: flex; align-items: flex-start; gap: 12px; padding: 14px 16px; background: var(--mint-light); border: 1.5px solid var(--mint); border-radius: var(--radius-sm); margin-bottom: 20px; }
+.msb-avatar { font-size: 1.8rem; flex-shrink: 0; }
+.msb-text { font-size: 0.88rem; color: var(--text-secondary); line-height: 1.6; }
+
+.mood-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; margin-bottom: 20px; }
+.mood-btn { aspect-ratio: 1; border: 2px solid var(--kraft-light); border-radius: var(--radius-sm); background: var(--warm-white); cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; transition: var(--transition); box-shadow: var(--shadow-paper); padding: 4px; }
+.mood-btn:hover, .mood-btn.selected { border-color: var(--mint-dark); background: var(--mint-light); box-shadow: 3px 3px 0px var(--mint-dark); transform: translate(-1px, -1px); }
+.mood-emoji { font-size: 1.6rem; }
+.mood-label { font-size: 0.55rem; font-weight: 700; color: var(--text-secondary); text-align: center; line-height: 1.2; }
+
+.slider-wrap { margin-bottom: 20px; }
+.slider-labels { display: flex; justify-content: space-between; font-size: 0.72rem; color: var(--text-light); margin-bottom: 8px; }
+.mood-slider { width: 100%; height: 8px; -webkit-appearance: none; appearance: none; background: linear-gradient(90deg, var(--coral-light), var(--peach), var(--mint)); border-radius: 50px; outline: none; cursor: pointer; }
+.mood-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 24px; height: 24px; border-radius: 50%; background: var(--warm-white); border: 3px solid var(--mint-dark); box-shadow: 2px 2px 0px var(--mint-dark); cursor: pointer; }
+.slider-value-display { text-align: center; margin-top: 10px; }
+.slider-val { font-size: 2rem; font-weight: 800; color: var(--mint-dark); }
+.slider-tree { font-size: 2rem; transition: var(--transition); }
+
+.tag-grid { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
+.tag-btn { padding: 7px 14px; border: 2px solid var(--kraft-light); border-radius: 50px; background: var(--warm-white); cursor: pointer; font-size: 0.8rem; font-weight: 600; color: var(--text-secondary); transition: var(--transition); box-shadow: var(--shadow-paper); }
+.tag-btn:hover, .tag-btn.selected { background: var(--peach-light); border-color: var(--peach-dark); color: var(--text-primary); box-shadow: 2px 2px 0px var(--peach-dark); }
+
+@media (max-width: 600px) {
+  .mood-grid { grid-template-columns: repeat(3, 1fr); }
+}

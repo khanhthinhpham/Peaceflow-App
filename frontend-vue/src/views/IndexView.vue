@@ -245,34 +245,125 @@
       </div>
       <div class="mood-demo-layout">
         <div class="mood-demo-card">
-          <div class="mdc-title">{{ t('landing.moodDemo.cardTitle') }}</div>
-          <div class="mood-emoji-row">
-            <button
-              v-for="emoji in ['😊', '😌', '😐', '😟', '😰', '😢']"
-              :key="emoji"
-              class="demo-mood-btn"
-              :class="{ selected: selectedMood === emoji }"
-              :style="demoMoodBtnStyle(emoji)"
-              @click="selectDemoMood(emoji)"
-            >{{ emoji }}</button>
+          <div class="step-indicator" style="margin-bottom:16px;" v-if="!demoSaved">
+            <div class="si-dot" :class="demoDotClass(1)">1</div>
+            <div class="si-line" :class="{ done: demoStep >= 2 }"></div>
+            <div class="si-dot" :class="demoDotClass(2)">2</div>
+            <div class="si-line" :class="{ done: demoStep >= 3 }"></div>
+            <div class="si-dot" :class="demoDotClass(3)">3</div>
+            <div class="si-line" :class="{ done: demoStep >= 4 }"></div>
+            <div class="si-dot" :class="demoDotClass(4)">4</div>
           </div>
-          <div class="demo-slider-wrap">
-            <div class="demo-slider-label"><span>{{ t('landing.moodDemo.sliderLow') }}</span><span>{{ t('landing.moodDemo.sliderHigh') }}</span></div>
-            <input type="range" class="demo-slider" min="1" max="10" v-model.number="selectedScore">
-            <div style="text-align:center;font-size:1.3rem;font-weight:800;color:var(--mint-dark);margin-top:4px;">{{ selectedScore }}</div>
+
+          <template v-if="!demoSaved">
+            <!-- Step 1: Mood -->
+            <div class="checkin-step" :class="{ active: demoStep === 1 }">
+              <div class="mascot-speech-box">
+                <span class="msb-avatar">🐱</span>
+                <div class="msb-text">{{ t('moodCheckin.step1.mascotGreeting', { name: demoDisplayName }) }}</div>
+              </div>
+              <div class="checkin-title">{{ t('moodCheckin.step1.title') }}</div>
+              <div class="checkin-sub">{{ t('moodCheckin.step1.sub') }}</div>
+              <div class="mood-grid">
+                <div
+                  v-for="option in MOOD_OPTIONS"
+                  :key="option.id"
+                  class="mood-btn"
+                  :class="{ selected: demoCheckin.moodId === option.id }"
+                  @click="selectDemoMood(option)"
+                >
+                  <span class="mood-emoji">{{ option.emoji }}</span>
+                  <span class="mood-label">{{ t(option.labelKey) }}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Step 2: Intensity -->
+            <div class="checkin-step" :class="{ active: demoStep === 2 }">
+              <div class="mascot-speech-box">
+                <span class="msb-avatar">{{ demoCheckin.mood || '🐱' }}</span>
+                <div class="msb-text">{{ demoMascotMoodText }}</div>
+              </div>
+              <div class="checkin-title">{{ t('moodCheckin.step2.title') }}</div>
+              <div class="checkin-sub">{{ t('moodCheckin.step2.sub') }}</div>
+              <div class="slider-wrap">
+                <div class="slider-labels"><span>{{ t('moodCheckin.step2.sliderLow') }}</span><span>{{ t('moodCheckin.step2.sliderHigh') }}</span></div>
+                <input type="range" class="mood-slider" min="1" max="10" v-model.number="demoCheckin.score">
+                <div class="slider-value-display">
+                  <div class="slider-tree">{{ demoSliderTreeEmoji }}</div>
+                  <div class="slider-val">{{ demoCheckin.score }}</div>
+                </div>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <button class="btn-outline" @click="demoGoStep(1)">{{ t('moodCheckin.step2.backBtn') }}</button>
+                <button class="btn-primary" @click="demoGoStep(3)">{{ t('moodCheckin.step2.continueBtn') }}</button>
+              </div>
+            </div>
+
+            <!-- Step 3: Tags -->
+            <div class="checkin-step" :class="{ active: demoStep === 3 }">
+              <div class="mascot-speech-box">
+                <span class="msb-avatar">🐱</span>
+                <div class="msb-text">{{ t('moodCheckin.step3.mascotText') }}</div>
+              </div>
+              <div class="checkin-title">{{ t('moodCheckin.step3.title') }}</div>
+              <div class="checkin-sub">{{ t('moodCheckin.step3.sub') }}</div>
+              <div class="tag-grid">
+                <div
+                  v-for="tag in TAGS"
+                  :key="tag.id"
+                  class="tag-btn"
+                  :class="{ selected: demoCheckin.tags.includes(tag) }"
+                  @click="toggleDemoTag(tag)"
+                >{{ t(tag.labelKey) }}</div>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <button class="btn-outline" @click="demoGoStep(2)">{{ t('moodCheckin.step3.backBtn') }}</button>
+                <button class="btn-primary" @click="demoGoStep(4)">{{ t('moodCheckin.step3.continueBtn') }}</button>
+              </div>
+            </div>
+
+            <!-- Step 4: Body symptoms -->
+            <div class="checkin-step" :class="{ active: demoStep === 4 }">
+              <div class="mascot-speech-box">
+                <span class="msb-avatar">🐱</span>
+                <div class="msb-text">{{ t('moodCheckin.stepBody.mascotText') }}</div>
+              </div>
+              <div class="checkin-title">{{ t('moodCheckin.stepBody.title') }}</div>
+              <div class="checkin-sub">{{ t('moodCheckin.stepBody.sub') }}</div>
+              <div class="tag-grid">
+                <div
+                  v-for="group in BODY_SYMPTOM_GROUPS"
+                  :key="group.id"
+                  class="tag-btn"
+                  :class="{ selected: isDemoBodyGroupHighlighted(group) }"
+                  @click="toggleDemoBodyGroup(group)"
+                >{{ t(group.labelKey) }}<template v-if="group.children.length">{{ demoExpandedBodyGroups.has(group.id) ? ' ▲' : ' ▼' }}</template></div>
+              </div>
+              <template v-for="group in BODY_SYMPTOM_GROUPS" :key="`sub-${group.id}`">
+                <div v-if="group.children.length && demoExpandedBodyGroups.has(group.id)" class="tag-grid" style="margin-top:-6px;margin-bottom:16px;padding:12px;background:var(--cream,#fff8f0);border-radius:var(--radius-sm,10px);">
+                  <div
+                    v-for="child in group.children"
+                    :key="child.id"
+                    class="tag-btn"
+                    :class="{ selected: demoCheckin.bodySymptoms.includes(child) }"
+                    @click="toggleDemoBodySymptom(child)"
+                  >{{ t(child.labelKey) }}</div>
+                </div>
+              </template>
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <button class="btn-outline" @click="demoGoStep(3)">{{ t('moodCheckin.stepBody.backBtn') }}</button>
+                <button class="btn-primary" :disabled="demoSubmitting" @click="saveDemoMood">{{ demoSubmitting ? t('moodCheckin.stepBody.saving') : t('moodCheckin.stepBody.saveBtn') }}</button>
+              </div>
+            </div>
+          </template>
+
+          <!-- Result -->
+          <div v-else style="text-align:center;padding:20px 0 4px;">
+            <div style="font-size:2.6rem;margin-bottom:10px;">{{ demoCheckin.mood || '🌿' }}</div>
+            <div style="font-size:1rem;font-weight:800;margin-bottom:16px;color:var(--mint-dark);">{{ demoResultLabel }}</div>
+            <button class="btn-outline" @click="resetDemoCheckin">{{ t('moodCheckin.step4.checkinAgainBtn') }}</button>
           </div>
-          <div style="font-size:0.72rem;font-weight:700;color:var(--text-secondary);margin-bottom:6px;">{{ t('landing.moodDemo.tagsLabel') }}</div>
-          <div class="demo-tags">
-            <span
-              v-for="tag in DEMO_TAGS"
-              :key="tag.id"
-              class="demo-tag"
-              :class="{ active: selectedTags.has(tag.id) }"
-              :style="selectedTags.has(tag.id) ? { background: 'var(--mint-dark)', color: 'white' } : null"
-              @click="toggleDemoTag(tag.id)"
-            >{{ t(tag.labelKey) }}</span>
-          </div>
-          <button class="demo-save-btn" @click="saveDemoMood">{{ demoSaveLabel }}</button>
         </div>
         <div class="mood-demo-info">
           <div class="mdi-item">
@@ -362,10 +453,11 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
+import { ref, reactive, computed, onMounted, onBeforeUnmount } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useAuthStore } from '../stores/auth';
 import { apiClient } from '../lib/apiClient';
+import { MOOD_OPTIONS, TAGS, BODY_SYMPTOM_GROUPS, deriveMoodPayload } from '../lib/moodCheckinOptions';
 import LanguageSwitcher from '../components/LanguageSwitcher.vue';
 
 const { t, tm } = useI18n();
@@ -375,18 +467,6 @@ const auth = useAuthStore();
 // cứng ở đây nữa, để đổi ngôn ngữ thì slogan cũng đổi theo mà không cần đụng code.
 const SLOGAN_INDEX = Math.floor(Math.random() * 27);
 const heroQuote = computed(() => tm('landing.slogans')[SLOGAN_INDEX]);
-
-// id ỔN ĐỊNH (không đổi theo ngôn ngữ) để so khớp lựa chọn; labelKey để hiển thị đúng
-// ngôn ngữ hiện tại. Trước đây dùng thẳng chuỗi tiếng Việt vừa làm khoá vừa làm hiển thị —
-// đổi ngôn ngữ là toggle/so khớp vỡ ngay vì chuỗi hiển thị đã đổi nhưng Set lưu id cũ.
-const DEMO_TAGS = [
-  { id: 'work', labelKey: 'landing.moodDemo.tagWork' },
-  { id: 'family', labelKey: 'landing.moodDemo.tagFamily' },
-  { id: 'finance', labelKey: 'landing.moodDemo.tagFinance' },
-  { id: 'sleep', labelKey: 'landing.moodDemo.tagSleep' },
-  { id: 'relationship', labelKey: 'landing.moodDemo.tagRelationship' },
-  { id: 'unknown', labelKey: 'landing.moodDemo.tagUnknown' }
-];
 
 const mobileNavOpen = ref(false);
 function openMobileNav() { mobileNavOpen.value = true; document.body.style.overflow = 'hidden'; }
@@ -407,98 +487,112 @@ async function handleLogout() {
   await auth.logout();
 }
 
-// Mood demo
-const selectedMood = ref(null);
-const selectedScore = ref(6);
-const selectedTags = ref(new Set());
+// Mood demo — dùng chung MOOD_OPTIONS/TAGS/BODY_SYMPTOM_GROUPS với trang /mood-checkin
+// thật (xem lib/moodCheckinOptions.js), để widget này luôn là đúng 4 bước như app thật
+// thay vì một bản rút gọn dễ lệch dữ liệu theo thời gian.
+const demoStep = ref(1);
+const demoCheckin = reactive({ score: 5, mood: null, moodId: null, tags: [], bodySymptoms: [] });
+const demoExpandedBodyGroups = reactive(new Set());
+const demoSubmitting = ref(false);
 // Trạng thái thay vì chuỗi tĩnh: nếu chỉ gán ref = t('...') một lần lúc setup, đổi ngôn
 // ngữ sau đó (mà chưa bấm nút) sẽ không tự cập nhật vì không phải computed theo locale.
 const demoSaved = ref(false);
-const demoSaveLabel = computed(() => {
-  if (!demoSaved.value) return t('landing.moodDemo.saveDefault');
-  return t(isAuthenticated.value ? 'landing.moodDemo.saveDoneAuth' : 'landing.moodDemo.saveDoneGuest');
+
+const demoDisplayName = computed(() => (isAuthenticated.value ? (auth.user?.display_name || auth.user?.full_name || t('dashboard.defaultUserLabel')) : t('dashboard.defaultUserLabel')));
+const demoSelectedMoodOption = computed(() => MOOD_OPTIONS.find((o) => o.id === demoCheckin.moodId) || null);
+const demoSelectedMoodLabel = computed(() => (demoSelectedMoodOption.value ? t(demoSelectedMoodOption.value.labelKey) : ''));
+const demoMascotMoodText = computed(() => (
+  demoSelectedMoodLabel.value
+    ? t('moodCheckin.step2.mascotWithMood', { mood: demoSelectedMoodLabel.value })
+    : t('moodCheckin.step2.mascotDefault')
+));
+const demoSliderTreeEmoji = computed(() => {
+  const val = demoCheckin.score;
+  if (val >= 7) return '🌸';
+  if (val >= 4) return '🌿';
+  return '🍂';
 });
+const demoResultLabel = computed(() => t(isAuthenticated.value ? 'landing.moodDemo.saveDoneAuth' : 'landing.moodDemo.saveDoneGuest'));
 
-const glowingMood = ref(null);
-function demoMoodBtnStyle(emoji) {
-  const style = {};
-  if (selectedMood.value === emoji) {
-    style.transform = `scale(${1 + selectedScore.value / 20})`;
+function demoDotClass(dot) {
+  if (dot < demoStep.value) return 'done';
+  if (dot === demoStep.value) return 'active';
+  return '';
+}
+
+function demoGoStep(target) {
+  demoStep.value = target;
+}
+
+function selectDemoMood(option) {
+  demoCheckin.score = option.score;
+  demoCheckin.moodId = option.id;
+  demoCheckin.mood = option.emoji;
+  setTimeout(() => demoGoStep(2), 400);
+}
+
+function toggleDemoTag(tag) {
+  const idx = demoCheckin.tags.indexOf(tag);
+  if (idx === -1) demoCheckin.tags.push(tag);
+  else demoCheckin.tags.splice(idx, 1);
+}
+
+function toggleDemoBodySymptom(tag) {
+  const idx = demoCheckin.bodySymptoms.indexOf(tag);
+  if (idx === -1) demoCheckin.bodySymptoms.push(tag);
+  else demoCheckin.bodySymptoms.splice(idx, 1);
+}
+
+// "Mất ngủ" không có tag con -> bấm là chọn thẳng nó làm triệu chứng. Các nhóm còn lại có
+// tag con -> bấm chỉ để MỞ/ĐÓNG danh sách con.
+function toggleDemoBodyGroup(group) {
+  if (!group.children.length) {
+    toggleDemoBodySymptom(group);
+    return;
   }
-  if (glowingMood.value === emoji) {
-    style.boxShadow = '0 0 10px rgba(0,0,0,0.2)';
-  }
-  return style;
+  if (demoExpandedBodyGroups.has(group.id)) demoExpandedBodyGroups.delete(group.id);
+  else demoExpandedBodyGroups.add(group.id);
 }
 
-function selectDemoMood(emoji) {
-  selectedMood.value = emoji;
-  glowingMood.value = emoji;
-  setTimeout(() => {
-    if (glowingMood.value === emoji) glowingMood.value = null;
-  }, 500);
+function isDemoBodyGroupHighlighted(group) {
+  if (!group.children.length) return demoCheckin.bodySymptoms.includes(group);
+  return demoExpandedBodyGroups.has(group.id);
 }
 
-function toggleDemoTag(tagId) {
-  const next = new Set(selectedTags.value);
-  if (next.has(tagId)) next.delete(tagId);
-  else next.add(tagId);
-  selectedTags.value = next;
+function resetDemoCheckin() {
+  demoStep.value = 1;
+  demoCheckin.score = 5;
+  demoCheckin.mood = null;
+  demoCheckin.moodId = null;
+  demoCheckin.tags = [];
+  demoCheckin.bodySymptoms = [];
+  demoExpandedBodyGroups.clear();
+  demoSaved.value = false;
 }
-
-const DEMO_EMOTION_LABELS = {
-  '😊': 'Rất vui',
-  '😌': 'Thoải mái',
-  '😐': 'Bình thường',
-  '😟': 'Hơi căng',
-  '😰': 'Rất căng thẳng',
-  '😢': 'Buồn bã'
-};
 
 async function saveDemoMood() {
-  const triggers = Array.from(selectedTags.value);
-  const entry = {
-    date: new Date().toISOString(),
-    mood: selectedMood.value,
-    score: selectedScore.value,
-    // Giờ đã là id ổn định ('work', 'unknown'...) thay vì phải tách chữ từ nhãn hiển thị
-    // tiếng Việt như trước — không còn phụ thuộc ngôn ngữ hiện tại.
-    tags: triggers,
-    createdAt: Date.now()
-  };
-
-  let logs = [];
-  try {
-    logs = JSON.parse(localStorage.getItem('PeaceFlow_logs') || '[]');
-  } catch (_) {}
-
-  logs.push(entry);
-  localStorage.setItem('PeaceFlow_logs', JSON.stringify(logs));
+  demoSubmitting.value = true;
 
   // Đây là widget demo trên trang chủ — chỉ lưu thật vào DB khi đã đăng nhập. Khách chưa
-  // đăng nhập chỉ xem trước trải nghiệm (log cục bộ ở trên), không có tài khoản để lưu.
+  // đăng nhập chỉ xem trước trải nghiệm, không có tài khoản để lưu.
   if (isAuthenticated.value) {
-    const score = selectedScore.value;
-    const anxietyScore = score <= 2 ? 9 : score <= 4 ? 7 : score <= 6 ? 5 : 3;
-    const stressScore = triggers.some((tag) => ['work', 'finance'].includes(tag)) ? Math.min(10, anxietyScore + 1) : anxietyScore;
-    const energyScore = Math.max(1, Math.min(10, score + (score >= 7 ? 1 : 0)));
     try {
-      await apiClient.post('/moods', {
-        mood_score: score,
-        anxiety_score: anxietyScore,
-        stress_score: stressScore,
-        energy_score: energyScore,
-        sleep_quality_score: triggers.includes('sleep') ? 3 : null,
-        dominant_emotion: selectedMood.value ? (DEMO_EMOTION_LABELS[selectedMood.value] || null) : null,
-        triggers,
-        notes: null
+      const payload = deriveMoodPayload({
+        score: demoCheckin.score,
+        moodViLabel: demoSelectedMoodOption.value?.viLabel || null,
+        triggerIds: demoCheckin.tags.map((tag) => tag.id),
+        notes: demoCheckin.bodySymptoms.length
+          ? `${t('moodCheckin.stepBody.notesPrefix')}: ${demoCheckin.bodySymptoms.map((tag) => t(tag.labelKey)).join(', ')}`
+          : null
       });
+      await apiClient.post('/moods', payload);
       window.dispatchEvent(new CustomEvent('peaceflow:mood-saved'));
     } catch (error) {
       console.error('Could not save mood to API:', error);
     }
   }
 
+  demoSubmitting.value = false;
   demoSaved.value = true;
 }
 
@@ -521,3 +615,4 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped src="../assets/index-landing.css"></style>
+<style scoped src="../assets/moodCheckinWidget.css"></style>
