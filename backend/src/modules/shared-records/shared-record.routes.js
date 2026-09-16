@@ -259,6 +259,11 @@ router.get('/shared-records/:id', requireAuth, async (req, res) => {
 
 router.get('/expert-portal/shared-records', requireAuth, async (req, res) => {
   try {
+    const limit = Math.min(Math.max(parseInt(req.query.limit, 10) || 10, 1), 100);
+    const offset = Math.max(parseInt(req.query.offset, 10) || 0, 0);
+
+    const countRes = await db.query(`select count(*)::int as total from client_shared_records where expert_id = $1`, [req.user.sub]);
+
     const r = await db.query(
       `select csr.id, csr.status, csr.sent_at, csr.revoked_at,
               coalesce(cu.display_name, cu.full_name, 'Người dùng') as client_name,
@@ -266,10 +271,11 @@ router.get('/expert-portal/shared-records', requireAuth, async (req, res) => {
        from client_shared_records csr
        join users cu on cu.id = csr.client_id
        where csr.expert_id = $1
-       order by csr.sent_at desc`,
-      [req.user.sub]
+       order by csr.sent_at desc
+       limit $2 offset $3`,
+      [req.user.sub, limit, offset]
     );
-    return res.json({ success: true, data: r.rows });
+    return res.json({ success: true, data: { items: r.rows, total: countRes.rows[0].total } });
   } catch (error) {
     console.error('List expert shared records error:', error.message);
     return res.status(500).json({ success: false, message: 'Could not load shared records' });

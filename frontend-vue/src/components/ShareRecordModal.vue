@@ -38,42 +38,86 @@
           <!-- ===== PICK ===== -->
           <template v-else-if="view === 'pick'">
             <div class="bm-section-title">{{ t('experts.shareRecord.pickTitle') }}</div>
-            <p style="font-size:0.82rem;color:var(--text-secondary);margin:-4px 0 14px;">{{ t('experts.shareRecord.pickSubtitle', { expertName }) }}</p>
+            <p style="font-size:0.82rem;color:var(--text-secondary);margin:-4px 0 12px;">{{ t('experts.shareRecord.pickSubtitle', { expertName }) }}</p>
 
-            <div class="bm-section">
-              <div class="bm-section-title">{{ t('experts.shareRecord.journalSection') }}</div>
+            <div class="sr-pick-toolbar">
+              <span class="sr-pick-count">{{ t('experts.shareRecord.selectedCount', { n: selectedCount }) }}</span>
+              <div class="sr-pick-toolbar-btns">
+                <button type="button" class="sr-link-btn" @click="selectAllGlobal">{{ t('experts.shareRecord.selectAllGlobal') }}</button>
+                <button type="button" class="sr-link-btn" @click="clearAllGlobal">{{ t('experts.shareRecord.clearAllGlobal') }}</button>
+              </div>
+            </div>
+
+            <div class="sr-pick-tabs">
+              <button type="button" class="sr-pick-tab" :class="{ active: pickTab === 'journal' }" @click="pickTab = 'journal'">
+                📔 {{ t('experts.shareRecord.journalTab', { n: summary.journalEntries.length }) }}
+                <span v-if="selectedJournal.length" class="sr-pick-tab-badge">{{ selectedJournal.length }}</span>
+              </button>
+              <button type="button" class="sr-pick-tab" :class="{ active: pickTab === 'mood' }" @click="pickTab = 'mood'">
+                🌤️ {{ t('experts.shareRecord.moodTab', { n: summary.moodCheckins.length }) }}
+                <span v-if="selectedMood.length" class="sr-pick-tab-badge">{{ selectedMood.length }}</span>
+              </button>
+              <button type="button" class="sr-pick-tab" :class="{ active: pickTab === 'assessment' }" @click="pickTab = 'assessment'">
+                🩺 {{ t('experts.shareRecord.assessmentTab', { n: summary.assessmentResults.length }) }}
+                <span v-if="selectedAssessment.length" class="sr-pick-tab-badge">{{ selectedAssessment.length }}</span>
+              </button>
+            </div>
+
+            <div v-show="pickTab === 'journal'">
               <p v-if="!summary.journalEntries.length" class="ca-empty">{{ t('experts.shareRecord.emptyJournal') }}</p>
-              <label v-for="j in summary.journalEntries" :key="j.id" class="sr-pick-item">
-                <input type="checkbox" :value="j.id" v-model="selectedJournal">
-                <span class="sr-pick-text">
-                  <strong>{{ j.title || t('experts.shareRecord.untitledJournal') }}</strong>
-                  <span class="sr-pick-meta">{{ formatDateTime(j.created_at) }}</span>
-                </span>
-              </label>
+              <template v-else>
+                <label class="sr-select-all-row">
+                  <input type="checkbox" :checked="isAllSelected('journal')" @change="toggleSelectAll('journal', $event.target.checked)">
+                  <span>{{ t('experts.shareRecord.selectAllInTab') }}</span>
+                </label>
+                <div class="sr-pick-scroll">
+                  <label v-for="j in summary.journalEntries" :key="j.id" class="sr-pick-item">
+                    <input type="checkbox" :value="j.id" v-model="selectedJournal">
+                    <span class="sr-pick-text">
+                      <strong>{{ j.title || t('experts.shareRecord.untitledJournal') }}</strong>
+                      <span class="sr-pick-meta">{{ formatDateTime(j.created_at) }}</span>
+                    </span>
+                  </label>
+                </div>
+              </template>
             </div>
 
-            <div class="bm-section">
-              <div class="bm-section-title">{{ t('experts.shareRecord.moodSection') }}</div>
+            <div v-show="pickTab === 'mood'">
               <p v-if="!summary.moodCheckins.length" class="ca-empty">{{ t('experts.shareRecord.emptyMood') }}</p>
-              <label v-for="m in summary.moodCheckins" :key="m.id" class="sr-pick-item">
-                <input type="checkbox" :value="m.id" v-model="selectedMood">
-                <span class="sr-pick-text">
-                  <strong>{{ m.dominant_emotion || '—' }} ({{ m.mood_score }}/10)</strong>
-                  <span class="sr-pick-meta">{{ formatDateTime(m.created_at) }}</span>
-                </span>
-              </label>
+              <template v-else>
+                <label class="sr-select-all-row">
+                  <input type="checkbox" :checked="isAllSelected('mood')" @change="toggleSelectAll('mood', $event.target.checked)">
+                  <span>{{ t('experts.shareRecord.selectAllInTab') }}</span>
+                </label>
+                <div class="sr-pick-scroll">
+                  <label v-for="m in summary.moodCheckins" :key="m.id" class="sr-pick-item">
+                    <input type="checkbox" :value="m.id" v-model="selectedMood">
+                    <span class="sr-pick-text">
+                      <strong>{{ m.dominant_emotion || '—' }} ({{ m.mood_score }}/10)</strong>
+                      <span class="sr-pick-meta">{{ formatDateTime(m.created_at) }}</span>
+                    </span>
+                  </label>
+                </div>
+              </template>
             </div>
 
-            <div class="bm-section">
-              <div class="bm-section-title">{{ t('experts.shareRecord.assessmentSection') }}</div>
+            <div v-show="pickTab === 'assessment'">
               <p v-if="!summary.assessmentResults.length" class="ca-empty">{{ t('experts.shareRecord.emptyAssessment') }}</p>
-              <label v-for="a in summary.assessmentResults" :key="a.id" class="sr-pick-item">
-                <input type="checkbox" :value="a.id" v-model="selectedAssessment">
-                <span class="sr-pick-text">
-                  <strong>{{ a.assessment_name }}</strong>
-                  <span class="sr-pick-meta">{{ a.severity || '—' }} · {{ formatDateTime(a.created_at) }}</span>
-                </span>
-              </label>
+              <template v-else>
+                <label class="sr-select-all-row">
+                  <input type="checkbox" :checked="isAllSelected('assessment')" @change="toggleSelectAll('assessment', $event.target.checked)">
+                  <span>{{ t('experts.shareRecord.selectAllInTab') }}</span>
+                </label>
+                <div class="sr-pick-scroll">
+                  <label v-for="a in summary.assessmentResults" :key="a.id" class="sr-pick-item">
+                    <input type="checkbox" :value="a.id" v-model="selectedAssessment">
+                    <span class="sr-pick-text">
+                      <strong>{{ a.assessment_name }}</strong>
+                      <span class="sr-pick-meta">{{ a.severity || '—' }} · {{ formatDateTime(a.created_at) }}</span>
+                    </span>
+                  </label>
+                </div>
+              </template>
             </div>
 
             <div class="bm-footer-actions">
@@ -221,6 +265,7 @@ function statusBadgeStyle(status) {
 const selectedJournal = ref([]);
 const selectedMood = ref([]);
 const selectedAssessment = ref([]);
+const pickTab = ref('journal');
 const sending = ref(false);
 const sendError = ref('');
 
@@ -228,6 +273,7 @@ function startPick() {
   selectedJournal.value = [];
   selectedMood.value = [];
   selectedAssessment.value = [];
+  pickTab.value = 'journal';
   sendError.value = '';
   view.value = 'pick';
 }
@@ -235,6 +281,35 @@ const selectedCount = computed(() => selectedJournal.value.length + selectedMood
 const selectedJournalItems = computed(() => (summary.value?.journalEntries || []).filter((j) => selectedJournal.value.includes(j.id)));
 const selectedMoodItems = computed(() => (summary.value?.moodCheckins || []).filter((m) => selectedMood.value.includes(m.id)));
 const selectedAssessmentItems = computed(() => (summary.value?.assessmentResults || []).filter((a) => selectedAssessment.value.includes(a.id)));
+
+function itemsForTab(tab) {
+  if (tab === 'journal') return summary.value?.journalEntries || [];
+  if (tab === 'mood') return summary.value?.moodCheckins || [];
+  return summary.value?.assessmentResults || [];
+}
+function selectedRefForTab(tab) {
+  if (tab === 'journal') return selectedJournal;
+  if (tab === 'mood') return selectedMood;
+  return selectedAssessment;
+}
+function isAllSelected(tab) {
+  const items = itemsForTab(tab);
+  const sel = selectedRefForTab(tab).value;
+  return items.length > 0 && items.every((it) => sel.includes(it.id));
+}
+function toggleSelectAll(tab, checked) {
+  selectedRefForTab(tab).value = checked ? itemsForTab(tab).map((it) => it.id) : [];
+}
+function selectAllGlobal() {
+  selectedJournal.value = (summary.value?.journalEntries || []).map((j) => j.id);
+  selectedMood.value = (summary.value?.moodCheckins || []).map((m) => m.id);
+  selectedAssessment.value = (summary.value?.assessmentResults || []).map((a) => a.id);
+}
+function clearAllGlobal() {
+  selectedJournal.value = [];
+  selectedMood.value = [];
+  selectedAssessment.value = [];
+}
 
 async function confirmSend() {
   sending.value = true;

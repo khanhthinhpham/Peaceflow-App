@@ -24,7 +24,7 @@
           <p class="expert-section-copy">Bấm vào một dòng để xem chi tiết và phản hồi/kê đơn cho thân chủ.</p>
         </div>
       </div>
-      <div>
+      <div class="sr-list-body">
         <p v-if="loading" class="ca-empty">Đang tải...</p>
         <p v-else-if="loadError" class="ca-empty">Không tải được danh sách hồ sơ.</p>
         <p v-else-if="!records.length" class="ca-empty">Chưa có thân chủ nào gửi hồ sơ cho bạn.</p>
@@ -37,6 +37,21 @@
             <span class="mb-badge" :style="r.status === 'revoked' ? { color: 'var(--coral-dark)', background: 'var(--coral-light)' } : { color: 'var(--mint-dark)', background: 'var(--mint-light)' }">{{ r.status === 'revoked' ? 'Đã thu hồi' : 'Đang chia sẻ' }}</span>
             <span class="ca-selftest-meta">{{ r.response_count > 0 ? `${r.response_count} phản hồi đã gửi` : 'Chưa phản hồi' }}</span>
           </div>
+        </div>
+        <div class="ca-pager">
+          <template v-if="total">
+            <span class="ca-pager-meta">{{ pageFrom }}–{{ pageTo }} trong {{ total }}</span>
+            <template v-if="totalPages > 1">
+              <button type="button" class="ca-page-btn" :disabled="page === 0" title="Trang đầu" @click="loadRecords(0)">« Đầu</button>
+              <button type="button" class="ca-page-btn" :disabled="page === 0" @click="loadRecords(page - 1)">‹ Trước</button>
+              <template v-for="(p, idx) in pageWindowList" :key="idx">
+                <span v-if="p === '…'" class="ca-page-ellipsis">…</span>
+                <button v-else type="button" class="ca-page-btn" :class="{ active: p === page }" @click="loadRecords(p)">{{ p + 1 }}</button>
+              </template>
+              <button type="button" class="ca-page-btn" :disabled="page >= totalPages - 1" @click="loadRecords(page + 1)">Sau ›</button>
+              <button type="button" class="ca-page-btn" :disabled="page >= totalPages - 1" title="Trang cuối" @click="loadRecords(totalPages - 1)">Cuối »</button>
+            </template>
+          </template>
         </div>
       </div>
     </section>
@@ -103,7 +118,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { apiClient } from '../../lib/apiClient';
 import { useNotificationsStore } from '../../stores/notifications';
 import ExpertStatusBanner from '../../components/ExpertStatusBanner.vue';
@@ -122,13 +137,38 @@ function formatDateTime(value) {
 const records = ref([]);
 const loading = ref(false);
 const loadError = ref(false);
-async function loadRecords() {
+const page = ref(0);
+const limit = 10;
+const total = ref(0);
+
+const totalPages = computed(() => Math.max(1, Math.ceil(total.value / limit)));
+const pageFrom = computed(() => page.value * limit + 1);
+const pageTo = computed(() => Math.min(total.value, (page.value + 1) * limit));
+function pageWindow(current, totalP) {
+  const pages = new Set([0, totalP - 1, current, current - 1, current + 1]);
+  const sorted = [...pages].filter((p) => p >= 0 && p < totalP).sort((a, b) => a - b);
+  const out = [];
+  let prev = null;
+  for (const p of sorted) {
+    if (prev !== null && p - prev > 1) out.push('…');
+    out.push(p);
+    prev = p;
+  }
+  return out;
+}
+const pageWindowList = computed(() => pageWindow(page.value, totalPages.value));
+
+async function loadRecords(nextPage = 0) {
+  page.value = Math.max(0, nextPage);
   loading.value = true;
   loadError.value = false;
   try {
-    records.value = await apiClient.get('/expert-portal/shared-records', { noCache: true });
+    const data = await apiClient.get(`/expert-portal/shared-records?limit=${limit}&offset=${page.value * limit}`, { noCache: true });
+    records.value = data?.items || [];
+    total.value = data?.total || 0;
   } catch (_error) {
     records.value = [];
+    total.value = 0;
     loadError.value = true;
   } finally {
     loading.value = false;
@@ -190,6 +230,9 @@ onMounted(loadRecords);
 <style scoped src="../../assets/expertDashboard.css"></style>
 <style scoped src="../../assets/clientAssessments.css"></style>
 <style scoped>
+.sr-list-body {
+    padding: 18px 24px 24px;
+}
 .sr-list-row {
     display: flex;
     align-items: center;
