@@ -365,6 +365,7 @@
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useAuthStore } from '../stores/auth';
+import { apiClient } from '../lib/apiClient';
 import LanguageSwitcher from '../components/LanguageSwitcher.vue';
 
 const { t, tm } = useI18n();
@@ -413,7 +414,10 @@ const selectedTags = ref(new Set());
 // Trạng thái thay vì chuỗi tĩnh: nếu chỉ gán ref = t('...') một lần lúc setup, đổi ngôn
 // ngữ sau đó (mà chưa bấm nút) sẽ không tự cập nhật vì không phải computed theo locale.
 const demoSaved = ref(false);
-const demoSaveLabel = computed(() => t(demoSaved.value ? 'landing.moodDemo.saveDone' : 'landing.moodDemo.saveDefault'));
+const demoSaveLabel = computed(() => {
+  if (!demoSaved.value) return t('landing.moodDemo.saveDefault');
+  return t(isAuthenticated.value ? 'landing.moodDemo.saveDoneAuth' : 'landing.moodDemo.saveDoneGuest');
+});
 
 const glowingMood = ref(null);
 function demoMoodBtnStyle(emoji) {
@@ -442,19 +446,24 @@ function toggleDemoTag(tagId) {
   selectedTags.value = next;
 }
 
-function saveDemoMood() {
-  if (!selectedMood.value) {
-    alert(t('landing.moodDemo.pickMoodAlert'));
-    return;
-  }
+const DEMO_EMOTION_LABELS = {
+  '😊': 'Rất vui',
+  '😌': 'Thoải mái',
+  '😐': 'Bình thường',
+  '😟': 'Hơi căng',
+  '😰': 'Rất căng thẳng',
+  '😢': 'Buồn bã'
+};
 
+async function saveDemoMood() {
+  const triggers = Array.from(selectedTags.value);
   const entry = {
     date: new Date().toISOString(),
     mood: selectedMood.value,
     score: selectedScore.value,
     // Giờ đã là id ổn định ('work', 'unknown'...) thay vì phải tách chữ từ nhãn hiển thị
     // tiếng Việt như trước — không còn phụ thuộc ngôn ngữ hiện tại.
-    tags: Array.from(selectedTags.value),
+    tags: triggers,
     createdAt: Date.now()
   };
 
@@ -466,11 +475,31 @@ function saveDemoMood() {
   logs.push(entry);
   localStorage.setItem('PeaceFlow_logs', JSON.stringify(logs));
 
-  demoSaved.value = true;
+  // Đây là widget demo trên trang chủ — chỉ lưu thật vào DB khi đã đăng nhập. Khách chưa
+  // đăng nhập chỉ xem trước trải nghiệm (log cục bộ ở trên), không có tài khoản để lưu.
+  if (isAuthenticated.value) {
+    const score = selectedScore.value;
+    const anxietyScore = score <= 2 ? 9 : score <= 4 ? 7 : score <= 6 ? 5 : 3;
+    const stressScore = triggers.some((tag) => ['work', 'finance'].includes(tag)) ? Math.min(10, anxietyScore + 1) : anxietyScore;
+    const energyScore = Math.max(1, Math.min(10, score + (score >= 7 ? 1 : 0)));
+    try {
+      await apiClient.post('/moods', {
+        mood_score: score,
+        anxiety_score: anxietyScore,
+        stress_score: stressScore,
+        energy_score: energyScore,
+        sleep_quality_score: triggers.includes('sleep') ? 3 : null,
+        dominant_emotion: selectedMood.value ? (DEMO_EMOTION_LABELS[selectedMood.value] || null) : null,
+        triggers,
+        notes: null
+      });
+      window.dispatchEvent(new CustomEvent('peaceflow:mood-saved'));
+    } catch (error) {
+      console.error('Could not save mood to API:', error);
+    }
+  }
 
-  setTimeout(() => {
-    window.location.href = isAuthenticated.value ? '/mood-checkin' : '/signup';
-  }, 1000);
+  demoSaved.value = true;
 }
 
 function closeAuthDropdownOnOutsideClick(event) {
