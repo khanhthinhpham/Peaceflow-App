@@ -237,7 +237,7 @@ router.post('/community/posts', requireAuth, async (req, res) => {
         insertNotification(admin.id, notifyName, 'community_post_pending', post.id, msg, {
           code: 'community_post_pending_admin'
         }).catch(() => {});
-        sendPushToUser(admin.id, '📝 Bài viết chờ duyệt', msg, 'pages/admin/community.html').catch(() => {});
+        sendPushToUser(admin.id, '📝 Bài viết chờ duyệt', msg, '/admin/community').catch(() => {});
       }
       sendCommunityPostToAdmin({
         postId: post.id,
@@ -333,7 +333,7 @@ router.post('/community/posts/:id/comments', requireAuth, async (req, res) => {
           const pushTitle = code === 'reply_comment'
             ? (pushLocale === 'en' ? '↩️ New reply' : '↩️ Có người trả lời')
             : (pushLocale === 'en' ? '💬 New comment' : '💬 Bình luận mới');
-          sendPushToUser(recipientId, pushTitle, pushBody, 'pages/community.html').catch(() => {});
+          sendPushToUser(recipientId, pushTitle, pushBody, '/community').catch(() => {});
         }).catch(() => {});
         insertNotification(recipientId, commenterName, code === 'reply_comment' ? 'reply' : 'comment', postId, msg, {
           code,
@@ -404,7 +404,7 @@ router.post('/community/posts/:id/reactions', requireAuth, async (req, res) => {
         const msg = `${actorName} đã thả ${emoji} vào bài viết của bạn.`;
         getUserLocale(postOwnerId).then((pushLocale) => {
           const pushBody = buildNotificationMessage('reaction_post', { actorName, emoji }, pushLocale) || msg;
-          sendPushToUser(postOwnerId, pushLocale === 'en' ? `${emoji} New reaction` : `${emoji} Cảm xúc mới`, pushBody, 'pages/community.html').catch(() => {});
+          sendPushToUser(postOwnerId, pushLocale === 'en' ? `${emoji} New reaction` : `${emoji} Cảm xúc mới`, pushBody, '/community').catch(() => {});
         }).catch(() => {});
         insertNotification(postOwnerId, actorName, 'reaction', postId, msg, { code: 'reaction_post', actorName, emoji }).catch(() => {});
       })().catch(e => console.error('[BG] reaction notify:', e.message));

@@ -272,7 +272,7 @@ export async function sendBookingCreatedAdminEmail({
   amount, orderCode, expiresAt
 }) {
   if (!hasMailProvider() || !to) return;
-  const adminLink = `${APP_URL}/expert/app.html?page=dashboard.html`;
+  const adminLink = `${APP_URL}/admin/payments`;
   await sendMail({
     from: FROM,
     to,
@@ -465,14 +465,14 @@ export async function sendSharedRecordToExpertEmail({ to, expertName, clientName
     <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:32px 24px;">
       <h2 style="color:#2D6A4F;margin-bottom:8px;">A client just shared their records</h2>
       <p style="color:#555;line-height:1.6;">Hi ${expertName || 'there'},</p>
-      <p style="color:#555;line-height:1.6;"><strong>${clientName || 'A client'}</strong> just shared their journal entries and self-test results with you ahead of your upcoming session.</p>
+      <p style="color:#555;line-height:1.6;"><strong>${clientName || 'A client'}</strong> just shared their journal entries and self-test results with you.</p>
       <a href="${link}" style="display:inline-block;margin:16px 0;padding:12px 28px;background:#52B788;color:#fff;border-radius:8px;text-decoration:none;font-weight:700;">View shared records</a>
     </div>
   ` : `
     <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:32px 24px;">
       <h2 style="color:#2D6A4F;margin-bottom:8px;">Thân chủ vừa gửi hồ sơ cho bạn</h2>
       <p style="color:#555;line-height:1.6;">Xin chào ${expertName || 'bạn'},</p>
-      <p style="color:#555;line-height:1.6;"><strong>${clientName || 'Một thân chủ'}</strong> vừa gửi nhật ký và kết quả test tự làm cho bạn, chuẩn bị cho buổi hẹn sắp tới.</p>
+      <p style="color:#555;line-height:1.6;"><strong>${clientName || 'Một thân chủ'}</strong> vừa gửi nhật ký và kết quả test tự làm cho bạn.</p>
       <a href="${link}" style="display:inline-block;margin:16px 0;padding:12px 28px;background:#52B788;color:#fff;border-radius:8px;text-decoration:none;font-weight:700;">Xem hồ sơ được gửi</a>
     </div>
   `;

@@ -38,17 +38,14 @@
       "reviewBtn": "Review",
       "payBtn": "Pay",
       "cancelBtn": "Cancel",
-      "zoomBtn": "🎥 Join Zoom",
-      "shareRecordsBtn": "📋 Share records"
+      "zoomBtn": "🎥 Join Zoom"
     },
     "shareRecord": {
       "modalTitle": "Share records with your doctor",
       "loading": "Loading...",
       "loadError": "Couldn't load this data, please try again.",
-      "cannotSendNotConfirmed": "You can only share records once the doctor has accepted this appointment.",
-      "cannotSendWindowClosed": "This appointment window has passed — you can no longer share records for it.",
-      "sentListTitle": "Records shared for this appointment",
-      "noSentYet": "You haven't shared any records for this appointment yet.",
+      "sentListTitle": "Records shared with this expert",
+      "noSentYet": "You haven't shared any records with this expert yet.",
       "sendNewBtn": "📋 Share new records",
       "statusActive": "Sharing",
       "statusRevoked": "Revoked",
@@ -144,7 +141,8 @@
       "returningClientLabel": "Returning client: {price}",
       "noSlot": "No slots yet",
       "bookBtn": "Book now",
-      "viewProfileBtn": "View profile"
+      "viewProfileBtn": "View profile",
+      "shareRecordBtn": "📋 Share records"
     },
     "disclaimer": "⚠️ <strong>Disclaimer:</strong> PeaceFlow connects users with independent psychologists. We don't provide direct medical services. If you're in an emergency, call <strong>0931773637</strong> or go to the nearest medical facility.",
     "booking": {

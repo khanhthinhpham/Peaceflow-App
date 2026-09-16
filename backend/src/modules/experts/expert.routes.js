@@ -2198,7 +2198,7 @@ router.post('/admin/community/posts/:id/approve', requireAuth, async (req, res) 
     if (authorId) {
       const msg = 'Bài viết của bạn đã được duyệt và hiển thị công khai trên Cộng đồng.';
       notify(authorId, 'PeaceFlow', 'community_post_approved', msg, { code: 'community_post_approved' }).catch(() => {});
-      sendPushToUser(authorId, '✅ Bài viết đã được duyệt', msg, 'pages/community.html').catch(() => {});
+      sendPushToUser(authorId, '✅ Bài viết đã được duyệt', msg, '/community').catch(() => {});
     }
     return res.json({ success: true, data: { id: r.rows[0].id } });
   } catch (error) {
@@ -2225,7 +2225,7 @@ router.post('/admin/community/posts/:id/reject', requireAuth, async (req, res) =
     if (authorId) {
       const msg = 'Bài viết của bạn chưa được duyệt để hiển thị công khai.';
       notify(authorId, 'PeaceFlow', 'community_post_rejected', msg, { code: 'community_post_rejected' }).catch(() => {});
-      sendPushToUser(authorId, '📝 Bài viết chưa được duyệt', msg, 'pages/community.html').catch(() => {});
+      sendPushToUser(authorId, '📝 Bài viết chưa được duyệt', msg, '/community').catch(() => {});
     }
     return res.json({ success: true, data: { id: r.rows[0].id } });
   } catch (error) {

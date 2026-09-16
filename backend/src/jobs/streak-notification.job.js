@@ -20,7 +20,7 @@ export async function runStreakWarningJob() {
         row.user_id,
         isEn ? `🔥 Your ${row.current_streak}-day streak is about to end!` : `🔥 Streak ${row.current_streak} ngày sắp mất!`,
         isEn ? 'Complete 1 task or check in before midnight to keep your streak.' : 'Hoàn thành 1 nhiệm vụ hoặc check-in trước nửa đêm để giữ streak.',
-        'pages/tasks.html'
+        '/tasks'
       );
       sent++;
     }
@@ -51,7 +51,7 @@ export async function runStreakLostNotificationJob() {
         row.user_id,
         isEn ? `💔 Your ${row.current_streak}-day streak is broken!` : `💔 Streak ${row.current_streak} ngày đã bị phá!`,
         isEn ? 'You missed yesterday. Start a new streak today!' : 'Bạn đã bỏ lỡ hôm qua. Hãy bắt đầu streak mới ngay hôm nay!',
-        'pages/tasks.html'
+        '/tasks'
       );
       sent++;
     }

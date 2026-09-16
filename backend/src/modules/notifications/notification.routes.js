@@ -105,7 +105,7 @@ router.get('/notifications', requireAuth, async (req, res) => {
         icon: badge.icon || '🏅',
         title: L(`Huy hiệu mới: ${badge.name}`, `New badge: ${badge.name}`),
         body: L('Bạn vừa mở khóa huy hiệu mới!', "You've just unlocked a new badge!"),
-        action: 'achievements.html',
+        action: '/achievements',
         created_at: badge.earned_at
       });
     });
@@ -125,7 +125,7 @@ router.get('/notifications', requireAuth, async (req, res) => {
           icon: '🔥',
           title: L(`Streak ${progress.current_streak} ngày sắp bị phá!`, `Your ${progress.current_streak}-day streak is about to break!`),
           body: L('Hoàn thành ít nhất 1 nhiệm vụ hoặc check-in hôm nay.', 'Complete at least 1 task or check in today.'),
-          action: 'tasks.html',
+          action: '/tasks',
           // Mốc ỔN ĐỊNH theo NGÀY (không phải new Date() mỗi lần gọi API) — xem giải
           // thích ở startOfVnDay().
           created_at: startOfVnDay()
@@ -148,7 +148,7 @@ router.get('/notifications', requireAuth, async (req, res) => {
           ? L('Check-in tâm trạng đầu tiên', 'Your first mood check-in')
           : L('Đã đến giờ check-in!', 'Time to check in!'),
         body: L('Ghi nhận tâm trạng mỗi ngày giúp hệ thống gợi ý chính xác hơn.', 'Logging your mood every day helps the system give you better suggestions.'),
-        action: 'mood-checkin.html',
+        action: '/mood-checkin',
         // Mốc ỔN ĐỊNH = mốc MUỘN HƠN giữa "đến hạn" (22 giờ sau lần check-in gần nhất) và
         // "đầu ngày hôm nay".
         // Vì sao phải lấy cái muộn hơn: nếu chỉ lấy "đến hạn", người đã lâu không check-in
@@ -178,7 +178,7 @@ router.get('/notifications', requireAuth, async (req, res) => {
           icon: approved ? '✅' : '📋',
           title: approved ? L('Hồ sơ đã được duyệt', 'Application approved') : L('Kết quả hồ sơ chuyên gia', 'Expert application result'),
           body: localizedBody || row.message,
-          action: approved ? 'expert/app.html?page=dashboard.html' : 'expert/apply.html',
+          action: approved ? '/expert/dashboard' : '/expert-apply',
           created_at: row.latest,
           // Dùng cờ đã đọc THẬT của nhóm (bool_and), không dùng mốc thời gian: loại này có
           // hàng thật trong bảng notifications nên đánh dấu theo dòng là chính xác nhất.
@@ -194,7 +194,7 @@ router.get('/notifications', requireAuth, async (req, res) => {
           icon: '📅',
           title: row.type === 'booking_new' ? L('Lịch hẹn mới', 'New booking') : L('Cập nhật lịch hẹn', 'Booking update'),
           body: localizedBody || row.message,
-          action: row.type === 'booking_new' ? 'expert/app.html?page=dashboard.html' : 'experts.html',
+          action: row.type === 'booking_new' ? '/expert/dashboard' : '/experts',
           created_at: row.latest,
           is_read: Boolean(row.all_read)
         });
@@ -209,7 +209,7 @@ router.get('/notifications', requireAuth, async (req, res) => {
           icon: approved ? '✅' : '📝',
           title: approved ? L('Bài viết đã được duyệt', 'Post approved') : L('Bài viết chưa được duyệt', 'Post not approved'),
           body: localizedBody || row.message,
-          action: 'community.html',
+          action: '/community',
           created_at: row.latest,
           is_read: Boolean(row.all_read)
         });
@@ -276,7 +276,7 @@ router.get('/notifications', requireAuth, async (req, res) => {
           icon: '↩️',
           title: L('Trả lời mới', 'New reply'),
           body: localizedBody || row.message,
-          action: 'community.html',
+          action: '/community',
           created_at: row.latest,
           is_read: Boolean(row.all_read)
         });
@@ -299,7 +299,7 @@ router.get('/notifications', requireAuth, async (req, res) => {
         icon: isComment ? '💬' : '❤️',
         title,
         body,
-        action: 'community.html',
+        action: '/community',
         created_at: row.latest,
         is_read: Boolean(row.all_read)
       });
@@ -309,8 +309,8 @@ router.get('/notifications', requireAuth, async (req, res) => {
     if (isTest && communityNotifsRes.rows.length === 0) {
       const commentCount = communityCommentRes.rows[0]?.total || 0;
       const reactionCount = communityReactionRes.rows[0]?.total || 0;
-      if (commentCount > 0) notifications.push({ id: 'test-comments', type: 'community', icon: '💬', title: L(`${commentCount} bình luận mới`, `${commentCount} new comments`), body: L('Ai đó vừa bình luận bài viết của bạn.', 'Someone just commented on your post.'), action: 'community.html', created_at: new Date().toISOString() });
-      if (reactionCount > 0) notifications.push({ id: 'test-reactions', type: 'community', icon: '❤️', title: L(`${reactionCount} cảm xúc mới`, `${reactionCount} new reactions`), body: L('Bài viết của bạn vừa nhận cảm xúc mới.', 'Your post just got a new reaction.'), action: 'community.html', created_at: new Date().toISOString() });
+      if (commentCount > 0) notifications.push({ id: 'test-comments', type: 'community', icon: '💬', title: L(`${commentCount} bình luận mới`, `${commentCount} new comments`), body: L('Ai đó vừa bình luận bài viết của bạn.', 'Someone just commented on your post.'), action: '/community', created_at: new Date().toISOString() });
+      if (reactionCount > 0) notifications.push({ id: 'test-reactions', type: 'community', icon: '❤️', title: L(`${reactionCount} cảm xúc mới`, `${reactionCount} new reactions`), body: L('Bài viết của bạn vừa nhận cảm xúc mới.', 'Your post just got a new reaction.'), action: '/community', created_at: new Date().toISOString() });
     }
 
     // Sắp xếp: badge → community → streak warning → reminder

@@ -39,12 +39,7 @@
       "sliderLow": "😌 Nhẹ nhàng",
       "sliderHigh": "😰 Rất mạnh",
       "backBtn": "← Quay lại",
-      "continueBtn": "Tiếp tục →",
-      "level1": "Rất căng. Cần chăm sóc!",
-      "level2": "Hơi mệt / Căng nhẹ",
-      "level3": "Bình thường / Ổn định",
-      "level4": "Khá tốt / Thoải mái",
-      "level5": "Rất tuyệt vời"
+      "continueBtn": "Tiếp tục →"
     },
     "step3": {
       "mascotText": "Cảm ơn bạn đã chia sẻ! Điều gì có thể đang ảnh hưởng đến tâm trạng của bạn? (Tùy chọn)",

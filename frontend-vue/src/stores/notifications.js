@@ -22,17 +22,17 @@ function urlBase64ToUint8Array(base64String) {
 function toastMetaFor(notif) {
   switch (notif?.type) {
     case 'booking_new':
-      return { icon: '📅', title: 'Lịch hẹn mới', action: 'expert/app.html?page=dashboard.html' };
+      return { icon: '📅', title: 'Lịch hẹn mới', action: '/expert/dashboard' };
     case 'booking_update':
-      return { icon: '📅', title: 'Cập nhật lịch hẹn', action: 'experts.html' };
+      return { icon: '📅', title: 'Cập nhật lịch hẹn', action: '/experts' };
     case 'comment':
-      return { icon: '💬', title: 'Bình luận mới', action: 'community.html' };
+      return { icon: '💬', title: 'Bình luận mới', action: '/community' };
     case 'reply':
-      return { icon: '↩️', title: 'Trả lời mới', action: 'community.html' };
+      return { icon: '↩️', title: 'Trả lời mới', action: '/community' };
     case 'community_post_approved':
-      return { icon: '✅', title: 'Bài viết đã được duyệt', action: 'community.html' };
+      return { icon: '✅', title: 'Bài viết đã được duyệt', action: '/community' };
     case 'community_post_rejected':
-      return { icon: '📝', title: 'Bài viết chưa được duyệt', action: 'community.html' };
+      return { icon: '📝', title: 'Bài viết chưa được duyệt', action: '/community' };
     case 'community_post_pending':
       return { icon: '📝', title: 'Bài viết chờ duyệt', action: '/admin/community' };
     case 'broadcast':
@@ -44,11 +44,11 @@ function toastMetaFor(notif) {
     case 'shared_record_response':
       return { icon: '💬', title: 'Bác sĩ đã phản hồi', action: '/experts' };
     case 'expert_approved':
-      return { icon: '✅', title: 'Hồ sơ đã được duyệt', action: 'expert/app.html?page=dashboard.html' };
+      return { icon: '✅', title: 'Hồ sơ đã được duyệt', action: '/expert/dashboard' };
     case 'expert_rejected':
-      return { icon: '📋', title: 'Kết quả hồ sơ chuyên gia', action: 'expert/apply.html' };
+      return { icon: '📋', title: 'Kết quả hồ sơ chuyên gia', action: '/expert-apply' };
     default:
-      return { icon: '❤️', title: 'Cảm xúc mới', action: 'community.html' };
+      return { icon: '❤️', title: 'Cảm xúc mới', action: '/community' };
   }
 }
 

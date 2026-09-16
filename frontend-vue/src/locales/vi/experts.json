@@ -38,17 +38,14 @@
       "reviewBtn": "Đánh giá",
       "payBtn": "Thanh toán",
       "cancelBtn": "Huỷ",
-      "zoomBtn": "🎥 Vào Zoom",
-      "shareRecordsBtn": "📋 Gửi hồ sơ"
+      "zoomBtn": "🎥 Vào Zoom"
     },
     "shareRecord": {
       "modalTitle": "Gửi hồ sơ cho bác sĩ",
       "loading": "Đang tải...",
       "loadError": "Không tải được dữ liệu, vui lòng thử lại.",
-      "cannotSendNotConfirmed": "Chỉ có thể gửi hồ sơ sau khi bác sĩ đã nhận lịch hẹn này.",
-      "cannotSendWindowClosed": "Đã quá thời gian buổi hẹn — không thể gửi hồ sơ cho lịch hẹn này nữa.",
-      "sentListTitle": "Hồ sơ đã gửi cho lịch hẹn này",
-      "noSentYet": "Bạn chưa gửi hồ sơ nào cho lịch hẹn này.",
+      "sentListTitle": "Hồ sơ đã gửi cho chuyên gia này",
+      "noSentYet": "Bạn chưa gửi hồ sơ nào cho chuyên gia này.",
       "sendNewBtn": "📋 Gửi hồ sơ mới",
       "statusActive": "Đang chia sẻ",
       "statusRevoked": "Đã thu hồi",
@@ -144,7 +141,8 @@
       "returningClientLabel": "Tái khám: {price}",
       "noSlot": "Chưa có lịch",
       "bookBtn": "Đặt lịch ngay",
-      "viewProfileBtn": "Xem hồ sơ"
+      "viewProfileBtn": "Xem hồ sơ",
+      "shareRecordBtn": "📋 Gửi hồ sơ"
     },
     "disclaimer": "⚠️ <strong>Tuyên bố miễn trách:</strong> PeaceFlow kết nối người dùng với các chuyên gia tâm lý độc lập. Chúng tôi không cung cấp dịch vụ y tế trực tiếp. Nếu bạn đang trong tình trạng khẩn cấp, hãy gọi <strong>0931773637</strong> hoặc đến cơ sở y tế gần nhất.",
     "booking": {

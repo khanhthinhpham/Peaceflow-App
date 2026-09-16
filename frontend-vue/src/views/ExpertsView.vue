@@ -347,8 +347,9 @@
             <div class="pm-section-title">{{ t('experts.profile.reviewsTitle') }}</div>
             <div class="pm-reviews"></div>
           </div>
-          <div style="display:flex;gap:10px;margin-top:16px;">
+          <div style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;">
             <button class="btn-primary" style="flex:1;justify-content:center;" @click="closeProfileModal(); openBookingModal(currentExpertId)">{{ t('experts.profile.bookNowBtn') }}</button>
+            <button class="btn-outline" @click="closeProfileModal(); openShareRecordModal(currentExpert)">{{ t('experts.expertCard.shareRecordBtn') }}</button>
             <button class="btn-outline" @click="closeProfileModal">{{ t('experts.profile.closeBtn') }}</button>
           </div>
         </div>
@@ -428,7 +429,6 @@
                 </div>
                 <div v-else-if="['pending', 'awaiting_expert', 'confirmed'].includes(b.status)" class="mb-action-row">
                   <button v-if="b.status === 'confirmed' && b.zoom_join_url" type="button" class="btn-primary" style="padding:6px 12px;font-size:0.8rem;" @click="openZoomRoom(b.id)">{{ t('experts.myBookings.zoomBtn') }}</button>
-                  <button v-if="b.status === 'confirmed'" type="button" class="btn-outline" style="padding:6px 12px;font-size:0.8rem;" @click="openShareRecordModal(b)">{{ t('experts.myBookings.shareRecordsBtn') }}</button>
                   <button class="btn-outline" style="padding:6px 12px;font-size:0.8rem;" @click="cancelMyBooking(b.id)">{{ t('experts.myBookings.cancelBtn') }}</button>
                 </div>
               </div>
@@ -438,10 +438,10 @@
       </section>
 
       <ShareRecordModal
-        v-if="shareRecordBooking"
-        :booking-id="shareRecordBooking.id"
-        :expert-name="shareRecordBooking.expert_name || t('experts.myBookings.defaultExpertName')"
-        @close="shareRecordBooking = null"
+        v-if="shareRecordExpert"
+        :expert-id="shareRecordExpert.id"
+        :expert-name="shareRecordExpert.name || t('experts.myBookings.defaultExpertName')"
+        @close="shareRecordExpert = null"
       />
 
       <div class="stats-bar">
@@ -572,6 +572,7 @@
             <div class="ec-actions">
               <button class="ec-btn-book" @click.stop="openBookingModal(expert.id)">{{ t('experts.expertCard.bookBtn') }}</button>
               <button class="ec-btn-msg" @click.stop="openProfileModal(expert.id)">{{ t('experts.expertCard.viewProfileBtn') }}</button>
+              <button class="ec-btn-msg" @click.stop="openShareRecordModal(expert)">{{ t('experts.expertCard.shareRecordBtn') }}</button>
             </div>
           </div>
         </div>
@@ -593,9 +594,9 @@ const authStore = useAuthStore();
 const { t, tm, locale } = useI18n();
 const intlLocale = computed(() => (locale.value === 'en' ? 'en-US' : 'vi-VN'));
 
-const shareRecordBooking = ref(null);
-function openShareRecordModal(booking) {
-  shareRecordBooking.value = booking;
+const shareRecordExpert = ref(null);
+function openShareRecordModal(expert) {
+  shareRecordExpert.value = expert;
 }
 
 const SESSION_CONFIG = {

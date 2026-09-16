@@ -19,40 +19,36 @@ async function getUserLocale(userId) {
   return { locale: r.rows[0]?.locale === 'en' ? 'en' : 'vi', email: r.rows[0]?.email || null };
 }
 
-// Lấy booking + xác định đúng người trong cuộc (thân chủ / bác sĩ) — expert_id trong
-// expert_bookings trỏ tới experts.id, cần join ra users.id thật để so khớp req.user.sub.
-async function loadBooking(bookingId) {
+// Hồ sơ chuyên gia (experts.id) + tài khoản thật đứng sau nó — trước đây phải suy ra qua
+// booking, giờ gửi tự do nên tra thẳng từ experts.
+async function loadExpertProfile(expertProfileId) {
   const r = await db.query(
-    `select eb.id, eb.user_id as client_id, eb.status, eb.starts_at, eb.duration_minutes,
-            e.user_id as expert_user_id, e.full_name as expert_name,
-            coalesce(cu.display_name, cu.full_name, 'Người dùng') as client_name,
+    `select e.id, e.user_id as expert_user_id, e.active, e.full_name as expert_name,
             coalesce(eu.display_name, eu.full_name, e.full_name) as expert_display_name
-     from expert_bookings eb
-     join experts e on e.id = eb.expert_id
-     join users cu on cu.id = eb.user_id
+     from experts e
      left join users eu on eu.id = e.user_id
-     where eb.id = $1`,
-    [bookingId]
+     where e.id = $1`,
+    [expertProfileId]
   );
   return r.rows[0] || null;
 }
 
-// Cửa sổ được phép gửi: lịch đã 'confirmed' VÀ chưa quá hết giờ buổi hẹn (starts_at +
-// duration_minutes). Quá giờ hoặc lịch đã completed/cancelled/expired đều không cho gửi.
-function isWithinSendWindow(booking) {
-  if (!booking || booking.status !== 'confirmed') return false;
-  const endsAt = new Date(booking.starts_at).getTime() + booking.duration_minutes * 60000;
-  return Date.now() <= endsAt;
+async function getUserDisplayName(userId) {
+  const r = await db.query(`select coalesce(display_name, full_name, 'Người dùng') as name from users where id = $1`, [userId]);
+  return r.rows[0]?.name || 'Người dùng';
 }
 
 // ===== THÂN CHỦ =====
+// Gửi tự do cho bất kỳ chuyên gia nào đang hoạt động — không còn bắt buộc phải có lịch
+// hẹn đã xác nhận (yêu cầu ban đầu chỉ cho gửi trong lịch hẹn, đã được đổi thành gửi tự
+// do, chọn chuyên gia nào thì gửi cho chuyên gia đó, xem thảo luận trong PR).
 
-router.get('/bookings/:id/shareable-summary', requireAuth, async (req, res) => {
+router.get('/experts/:id/shareable-summary', requireAuth, async (req, res) => {
   try {
-    const booking = await loadBooking(req.params.id);
-    if (!booking) return res.status(404).json({ success: false, message: 'Không tìm thấy lịch hẹn.' });
-    if (booking.client_id !== req.user.sub) {
-      return res.status(403).json({ success: false, message: 'Bạn không có quyền truy cập lịch hẹn này.' });
+    const expert = await loadExpertProfile(req.params.id);
+    if (!expert || !expert.active) return res.status(404).json({ success: false, message: 'Không tìm thấy chuyên gia.' });
+    if (!expert.expert_user_id) {
+      return res.status(400).json({ success: false, message: 'Chuyên gia chưa có tài khoản trên hệ thống.' });
     }
 
     const [journalRes, moodRes, assessmentRes] = await Promise.all([
@@ -79,9 +75,7 @@ router.get('/bookings/:id/shareable-summary', requireAuth, async (req, res) => {
     return res.json({
       success: true,
       data: {
-        canSend: isWithinSendWindow(booking),
-        bookingStatus: booking.status,
-        expertName: booking.expert_display_name,
+        expertName: expert.expert_display_name,
         journalEntries: journalRes.rows,
         moodCheckins: moodRes.rows,
         assessmentResults: assessmentRes.rows
@@ -93,19 +87,12 @@ router.get('/bookings/:id/shareable-summary', requireAuth, async (req, res) => {
   }
 });
 
-router.post('/bookings/:id/shared-records', requireAuth, async (req, res) => {
+router.post('/experts/:id/shared-records', requireAuth, async (req, res) => {
   try {
-    const booking = await loadBooking(req.params.id);
-    if (!booking) return res.status(404).json({ success: false, message: 'Không tìm thấy lịch hẹn.' });
-    if (booking.client_id !== req.user.sub) {
-      return res.status(403).json({ success: false, message: 'Bạn không có quyền truy cập lịch hẹn này.' });
-    }
-    if (!booking.expert_user_id) {
+    const expert = await loadExpertProfile(req.params.id);
+    if (!expert || !expert.active) return res.status(404).json({ success: false, message: 'Không tìm thấy chuyên gia.' });
+    if (!expert.expert_user_id) {
       return res.status(400).json({ success: false, message: 'Chuyên gia chưa có tài khoản trên hệ thống.' });
-    }
-    // Luôn kiểm tra lại ở server — không tin tưởng cờ canSend phía client.
-    if (!isWithinSendWindow(booking)) {
-      return res.status(400).json({ success: false, message: 'Đã quá thời gian được gửi hồ sơ cho lịch hẹn này.' });
     }
 
     const journalIds = Array.isArray(req.body.journalEntryIds) ? req.body.journalEntryIds : [];
@@ -140,19 +127,21 @@ router.post('/bookings/:id/shared-records', requireAuth, async (req, res) => {
       assessmentResults: assessmentRes.rows
     };
 
+    const clientName = await getUserDisplayName(req.user.sub);
+
     const inserted = await db.query(
-      `insert into client_shared_records (booking_id, client_id, expert_id, snapshot)
-       values ($1, $2, $3, $4::jsonb) returning id, sent_at`,
-      [req.params.id, req.user.sub, booking.expert_user_id, JSON.stringify(snapshot)]
+      `insert into client_shared_records (client_id, expert_id, snapshot)
+       values ($1, $2, $3::jsonb) returning id, sent_at`,
+      [req.user.sub, expert.expert_user_id, JSON.stringify(snapshot)]
     );
     const record = inserted.rows[0];
 
-    const { locale: expertLocale, email: expertEmail } = await getUserLocale(booking.expert_user_id);
-    const msg = buildNotificationMessage('shared_record_sent', { clientName: booking.client_name }, expertLocale)
-      || `${booking.client_name} vừa gửi nhật ký và kết quả test cho bạn.`;
-    notify(booking.expert_user_id, booking.client_name, 'shared_record_sent', msg, { code: 'shared_record_sent', recordId: record.id }).catch(() => {});
-    sendPushToUser(booking.expert_user_id, '📋 Thân chủ vừa gửi hồ sơ', msg, '/expert/shared-records').catch(() => {});
-    sendSharedRecordToExpertEmail({ to: expertEmail, expertName: booking.expert_display_name, clientName: booking.client_name, locale: expertLocale })
+    const { locale: expertLocale, email: expertEmail } = await getUserLocale(expert.expert_user_id);
+    const msg = buildNotificationMessage('shared_record_sent', { clientName }, expertLocale)
+      || `${clientName} vừa gửi nhật ký và kết quả test cho bạn.`;
+    notify(expert.expert_user_id, clientName, 'shared_record_sent', msg, { code: 'shared_record_sent', recordId: record.id }).catch(() => {});
+    sendPushToUser(expert.expert_user_id, '📋 Thân chủ vừa gửi hồ sơ', msg, '/expert/shared-records').catch(() => {});
+    sendSharedRecordToExpertEmail({ to: expertEmail, expertName: expert.expert_display_name, clientName, locale: expertLocale })
       .catch((e) => console.error('[SHARED_RECORD_MAIL_FAIL]', e.message));
 
     return res.json({ success: true, data: { id: record.id, sentAt: record.sent_at } });
@@ -164,17 +153,24 @@ router.post('/bookings/:id/shared-records', requireAuth, async (req, res) => {
 
 router.get('/my-shared-records', requireAuth, async (req, res) => {
   try {
+    const expertProfileId = req.query.expertId || null;
+    const params = [req.user.sub];
+    let expertFilter = '';
+    if (expertProfileId) {
+      params.push(expertProfileId);
+      expertFilter = `and e.id = $${params.length}`;
+    }
+
     const r = await db.query(
-      `select csr.id, csr.status, csr.sent_at, csr.revoked_at, csr.booking_id,
-              coalesce(eu.display_name, eu.full_name, e.full_name) as expert_name,
-              (select count(*)::int from client_shared_record_responses resp where resp.shared_record_id = csr.id) as response_count
+      `select csr.id, csr.status, csr.sent_at, csr.revoked_at,
+              coalesce(eu.display_name, eu.full_name, e.full_name) as expert_name
+              , (select count(*)::int from client_shared_record_responses resp where resp.shared_record_id = csr.id) as response_count
        from client_shared_records csr
-       join expert_bookings eb on eb.id = csr.booking_id
-       join experts e on e.id = eb.expert_id
-       left join users eu on eu.id = e.user_id
-       where csr.client_id = $1
+       join experts e on e.user_id = csr.expert_id
+       left join users eu on eu.id = csr.expert_id
+       where csr.client_id = $1 ${expertFilter}
        order by csr.sent_at desc`,
-      [req.user.sub]
+      params
     );
     return res.json({ success: true, data: r.rows });
   } catch (error) {

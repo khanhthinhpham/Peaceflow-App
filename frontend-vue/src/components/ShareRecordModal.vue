@@ -17,10 +17,7 @@
         <template v-else>
           <!-- ===== LIST ===== -->
           <template v-if="view === 'list'">
-            <div v-if="!summary.canSend" class="sr-banner sr-banner-warn">
-              {{ summary.bookingStatus !== 'confirmed' ? t('experts.shareRecord.cannotSendNotConfirmed') : t('experts.shareRecord.cannotSendWindowClosed') }}
-            </div>
-            <button v-if="summary.canSend" type="button" class="btn-primary sr-send-new-btn" @click="startPick">{{ t('experts.shareRecord.sendNewBtn') }}</button>
+            <button type="button" class="btn-primary sr-send-new-btn" @click="startPick">{{ t('experts.shareRecord.sendNewBtn') }}</button>
 
             <div class="bm-section">
               <div class="bm-section-title">{{ t('experts.shareRecord.sentListTitle') }}</div>
@@ -211,7 +208,7 @@ import { useI18n } from 'vue-i18n';
 import { apiClient } from '../lib/apiClient';
 
 const props = defineProps({
-  bookingId: { type: String, required: true },
+  expertId: { type: String, required: true },
   expertName: { type: String, default: '' }
 });
 defineEmits(['close']);
@@ -237,11 +234,11 @@ async function loadAll() {
   loadError.value = false;
   try {
     const [summaryData, myRecords] = await Promise.all([
-      apiClient.get(`/bookings/${props.bookingId}/shareable-summary`, { noCache: true }),
-      apiClient.get('/my-shared-records', { noCache: true })
+      apiClient.get(`/experts/${props.expertId}/shareable-summary`, { noCache: true }),
+      apiClient.get(`/my-shared-records?expertId=${props.expertId}`, { noCache: true })
     ]);
     summary.value = summaryData;
-    sentRecords.value = (myRecords || []).filter((r) => r.booking_id === props.bookingId);
+    sentRecords.value = myRecords || [];
   } catch (_error) {
     loadError.value = true;
   } finally {
@@ -250,8 +247,7 @@ async function loadAll() {
 }
 async function reloadSentRecords() {
   try {
-    const myRecords = await apiClient.get('/my-shared-records', { noCache: true });
-    sentRecords.value = (myRecords || []).filter((r) => r.booking_id === props.bookingId);
+    sentRecords.value = await apiClient.get(`/my-shared-records?expertId=${props.expertId}`, { noCache: true }) || [];
   } catch (_error) { /* keep current list */ }
 }
 
@@ -315,7 +311,7 @@ async function confirmSend() {
   sending.value = true;
   sendError.value = '';
   try {
-    await apiClient.post(`/bookings/${props.bookingId}/shared-records`, {
+    await apiClient.post(`/experts/${props.expertId}/shared-records`, {
       journalEntryIds: selectedJournal.value,
       moodCheckinIds: selectedMood.value,
       assessmentResultIds: selectedAssessment.value

@@ -39,12 +39,7 @@
       "sliderLow": "😌 Mild",
       "sliderHigh": "😰 Very intense",
       "backBtn": "← Back",
-      "continueBtn": "Continue →",
-      "level1": "Very intense. Needs care!",
-      "level2": "A bit tired / Mildly stressed",
-      "level3": "Normal / Stable",
-      "level4": "Pretty good / Comfortable",
-      "level5": "Amazing"
+      "continueBtn": "Continue →"
     },
     "step3": {
       "mascotText": "Thanks for sharing! What might be affecting your mood? (Optional)",

@@ -89,7 +89,6 @@
             <div class="slider-value-display">
               <div class="slider-tree">{{ sliderTreeEmoji }}</div>
               <div class="slider-val">{{ checkinData.score }}</div>
-              <div class="slider-val-label">{{ sliderValLabel }}</div>
             </div>
           </div>
           <div style="display:flex;justify-content:space-between;align-items:center;">
@@ -368,15 +367,6 @@ const mascotMoodText = computed(() => (
     ? t('moodCheckin.step2.mascotWithMood', { mood: selectedMoodLabel.value })
     : t('moodCheckin.step2.mascotDefault')
 ));
-
-const sliderValLabel = computed(() => {
-  const val = checkinData.score;
-  if (val <= 3) return t('moodCheckin.step2.level1');
-  if (val <= 4) return t('moodCheckin.step2.level2');
-  if (val <= 6) return t('moodCheckin.step2.level3');
-  if (val <= 8) return t('moodCheckin.step2.level4');
-  return t('moodCheckin.step2.level5');
-});
 
 const sliderTreeEmoji = computed(() => {
   const val = checkinData.score;
