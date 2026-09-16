@@ -37,6 +37,12 @@ function toastMetaFor(notif) {
       return { icon: '📝', title: 'Bài viết chờ duyệt', action: '/admin/community' };
     case 'broadcast':
       return { icon: '📣', title: notif?.params?.title || 'Thông báo từ PeaceFlow', action: notif?.params?.actionUrl || '/dashboard' };
+    case 'shared_record_sent':
+      return { icon: '📋', title: 'Hồ sơ mới được gửi', action: '/expert/shared-records' };
+    case 'shared_record_revoked':
+      return { icon: '↩️', title: 'Hồ sơ đã bị thu hồi', action: '/expert/shared-records' };
+    case 'shared_record_response':
+      return { icon: '💬', title: 'Bác sĩ đã phản hồi', action: '/experts' };
     case 'expert_approved':
       return { icon: '✅', title: 'Hồ sơ đã được duyệt', action: 'expert/app.html?page=dashboard.html' };
     case 'expert_rejected':

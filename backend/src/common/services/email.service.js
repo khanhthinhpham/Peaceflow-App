@@ -454,3 +454,50 @@ export async function sendPayoutMethodChangedEmail({ to, name, bankName, account
     `
   });
 }
+
+// Thân chủ gửi hồ sơ (nhật ký + kết quả test snapshot) cho bác sĩ đang có lịch hẹn confirmed
+// với mình — báo cho bác sĩ vào hệ thống xem.
+export async function sendSharedRecordToExpertEmail({ to, expertName, clientName, locale = 'vi' }) {
+  if (!hasMailProvider() || !to) return;
+  const link = `${APP_URL}/expert/shared-records`;
+  const subject = locale === 'en' ? '📋 A client just shared their records with you — PeaceFlow' : '📋 Thân chủ vừa gửi hồ sơ cho bạn — PeaceFlow';
+  const html = locale === 'en' ? `
+    <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:32px 24px;">
+      <h2 style="color:#2D6A4F;margin-bottom:8px;">A client just shared their records</h2>
+      <p style="color:#555;line-height:1.6;">Hi ${expertName || 'there'},</p>
+      <p style="color:#555;line-height:1.6;"><strong>${clientName || 'A client'}</strong> just shared their journal entries and self-test results with you ahead of your upcoming session.</p>
+      <a href="${link}" style="display:inline-block;margin:16px 0;padding:12px 28px;background:#52B788;color:#fff;border-radius:8px;text-decoration:none;font-weight:700;">View shared records</a>
+    </div>
+  ` : `
+    <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:32px 24px;">
+      <h2 style="color:#2D6A4F;margin-bottom:8px;">Thân chủ vừa gửi hồ sơ cho bạn</h2>
+      <p style="color:#555;line-height:1.6;">Xin chào ${expertName || 'bạn'},</p>
+      <p style="color:#555;line-height:1.6;"><strong>${clientName || 'Một thân chủ'}</strong> vừa gửi nhật ký và kết quả test tự làm cho bạn, chuẩn bị cho buổi hẹn sắp tới.</p>
+      <a href="${link}" style="display:inline-block;margin:16px 0;padding:12px 28px;background:#52B788;color:#fff;border-radius:8px;text-decoration:none;font-weight:700;">Xem hồ sơ được gửi</a>
+    </div>
+  `;
+  await sendMail({ from: FROM, to, subject, html });
+}
+
+// Bác sĩ phản hồi/kê đơn cho 1 lần gửi hồ sơ — báo lại cho thân chủ.
+export async function sendSharedRecordResponseEmail({ to, clientName, expertName, locale = 'vi' }) {
+  if (!hasMailProvider() || !to) return;
+  const link = `${APP_URL}/experts`;
+  const subject = locale === 'en' ? '💬 Your doctor just replied — PeaceFlow' : '💬 Bác sĩ vừa phản hồi hồ sơ của bạn — PeaceFlow';
+  const html = locale === 'en' ? `
+    <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:32px 24px;">
+      <h2 style="color:#2D6A4F;margin-bottom:8px;">Your doctor just replied</h2>
+      <p style="color:#555;line-height:1.6;">Hi ${clientName || 'there'},</p>
+      <p style="color:#555;line-height:1.6;"><strong>${expertName || 'Your doctor'}</strong> just responded to the records you shared. Open the app to see the details.</p>
+      <a href="${link}" style="display:inline-block;margin:16px 0;padding:12px 28px;background:#52B788;color:#fff;border-radius:8px;text-decoration:none;font-weight:700;">View reply</a>
+    </div>
+  ` : `
+    <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:32px 24px;">
+      <h2 style="color:#2D6A4F;margin-bottom:8px;">Bác sĩ vừa phản hồi</h2>
+      <p style="color:#555;line-height:1.6;">Xin chào ${clientName || 'bạn'},</p>
+      <p style="color:#555;line-height:1.6;"><strong>${expertName || 'Bác sĩ'}</strong> vừa phản hồi hồ sơ bạn đã gửi. Mở app để xem chi tiết.</p>
+      <a href="${link}" style="display:inline-block;margin:16px 0;padding:12px 28px;background:#52B788;color:#fff;border-radius:8px;text-decoration:none;font-weight:700;">Xem phản hồi</a>
+    </div>
+  `;
+  await sendMail({ from: FROM, to, subject, html });
+}

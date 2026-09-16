@@ -243,6 +243,31 @@ router.get('/notifications', requireAuth, async (req, res) => {
         });
         return;
       }
+      // Thân chủ gửi/thu hồi hồ sơ nhật ký+test cho bác sĩ, hoặc bác sĩ phản hồi lại.
+      if (row.type === 'shared_record_sent' || row.type === 'shared_record_revoked' || row.type === 'shared_record_response') {
+        const iconMap = { shared_record_sent: '📋', shared_record_revoked: '↩️', shared_record_response: '💬' };
+        const titleMap = {
+          shared_record_sent: L('Hồ sơ mới được gửi', 'New shared record'),
+          shared_record_revoked: L('Hồ sơ đã bị thu hồi', 'Record revoked'),
+          shared_record_response: L('Bác sĩ đã phản hồi', 'Doctor replied')
+        };
+        const actionMap = {
+          shared_record_sent: '/expert/shared-records',
+          shared_record_revoked: '/expert/shared-records',
+          shared_record_response: '/experts'
+        };
+        notifications.push({
+          id: `notif-${row.group_key || new Date(row.latest).getTime()}`,
+          type: 'community',
+          icon: iconMap[row.type],
+          title: titleMap[row.type],
+          body: localizedBody || row.message,
+          action: actionMap[row.type],
+          created_at: row.latest,
+          is_read: Boolean(row.all_read)
+        });
+        return;
+      }
       // Trả lời bình luận
       if (row.type === 'reply') {
         notifications.push({

@@ -42,7 +42,9 @@
           <div class="si-line" :class="{ done: step >= 3 }"></div>
           <div class="si-dot" :class="dotClass(3)">3</div>
           <div class="si-line" :class="{ done: step >= 4 }"></div>
-          <div class="si-dot" :class="dotClass(4)">✓</div>
+          <div class="si-dot" :class="dotClass(4)">4</div>
+          <div class="si-line" :class="{ done: step >= 5 }"></div>
+          <div class="si-dot" :class="dotClass(5)">✓</div>
         </div>
 
         <!-- Step 1: Mood -->
@@ -115,12 +117,46 @@
           </div>
           <div style="display:flex;justify-content:space-between;align-items:center;">
             <button class="btn-outline" @click="goStep(2)">{{ t('moodCheckin.step3.backBtn') }}</button>
-            <button class="btn-primary" :disabled="submitting" @click="submitCheckin">{{ submitting ? t('moodCheckin.step3.saving') : t('moodCheckin.step3.saveBtn') }}</button>
+            <button class="btn-primary" @click="goStep(4)">{{ t('moodCheckin.step3.continueBtn') }}</button>
           </div>
         </div>
 
-        <!-- Step 4: Result -->
+        <!-- Step 4: Body symptoms -->
         <div class="checkin-step" :class="{ active: step === 4 }">
+          <div class="mascot-speech-box">
+            <span class="msb-avatar">🐱</span>
+            <div class="msb-text">{{ t('moodCheckin.stepBody.mascotText') }}</div>
+          </div>
+          <div class="checkin-title">{{ t('moodCheckin.stepBody.title') }}</div>
+          <div class="checkin-sub">{{ t('moodCheckin.stepBody.sub') }}</div>
+          <div class="tag-grid">
+            <div
+              v-for="group in BODY_SYMPTOM_GROUPS"
+              :key="group.id"
+              class="tag-btn"
+              :class="{ selected: isBodyGroupHighlighted(group) }"
+              @click="toggleBodyGroup(group)"
+            >{{ t(group.labelKey) }}<template v-if="group.children.length">{{ expandedBodyGroups.has(group.id) ? ' ▲' : ' ▼' }}</template></div>
+          </div>
+          <template v-for="group in BODY_SYMPTOM_GROUPS" :key="`sub-${group.id}`">
+            <div v-if="group.children.length && expandedBodyGroups.has(group.id)" class="tag-grid" style="margin-top:-6px;margin-bottom:16px;padding:12px;background:var(--cream,#fff8f0);border-radius:var(--border-radius-sm,10px);">
+              <div
+                v-for="child in group.children"
+                :key="child.id"
+                class="tag-btn"
+                :class="{ selected: checkinData.bodySymptoms.includes(child) }"
+                @click="toggleBodySymptom(child)"
+              >{{ t(child.labelKey) }}</div>
+            </div>
+          </template>
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <button class="btn-outline" @click="goStep(3)">{{ t('moodCheckin.stepBody.backBtn') }}</button>
+            <button class="btn-primary" :disabled="submitting" @click="submitCheckin">{{ submitting ? t('moodCheckin.stepBody.saving') : t('moodCheckin.stepBody.saveBtn') }}</button>
+          </div>
+        </div>
+
+        <!-- Step 5: Result -->
+        <div class="checkin-step" :class="{ active: step === 5 }">
           <div style="text-align:center;padding:10px 0 20px;">
             <div style="font-size:3rem;margin-bottom:8px;animation:bounce-r 2s ease-in-out infinite;">{{ checkinData.mood || '🌿' }}</div>
             <div style="font-size:1.2rem;font-weight:800;margin-bottom:6px;">{{ resultTitle }}</div>
@@ -224,6 +260,61 @@ const TAGS = [
   { id: 'unknown', labelKey: 'moodCheckin.tags.unknown' }
 ];
 
+// Bước 4 (triệu chứng cơ thể): 2 cấp — tag cha bấm vào để MỞ RỘNG tag con (trừ "Mất ngủ"
+// không có tag con, bấm là chọn luôn nó làm triệu chứng). `id` gửi kèm notes giống cách
+// TAGS ở bước 3 đang làm, không cần đổi backend.
+const BODY_SYMPTOM_GROUPS = [
+  { id: 'insomnia', labelKey: 'moodCheckin.bodyGroups.insomnia', children: [] },
+  {
+    id: 'pain', labelKey: 'moodCheckin.bodyGroups.pain', children: [
+      { id: 'migraine', labelKey: 'moodCheckin.bodyTags.migraine' },
+      { id: 'severe_headache', labelKey: 'moodCheckin.bodyTags.severe_headache' },
+      { id: 'back_pain', labelKey: 'moodCheckin.bodyTags.back_pain' },
+      { id: 'fainting', labelKey: 'moodCheckin.bodyTags.fainting' },
+      { id: 'unclear_ache', labelKey: 'moodCheckin.bodyTags.unclear_ache' }
+    ]
+  },
+  {
+    id: 'palpitations', labelKey: 'moodCheckin.bodyGroups.palpitations', children: [
+      { id: 'breathless', labelKey: 'moodCheckin.bodyTags.breathless' },
+      { id: 'nervous', labelKey: 'moodCheckin.bodyTags.nervous' },
+      { id: 'short_of_breath', labelKey: 'moodCheckin.bodyTags.short_of_breath' },
+      { id: 'muscle_tension', labelKey: 'moodCheckin.bodyTags.muscle_tension' },
+      { id: 'chest_tightness', labelKey: 'moodCheckin.bodyTags.chest_tightness' },
+      { id: 'throat_lump', labelKey: 'moodCheckin.bodyTags.throat_lump' },
+      { id: 'dizzy', labelKey: 'moodCheckin.bodyTags.dizzy' }
+    ]
+  },
+  {
+    id: 'exhaustion', labelKey: 'moodCheckin.bodyGroups.exhaustion', children: [
+      { id: 'easily_sick', labelKey: 'moodCheckin.bodyTags.easily_sick' },
+      { id: 'fever', labelKey: 'moodCheckin.bodyTags.fever' },
+      { id: 'sweaty_hands', labelKey: 'moodCheckin.bodyTags.sweaty_hands' },
+      { id: 'numb_limbs', labelKey: 'moodCheckin.bodyTags.numb_limbs' },
+      { id: 'chills', labelKey: 'moodCheckin.bodyTags.chills' },
+      { id: 'rapid_weight_gain', labelKey: 'moodCheckin.bodyTags.rapid_weight_gain' },
+      { id: 'skin_issues', labelKey: 'moodCheckin.bodyTags.skin_issues' }
+    ]
+  },
+  {
+    id: 'appetite_loss', labelKey: 'moodCheckin.bodyGroups.appetite_loss', children: [
+      { id: 'indigestion', labelKey: 'moodCheckin.bodyTags.indigestion' },
+      { id: 'diarrhea_constipation', labelKey: 'moodCheckin.bodyTags.diarrhea_constipation' },
+      { id: 'abdominal_discomfort', labelKey: 'moodCheckin.bodyTags.abdominal_discomfort' },
+      { id: 'dry_mouth', labelKey: 'moodCheckin.bodyTags.dry_mouth' }
+    ]
+  },
+  {
+    id: 'psychological', labelKey: 'moodCheckin.bodyGroups.psychological', children: [
+      { id: 'restless', labelKey: 'moodCheckin.bodyTags.restless' },
+      { id: 'hypervigilance', labelKey: 'moodCheckin.bodyTags.hypervigilance' },
+      { id: 'poor_concentration', labelKey: 'moodCheckin.bodyTags.poor_concentration' },
+      { id: 'sleep_disturbance', labelKey: 'moodCheckin.bodyTags.sleep_disturbance' },
+      { id: 'fear_of_losing_control', labelKey: 'moodCheckin.bodyTags.fear_of_losing_control' }
+    ]
+  }
+];
+
 function isToday(value) {
   if (!value) return false;
   const date = new Date(value);
@@ -253,7 +344,8 @@ const resultTitle = computed(() => t(`moodCheckin.step4.${resultPhase.value === 
 const resultMsg = computed(() => t(`moodCheckin.step4.${resultPhase.value === 'pending' ? 'savedMsg' : resultPhase.value + 'Msg'}`));
 const statusBadgeText = computed(() => t(`moodCheckin.step4.${resultPhase.value}Badge`));
 
-const checkinData = reactive({ score: 5, mood: null, moodId: null, tags: [] });
+const checkinData = reactive({ score: 5, mood: null, moodId: null, tags: [], bodySymptoms: [] });
+const expandedBodyGroups = reactive(new Set());
 
 const selectedMoodOption = computed(() => MOOD_OPTIONS.find((o) => o.id === checkinData.moodId) || null);
 const selectedMoodLabel = computed(() => (selectedMoodOption.value ? t(selectedMoodOption.value.labelKey) : ''));
@@ -312,6 +404,28 @@ function toggleTag(tag) {
   else checkinData.tags.splice(idx, 1);
 }
 
+function toggleBodySymptom(tag) {
+  const idx = checkinData.bodySymptoms.indexOf(tag);
+  if (idx === -1) checkinData.bodySymptoms.push(tag);
+  else checkinData.bodySymptoms.splice(idx, 1);
+}
+
+// "Mất ngủ" không có tag con -> bấm là chọn thẳng nó làm triệu chứng (như 1 tag thường).
+// Các nhóm còn lại có tag con -> bấm chỉ để MỞ/ĐÓNG danh sách con, không tự chọn cả nhóm.
+function toggleBodyGroup(group) {
+  if (!group.children.length) {
+    toggleBodySymptom(group);
+    return;
+  }
+  if (expandedBodyGroups.has(group.id)) expandedBodyGroups.delete(group.id);
+  else expandedBodyGroups.add(group.id);
+}
+
+function isBodyGroupHighlighted(group) {
+  if (!group.children.length) return checkinData.bodySymptoms.includes(group);
+  return expandedBodyGroups.has(group.id);
+}
+
 function goStep(target) {
   if (target === 2 && !checkinData.mood) {
     alert(t('moodCheckin.alerts.pickMoodFirst'));
@@ -341,7 +455,15 @@ function deriveMoodPayload() {
     // khai báo MOOD_OPTIONS.
     dominant_emotion: selectedMoodOption.value?.viLabel || null,
     triggers,
-    notes: checkinData.tags.map((tag) => t(tag.labelKey)).join(', ') || null
+    // Ghép cả nguyên nhân (bước 3) lẫn triệu chứng cơ thể (bước 4) vào notes — chưa có cột
+    // riêng cho triệu chứng cơ thể ở backend nên tận dụng notes như đang làm với tags,
+    // không cần thêm migration.
+    notes: [
+      checkinData.tags.map((tag) => t(tag.labelKey)).join(', '),
+      checkinData.bodySymptoms.length
+        ? `${t('moodCheckin.stepBody.notesPrefix')}: ${checkinData.bodySymptoms.map((tag) => t(tag.labelKey)).join(', ')}`
+        : ''
+    ].filter(Boolean).join(' | ') || null
   };
 }
 
@@ -396,7 +518,7 @@ async function submitCheckin() {
     // Lưu nguyên văn tiếng Việt (viLabel) — khớp đúng định dạng backend trả về ở lần đọc
     // sau, để todayLabelDisplay ánh xạ ngược đúng ngôn ngữ đang hiển thị.
     todayLabel.value = selectedMoodOption.value?.viLabel || '';
-    step.value = 4;
+    step.value = 5;
   } catch (error) {
     console.error('Could not save mood to API:', error);
     resultPhase.value = 'failed';
@@ -411,6 +533,8 @@ function resetCheckin() {
   checkinData.mood = null;
   checkinData.moodId = null;
   checkinData.tags = [];
+  checkinData.bodySymptoms = [];
+  expandedBodyGroups.clear();
   suggestedTasks.value = [];
   resultPhase.value = 'pending';
   step.value = 1;

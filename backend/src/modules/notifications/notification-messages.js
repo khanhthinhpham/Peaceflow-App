@@ -79,6 +79,18 @@ const BUILDERS = {
     expert_rejected: {
         vi: () => 'Hồ sơ chuyên gia của bạn chưa được duyệt. Bạn có thể cập nhật và gửi lại.',
         en: () => 'Your expert application was not approved this time. You can update and resubmit it.'
+    },
+    shared_record_sent: {
+        vi: ({ clientName }) => `${clientName} vừa gửi nhật ký và kết quả test cho bạn.`,
+        en: ({ clientName }) => `${clientName} just shared their journal and test results with you.`
+    },
+    shared_record_revoked: {
+        vi: ({ clientName }) => `${clientName} đã thu hồi hồ sơ đã gửi trước đó.`,
+        en: ({ clientName }) => `${clientName} has revoked the records they previously shared.`
+    },
+    shared_record_response: {
+        vi: ({ expertName }) => `${expertName} vừa phản hồi hồ sơ bạn đã gửi.`,
+        en: ({ expertName }) => `${expertName} just replied to the records you shared.`
     }
 };
 

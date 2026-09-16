@@ -428,6 +428,7 @@
                 </div>
                 <div v-else-if="['pending', 'awaiting_expert', 'confirmed'].includes(b.status)" class="mb-action-row">
                   <button v-if="b.status === 'confirmed' && b.zoom_join_url" type="button" class="btn-primary" style="padding:6px 12px;font-size:0.8rem;" @click="openZoomRoom(b.id)">{{ t('experts.myBookings.zoomBtn') }}</button>
+                  <button v-if="b.status === 'confirmed'" type="button" class="btn-outline" style="padding:6px 12px;font-size:0.8rem;" @click="openShareRecordModal(b)">{{ t('experts.myBookings.shareRecordsBtn') }}</button>
                   <button class="btn-outline" style="padding:6px 12px;font-size:0.8rem;" @click="cancelMyBooking(b.id)">{{ t('experts.myBookings.cancelBtn') }}</button>
                 </div>
               </div>
@@ -435,6 +436,13 @@
           </div>
         </div>
       </section>
+
+      <ShareRecordModal
+        v-if="shareRecordBooking"
+        :booking-id="shareRecordBooking.id"
+        :expert-name="shareRecordBooking.expert_name || t('experts.myBookings.defaultExpertName')"
+        @close="shareRecordBooking = null"
+      />
 
       <div class="stats-bar">
         <div class="paper-card stat-card"><div class="sc-num">{{ summary?.active_experts || 0 }}</div><div class="sc-label">{{ t('experts.stats.activeExperts') }}</div></div>
@@ -579,10 +587,16 @@ import { ref, reactive, computed, onMounted, onBeforeUnmount } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { apiClient } from '../lib/apiClient';
 import { useAuthStore } from '../stores/auth';
+import ShareRecordModal from '../components/ShareRecordModal.vue';
 
 const authStore = useAuthStore();
 const { t, tm, locale } = useI18n();
 const intlLocale = computed(() => (locale.value === 'en' ? 'en-US' : 'vi-VN'));
+
+const shareRecordBooking = ref(null);
+function openShareRecordModal(booking) {
+  shareRecordBooking.value = booking;
+}
 
 const SESSION_CONFIG = {
   voice: { labelKey: 'experts.sessionConfig.voice', icon: '📞' },

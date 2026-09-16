@@ -44,6 +44,7 @@ import ExpertClientAssessmentsView from '../views/expert/ExpertClientAssessments
 import ExpertApplicationView from '../views/expert/ExpertApplicationView.vue';
 import ExpertReviewStatusView from '../views/expert/ExpertReviewStatusView.vue';
 import ExpertPaymentsView from '../views/expert/ExpertPaymentsView.vue';
+import ExpertSharedRecordsView from '../views/expert/ExpertSharedRecordsView.vue';
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -109,6 +110,7 @@ const router = createRouter({
         { path: '', redirect: '/expert/dashboard' },
         { path: 'dashboard', name: 'expert-dashboard', component: ExpertDashboardView, meta: { navKey: 'dashboard' } },
         { path: 'client-assessments', name: 'expert-client-assessments', component: ExpertClientAssessmentsView, meta: { navKey: 'client-assessments' } },
+        { path: 'shared-records', name: 'expert-shared-records', component: ExpertSharedRecordsView, meta: { navKey: 'shared-records' } },
         { path: 'payments', name: 'expert-payments', component: ExpertPaymentsView, meta: { navKey: 'payments' } },
         { path: 'application', name: 'expert-application', component: ExpertApplicationView, meta: { navKey: 'application' } },
         { path: 'review-status', name: 'expert-review-status', component: ExpertReviewStatusView, meta: { navKey: 'review-status' } }
