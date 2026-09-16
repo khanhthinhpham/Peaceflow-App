@@ -13,8 +13,8 @@
       <button
         type="button"
         class="ins-filter-btn"
-        :class="{ active: activeCategory === null }"
-        @click="activeCategory = null"
+        :class="{ active: activeCategory === null && !showFullList }"
+        @click="activeCategory = null; showFullList = false"
       >{{ t('inspire.filterAll') }}</button>
       <button
         v-for="(label, key) in categories"
@@ -22,7 +22,7 @@
         type="button"
         class="ins-filter-btn"
         :class="{ active: activeCategory === key }"
-        @click="activeCategory = key"
+        @click="activeCategory = key; showFullList = false"
       >{{ label }}</button>
     </div>
 
@@ -35,6 +35,17 @@
       <ArticleCard v-for="a in articles" :key="a.id" :article="a" :cover="coverUrls[a.id]" />
     </div>
 
+    <!-- "Xem tất cả bài viết": toàn bộ bài viết, không chia theo danh mục -->
+    <template v-else-if="showFullList">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+        <h2 style="font-size:1.1rem;font-weight:800;margin:0;">{{ t('inspire.fullListTitle', { n: articles.length }) }}</h2>
+        <button type="button" class="ins-see-all" @click="showFullList = false">{{ t('inspire.backToCurated') }}</button>
+      </div>
+      <div class="ins-grid">
+        <ArticleCard v-for="a in articles" :key="a.id" :article="a" :cover="coverUrls[a.id]" />
+      </div>
+    </template>
+
     <!-- "Tất cả": 4 bài mới nhất nổi bật ở trên, bên dưới xếp theo từng danh mục riêng -->
     <template v-else>
       <div v-if="featured || sideItems.length" class="ins-hero-row" style="margin-bottom:36px;">
@@ -42,6 +53,10 @@
         <div v-if="sideItems.length" class="ins-side-col">
           <ArticleCard v-for="a in sideItems" :key="a.id" :article="a" :cover="coverUrls[a.id]" variant="side" />
         </div>
+      </div>
+
+      <div style="display:flex;justify-content:flex-end;margin-bottom:20px;">
+        <button type="button" class="ins-filter-btn" @click="showFullList = true">📚 {{ t('inspire.viewFullListBtn', { n: articles.length }) }}</button>
       </div>
 
       <section v-for="group in categoryGroups" :key="group.key" style="margin-bottom:36px;">
@@ -70,6 +85,7 @@ const categories = ref({});
 const loading = ref(true);
 const loadError = ref('');
 const activeCategory = ref(null);
+const showFullList = ref(false);
 const coverUrls = reactive({});
 
 const TOP_COUNT = 4;
@@ -77,7 +93,7 @@ const TOP_COUNT = 4;
 const featured = computed(() => (!activeCategory.value && articles.value.length ? articles.value[0] : null));
 const sideItems = computed(() => (!activeCategory.value ? articles.value.slice(1, TOP_COUNT) : []));
 
-const PER_CATEGORY_COUNT = 3;
+const PER_CATEGORY_COUNT = 6;
 // Mỗi danh mục hiện riêng 3 bài nổi bật nhất của nó (không loại trừ 4 bài đã hiện ở
 // trên) — để đủ mặt mọi danh mục dù bài của nó đã lọt vào top 4 mới nhất phía trên.
 const categoryGroups = computed(() => {
@@ -103,8 +119,12 @@ async function load() {
   loading.value = true;
   loadError.value = '';
   try {
-    const qs = activeCategory.value ? `?category=${encodeURIComponent(activeCategory.value)}` : '';
-    const data = await apiClient.get(`/articles${qs}`, { noCache: true });
+    // Backend mặc định limit=30/trang nếu không truyền — trang này tự lọc/nhóm phía client
+    // (nổi bật, theo danh mục, xem tất cả) nên luôn cần lấy hết, truyền thẳng mức trần
+    // backend cho phép (100) thay vì để rơi vào limit mặc định.
+    const params = new URLSearchParams({ limit: '100' });
+    if (activeCategory.value) params.set('category', activeCategory.value);
+    const data = await apiClient.get(`/articles?${params.toString()}`, { noCache: true });
     articles.value = data?.articles || [];
     categories.value = data?.categories || {};
     preloadCovers(articles.value);
