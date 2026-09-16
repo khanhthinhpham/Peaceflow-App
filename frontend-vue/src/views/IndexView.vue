@@ -259,7 +259,7 @@
           <div class="demo-slider-wrap">
             <div class="demo-slider-label"><span>{{ t('landing.moodDemo.sliderLow') }}</span><span>{{ t('landing.moodDemo.sliderHigh') }}</span></div>
             <input type="range" class="demo-slider" min="1" max="10" v-model.number="selectedScore">
-            <div style="text-align:center;font-size:0.78rem;font-weight:700;color:var(--mint-dark);margin-top:4px;">{{ t('landing.moodDemo.levelLabel', { score: selectedScore }) }}</div>
+            <div style="text-align:center;font-size:1.3rem;font-weight:800;color:var(--mint-dark);margin-top:4px;">{{ selectedScore }}</div>
           </div>
           <div style="font-size:0.72rem;font-weight:700;color:var(--text-secondary);margin-bottom:6px;">{{ t('landing.moodDemo.tagsLabel') }}</div>
           <div class="demo-tags">

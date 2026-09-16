@@ -80,7 +80,6 @@
       "cardTitle": "🐱 PeaceCat asks: How are you today?",
       "sliderLow": "😔 Very low",
       "sliderHigh": "😊 Very high",
-      "levelLabel": "Level: {score}/10",
       "tagsLabel": "🏷️ Reason (optional):",
       "saveDefault": "✅ Save mood & get a suggestion",
       "saveDone": "✅ Saved! Taking you to your healing garden...",
