@@ -263,7 +263,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted, onBeforeUnmount } from 'vue';
+import { ref, reactive, computed, onMounted, onBeforeUnmount, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { apiClient } from '../lib/apiClient';
@@ -633,6 +633,24 @@ async function loadTaskDetail() {
     console.error('Failed to load task detail from API:', error);
   }
 }
+
+// Bấm vào một task liên quan chỉ đổi query ?id= trên CÙNG route /task-detail — Vue Router
+// không tự re-mount component trong trường hợp này nên onMounted không chạy lại. Phải theo
+// dõi route.query.id riêng để nạp đúng task mới, nếu không trang vẫn hiện task cũ (bấm như
+// không có phản ứng gì).
+watch(() => route.query.id, (newId, oldId) => {
+  if (!newId || newId === oldId) return;
+  if (allTasks.value.length) {
+    const found = allTasks.value.find((t) => t.id === newId || t.code === newId);
+    if (found) {
+      const recommendedIds = new Set(allTasks.value.filter((t) => t.recommended).map((t) => t.id));
+      loadTaskInto(found, recommendedIds);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+  }
+  loadTaskDetail();
+});
 
 onMounted(() => {
   loadTaskDetail();
