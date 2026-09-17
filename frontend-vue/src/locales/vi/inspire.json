@@ -9,6 +9,7 @@
     "viewFullListBtn": "Xem tất cả {n} bài viết",
     "fullListTitle": "Toàn bộ bài viết ({n})",
     "backToCurated": "← Quay lại trang gợi ý",
+    "latestTitle": "Mới đăng",
     "loading": "Đang tải...",
     "loadError": "Không tải được danh sách bài viết.",
     "empty": "Chưa có bài viết nào trong danh mục này.",

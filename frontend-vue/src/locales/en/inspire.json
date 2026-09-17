@@ -9,6 +9,7 @@
     "viewFullListBtn": "View all {n} articles",
     "fullListTitle": "All articles ({n})",
     "backToCurated": "← Back to suggestions",
+    "latestTitle": "Latest posts",
     "loading": "Loading...",
     "loadError": "Could not load the article list.",
     "empty": "No articles in this category yet.",

@@ -4,14 +4,16 @@
     class="paper-card ins-card"
     :class="`ins-card-${variant}`"
   >
-    <div class="ins-cover" :class="{ 'ins-cover-featured': variant === 'featured' }">
+    <div v-if="variant !== 'headline'" class="ins-cover" :class="{ 'ins-cover-featured': variant === 'featured' }">
       <img v-if="cover" :src="cover" :alt="article.title" loading="lazy">
       <span v-else class="ins-cover-fallback">📖</span>
     </div>
     <div class="ins-body">
-      <span class="ins-tag">{{ article.categoryLabel }}</span>
+      <span v-if="variant !== 'row' && variant !== 'headline' && variant !== 'sidebar-row'" class="ins-tag">{{ article.categoryLabel }}</span>
       <div class="ins-title">{{ article.title }}</div>
-      <div v-if="variant !== 'side'" class="ins-meta">{{ metaLine }}</div>
+      <div v-if="variant === 'row' || variant === 'sidebar-row' || variant === 'headline'" class="ins-meta">{{ article.categoryLabel }} · {{ metaLine }}</div>
+      <div v-else-if="variant !== 'side'" class="ins-meta">{{ metaLine }}</div>
+      <p v-if="(variant === 'featured-side' || variant === 'row') && article.excerpt" class="ins-excerpt">{{ article.excerpt }}</p>
     </div>
   </router-link>
 </template>
@@ -42,6 +44,15 @@ const metaLine = computed(() => `${formatDate(props.article.publishedAt || props
 .ins-card-featured {
   flex: 2 1 0;
   min-width: 0;
+}
+/* Lưới 3 ảnh nhỏ (biến thể mặc định, đang chỉ dùng riêng ở đó) — bỏ khung viền, chỉ còn
+   ảnh + chữ. */
+.ins-card-grid {
+  border: none;
+  box-shadow: none;
+}
+.ins-card-grid:hover {
+  transform: none;
 }
 .ins-cover-featured {
   aspect-ratio: 21 / 9;
@@ -143,6 +154,217 @@ const metaLine = computed(() => `${formatDate(props.article.publishedAt || props
 .ins-card-featured .ins-meta {
   font-size: 0.8rem;
 }
+/* Danh sách dạng dòng kiểu báo chí: ảnh nhỏ vuông bên trái, tiêu đề + meta bên phải — luôn
+   nằm ngang ở mọi kích thước màn hình (khác .ins-card-side chỉ nằm ngang khi màn hẹp). */
+.ins-card-row {
+  flex-direction: row;
+  align-items: center;
+  gap: 18px;
+  padding: 10px 0;
+  border-radius: 0;
+  box-shadow: none;
+  border-left: none;
+  border-right: none;
+  border-top: 1.5px solid var(--kraft-light);
+  border-bottom: 1.5px solid var(--kraft-light);
+}
+.ins-card-row:hover {
+  transform: none;
+  background: var(--cream);
+}
+.ins-card-row .ins-cover {
+  flex: none;
+  width: 128px;
+  aspect-ratio: 1 / 1;
+  border-radius: 6px;
+}
+.ins-card-row .ins-cover-fallback {
+  font-size: 2.2rem;
+}
+.ins-card-row .ins-body {
+  padding: 16px 20px 16px 0;
+  min-width: 0;
+}
+.ins-card-row .ins-title {
+  font-size: 1.15rem;
+  margin: 0 0 6px;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.ins-card-row .ins-meta {
+  font-size: 0.85rem;
+}
+.ins-card-row .ins-excerpt {
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  line-height: 1.55;
+  margin: 6px 0 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+@media (max-width: 600px) {
+  .ins-card-row .ins-cover {
+    width: 84px;
+  }
+  .ins-card-row .ins-title {
+    font-size: 0.95rem;
+  }
+  .ins-card-row .ins-meta {
+    font-size: 0.75rem;
+  }
+}
+
+/* Headline thuần chữ (không ảnh) — dùng cạnh khối ảnh nổi bật, giống danh sách tiêu đề bên
+   phải ảnh hero trên trang báo. */
+.ins-card-headline {
+  border: none;
+  box-shadow: none;
+  background: transparent;
+  padding: 0;
+}
+.ins-card-headline:hover .ins-title {
+  color: var(--mint-dark);
+}
+.ins-card-headline .ins-body {
+  padding: 10px 0;
+  border-bottom: 1px dashed var(--kraft-light);
+}
+.ins-card-headline:last-child .ins-body {
+  border-bottom: none;
+}
+.ins-card-headline .ins-title {
+  font-size: 1.25rem;
+  line-height: 1.35;
+  font-weight: 700;
+  margin: 0 0 6px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  transition: var(--transition);
+}
+.ins-card-headline .ins-meta {
+  font-size: 0.85rem;
+}
+
+/* Danh sách sidebar (cột hẹp): KHÔNG bọc khung/thẻ riêng từng bài — chỉ ngăn cách bằng 1
+   gạch ngang, ảnh thu nhỏ lại để còn đủ chỗ cho chữ trong cột hẹp. */
+.ins-card-sidebar-row {
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 12px;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  background: transparent;
+  border-bottom: 1px solid var(--kraft-light);
+  padding-bottom: 14px;
+  margin-bottom: 14px;
+}
+.ins-card-sidebar-row:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+.ins-card-sidebar-row:hover {
+  transform: none;
+}
+.ins-card-sidebar-row:hover .ins-title {
+  color: var(--mint-dark);
+}
+.ins-card-sidebar-row .ins-cover {
+  flex: none;
+  width: 120px;
+  aspect-ratio: 1 / 1;
+  border-radius: 6px;
+}
+.ins-card-sidebar-row .ins-cover-fallback {
+  font-size: 1.8rem;
+}
+.ins-card-sidebar-row .ins-body {
+  padding: 0;
+  min-width: 0;
+}
+.ins-card-sidebar-row .ins-title {
+  font-size: 1rem;
+  margin: 0 0 5px;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  transition: var(--transition);
+}
+.ins-card-sidebar-row .ins-meta {
+  font-size: 0.74rem;
+}
+
+/* Bài dẫn đầu của hero/mỗi mục danh mục: chữ (tiêu đề + mô tả) bên trái, ảnh to bên phải —
+   dùng flex-direction: row-reverse để giữ nguyên thứ tự DOM (ảnh trước, chữ sau) mà vẫn
+   đảo chiều hiển thị, không phải sửa lại template riêng cho biến thể này. */
+.ins-card-featured-side {
+  flex-direction: row-reverse;
+  align-items: stretch;
+  gap: 24px;
+  padding: 0;
+  border: none;
+  box-shadow: none;
+  background: transparent;
+}
+.ins-card-featured-side:hover {
+  transform: none;
+}
+.ins-card-featured-side .ins-cover {
+  /* Bằng đúng chiều rộng 2 trong 3 card của .ins-thumb-grid bên dưới (tỉ lệ 2:1 so với phần
+     chữ). */
+  flex: 2 1 0;
+  aspect-ratio: 4 / 3;
+  border-radius: var(--radius-sm);
+}
+.ins-card-featured-side .ins-cover-fallback {
+  font-size: 3rem;
+}
+.ins-card-featured-side .ins-body {
+  flex: 1 1 0;
+  min-width: 0;
+  padding: 4px 0;
+  justify-content: flex-start;
+}
+.ins-card-featured-side .ins-title {
+  font-size: 1.5rem;
+  line-height: 1.3;
+  margin: 10px 0 8px;
+}
+/* .ins-meta gốc có margin-top:auto (để đẩy xuống đáy card ảnh-trên-chữ-dưới của biến thể
+   grid mặc định) — ở đây chữ xếp dọc theo cột riêng, giữ margin-top:auto sẽ đẩy meta+excerpt
+   xuống tít đáy, để hở khoảng trắng rất to ngay dưới tiêu đề. Bỏ lại về sát tiêu đề. */
+.ins-card-featured-side .ins-meta {
+  margin-top: 0;
+}
+.ins-card-featured-side .ins-excerpt {
+  font-size: 0.88rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+@media (max-width: 700px) {
+  .ins-card-featured-side {
+    flex-direction: column;
+  }
+  .ins-card-featured-side .ins-cover {
+    aspect-ratio: 16 / 9;
+  }
+}
+
 @media (max-width: 700px) {
   .ins-cover-featured {
     aspect-ratio: 16 / 9;

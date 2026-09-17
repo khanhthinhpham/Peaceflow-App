@@ -54,6 +54,9 @@ function mapArticle(row, categoriesMap, { withContent = false } = {}) {
     hasCover: Boolean(row.has_cover),
     createdAt: row.created_at,
     publishedAt: row.published_at,
+    // Đoạn trích ngắn cho danh sách/bài nổi bật — cắt sẵn ở SQL (left(content,220)) để
+    // không phải kéo cả content đầy đủ (có bài >5000 ký tự) về chỉ để hiển thị vài dòng.
+    ...(!withContent && row.content ? { excerpt: `${row.content.trim().replace(/\s+/g, ' ')}…` } : {}),
     ...(withContent ? { content: row.content } : {})
   };
 }
@@ -78,7 +81,8 @@ router.get('/articles', async (req, res) => {
     params.push(limit, offset);
     const rowsRes = await db.query(
       `select id, title, title_en, category, status, author_name, created_at, published_at,
-              (cover_image is not null) as has_cover
+              (cover_image is not null) as has_cover,
+              left(content, 220) as content, left(content_en, 220) as content_en
        from articles
        where ${where.join(' and ')}
        order by published_at desc nulls last, created_at desc
