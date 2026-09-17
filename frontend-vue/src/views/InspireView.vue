@@ -33,7 +33,7 @@
 
     <!-- Bộ lọc = 1 danh mục cụ thể: danh sách dạng dòng của đúng danh mục đó -->
     <div v-else-if="activeCategory" class="ins-row-list">
-      <ArticleCard v-for="a in articles" :key="a.id" :article="a" :cover="coverUrls[a.id]" variant="row" />
+      <ArticleCard v-for="a in articles" :key="a.id" :article="a" variant="row" />
     </div>
 
     <!-- "Xem tất cả bài viết": toàn bộ bài viết, không chia theo danh mục -->
@@ -43,7 +43,7 @@
         <button type="button" class="ins-see-all" @click="showFullList = false">{{ t('inspire.backToCurated') }}</button>
       </div>
       <div class="ins-row-list">
-        <ArticleCard v-for="a in articles" :key="a.id" :article="a" :cover="coverUrls[a.id]" variant="row" />
+        <ArticleCard v-for="a in articles" :key="a.id" :article="a" variant="row" />
       </div>
     </template>
 
@@ -57,9 +57,9 @@
            lệch do nội dung bên trong ảnh hưởng khác nhau tới từng flex row). -->
       <div class="ins-page-grid">
         <div class="ins-hero-main-col">
-          <ArticleCard v-if="featured" :article="featured" :cover="coverUrls[featured.id]" variant="featured-side" />
+          <ArticleCard v-if="featured" :article="featured" variant="featured-side" />
           <div v-if="thumbGridItems.length" class="ins-thumb-grid">
-            <ArticleCard v-for="a in thumbGridItems" :key="a.id" :article="a" :cover="coverUrls[a.id]" />
+            <ArticleCard v-for="a in thumbGridItems" :key="a.id" :article="a" />
           </div>
         </div>
         <div v-if="headlineItems.length" class="ins-headline-col">
@@ -82,9 +82,9 @@
               <h2 class="ins-section-header">#{{ group.label.toUpperCase() }}</h2>
               <button type="button" class="ins-see-all" @click="activeCategory = group.key">{{ t('inspire.seeAll') }}</button>
             </div>
-            <ArticleCard :article="group.items[0]" :cover="coverUrls[group.items[0].id]" variant="featured-side" style="margin-bottom:16px;" />
+            <ArticleCard :article="group.items[0]" variant="featured-side" style="margin-bottom:16px;" />
             <div v-if="group.items.length > 1" class="ins-row-list">
-              <ArticleCard v-for="a in group.items.slice(1)" :key="a.id" :article="a" :cover="coverUrls[a.id]" variant="row" />
+              <ArticleCard v-for="a in group.items.slice(1)" :key="a.id" :article="a" variant="row" />
             </div>
           </section>
 
@@ -97,7 +97,7 @@
           </div>
           <div class="ins-sidebar-box">
             <h3 class="ins-sidebar-title">📌 {{ t('inspire.latestTitle') }}</h3>
-            <ArticleCard v-for="a in sidebarLatestItems" :key="a.id" :article="a" :cover="coverUrls[a.id]" variant="sidebar-row" />
+            <ArticleCard v-for="a in sidebarLatestItems" :key="a.id" :article="a" variant="sidebar-row" />
           </div>
         </aside>
       </div>
@@ -106,7 +106,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted, watch } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { apiClient } from '../lib/apiClient';
 import ArticleCard from '../components/ArticleCard.vue';
@@ -119,7 +119,6 @@ const loading = ref(true);
 const loadError = ref('');
 const activeCategory = ref(null);
 const showFullList = ref(false);
-const coverUrls = reactive({});
 
 // 1 bài nổi bật (ảnh lớn) + 5 tiêu đề chỉ-chữ bên cạnh + 3 ảnh nhỏ xếp lưới bên dưới —
 // giống bố cục trang chủ báo chí (hero + danh sách headline + lưới ảnh nhỏ).
@@ -143,15 +142,6 @@ const categoryGroups = computed(() => {
   return groups;
 });
 
-async function preloadCovers(list) {
-  await Promise.all(list.filter((a) => a.hasCover).map(async (a) => {
-    try {
-      const blob = await apiClient.getBlob(`/articles/${a.id}/cover`);
-      coverUrls[a.id] = URL.createObjectURL(blob);
-    } catch (_e) { /* giữ fallback icon */ }
-  }));
-}
-
 async function load() {
   loading.value = true;
   loadError.value = '';
@@ -164,7 +154,6 @@ async function load() {
     const data = await apiClient.get(`/articles?${params.toString()}`, { noCache: true });
     articles.value = data?.articles || [];
     categories.value = data?.categories || {};
-    preloadCovers(articles.value);
   } catch (_e) {
     loadError.value = t('inspire.loadError');
   } finally {

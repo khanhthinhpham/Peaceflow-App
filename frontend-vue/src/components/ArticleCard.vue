@@ -5,7 +5,7 @@
     :class="`ins-card-${variant}`"
   >
     <div v-if="variant !== 'headline'" class="ins-cover" :class="{ 'ins-cover-featured': variant === 'featured' }">
-      <img v-if="cover" :src="cover" :alt="article.title" loading="lazy">
+      <img v-if="coverSrc" :src="coverSrc" :alt="article.title" loading="lazy" decoding="async">
       <span v-else class="ins-cover-fallback">📖</span>
     </div>
     <div class="ins-body">
@@ -21,14 +21,20 @@
 <script setup>
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { API_BASE_URL } from '../lib/apiClient';
 
 const props = defineProps({
   article: { type: Object, required: true },
-  cover: { type: String, default: '' },
   variant: { type: String, default: 'grid' }
 });
 
 const { locale } = useI18n();
+
+// Ảnh bìa dùng thẳng URL (endpoint /articles/:id/cover không cần đăng nhập) + loading="lazy"
+// của trình duyệt — trước đây trang danh sách tự fetch blob cho TẤT CẢ bài viết ngay khi vào
+// trang (dù chưa cuộn tới), tải rất nặng/chậm. Giờ ảnh chỉ thực sự tải khi trình duyệt thấy
+// nó sắp lọt vào khung nhìn khi cuộn.
+const coverSrc = computed(() => (props.article.hasCover ? `${API_BASE_URL}/articles/${props.article.id}/cover` : ''));
 
 function formatDate(v) {
   if (!v) return '';
@@ -359,9 +365,19 @@ const metaLine = computed(() => `${formatDate(props.article.publishedAt || props
 @media (max-width: 700px) {
   .ins-card-featured-side {
     flex-direction: column;
+    overflow: visible;
   }
   .ins-card-featured-side .ins-cover {
+    /* Màn hẹp đổi sang cột dọc -> flex:2 1 0 (dành cho lúc nằm NGANG cạnh phần chữ) tính theo
+       trục dọc luôn, kết hợp overflow:hidden ở .ins-card làm ảnh collapse gần về 0 chiều cao
+       (mất hẳn ảnh) — lỗi giống hệt từng gặp ở .ins-hero-row trên mobile. Trả về kích thước
+       tự nhiên theo aspect-ratio, không ép theo flex-basis:0 nữa. */
+    flex: none;
     aspect-ratio: 16 / 9;
+    /* Tràn lề ra sát mép màn hình — bù lại đúng phần padding 28px của <main> (page cha). */
+    margin: 0 -28px;
+    border-radius: 0;
+    width: calc(100% + 56px);
   }
 }
 
