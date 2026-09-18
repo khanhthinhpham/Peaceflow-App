@@ -115,6 +115,7 @@ router.get('/achievements', requireAuth, async (req, res) => {
       journalStatsRes,
       moodStatsRes,
       activityCalendarRes,
+      dayDetailRes,
       activityTotalRes,
       weeklyActivityRes,
       leaderboardTopRes,
@@ -205,6 +206,32 @@ router.get('/achievements', requireAuth, async (req, res) => {
          order by visit_date asc`,
         [userId]
       ).catch((e) => { console.error('[ACH_QUERY] activity_calendar:', e.message); return { rows: [] }; }),
+      // Chi tiet tung ngay (so lan check-in tam trang + diem TB, so nhat ky, so nhiem vu) de
+      // hien tooltip khi hover vao o ngay tren lich Streak - hien thi CHI, khong doi y nghia
+      // mau o (mau van tinh theo user_daily_visits o tren, giu nguyen).
+      db.query(
+        `select
+           d.day,
+           count(*) filter (where d.source = 'mood')::int as mood_count,
+           round(avg(d.mood_score) filter (where d.source = 'mood')::numeric, 1) as mood_avg,
+           count(*) filter (where d.source = 'journal')::int as journal_count,
+           count(*) filter (where d.source = 'task')::int as task_count
+         from (
+           select created_at::date as day, mood_score, 'mood' as source
+           from mood_checkins
+           where user_id = $1 and created_at >= current_date - interval '41 days'
+           union all
+           select created_at::date as day, null as mood_score, 'journal' as source
+           from journal_entries
+           where user_id = $1 and created_at >= current_date - interval '41 days'
+           union all
+           select tc.created_at::date as day, null as mood_score, 'task' as source
+           from task_completions tc
+           where tc.user_id = $1 and tc.created_at >= current_date - interval '41 days'
+         ) d
+         group by d.day`,
+        [userId]
+      ).catch((e) => { console.error('[ACH_QUERY] day_detail:', e.message); return { rows: [] }; }),
       db.query(
         `select count(*)::int as active_days
          from (
@@ -379,13 +406,24 @@ router.get('/achievements', requireAuth, async (req, res) => {
     const activityDaysSet = new Set(
       activityCalendarRes.rows.map((row) => toISODate(row.activity_day))
     );
+    const dayDetailMap = new Map(
+      dayDetailRes.rows.map((row) => [
+        toISODate(row.day),
+        {
+          mood_count: Number(row.mood_count || 0),
+          mood_avg: row.mood_avg === null ? null : Number(row.mood_avg),
+          journal_count: Number(row.journal_count || 0),
+          task_count: Number(row.task_count || 0)
+        }
+      ])
+    );
 
     const streak = {
       current: progress.current_streak,
       longest: progress.longest_streak,
       active_days: activeDays,
       month_label: formatMonthLabel(new Date()),
-      calendar: buildCalendarDays(activityDaysSet, new Date())
+      calendar: buildCalendarDays(activityDaysSet, new Date(), dayDetailMap)
     };
 
     const challenges = buildChallenges(weeklyActivity);
@@ -626,7 +664,7 @@ function makeChallenge({ code, icon, title, description, current, target, reward
   };
 }
 
-function buildCalendarDays(activityDaysSet, referenceDate) {
+function buildCalendarDays(activityDaysSet, referenceDate, dayDetailMap = new Map()) {
   const today = startOfDay(referenceDate);
   const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
   const firstWeekday = firstDayOfMonth.getDay();
@@ -656,7 +694,8 @@ function buildCalendarDays(activityDaysSet, referenceDate) {
     cells.push({
       label: String(day),
       iso_date: isoDate,
-      state
+      state,
+      detail: isFuture ? null : (dayDetailMap.get(isoDate) || { mood_count: 0, mood_avg: null, journal_count: 0, task_count: 0 })
     });
   }
 

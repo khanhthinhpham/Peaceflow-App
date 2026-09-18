@@ -63,7 +63,12 @@
       "legendDone": "Done",
       "legendMissed": "Missed",
       "legendToday": "Today",
-      "weekdayLabels": ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"]
+      "weekdayLabels": ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"],
+      "dayTooltipDate": "Day {date}",
+      "dayTooltipNoActivity": "No activity",
+      "dayTooltipMood": "{count} mood check-ins (avg {avg}/10)",
+      "dayTooltipJournal": "{count} journal entries",
+      "dayTooltipTask": "{count} tasks completed"
     },
     "challenges": {
       "sectionTitle": "🎯 Special challenges — Join to earn exclusive rewards!",

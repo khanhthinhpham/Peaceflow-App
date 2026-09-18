@@ -147,7 +147,7 @@
               <div style="font-size:0.78rem;font-weight:700;color:var(--text-secondary);margin-bottom:8px;">{{ data.streak.month_label }}</div>
               <div class="streak-calendar">
                 <div v-for="d in streakWeekdayLabels" :key="d" class="sc-day-h">{{ d }}</div>
-                <div v-for="(day, idx) in data.streak.calendar" :key="idx" class="sc-day" :class="day.state">{{ day.label }}</div>
+                <div v-for="(day, idx) in data.streak.calendar" :key="idx" class="sc-day" :class="day.state" :title="dayTooltip(day)">{{ day.label }}</div>
               </div>
               <div style="display:flex;gap:12px;margin-top:8px;font-size:0.65rem;color:var(--text-light);flex-wrap:wrap;">
                 <span style="display:flex;align-items:center;gap:4px;"><span style="width:10px;height:10px;border-radius:2px;background:var(--mint-dark);display:inline-block;"></span>{{ t('achievements.streak.legendDone') }}</span>
@@ -352,6 +352,17 @@ const translatedChallenges = computed(() => (data.value?.challenges || []).map((
 }));
 
 const streakWeekdayLabels = computed(() => tm('achievements.streak.weekdayLabels'));
+
+function dayTooltip(day) {
+  if (!day.iso_date || !day.detail) return '';
+  const parts = [t('achievements.streak.dayTooltipDate', { date: formatDate(day.iso_date) })];
+  const { mood_count: moodCount, mood_avg: moodAvg, journal_count: journalCount, task_count: taskCount } = day.detail;
+  if (moodCount > 0) parts.push(t('achievements.streak.dayTooltipMood', { count: moodCount, avg: moodAvg }));
+  if (journalCount > 0) parts.push(t('achievements.streak.dayTooltipJournal', { count: journalCount }));
+  if (taskCount > 0) parts.push(t('achievements.streak.dayTooltipTask', { count: taskCount }));
+  if (parts.length === 1) parts.push(t('achievements.streak.dayTooltipNoActivity'));
+  return parts.join(' · ');
+}
 
 const data = ref(null);
 const activeTab = ref('badges');

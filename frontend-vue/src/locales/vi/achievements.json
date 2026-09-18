@@ -63,7 +63,12 @@
       "legendDone": "Hoàn thành",
       "legendMissed": "Bỏ lỡ",
       "legendToday": "Hôm nay",
-      "weekdayLabels": ["CN", "T2", "T3", "T4", "T5", "T6", "T7"]
+      "weekdayLabels": ["CN", "T2", "T3", "T4", "T5", "T6", "T7"],
+      "dayTooltipDate": "Ngày {date}",
+      "dayTooltipNoActivity": "Không có hoạt động",
+      "dayTooltipMood": "{count} lần check-in tâm trạng (TB {avg}/10)",
+      "dayTooltipJournal": "{count} bài nhật ký",
+      "dayTooltipTask": "{count} nhiệm vụ hoàn thành"
     },
     "challenges": {
       "sectionTitle": "🎯 Thử thách đặc biệt — Tham gia để nhận phần thưởng độc quyền!",
