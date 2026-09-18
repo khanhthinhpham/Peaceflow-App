@@ -46,6 +46,7 @@ export const BODY_SYMPTOM_GROUPS = [
   },
   {
     id: 'palpitations', labelKey: 'moodCheckin.bodyGroups.palpitations', children: [
+      { id: 'rapid_heartbeat', labelKey: 'moodCheckin.bodyTags.rapid_heartbeat' },
       { id: 'breathless', labelKey: 'moodCheckin.bodyTags.breathless' },
       { id: 'nervous', labelKey: 'moodCheckin.bodyTags.nervous' },
       { id: 'short_of_breath', labelKey: 'moodCheckin.bodyTags.short_of_breath' },

@@ -448,6 +448,14 @@ function stopAllTimers() {
 }
 
 function switchPhase(next) {
+  // Tab "Hoàn thành" bấm được trực tiếp như 2 tab kia, nhưng trước đây chỉ đổi phase mà
+  // KHÔNG gọi completeTask() thật — hiện màn "+0 XP" giả (xpEarned vẫn ở giá trị mặc định
+  // ref(0), chưa từng được gán) và không hề gọi API lưu vào hệ thống. Nếu nhiệm vụ chưa
+  // thực sự hoàn thành, coi việc bấm tab này như bấm nút "Hoàn thành" thật.
+  if (next === 3 && !isCompleted.value) {
+    completeTask();
+    return;
+  }
   phase.value = next;
   if (next !== 2) stopBreathingAnimation();
 }

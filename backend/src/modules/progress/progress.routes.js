@@ -4,6 +4,14 @@ import { db } from '../../config/db.js';
 
 const router = Router();
 
+// Bang tasks khong co category/tag rieng cho "thien"/"tu te" (category chi co
+// easy/medium/hard/emergency/community, tags luon la ['Tam ly','Cam xuc'] cho MOI task) nen
+// dieu kien cu (t.category = 'meditation' or t.tags ? 'meditation') khong bao gio dung - huy
+// hieu "Thien Su Giay"/"Nguoi Tu Te" (badges.code = meditate_10/kind_10) khong ai dat duoc du
+// da lam du bai. Nhan dien bang tieu de bai tap thay the.
+const MEDITATION_TITLE_PATTERN = 'thiền|meditat';
+const KINDNESS_TITLE_PATTERN = 'kindness|tử tế';
+
 const LEVELS = [
   { level: 1, title: 'Người Bắt Đầu', minXP: 0, maxXP: 100 },
   { level: 2, title: 'Người Khám Phá', minXP: 100, maxXP: 300 },
@@ -44,6 +52,14 @@ router.get('/progress', requireAuth, async (req, res) => {
        last_activity_date = (now() at time zone 'Asia/Ho_Chi_Minh')::date`,
     [userId]
   ).catch((e) => { console.error('[PROGRESS_CHECKIN] write:', e.message); });
+  // Ghi lai chinh xac ngay (gio VN) vua lam current_streak tang o tren, de lich Achievements
+  // to mau dung theo nguon nay - xem ly do trong migration 0067_user_daily_visits.sql.
+  await db.query(
+    `insert into user_daily_visits (user_id, visit_date)
+     values ($1, (now() at time zone 'Asia/Ho_Chi_Minh')::date)
+     on conflict (user_id, visit_date) do nothing`,
+    [userId]
+  ).catch((e) => { console.error('[PROGRESS_CHECKIN] visit_log:', e.message); });
   // --- het phan check-in ---
 
   const result = await db.query(
@@ -141,18 +157,12 @@ router.get('/achievements', requireAuth, async (req, res) => {
         `select
            count(*)::int as tasks_completed,
            count(*) filter (where t.difficulty = 'hard')::int as hard_tasks_completed,
-           count(*) filter (
-             where t.category = 'meditation'
-                or t.tags ? 'meditation'
-           )::int as meditation_tasks_completed,
-           count(*) filter (
-             where t.category = 'kindness'
-                or t.tags ? 'kindness'
-           )::int as kindness_tasks_completed
+           count(*) filter (where t.title ~* $2)::int as meditation_tasks_completed,
+           count(*) filter (where t.title ~* $3)::int as kindness_tasks_completed
          from task_completions tc
          join tasks t on t.id = tc.task_id
          where tc.user_id = $1`,
-        [userId]
+        [userId, MEDITATION_TITLE_PATTERN, KINDNESS_TITLE_PATTERN]
       ).catch((e) => { console.error('[ACH_QUERY] task_completions:', e.message); return { rows: [] }; }),
       db.query(
         `select count(*)::int as journal_entries_count
@@ -186,24 +196,13 @@ router.get('/achievements', requireAuth, async (req, res) => {
         [userId]
       ).catch((e) => { console.error('[ACH_QUERY] mood_checkins:', e.message); return { rows: [] }; }),
       db.query(
-        `select activity_day
-         from (
-           select created_at::date as activity_day
-           from task_completions
-           where user_id = $1
-             and created_at >= current_date - interval '41 days'
-           union
-           select created_at::date as activity_day
-           from journal_entries
-           where user_id = $1
-             and created_at >= current_date - interval '41 days'
-           union
-           select created_at::date as activity_day
-           from mood_checkins
-           where user_id = $1
-             and created_at >= current_date - interval '41 days'
-         ) activities
-         order by activity_day asc`,
+        // Cung nguon voi current_streak (user_daily_visits, ghi o GET /progress) de lich to mau
+        // dung so ngay streak dang bao - xem migration 0067_user_daily_visits.sql.
+        `select visit_date as activity_day
+         from user_daily_visits
+         where user_id = $1
+           and visit_date >= current_date - interval '41 days'
+         order by visit_date asc`,
         [userId]
       ).catch((e) => { console.error('[ACH_QUERY] activity_calendar:', e.message); return { rows: [] }; }),
       db.query(

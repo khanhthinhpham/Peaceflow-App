@@ -93,6 +93,7 @@ import { useRoute, useRouter } from 'vue-router';
 import { useAuthStore } from '../stores/auth';
 import { useNotificationsStore } from '../stores/notifications';
 import { goToLegacyPage } from '../lib/legacyApp';
+import { apiClient } from '../lib/apiClient';
 
 defineProps({ sidebarOpen: { type: Boolean, default: false } });
 const emit = defineEmits(['navigate']);
@@ -172,7 +173,25 @@ function handleProgressUpdated(event) {
   xp.value = nextXp;
   level.value = nextLevel ?? level.value;
 }
-onMounted(() => window.addEventListener('peaceflow:progress-updated', handleProgressUpdated));
+
+// Trước đây sidebar CHỈ trông vào sự kiện 'peaceflow:progress-updated' do 1 vài trang khác
+// (Dashboard, hoàn thành nhiệm vụ, check-in, nhật ký) bắn ra — vào thẳng/tải lại bất kỳ
+// trang nào khác (Cộng đồng, Hồ sơ, Cài đặt...) mà chưa từng đi qua 1 trong các trang đó thì
+// xp/level đứng yên ở null, hiện "-- XP · Level --" vô thời hạn. Tự tải 1 lần khi mount để
+// luôn có giá trị thật, sự kiện ở trên vẫn giữ để cập nhật ngay khi có hoạt động mới.
+async function loadInitialProgress() {
+  if (!auth.isAuthenticated) return;
+  try {
+    const progress = await apiClient.get('/progress', { noCache: true });
+    xp.value = progress?.total_xp ?? progress?.xp ?? xp.value;
+    level.value = progress?.current_level ?? progress?.level ?? level.value;
+  } catch (_error) { /* giữ giá trị hiện tại, thử lại ở lần bắn sự kiện kế tiếp */ }
+}
+
+onMounted(() => {
+  window.addEventListener('peaceflow:progress-updated', handleProgressUpdated);
+  auth.waitForAuth().then(loadInitialProgress);
+});
 onBeforeUnmount(() => window.removeEventListener('peaceflow:progress-updated', handleProgressUpdated));
 
 async function handleLogout() {

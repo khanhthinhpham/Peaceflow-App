@@ -213,19 +213,19 @@
           <div class="paper-card challenges-card">
             <div class="cc-title">{{ t('community.challengesCard.title') }}</div>
             <div class="challenge-item">
-              <div class="ci-header"><div class="ci-name">{{ t('community.challengesCard.meditation.name') }}</div><div class="ci-xp">+100 XP</div></div>
-              <div class="ci-progress"><div class="ci-fill" style="width:74%"></div></div>
-              <div class="ci-meta">{{ t('community.challengesCard.meditation.meta') }}</div>
+              <div class="ci-header"><div class="ci-name">{{ t('community.challengesCard.meditation.name', { target: formatCompactNumber(meditationChallenge.target) }) }}</div><div class="ci-xp">+{{ meditationChallenge.xp }} XP</div></div>
+              <div class="ci-progress"><div class="ci-fill" :style="{ width: meditationChallenge.progress_percent + '%' }"></div></div>
+              <div class="ci-meta">{{ meditationMeta }}</div>
             </div>
             <div class="challenge-item">
-              <div class="ci-header"><div class="ci-name">{{ t('community.challengesCard.journal.name') }}</div><div class="ci-xp">+80 XP</div></div>
-              <div class="ci-progress"><div class="ci-fill" style="width:57%"></div></div>
-              <div class="ci-meta">{{ t('community.challengesCard.journal.meta') }}</div>
+              <div class="ci-header"><div class="ci-name">{{ t('community.challengesCard.journal.name', { target: journalChallenge.target }) }}</div><div class="ci-xp">+{{ journalChallenge.xp }} XP</div></div>
+              <div class="ci-progress"><div class="ci-fill" :style="{ width: journalChallenge.progress_percent + '%' }"></div></div>
+              <div class="ci-meta">{{ t('community.challengesCard.journal.meta', { current: journalChallenge.current, target: journalChallenge.target }) }}</div>
             </div>
             <div class="challenge-item">
-              <div class="ci-header"><div class="ci-name">{{ t('community.challengesCard.breathing.name') }}</div><div class="ci-xp">+50 XP</div></div>
-              <div class="ci-progress"><div class="ci-fill" style="width:40%"></div></div>
-              <div class="ci-meta">{{ t('community.challengesCard.breathing.meta') }}</div>
+              <div class="ci-header"><div class="ci-name">{{ t('community.challengesCard.breathing.name', { target: breathingChallenge.target }) }}</div><div class="ci-xp">+{{ breathingChallenge.xp }} XP</div></div>
+              <div class="ci-progress"><div class="ci-fill" :style="{ width: breathingChallenge.progress_percent + '%' }"></div></div>
+              <div class="ci-meta">{{ t('community.challengesCard.breathing.meta', { current: breathingChallenge.current, target: breathingChallenge.target }) }}</div>
             </div>
           </div>
 
@@ -348,6 +348,7 @@ const loading = ref(true);
 const posts = ref([]);
 const summary = ref(null);
 const challenge = ref(null);
+const personalChallenges = ref([]);
 const leaderboard = reactive({ xp: [], streak: [], tasks: [] });
 const mentors = ref([]);
 const progress = ref(null);
@@ -390,6 +391,20 @@ function formatCompactNumber(value) {
 function formatPercent(value) {
   return `${Math.round(Number(value || 0))}%`;
 }
+function findPersonalChallenge(code) {
+  return personalChallenges.value.find((c) => c.code === code)
+    || { current: 0, target: 0, days_left: 0, xp: 0, progress_percent: 0 };
+}
+const meditationChallenge = computed(() => findPersonalChallenge('meditation_monthly_minutes'));
+const journalChallenge = computed(() => findPersonalChallenge('journal_weekly_days'));
+const breathingChallenge = computed(() => findPersonalChallenge('breathing_streak_days'));
+const meditationMeta = computed(() => {
+  const c = meditationChallenge.value;
+  const params = { current: formatCompactNumber(c.current), target: formatCompactNumber(c.target) };
+  return c.days_left > 0
+    ? t('community.challengesCard.meditation.meta', { ...params, daysLeft: c.days_left })
+    : t('community.challengesCard.meditation.metaLastDay', params);
+});
 function normalizeVietnamese(value) {
   return String(value || '')
     .toLowerCase()
@@ -698,6 +713,7 @@ async function fetchCommunity() {
     summary.value = community.summary || null;
     posts.value = Array.isArray(community.posts) ? community.posts : [];
     challenge.value = community.challenge || null;
+    personalChallenges.value = Array.isArray(community.personal_challenges) ? community.personal_challenges : [];
     Object.assign(leaderboard, community.leaderboard || {});
     mentors.value = Array.isArray(community.mentors) ? community.mentors : [];
     progress.value = progressResult || progress.value;

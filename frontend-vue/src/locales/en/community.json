@@ -110,9 +110,13 @@
     },
     "challengesCard": {
       "title": "🎯 Ongoing challenges",
-      "meditation": { "name": "🧘 Meditate 1,000 minutes", "meta": "742/1,000 min · 4 days left" },
-      "journal": { "name": "📝 7-day journaling streak", "meta": "4/7 days · Personal" },
-      "breathing": { "name": "💨 5 days of breathing exercises", "meta": "2/5 days · Personal" }
+      "meditation": {
+        "name": "🧘 Meditate {target} minutes",
+        "meta": "{current}/{target} min · {daysLeft} days left",
+        "metaLastDay": "{current}/{target} min · Ends today"
+      },
+      "journal": { "name": "📝 {target}-day journaling streak", "meta": "{current}/{target} days · Personal" },
+      "breathing": { "name": "💨 {target} days of breathing exercises", "meta": "{current}/{target} days · Personal" }
     },
     "mentor": {
       "title": "🌟 Community mentors",

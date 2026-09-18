@@ -110,9 +110,13 @@
     },
     "challengesCard": {
       "title": "🎯 Thử thách đang diễn ra",
-      "meditation": { "name": "🧘 Thiền 1,000 phút", "meta": "742/1,000 phút · 4 ngày còn lại" },
-      "journal": { "name": "📝 7 ngày viết nhật ký", "meta": "4/7 ngày · Cá nhân" },
-      "breathing": { "name": "💨 Thở 5 ngày liên tục", "meta": "2/5 ngày · Cá nhân" }
+      "meditation": {
+        "name": "🧘 Thiền {target} phút",
+        "meta": "{current}/{target} phút · {daysLeft} ngày còn lại",
+        "metaLastDay": "{current}/{target} phút · Hết hạn hôm nay"
+      },
+      "journal": { "name": "📝 {target} ngày viết nhật ký", "meta": "{current}/{target} ngày · Cá nhân" },
+      "breathing": { "name": "💨 Thở {target} ngày liên tục", "meta": "{current}/{target} ngày · Cá nhân" }
     },
     "mentor": {
       "title": "🌟 Mentor cộng đồng",

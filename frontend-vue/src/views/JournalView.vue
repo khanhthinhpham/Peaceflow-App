@@ -286,7 +286,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted, nextTick } from 'vue';
+import { ref, reactive, computed, onMounted, onBeforeUnmount, nextTick } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 import { apiClient } from '../lib/apiClient';
@@ -713,7 +713,20 @@ async function saveEntry() {
   }
 }
 
+// Trang này trước đây không nghe sự kiện cập nhật nền (SWR) như DashboardView.vue —
+// apiClient dùng cache stale-while-revalidate: trả bản cache cũ ngay rồi âm thầm gọi lại
+// API phía sau, xong bắn 'peaceflow:swr-update'. Không nghe sự kiện này thì lịch/thống kê
+// đứng yên ở bản cache cũ cho tới khi rời trang rồi quay lại (mount lại từ đầu).
+function handleSwrUpdate(event) {
+  if (event.detail?.endpoint === '/journal') {
+    entries.value = (event.detail.data || []).map((e) => ({ ...e, tags: normalizeArray(e.tags) }));
+  } else if (event.detail?.endpoint === '/dashboard') {
+    dashboard.value = event.detail.data || null;
+  }
+}
+
 onMounted(async () => {
+  window.addEventListener('peaceflow:swr-update', handleSwrUpdate);
   try {
     const [entriesData, dashboardData] = await Promise.all([
       apiClient.get('/journal'),
@@ -725,6 +738,10 @@ onMounted(async () => {
   } catch (error) {
     console.error('Failed to initialize journal page:', error);
   }
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener('peaceflow:swr-update', handleSwrUpdate);
 });
 </script>
 

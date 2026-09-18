@@ -23,6 +23,12 @@ async function insertNotification(recipientId, actorName, type, postId, message,
     [recipientId, actorName, type, postId, message, groupKey, params ? JSON.stringify(params) : null]
   );
 }
+const MEDITATION_TITLE_PATTERN = 'thiền|meditat';
+const BREATHING_TITLE_PATTERN = 'thở|breath';
+const MEDITATION_MONTHLY_TARGET_MINUTES = 1000;
+const JOURNAL_WEEKLY_TARGET_DAYS = 7;
+const BREATHING_STREAK_TARGET_DAYS = 5;
+
 const CATEGORY_MAP = {
   gratitude: { label: '🙏 Biết ơn', className: 'pt-gratitude' },
   story: { label: '📖 Câu chuyện', className: 'pt-story' },
@@ -35,7 +41,7 @@ router.get('/community', requireAuth, async (req, res) => {
   try {
     const userId = req.user.sub;
 
-    const [postsRes, membersRes, reactionsRes, leaderboardRes, mentorRes, challengeRes] = await Promise.all([
+    const [postsRes, membersRes, reactionsRes, leaderboardRes, mentorRes, challengeRes, meditationMinutesRes, journalDaysRes, breathingDaysRes] = await Promise.all([
       db.query(
         `select
            p.*,
@@ -131,18 +137,58 @@ router.get('/community', requireAuth, async (req, res) => {
          limit 3`
       ).catch((e) => { console.error('[COMMUNITY_QUERY] mentors:', e.message); return { rows: [] }; }),
       db.query(
+        // t.category không có gia tri 'breathing'/'meditation' (category chi co
+        // easy/medium/hard/emergency/community) nen dieu kien cu khong bao gio dung, banner
+        // nay truoc day luon hien 0 phut/0 nguoi. Nhan dien bang tieu de nhu MEDITATION/
+        // BREATHING_TITLE_PATTERN o duoi. participants tinh theo SO NGUOI KHAC NHAU, khong
+        // phai so luot hoan thanh.
         `select
-           count(*)::int as participants,
+           count(distinct tc.user_id)::int as participants,
            coalesce(sum(tc.duration_actual), 0)::int as total_minutes
          from task_completions tc
          join tasks t on t.id = tc.task_id
          where tc.created_at >= date_trunc('week', now())
-           and t.category in ('breathing', 'meditation')`
-      ).catch((e) => { console.error('[COMMUNITY_QUERY] challenge:', e.message); return { rows: [] }; })
+           and (t.title ~* $1)`,
+        [`${MEDITATION_TITLE_PATTERN}|${BREATHING_TITLE_PATTERN}`]
+      ).catch((e) => { console.error('[COMMUNITY_QUERY] challenge:', e.message); return { rows: [] }; }),
+      // Bảng tasks không có category/tag riêng cho "thiền"/"thở" (category chỉ có
+      // easy/medium/hard/emergency/community) nên nhận diện bằng tiêu đề bài tập — xem
+      // MEDITATION_TITLE_PATTERN/BREATHING_TITLE_PATTERN bên dưới.
+      db.query(
+        `select coalesce(sum(coalesce(tc.duration_actual, t.duration_minutes, 0)), 0)::int as minutes
+         from task_completions tc
+         join tasks t on t.id = tc.task_id
+         where tc.user_id = $1
+           and (t.title ~* $2)
+           and tc.created_at >= date_trunc('month', now())`,
+        [userId, MEDITATION_TITLE_PATTERN]
+      ).catch((e) => { console.error('[COMMUNITY_QUERY] meditation_minutes:', e.message); return { rows: [{ minutes: 0 }] }; }),
+      db.query(
+        `select count(distinct created_at::date)::int as days
+         from journal_entries
+         where user_id = $1
+           and created_at >= current_date - interval '6 days'`,
+        [userId]
+      ).catch((e) => { console.error('[COMMUNITY_QUERY] journal_days:', e.message); return { rows: [{ days: 0 }] }; }),
+      db.query(
+        `select distinct tc.created_at::date as day
+         from task_completions tc
+         join tasks t on t.id = tc.task_id
+         where tc.user_id = $1
+           and (t.title ~* $2)
+           and tc.created_at >= current_date - interval '13 days'
+         order by day desc`,
+        [userId, BREATHING_TITLE_PATTERN]
+      ).catch((e) => { console.error('[COMMUNITY_QUERY] breathing_days:', e.message); return { rows: [] }; })
     ]);
 
     const posts = postsRes.rows.map((row) => mapPost(row));
     const challenge = buildChallenge(challengeRes.rows[0]);
+    const personalChallenges = buildPersonalChallenges({
+      meditationMinutes: meditationMinutesRes.rows[0]?.minutes || 0,
+      journalDays: journalDaysRes.rows[0]?.days || 0,
+      breathingDayRows: breathingDaysRes.rows
+    });
     const summary = {
       members: membersRes.rows[0]?.members || 0,
       posts: posts.length,
@@ -158,6 +204,7 @@ router.get('/community', requireAuth, async (req, res) => {
         summary,
         posts,
         challenge,
+        personal_challenges: personalChallenges,
         leaderboard: {
           xp: leaderboardRes.rows.map((row) => ({
             name: row.name,
@@ -610,6 +657,78 @@ function buildChallenge(row) {
     days_left: daysLeft,
     progress_percent: progressPercent
   };
+}
+
+function toISODate(value) {
+  const date = value instanceof Date ? value : new Date(value);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+function startOfDay(date) {
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+}
+function addDays(date, days) {
+  const next = new Date(date);
+  next.setDate(next.getDate() + days);
+  return next;
+}
+
+// Chuỗi ngày liên tục có ít nhất 1 lần hoàn thành, đếm lùi từ hôm nay — nếu hôm nay chưa
+// làm thì vẫn tính từ hôm qua (giống cơ chế streak chính ở user_progress, tránh việc chuỗi
+// "về 0" chỉ vì người dùng chưa kịp mở app hôm nay).
+function computeConsecutiveDayStreak(isoDaySet, referenceDate) {
+  let cursor = startOfDay(referenceDate);
+  if (!isoDaySet.has(toISODate(cursor))) cursor = addDays(cursor, -1);
+  let streak = 0;
+  while (isoDaySet.has(toISODate(cursor))) {
+    streak += 1;
+    cursor = addDays(cursor, -1);
+  }
+  return streak;
+}
+
+// 3 "thử thách cá nhân" hiển thị ở sidebar trang Community — trước đây là text tĩnh hard-code
+// trong locale (community.json:challengesCard), không lấy dữ liệu thật. Giờ tính từ chính
+// task_completions/journal_entries của người dùng.
+function buildPersonalChallenges({ meditationMinutes, journalDays, breathingDayRows }, referenceDate = new Date()) {
+  const monthEnd = new Date(referenceDate.getFullYear(), referenceDate.getMonth() + 1, 0);
+  const meditationDaysLeft = Math.max(0, Math.ceil((startOfDay(monthEnd) - startOfDay(referenceDate)) / 86400000));
+
+  const breathingDaySet = new Set(breathingDayRows.map((row) => toISODate(row.day)));
+  const breathingStreak = computeConsecutiveDayStreak(breathingDaySet, referenceDate);
+
+  return [
+    {
+      code: 'meditation_monthly_minutes',
+      icon: '🧘',
+      current: Math.min(meditationMinutes, MEDITATION_MONTHLY_TARGET_MINUTES),
+      target: MEDITATION_MONTHLY_TARGET_MINUTES,
+      days_left: meditationDaysLeft,
+      xp: 100,
+      progress_percent: Math.min(100, Math.round((meditationMinutes / MEDITATION_MONTHLY_TARGET_MINUTES) * 100)),
+      completed: meditationMinutes >= MEDITATION_MONTHLY_TARGET_MINUTES
+    },
+    {
+      code: 'journal_weekly_days',
+      icon: '📝',
+      current: Math.min(journalDays, JOURNAL_WEEKLY_TARGET_DAYS),
+      target: JOURNAL_WEEKLY_TARGET_DAYS,
+      xp: 80,
+      progress_percent: Math.min(100, Math.round((journalDays / JOURNAL_WEEKLY_TARGET_DAYS) * 100)),
+      completed: journalDays >= JOURNAL_WEEKLY_TARGET_DAYS
+    },
+    {
+      code: 'breathing_streak_days',
+      icon: '💨',
+      current: Math.min(breathingStreak, BREATHING_STREAK_TARGET_DAYS),
+      target: BREATHING_STREAK_TARGET_DAYS,
+      xp: 50,
+      progress_percent: Math.min(100, Math.round((breathingStreak / BREATHING_STREAK_TARGET_DAYS) * 100)),
+      completed: breathingStreak >= BREATHING_STREAK_TARGET_DAYS
+    }
+  ];
 }
 
 function formatRelativeTime(value) {
