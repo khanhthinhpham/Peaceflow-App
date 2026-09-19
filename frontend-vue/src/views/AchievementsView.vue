@@ -356,10 +356,11 @@ const streakWeekdayLabels = computed(() => tm('achievements.streak.weekdayLabels
 function dayTooltip(day) {
   if (!day.iso_date || !day.detail) return '';
   const parts = [t('achievements.streak.dayTooltipDate', { date: formatDate(day.iso_date) })];
-  const { mood_count: moodCount, mood_avg: moodAvg, journal_count: journalCount, task_count: taskCount } = day.detail;
+  const { mood_count: moodCount, mood_avg: moodAvg, journal_count: journalCount, task_count: taskCount, assessment_count: assessmentCount } = day.detail;
   if (moodCount > 0) parts.push(t('achievements.streak.dayTooltipMood', { count: moodCount, avg: moodAvg }));
   if (journalCount > 0) parts.push(t('achievements.streak.dayTooltipJournal', { count: journalCount }));
   if (taskCount > 0) parts.push(t('achievements.streak.dayTooltipTask', { count: taskCount }));
+  if (assessmentCount > 0) parts.push(t('achievements.streak.dayTooltipAssessment', { count: assessmentCount }));
   if (parts.length === 1) parts.push(t('achievements.streak.dayTooltipNoActivity'));
   return parts.join(' · ');
 }

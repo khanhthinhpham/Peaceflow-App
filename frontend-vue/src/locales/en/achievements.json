@@ -68,7 +68,8 @@
       "dayTooltipNoActivity": "No activity",
       "dayTooltipMood": "{count} mood check-ins (avg {avg}/10)",
       "dayTooltipJournal": "{count} journal entries",
-      "dayTooltipTask": "{count} tasks completed"
+      "dayTooltipTask": "{count} tasks completed",
+      "dayTooltipAssessment": "{count} standardized assessments"
     },
     "challenges": {
       "sectionTitle": "🎯 Special challenges — Join to earn exclusive rewards!",

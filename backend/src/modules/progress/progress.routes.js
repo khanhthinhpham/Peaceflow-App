@@ -215,7 +215,8 @@ router.get('/achievements', requireAuth, async (req, res) => {
            count(*) filter (where d.source = 'mood')::int as mood_count,
            round(avg(d.mood_score) filter (where d.source = 'mood')::numeric, 1) as mood_avg,
            count(*) filter (where d.source = 'journal')::int as journal_count,
-           count(*) filter (where d.source = 'task')::int as task_count
+           count(*) filter (where d.source = 'task')::int as task_count,
+           count(*) filter (where d.source = 'assessment')::int as assessment_count
          from (
            select created_at::date as day, mood_score, 'mood' as source
            from mood_checkins
@@ -228,6 +229,10 @@ router.get('/achievements', requireAuth, async (req, res) => {
            select tc.created_at::date as day, null as mood_score, 'task' as source
            from task_completions tc
            where tc.user_id = $1 and tc.created_at >= current_date - interval '41 days'
+           union all
+           select ar.created_at::date as day, null as mood_score, 'assessment' as source
+           from assessment_results ar
+           where ar.user_id = $1 and ar.created_at >= current_date - interval '41 days'
          ) d
          group by d.day`,
         [userId]
@@ -413,7 +418,8 @@ router.get('/achievements', requireAuth, async (req, res) => {
           mood_count: Number(row.mood_count || 0),
           mood_avg: row.mood_avg === null ? null : Number(row.mood_avg),
           journal_count: Number(row.journal_count || 0),
-          task_count: Number(row.task_count || 0)
+          task_count: Number(row.task_count || 0),
+          assessment_count: Number(row.assessment_count || 0)
         }
       ])
     );
@@ -695,7 +701,7 @@ function buildCalendarDays(activityDaysSet, referenceDate, dayDetailMap = new Ma
       label: String(day),
       iso_date: isoDate,
       state,
-      detail: isFuture ? null : (dayDetailMap.get(isoDate) || { mood_count: 0, mood_avg: null, journal_count: 0, task_count: 0 })
+      detail: isFuture ? null : (dayDetailMap.get(isoDate) || { mood_count: 0, mood_avg: null, journal_count: 0, task_count: 0, assessment_count: 0 })
     });
   }
 
