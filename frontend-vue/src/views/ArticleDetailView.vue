@@ -1,5 +1,5 @@
 <template>
-  <main class="main-content" style="padding:28px;max-width:760px;margin:0 auto;">
+  <main class="main-content article-detail-page">
     <div class="breadcrumb" style="display:flex;align-items:center;gap:8px;margin-bottom:20px;font-size:0.8rem;color:var(--text-light);">
       <router-link to="/dashboard" style="color:var(--text-light);text-decoration:none;">{{ t('inspire.breadcrumbDashboard') }}</router-link>
       <span>›</span>
@@ -10,7 +10,8 @@
 
     <div v-if="loading" style="text-align:center;padding:40px;color:var(--text-secondary);">{{ t('inspire.loading') }}</div>
     <div v-else-if="loadError" style="text-align:center;padding:40px;color:var(--coral);">{{ loadError }}</div>
-    <article v-else-if="article" class="paper-card" style="padding:0;overflow:hidden;">
+    <div v-else-if="article" class="article-detail-layout">
+    <article class="paper-card article-detail-main" style="padding:0;overflow:hidden;">
       <div v-if="coverUrl" style="width:100%;">
         <img :src="coverUrl" :alt="article.title" style="display:block;width:100%;height:auto;">
       </div>
@@ -21,20 +22,34 @@
         <div class="ins-article-body" v-html="renderedContent"></div>
       </div>
     </article>
+    <aside v-if="latestArticles.length" class="article-detail-sidebar">
+      <div class="article-latest-box">
+        <h2>{{ t('inspire.latestTitle') }}</h2>
+        <ArticleCard
+          v-for="latest in latestArticles"
+          :key="latest.id"
+          :article="latest"
+          variant="sidebar-row"
+        />
+      </div>
+    </aside>
+    </div>
   </main>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { apiClient } from '../lib/apiClient';
+import ArticleCard from '../components/ArticleCard.vue';
 
 const { t, locale } = useI18n();
 const route = useRoute();
 
 const article = ref(null);
 const coverUrl = ref('');
+const latestArticles = ref([]);
 const loading = ref(true);
 const loadError = ref('');
 
@@ -55,12 +70,26 @@ const renderedContent = computed(() => {
   return escapeHtml(article.value.content).split(/\n{2,}/).map((p) => `<p>${p.replace(/\n/g, '<br>')}</p>`).join('');
 });
 
+async function loadLatestArticles(currentArticleId) {
+  try {
+    const data = await apiClient.get('/articles?limit=8', { noCache: true });
+    latestArticles.value = (data?.articles || [])
+      .filter((item) => item.id !== currentArticleId)
+      .slice(0, 6);
+  } catch (_e) {
+    latestArticles.value = [];
+  }
+}
+
 async function load() {
   loading.value = true;
   loadError.value = '';
+  coverUrl.value = '';
+  latestArticles.value = [];
   try {
     const data = await apiClient.get(`/articles/${route.params.id}`, { noCache: true });
     article.value = data;
+    void loadLatestArticles(data.id);
     if (data?.hasCover) {
       try {
         const blob = await apiClient.getBlob(`/articles/${route.params.id}/cover`);
@@ -75,9 +104,42 @@ async function load() {
 }
 
 onMounted(load);
+watch(() => route.params.id, load);
 </script>
 
 <style scoped>
+.article-detail-page {
+  margin-left: 0;
+  min-height: 100vh;
+  padding: 28px;
+}
+.article-detail-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(260px, 1fr);
+  gap: 28px;
+  align-items: start;
+}
+.article-detail-main {
+  min-width: 0;
+}
+.article-detail-sidebar {
+  position: sticky;
+  top: 20px;
+  align-self: start;
+  height: fit-content;
+  min-width: 0;
+}
+.article-latest-box {
+  padding: 16px;
+  border: 2px solid var(--kraft-light);
+  border-radius: var(--radius-md);
+  background: var(--warm-white);
+}
+.article-latest-box h2 {
+  margin: 0 0 10px;
+  font-size: 0.92rem;
+  font-weight: 800;
+}
 .ins-tag {
   display: inline-block;
   font-size: 0.68rem;
@@ -93,5 +155,18 @@ onMounted(load);
   line-height: 1.8;
   color: var(--text-primary);
   margin-bottom: 16px;
+}
+@media (max-width: 900px) {
+  .article-detail-layout {
+    grid-template-columns: 1fr;
+  }
+  .article-detail-sidebar {
+    position: static;
+  }
+}
+@media (max-width: 600px) {
+  .article-detail-page {
+    padding: 16px 16px 20px;
+  }
 }
 </style>
