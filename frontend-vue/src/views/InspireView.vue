@@ -219,6 +219,7 @@ onMounted(load);
 }
 .ins-hero-main-col {
   min-width: 0;
+  background-color: white;
 }
 .ins-headline-col {
   min-width: 0;
@@ -284,6 +285,7 @@ onMounted(load);
 /* 2 cột: danh sách theo danh mục bên trái + sidebar "Mới đăng" bên phải */
 .ins-main-col {
   min-width: 0;
+  background-color: white;
 }
 .ins-section {
   margin-bottom: 32px;
