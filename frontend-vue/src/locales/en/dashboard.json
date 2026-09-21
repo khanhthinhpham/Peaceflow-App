@@ -13,6 +13,9 @@
       "journalCta": "📝 Write a journal entry"
     },
     "checkinPrompt": {
+      "morningTitle": "Good morning! How are you feeling today? ☀️",
+      "afternoonTitle": "Good afternoon! How are you feeling today? 🌤️",
+      "eveningTitle": "Good evening! How are you feeling today? 🌙",
       "title": "Good morning! How are you feeling today? ☀️",
       "sub": "Just 30 seconds — check in so PeaceFlow can suggest the best exercise for you!",
       "startBtn": "Start →"

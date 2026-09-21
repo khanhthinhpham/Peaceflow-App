@@ -32,7 +32,7 @@
     <div class="paper-card checkin-prompt">
       <div class="cp-mascot">🐱</div>
       <div class="cp-text">
-        <div class="cp-title">{{ t('dashboard.checkinPrompt.title') }}</div>
+        <div class="cp-title">{{ checkinPromptTitle }}</div>
         <div class="cp-sub">{{ t('dashboard.checkinPrompt.sub') }}</div>
       </div>
       <div class="cp-actions">
@@ -318,6 +318,8 @@ const insightNote = ref('');
 const insightGeneratedAt = ref(null);
 const aiRecommendation = ref('');
 const aiExercises = ref([]);
+const currentTime = ref(Date.now());
+let greetingTimer = null;
 
 // Locale cho Intl.DateTimeFormat — 'vi' -> 'vi-VN', 'en' -> 'en-US'. Trước đây hardcode
 // 'vi-VN' nên đổi ngôn ngữ app không đổi được cách hiển thị ngày giờ.
@@ -326,6 +328,11 @@ const intlLocale = computed(() => (locale.value === 'en' ? 'en-US' : 'vi-VN'));
 const displayName = computed(() => auth.user?.display_name || auth.user?.full_name || t('dashboard.defaultUserLabel'));
 const isExpert = computed(() => Boolean(auth.user?.is_expert));
 const isAdmin = computed(() => Boolean(auth.user?.role === 'admin' || auth.user?.is_admin));
+const checkinPromptTitle = computed(() => {
+  const hour = new Date(currentTime.value).getHours();
+  const period = hour < 12 ? 'morningTitle' : hour < 18 ? 'afternoonTitle' : 'eveningTitle';
+  return t(`dashboard.checkinPrompt.${period}`);
+});
 
 const progress = computed(() => data.value?.progress || null);
 const summary = computed(() => data.value?.summary || null);
@@ -617,6 +624,9 @@ function handleMutation() {
 }
 
 onMounted(async () => {
+  greetingTimer = window.setInterval(() => {
+    currentTime.value = Date.now();
+  }, 60 * 1000);
   document.addEventListener('click', handleInsightClick);
   window.addEventListener('pageshow', handleVisibility);
   document.addEventListener('visibilitychange', handleVisibility);
@@ -637,6 +647,7 @@ onMounted(async () => {
 });
 
 onBeforeUnmount(() => {
+  if (greetingTimer) window.clearInterval(greetingTimer);
   document.removeEventListener('click', handleInsightClick);
   window.removeEventListener('pageshow', handleVisibility);
   document.removeEventListener('visibilitychange', handleVisibility);

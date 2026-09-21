@@ -13,6 +13,9 @@
       "journalCta": "📝 Viết nhật ký"
     },
     "checkinPrompt": {
+      "morningTitle": "Chào buổi sáng! Hôm nay bạn cảm thấy thế nào? ☀️",
+      "afternoonTitle": "Chào buổi chiều! Hôm nay bạn cảm thấy thế nào? 🌤️",
+      "eveningTitle": "Chào buổi tối! Hôm nay bạn cảm thấy thế nào? 🌙",
       "title": "Chào buổi sáng! Hôm nay bạn cảm thấy thế nào? ☀️",
       "sub": "Chỉ mất 30 giây — check-in để PeaceFlow gợi ý nhiệm vụ phù hợp nhất cho bạn nhé!",
       "startBtn": "Bắt đầu →"
