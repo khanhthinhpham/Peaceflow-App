@@ -20,6 +20,17 @@
   </head>
   <body>
     <div id="app"></div>
+    <!--
+      Link tĩnh, không phụ thuộc JavaScript, để trình thu thập dữ liệu của Google (khi xác minh
+      thương hiệu OAuth) luôn tìm thấy được link chính sách bảo mật ngay trên trang chủ dù có
+      chạy JS hay không - vì #app ở trên là SPA Vue, HTML gốc trả về rỗng cho tới khi JS chạy.
+      Ẩn khỏi mắt người dùng bằng kỹ thuật "sr-only" chuẩn (không phải cloaking) vì trang chủ đã
+      có link tương đương ở footer sau khi Vue render xong.
+    -->
+    <a
+      href="/privacy-policy.html"
+      style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;"
+    >Chính sách quyền riêng tư PeaceFlow / PeaceFlow Privacy Policy</a>
     <script type="module" src="/src/main.js"></script>
   </body>
 </html>

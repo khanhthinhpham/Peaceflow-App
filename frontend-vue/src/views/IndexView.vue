@@ -421,7 +421,7 @@
           <a href="/docs/dieu-kien-han-che-dich-vu.pdf" target="_blank" rel="noopener" class="footer-link">{{ t('landing.footer.supportPolicyConditions') }}</a>
           <a href="/docs/chinh-sach-gia.pdf" target="_blank" rel="noopener" class="footer-link">{{ t('landing.footer.supportPolicyPricing') }}</a>
           <a href="/docs/chinh-sach-thanh-toan.pdf" target="_blank" rel="noopener" class="footer-link">{{ t('landing.footer.supportPolicyPayment') }}</a>
-          <a href="/docs/chinh-sach-bao-mat.pdf" target="_blank" rel="noopener" class="footer-link">{{ t('landing.footer.supportPolicyPrivacyDoc') }}</a>
+          <a href="/privacy-policy.html" target="_blank" rel="noopener" class="footer-link">{{ t('landing.footer.supportPolicyPrivacyDoc') }}</a>
           <a href="/docs/phuong-thuc-xu-ly-khieu-nai.pdf" target="_blank" rel="noopener" class="footer-link">{{ t('landing.footer.supportPolicyComplaints') }}</a>
           <a href="/docs/thong-tin-ho-tro-truc-tuyen.pdf" target="_blank" rel="noopener" class="footer-link">{{ t('landing.footer.supportPolicyOnlineSupport') }}</a>
           <a href="/docs/phuong-thuc-cung-cap-cham-dut-hoan-tien.pdf" target="_blank" rel="noopener" class="footer-link">{{ t('landing.footer.supportPolicyServiceTerms') }}</a>
