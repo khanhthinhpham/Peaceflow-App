@@ -29,6 +29,17 @@
       "notePlaceholder": "Ghi chú thêm (nếu có)...",
       "scorePillLabel": "Điểm gần nhất: {score}",
       "lastTimeLabel": "🕐 Lần cuối: {label}",
+      "searchPlaceholder": "🔍 Tìm bài test theo tên...",
+      "categoryAll": "Tất cả",
+      "filterCategories": "Lọc danh mục",
+      "noResults": "Không tìm thấy bài test phù hợp với bộ lọc.",
+      "pageLabel": "Trang {current}/{total}",
+      "guided": {
+        "backBtn": "← Quay lại danh mục",
+        "specialistTitle": "Cần chuyên gia thực hiện",
+        "definitionTitle": "Định nghĩa",
+        "expertBtn": "Tìm chuyên gia"
+      },
       "ravenName": "Raven CPM",
       "ravenFullname": "Coloured Progressive Matrices",
       "ravenDesc": "Trắc nghiệm phi ngôn ngữ đo tư duy logic bằng hình ảnh. Chuyên gia sẽ chấm điểm theo đáp án gốc.",

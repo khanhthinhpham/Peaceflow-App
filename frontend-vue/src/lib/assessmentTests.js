@@ -1,6 +1,8 @@
 // Dữ liệu các bài test chuẩn hóa — trích xuất nguyên văn từ frontend/pages/mood-assessment.html
 // (không sửa đổi nội dung câu hỏi, thang điểm hay ngưỡng phân loại)
 
+import { ADDITIONAL_TESTS } from './assessmentTests.additional.js';
+
 export const TESTS = {
     dass21: {
         name: 'DASS-21', fullname: 'Depression Anxiety Stress Scales',
@@ -678,3 +680,5 @@ export const TESTS = {
         prevScores: null
     }
 };
+
+Object.assign(TESTS, ADDITIONAL_TESTS);

@@ -61,6 +61,7 @@ import { useAuthStore } from '../stores/auth';
 defineProps({ sidebarOpen: { type: Boolean, default: false } });
 
 const NAV_ITEMS = [
+  { route: 'expert-clinical-protocols', key: 'clinical-protocols', icon: '📚', label: 'Quy trình lâm sàng' },
   { route: 'expert-dashboard', key: 'dashboard', icon: '🏡', label: 'Tổng quan' },
   { route: 'expert-client-assessments', key: 'client-assessments', icon: '🩺', label: 'Đánh giá lâm sàng' },
   { route: 'expert-shared-records', key: 'shared-records', icon: '📋', label: 'Hồ sơ thân chủ gửi' },

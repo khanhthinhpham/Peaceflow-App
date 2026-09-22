@@ -1,4 +1,18 @@
 // Metadata thẻ bài test — trích xuất nguyên văn từ frontend/pages/mood-assessment.html
+import { ADDITIONAL_ASSESSMENT_META } from './assessmentMeta.additional.js';
+
+export const ASSESSMENT_CATEGORIES = {
+    depression: 'Trầm cảm',
+    anxiety: 'Lo âu',
+    stress: 'Căng thẳng / Cảm xúc',
+    sleep: 'Giấc ngủ',
+    substance: 'Rượu bia / Chất gây nghiện',
+    behavior_addiction: 'Hành vi / Nghiện',
+    child_teen: 'Trẻ em / Thanh thiếu niên',
+    cognitive: 'Nhận thức',
+    personality: 'Nhân cách',
+    clinician: 'Chuyên gia đánh giá'
+};
 
 export const ASSESSMENT_META = {
     dass21: {
@@ -9,6 +23,7 @@ export const ASSESSMENT_META = {
         cardClass: 'dass',
         iconStyle: 'background:var(--peach-light);border-color:var(--peach);',
         desc: 'Đánh giá đồng thời 3 chiều: Trầm cảm, Lo âu và Căng thẳng.',
+        category: 'stress',
         badges: [
             { className: 'badge-peach', label: '21 câu hỏi' },
             { className: 'badge-mint', label: '~8 phút' },
@@ -23,6 +38,7 @@ export const ASSESSMENT_META = {
         cardClass: 'gad',
         iconStyle: 'background:var(--sky-light);border-color:var(--sky);',
         desc: 'Đánh giá mức độ lo âu tổng quát với thang đo ngắn, dễ lặp lại hàng tuần.',
+        category: 'anxiety',
         badges: [
             { className: 'badge-sky', label: '7 câu hỏi' },
             { className: 'badge-mint', label: '~3 phút' },
@@ -37,6 +53,7 @@ export const ASSESSMENT_META = {
         cardClass: 'hars',
         iconStyle: 'background:var(--lavender-light);border-color:var(--lavender);',
         desc: 'Đánh giá lo âu theo cả triệu chứng tâm lý lẫn thể chất.',
+        category: 'anxiety',
         badges: [
             { className: 'badge-lavender', label: '14 câu hỏi' },
             { className: 'badge-mint', label: '~6 phút' },
@@ -51,6 +68,7 @@ export const ASSESSMENT_META = {
         cardClass: 'phq',
         iconStyle: 'background:var(--mint-light);border-color:var(--mint);',
         desc: 'Sàng lọc và đánh giá mức độ trầm cảm theo thang đo tiêu chuẩn.',
+        category: 'depression',
         badges: [
             { className: 'badge-mint', label: '9 câu hỏi' },
             { className: 'badge-mint', label: '~4 phút' },
@@ -65,6 +83,7 @@ export const ASSESSMENT_META = {
         cardClass: 'phq',
         iconStyle: 'background:var(--mint-light);border-color:var(--mint);',
         desc: 'Đánh giá chuyên sâu mức độ trầm cảm qua 21 khía cạnh — cảm xúc, thể chất, hành vi.',
+        category: 'depression',
         badges: [
             { className: 'badge-mint', label: '21 câu hỏi' },
             { className: 'badge-mint', label: '~8 phút' },
@@ -79,6 +98,7 @@ export const ASSESSMENT_META = {
         cardClass: 'psqi',
         iconStyle: 'background:var(--peach-light);border-color:var(--kraft);',
         desc: 'Đánh giá chất lượng giấc ngủ trong tháng gần nhất.',
+        category: 'sleep',
         badges: [
             { className: 'badge-peach', label: '10 câu hỏi' },
             { className: 'badge-mint', label: '~5 phút' },
@@ -93,6 +113,7 @@ export const ASSESSMENT_META = {
         cardClass: 'pss',
         iconStyle: 'background:var(--coral-light);border-color:var(--coral);',
         desc: 'Đánh giá mức độ stress cảm nhận được trong 1 tháng gần đây.',
+        category: 'stress',
         badges: [
             { className: 'badge-peach', label: '10 câu hỏi' },
             { className: 'badge-mint', label: '~4 phút' },
@@ -107,6 +128,7 @@ export const ASSESSMENT_META = {
         cardClass: 'sdq',
         iconStyle: 'background:var(--sky-light);border-color:var(--lavender);',
         desc: 'Sàng lọc điểm mạnh và khó khăn về cảm xúc, hành vi dành cho thanh thiếu niên.',
+        category: 'child_teen',
         badges: [
             { className: 'badge-sky', label: '25 câu hỏi' },
             { className: 'badge-mint', label: '~10 phút' },
@@ -121,6 +143,7 @@ export const ASSESSMENT_META = {
         cardClass: 'mmse',
         iconStyle: 'background:var(--lavender-light);border-color:var(--lavender);',
         desc: 'Đánh giá chức năng nhận thức: định hướng, trí nhớ, chú ý, ngôn ngữ — thường dùng cho người lớn tuổi.',
+        category: 'cognitive',
         badges: [
             { className: 'badge-lavender', label: '19 câu hỏi' },
             { className: 'badge-mint', label: '~10 phút' },
@@ -135,6 +158,7 @@ export const ASSESSMENT_META = {
         cardClass: 'isi',
         iconStyle: 'background:var(--peach-light);border-color:var(--peach);',
         desc: 'Đánh giá mức độ nghiêm trọng và tác động của chứng mất ngủ trong 1 tháng qua.',
+        category: 'sleep',
         badges: [
             { className: 'badge-peach', label: '7 câu hỏi' },
             { className: 'badge-mint', label: '~3 phút' },
@@ -149,6 +173,7 @@ export const ASSESSMENT_META = {
         cardClass: 'iat',
         iconStyle: 'background:var(--sky-light);border-color:var(--sky);',
         desc: 'Đánh giá mức độ nghiện Internet trong tháng qua.',
+        category: 'behavior_addiction',
         badges: [
             { className: 'badge-sky', label: '20 câu hỏi' },
             { className: 'badge-mint', label: '~7 phút' },
@@ -163,6 +188,7 @@ export const ASSESSMENT_META = {
         cardClass: 'audit',
         iconStyle: 'background:var(--kraft-light);border-color:var(--kraft);',
         desc: 'Sàng lọc mức độ sử dụng rượu bia trong 12 tháng qua (WHO).',
+        category: 'substance',
         badges: [
             { className: 'badge-peach', label: '10 câu hỏi' },
             { className: 'badge-mint', label: '~5 phút' },
@@ -170,3 +196,5 @@ export const ASSESSMENT_META = {
         ]
     }
 };
+
+Object.assign(ASSESSMENT_META, ADDITIONAL_ASSESSMENT_META);

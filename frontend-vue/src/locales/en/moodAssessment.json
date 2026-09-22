@@ -29,6 +29,17 @@
       "notePlaceholder": "Add a note (optional)...",
       "scorePillLabel": "Latest score: {score}",
       "lastTimeLabel": "🕐 Last taken: {label}",
+      "searchPlaceholder": "🔍 Search tests by name...",
+      "categoryAll": "All",
+      "filterCategories": "Filter categories",
+      "noResults": "No tests match your filters.",
+      "pageLabel": "Page {current}/{total}",
+      "guided": {
+        "backBtn": "← Back to catalogue",
+        "specialistTitle": "Specialist administration required",
+        "definitionTitle": "Definition",
+        "expertBtn": "Find a specialist"
+      },
       "ravenName": "Raven CPM",
       "ravenFullname": "Coloured Progressive Matrices",
       "ravenDesc": "A non-verbal test measuring logical reasoning through images. Graded by an expert against the original answer key.",

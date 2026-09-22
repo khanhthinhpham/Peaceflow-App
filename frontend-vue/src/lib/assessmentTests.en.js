@@ -4,6 +4,8 @@
 // text (fullname, timeRef, question text/catLabel, likertOptions labels, scoring level
 // labels) is translated. Kept manually in sync with the Vietnamese source.
 
+import { ADDITIONAL_TESTS } from './assessmentTests.additional.en.js';
+
 export const TESTS = {
     dass21: {
         name: 'DASS-21', fullname: 'Depression Anxiety Stress Scales',
@@ -681,3 +683,5 @@ export const TESTS = {
         prevScores: null
     }
 };
+
+Object.assign(TESTS, ADDITIONAL_TESTS);

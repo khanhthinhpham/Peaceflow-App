@@ -1,6 +1,20 @@
 // English version of assessmentMeta.js — same shape/keys/badge styling, translated text only.
-// Kept in sync manually with assessmentMeta.js: id/apiCode/icon/cardClass/iconStyle/className
+import { ADDITIONAL_ASSESSMENT_META } from './assessmentMeta.additional.en.js';
+// Kept in sync manually with assessmentMeta.js: id/apiCode/icon/cardClass/iconStyle/className/category
 // must stay identical (they're layout/matching keys, not display text).
+
+export const ASSESSMENT_CATEGORIES = {
+    depression: 'Depression',
+    anxiety: 'Anxiety',
+    stress: 'Stress / Mood',
+    sleep: 'Sleep',
+    substance: 'Alcohol / Substance use',
+    behavior_addiction: 'Behavior / Addiction',
+    child_teen: 'Children / Teens',
+    cognitive: 'Cognitive',
+    personality: 'Personality',
+    clinician: 'Clinician-administered'
+};
 
 export const ASSESSMENT_META = {
     dass21: {
@@ -11,6 +25,7 @@ export const ASSESSMENT_META = {
         cardClass: 'dass',
         iconStyle: 'background:var(--peach-light);border-color:var(--peach);',
         desc: 'Assesses three dimensions at once: Depression, Anxiety, and Stress.',
+        category: 'stress',
         badges: [
             { className: 'badge-peach', label: '21 questions' },
             { className: 'badge-mint', label: '~8 min' },
@@ -25,6 +40,7 @@ export const ASSESSMENT_META = {
         cardClass: 'gad',
         iconStyle: 'background:var(--sky-light);border-color:var(--sky);',
         desc: 'Assesses general anxiety with a short scale you can easily repeat weekly.',
+        category: 'anxiety',
         badges: [
             { className: 'badge-sky', label: '7 questions' },
             { className: 'badge-mint', label: '~3 min' },
@@ -39,6 +55,7 @@ export const ASSESSMENT_META = {
         cardClass: 'hars',
         iconStyle: 'background:var(--lavender-light);border-color:var(--lavender);',
         desc: 'Assesses anxiety across both psychological and physical symptoms.',
+        category: 'anxiety',
         badges: [
             { className: 'badge-lavender', label: '14 questions' },
             { className: 'badge-mint', label: '~6 min' },
@@ -53,6 +70,7 @@ export const ASSESSMENT_META = {
         cardClass: 'phq',
         iconStyle: 'background:var(--mint-light);border-color:var(--mint);',
         desc: 'Screens and rates the severity of depression using a standard scale.',
+        category: 'depression',
         badges: [
             { className: 'badge-mint', label: '9 questions' },
             { className: 'badge-mint', label: '~4 min' },
@@ -67,6 +85,7 @@ export const ASSESSMENT_META = {
         cardClass: 'phq',
         iconStyle: 'background:var(--mint-light);border-color:var(--mint);',
         desc: 'An in-depth look at depression severity across 21 areas — emotional, physical, and behavioral.',
+        category: 'depression',
         badges: [
             { className: 'badge-mint', label: '21 questions' },
             { className: 'badge-mint', label: '~8 min' },
@@ -81,6 +100,7 @@ export const ASSESSMENT_META = {
         cardClass: 'psqi',
         iconStyle: 'background:var(--peach-light);border-color:var(--kraft);',
         desc: 'Assesses sleep quality over the past month.',
+        category: 'sleep',
         badges: [
             { className: 'badge-peach', label: '10 questions' },
             { className: 'badge-mint', label: '~5 min' },
@@ -95,6 +115,7 @@ export const ASSESSMENT_META = {
         cardClass: 'pss',
         iconStyle: 'background:var(--coral-light);border-color:var(--coral);',
         desc: 'Assesses how stressed you have felt over the past month.',
+        category: 'stress',
         badges: [
             { className: 'badge-peach', label: '10 questions' },
             { className: 'badge-mint', label: '~4 min' },
@@ -109,6 +130,7 @@ export const ASSESSMENT_META = {
         cardClass: 'sdq',
         iconStyle: 'background:var(--sky-light);border-color:var(--lavender);',
         desc: 'Screens emotional and behavioral strengths and difficulties for teens.',
+        category: 'child_teen',
         badges: [
             { className: 'badge-sky', label: '25 questions' },
             { className: 'badge-mint', label: '~10 min' },
@@ -123,6 +145,7 @@ export const ASSESSMENT_META = {
         cardClass: 'mmse',
         iconStyle: 'background:var(--lavender-light);border-color:var(--lavender);',
         desc: 'Assesses cognitive function — orientation, memory, attention, language — commonly used for older adults.',
+        category: 'cognitive',
         badges: [
             { className: 'badge-lavender', label: '19 questions' },
             { className: 'badge-mint', label: '~10 min' },
@@ -137,6 +160,7 @@ export const ASSESSMENT_META = {
         cardClass: 'isi',
         iconStyle: 'background:var(--peach-light);border-color:var(--peach);',
         desc: 'Assesses the severity and impact of insomnia over the past month.',
+        category: 'sleep',
         badges: [
             { className: 'badge-peach', label: '7 questions' },
             { className: 'badge-mint', label: '~3 min' },
@@ -151,6 +175,7 @@ export const ASSESSMENT_META = {
         cardClass: 'iat',
         iconStyle: 'background:var(--sky-light);border-color:var(--sky);',
         desc: 'Assesses internet addiction over the past month.',
+        category: 'behavior_addiction',
         badges: [
             { className: 'badge-sky', label: '20 questions' },
             { className: 'badge-mint', label: '~7 min' },
@@ -165,6 +190,7 @@ export const ASSESSMENT_META = {
         cardClass: 'audit',
         iconStyle: 'background:var(--kraft-light);border-color:var(--kraft);',
         desc: 'Screens alcohol use over the past 12 months (WHO).',
+        category: 'substance',
         badges: [
             { className: 'badge-peach', label: '10 questions' },
             { className: 'badge-mint', label: '~5 min' },
@@ -172,3 +198,5 @@ export const ASSESSMENT_META = {
         ]
     }
 };
+
+Object.assign(ASSESSMENT_META, ADDITIONAL_ASSESSMENT_META);

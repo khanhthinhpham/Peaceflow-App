@@ -67,13 +67,40 @@
           </div>
         </div>
 
+        <div class="catalog-toolbar">
+          <div class="catalog-controls">
+            <input
+              type="search"
+              class="catalog-search"
+              v-model="testSearchQuery"
+              :placeholder="t('moodAssessment.selector.searchPlaceholder')"
+            >
+            <details class="catalog-filter-dropdown">
+              <summary class="btn-outline">
+                {{ t('moodAssessment.selector.filterCategories') }}
+                <span v-if="selectedCategories.length" class="catalog-filter-count">{{ selectedCategories.length }}</span>
+              </summary>
+              <div class="catalog-filter-menu">
+                <label class="catalog-filter-option catalog-filter-all">
+                  <input type="checkbox" :checked="!selectedCategories.length" @change="clearCategories">
+                  <span>{{ t('moodAssessment.selector.categoryAll') }}</span>
+                </label>
+                <label v-for="[code, label] in availableCategories" :key="code" class="catalog-filter-option">
+                  <input v-model="selectedCategories" type="checkbox" :value="code">
+                  <span>{{ label }}</span>
+                </label>
+              </div>
+            </details>
+          </div>
+        </div>
+
         <div class="test-grid">
           <div
-            v-for="card in testCards"
+            v-for="card in pagedTestCards"
             :key="card.key"
             class="test-select-card"
             :class="card.meta.cardClass"
-            @click="startTest(card.key)"
+            @click="openAssessment(card)"
           >
             <div class="tsc-icon" :style="card.meta.iconStyle">{{ card.meta.icon }}</div>
             <div class="tsc-name">{{ card.meta.name }}</div>
@@ -92,7 +119,11 @@
             <div class="tsc-last">{{ t('moodAssessment.selector.lastTimeLabel', { label: card.latestLabel }) }}</div>
           </div>
 
-          <div class="test-select-card sdq" @click="router.push('/raven-test')">
+          <div
+            v-if="showRavenCard"
+            class="test-select-card sdq"
+            @click="router.push('/raven-test')"
+          >
             <div class="tsc-icon" style="background:var(--sky-light);border-color:var(--lavender);">🧩</div>
             <div class="tsc-name">{{ t('moodAssessment.selector.ravenName') }}</div>
             <div class="tsc-fullname">{{ t('moodAssessment.selector.ravenFullname') }}</div>
@@ -104,6 +135,16 @@
             </div>
             <div class="tsc-last">{{ t('moodAssessment.selector.ravenLastLabel') }}</div>
           </div>
+
+          <div v-if="!pagedTestCards.length && !showRavenCard" class="paper-card" style="padding:18px;color:var(--text-secondary);">
+            {{ t('moodAssessment.selector.noResults') }}
+          </div>
+        </div>
+
+        <div v-if="catalogTotalPages > 1" class="catalog-pagination">
+          <button type="button" class="btn-outline" :disabled="catalogPage === 1" @click="goToCatalogPage(catalogPage - 1)">‹</button>
+          <span class="catalog-page-label">{{ t('moodAssessment.selector.pageLabel', { current: catalogPage, total: catalogTotalPages }) }}</span>
+          <button type="button" class="btn-outline" :disabled="catalogPage === catalogTotalPages" @click="goToCatalogPage(catalogPage + 1)">›</button>
         </div>
 
         <!-- History -->
@@ -173,6 +214,24 @@
           </div>
         </div>
       </div>
+
+      <!-- ===== SPECIALIST-ADMINISTERED ASSESSMENT ===== -->
+      <section v-if="view === 'guided' && guidedAssessment" class="paper-card" style="max-width:760px;margin:0 auto;padding:28px;">
+        <button class="btn-outline" @click="backToSelector">{{ t('moodAssessment.selector.guided.backBtn') }}</button>
+        <div :style="guidedAssessment.iconStyle" style="width:52px;height:52px;border:2px solid;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:1.7rem;margin:20px 0 14px;">{{ guidedAssessment.icon }}</div>
+        <h1 style="font-size:1.35rem;margin:0 0 8px;">{{ guidedAssessment.name }}</h1>
+        <p style="margin:0 0 16px;color:var(--text-secondary);font-weight:600;">{{ guidedAssessment.fullname }}</p>
+        <p style="line-height:1.65;">{{ guidedAssessment.desc }}</p>
+        <template v-if="guidedAssessment.definition">
+          <h2 style="font-size:1.05rem;margin:22px 0 10px;">{{ t('moodAssessment.selector.guided.definitionTitle') }}</h2>
+          <div class="guided-definition">{{ guidedAssessment.definition }}</div>
+        </template>
+        <div style="padding:14px 16px;border-radius:12px;background:var(--peach-light);color:var(--text-primary);line-height:1.6;margin:18px 0;">
+          <strong>{{ t('moodAssessment.selector.guided.specialistTitle') }}</strong><br>
+          {{ guidedAssessment.specialistNote }}
+        </div>
+        <router-link to="/experts" class="btn-primary">{{ t('moodAssessment.selector.guided.expertBtn') }}</router-link>
+      </section>
 
       <!-- ===== TEST AREA ===== -->
       <div class="test-area" :style="{ display: view === 'test' ? 'block' : 'none' }">
@@ -351,8 +410,8 @@ import { apiClient } from '../lib/apiClient';
 import { useAuthStore } from '../stores/auth';
 import { TESTS as TESTS_VI } from '../lib/assessmentTests';
 import { TESTS as TESTS_EN } from '../lib/assessmentTests.en';
-import { ASSESSMENT_META as ASSESSMENT_META_VI } from '../lib/assessmentMeta';
-import { ASSESSMENT_META as ASSESSMENT_META_EN } from '../lib/assessmentMeta.en';
+import { ASSESSMENT_META as ASSESSMENT_META_VI, ASSESSMENT_CATEGORIES as ASSESSMENT_CATEGORIES_VI } from '../lib/assessmentMeta';
+import { ASSESSMENT_META as ASSESSMENT_META_EN, ASSESSMENT_CATEGORIES as ASSESSMENT_CATEGORIES_EN } from '../lib/assessmentMeta.en';
 
 const RESPONDENT_STORAGE_KEY = 'peaceflow_respondent_info';
 
@@ -365,6 +424,7 @@ const intlLocale = computed(() => (locale.value === 'en' ? 'en-US' : 'vi-VN'));
 // không tạo object mới mỗi lần computed chạy lại.
 const TESTS = computed(() => (locale.value === 'en' ? TESTS_EN : TESTS_VI));
 const ASSESSMENT_META = computed(() => (locale.value === 'en' ? ASSESSMENT_META_EN : ASSESSMENT_META_VI));
+const ASSESSMENT_CATEGORIES = computed(() => (locale.value === 'en' ? ASSESSMENT_CATEGORIES_EN : ASSESSMENT_CATEGORIES_VI));
 
 // ============================================================
 // STATE
@@ -380,12 +440,21 @@ const aiSummaryText = ref('');
 const aiSummaryLoading = ref(false);
 const aiInterpretation = ref('');
 const resultSubtitleBase = ref('');
+const guidedAssessment = ref(null);
 
 const assessments = ref([]);
 const history = ref([]);
 
 const respondent = reactive({ name: '', dob: '', age: '', ageMonths: '', note: '' });
 const showRespondentHint = ref(false);
+
+// Bo loc danh muc bai test: tim kiem theo ten, loc theo category, phan trang — vi danh
+// muc da tang tu 15 len ~40 bai, hien 1 luoi phang khong con du dung nua.
+const testSearchQuery = ref('');
+const selectedCategories = ref([]);
+const catalogPage = ref(1);
+const CATALOG_PAGE_SIZE = 12;
+watch([testSearchQuery, selectedCategories], () => { catalogPage.value = 1; }, { deep: true });
 
 let isAdvancing = false;
 let hasFinishedCurrentTest = false;
@@ -520,6 +589,47 @@ const testCards = computed(() => Object.entries(ASSESSMENT_META.value).map(([key
   };
 }));
 
+// Danh sach category thuc te dang co bai test (bo qua category rong de khong hien nut loc
+// vo nghia), giu dung thu tu khai bao trong ASSESSMENT_CATEGORIES.
+const availableCategories = computed(() => {
+  const present = new Set(testCards.value.map((card) => card.meta.category).filter(Boolean));
+  return Object.entries(ASSESSMENT_CATEGORIES.value).filter(([code]) => present.has(code));
+});
+
+const filteredTestCards = computed(() => {
+  const query = testSearchQuery.value.trim().toLowerCase();
+  return testCards.value.filter((card) => {
+    if (selectedCategories.value.length && !selectedCategories.value.includes(card.meta.category)) return false;
+    if (!query) return true;
+    return card.meta.name.toLowerCase().includes(query) || card.meta.fullname.toLowerCase().includes(query);
+  });
+});
+function clearCategories() {
+  selectedCategories.value = [];
+}
+
+const catalogTotalPages = computed(() => Math.max(1, Math.ceil(filteredTestCards.value.length / CATALOG_PAGE_SIZE)));
+const pagedTestCards = computed(() => {
+  const start = (catalogPage.value - 1) * CATALOG_PAGE_SIZE;
+  return filteredTestCards.value.slice(start, start + CATALOG_PAGE_SIZE);
+});
+function goToCatalogPage(page) {
+  catalogPage.value = Math.min(Math.max(1, page), catalogTotalPages.value);
+}
+
+// Raven CPM nam ngoai ASSESSMENT_META (co trang /raven-test rieng) nen khong nam trong
+// pagedTestCards — van phai tu ap dung loc category/search, va chi hien o trang 1 de
+// khong lap lai tren moi trang phan trang.
+const showRavenCard = computed(() => {
+  if (catalogPage.value !== 1) return false;
+  if (selectedCategories.value.length && !selectedCategories.value.includes('cognitive')) return false;
+  const query = testSearchQuery.value.trim().toLowerCase();
+  if (!query) return true;
+  const ravenName = t('moodAssessment.selector.ravenName').toLowerCase();
+  const ravenFullname = t('moodAssessment.selector.ravenFullname').toLowerCase();
+  return ravenName.includes(query) || ravenFullname.includes(query);
+});
+
 const historyCards = computed(() => history.value.map((item) => {
   const key = getAssessmentKeyByCode(item.code);
   const meta = key ? ASSESSMENT_META.value[key] : null;
@@ -652,6 +762,16 @@ function startTest(testId) {
   }
   saveRespondentInfo(info);
   beginTestFlow(testId);
+}
+
+function openAssessment(card) {
+  if (card.meta.mode === 'specialist') {
+    guidedAssessment.value = card.meta;
+    view.value = 'guided';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    return;
+  }
+  startTest(card.key);
 }
 
 function beginTestFlow(testId) {
@@ -922,6 +1042,7 @@ function retakeTest() {
 
 function backToSelector() {
   view.value = 'selector';
+  guidedAssessment.value = null;
 }
 
 onMounted(() => {
