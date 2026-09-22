@@ -4,6 +4,7 @@ import { runTaskExpiryJob } from '../jobs/task-expiry.job.js';
 import { runRecalculateRiskJob } from '../jobs/recalculate-risk.job.js';
 import { runReportCacheJob } from '../jobs/report-cache.job.js';
 import { runStreakWarningJob, runStreakLostNotificationJob } from '../jobs/streak-notification.job.js';
+import { runCleanupJob } from '../jobs/cleanup.job.js';
 
 const router = Router();
 
@@ -62,6 +63,12 @@ router.get('/cron/run-jobs', verifyCronSecret, async (req, res) => {
       results.streak = 'ok';
     } catch (e) {
       results.streak = e.message;
+    }
+
+    try {
+      results.cleanup = await runCleanupJob();
+    } catch (e) {
+      results.cleanup = e.message;
     }
   }
 
