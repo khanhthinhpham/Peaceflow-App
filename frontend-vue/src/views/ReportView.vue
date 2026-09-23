@@ -17,9 +17,11 @@
       </div>
 
       <div class="period-selector">
-        <button class="period-btn" :class="{ active: currentPeriod === 'week' }" @click="switchPeriod('week')">{{ t('report.periods.week') }}</button>
-        <button class="period-btn" :class="{ active: currentPeriod === 'month' }" @click="switchPeriod('month')">{{ t('report.periods.month') }}</button>
-        <button class="period-btn" :class="{ active: currentPeriod === '3month' }" @click="switchPeriod('3month')">{{ t('report.periods.threeMonth') }}</button>
+        <div class="period-btn-group">
+          <button class="period-btn" :class="{ active: currentPeriod === 'week' }" @click="switchPeriod('week')">{{ t('report.periods.week') }}</button>
+          <button class="period-btn" :class="{ active: currentPeriod === 'month' }" @click="switchPeriod('month')">{{ t('report.periods.month') }}</button>
+          <button class="period-btn" :class="{ active: currentPeriod === '3month' }" @click="switchPeriod('3month')">{{ t('report.periods.threeMonth') }}</button>
+        </div>
         <div class="period-nav">
           <button class="pn-btn" @click="navPeriod(-1)">‹</button>
           <div class="pn-label">{{ periodLabelText }}</div>

@@ -153,6 +153,10 @@
     padding: 0;
     overflow: hidden;
     margin-bottom: 20px;
+    margin-left: -16px;
+    margin-right: -16px;
+    border-radius: 0;
+    border: 0px;
 }
 
 .editor-top-bar {
@@ -905,6 +909,8 @@
 .stats-card {
     padding: 16px;
     margin-bottom: 14px;
+    border: none;
+    box-shadow: none;
 }
 
 .sc-title {
@@ -945,6 +951,9 @@
 .mood-trend-card {
     padding: 16px;
     margin-bottom: 14px;
+    margin-left: -16px;
+    margin-right: -16px;
+    border-radius: 0;
 }
 
 .mt-title {
@@ -1000,6 +1009,8 @@
 .prompts-card {
     padding: 16px;
     margin-bottom: 14px;
+    border: none;
+    box-shadow: none;
 }
 
 .pc-title {
@@ -1326,6 +1337,16 @@
        cho phép grid item co lại đúng theo chiều rộng khả dụng, chữ bên trong tự wrap lại. */
     .journal-layout>div {
         min-width: 0;
+    }
+
+    .etb-left {
+        flex-direction: column;
+        align-items: flex-start;
+        width: 100%;
+    }
+
+    .etb-mood {
+        flex-wrap: wrap;
     }
 }
 

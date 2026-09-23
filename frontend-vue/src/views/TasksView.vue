@@ -115,12 +115,21 @@
       <!-- Filter Bar -->
       <div class="filter-bar">
         <template v-if="!guestEmergencyMode">
-          <button class="filter-btn" :class="{ active: activeFilter === 'all' }" @click="setFilter('all')">{{ t('tasksPage.filters.all') }}</button>
-          <button class="filter-btn emergency-filter" :class="{ active: activeFilter === 'emergency' }" @click="setFilter('emergency')">{{ t('tasksPage.filters.emergency') }}</button>
-          <button class="filter-btn easy-filter" :class="{ active: activeFilter === 'easy' }" @click="setFilter('easy')">{{ t('tasksPage.filters.easy') }}</button>
-          <button class="filter-btn medium-filter" :class="{ active: activeFilter === 'medium' }" @click="setFilter('medium')">{{ t('tasksPage.filters.medium') }}</button>
-          <button class="filter-btn hard-filter" :class="{ active: activeFilter === 'hard' }" @click="setFilter('hard')">{{ t('tasksPage.filters.hard') }}</button>
-          <button class="filter-btn" :class="{ active: activeFilter === 'completed' }" @click="setFilter('completed')">{{ t('tasksPage.filters.completed') }}</button>
+          <div class="filter-dropdown-wrap">
+            <button type="button" class="filter-dropdown-btn" data-task-filter-btn @click="filterOpen = !filterOpen">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+              {{ filterLabel(activeFilter) }}
+              <span class="fd-caret">▾</span>
+            </button>
+            <div v-if="filterOpen" ref="filterDropdownEl" class="filter-dropdown-menu">
+              <button type="button" class="fdm-item" :class="{ active: activeFilter === 'all' }" @click="setFilter('all'); filterOpen = false">{{ t('tasksPage.filters.all') }}</button>
+              <button type="button" class="fdm-item" :class="{ active: activeFilter === 'emergency' }" @click="setFilter('emergency'); filterOpen = false">{{ t('tasksPage.filters.emergency') }}</button>
+              <button type="button" class="fdm-item" :class="{ active: activeFilter === 'easy' }" @click="setFilter('easy'); filterOpen = false">{{ t('tasksPage.filters.easy') }}</button>
+              <button type="button" class="fdm-item" :class="{ active: activeFilter === 'medium' }" @click="setFilter('medium'); filterOpen = false">{{ t('tasksPage.filters.medium') }}</button>
+              <button type="button" class="fdm-item" :class="{ active: activeFilter === 'hard' }" @click="setFilter('hard'); filterOpen = false">{{ t('tasksPage.filters.hard') }}</button>
+              <button type="button" class="fdm-item" :class="{ active: activeFilter === 'completed' }" @click="setFilter('completed'); filterOpen = false">{{ t('tasksPage.filters.completed') }}</button>
+            </div>
+          </div>
           <input type="text" class="search-input" :placeholder="t('tasksPage.filters.searchPlaceholder')" :value="searchQuery" @input="searchQuery = $event.target.value">
         </template>
         <template v-else>
@@ -181,7 +190,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted } from 'vue';
+import { ref, reactive, computed, onMounted, onBeforeUnmount } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 import { apiClient, API_BASE_URL } from '../lib/apiClient';
@@ -209,6 +218,21 @@ const brokenTaskImages = reactive(new Set());
 const aiExercises = ref([]);
 const activeFilter = ref('all');
 const searchQuery = ref('');
+const filterOpen = ref(false);
+const filterDropdownEl = ref(null);
+const TASK_FILTER_LABEL_KEYS = {
+  all: 'tasksPage.filters.all', emergency: 'tasksPage.filters.emergency', easy: 'tasksPage.filters.easy',
+  medium: 'tasksPage.filters.medium', hard: 'tasksPage.filters.hard', completed: 'tasksPage.filters.completed'
+};
+function filterLabel(filter) {
+  return t(TASK_FILTER_LABEL_KEYS[filter] || filter);
+}
+function handleFilterOutsideClick(event) {
+  if (!filterOpen.value) return;
+  if (filterDropdownEl.value && filterDropdownEl.value.contains(event.target)) return;
+  if (event.target.closest('[data-task-filter-btn]')) return;
+  filterOpen.value = false;
+}
 const guestEmergencyMode = ref(false);
 const emergencyOpen = ref(false);
 const loading = ref(true);
@@ -433,6 +457,11 @@ async function loadTaskPage() {
 
 onMounted(() => {
   loadTaskPage();
+  document.addEventListener('click', handleFilterOutsideClick);
+});
+
+onBeforeUnmount(() => {
+  document.removeEventListener('click', handleFilterOutsideClick);
 });
 </script>
 

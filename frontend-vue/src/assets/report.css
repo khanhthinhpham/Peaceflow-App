@@ -107,6 +107,11 @@
     align-items: center;
 }
 
+.period-btn-group {
+    display: flex;
+    gap: 8px;
+}
+
 .period-btn {
     padding: 8px 18px;
     border: 2px solid var(--kraft-light);
@@ -118,6 +123,8 @@
     background: var(--warm-white);
     color: var(--text-secondary);
     transition: var(--transition);
+    white-space: nowrap;
+    flex-shrink: 0;
 }
 
 .period-btn:hover {
@@ -903,6 +910,18 @@
         margin-left: 0;
         width: 100%;
         justify-content: center;
+    }
+
+    .period-btn-group {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        width: 100%;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .period-btn {
+        padding: 7px 12px;
+        font-size: 0.74rem;
     }
 
     .report-charts-grid {

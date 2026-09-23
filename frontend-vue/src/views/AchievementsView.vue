@@ -66,15 +66,22 @@
         <div>
           <!-- TAB: BADGES -->
           <div class="tab-panel" :class="{ active: activeTab === 'badges' }">
-            <div class="badge-filter">
-              <button
-                v-for="filter in badgeFilterOptions"
-                :key="filter"
-                type="button"
-                class="bf-btn"
-                :class="{ active: activeFilter === filter }"
-                @click="activeFilter = filter"
-              >{{ filterLabel(filter) }}</button>
+            <div class="badge-filter-wrap">
+              <button type="button" class="badge-filter-btn" data-filter-btn @click="filterOpen = !filterOpen">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+                {{ filterLabel(activeFilter) }}
+                <span class="bf-caret">▾</span>
+              </button>
+              <div v-if="filterOpen" ref="filterDropdownEl" class="badge-filter-dropdown">
+                <button
+                  v-for="filter in badgeFilterOptions"
+                  :key="filter"
+                  type="button"
+                  class="bfd-item"
+                  :class="{ active: activeFilter === filter }"
+                  @click="activeFilter = filter; filterOpen = false"
+                >{{ filterLabel(filter) }}</button>
+              </div>
             </div>
             <div class="badge-grid">
               <div v-if="!filteredBadges.length" class="paper-card" style="padding:20px;grid-column:1/-1;text-align:center;color:var(--text-secondary);">
@@ -309,7 +316,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { apiClient } from '../lib/apiClient';
 
@@ -368,6 +375,14 @@ function dayTooltip(day) {
 const data = ref(null);
 const activeTab = ref('badges');
 const activeFilter = ref('all');
+const filterOpen = ref(false);
+const filterDropdownEl = ref(null);
+function handleFilterOutsideClick(event) {
+  if (!filterOpen.value) return;
+  if (filterDropdownEl.value && filterDropdownEl.value.contains(event.target)) return;
+  if (event.target.closest('[data-filter-btn]')) return;
+  filterOpen.value = false;
+}
 const activeBadge = ref(null);
 
 function formatDate(value) {
@@ -425,11 +440,16 @@ function closeBadgeModal(event) {
 }
 
 onMounted(async () => {
+  document.addEventListener('click', handleFilterOutsideClick);
   try {
     data.value = await apiClient.get('/achievements');
   } catch (error) {
     console.error('Achievements page init failed:', error);
   }
+});
+
+onBeforeUnmount(() => {
+  document.removeEventListener('click', handleFilterOutsideClick);
 });
 </script>
 

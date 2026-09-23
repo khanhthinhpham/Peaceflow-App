@@ -26,6 +26,24 @@
         @click="activeCategory = key; showFullList = false"
       >{{ label }}</button>
     </nav>
+    <div class="ins-category-filter-wrap">
+      <button type="button" class="ins-category-filter-btn" data-ins-filter-btn @click="categoryFilterOpen = !categoryFilterOpen">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+        {{ activeCategory ? categories[activeCategory] : t('inspire.filterAll') }}
+        <span class="fd-caret">▾</span>
+      </button>
+      <div v-if="categoryFilterOpen" ref="categoryFilterDropdownEl" class="ins-category-filter-menu">
+        <button type="button" class="icfm-item" :class="{ active: activeCategory === null }" @click="activeCategory = null; showFullList = false; categoryFilterOpen = false">{{ t('inspire.filterAll') }}</button>
+        <button
+          v-for="(label, key) in categories"
+          :key="key"
+          type="button"
+          class="icfm-item"
+          :class="{ active: activeCategory === key }"
+          @click="activeCategory = key; showFullList = false; categoryFilterOpen = false"
+        >{{ label }}</button>
+      </div>
+    </div>
 
     <div v-if="loading" style="text-align:center;padding:40px;color:var(--text-secondary);">{{ t('inspire.loading') }}</div>
     <div v-else-if="loadError" style="text-align:center;padding:40px;color:var(--coral);">{{ loadError }}</div>
@@ -106,7 +124,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue';
+import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { apiClient } from '../lib/apiClient';
 import ArticleCard from '../components/ArticleCard.vue';
@@ -119,6 +137,14 @@ const loading = ref(true);
 const loadError = ref('');
 const activeCategory = ref(null);
 const showFullList = ref(false);
+const categoryFilterOpen = ref(false);
+const categoryFilterDropdownEl = ref(null);
+function handleCategoryFilterOutsideClick(event) {
+  if (!categoryFilterOpen.value) return;
+  if (categoryFilterDropdownEl.value && categoryFilterDropdownEl.value.contains(event.target)) return;
+  if (event.target.closest('[data-ins-filter-btn]')) return;
+  categoryFilterOpen.value = false;
+}
 
 // 1 bài nổi bật (ảnh lớn) + 5 tiêu đề chỉ-chữ bên cạnh + 3 ảnh nhỏ xếp lưới bên dưới —
 // giống bố cục trang chủ báo chí (hero + danh sách headline + lưới ảnh nhỏ).
@@ -162,7 +188,14 @@ async function load() {
 }
 
 watch(activeCategory, load);
-onMounted(load);
+onMounted(() => {
+  load();
+  document.addEventListener('click', handleCategoryFilterOutsideClick);
+});
+
+onBeforeUnmount(() => {
+  document.removeEventListener('click', handleCategoryFilterOutsideClick);
+});
 </script>
 
 <style scoped>
@@ -192,6 +225,79 @@ onMounted(load);
 .ins-tab.active {
   color: var(--mint-dark);
   border-bottom-color: var(--mint-dark);
+}
+.ins-category-filter-wrap {
+  display: none;
+  position: relative;
+  margin-bottom: 24px;
+}
+.ins-category-filter-btn {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  width: 100%;
+  padding: 10px 14px;
+  border: 2px solid var(--kraft-light);
+  border-radius: 50px;
+  background: var(--warm-white);
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: var(--transition);
+}
+.ins-category-filter-btn:hover {
+  background: var(--mint-light);
+  border-color: var(--mint);
+}
+.ins-category-filter-btn .fd-caret {
+  margin-left: auto;
+}
+.ins-category-filter-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 6px;
+  background: var(--warm-white);
+  border: 1.5px solid var(--kraft-light);
+  border-radius: var(--radius-md);
+  box-shadow: 3px 3px 0px rgba(74, 55, 40, 0.15);
+  max-height: 320px;
+  overflow-y: auto;
+}
+.icfm-item {
+  padding: 8px 12px;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-family: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+  background: none;
+  color: var(--text-secondary);
+  transition: var(--transition);
+}
+.icfm-item:hover {
+  background: var(--kraft-light);
+}
+.icfm-item.active {
+  background: var(--mint-light);
+  color: var(--text-primary);
+}
+@media (max-width: 700px) {
+  .ins-tabbar {
+    display: none;
+  }
+  .ins-category-filter-wrap {
+    display: block;
+  }
 }
 .ins-see-all {
   border: none;

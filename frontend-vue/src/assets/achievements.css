@@ -262,19 +262,21 @@
 }
 
 /* ===== BADGE GALLERY ===== */
-.badge-filter {
-    display: flex;
-    gap: 6px;
-    flex-wrap: wrap;
+.badge-filter-wrap {
+    position: relative;
+    display: inline-block;
     margin-bottom: 16px;
 }
 
-.bf-btn {
-    padding: 6px 14px;
+.badge-filter-btn {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 7px 16px;
     border: 1.5px solid var(--kraft-light);
     border-radius: 50px;
     font-family: 'Nunito', sans-serif;
-    font-size: 0.75rem;
+    font-size: 0.78rem;
     font-weight: 600;
     cursor: pointer;
     background: var(--warm-white);
@@ -282,14 +284,52 @@
     transition: var(--transition);
 }
 
-.bf-btn:hover {
+.badge-filter-btn:hover {
     background: var(--mint-light);
     border-color: var(--mint);
 }
 
-.bf-btn.active {
+.bf-caret {
+    font-size: 0.7rem;
+    margin-left: 2px;
+}
+
+.badge-filter-dropdown {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    z-index: 20;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 170px;
+    padding: 6px;
+    background: var(--warm-white);
+    border: 1.5px solid var(--kraft-light);
+    border-radius: var(--radius-md);
+    box-shadow: 3px 3px 0px rgba(74, 55, 40, 0.15);
+}
+
+.bfd-item {
+    padding: 8px 12px;
+    border: none;
+    border-radius: var(--radius-sm);
+    font-family: 'Nunito', sans-serif;
+    font-size: 0.78rem;
+    font-weight: 600;
+    text-align: left;
+    cursor: pointer;
+    background: none;
+    color: var(--text-secondary);
+    transition: var(--transition);
+}
+
+.bfd-item:hover {
+    background: var(--kraft-light);
+}
+
+.bfd-item.active {
     background: var(--mint-light);
-    border-color: var(--mint-dark);
     color: var(--text-primary);
 }
 
@@ -1271,6 +1311,28 @@
     .achievements-layout {
         grid-template-columns: 1fr;
     }
+
+    .hero-banner {
+        padding-left: 0;
+        padding-right: 0;
+        margin-left: -16px;
+        margin-right: -16px;
+        border-radius: 0;
+    }
+
+    .hb-content {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+
+    .hb-xp-wrap {
+        max-width: 100%;
+    }
+
+    .hb-stats {
+        justify-content: center;
+    }
 }
 
 @media(max-width:600px) {
@@ -1280,12 +1342,15 @@
 
     .view-tabs {
         width: 100%;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
     }
 
     .view-tab {
-        flex: 1;
-        text-align: center;
+        flex-shrink: 0;
+        white-space: nowrap;
         font-size: 0.72rem;
-        padding: 8px 8px;
+        padding: 8px 14px;
     }
 }

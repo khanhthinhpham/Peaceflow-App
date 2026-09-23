@@ -202,15 +202,13 @@
 
         <div class="paper-card xp-card" style="margin-bottom:18px;">
           <div class="xp-header">
-            <div class="xp-level-badge">
-              <div class="xp-level-circle">{{ xpInfo.currentLevel }}</div>
-              <div class="xp-level-info">
-                <div class="xl-name">{{ xpInfo.title }}</div>
-                <div class="xl-range">{{ xpInfo.minXP }} – {{ xpInfo.maxXPLabel }} XP</div>
-              </div>
+            <div class="xp-level-circle">{{ xpInfo.currentLevel }}</div>
+            <div class="xp-level-info">
+              <div class="xl-name">{{ xpInfo.title }}</div>
+              <div class="xl-range">{{ xpInfo.minXP }} – {{ xpInfo.maxXPLabel }} XP</div>
             </div>
-            <div class="xp-total">{{ xpInfo.xp }} XP</div>
           </div>
+          <div class="xp-total">{{ xpInfo.xp }} XP</div>
           <div class="xp-bar-wrap">
             <div class="xp-bar-fill" :style="{ width: xpInfo.percent + '%' }"></div>
           </div>
@@ -740,12 +738,12 @@ export default { name: 'DashboardView' };
 .task-divider { height: 1px; background: var(--kraft-light); margin: 0 18px; }
 
 .xp-card { padding: 22px; }
-.xp-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
-.xp-level-badge { display: flex; align-items: center; gap: 8px; }
-.xp-level-circle { width: 48px; height: 48px; border-radius: 50%; background: var(--mint-light); border: 3px solid var(--mint-dark); display: flex; align-items: center; justify-content: center; font-size: 1.2rem; font-weight: 800; color: var(--mint-dark); box-shadow: 3px 3px 0px var(--mint-dark); }
+.xp-header { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+.xp-level-circle { width: 48px; height: 48px; border-radius: 50%; background: var(--mint-light); border: 3px solid var(--mint-dark); display: flex; align-items: center; justify-content: center; font-size: 1.2rem; font-weight: 800; color: var(--mint-dark); box-shadow: 3px 3px 0px var(--mint-dark); flex-shrink: 0; }
+.xp-level-info { min-width: 0; }
 .xp-level-info .xl-name { font-size: 0.88rem; font-weight: 700; }
 .xp-level-info .xl-range { font-size: 0.72rem; color: var(--text-light); }
-.xp-total { font-size: 1.4rem; font-weight: 800; color: var(--mint-dark); }
+.xp-total { font-size: 1.4rem; font-weight: 800; color: var(--mint-dark); text-align: right; margin-bottom: 6px; }
 .xp-bar-wrap { background: var(--kraft-light); border-radius: 50px; height: 14px; overflow: hidden; margin-bottom: 6px; border: 1.5px solid var(--kraft); }
 .xp-bar-fill { height: 100%; background: linear-gradient(90deg, var(--mint-dark), var(--mint)); border-radius: 50px; transition: width 1s cubic-bezier(0.25, 0.46, 0.45, 0.94); position: relative; }
 .xp-bar-fill::after { content: ''; position: absolute; top: 2px; left: 8px; right: 8px; height: 4px; background: rgba(255, 255, 255, 0.4); border-radius: 50px; }
@@ -761,7 +759,7 @@ export default { name: 'DashboardView' };
 .streak-day.today { background: var(--peach); border-color: var(--peach-dark); color: white; }
 .streak-day.empty { background: var(--cream); border-color: var(--kraft-light); color: var(--text-light); }
 
-.insight-card { padding: 20px; background: linear-gradient(135deg, var(--mint-light), var(--sky-light)); border-color: var(--mint); }
+.insight-card { padding: 20px; background: linear-gradient(135deg, var(--mint-light), var(--sky-light)); border-color: var(--mint); margin-left:-16px; margin-right:-16px; border-radius: 0; border: 0;}
 .insight-header { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
 .insight-icon { width: 36px; height: 36px; background: var(--mint); border-radius: 10px; border: 2px solid var(--mint-dark); display: flex; align-items: center; justify-content: center; font-size: 1rem; box-shadow: 2px 2px 0px var(--mint-dark); }
 .insight-title { font-size: 0.88rem; font-weight: 700; }
@@ -798,7 +796,8 @@ export default { name: 'DashboardView' };
 .section-title .st-link:hover { text-decoration: underline; }
 
 .checkin-prompt { padding: 18px 22px; background: linear-gradient(135deg, var(--peach-light), var(--mint-light)); border-color: var(--peach); display: flex; align-items: center; gap: 16px; margin-bottom: 20px; }
-.cp-mascot { font-size: 2rem; animation: g-bounce 3s ease-in-out infinite; flex-shrink: 0; }
+@keyframes cp-bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+.cp-mascot { font-size: 2rem; animation: cp-bounce 3s ease-in-out infinite; flex-shrink: 0; }
 .cp-text .cp-title { font-size: 0.95rem; font-weight: 700; margin-bottom: 2px; }
 .cp-text .cp-sub { font-size: 0.78rem; color: var(--text-secondary); }
 .cp-actions { display: flex; gap: 8px; margin-left: auto; flex-shrink: 0; }
@@ -810,6 +809,7 @@ export default { name: 'DashboardView' };
 @media (max-width: 900px) {
   .main-content { margin-left: 0; padding: 16px 16px 20px; }
   .grid-4 { grid-template-columns: repeat(2, 1fr); }
+  .checkin-prompt { padding-left: 0; padding-right: 0; margin-left: -16px; margin-right: -16px; border-radius: 0;border:none; }
 }
 @media (max-width: 600px) {
   .grid-3 { grid-template-columns: 1fr; }
