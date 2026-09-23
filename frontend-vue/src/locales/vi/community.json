@@ -15,16 +15,16 @@
       "badge": "🔥 Thử thách tuần này",
       "joined": "Đã tham gia",
       "joinNow": "Tham gia ngay",
-      "progressUnit": "⏱ {curr} / {goal} phút",
       "progressPercent": "{pct}% hoàn thành",
       "participants": "người tham gia",
-      "daysLeftLabel": "⏰ Còn",
-      "daysLeftUnit": "ngày",
+      "daysActiveLabel": "⏰ Đã diễn ra",
+      "daysActiveUnit": "ngày",
       "rewardLabel": "🏆 Phần thưởng:",
-      "rewardValue": "+100 XP",
-      "rewardBadge": "+ huy hiệu cộng đồng",
       "ctaMeditation": "Thiền ngay",
-      "ctaBreathing": "Thở ngay"
+      "ctaBreathing": "Thở ngay",
+      "ctaJournal": "Viết nhật ký ngay",
+      "ctaTasks": "Làm nhiệm vụ ngay",
+      "rewardedLabel": "Đã nhận thưởng tuần này"
     },
     "modNote": "Cộng đồng này được AI và moderator giám sát 24/7. Mọi nội dung tiêu cực, có hại hoặc vi phạm quy tắc sẽ bị gỡ bỏ. Hãy chia sẻ với tình yêu thương! 💚",
     "composer": {
@@ -112,14 +112,10 @@
     },
     "challengesCard": {
       "title": "🎯 Thử thách đang diễn ra",
-      "meditation": {
-        "name": "🧘 Thiền {target} phút",
-        "meta": "{current}/{target} phút · {daysLeft} ngày còn lại",
-        "metaLastDay": "{current}/{target} phút · Hết hạn hôm nay"
-      },
-      "journal": { "name": "📝 {target} ngày viết nhật ký", "meta": "{current}/{target} ngày · Cá nhân" },
-      "breathing": { "name": "💨 Thở {target} ngày liên tục", "meta": "{current}/{target} ngày · Cá nhân" },
-      "goLabel": "Làm ngay"
+      "goLabel": "Làm ngay",
+      "upcomingLabel": "Thử thách #{position} sắp tới",
+      "goalLabel": "Mục tiêu {target} {unit}",
+      "empty": "Chưa có thử thách nào."
     },
     "mentor": {
       "title": "🌟 Mentor cộng đồng",
@@ -169,6 +165,7 @@
       "emptyReply": "Hãy viết nội dung trả lời.",
       "replyFailed": "Không thể gửi trả lời.",
       "challengeJoined": "Bạn đã tham gia thử thách cộng đồng tuần này.",
+      "challengeJoinFailed": "Không tham gia được thử thách, thử lại sau nhé.",
       "reportSubmitted": "Bài viết đã được ghi nhận báo cáo để moderator xem xét.",
       "mentorMessageComingSoon": "Tính năng nhắn mentor sẽ được nối ở bước sau."
     }

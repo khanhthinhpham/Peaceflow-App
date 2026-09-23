@@ -40,7 +40,7 @@
       </div>
 
       <div v-if="challenge" class="paper-card challenge-banner">
-        <div class="cb-deco">🧘</div>
+        <div class="cb-deco">{{ challenge.icon || '🎯' }}</div>
         <div class="cb-top">
           <div><div class="cb-badge">{{ t('community.challengeBanner.badge') }}</div></div>
           <button class="cb-join-btn" :disabled="joinedChallenge" :style="{ opacity: joinedChallenge ? 0.8 : 1 }" @click="joinChallenge">{{ joinedChallenge ? t('community.challengeBanner.joined') : t('community.challengeBanner.joinNow') }}</button>
@@ -49,20 +49,21 @@
         <div class="cb-desc">{{ challenge.description }}</div>
         <div class="cb-progress-wrap">
           <div class="cb-progress-label">
-            <span>{{ t('community.challengeBanner.progressUnit', { curr: formatCompactNumber(challenge.total_minutes), goal: formatCompactNumber(challenge.goal) }) }}</span>
+            <span>{{ formatCompactNumber(challenge.current_value) }} / {{ formatCompactNumber(challenge.goal) }} {{ challenge.unit_label }}</span>
             <span>{{ t('community.challengeBanner.progressPercent', { pct: challenge.progress_percent }) }}</span>
           </div>
           <div class="cb-progress-bar"><div class="cb-progress-fill" :style="{ width: Math.min(100, Number(challenge.progress_percent || 0)) + '%' }"></div></div>
         </div>
         <div class="cb-cta-row">
-          <router-link to="/task-meditation" class="cb-cta-btn">🧘 {{ t('community.challengeBanner.ctaMeditation') }}</router-link>
-          <router-link to="/task-breathing" class="cb-cta-btn">💨 {{ t('community.challengeBanner.ctaBreathing') }}</router-link>
+          <router-link v-for="cta in challengeCtaLinks" :key="cta.to" :to="cta.to" class="cb-cta-btn">{{ cta.icon }} {{ cta.label }}</router-link>
         </div>
         <div class="cb-stats">
           <div class="cb-stat">👥 <strong>{{ formatCompactNumber(challenge.participants) }}</strong> {{ t('community.challengeBanner.participants') }}</div>
-          <div class="cb-stat">{{ t('community.challengeBanner.daysLeftLabel') }} <strong>{{ formatCompactNumber(challenge.days_left) }}</strong> {{ t('community.challengeBanner.daysLeftUnit') }}</div>
-          <div class="cb-stat">{{ t('community.challengeBanner.rewardLabel') }} <strong>{{ t('community.challengeBanner.rewardValue') }}</strong> {{ t('community.challengeBanner.rewardBadge') }}</div>
+          <div class="cb-stat">{{ t('community.challengeBanner.daysActiveLabel') }} <strong>{{ formatCompactNumber(challenge.days_active) }}</strong> {{ t('community.challengeBanner.daysActiveUnit') }}</div>
+          <div class="cb-stat">{{ t('community.challengeBanner.rewardLabel') }} <strong>+{{ challenge.reward_xp ?? 0 }} XP</strong></div>
+          <div v-if="challengeRewarded" class="cb-stat cb-stat-rewarded">✅ {{ t('community.challengeBanner.rewardedLabel') }}</div>
         </div>
+        <div v-if="joinedChallenge && !challengeRewarded" class="cb-reward-note">{{ challenge.reward_note }}</div>
       </div>
 
       <div class="community-layout">
@@ -216,21 +217,28 @@
 
           <div class="paper-card challenges-card">
             <div class="cc-title">{{ t('community.challengesCard.title') }}</div>
-            <div class="challenge-item ci-clickable" @click="router.push('/task-meditation')">
-              <div class="ci-header"><div class="ci-name">{{ t('community.challengesCard.meditation.name', { target: formatCompactNumber(meditationChallenge.target) }) }}</div><div class="ci-xp">+{{ meditationChallenge.xp }} XP</div></div>
-              <div class="ci-progress"><div class="ci-fill" :style="{ width: meditationChallenge.progress_percent + '%' }"></div></div>
-              <div class="ci-meta">{{ meditationMeta }} · {{ t('community.challengesCard.goLabel') }} ›</div>
+            <div
+              v-for="(pc, idx) in personalChallenges"
+              :key="pc.code"
+              class="challenge-item"
+              :class="{ 'ci-clickable': pc.status === 'active', 'ci-upcoming': pc.status !== 'active' }"
+              @click="pc.status === 'active' && goToChallengeCta(pc.metric_type)"
+            >
+              <div class="ci-header">
+                <div class="ci-name">{{ pc.icon }} {{ pc.title }}</div>
+                <div class="ci-xp">+{{ pc.xp }} XP</div>
+              </div>
+              <div class="ci-progress"><div class="ci-fill" :style="{ width: pc.progress_percent + '%' }"></div></div>
+              <div class="ci-meta">
+                <template v-if="pc.status === 'active'">
+                  {{ formatCompactNumber(pc.current) }}/{{ formatCompactNumber(pc.target) }} {{ pc.unit_label }} · {{ t('community.challengesCard.goLabel') }} ›
+                </template>
+                <template v-else>
+                  {{ t('community.challengesCard.upcomingLabel', { position: idx }) }} · {{ t('community.challengesCard.goalLabel', { target: formatCompactNumber(pc.target), unit: pc.unit_label }) }}
+                </template>
+              </div>
             </div>
-            <div class="challenge-item ci-clickable" @click="router.push('/journal')">
-              <div class="ci-header"><div class="ci-name">{{ t('community.challengesCard.journal.name', { target: journalChallenge.target }) }}</div><div class="ci-xp">+{{ journalChallenge.xp }} XP</div></div>
-              <div class="ci-progress"><div class="ci-fill" :style="{ width: journalChallenge.progress_percent + '%' }"></div></div>
-              <div class="ci-meta">{{ t('community.challengesCard.journal.meta', { current: journalChallenge.current, target: journalChallenge.target }) }} · {{ t('community.challengesCard.goLabel') }} ›</div>
-            </div>
-            <div class="challenge-item ci-clickable" @click="router.push('/task-breathing')">
-              <div class="ci-header"><div class="ci-name">{{ t('community.challengesCard.breathing.name', { target: breathingChallenge.target }) }}</div><div class="ci-xp">+{{ breathingChallenge.xp }} XP</div></div>
-              <div class="ci-progress"><div class="ci-fill" :style="{ width: breathingChallenge.progress_percent + '%' }"></div></div>
-              <div class="ci-meta">{{ t('community.challengesCard.breathing.meta', { current: breathingChallenge.current, target: breathingChallenge.target }) }} · {{ t('community.challengesCard.goLabel') }} ›</div>
-            </div>
+            <div v-if="!personalChallenges.length" style="font-size:0.78rem;color:var(--text-light);padding:6px 2px;">{{ t('community.challengesCard.empty') }}</div>
           </div>
 
           <div class="paper-card mentor-card">
@@ -361,7 +369,26 @@ const currentFilter = ref('all');
 const leaderboardTab = ref('xp');
 const leaderboardHidden = ref(localStorage.getItem('peaceflow_lb_hidden') === '1');
 const anonymousPosting = ref(false);
-const joinedChallenge = ref(localStorage.getItem('peaceflow_joined_community_challenge') === '1');
+// Trang thai "tham gia" nay giu theo TAI KHOAN o server (community_challenge_participants),
+// khong con dung localStorage nua — vi gio thuong that (+100 XP) tinh theo tai khoan da tham
+// gia + tu dong gop du phut trong tuan, phai dong bo dung theo user chu khong theo thiet bi.
+const joinedChallenge = computed(() => Boolean(challenge.value?.joined));
+// Nut CTA duoi banner thu thach doi theo metric_type — thu thach do phut thien/tho thi dan
+// toi trang thien/tho, do nhat ky thi dan toi trang nhat ky, do nhiem vu thi dan toi trang
+// nhiem vu. Admin them loai chi so moi trong tuong lai se can bo sung them 1 nhanh o day.
+const CHALLENGE_CTA_BY_METRIC = {
+  meditation_minutes: [
+    { to: '/task-meditation', icon: '🧘', labelKey: 'ctaMeditation' },
+    { to: '/task-breathing', icon: '💨', labelKey: 'ctaBreathing' }
+  ],
+  journal_entries: [{ to: '/journal', icon: '📝', labelKey: 'ctaJournal' }],
+  task_completions: [{ to: '/tasks', icon: '🎯', labelKey: 'ctaTasks' }]
+};
+const challengeCtaLinks = computed(() => {
+  const defs = CHALLENGE_CTA_BY_METRIC[challenge.value?.metric_type] || [];
+  return defs.map((d) => ({ to: d.to, icon: d.icon, label: t(`community.challengeBanner.${d.labelKey}`) }));
+});
+const challengeRewarded = computed(() => Boolean(challenge.value?.rewarded));
 const selectedTags = ref([]);
 const openComments = reactive(new Set());
 const expandedPosts = reactive(new Set());
@@ -395,20 +422,10 @@ function formatCompactNumber(value) {
 function formatPercent(value) {
   return `${Math.round(Number(value || 0))}%`;
 }
-function findPersonalChallenge(code) {
-  return personalChallenges.value.find((c) => c.code === code)
-    || { current: 0, target: 0, days_left: 0, xp: 0, progress_percent: 0 };
+function goToChallengeCta(metricType) {
+  const cta = (CHALLENGE_CTA_BY_METRIC[metricType] || [])[0];
+  if (cta) router.push(cta.to);
 }
-const meditationChallenge = computed(() => findPersonalChallenge('meditation_monthly_minutes'));
-const journalChallenge = computed(() => findPersonalChallenge('journal_weekly_days'));
-const breathingChallenge = computed(() => findPersonalChallenge('breathing_streak_days'));
-const meditationMeta = computed(() => {
-  const c = meditationChallenge.value;
-  const params = { current: formatCompactNumber(c.current), target: formatCompactNumber(c.target) };
-  return c.days_left > 0
-    ? t('community.challengesCard.meditation.meta', { ...params, daysLeft: c.days_left })
-    : t('community.challengesCard.meditation.metaLastDay', params);
-});
 function normalizeVietnamese(value) {
   return String(value || '')
     .toLowerCase()
@@ -682,11 +699,15 @@ function toggleLeaderboardHidden() {
   localStorage.setItem('peaceflow_lb_hidden', leaderboardHidden.value ? '1' : '0');
 }
 
-function joinChallenge() {
+async function joinChallenge() {
   if (joinedChallenge.value) return;
-  joinedChallenge.value = true;
-  localStorage.setItem('peaceflow_joined_community_challenge', '1');
-  showToast(t('community.toast.challengeJoined'));
+  try {
+    await apiClient.post('/community/challenge/join', {});
+    if (challenge.value) challenge.value = { ...challenge.value, joined: true };
+    showToast(t('community.toast.challengeJoined'));
+  } catch (error) {
+    showToast(error.message || t('community.toast.challengeJoinFailed'));
+  }
 }
 
 function openReportModal(postId) {

@@ -32,6 +32,9 @@ import AdminPaymentsView from '../views/admin/AdminPaymentsView.vue';
 import AdminUsersView from '../views/admin/AdminUsersView.vue';
 import AdminCommunityView from '../views/admin/AdminCommunityView.vue';
 import AdminArticlesView from '../views/admin/AdminArticlesView.vue';
+import AdminTasksView from '../views/admin/AdminTasksView.vue';
+import AdminAssessmentsView from '../views/admin/AdminAssessmentsView.vue';
+import AdminCommunityChallengesView from '../views/admin/AdminCommunityChallengesView.vue';
 import AdminBroadcastView from '../views/admin/AdminBroadcastView.vue';
 import InspireView from '../views/InspireView.vue';
 import ArticleDetailView from '../views/ArticleDetailView.vue';
@@ -98,6 +101,9 @@ const router = createRouter({
         { path: 'users', name: 'admin-users', component: AdminUsersView, meta: { navKey: 'users' } },
         { path: 'community', name: 'admin-community', component: AdminCommunityView, meta: { navKey: 'community' } },
         { path: 'articles', name: 'admin-articles', component: AdminArticlesView, meta: { navKey: 'articles' } },
+        { path: 'tasks', name: 'admin-tasks', component: AdminTasksView, meta: { navKey: 'tasks' } },
+        { path: 'assessments-catalog', name: 'admin-assessments-catalog', component: AdminAssessmentsView, meta: { navKey: 'assessments-catalog' } },
+        { path: 'community-challenges', name: 'admin-community-challenges', component: AdminCommunityChallengesView, meta: { navKey: 'community-challenges' } },
         { path: 'broadcast', name: 'admin-broadcast', component: AdminBroadcastView, meta: { navKey: 'broadcast' } },
         { path: 'assessment-results', name: 'admin-assessment-results', component: AdminAssessmentResultsView, meta: { navKey: 'assessment-results' } },
         { path: 'ai-usage', name: 'admin-ai-usage', component: AdminAiUsageView, meta: { navKey: 'ai-usage' } }

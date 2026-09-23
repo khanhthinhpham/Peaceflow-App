@@ -236,6 +236,18 @@
     gap: 4px;
 }
 
+.cb-stat-rewarded {
+    color: var(--mint-dark);
+    font-weight: 700;
+}
+
+.cb-reward-note {
+    margin-top: 8px;
+    font-size: 0.72rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+}
+
 .cb-stat strong {
     color: var(--text-primary);
 }
@@ -962,6 +974,10 @@
 
 .ci-clickable {
     cursor: pointer;
+}
+
+.ci-upcoming {
+    opacity: 0.6;
 }
 
 .ci-header {

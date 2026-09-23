@@ -30,6 +30,12 @@ router.get('/assessments', requireAuth, async (req, res) => {
          a.version,
          a.description,
          a.description_en,
+         a.is_custom,
+         a.icon,
+         a.category,
+         a.question_schema,
+         a.scoring_rules,
+         a.interpretation_rules,
          latest_result.id as latest_result_id,
          latest_result.total_score as latest_total_score,
          latest_result.severity as latest_severity,
@@ -67,10 +73,13 @@ router.get('/assessments', requireAuth, async (req, res) => {
 
     return res.json({
       success: true,
-      data: result.rows.map(({ description_en, ...row }) => ({
+      data: result.rows.map(({ description_en, question_schema, scoring_rules, interpretation_rules, ...row }) => ({
         ...row,
         description: (req.locale === 'en' && description_en) || row.description,
-        latest_total_score: row.latest_total_score === null ? null : Number(row.latest_total_score)
+        latest_total_score: row.latest_total_score === null ? null : Number(row.latest_total_score),
+        // Chỉ bài admin tự tạo (is_custom) mới cần gửi định nghĩa câu hỏi/thang điểm cho
+        // client tự render — bài có sẵn (GAD7, PHQ9...) đã hardcode trong assessmentTests.js.
+        ...(row.is_custom ? { question_schema, scoring_rules, interpretation_rules } : {})
       }))
     });
   } catch (error) {
@@ -722,6 +731,135 @@ router.delete('/admin/assessment-results/:id', requireAuth, async (req, res) => 
   } catch (error) {
     console.error('Admin delete assessment result error:', error);
     return res.status(500).json({ success: false, message: 'Could not delete result' });
+  }
+});
+
+// ============================================================
+// ADMIN: tự tạo bài test mới qua UI (không cần lập trình viên)
+// ============================================================
+// Chỉ áp dụng cho bài "is_custom = true" — bài có sẵn (GAD7, PHQ9, DASS21...) vẫn hardcode
+// trong frontend-vue/src/lib/assessmentTests.js, sửa ở đây không có tác dụng với chúng nên
+// các route dưới đây chặn thao tác lên bài không phải is_custom.
+
+function validateAssessmentPayload(body) {
+  const { name, question_schema: questionSchema, interpretation_rules: interpretationRules } = body;
+  if (!name || !String(name).trim()) return 'Thiếu tên bài test.';
+  if (!Array.isArray(questionSchema) || questionSchema.length === 0) return 'Cần ít nhất 1 câu hỏi.';
+  for (const q of questionSchema) {
+    if (!q.key || !q.label) return 'Mỗi câu hỏi cần có key và label (nội dung câu hỏi).';
+    // Moi cau hoi LUON tu co bo lua chon rieng cua no — khong con khai niem "dung chung" nua.
+    if (!Array.isArray(q.options) || q.options.length < 2) {
+      return `Câu "${q.label}" cần ít nhất 2 lựa chọn trả lời.`;
+    }
+    for (const opt of q.options) {
+      if (!opt.label || typeof opt.score !== 'number') return `Mỗi lựa chọn của câu "${q.label}" cần có nhãn và điểm số.`;
+    }
+  }
+  if (!interpretationRules || !Array.isArray(interpretationRules.bands) || interpretationRules.bands.length === 0) {
+    return 'Cần ít nhất 1 mức phân loại (band) để diễn giải điểm số.';
+  }
+  for (const band of interpretationRules.bands) {
+    if (typeof band.max !== 'number' || !band.label) return 'Mỗi mức phân loại cần có điểm tối đa (max) và nhãn.';
+  }
+  return null;
+}
+
+router.get('/admin/assessments', requireAuth, async (req, res) => {
+  try {
+    if (!req.user.is_admin) return res.status(403).json({ success: false, message: 'Admin only' });
+    const result = await db.query(
+      `select id, code, name, name_en, description, description_en, version, icon, category,
+              is_custom, active, question_schema, scoring_rules, interpretation_rules, created_at
+       from assessments
+       order by is_custom asc, created_at desc`
+    );
+    return res.json({ success: true, data: result.rows });
+  } catch (error) {
+    console.error('Admin list assessments error:', error);
+    return res.status(500).json({ success: false, message: 'Could not fetch assessments' });
+  }
+});
+
+router.post('/admin/assessments', requireAuth, async (req, res) => {
+  try {
+    if (!req.user.is_admin) return res.status(403).json({ success: false, message: 'Admin only' });
+    const validationError = validateAssessmentPayload(req.body);
+    if (validationError) return res.status(400).json({ success: false, message: validationError });
+
+    const { code, name, name_en: nameEn, description, description_en: descriptionEn, icon, category, question_schema: questionSchema, scoring_rules: scoringRules, interpretation_rules: interpretationRules, active } = req.body;
+    const finalCode = (code && String(code).trim()) || String(name).trim().toUpperCase().replace(/[^A-Z0-9]+/g, '_').slice(0, 40);
+
+    const result = await db.query(
+      `insert into assessments (code, name, name_en, description, description_en, version, icon, category, is_custom, active, question_schema, scoring_rules, interpretation_rules)
+       values ($1, $2, $3, $4, $5, '1.0', $6, $7, true, $8, $9::jsonb, $10::jsonb, $11::jsonb)
+       returning id, code`,
+      [finalCode, name, nameEn || null, description || null, descriptionEn || null, icon || '📝', category || 'clinician', active !== false, JSON.stringify(questionSchema), JSON.stringify(scoringRules), JSON.stringify(interpretationRules)]
+    );
+    return res.json({ success: true, data: result.rows[0] });
+  } catch (error) {
+    if (error.code === '23505') return res.status(409).json({ success: false, message: 'Mã bài test (code) đã tồn tại, chọn mã khác.' });
+    console.error('Admin create assessment error:', error);
+    return res.status(500).json({ success: false, message: 'Could not create assessment' });
+  }
+});
+
+router.put('/admin/assessments/:code', requireAuth, async (req, res) => {
+  try {
+    if (!req.user.is_admin) return res.status(403).json({ success: false, message: 'Admin only' });
+    const validationError = validateAssessmentPayload(req.body);
+    if (validationError) return res.status(400).json({ success: false, message: validationError });
+
+    const existing = await db.query(`select is_custom from assessments where code = $1`, [req.params.code]);
+    if (!existing.rows[0]) return res.status(404).json({ success: false, message: 'Không tìm thấy bài test.' });
+    if (!existing.rows[0].is_custom) return res.status(400).json({ success: false, message: 'Chỉ sửa được bài test do admin tự tạo (không sửa được bài có sẵn trong hệ thống).' });
+
+    const { name, name_en: nameEn, description, description_en: descriptionEn, icon, category, question_schema: questionSchema, scoring_rules: scoringRules, interpretation_rules: interpretationRules, active } = req.body;
+    await db.query(
+      `update assessments
+       set name = $2, name_en = $3, description = $4, description_en = $5, icon = $6, category = $7,
+           active = $8, question_schema = $9::jsonb, scoring_rules = $10::jsonb, interpretation_rules = $11::jsonb
+       where code = $1`,
+      [req.params.code, name, nameEn || null, description || null, descriptionEn || null, icon || '📝', category || 'clinician', active !== false, JSON.stringify(questionSchema), JSON.stringify(scoringRules), JSON.stringify(interpretationRules)]
+    );
+    return res.json({ success: true });
+  } catch (error) {
+    console.error('Admin update assessment error:', error);
+    return res.status(500).json({ success: false, message: 'Could not update assessment' });
+  }
+});
+
+router.patch('/admin/assessments/:code/active', requireAuth, async (req, res) => {
+  try {
+    if (!req.user.is_admin) return res.status(403).json({ success: false, message: 'Admin only' });
+    const r = await db.query(
+      `update assessments set active = $2 where code = $1 returning code, active`,
+      [req.params.code, Boolean(req.body.active)]
+    );
+    if (!r.rows[0]) return res.status(404).json({ success: false, message: 'Không tìm thấy bài test.' });
+    return res.json({ success: true, data: r.rows[0] });
+  } catch (error) {
+    console.error('Admin toggle assessment active error:', error);
+    return res.status(500).json({ success: false, message: 'Could not update assessment' });
+  }
+});
+
+router.delete('/admin/assessments/:code', requireAuth, async (req, res) => {
+  try {
+    if (!req.user.is_admin) return res.status(403).json({ success: false, message: 'Admin only' });
+    const existing = await db.query(`select id, is_custom from assessments where code = $1`, [req.params.code]);
+    if (!existing.rows[0]) return res.status(404).json({ success: false, message: 'Không tìm thấy bài test.' });
+    if (!existing.rows[0].is_custom) return res.status(400).json({ success: false, message: 'Chỉ xoá được bài test do admin tự tạo.' });
+
+    const resultsCount = await db.query(`select count(*)::int as n from assessment_results where assessment_id = $1`, [existing.rows[0].id]);
+    if (resultsCount.rows[0].n > 0) {
+      return res.status(400).json({ success: false, message: `Bài test đã có ${resultsCount.rows[0].n} kết quả của người dùng — tắt "active" thay vì xoá để không mất dữ liệu.` });
+    }
+
+    await db.query(`delete from assessments where code = $1`, [req.params.code]);
+    return res.json({ success: true, data: { deleted: true } });
+  } catch (error) {
+    console.error('Admin delete assessment error:', error);
+    return res.status(500).json({ success: false, message: 'Could not delete assessment' });
   }
 });
 

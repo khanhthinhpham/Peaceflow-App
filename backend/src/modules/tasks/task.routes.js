@@ -1,9 +1,21 @@
 import { Router } from 'express';
+import multer from 'multer';
 import { requireAuth } from '../../common/middleware/auth.middleware.js';
 import { db } from '../../config/db.js';
 import { RecommendationEngineService } from '../risk/recommendation-engine.service.js';
 import { BadgeAwardService } from '../progress/badge-award.service.js';
-import { getActiveTasks, localizeTask } from './tasks.cache.js';
+import { getActiveTasks, localizeTask, invalidateTasksCache } from './tasks.cache.js';
+
+const coverUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 5 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    if (!file.mimetype.startsWith('image/')) {
+      return cb(new Error('Chỉ chấp nhận file ảnh'));
+    }
+    cb(null, true);
+  }
+});
 
 function sortTasks(tasks) {
   return [...tasks].sort((a, b) => {
@@ -24,6 +36,22 @@ const LEVELS = [
   { level: 4, minXP: 600, maxXP: 1000 },
   { level: 5, minXP: 1000, maxXP: Infinity }
 ];
+
+// Anh nhiem vu admin tu upload (khong co file tinh tuong ung trong public/task-images*/) —
+// cong khai, khong requireAuth, giong het co che GET /articles/:id/cover.
+router.get('/tasks/:id/cover', async (req, res) => {
+  try {
+    const r = await db.query(`select cover_image, cover_image_mime from tasks where id = $1`, [req.params.id]);
+    const row = r.rows[0];
+    if (!row?.cover_image) return res.status(404).end();
+    res.set('Content-Type', row.cover_image_mime || 'image/jpeg');
+    res.set('Cache-Control', 'public, max-age=86400');
+    return res.send(row.cover_image);
+  } catch (error) {
+    console.error('Task cover error:', error.message);
+    return res.status(500).end();
+  }
+});
 
 // GET /api/v1/tasks
 router.get('/tasks', requireAuth, async (req, res) => {
@@ -290,5 +318,144 @@ function formatDateOnly(value) {
   const day = String(date.getDate()).padStart(2, '0');
   return `${year}-${month}-${day}`;
 }
+
+// ============================================================
+// ADMIN: tự tạo/sửa nhiệm vụ (task) qua UI, không cần lập trình viên
+// ============================================================
+function validateTaskPayload(body) {
+  if (!body.title || !String(body.title).trim()) return 'Thiếu tên nhiệm vụ.';
+  if (!['easy', 'medium', 'hard', 'emergency', 'community'].includes(body.category)) {
+    return 'Mức độ (category) không hợp lệ.';
+  }
+  if (!Number.isFinite(Number(body.duration_minutes)) || Number(body.duration_minutes) <= 0) {
+    return 'Thời lượng (phút) phải lớn hơn 0.';
+  }
+  return null;
+}
+
+// Cac field mang (steps/safety_notes/tags) gui qua multipart/form-data den day dang CHUOI
+// JSON (frontend JSON.stringify truoc khi append vao FormData) — can parse lai; body JSON
+// thuong (khong up anh) thi da la array san, JSON.parse array se loi nen thu/catch.
+function parseArrayField(value) {
+  if (Array.isArray(value)) return value;
+  if (typeof value === 'string') {
+    try {
+      const parsed = JSON.parse(value);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch (_e) { return []; }
+  }
+  return [];
+}
+
+router.get('/admin/tasks', requireAuth, async (req, res) => {
+  try {
+    if (!req.user.is_admin) return res.status(403).json({ success: false, message: 'Admin only' });
+    const limit = Math.min(Math.max(parseInt(req.query.limit, 10) || 50, 1), 200);
+    const offset = Math.max(parseInt(req.query.offset, 10) || 0, 0);
+    const [countRes, rowsRes] = await Promise.all([
+      db.query(`select count(*)::int as total from tasks`),
+      db.query(
+        `select id, code, title, category, difficulty, duration_minutes, xp_reward, description,
+                steps, safety_notes, tags, active, created_at, (cover_image is not null) as has_cover
+         from tasks
+         order by created_at desc
+         limit $1 offset $2`,
+        [limit, offset]
+      )
+    ]);
+    return res.json({ success: true, data: { tasks: rowsRes.rows, total: countRes.rows[0]?.total || 0 } });
+  } catch (error) {
+    console.error('Admin list tasks error:', error);
+    return res.status(500).json({ success: false, message: 'Could not fetch tasks' });
+  }
+});
+
+router.post('/admin/tasks', requireAuth, coverUpload.single('cover'), async (req, res) => {
+  try {
+    if (!req.user.is_admin) return res.status(403).json({ success: false, message: 'Admin only' });
+    const validationError = validateTaskPayload(req.body);
+    if (validationError) return res.status(400).json({ success: false, message: validationError });
+
+    const { code, title, category, duration_minutes: durationMinutes, xp_reward: xpReward, description, steps, safety_notes: safetyNotes, tags, active } = req.body;
+    const finalCode = (code && String(code).trim()) || `custom-${Date.now()}`;
+
+    const result = await db.query(
+      `insert into tasks (code, title, category, difficulty, duration_minutes, xp_reward, description, steps, safety_notes, tags, active, cover_image, cover_image_mime)
+       values ($1, $2, $3, $3, $4, $5, $6, $7::jsonb, $8::jsonb, $9::jsonb, $10, $11, $12)
+       returning id, code`,
+      [
+        finalCode, title, category, Number(durationMinutes), Number(xpReward) || 10, description || null,
+        JSON.stringify(parseArrayField(steps)),
+        JSON.stringify(parseArrayField(safetyNotes)),
+        JSON.stringify(parseArrayField(tags)),
+        active !== 'false' && active !== false,
+        req.file?.buffer || null,
+        req.file?.mimetype || null
+      ]
+    );
+    invalidateTasksCache();
+    return res.json({ success: true, data: result.rows[0] });
+  } catch (error) {
+    if (error.code === '23505') return res.status(409).json({ success: false, message: 'Mã nhiệm vụ (code) đã tồn tại, chọn mã khác.' });
+    if (error.message === 'Chỉ chấp nhận file ảnh') return res.status(400).json({ success: false, message: error.message });
+    console.error('Admin create task error:', error);
+    return res.status(500).json({ success: false, message: 'Could not create task' });
+  }
+});
+
+router.put('/admin/tasks/:id', requireAuth, coverUpload.single('cover'), async (req, res) => {
+  try {
+    if (!req.user.is_admin) return res.status(403).json({ success: false, message: 'Admin only' });
+    const validationError = validateTaskPayload(req.body);
+    if (validationError) return res.status(400).json({ success: false, message: validationError });
+
+    const { title, category, duration_minutes: durationMinutes, xp_reward: xpReward, description, steps, safety_notes: safetyNotes, tags, active } = req.body;
+    const params = [
+      req.params.id, title, category, Number(durationMinutes), Number(xpReward) || 10, description || null,
+      JSON.stringify(parseArrayField(steps)),
+      JSON.stringify(parseArrayField(safetyNotes)),
+      JSON.stringify(parseArrayField(tags)),
+      active !== 'false' && active !== false
+    ];
+    let coverClause = '';
+    if (req.file) {
+      params.push(req.file.buffer, req.file.mimetype);
+      coverClause = `, cover_image = $${params.length - 1}, cover_image_mime = $${params.length}`;
+    }
+    const result = await db.query(
+      `update tasks
+       set title = $2, category = $3, difficulty = $3, duration_minutes = $4, xp_reward = $5,
+           description = $6, steps = $7::jsonb, safety_notes = $8::jsonb, tags = $9::jsonb, active = $10,
+           updated_at = now()
+           ${coverClause}
+       where id = $1
+       returning id`,
+      params
+    );
+    if (!result.rows[0]) return res.status(404).json({ success: false, message: 'Không tìm thấy nhiệm vụ.' });
+    invalidateTasksCache();
+    return res.json({ success: true });
+  } catch (error) {
+    if (error.message === 'Chỉ chấp nhận file ảnh') return res.status(400).json({ success: false, message: error.message });
+    console.error('Admin update task error:', error);
+    return res.status(500).json({ success: false, message: 'Could not update task' });
+  }
+});
+
+router.patch('/admin/tasks/:id/active', requireAuth, async (req, res) => {
+  try {
+    if (!req.user.is_admin) return res.status(403).json({ success: false, message: 'Admin only' });
+    const result = await db.query(
+      `update tasks set active = $2, updated_at = now() where id = $1 returning id, active`,
+      [req.params.id, Boolean(req.body.active)]
+    );
+    if (!result.rows[0]) return res.status(404).json({ success: false, message: 'Không tìm thấy nhiệm vụ.' });
+    invalidateTasksCache();
+    return res.json({ success: true, data: result.rows[0] });
+  } catch (error) {
+    console.error('Admin toggle task active error:', error);
+    return res.status(500).json({ success: false, message: 'Could not update task' });
+  }
+});
 
 export default router;

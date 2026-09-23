@@ -422,8 +422,67 @@ const intlLocale = computed(() => (locale.value === 'en' ? 'en-US' : 'vi-VN'));
 // Chọn bộ dữ liệu bài test theo ngôn ngữ UI — TESTS bị mutate trực tiếp ở chỗ khác
 // (vd TESTS[key].prevScores = ...) nên giữ nguyên tham chiếu object theo từng ngôn ngữ,
 // không tạo object mới mỗi lần computed chạy lại.
-const TESTS = computed(() => (locale.value === 'en' ? TESTS_EN : TESTS_VI));
-const ASSESSMENT_META = computed(() => (locale.value === 'en' ? ASSESSMENT_META_EN : ASSESSMENT_META_VI));
+// Bài test admin tự tạo qua /admin/assessments-catalog (is_custom=true) không có trong file
+// JS hardcode — API /assessments trả kèm question_schema/scoring_rules/interpretation_rules
+// cho riêng các bài này, "adapt" sang đúng shape TESTS/ASSESSMENT_META hiện có để dùng chung
+// 100% engine làm bài/tính điểm đã có, không cần sửa logic render/chấm điểm.
+function buildCustomTestEntry(a) {
+  const likertOptions = (a.scoring_rules?.likert_options || []).map((o) => ({ emoji: '', label: o.label, score: o.score }));
+  const questions = (a.question_schema || []).map((q) => ({
+    text: q.label, cat: 'default', catLabel: a.name,
+    // Cau tu dat lua chon rieng (khac cau khac, kieu cau hoi tu sat trong BDI) — ghi de
+    // likertOptions dung chung, dung chinh co che sẵn co cua engine lam bai.
+    ...(Array.isArray(q.options) && q.options.length ? { likertOptions: q.options.map((o) => ({ emoji: '', label: o.label, score: o.score })) } : {})
+  }));
+  const maxScore = questions.reduce((sum, q) => {
+    const opts = q.likertOptions || likertOptions;
+    return sum + Math.max(0, ...opts.map((o) => o.score));
+  }, 0);
+  const bands = a.interpretation_rules?.bands || [];
+  return {
+    name: a.name, fullname: a.name,
+    icon: a.icon || '📝', iconBg: 'var(--sky-light)', iconBorder: 'var(--sky)',
+    timeRef: 'Gần đây', totalQ: questions.length, maxScore,
+    subscales: ['default'],
+    questions,
+    likertOptions,
+    scoring: {
+      default: {
+        indices: questions.map((_, idx) => idx),
+        multiplier: 1,
+        levels: bands.map((b, idx) => ({ max: b.max, label: b.label, class: `level-${idx}` }))
+      }
+    },
+    prevScores: null
+  };
+}
+function buildCustomMetaEntry(a) {
+  return {
+    apiCode: a.code, name: a.name, fullname: a.name, icon: a.icon || '📝', cardClass: 'custom',
+    iconStyle: 'background:var(--sky-light);border-color:var(--sky);',
+    desc: a.description || '', category: a.category || 'clinician',
+    badges: [
+      { className: 'badge-peach', label: t('moodAssessment.selector.questionCountBadge', { n: (a.question_schema || []).length }) },
+      { className: 'badge-mint', label: t('moodAssessment.selector.durationBadge', { n: Math.max(1, Math.round((a.question_schema || []).length * 0.25)) }) }
+    ]
+  };
+}
+const customAssessments = computed(() => assessments.value.filter((a) => a.is_custom && a.question_schema));
+
+const TESTS = computed(() => {
+  const base = locale.value === 'en' ? TESTS_EN : TESTS_VI;
+  if (!customAssessments.value.length) return base;
+  const extra = {};
+  for (const a of customAssessments.value) extra[a.code.toLowerCase()] = buildCustomTestEntry(a);
+  return { ...base, ...extra };
+});
+const ASSESSMENT_META = computed(() => {
+  const base = locale.value === 'en' ? ASSESSMENT_META_EN : ASSESSMENT_META_VI;
+  if (!customAssessments.value.length) return base;
+  const extra = {};
+  for (const a of customAssessments.value) extra[a.code.toLowerCase()] = buildCustomMetaEntry(a);
+  return { ...base, ...extra };
+});
 const ASSESSMENT_CATEGORIES = computed(() => (locale.value === 'en' ? ASSESSMENT_CATEGORIES_EN : ASSESSMENT_CATEGORIES_VI));
 
 // ============================================================

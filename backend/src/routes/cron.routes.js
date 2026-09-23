@@ -5,6 +5,8 @@ import { runRecalculateRiskJob } from '../jobs/recalculate-risk.job.js';
 import { runReportCacheJob } from '../jobs/report-cache.job.js';
 import { runStreakWarningJob, runStreakLostNotificationJob } from '../jobs/streak-notification.job.js';
 import { runCleanupJob } from '../jobs/cleanup.job.js';
+import { runCommunityChallengeRewardJob } from '../jobs/community-challenge-reward.job.js';
+import { runCommunityWeeklyChallengeJob } from '../jobs/community-weekly-challenge.job.js';
 
 const router = Router();
 
@@ -36,6 +38,21 @@ router.get('/cron/run-jobs', verifyCronSecret, async (req, res) => {
     results.task_expiry = 'ok';
   } catch (e) {
     results.task_expiry = e.message;
+  }
+
+  // Chuyển thử thách cộng đồng sang thử thách kế tiếp nếu đã đạt 100% mục tiêu — chạy TRƯỚC
+  // job thưởng bên dưới để phần thưởng luôn tính theo thử thách đang thật sự active.
+  try {
+    results.community_weekly_challenge = await runCommunityWeeklyChallengeJob();
+  } catch (e) {
+    results.community_weekly_challenge = e.message;
+  }
+
+  // Thưởng thử thách tuần: chạy mỗi giờ để người dùng nhận XP gần như ngay sau khi đủ điều kiện
+  try {
+    results.community_challenge_reward = await runCommunityChallengeRewardJob();
+  } catch (e) {
+    results.community_challenge_reward = e.message;
   }
 
   // Streak warning: chạy lúc 20:xx giờ Việt Nam — cảnh báo trước nửa đêm 4 tiếng

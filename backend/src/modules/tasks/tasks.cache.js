@@ -10,6 +10,13 @@ const CACHE_TTL_MS = 5 * 60 * 1000;
 let cached = null;
 let cachedAt = 0;
 
+// Goi sau khi admin tao/sua/tat mot task de lan doc tiep theo lay du lieu moi thay vi cache
+// cu toi 5 phut — xem ghi chu o dau file.
+export function invalidateTasksCache() {
+  cached = null;
+  cachedAt = 0;
+}
+
 export async function getActiveTasks() {
   if (cached && Date.now() - cachedAt < CACHE_TTL_MS) {
     return cached;
@@ -20,7 +27,8 @@ export async function getActiveTasks() {
     `select id, code, title, category, difficulty, duration_minutes, xp_reward, description,
             steps, safety_notes, tags, triggers_supported, contraindications, active,
             metadata, created_at, updated_at,
-            title_en, description_en, steps_en, safety_notes_en, metadata_en
+            title_en, description_en, steps_en, safety_notes_en, metadata_en,
+            (cover_image is not null) as has_cover
      from tasks where active = true`
   );
   cached = rows;

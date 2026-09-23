@@ -28,6 +28,8 @@
       "noteLabel": "Ghi chú",
       "notePlaceholder": "Ghi chú thêm (nếu có)...",
       "scorePillLabel": "Điểm gần nhất: {score}",
+      "questionCountBadge": "{n} câu hỏi",
+      "durationBadge": "~{n} phút",
       "lastTimeLabel": "🕐 Lần cuối: {label}",
       "searchPlaceholder": "🔍 Tìm bài test theo tên...",
       "categoryAll": "Tất cả",

@@ -4,6 +4,7 @@ import { db } from '../../config/db.js';
 import { sendPushToUser } from '../notifications/notification.routes.js';
 import { buildNotificationMessage } from '../notifications/notification-messages.js';
 import { sendCommunityPostToAdmin } from '../../common/services/email.service.js';
+import { computeMetricValue, computeParticipants, METRIC_TYPES } from './challenge-metrics.js';
 
 // Ngôn ngữ ưa thích đã lưu của người NHẬN thông báo — không dùng req.locale ở đây vì
 // req.locale phản ánh ngôn ngữ của người ĐANG bình luận/thả cảm xúc, không phải người
@@ -23,12 +24,6 @@ async function insertNotification(recipientId, actorName, type, postId, message,
     [recipientId, actorName, type, postId, message, groupKey, params ? JSON.stringify(params) : null]
   );
 }
-const MEDITATION_TITLE_PATTERN = 'thiền|meditat';
-const BREATHING_TITLE_PATTERN = 'thở|breath';
-const MEDITATION_MONTHLY_TARGET_MINUTES = 1000;
-const JOURNAL_WEEKLY_TARGET_DAYS = 7;
-const BREATHING_STREAK_TARGET_DAYS = 5;
-
 const CATEGORY_MAP = {
   gratitude: { label: '🙏 Biết ơn', className: 'pt-gratitude' },
   story: { label: '📖 Câu chuyện', className: 'pt-story' },
@@ -41,7 +36,18 @@ router.get('/community', requireAuth, async (req, res) => {
   try {
     const userId = req.user.sub;
 
-    const [postsRes, membersRes, reactionsRes, leaderboardRes, mentorRes, challengeRes, meditationMinutesRes, journalDaysRes, breathingDaysRes] = await Promise.all([
+    // Lay truoc thu thach dang active — joined/rewarded query ben duoi can id + started_at
+    // cua no, nen phai biet truoc khi chay Promise.all con lai.
+    const challengeRes = await db.query(
+      `select c.id, c.title, c.description, c.icon, c.metric_type, c.unit_label, c.goal_amount,
+              c.reward_xp, c.personal_threshold, c.task_ids, s.started_at
+       from community_weekly_challenge_state s
+       join community_weekly_challenges c on c.id = s.current_challenge_id
+       where s.id = true`
+    ).catch((e) => { console.error('[COMMUNITY_QUERY] challenge:', e.message); return { rows: [] }; });
+    const currentChallenge = challengeRes.rows[0] || null;
+
+    const [postsRes, membersRes, reactionsRes, leaderboardRes, mentorRes, challengeJoinedRes, challengeRewardedRes] = await Promise.all([
       db.query(
         `select
            p.*,
@@ -136,59 +142,28 @@ router.get('/community', requireAuth, async (req, res) => {
          order by up.total_xp desc
          limit 3`
       ).catch((e) => { console.error('[COMMUNITY_QUERY] mentors:', e.message); return { rows: [] }; }),
-      db.query(
-        // t.category không có gia tri 'breathing'/'meditation' (category chi co
-        // easy/medium/hard/emergency/community) nen dieu kien cu khong bao gio dung, banner
-        // nay truoc day luon hien 0 phut/0 nguoi. Nhan dien bang tieu de nhu MEDITATION/
-        // BREATHING_TITLE_PATTERN o duoi. participants tinh theo SO NGUOI KHAC NHAU, khong
-        // phai so luot hoan thanh.
-        `select
-           count(distinct tc.user_id)::int as participants,
-           coalesce(sum(tc.duration_actual), 0)::int as total_minutes
-         from task_completions tc
-         join tasks t on t.id = tc.task_id
-         where tc.created_at >= date_trunc('week', now())
-           and (t.title ~* $1)`,
-        [`${MEDITATION_TITLE_PATTERN}|${BREATHING_TITLE_PATTERN}`]
-      ).catch((e) => { console.error('[COMMUNITY_QUERY] challenge:', e.message); return { rows: [] }; }),
-      // Bảng tasks không có category/tag riêng cho "thiền"/"thở" (category chỉ có
-      // easy/medium/hard/emergency/community) nên nhận diện bằng tiêu đề bài tập — xem
-      // MEDITATION_TITLE_PATTERN/BREATHING_TITLE_PATTERN bên dưới.
-      db.query(
-        `select coalesce(sum(coalesce(tc.duration_actual, t.duration_minutes, 0)), 0)::int as minutes
-         from task_completions tc
-         join tasks t on t.id = tc.task_id
-         where tc.user_id = $1
-           and (t.title ~* $2)
-           and tc.created_at >= date_trunc('month', now())`,
-        [userId, MEDITATION_TITLE_PATTERN]
-      ).catch((e) => { console.error('[COMMUNITY_QUERY] meditation_minutes:', e.message); return { rows: [{ minutes: 0 }] }; }),
-      db.query(
-        `select count(distinct created_at::date)::int as days
-         from journal_entries
-         where user_id = $1
-           and created_at >= current_date - interval '6 days'`,
-        [userId]
-      ).catch((e) => { console.error('[COMMUNITY_QUERY] journal_days:', e.message); return { rows: [{ days: 0 }] }; }),
-      db.query(
-        `select distinct tc.created_at::date as day
-         from task_completions tc
-         join tasks t on t.id = tc.task_id
-         where tc.user_id = $1
-           and (t.title ~* $2)
-           and tc.created_at >= current_date - interval '13 days'
-         order by day desc`,
-        [userId, BREATHING_TITLE_PATTERN]
-      ).catch((e) => { console.error('[COMMUNITY_QUERY] breathing_days:', e.message); return { rows: [] }; })
+      currentChallenge
+        ? db.query(
+            `select 1 from community_challenge_participants
+             where user_id = $1 and challenge_id = $2 and cycle_started_at = $3`,
+            [userId, currentChallenge.id, currentChallenge.started_at]
+          ).catch((e) => { console.error('[COMMUNITY_QUERY] challenge_joined:', e.message); return { rows: [] }; })
+        : Promise.resolve({ rows: [] }),
+      currentChallenge
+        ? db.query(
+            `select 1 from community_challenge_rewards
+             where user_id = $1 and challenge_id = $2 and cycle_started_at = $3`,
+            [userId, currentChallenge.id, currentChallenge.started_at]
+          ).catch((e) => { console.error('[COMMUNITY_QUERY] challenge_rewarded:', e.message); return { rows: [] }; })
+        : Promise.resolve({ rows: [] })
     ]);
 
     const posts = postsRes.rows.map((row) => mapPost(row));
-    const challenge = buildChallenge(challengeRes.rows[0]);
-    const personalChallenges = buildPersonalChallenges({
-      meditationMinutes: meditationMinutesRes.rows[0]?.minutes || 0,
-      journalDays: journalDaysRes.rows[0]?.days || 0,
-      breathingDayRows: breathingDaysRes.rows
+    const challenge = await buildChallenge(currentChallenge, {
+      joined: challengeJoinedRes.rows.length > 0,
+      rewarded: challengeRewardedRes.rows.length > 0
     });
+    const personalChallenges = await buildPersonalChallenges(userId, currentChallenge);
     const summary = {
       members: membersRes.rows[0]?.members || 0,
       posts: posts.length,
@@ -234,6 +209,29 @@ router.get('/community', requireAuth, async (req, res) => {
   } catch (error) {
     console.error('Community fetch error:', error);
     return res.status(500).json({ success: false, message: 'Could not fetch community data' });
+  }
+});
+
+router.post('/community/challenge/join', requireAuth, async (req, res) => {
+  try {
+    const userId = req.user.sub;
+    const stateRes = await db.query(
+      `select current_challenge_id, started_at from community_weekly_challenge_state where id = true`
+    );
+    const state = stateRes.rows[0];
+    if (!state?.current_challenge_id) {
+      return res.status(400).json({ success: false, message: 'Hiện chưa có thử thách cộng đồng nào đang diễn ra.' });
+    }
+    await db.query(
+      `insert into community_challenge_participants (user_id, challenge_id, cycle_started_at)
+       values ($1, $2, $3)
+       on conflict (user_id, challenge_id, cycle_started_at) do nothing`,
+      [userId, state.current_challenge_id, state.started_at]
+    );
+    return res.json({ success: true });
+  } catch (error) {
+    console.error('Community challenge join error:', error);
+    return res.status(500).json({ success: false, message: 'Could not join challenge' });
   }
 });
 
@@ -640,95 +638,89 @@ function mapPost(row) {
   };
 }
 
-function buildChallenge(row) {
-  const totalMinutes = row?.total_minutes || 0;
-  const participants = row?.participants || 0;
-  const goal = 1000;
-  const progressPercent = Math.min(100, Math.round((totalMinutes / goal) * 1000) / 10);
-  const day = new Date().getDay();
-  const daysLeft = day === 0 ? 0 : 7 - day;
+// row: dong tu community_weekly_challenges + state (id, title, description, icon,
+// metric_type, unit_label, goal_amount, reward_xp, personal_threshold, started_at). Thu
+// thach gio la hang doi do admin quan ly (/admin/community-challenges) — het thu thach nay
+// (dat 100%) thi TU DONG chuyen sang cai tiep theo (xem community-weekly-challenge.job.js),
+// khong con gioi han theo tuan lich nua nen KHONG con "days_left" dem nguoc — thay bang
+// "days_active" (da chay bao nhieu ngay) cho trung thuc.
+async function buildChallenge(row, { joined = false, rewarded = false } = {}) {
+  if (!row) {
+    return {
+      title: '🎯 Chưa có thử thách nào', description: 'Admin chưa thiết lập thử thách cộng đồng.',
+      current_value: 0, goal: 0, unit_label: '', participants: 0, days_active: 0, progress_percent: 0,
+      joined: false, rewarded: false, reward_note: ''
+    };
+  }
+  const currentValue = await computeMetricValue(row.metric_type, row.started_at, null, row.task_ids);
+  const participants = await computeParticipants(row.metric_type, row.started_at, row.task_ids);
+  const progressPercent = Math.min(100, Math.round((currentValue / row.goal_amount) * 1000) / 10);
+  const daysActive = Math.max(0, Math.floor((Date.now() - new Date(row.started_at).getTime()) / 86400000));
 
   return {
-    title: '🧘 Cùng nhau thiền 1,000 phút trong tuần này!',
-    description: 'Vào mục Nhiệm vụ, làm bài "Thiền" hoặc "Thở" — mỗi phút luyện tập thật của bạn sẽ cộng thẳng vào mục tiêu chung của cộng đồng.',
-    total_minutes: totalMinutes,
-    goal,
+    title: row.title,
+    description: row.description,
+    icon: row.icon,
+    metric_type: row.metric_type,
+    current_value: currentValue,
+    goal: row.goal_amount,
+    unit_label: row.unit_label,
+    reward_xp: row.reward_xp,
     participants,
-    days_left: daysLeft,
-    progress_percent: progressPercent
+    days_active: daysActive,
+    progress_percent: progressPercent,
+    joined,
+    rewarded,
+    reward_note: row.personal_threshold
+      ? `Bạn phải bấm "Tham gia" và tự mình đóng góp tối thiểu ${row.personal_threshold} ${row.unit_label} để nhận +${row.reward_xp} XP.`
+      : `Bấm "Tham gia" — khi cả cộng đồng đạt mục tiêu, bạn sẽ nhận +${row.reward_xp} XP.`
   };
 }
 
-function toISODate(value) {
-  const date = value instanceof Date ? value : new Date(value);
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-}
-function startOfDay(date) {
-  return new Date(date.getFullYear(), date.getMonth(), date.getDate());
-}
-function addDays(date, days) {
-  const next = new Date(date);
-  next.setDate(next.getDate() + days);
-  return next;
-}
+// "Thử thách cá nhân" hiển thị ở sidebar trang Community — TRƯỚC ĐÂY là 3 thử thách cố định
+// hardcode (thiền tháng/nhật ký tuần/thở streak), tách biệt hoàn toàn với banner thử thách ở
+// đầu trang, khiến admin không quản lý được và người dùng không biết thứ tự thử thách nào
+// chạy trước/sau. GIỜ lấy trực tiếp từ hàng đợi community_weekly_challenges (cùng nguồn với
+// banner): thử thách ĐANG active hiện tiến độ thật, các thử thách TIẾP THEO trong hàng đợi
+// hiện ở trạng thái "sắp diễn ra" để người dùng biết trước thứ tự.
+async function buildPersonalChallenges(userId, currentChallenge) {
+  const listRes = await db.query(
+    `select id, title, icon, metric_type, unit_label, goal_amount, reward_xp, personal_threshold, task_ids, queue_order
+     from community_weekly_challenges
+     where active = true
+     order by queue_order asc, created_at asc`
+  );
+  const all = listRes.rows;
+  if (!all.length) return [];
 
-// Chuỗi ngày liên tục có ít nhất 1 lần hoàn thành, đếm lùi từ hôm nay — nếu hôm nay chưa
-// làm thì vẫn tính từ hôm qua (giống cơ chế streak chính ở user_progress, tránh việc chuỗi
-// "về 0" chỉ vì người dùng chưa kịp mở app hôm nay).
-function computeConsecutiveDayStreak(isoDaySet, referenceDate) {
-  let cursor = startOfDay(referenceDate);
-  if (!isoDaySet.has(toISODate(cursor))) cursor = addDays(cursor, -1);
-  let streak = 0;
-  while (isoDaySet.has(toISODate(cursor))) {
-    streak += 1;
-    cursor = addDays(cursor, -1);
+  const currentIndex = currentChallenge ? all.findIndex((c) => c.id === currentChallenge.id) : -1;
+  const startIndex = currentIndex >= 0 ? currentIndex : 0;
+  // Lay toi da 3 thu thach: cai dang active + 2 cai tiep theo trong hang doi, vong lai tu
+  // dau neu can (giong dung logic cua job tu dong chuyen thu thach).
+  const ordered = [];
+  for (let i = 0; i < Math.min(3, all.length); i += 1) {
+    ordered.push(all[(startIndex + i) % all.length]);
   }
-  return streak;
-}
 
-// 3 "thử thách cá nhân" hiển thị ở sidebar trang Community — trước đây là text tĩnh hard-code
-// trong locale (community.json:challengesCard), không lấy dữ liệu thật. Giờ tính từ chính
-// task_completions/journal_entries của người dùng.
-function buildPersonalChallenges({ meditationMinutes, journalDays, breathingDayRows }, referenceDate = new Date()) {
-  const monthEnd = new Date(referenceDate.getFullYear(), referenceDate.getMonth() + 1, 0);
-  const meditationDaysLeft = Math.max(0, Math.ceil((startOfDay(monthEnd) - startOfDay(referenceDate)) / 86400000));
-
-  const breathingDaySet = new Set(breathingDayRows.map((row) => toISODate(row.day)));
-  const breathingStreak = computeConsecutiveDayStreak(breathingDaySet, referenceDate);
-
-  return [
-    {
-      code: 'meditation_monthly_minutes',
-      icon: '🧘',
-      current: Math.min(meditationMinutes, MEDITATION_MONTHLY_TARGET_MINUTES),
-      target: MEDITATION_MONTHLY_TARGET_MINUTES,
-      days_left: meditationDaysLeft,
-      xp: 100,
-      progress_percent: Math.min(100, Math.round((meditationMinutes / MEDITATION_MONTHLY_TARGET_MINUTES) * 100)),
-      completed: meditationMinutes >= MEDITATION_MONTHLY_TARGET_MINUTES
-    },
-    {
-      code: 'journal_weekly_days',
-      icon: '📝',
-      current: Math.min(journalDays, JOURNAL_WEEKLY_TARGET_DAYS),
-      target: JOURNAL_WEEKLY_TARGET_DAYS,
-      xp: 80,
-      progress_percent: Math.min(100, Math.round((journalDays / JOURNAL_WEEKLY_TARGET_DAYS) * 100)),
-      completed: journalDays >= JOURNAL_WEEKLY_TARGET_DAYS
-    },
-    {
-      code: 'breathing_streak_days',
-      icon: '💨',
-      current: Math.min(breathingStreak, BREATHING_STREAK_TARGET_DAYS),
-      target: BREATHING_STREAK_TARGET_DAYS,
-      xp: 50,
-      progress_percent: Math.min(100, Math.round((breathingStreak / BREATHING_STREAK_TARGET_DAYS) * 100)),
-      completed: breathingStreak >= BREATHING_STREAK_TARGET_DAYS
-    }
-  ];
+  return Promise.all(ordered.map(async (c, idx) => {
+    const isActive = idx === 0 && currentChallenge && c.id === currentChallenge.id;
+    const current = isActive
+      ? await computeMetricValue(c.metric_type, currentChallenge.started_at, userId, c.task_ids)
+      : 0;
+    return {
+      code: c.id,
+      icon: c.icon,
+      title: c.title,
+      metric_type: c.metric_type,
+      unit_label: c.unit_label,
+      current: Math.min(current, c.goal_amount),
+      target: c.goal_amount,
+      xp: c.reward_xp,
+      progress_percent: isActive ? Math.min(100, Math.round((current / c.goal_amount) * 100)) : 0,
+      completed: isActive && current >= c.goal_amount,
+      status: isActive ? 'active' : 'upcoming'
+    };
+  }));
 }
 
 function formatRelativeTime(value) {
@@ -741,5 +733,130 @@ function formatRelativeTime(value) {
   const diffDays = Math.floor(diffHours / 24);
   return `${diffDays} ngày trước`;
 }
+
+// ============================================================
+// ADMIN: quản lý hàng đợi thử thách cộng đồng
+// ============================================================
+router.get('/admin/community-challenges', requireAuth, async (req, res) => {
+  try {
+    if (!req.user.is_admin) return res.status(403).json({ success: false, message: 'Admin only' });
+    const [listRes, stateRes] = await Promise.all([
+      db.query(`select * from community_weekly_challenges order by queue_order asc, created_at asc`),
+      db.query(`select current_challenge_id, started_at from community_weekly_challenge_state where id = true`)
+    ]);
+    return res.json({
+      success: true,
+      data: {
+        challenges: listRes.rows,
+        current_challenge_id: stateRes.rows[0]?.current_challenge_id || null,
+        started_at: stateRes.rows[0]?.started_at || null,
+        metric_types: METRIC_TYPES
+      }
+    });
+  } catch (error) {
+    console.error('Admin list community challenges error:', error);
+    return res.status(500).json({ success: false, message: 'Could not fetch challenges' });
+  }
+});
+
+function validateChallengePayload(body) {
+  if (!body.title || !String(body.title).trim()) return 'Thiếu tên thử thách.';
+  if (!METRIC_TYPES[body.metric_type]) return 'Loại chỉ số (metric_type) không hợp lệ.';
+  if (!Number.isFinite(Number(body.goal_amount)) || Number(body.goal_amount) <= 0) return 'Mục tiêu phải lớn hơn 0.';
+  if (body.metric_type === 'specific_tasks' && (!Array.isArray(body.task_ids) || body.task_ids.length === 0)) {
+    return 'Chọn "Chỉ tính nhiệm vụ được chọn riêng" thì cần chọn ít nhất 1 nhiệm vụ.';
+  }
+  return null;
+}
+
+router.post('/admin/community-challenges', requireAuth, async (req, res) => {
+  try {
+    if (!req.user.is_admin) return res.status(403).json({ success: false, message: 'Admin only' });
+    const validationError = validateChallengePayload(req.body);
+    if (validationError) return res.status(400).json({ success: false, message: validationError });
+
+    const { title, description, icon, metric_type: metricType, goal_amount: goalAmount, reward_xp: rewardXp, personal_threshold: personalThreshold, queue_order: queueOrder, active, task_ids: taskIds } = req.body;
+    const result = await db.query(
+      `insert into community_weekly_challenges (title, description, icon, metric_type, unit_label, goal_amount, reward_xp, personal_threshold, queue_order, active, task_ids)
+       values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+       returning id`,
+      [
+        title.trim(), (description || '').trim() || null, icon || '🎯', metricType,
+        METRIC_TYPES[metricType].unitVi, Number(goalAmount), Number(rewardXp) || 100,
+        personalThreshold === '' || personalThreshold === null || personalThreshold === undefined ? null : Number(personalThreshold),
+        Number(queueOrder) || 0, active !== false,
+        metricType === 'specific_tasks' && Array.isArray(taskIds) ? taskIds : null
+      ]
+    );
+    return res.json({ success: true, data: result.rows[0] });
+  } catch (error) {
+    console.error('Admin create community challenge error:', error);
+    return res.status(500).json({ success: false, message: 'Could not create challenge' });
+  }
+});
+
+router.put('/admin/community-challenges/:id', requireAuth, async (req, res) => {
+  try {
+    if (!req.user.is_admin) return res.status(403).json({ success: false, message: 'Admin only' });
+    const validationError = validateChallengePayload(req.body);
+    if (validationError) return res.status(400).json({ success: false, message: validationError });
+
+    const { title, description, icon, metric_type: metricType, goal_amount: goalAmount, reward_xp: rewardXp, personal_threshold: personalThreshold, queue_order: queueOrder, active, task_ids: taskIds } = req.body;
+    const result = await db.query(
+      `update community_weekly_challenges
+       set title = $2, description = $3, icon = $4, metric_type = $5, unit_label = $6,
+           goal_amount = $7, reward_xp = $8, personal_threshold = $9, queue_order = $10, active = $11,
+           task_ids = $12, updated_at = now()
+       where id = $1
+       returning id`,
+      [
+        req.params.id, title.trim(), (description || '').trim() || null, icon || '🎯', metricType,
+        METRIC_TYPES[metricType].unitVi, Number(goalAmount), Number(rewardXp) || 100,
+        personalThreshold === '' || personalThreshold === null || personalThreshold === undefined ? null : Number(personalThreshold),
+        Number(queueOrder) || 0, active !== false,
+        metricType === 'specific_tasks' && Array.isArray(taskIds) ? taskIds : null
+      ]
+    );
+    if (!result.rows[0]) return res.status(404).json({ success: false, message: 'Không tìm thấy thử thách.' });
+    return res.json({ success: true });
+  } catch (error) {
+    console.error('Admin update community challenge error:', error);
+    return res.status(500).json({ success: false, message: 'Could not update challenge' });
+  }
+});
+
+router.delete('/admin/community-challenges/:id', requireAuth, async (req, res) => {
+  try {
+    if (!req.user.is_admin) return res.status(403).json({ success: false, message: 'Admin only' });
+    const stateRes = await db.query(`select current_challenge_id from community_weekly_challenge_state where id = true`);
+    if (stateRes.rows[0]?.current_challenge_id === req.params.id) {
+      return res.status(400).json({ success: false, message: 'Không xoá được thử thách đang active — chuyển sang thử thách khác trước.' });
+    }
+    const r = await db.query(`delete from community_weekly_challenges where id = $1 returning id`, [req.params.id]);
+    if (!r.rows[0]) return res.status(404).json({ success: false, message: 'Không tìm thấy thử thách.' });
+    return res.json({ success: true, data: { deleted: true } });
+  } catch (error) {
+    console.error('Admin delete community challenge error:', error);
+    return res.status(500).json({ success: false, message: 'Could not delete challenge' });
+  }
+});
+
+// Admin tu tay chuyen sang 1 thu thach khac NGAY LAP TUC, bo qua thu tu hang doi — theo
+// dung yeu cau "neu thay doi thi admin muon thay doi thu thach tuan".
+router.post('/admin/community-challenges/:id/activate-now', requireAuth, async (req, res) => {
+  try {
+    if (!req.user.is_admin) return res.status(403).json({ success: false, message: 'Admin only' });
+    const check = await db.query(`select id from community_weekly_challenges where id = $1 and active = true`, [req.params.id]);
+    if (!check.rows[0]) return res.status(404).json({ success: false, message: 'Không tìm thấy thử thách (hoặc đang bị ẩn).' });
+    await db.query(
+      `update community_weekly_challenge_state set current_challenge_id = $1, started_at = now() where id = true`,
+      [req.params.id]
+    );
+    return res.json({ success: true });
+  } catch (error) {
+    console.error('Admin activate community challenge error:', error);
+    return res.status(500).json({ success: false, message: 'Could not activate challenge' });
+  }
+});
 
 export default router;

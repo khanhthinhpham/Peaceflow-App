@@ -67,8 +67,11 @@ const NAV_ITEMS = [
   { route: 'admin-bookings', key: 'bookings', icon: '📅', label: 'Quản lý lịch hẹn' },
   { route: 'admin-payments', key: 'payments', icon: '💳', label: 'Thanh toán & payout', badge: 'payments' },
   { route: 'admin-users', key: 'users', icon: '👥', label: 'Người dùng' },
-  { route: 'admin-assessment-results', key: 'assessment-results', icon: '🧪', label: 'Bài test' },
+  { route: 'admin-assessment-results', key: 'assessment-results', icon: '🧪', label: 'Kết quả bài test' },
+  { route: 'admin-assessments-catalog', key: 'assessments-catalog', icon: '📋', label: 'Tạo bài test mới' },
+  { route: 'admin-tasks', key: 'tasks', icon: '🎯', label: 'Quản lý nhiệm vụ' },
   { route: 'admin-community', key: 'community', icon: '🛡️', label: 'Kiểm duyệt cộng đồng', badge: 'community' },
+  { route: 'admin-community-challenges', key: 'community-challenges', icon: '🔥', label: 'Thử thách cộng đồng' },
   { route: 'admin-articles', key: 'articles', icon: '📰', label: 'Quản lý bài viết' },
   { route: 'admin-broadcast', key: 'broadcast', icon: '📣', label: 'Gửi thông báo hàng loạt' },
   { route: 'admin-ai-usage', key: 'ai-usage', icon: '🤖', label: 'Quản lý AI' }

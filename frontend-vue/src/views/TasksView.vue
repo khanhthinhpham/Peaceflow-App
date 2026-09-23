@@ -150,7 +150,7 @@
             >
               <div class="tc-top">
                 <div class="tc-icon" :class="getTaskSectionId(task)">
-                  <img v-if="task.code && !brokenTaskImages.has(task.code)" :src="`/task-images-thumb/${task.code}.png`" :alt="task.title" class="tc-icon-img" loading="lazy" @error="brokenTaskImages.add(task.code)">
+                  <img v-if="task.code && !brokenTaskImages.has(task.code)" :src="taskThumbSrc(task)" :alt="task.title" class="tc-icon-img" loading="lazy" @error="brokenTaskImages.add(task.code)">
                   <template v-else>{{ getTaskIcon(task) }}</template>
                 </div>
                 <div class="tc-info">
@@ -184,7 +184,7 @@
 import { ref, reactive, computed, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
-import { apiClient } from '../lib/apiClient';
+import { apiClient, API_BASE_URL } from '../lib/apiClient';
 import { useAuthStore } from '../stores/auth';
 import { isGuestEmergencyModeActive } from '../lib/guestEmergency';
 import { buildGuestEmergencyTasksFallback } from '../lib/taskFallbackData';
@@ -213,6 +213,12 @@ const guestEmergencyMode = ref(false);
 const emergencyOpen = ref(false);
 const loading = ref(true);
 const loadError = ref('');
+
+// Nhiem vu co san dung anh tinh trong public/task-images-thumb/<code>.png; nhiem vu admin
+// tu tao qua UI (khong co file tinh tuong ung) dung anh luu trong DB qua GET /tasks/:id/cover.
+function taskThumbSrc(task) {
+  return task.has_cover ? `${API_BASE_URL}/tasks/${task.id}/cover` : `/task-images-thumb/${task.code}.png`;
+}
 
 function getTaskIcon(task) {
   return task?.metadata?.icon || task?.icon || '🌱';

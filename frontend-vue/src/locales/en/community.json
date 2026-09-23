@@ -15,16 +15,16 @@
       "badge": "🔥 This week's challenge",
       "joined": "Joined",
       "joinNow": "Join now",
-      "progressUnit": "⏱ {curr} / {goal} min",
       "progressPercent": "{pct}% complete",
       "participants": "participants",
-      "daysLeftLabel": "⏰",
-      "daysLeftUnit": "days left",
+      "daysActiveLabel": "⏰ Running for",
+      "daysActiveUnit": "days",
       "rewardLabel": "🏆 Reward:",
-      "rewardValue": "+100 XP",
-      "rewardBadge": "+ community badge",
       "ctaMeditation": "Meditate now",
-      "ctaBreathing": "Breathe now"
+      "ctaBreathing": "Breathe now",
+      "ctaJournal": "Write a journal entry",
+      "ctaTasks": "Do a task now",
+      "rewardedLabel": "Reward claimed this week"
     },
     "modNote": "This community is monitored by AI and moderators 24/7. Any negative, harmful, or rule-breaking content will be removed. Please share with kindness! 💚",
     "composer": {
@@ -112,14 +112,10 @@
     },
     "challengesCard": {
       "title": "🎯 Ongoing challenges",
-      "meditation": {
-        "name": "🧘 Meditate {target} minutes",
-        "meta": "{current}/{target} min · {daysLeft} days left",
-        "metaLastDay": "{current}/{target} min · Ends today"
-      },
-      "journal": { "name": "📝 {target}-day journaling streak", "meta": "{current}/{target} days · Personal" },
-      "breathing": { "name": "💨 {target} days of breathing exercises", "meta": "{current}/{target} days · Personal" },
-      "goLabel": "Go now"
+      "goLabel": "Go now",
+      "upcomingLabel": "Challenge #{position} coming up",
+      "goalLabel": "Goal {target} {unit}",
+      "empty": "No challenges yet."
     },
     "mentor": {
       "title": "🌟 Community mentors",
@@ -169,6 +165,7 @@
       "emptyReply": "Write a reply first.",
       "replyFailed": "Couldn't send the reply.",
       "challengeJoined": "You've joined this week's community challenge.",
+      "challengeJoinFailed": "Couldn't join the challenge, please try again.",
       "reportSubmitted": "The post has been reported to moderators for review.",
       "mentorMessageComingSoon": "Mentor messaging is coming in a future update."
     }

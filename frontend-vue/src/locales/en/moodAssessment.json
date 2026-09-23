@@ -28,6 +28,8 @@
       "noteLabel": "Note",
       "notePlaceholder": "Add a note (optional)...",
       "scorePillLabel": "Latest score: {score}",
+      "questionCountBadge": "{n} questions",
+      "durationBadge": "~{n} min",
       "lastTimeLabel": "🕐 Last taken: {label}",
       "searchPlaceholder": "🔍 Search tests by name...",
       "categoryAll": "All",
