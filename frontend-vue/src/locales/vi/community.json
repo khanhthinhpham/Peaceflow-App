@@ -22,7 +22,9 @@
       "daysLeftUnit": "ngày",
       "rewardLabel": "🏆 Phần thưởng:",
       "rewardValue": "+100 XP",
-      "rewardBadge": "+ huy hiệu cộng đồng"
+      "rewardBadge": "+ huy hiệu cộng đồng",
+      "ctaMeditation": "Thiền ngay",
+      "ctaBreathing": "Thở ngay"
     },
     "modNote": "Cộng đồng này được AI và moderator giám sát 24/7. Mọi nội dung tiêu cực, có hại hoặc vi phạm quy tắc sẽ bị gỡ bỏ. Hãy chia sẻ với tình yêu thương! 💚",
     "composer": {
@@ -116,7 +118,8 @@
         "metaLastDay": "{current}/{target} phút · Hết hạn hôm nay"
       },
       "journal": { "name": "📝 {target} ngày viết nhật ký", "meta": "{current}/{target} ngày · Cá nhân" },
-      "breathing": { "name": "💨 Thở {target} ngày liên tục", "meta": "{current}/{target} ngày · Cá nhân" }
+      "breathing": { "name": "💨 Thở {target} ngày liên tục", "meta": "{current}/{target} ngày · Cá nhân" },
+      "goLabel": "Làm ngay"
     },
     "mentor": {
       "title": "🌟 Mentor cộng đồng",

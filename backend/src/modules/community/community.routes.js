@@ -650,7 +650,7 @@ function buildChallenge(row) {
 
   return {
     title: '🧘 Cùng nhau thiền 1,000 phút trong tuần này!',
-    description: 'Mỗi phút thiền của bạn đóng góp vào mục tiêu chung của cộng đồng.',
+    description: 'Vào mục Nhiệm vụ, làm bài "Thiền" hoặc "Thở" — mỗi phút luyện tập thật của bạn sẽ cộng thẳng vào mục tiêu chung của cộng đồng.',
     total_minutes: totalMinutes,
     goal,
     participants,

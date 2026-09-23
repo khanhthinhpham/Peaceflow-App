@@ -198,6 +198,30 @@
     transition: width 1s ease;
 }
 
+.cb-cta-row {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin: 12px 0;
+}
+
+.cb-cta-btn {
+    padding: 7px 16px;
+    border: 1.5px solid var(--mint-dark);
+    border-radius: 50px;
+    background: white;
+    color: var(--mint-dark);
+    font-size: 0.76rem;
+    font-weight: 700;
+    text-decoration: none;
+    transition: var(--transition);
+}
+
+.cb-cta-btn:hover {
+    background: var(--mint-dark);
+    color: white;
+}
+
 .cb-stats {
     display: flex;
     gap: 16px;
@@ -934,6 +958,10 @@
 
 .challenge-item:hover {
     border-color: var(--mint);
+}
+
+.ci-clickable {
+    cursor: pointer;
 }
 
 .ci-header {

@@ -802,10 +802,11 @@ function selectAnswer(score) {
   next[currentQIndex.value] = score;
   answers.value = next;
 
-  // EMERGENCY TRIGGER: PHQ-9 câu 9 / BDI câu 9 đều hỏi về ý nghĩ tự sát (cùng vị trí, trùng hợp)
-  const isSpecialPHQ9 = (currentTestId.value === 'phq9' && currentQIndex.value === 8 && score > 0);
-  const isSpecialBDI = (currentTestId.value === 'bdi' && currentQIndex.value === 8 && score > 0);
-  if (isSpecialPHQ9 || isSpecialBDI) {
+  // EMERGENCY TRIGGER: câu hỏi về ý nghĩ tự sát/tự làm hại bản thân ở từng bài — vị trí
+  // (0-based) trong mảng questions của từng bài, bấm điểm > 0 là có ý nghĩ tự sát.
+  const SUICIDE_ITEM_INDEX = { phq9: 8, bdi: 8, hdrs: 2, cdi: 26, epds: 9 };
+  const suicideIndex = SUICIDE_ITEM_INDEX[currentTestId.value];
+  if (suicideIndex !== undefined && currentQIndex.value === suicideIndex && score > 0) {
     emergencyOpen.value = true;
   }
 

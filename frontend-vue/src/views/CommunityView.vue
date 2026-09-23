@@ -54,6 +54,10 @@
           </div>
           <div class="cb-progress-bar"><div class="cb-progress-fill" :style="{ width: Math.min(100, Number(challenge.progress_percent || 0)) + '%' }"></div></div>
         </div>
+        <div class="cb-cta-row">
+          <router-link to="/task-meditation" class="cb-cta-btn">🧘 {{ t('community.challengeBanner.ctaMeditation') }}</router-link>
+          <router-link to="/task-breathing" class="cb-cta-btn">💨 {{ t('community.challengeBanner.ctaBreathing') }}</router-link>
+        </div>
         <div class="cb-stats">
           <div class="cb-stat">👥 <strong>{{ formatCompactNumber(challenge.participants) }}</strong> {{ t('community.challengeBanner.participants') }}</div>
           <div class="cb-stat">{{ t('community.challengeBanner.daysLeftLabel') }} <strong>{{ formatCompactNumber(challenge.days_left) }}</strong> {{ t('community.challengeBanner.daysLeftUnit') }}</div>
@@ -212,20 +216,20 @@
 
           <div class="paper-card challenges-card">
             <div class="cc-title">{{ t('community.challengesCard.title') }}</div>
-            <div class="challenge-item">
+            <div class="challenge-item ci-clickable" @click="router.push('/task-meditation')">
               <div class="ci-header"><div class="ci-name">{{ t('community.challengesCard.meditation.name', { target: formatCompactNumber(meditationChallenge.target) }) }}</div><div class="ci-xp">+{{ meditationChallenge.xp }} XP</div></div>
               <div class="ci-progress"><div class="ci-fill" :style="{ width: meditationChallenge.progress_percent + '%' }"></div></div>
-              <div class="ci-meta">{{ meditationMeta }}</div>
+              <div class="ci-meta">{{ meditationMeta }} · {{ t('community.challengesCard.goLabel') }} ›</div>
             </div>
-            <div class="challenge-item">
+            <div class="challenge-item ci-clickable" @click="router.push('/journal')">
               <div class="ci-header"><div class="ci-name">{{ t('community.challengesCard.journal.name', { target: journalChallenge.target }) }}</div><div class="ci-xp">+{{ journalChallenge.xp }} XP</div></div>
               <div class="ci-progress"><div class="ci-fill" :style="{ width: journalChallenge.progress_percent + '%' }"></div></div>
-              <div class="ci-meta">{{ t('community.challengesCard.journal.meta', { current: journalChallenge.current, target: journalChallenge.target }) }}</div>
+              <div class="ci-meta">{{ t('community.challengesCard.journal.meta', { current: journalChallenge.current, target: journalChallenge.target }) }} · {{ t('community.challengesCard.goLabel') }} ›</div>
             </div>
-            <div class="challenge-item">
+            <div class="challenge-item ci-clickable" @click="router.push('/task-breathing')">
               <div class="ci-header"><div class="ci-name">{{ t('community.challengesCard.breathing.name', { target: breathingChallenge.target }) }}</div><div class="ci-xp">+{{ breathingChallenge.xp }} XP</div></div>
               <div class="ci-progress"><div class="ci-fill" :style="{ width: breathingChallenge.progress_percent + '%' }"></div></div>
-              <div class="ci-meta">{{ t('community.challengesCard.breathing.meta', { current: breathingChallenge.current, target: breathingChallenge.target }) }}</div>
+              <div class="ci-meta">{{ t('community.challengesCard.breathing.meta', { current: breathingChallenge.current, target: breathingChallenge.target }) }} · {{ t('community.challengesCard.goLabel') }} ›</div>
             </div>
           </div>
 

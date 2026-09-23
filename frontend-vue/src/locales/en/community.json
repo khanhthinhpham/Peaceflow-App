@@ -22,7 +22,9 @@
       "daysLeftUnit": "days left",
       "rewardLabel": "🏆 Reward:",
       "rewardValue": "+100 XP",
-      "rewardBadge": "+ community badge"
+      "rewardBadge": "+ community badge",
+      "ctaMeditation": "Meditate now",
+      "ctaBreathing": "Breathe now"
     },
     "modNote": "This community is monitored by AI and moderators 24/7. Any negative, harmful, or rule-breaking content will be removed. Please share with kindness! 💚",
     "composer": {
@@ -116,7 +118,8 @@
         "metaLastDay": "{current}/{target} min · Ends today"
       },
       "journal": { "name": "📝 {target}-day journaling streak", "meta": "{current}/{target} days · Personal" },
-      "breathing": { "name": "💨 {target} days of breathing exercises", "meta": "{current}/{target} days · Personal" }
+      "breathing": { "name": "💨 {target} days of breathing exercises", "meta": "{current}/{target} days · Personal" },
+      "goLabel": "Go now"
     },
     "mentor": {
       "title": "🌟 Community mentors",
