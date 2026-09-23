@@ -1364,8 +1364,14 @@
         display: block;
         max-width: none;
         padding: 14px 18px;
-        font-size: 0.95rem;
+        font-size: 0.82rem;
         margin-bottom: 28px;
+    }
+
+    .hero-message-text {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
     .hero-message::before {

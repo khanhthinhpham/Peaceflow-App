@@ -92,7 +92,7 @@
         <div class="hbd-circle hbd-2"></div>
         <div class="hbd-circle hbd-3"></div>
       </div>
-      <div class="hero-content">
+      <div class="hero-content" ref="heroContentRef">
         <div class="hero-badge">{{ t('landing.hero.badge') }}</div>
         <h1 class="hero-title">
           {{ t('landing.hero.titleLine1') }}<br>
@@ -453,7 +453,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted, onBeforeUnmount } from 'vue';
+import { ref, reactive, computed, onMounted, onBeforeUnmount, nextTick } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useAuthStore } from '../stores/auth';
 import { apiClient } from '../lib/apiClient';
@@ -601,13 +601,57 @@ function closeAuthDropdownOnOutsideClick(event) {
   if (menu && !menu.contains(event.target)) navDropdownOpen.value = false;
 }
 
+// Đo chiều cao thật của .hero-content và co nhỏ (transform: scale) nếu tràn quá 1 màn
+// hình mobile — đảm bảo badge/title/subtitle/quote/actions/stats luôn hiện đủ mà không
+// cần cuộn, thay vì chỉ dựa vào ước lượng CSS tĩnh (không đúng trên mọi thiết bị).
+const heroContentRef = ref(null);
+const HERO_FIT_MIN_SCALE = 0.6;
+let heroFitRaf = null;
+
+function fitHeroContent() {
+  const el = heroContentRef.value;
+  if (!el) return;
+
+  el.style.transform = '';
+  el.style.transformOrigin = '';
+  el.style.marginBottom = '';
+
+  if (window.innerWidth > 768) return;
+
+  const rect = el.getBoundingClientRect();
+  const naturalHeight = el.scrollHeight;
+  const bottomGap = 16;
+  const available = window.innerHeight - rect.top - bottomGap;
+  if (available <= 0 || naturalHeight <= available) return;
+
+  const scale = Math.max(available / naturalHeight, HERO_FIT_MIN_SCALE);
+  el.style.transformOrigin = 'top center';
+  el.style.transform = `scale(${scale})`;
+  el.style.marginBottom = `${-(naturalHeight - naturalHeight * scale)}px`;
+}
+
+function scheduleHeroFit() {
+  if (heroFitRaf) cancelAnimationFrame(heroFitRaf);
+  heroFitRaf = requestAnimationFrame(fitHeroContent);
+}
+
 onMounted(() => {
   document.addEventListener('click', closeAuthDropdownOnOutsideClick);
   auth.waitForAuth();
+
+  nextTick(() => {
+    scheduleHeroFit();
+    if (document.fonts?.ready) document.fonts.ready.then(scheduleHeroFit);
+  });
+  window.addEventListener('resize', scheduleHeroFit);
+  window.addEventListener('orientationchange', scheduleHeroFit);
 });
 
 onBeforeUnmount(() => {
   document.removeEventListener('click', closeAuthDropdownOnOutsideClick);
+  window.removeEventListener('resize', scheduleHeroFit);
+  window.removeEventListener('orientationchange', scheduleHeroFit);
+  if (heroFitRaf) cancelAnimationFrame(heroFitRaf);
   // Lưới an toàn: router-link trong mobile-nav-panel điều hướng đi luôn mà không
   // gọi closeMobileNav() trước, nếu không reset ở đây body sẽ bị kẹt overflow:hidden.
   document.body.style.overflow = '';
