@@ -66,7 +66,7 @@ function mapArticle(row, categoriesMap, { withContent = false } = {}) {
 router.get('/articles', async (req, res) => {
   try {
     const category = typeof req.query.category === 'string' ? req.query.category : null;
-    const limit = Math.min(Math.max(parseInt(req.query.limit, 10) || 30, 1), 100);
+    const limit = Math.max(parseInt(req.query.limit, 10) || 30, 1);
     const offset = Math.max(parseInt(req.query.offset, 10) || 0, 0);
 
     const categoriesMap = await getCategoriesMap(req.locale);

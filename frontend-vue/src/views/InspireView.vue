@@ -173,9 +173,9 @@ async function load() {
   loadError.value = '';
   try {
     // Backend mặc định limit=30/trang nếu không truyền — trang này tự lọc/nhóm phía client
-    // (nổi bật, theo danh mục, xem tất cả) nên luôn cần lấy hết, truyền thẳng mức trần
-    // backend cho phép (100) thay vì để rơi vào limit mặc định.
-    const params = new URLSearchParams({ limit: '100' });
+    // (nổi bật, theo danh mục, xem tất cả) nên luôn cần lấy hết, truyền số rất lớn để coi
+    // như không giới hạn (backend không còn ép trần 100 nữa).
+    const params = new URLSearchParams({ limit: '100000' });
     if (activeCategory.value) params.set('category', activeCategory.value);
     const data = await apiClient.get(`/articles?${params.toString()}`, { noCache: true });
     articles.value = data?.articles || [];
