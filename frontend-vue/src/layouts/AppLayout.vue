@@ -108,7 +108,7 @@ auth.waitForAuth().then(() => notif.init());
      thanh điều hướng hệ thống nếu không tự chừa. Trên web env(...) = 0px, không đổi gì. */
   padding-bottom: env(safe-area-inset-bottom, 0px);
 }
-@media (max-width: 900px) {
+@media (max-width: 900px), (hover: none) and (pointer: coarse) {
   .shell-host {
     margin-left: 0;
     width: 100vw;

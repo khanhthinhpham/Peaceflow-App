@@ -452,7 +452,7 @@ onBeforeUnmount(() => {
   margin: 0 0 10px;
 }
 
-@media (max-width: 900px) {
+@media (max-width: 900px), (hover: none) and (pointer: coarse) {
   .ins-page-grid {
     grid-template-columns: 1fr;
   }

@@ -69,7 +69,7 @@ const notif = useNotificationsStore();
   border-radius: 50%; border: 2px solid var(--warm-white);
   align-items: center; justify-content: center;
 }
-@media (max-width: 900px) {
+@media (max-width: 900px), (hover: none) and (pointer: coarse) {
   .mobile-topbar { display: block; }
 }
 </style>

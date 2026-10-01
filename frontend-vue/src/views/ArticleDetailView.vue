@@ -156,7 +156,7 @@ watch(() => route.params.id, load);
   color: var(--text-primary);
   margin-bottom: 16px;
 }
-@media (max-width: 900px) {
+@media (max-width: 900px), (hover: none) and (pointer: coarse) {
   .article-detail-layout {
     grid-template-columns: 1fr;
   }

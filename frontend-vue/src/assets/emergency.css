@@ -884,7 +884,7 @@
 }
 
 /* ===== RESPONSIVE ===== */
-@media(max-width:900px) {
+@media (max-width: 900px), (hover: none) and (pointer: coarse) {
     .main-content {
         padding: 16px 16px 20px;
     }

@@ -287,7 +287,7 @@ async function handleLogout() {
   color: var(--coral); font-size: 0.78rem; font-weight: 700; cursor: pointer; margin-top: 8px;
   transition: var(--transition); text-decoration: none;
 }
-@media (max-width: 900px) {
+@media (max-width: 900px), (hover: none) and (pointer: coarse) {
   .sidebar { transform: translateX(-100%); transition: transform 0.3s ease; }
   .sidebar.open { transform: translateX(0); }
 }

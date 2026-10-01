@@ -496,7 +496,7 @@ onMounted(async () => {
 .ep-btn-secondary { background: var(--mint-light); color: var(--mint-dark); border: 2px solid var(--mint); }
 .ep-btn-close { background: transparent; color: var(--text-light); border: 2px solid var(--kraft-light); font-size: 0.8rem; }
 
-@media (max-width: 900px) {
+@media (max-width: 900px), (hover: none) and (pointer: coarse) {
   .main-content { margin-left: 0; padding: 16px 16px 20px; }
 }
 @media (max-width: 600px) {

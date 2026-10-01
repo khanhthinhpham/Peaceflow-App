@@ -1322,7 +1322,7 @@
     }
 }
 
-@media(max-width:900px) {
+@media (max-width: 900px), (hover: none) and (pointer: coarse) {
     :root {
         --sidebar-width: 0px;
     }
@@ -1826,7 +1826,7 @@
 .sss-step-peach .sss-step-badge { background: var(--peach-light); }
 .sss-step-peach .sss-step-num { background: var(--peach-dark); }
 
-@media (max-width: 900px) {
+@media (max-width: 900px), (hover: none) and (pointer: coarse) {
     .sss-steps {
         grid-template-columns: repeat(2, 1fr);
     }

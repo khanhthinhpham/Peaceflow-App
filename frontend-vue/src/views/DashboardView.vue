@@ -806,7 +806,7 @@ export default { name: 'DashboardView' };
   .grid-main { grid-template-columns: 1fr; }
   .grid-3 { grid-template-columns: repeat(2, 1fr); }
 }
-@media (max-width: 900px) {
+@media (max-width: 900px), (hover: none) and (pointer: coarse) {
   .main-content { margin-left: 0; padding: 16px 16px 20px; }
   .grid-4 { grid-template-columns: repeat(2, 1fr); }
   .checkin-prompt { padding-left: 0; padding-right: 0; margin-left: -16px; margin-right: -16px; border-radius: 0;border:none; }

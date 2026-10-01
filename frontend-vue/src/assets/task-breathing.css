@@ -934,7 +934,7 @@
     }
 }
 
-@media(max-width:900px) {
+@media (max-width: 900px), (hover: none) and (pointer: coarse) {
     :root {
         --sidebar-width: 0px;
     }
