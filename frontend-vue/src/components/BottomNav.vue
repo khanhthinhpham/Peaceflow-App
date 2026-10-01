@@ -91,7 +91,9 @@ function buildBorderPaths(centerPercent) {
     strokePath: `M0,42 L${left},42 C${bump} L100,42`
   };
 }
-const paths = computed(() => buildBorderPaths(animatedPercent.value));
+const paths = computed(() => buildBorderPaths(
+  activeIndex.value > -1 ? animatedPercent.value : null
+));
 const fillPath = computed(() => paths.value.fillPath);
 const strokePath = computed(() => paths.value.strokePath);
 </script>
