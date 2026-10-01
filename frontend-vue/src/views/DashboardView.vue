@@ -11,7 +11,6 @@
       </div>
       <div class="header-actions">
         <button class="btn-outline" @click.prevent>{{ t('dashboard.weeklyReportBtn') }}</button>
-        <router-link to="/mood-checkin" class="btn-primary">{{ t('dashboard.checkinNowBtn') }}</router-link>
       </div>
     </div>
 
@@ -29,16 +28,19 @@
       </div>
     </div>
 
-    <div class="paper-card checkin-prompt">
-      <div class="cp-mascot">🐱</div>
-      <div class="cp-text">
-        <div class="cp-title">{{ checkinPromptTitle }}</div>
-        <div class="cp-sub">{{ t('dashboard.checkinPrompt.sub') }}</div>
+    <router-link to="/mood-checkin" class="paper-card checkin-prompt">
+      <div class="cp-title"><span class="cp-mascot" aria-hidden="true">🐱</span>{{ checkinPromptTitle }}</div>
+      <div class="cp-mood-row">
+        <span
+          v-for="(mood, idx) in CHECKIN_PREVIEW_MOODS"
+          :key="mood.id"
+          class="cp-mood-emoji"
+          :class="{ center: idx === CHECKIN_CENTER_INDEX }"
+          :style="{ animationDelay: (idx * 1) + 's' }"
+        >{{ mood.emoji }}</span>
       </div>
-      <div class="cp-actions">
-        <router-link to="/mood-checkin" class="btn-primary" style="font-size:0.82rem;padding:9px 16px;">{{ t('dashboard.checkinPrompt.startBtn') }}</router-link>
-      </div>
-    </div>
+      <div class="cp-sub">{{ t('dashboard.checkinPrompt.sub') }} {{ t('dashboard.checkinPrompt.tapHint') }}</div>
+    </router-link>
 
     <div v-if="showEmergencyBanner" class="paper-card" style="margin:14px 0 20px;padding:16px 18px;border-color:var(--coral);background:rgba(255,139,139,0.08);">
       <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
@@ -295,6 +297,14 @@ import {
   escapeHtml, getLevelInfo, getLevelProgress, getTaskEmoji, getRiskLabel, getRiskBadgeClass,
   buildStreakDays, renderChartSvg, buildRadarSvg, buildGardenTreesHtml
 } from '../lib/dashboardHelpers';
+import { MOOD_OPTIONS } from '../lib/moodCheckinOptions';
+
+// 5 mức cảm xúc đại diện (trong 7 mức thật của trang check-in) để hiện preview dạng hàng
+// emoji trên dashboard — mức ở giữa (index 2) phóng to làm điểm nhấn, bấm vào hàng này đi
+// thẳng sang trang check-in thật để chọn chính xác.
+const CHECKIN_PREVIEW_MOODS = ['comfortable', 'normal', 'veryHappy', 'slightlyStressed', 'angry']
+  .map((id) => MOOD_OPTIONS.find((m) => m.id === id));
+const CHECKIN_CENTER_INDEX = 2;
 
 const CHART_TABS = [
   { period: '7d', labelKey: 'dashboard.chart.tab7d' },
@@ -795,12 +805,70 @@ export default { name: 'DashboardView' };
 .section-title .st-link { font-size: 0.75rem; color: var(--mint-dark); font-weight: 600; margin-left: auto; text-decoration: none; }
 .section-title .st-link:hover { text-decoration: underline; }
 
-.checkin-prompt { padding: 18px 22px; background: linear-gradient(135deg, var(--peach-light), var(--mint-light)); border-color: var(--peach); display: flex; align-items: center; gap: 16px; margin-bottom: 20px; }
-@keyframes cp-bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
-.cp-mascot { font-size: 2rem; animation: cp-bounce 3s ease-in-out infinite; flex-shrink: 0; }
-.cp-text .cp-title { font-size: 0.95rem; font-weight: 700; margin-bottom: 2px; }
-.cp-text .cp-sub { font-size: 0.78rem; color: var(--text-secondary); }
-.cp-actions { display: flex; gap: 8px; margin-left: auto; flex-shrink: 0; }
+.checkin-prompt {
+  display: block;
+  text-align: center;
+  padding: 20px 22px 16px;
+  background: linear-gradient(135deg, var(--peach-light), var(--lavender-light), var(--mint-light));
+  border-color: var(--peach);
+  margin-bottom: 20px;
+  text-decoration: none;
+  transition: var(--transition);
+}
+.checkin-prompt:hover { transform: translateY(-2px); box-shadow: var(--shadow-paper-hover); }
+.cp-title { font-size: 0.95rem; font-weight: 700; color: var(--text-primary); margin-bottom: 14px; padding: 0 16px; }
+.cp-mascot {
+  display: inline-block;
+  margin-right: 8px;
+  font-size: 2rem;
+  line-height: 1;
+  vertical-align: middle;
+  animation: cp-mascot-sway 4s ease-in-out infinite;
+}
+@keyframes cp-mascot-sway {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  25% { transform: translateY(-2px) rotate(-4deg); }
+  75% { transform: translateY(-2px) rotate(4deg); }
+}
+.cp-mood-row { display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 8px; }
+.cp-mood-emoji {
+  font-size: 1.4rem;
+  width: 42px;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.5);
+  transition: background 0.3s ease, box-shadow 0.3s ease;
+  /* scale/rotate/translate tách riêng (không dùng chung "transform") để animation tự động
+     (đổi scale/rotate) không đè mất vị trí nổi lên cố định của emoji giữa (.center dùng
+     translate riêng) — 2 hiệu ứng chạy song song không xung đột. */
+  animation: cp-emoji-pop 5s ease-in-out infinite;
+}
+.cp-mood-emoji.center {
+  font-size: 2rem;
+  width: 58px;
+  height: 58px;
+  background: var(--warm-white);
+  box-shadow: 0 4px 12px rgba(74, 55, 40, 0.18), 0 0 0 3px var(--warm-white);
+  translate: 0 -6px;
+}
+.cp-mood-emoji:hover {
+  animation-play-state: paused;
+  scale: 1.3;
+  translate: 0 -8px;
+  background: var(--warm-white);
+  box-shadow: 0 4px 12px rgba(74, 55, 40, 0.18);
+}
+@keyframes cp-emoji-pop {
+  0%, 100% { scale: 1; rotate: 0deg; }
+  5% { scale: 1.3; rotate: -10deg; }
+  10% { scale: 1.3; rotate: 10deg; }
+  15% { scale: 1.1; rotate: -5deg; }
+  20% { scale: 1; rotate: 0deg; }
+}
+.cp-sub { font-size: 0.78rem; color: var(--text-secondary); padding: 0 16px; }
 
 @media (max-width: 1100px) {
   .grid-main { grid-template-columns: 1fr; }

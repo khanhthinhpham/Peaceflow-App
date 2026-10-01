@@ -293,17 +293,17 @@ h6 { font-size: 0.78rem; font-weight: 700; }
 /* ============================================================
    05. MOBILE TOPBAR & RESPONSIVE NAVIGATION
 ============================================================ */
+/* Nền/viền thật của topbar mobile do component MobileTopbar.vue (scoped) tự quản lý —
+   rule toàn cục này chỉ còn giữ layout cơ bản (fixed/vị trí/z-index), không khai báo
+   background/border nữa để tránh "rò rỉ" đè lên thiết kế nổi trong suốt của component. */
 .mobile-topbar {
   display: none;
   position: fixed;
   top: 0; left: 0; right: 0;
-  height: var(--topbar-height);
-  background: var(--warm-white);
-  border-bottom: 2px solid var(--kraft-light);
+  height: 44px;
   z-index: var(--z-topbar);
   align-items: center;
   justify-content: space-between;
-  padding: 0 16px;
 }
 
 .mobile-menu-btn {

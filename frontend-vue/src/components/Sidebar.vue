@@ -1,9 +1,18 @@
 <template>
   <aside class="sidebar" :class="{ open: sidebarOpen, collapsed }">
-    <router-link to="/" class="sidebar-logo">
-      <div class="logo-icon">🌿</div>
-      <div class="logo-text">Peace<span>Flow</span></div>
-    </router-link>
+    <div class="sidebar-header">
+      <router-link to="/" class="sidebar-logo">
+        <div class="logo-icon">🌿</div>
+        <div class="logo-text">Peace<span>Flow</span></div>
+      </router-link>
+      <button
+        v-if="sidebarOpen"
+        type="button"
+        class="sidebar-close-btn"
+        :aria-label="t('sidebar.collapseSidebar')"
+        @click="$emit('toggle-sidebar')"
+      >✕</button>
+    </div>
 
     <nav class="sidebar-nav">
       <template v-for="section in NAV_SECTIONS" :key="section.key">
@@ -96,7 +105,7 @@ import { goToLegacyPage } from '../lib/legacyApp';
 import { apiClient } from '../lib/apiClient';
 
 defineProps({ sidebarOpen: { type: Boolean, default: false }, collapsed: { type: Boolean, default: false } });
-const emit = defineEmits(['navigate']);
+defineEmits(['navigate', 'toggle-sidebar']);
 
 const { t } = useI18n();
 
@@ -222,14 +231,40 @@ async function handleLogout() {
     transform: translateX(-100%);
   }
 }
+.sidebar-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px 20px 20px;
+  border-bottom: 2px dashed var(--kraft-light);
+  margin-bottom: 16px;
+  flex-shrink: 0;
+}
 .sidebar-logo {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 0 20px 20px;
-  border-bottom: 2px dashed var(--kraft-light);
-  margin-bottom: 16px;
+  flex: 1;
+  min-width: 0;
+  padding: 0;
+  border-bottom: 0;
+  margin-bottom: 0;
   text-decoration: none;
+}
+.sidebar-close-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  flex: 0 0 38px;
+  border: 1.5px solid var(--kraft-light);
+  border-radius: var(--radius-sm);
+  background: var(--cream);
+  color: var(--text-primary);
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
 }
 .logo-icon {
   width: 38px; height: 38px; background: var(--mint); border-radius: 10px;

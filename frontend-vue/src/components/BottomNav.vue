@@ -138,10 +138,10 @@ const strokePath = computed(() => paths.value.strokePath);
   color: var(--text-light);
   transition: color 0.3s ease, opacity 0.3s ease;
   -webkit-tap-highlight-color: transparent;
-  padding: 6px 4px;
+  padding: 10px 4px;
 }
 .bn-icon-static {
-  font-size: 1.1rem;
+  font-size: 1.35rem;
   line-height: 1;
 }
 .bn-label {
@@ -158,10 +158,10 @@ const strokePath = computed(() => paths.value.strokePath);
 }
 .bn-floating-circle {
   position: absolute;
-  top: -30px;
+  top: -32px;
   transform: translateX(-50%);
-  width: 52px;
-  height: 52px;
+  width: 58px;
+  height: 58px;
   border-radius: 50%;
   background: var(--mint-dark);
   box-shadow: 0 6px 14px rgba(74, 163, 120, 0.45), 0 0 0 4px var(--warm-white);
@@ -172,7 +172,7 @@ const strokePath = computed(() => paths.value.strokePath);
   pointer-events: none;
 }
 .bn-floating-icon {
-  font-size: 1.65rem;
+  font-size: 1.85rem;
   line-height: 1;
 }
 @media (max-width: 900px), (hover: none) and (pointer: coarse) {

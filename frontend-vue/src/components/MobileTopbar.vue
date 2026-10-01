@@ -1,19 +1,17 @@
 <template>
   <div class="mobile-topbar">
     <div class="mobile-topbar-inner">
-      <button class="mobile-menu-btn" @click="$emit('toggle-sidebar')">☰</button>
-      <router-link to="/" style="display:flex;align-items:center;gap:8px;text-decoration:none;flex:1;margin-left:14px;">
-        <div style="width:32px;height:32px;background:var(--mint);border-radius:8px;border:2px solid var(--mint-dark);display:flex;align-items:center;justify-content:center;font-size:1rem;box-shadow:2px 2px 0px var(--mint-dark);">🌿</div>
-        <span style="font-size:1.1rem;font-weight:800;color:var(--text-primary);">Peace<span style="color:var(--mint-dark);">Flow</span></span>
-      </router-link>
-      <button class="notif-bell-btn" data-notif-bell @click="notif.togglePanel()">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/>
-          <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
-        </svg>
-        <span v-if="notif.unread > 0" class="notif-badge">{{ Math.min(notif.unread, 9) }}</span>
-      </button>
-      <router-link to="/emergency" class="sos-btn" :title="t('sidebar.emergencySupport')">SOS</router-link>
+      <button v-if="!sidebarOpen" class="mobile-menu-btn" @click="$emit('toggle-sidebar')">☰</button>
+      <div class="mobile-topbar-right">
+        <button class="notif-bell-btn" data-notif-bell @click="notif.togglePanel()">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/>
+            <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+          </svg>
+          <span v-if="notif.unread > 0" class="notif-badge">{{ Math.min(notif.unread, 9) }}</span>
+        </button>
+        <router-link to="/emergency" class="sos-btn" :title="t('sidebar.emergencySupport')">SOS</router-link>
+      </div>
     </div>
   </div>
 </template>
@@ -22,29 +20,52 @@
 import { useI18n } from 'vue-i18n';
 import { useNotificationsStore } from '../stores/notifications';
 
+defineProps({ sidebarOpen: { type: Boolean, default: false } });
 defineEmits(['toggle-sidebar']);
 const { t } = useI18n();
 const notif = useNotificationsStore();
 </script>
 
 <style scoped>
+/* Thả nổi trực tiếp lên nội dung trang (không còn nền/viền của 1 thanh riêng, không còn
+   logo) — từng nút (☰, chuông, SOS) tự có nền/bóng riêng để luôn đọc được dù nội dung phía
+   sau là gì. */
 .mobile-topbar {
   display: none;
   position: fixed;
   top: 0; left: 0; right: 0;
-  /* padding-top che phần status bar/tai thỏ khi chạy trong app mobile (Capacitor) — trên
-     web thường env(safe-area-inset-top) = 0px nên không đổi gì. */
   padding-top: env(safe-area-inset-top, 0px);
-  background: var(--warm-white);
-  border-bottom: 2px solid var(--kraft-light);
   z-index: 300;
+  pointer-events: none;
 }
 .mobile-topbar-inner {
-  height: 60px;
+  height: 44px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 16px 0 0px;
+  padding: 0 2px;
+  pointer-events: none;
+}
+.mobile-topbar-inner > * {
+  pointer-events: auto;
+}
+.mobile-topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+.mobile-menu-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  background: none;
+  border: none;
+  font-size: 1.4rem;
+  color: var(--text-primary);
+  flex-shrink: 0;
 }
 .notif-bell-btn {
   position: relative;
@@ -72,7 +93,6 @@ const notif = useNotificationsStore();
   justify-content: center;
   width: 42px;
   height: 42px;
-  margin-left: 8px;
   background: var(--coral);
   border: 1.5px solid var(--coral-dark, var(--coral));
   border-radius: var(--radius-full);

@@ -1,11 +1,12 @@
 <template>
   <div :style="sidebarCollapsed ? { '--sidebar-width': '0px' } : {}">
     <div v-if="sidebarOpen" class="sidebar-overlay open" @click="sidebarOpen = false"></div>
-    <MobileTopbar @toggle-sidebar="sidebarOpen = !sidebarOpen" />
+    <MobileTopbar :sidebar-open="sidebarOpen" @toggle-sidebar="sidebarOpen = !sidebarOpen" />
     <Sidebar
       :sidebar-open="sidebarOpen"
       :collapsed="sidebarCollapsed"
       @navigate="sidebarOpen = false"
+      @toggle-sidebar="sidebarOpen = !sidebarOpen"
       @toggle-collapse="sidebarCollapsed = !sidebarCollapsed"
     />
     <button
@@ -114,8 +115,8 @@ auth.waitForAuth().then(() => notif.init());
   .shell-host {
     margin-left: 0;
     width: 100vw;
-    margin-top: calc(60px + env(safe-area-inset-top, 0px));
-    min-height: calc(100vh - 60px - env(safe-area-inset-top, 0px));
+    margin-top: calc(44px + env(safe-area-inset-top, 0px));
+    min-height: calc(100vh - 44px - env(safe-area-inset-top, 0px));
     padding-bottom: calc(60px + env(safe-area-inset-bottom, 0px));
   }
 }
