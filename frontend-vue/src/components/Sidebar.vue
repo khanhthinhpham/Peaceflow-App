@@ -1,5 +1,5 @@
 <template>
-  <aside class="sidebar" :class="{ open: sidebarOpen }">
+  <aside class="sidebar" :class="{ open: sidebarOpen, collapsed }">
     <router-link to="/" class="sidebar-logo">
       <div class="logo-icon">🌿</div>
       <div class="logo-text">Peace<span>Flow</span></div>
@@ -95,7 +95,7 @@ import { useNotificationsStore } from '../stores/notifications';
 import { goToLegacyPage } from '../lib/legacyApp';
 import { apiClient } from '../lib/apiClient';
 
-defineProps({ sidebarOpen: { type: Boolean, default: false } });
+defineProps({ sidebarOpen: { type: Boolean, default: false }, collapsed: { type: Boolean, default: false } });
 const emit = defineEmits(['navigate']);
 
 const { t } = useI18n();
@@ -214,6 +214,13 @@ async function handleLogout() {
   flex-direction: column;
   padding: 20px 0;
   box-shadow: 2px 0 10px rgba(74, 55, 40, 0.05);
+  transition: width 0.3s ease, transform 0.3s ease;
+}
+@media (min-width: 901px) {
+  .sidebar.collapsed {
+    width: 240px;
+    transform: translateX(-100%);
+  }
 }
 .sidebar-logo {
   display: flex;

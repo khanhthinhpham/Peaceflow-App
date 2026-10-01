@@ -27,7 +27,9 @@
     "emergencySupport": "Hỗ trợ khẩn cấp",
     "tagExpert": "Chuyên gia",
     "tagAdmin": "Admin",
-    "defaultUserLabel": "Người dùng"
+    "defaultUserLabel": "Người dùng",
+    "collapseSidebar": "Thu gọn sidebar",
+    "expandSidebar": "Mở rộng sidebar"
   },
   "notifPanel": {
     "title": "Thông báo",

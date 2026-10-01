@@ -27,7 +27,9 @@
     "emergencySupport": "Emergency support",
     "tagExpert": "Expert",
     "tagAdmin": "Admin",
-    "defaultUserLabel": "User"
+    "defaultUserLabel": "User",
+    "collapseSidebar": "Collapse sidebar",
+    "expandSidebar": "Expand sidebar"
   },
   "notifPanel": {
     "title": "Notifications",
