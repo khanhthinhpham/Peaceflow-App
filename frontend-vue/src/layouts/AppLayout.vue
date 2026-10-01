@@ -19,6 +19,7 @@
     <div class="shell-host">
       <router-view />
     </div>
+    <BottomNav v-if="!sidebarOpen" />
 
     <NotificationPanel />
     <ToastStack />
@@ -33,6 +34,7 @@ import { useRoute } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import Sidebar from '../components/Sidebar.vue';
 import MobileTopbar from '../components/MobileTopbar.vue';
+import BottomNav from '../components/BottomNav.vue';
 import NotificationPanel from '../components/NotificationPanel.vue';
 import ToastStack from '../components/ToastStack.vue';
 import PushPromptModal from '../components/PushPromptModal.vue';
@@ -114,6 +116,7 @@ auth.waitForAuth().then(() => notif.init());
     width: 100vw;
     margin-top: calc(60px + env(safe-area-inset-top, 0px));
     min-height: calc(100vh - 60px - env(safe-area-inset-top, 0px));
+    padding-bottom: calc(60px + env(safe-area-inset-bottom, 0px));
   }
 }
 </style>

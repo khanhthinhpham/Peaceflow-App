@@ -13,14 +13,17 @@
         </svg>
         <span v-if="notif.unread > 0" class="notif-badge">{{ Math.min(notif.unread, 9) }}</span>
       </button>
+      <router-link to="/emergency" class="sos-btn" :title="t('sidebar.emergencySupport')">SOS</router-link>
     </div>
   </div>
 </template>
 
 <script setup>
+import { useI18n } from 'vue-i18n';
 import { useNotificationsStore } from '../stores/notifications';
 
 defineEmits(['toggle-sidebar']);
+const { t } = useI18n();
 const notif = useNotificationsStore();
 </script>
 
@@ -62,6 +65,27 @@ const notif = useNotificationsStore();
 .notif-bell-btn:active {
   transform: translate(1px, 1px);
   box-shadow: 1px 1px 0px rgba(74, 55, 40, 0.15);
+}
+.sos-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  margin-left: 8px;
+  background: var(--coral);
+  border: 1.5px solid var(--coral-dark, var(--coral));
+  border-radius: var(--radius-full);
+  color: white;
+  font-size: 0.6rem;
+  font-weight: 800;
+  text-decoration: none;
+  flex-shrink: 0;
+  transition: var(--transition);
+}
+.sos-btn:active {
+  transform: translate(1px, 1px);
+  background: var(--coral-dark, var(--coral));
 }
 .notif-badge {
   display: flex; position: absolute; top: -3px; right: -3px; background: var(--coral);
