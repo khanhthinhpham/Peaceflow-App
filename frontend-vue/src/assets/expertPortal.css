@@ -419,7 +419,7 @@ body.expert-portal-body {
   max-width: 520px;
 }
 
-@media (max-width: 1180px) {
+@media (max-width: 1180px), (hover: none) and (pointer: coarse) {
   .expert-portal {
     grid-template-columns: 1fr;
   }

@@ -88,7 +88,7 @@ onBeforeUnmount(() => {
   min-height: 100vh;
   padding-bottom: env(safe-area-inset-bottom, 0px);
 }
-@media (max-width: 860px) {
+@media (max-width: 860px), (hover: none) and (pointer: coarse) {
   #adminPageHost { margin-left: 0; padding-top: calc(60px + env(safe-area-inset-top, 0px)); }
 }
 </style>

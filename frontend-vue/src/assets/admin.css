@@ -581,7 +581,7 @@ body.admin-body {
   margin-right: 6px;
 }
 
-@media (max-width: 860px) {
+@media (max-width: 860px), (hover: none) and (pointer: coarse) {
   .admin-shell {
     display: block;
   }
