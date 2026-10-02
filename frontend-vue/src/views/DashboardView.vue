@@ -9,9 +9,6 @@
         </div>
         <div class="page-subtitle handwritten" style="font-size:1rem;color:var(--mint-dark);">"{{ t('dashboard.subtitle') }}"</div>
       </div>
-      <div class="header-actions">
-        <button class="btn-outline" @click.prevent>{{ t('dashboard.weeklyReportBtn') }}</button>
-      </div>
     </div>
 
     <div v-if="isNewUser" style="background:linear-gradient(135deg,var(--mint-light),var(--peach-light));border:2px solid var(--mint);border-radius:16px;padding:24px;margin-bottom:20px;text-align:center;">

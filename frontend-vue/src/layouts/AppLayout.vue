@@ -1,7 +1,7 @@
 <template>
-  <div :style="sidebarCollapsed ? { '--sidebar-width': '0px' } : {}">
+  <div :class="{ 'mood-chat-layout': isMoodChat }" :style="sidebarCollapsed ? { '--sidebar-width': '0px' } : {}">
     <div v-if="sidebarOpen" class="sidebar-overlay open" @click="sidebarOpen = false"></div>
-    <MobileTopbar :sidebar-open="sidebarOpen" @toggle-sidebar="sidebarOpen = !sidebarOpen" />
+    <MobileTopbar v-if="!isMoodChat" :sidebar-open="sidebarOpen" @toggle-sidebar="sidebarOpen = !sidebarOpen" />
     <Sidebar
       :sidebar-open="sidebarOpen"
       :collapsed="sidebarCollapsed"
@@ -20,7 +20,7 @@
     <div class="shell-host">
       <router-view />
     </div>
-    <BottomNav v-if="!sidebarOpen" />
+    <BottomNav v-if="!sidebarOpen && !isMoodChat" />
 
     <NotificationPanel />
     <ToastStack />
@@ -30,7 +30,7 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import Sidebar from '../components/Sidebar.vue';
@@ -53,6 +53,7 @@ watch(sidebarCollapsed, (val) => {
 });
 
 const route = useRoute();
+const isMoodChat = computed(() => route.name === 'mood-chat');
 watch(() => route.fullPath, () => { sidebarOpen.value = false; });
 
 const auth = useAuthStore();
@@ -118,6 +119,11 @@ auth.waitForAuth().then(() => notif.init());
     margin-top: calc(44px + env(safe-area-inset-top, 0px));
     min-height: calc(100vh - 44px - env(safe-area-inset-top, 0px));
     padding-bottom: calc(60px + env(safe-area-inset-bottom, 0px));
+  }
+  .mood-chat-layout .shell-host {
+    margin-top: 0;
+    min-height: 100dvh;
+    padding-bottom: 0;
   }
 }
 </style>

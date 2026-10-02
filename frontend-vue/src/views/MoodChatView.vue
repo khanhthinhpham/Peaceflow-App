@@ -76,6 +76,11 @@
           <span>{{ statusText }}</span>
         </div>
       </div>
+        <button
+          class="ct-mobile-emergency"
+          :aria-label="t('moodChat.topbar.emergencyBtn')"
+          @click="showEmergency"
+        >SOS</button>
       <div class="ct-actions">
         <span class="badge-pill badge-mint">{{ t('moodChat.topbar.messageCountLabel', { n: userMessageCount }) }}</span>
         <button class="ct-action-btn" @click="showResult">{{ t('moodChat.topbar.viewResultBtn') }}</button>

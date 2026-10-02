@@ -1191,7 +1191,7 @@
 .mobile-nav-panel {
     position: fixed;
     top: 0;
-    right: 0;
+    left: 0;
     bottom: 0;
     width: 260px;
     background: var(--warm-white);
@@ -1199,7 +1199,7 @@
     padding: 24px;
     padding-top: calc(24px + env(safe-area-inset-top, 0px));
     padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px));
-    transform: translateX(100%);
+    transform: translateX(-100%);
     transition: transform 0.3s ease;
     overflow-y: auto;
 }
@@ -1318,8 +1318,18 @@
         display: none;
     }
 
+    /* Chỉ còn ☰ + logo hiển thị — dồn cả 2 về bên trái, đứng cạnh nhau thay vì bị
+       "space-between" đẩy dạt ra 2 đầu. */
+    .navbar {
+        justify-content: flex-start;
+        gap: 12px;
+    }
+
     .mobile-nav-btn {
         display: block;
+        /* Đưa nút ☰ về bên trái cho thống nhất với sidebar app (cũng mở từ bên trái) —
+           chỉ đổi thứ tự hiển thị bằng "order", không đổi thứ tự DOM/code phía trên. */
+        order: -1;
     }
 
     .hero {
