@@ -455,12 +455,14 @@
 <script setup>
 import { ref, reactive, computed, onMounted, onBeforeUnmount, nextTick } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { useRouter } from 'vue-router';
 import { useAuthStore } from '../stores/auth';
 import { apiClient } from '../lib/apiClient';
 import { MOOD_OPTIONS, TAGS, BODY_SYMPTOM_GROUPS, deriveMoodPayload } from '../lib/moodCheckinOptions';
 import LanguageSwitcher from '../components/LanguageSwitcher.vue';
 
 const { t, tm } = useI18n();
+const router = useRouter();
 const auth = useAuthStore();
 
 // Danh sách slogan lấy từ chính file dịch (landing.slogans, mảng 27 câu) — không giữ bản
@@ -636,6 +638,15 @@ function scheduleHeroFit() {
 }
 
 onMounted(() => {
+  // Người đã đăng nhập (còn access_token hợp lệ trong localStorage) thì vào thẳng dashboard,
+  // không cần dừng ở landing page quảng cáo nữa — khách chưa có tài khoản vẫn thấy landing
+  // page như bình thường. Check đồng bộ dựa trên hasSession (không cần đợi waitForAuth), nên
+  // redirect gần như ngay lập tức, không bị chớp landing page trước khi chuyển trang.
+  if (auth.isAuthenticated) {
+    router.replace({ name: 'dashboard' });
+    return;
+  }
+
   document.addEventListener('click', closeAuthDropdownOnOutsideClick);
   auth.waitForAuth();
 
