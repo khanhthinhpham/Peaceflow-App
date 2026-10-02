@@ -369,5 +369,64 @@ function finish(goToSignup) {
 .intro-nav .btn-primary,
 .intro-nav .btn-outline {
   flex-shrink: 0;
+  transition: transform 0.15s ease;
+}
+.intro-nav .btn-primary:hover,
+.intro-nav .btn-outline:hover {
+  transform: translateY(-2px);
+}
+.intro-nav .btn-primary:active,
+.intro-nav .btn-outline:active {
+  transform: scale(0.95);
+}
+
+/* ===== Animation cho sinh động hơn ===== */
+/* Badge trên đầu mỗi slide (hero-badge / section-badge): nhịp "thở" nhẹ nhàng, lặp vô hạn. */
+.intro-slide :deep(.hero-badge),
+.intro-page :deep(.section-badge) {
+  animation: badge-breathe 2.6s ease-in-out infinite;
+}
+@keyframes badge-breathe {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+/* step-card / feature-card: mỗi thẻ hiện lên lệch nhịp nhau (stagger) thay vì bật cùng lúc. */
+.step-card,
+.feature-card {
+  animation: fade-up 0.5s ease both;
+}
+.steps-grid .step-card:nth-child(1),
+.features-grid .feature-card:nth-child(1) { animation-delay: 0.05s; }
+.steps-grid .step-card:nth-child(2),
+.features-grid .feature-card:nth-child(2) { animation-delay: 0.12s; }
+.steps-grid .step-card:nth-child(3),
+.features-grid .feature-card:nth-child(3) { animation-delay: 0.19s; }
+.steps-grid .step-card:nth-child(4),
+.features-grid .feature-card:nth-child(4) { animation-delay: 0.26s; }
+.features-grid .feature-card:nth-child(5) { animation-delay: 0.33s; }
+.features-grid .feature-card:nth-child(6) { animation-delay: 0.4s; }
+
+/* hs-item (số liệu) + cta-chip ở slide CTA: cũng hiện lệch nhịp cho đỡ cứng. */
+.cta-stats .hs-item,
+.cta-chips .cta-chip {
+  animation: fade-up 0.45s ease both;
+}
+.cta-stats .hs-item:nth-child(1) { animation-delay: 0.05s; }
+.cta-stats .hs-item:nth-child(2) { animation-delay: 0.1s; }
+.cta-stats .hs-item:nth-child(3) { animation-delay: 0.15s; }
+.cta-stats .hs-item:nth-child(4) { animation-delay: 0.2s; }
+.cta-chips .cta-chip:nth-child(1) { animation-delay: 0.25s; }
+.cta-chips .cta-chip:nth-child(2) { animation-delay: 0.3s; }
+.cta-chips .cta-chip:nth-child(3) { animation-delay: 0.35s; }
+
+/* Chấm điều hướng: chấm đang active nảy nhẹ 1 cái khi vừa chuyển sang. */
+.intro-dot.active {
+  animation: dot-pop 0.3s ease;
+}
+@keyframes dot-pop {
+  0% { transform: scaleY(0.6); }
+  60% { transform: scaleY(1.3); }
+  100% { transform: scaleY(1); }
 }
 </style>
