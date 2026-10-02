@@ -24,6 +24,7 @@ import TaskBreathingView from '../views/TaskBreathingView.vue';
 import TaskMeditationView from '../views/TaskMeditationView.vue';
 import EmergencyView from '../views/EmergencyView.vue';
 import IndexView from '../views/IndexView.vue';
+import AppIntroView from '../views/AppIntroView.vue';
 import AdminLayout from '../layouts/AdminLayout.vue';
 import AdminDashboardView from '../views/admin/AdminDashboardView.vue';
 import AdminExpertsView from '../views/admin/AdminExpertsView.vue';
@@ -54,6 +55,7 @@ const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     { path: '/', name: 'index', component: IndexView },
+    { path: '/intro', name: 'app-intro', component: AppIntroView },
     { path: '/login', name: 'login', component: LoginView },
     { path: '/signup', name: 'signup', component: SignupView },
     { path: '/forgot-password', name: 'forgot-password', component: ForgotPasswordView },

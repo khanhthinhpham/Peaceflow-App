@@ -1,7 +1,7 @@
 <template>
   <aside class="sidebar" :class="{ open: sidebarOpen, collapsed }">
     <div class="sidebar-header">
-      <router-link to="/" class="sidebar-logo">
+      <router-link :to="{ path: '/', query: { stay: '1' } }" class="sidebar-logo">
         <div class="logo-icon">🌿</div>
         <div class="logo-text">Peace<span>Flow</span></div>
       </router-link>

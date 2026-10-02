@@ -455,7 +455,7 @@
 <script setup>
 import { ref, reactive, computed, onMounted, onBeforeUnmount, nextTick } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { useRouter } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import { useAuthStore } from '../stores/auth';
 import { apiClient } from '../lib/apiClient';
 import { MOOD_OPTIONS, TAGS, BODY_SYMPTOM_GROUPS, deriveMoodPayload } from '../lib/moodCheckinOptions';
@@ -463,6 +463,7 @@ import LanguageSwitcher from '../components/LanguageSwitcher.vue';
 
 const { t, tm } = useI18n();
 const router = useRouter();
+const route = useRoute();
 const auth = useAuthStore();
 
 // Danh sách slogan lấy từ chính file dịch (landing.slogans, mảng 27 câu) — không giữ bản
@@ -642,8 +643,19 @@ onMounted(() => {
   // không cần dừng ở landing page quảng cáo nữa — khách chưa có tài khoản vẫn thấy landing
   // page như bình thường. Check đồng bộ dựa trên hasSession (không cần đợi waitForAuth), nên
   // redirect gần như ngay lập tức, không bị chớp landing page trước khi chuyển trang.
-  if (auth.isAuthenticated) {
+  // Trừ khi có ?stay=1 (vd bấm logo trong sidebar) — lúc đó NGƯỜI DÙNG CHỦ ĐỘNG muốn xem lại
+  // landing page dù đã đăng nhập, không ép quay lại dashboard.
+  if (auth.isAuthenticated && route.query.stay !== '1') {
     router.replace({ name: 'dashboard' });
+    return;
+  }
+
+  // Khách chưa đăng nhập, lần đầu mở app trên MÀN HÌNH MOBILE (chưa thấy cờ đã lưu) — dẫn
+  // qua slide giới thiệu trước khi vào landing page. Chỉ check 1 lần ở đây, không ảnh hưởng
+  // desktop/web rộng hay các lần mở app sau.
+  const isMobileViewport = window.matchMedia('(max-width: 900px), (hover: none) and (pointer: coarse)').matches;
+  if (!auth.isAuthenticated && isMobileViewport && !localStorage.getItem('pf_intro_seen')) {
+    router.replace({ name: 'app-intro' });
     return;
   }
 
