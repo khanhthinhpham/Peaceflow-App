@@ -157,10 +157,12 @@ export const useNotificationsStore = defineStore('notifications', {
     async loadNotifications() {
       try {
         const data = await apiClient.get('/notifications', { noCache: true });
-        this.notifications = Array.isArray(data) ? data : [];
-        // Đếm theo is_read do server trả về, KHÔNG lấy tổng số. Trước đây lấy tổng nên
-        // badge hiện lại nguyên số cũ sau mỗi lần tải trang, dù người dùng đã mở panel.
-        this.unread = this.notifications.filter((item) => !item.is_read).length;
+        // Chỉ giữ lại thông báo CHƯA ĐỌC. Server cố ý trả về cả thông báo đã đọc trong 30
+        // ngày qua (để còn chỗ tra cứu lại nếu cần), nhưng panel chuông thì không nên lặp
+        // lại thông báo cũ mỗi lần mở app — mở 1 lần, lần sau coi như hết (không xóa dữ
+        // liệu, chỉ không hiển thị lại ở đây).
+        this.notifications = (Array.isArray(data) ? data : []).filter((item) => !item.is_read);
+        this.unread = this.notifications.length;
         this._maybeShowToast();
       } catch (_) {
         this.notifications = [];
