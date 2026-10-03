@@ -36,7 +36,7 @@ router.get('/notifications', requireAuth, async (req, res) => {
     const isTest = req.query.test === 'true';
     const notifications = [];
 
-    const [moodRes, progressRes, badgesRes, communityCommentRes, communityReactionRes, communityNotifsRes, userRes] = await Promise.all([
+    const [moodRes, progressRes, badgesRes, communityCommentRes, communityReactionRes, communityNotifsRes, userRes, hiddenRes] = await Promise.all([
       db.query(
         `select created_at from mood_checkins where user_id = $1 order by created_at desc limit 1`,
         [userId]
@@ -90,6 +90,11 @@ router.get('/notifications', requireAuth, async (req, res) => {
       // notifications nên không thể đánh dấu đọc theo từng dòng. Xem migration 0054.
       db.query(
         `select notifications_read_at from users where id = $1`,
+        [userId]
+      ).catch(() => ({ rows: [] })),
+      // Thông báo người dùng đã vuốt ẩn thủ công — ẩn trên mọi thiết bị. Xem migration 0077.
+      db.query(
+        `select notif_id from notification_hidden where user_id = $1`,
         [userId]
       ).catch(() => ({ rows: [] }))
     ]);
@@ -333,10 +338,37 @@ router.get('/notifications', requireAuth, async (req, res) => {
       item.is_read = createdAt > 0 && createdAt <= readAt;
     });
 
-    return res.json({ success: true, data: notifications });
+    // Bỏ những cái người dùng đã vuốt ẩn thủ công (ẩn trên mọi thiết bị — xem migration 0077).
+    const hiddenIds = new Set((hiddenRes?.rows || []).map((row) => row.notif_id));
+    const visible = notifications.filter((item) => !hiddenIds.has(item.id));
+
+    return res.json({ success: true, data: visible });
   } catch (error) {
     console.error('Notifications error:', error.message, error.stack);
     return res.status(500).json({ success: false, message: 'Could not fetch notifications' });
+  }
+});
+
+// POST /notifications/hide — ẩn 1 thông báo khỏi panel trên MỌI thiết bị đã đăng nhập.
+// Không xóa gì cả, chỉ ghi nhận id đã ẩn cho user này — xem migration 0077 để biết vì sao
+// dùng bảng riêng theo id thay vì sửa bảng `notifications`.
+router.post('/notifications/hide', requireAuth, async (req, res) => {
+  try {
+    const { id } = req.body;
+    if (!id || typeof id !== 'string') {
+      return res.status(400).json({ success: false, message: 'Missing notification id' });
+    }
+
+    await db.query(
+      `insert into notification_hidden (user_id, notif_id) values ($1, $2)
+       on conflict (user_id, notif_id) do nothing`,
+      [req.user.sub, id]
+    );
+
+    return res.json({ success: true });
+  } catch (error) {
+    console.error('Notification hide error:', error.message, error.stack);
+    return res.status(500).json({ success: false, message: 'Could not hide notification' });
   }
 });
 
