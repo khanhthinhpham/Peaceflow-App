@@ -15,23 +15,29 @@
         <span>{{ t('notifPanel.title') }}</span>
         <button class="notif-panel-close" @click="notif.closePanel()" :aria-label="t('notifPanel.closeAria')">✕</button>
       </div>
-      <a
-        v-for="n in notif.notifications"
-        :key="n.id"
-        href="#"
-        class="notif-item"
-        @click.prevent="handleItemClick(n)"
-      >
-        <div class="notif-item-icon">{{ n.icon }}</div>
-        <div>
-          <!-- n.title/n.body do BACKEND sinh (tổng hợp động, có cả nội dung tự do như tên
-               người bình luận) — chưa nằm trong phạm vi đợt dịch tĩnh này, xem ai.service.js
-               notification.routes.js. Chỉ phần khung xung quanh (tiêu đề panel, nút...) đã
-               dịch ở đây. -->
-          <div class="notif-item-title">{{ n.title }}</div>
-          <div class="notif-item-body">{{ n.body }}</div>
-        </div>
-      </a>
+      <div v-for="n in notif.notifications" :key="n.id" class="notif-item-wrap">
+        <div class="notif-item-reveal">{{ t('notifPanel.swipeHide') }}</div>
+        <a
+          href="#"
+          class="notif-item"
+          :ref="(el) => setItemRef(n.id, el)"
+          @click.prevent="handleItemClick(n)"
+          @touchstart="onTouchStart($event, n.id)"
+          @touchmove="onTouchMove($event, n.id)"
+          @touchend="onTouchEnd($event, n.id)"
+          @touchcancel="onTouchCancel(n.id)"
+        >
+          <div class="notif-item-icon">{{ n.icon }}</div>
+          <div>
+            <!-- n.title/n.body do BACKEND sinh (tổng hợp động, có cả nội dung tự do như tên
+                 người bình luận) — chưa nằm trong phạm vi đợt dịch tĩnh này, xem ai.service.js
+                 notification.routes.js. Chỉ phần khung xung quanh (tiêu đề panel, nút...) đã
+                 dịch ở đây. -->
+            <div class="notif-item-title">{{ n.title }}</div>
+            <div class="notif-item-body">{{ n.body }}</div>
+          </div>
+        </a>
+      </div>
     </template>
     <div v-if="!notif._isPushGranted()" class="notif-panel-footer">
       <button @click="notif.requestPush(); notif.closePanel();">{{ t('notifPanel.enablePush') }}</button>
@@ -51,13 +57,62 @@ const notif = useNotificationsStore();
 const panelEl = ref(null);
 const router = useRouter();
 
+// Vuốt sang trái 1 thông báo để ẩn nó đi. Chỉ thao tác DOM trực tiếp (không qua state Vue)
+// lúc đang kéo cho mượt — không re-render mỗi pixel di chuyển.
+const SWIPE_HIDE_THRESHOLD = 70;
+const itemEls = new Map();
+const dragState = new Map();
+
+function setItemRef(id, el) {
+  if (el) itemEls.set(id, el);
+  else itemEls.delete(id);
+}
+
 function handleItemClick(n) {
+  // Vừa vuốt xong thì bỏ qua click ngay sau đó (tránh vuốt xong lại bị điều hướng nhầm).
+  if (dragState.get(n.id)?.wasSwipe) return;
   notif.closePanel();
   const dest = notif.actionFor(n);
   if (!dest || dest === '#') return;
   const resolved = resolveAppRedirect(dest);
   if (resolved.internal) router.push(resolved.path);
   else goToLegacyPage(dest);
+}
+
+function onTouchStart(event, id) {
+  dragState.set(id, { startX: event.touches[0].clientX, dx: 0, wasSwipe: false });
+}
+
+function onTouchMove(event, id) {
+  const state = dragState.get(id);
+  const el = itemEls.get(id);
+  if (!state || !el) return;
+  const dx = event.touches[0].clientX - state.startX;
+  if (dx >= 0) return; // chỉ cho vuốt sang trái, kéo phải thì bỏ qua
+  state.dx = dx;
+  if (Math.abs(dx) > 8) state.wasSwipe = true;
+  el.style.transition = 'none';
+  el.style.transform = `translateX(${Math.max(dx, -120)}px)`;
+}
+
+function onTouchEnd(event, id) {
+  const state = dragState.get(id);
+  const el = itemEls.get(id);
+  if (!state || !el) return;
+  el.style.transition = '';
+  if (state.dx <= -SWIPE_HIDE_THRESHOLD) {
+    el.style.transform = 'translateX(-100%)';
+    el.style.opacity = '0';
+    setTimeout(() => notif.hideNotification(id), 180);
+  } else {
+    el.style.transform = '';
+  }
+}
+
+function onTouchCancel(id) {
+  const el = itemEls.get(id);
+  if (el) { el.style.transition = ''; el.style.transform = ''; }
+  dragState.delete(id);
 }
 
 function handleOutsideClick(event) {
@@ -114,14 +169,34 @@ onBeforeUnmount(() => document.removeEventListener('click', handleOutsideClick))
     width: auto;
   }
 }
+.notif-item-wrap {
+  position: relative;
+  overflow: hidden;
+}
+.notif-item-reveal {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: 20px;
+  background: var(--coral, #e4572e);
+  color: white;
+  font-weight: 700;
+  font-size: 0.78rem;
+}
 .notif-item {
+  position: relative;
+  z-index: 1;
   display: flex;
   gap: 12px;
   padding: 12px 16px;
+  background: var(--warm-white);
   border-bottom: 1px solid var(--kraft-light);
   text-decoration: none;
   color: inherit;
-  transition: background 0.2s;
+  transition: background 0.2s, transform 0.25s ease, opacity 0.25s ease;
+  touch-action: pan-y;
 }
 .notif-item:hover { background: var(--cream); }
 .notif-item-icon { font-size: 1.5rem; flex-shrink: 0; }

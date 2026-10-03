@@ -11,6 +11,27 @@ const MAX_VISIBLE_TOASTS = 3;
 // Số id "đã xem" giữ lại trong localStorage — đủ nhiều để thông báo cũ không bị toast lại,
 // vẫn đủ nhỏ để không phình vô hạn.
 const MAX_SEEN_IDS = 200;
+// Id thông báo người dùng đã VUỐT ẨN thủ công — ẩn khỏi panel vĩnh viễn trên máy này, KHÔNG
+// xóa gì ở server (người dùng chỉ muốn ẩn, không muốn xóa dữ liệu).
+const HIDDEN_IDS_KEY = 'notif_hidden_ids';
+const MAX_HIDDEN_IDS = 200;
+
+function loadHiddenIds() {
+  try {
+    const raw = localStorage.getItem(HIDDEN_IDS_KEY);
+    return raw ? new Set(JSON.parse(raw)) : new Set();
+  } catch {
+    return new Set();
+  }
+}
+
+function saveHiddenIds(set) {
+  try {
+    localStorage.setItem(HIDDEN_IDS_KEY, JSON.stringify([...set].slice(-MAX_HIDDEN_IDS)));
+  } catch {
+    // localStorage bị chặn -> vẫn ẩn được cho phiên hiện tại, chỉ là không nhớ cho lần sau.
+  }
+}
 
 function urlBase64ToUint8Array(base64String) {
   const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
@@ -157,12 +178,13 @@ export const useNotificationsStore = defineStore('notifications', {
     async loadNotifications() {
       try {
         const data = await apiClient.get('/notifications', { noCache: true });
-        // Chỉ giữ lại thông báo CHƯA ĐỌC. Server cố ý trả về cả thông báo đã đọc trong 30
-        // ngày qua (để còn chỗ tra cứu lại nếu cần), nhưng panel chuông thì không nên lặp
-        // lại thông báo cũ mỗi lần mở app — mở 1 lần, lần sau coi như hết (không xóa dữ
-        // liệu, chỉ không hiển thị lại ở đây).
-        this.notifications = (Array.isArray(data) ? data : []).filter((item) => !item.is_read);
-        this.unread = this.notifications.length;
+        // Server trả cả thông báo đã đọc trong 30 ngày qua (cố ý, để còn mở chuông xem lại
+        // được) — chỉ lọc bỏ những cái người dùng đã tự VUỐT ẨN thủ công trên máy này.
+        const hidden = loadHiddenIds();
+        this.notifications = (Array.isArray(data) ? data : []).filter((item) => !hidden.has(item.id));
+        // Đếm theo is_read do server trả về, KHÔNG lấy tổng số. Trước đây lấy tổng nên
+        // badge hiện lại nguyên số cũ sau mỗi lần tải trang, dù người dùng đã mở panel.
+        this.unread = this.notifications.filter((item) => !item.is_read).length;
         this._maybeShowToast();
       } catch (_) {
         this.notifications = [];
@@ -219,6 +241,15 @@ export const useNotificationsStore = defineStore('notifications', {
 
     dismissToast(id) {
       this.toasts = this.toasts.filter((t) => t.id !== id);
+    },
+
+    // Người dùng vuốt ngang 1 thông báo để ẩn — chỉ ẩn khỏi danh sách hiển thị trên máy này
+    // (lưu id vào localStorage), KHÔNG xóa/đánh dấu gì ở server.
+    hideNotification(id) {
+      const hidden = loadHiddenIds();
+      hidden.add(id);
+      saveHiddenIds(hidden);
+      this.notifications = this.notifications.filter((item) => item.id !== id);
     },
 
     togglePanel() {

@@ -35,7 +35,8 @@
     "title": "Notifications",
     "closeAria": "Close notifications",
     "empty": "No notifications",
-    "enablePush": "🔔 Enable push notifications for reminders"
+    "enablePush": "🔔 Enable push notifications for reminders",
+    "swipeHide": "Hide"
   },
   "common": {
     "back": "Back",

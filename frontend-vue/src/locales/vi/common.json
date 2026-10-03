@@ -35,7 +35,8 @@
     "title": "Thông báo",
     "closeAria": "Đóng thông báo",
     "empty": "Không có thông báo nào",
-    "enablePush": "🔔 Bật thông báo push để nhận nhắc nhở"
+    "enablePush": "🔔 Bật thông báo push để nhận nhắc nhở",
+    "swipeHide": "Ẩn"
   },
   "common": {
     "back": "Quay lại",
