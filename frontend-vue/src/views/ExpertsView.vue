@@ -171,6 +171,7 @@
                 :placeholder="t('experts.booking.phonePlaceholder')"
                 style="width:100%;box-sizing:border-box;border:1.5px solid var(--kraft-light);border-radius:12px;padding:9px 12px;font:inherit;font-size:0.85rem;"
               >
+              <div style="font-size:0.72rem;color:var(--text-light);margin-top:4px;">{{ t('experts.booking.phoneAccuracyNote') }}</div>
               <input
                 type="text"
                 v-model="bookingData.contactSocial"
@@ -599,6 +600,10 @@ function openShareRecordModal(expert) {
   shareRecordExpert.value = expert;
 }
 
+// Số di động VN: 10 số, bắt đầu 0, đầu số hợp lệ — khớp với regex ở backend
+// (expert.routes.js, bookingCreateSchema) để báo lỗi sớm ngay trên form, không cần chờ submit.
+const VN_PHONE_REGEX = /^0(3[2-9]|5[2689]|7[06-9]|8[1-9]|9[0-46-9])\d{7}$/;
+
 const SESSION_CONFIG = {
   voice: { labelKey: 'experts.sessionConfig.voice', icon: '📞' },
   video: { labelKey: 'experts.sessionConfig.video', icon: '📹' }
@@ -908,6 +913,10 @@ function goBookingStep(step) {
   if (step === 4) {
     if (!bookingData.contactPhone.trim()) {
       alert(t('experts.alerts.enterContactPhone'));
+      return;
+    }
+    if (!VN_PHONE_REGEX.test(bookingData.contactPhone.trim())) {
+      alert(t('experts.alerts.invalidContactPhone'));
       return;
     }
     if (!medicalRecordFiles.value.length && !medicalRecordNote.value.trim()) {

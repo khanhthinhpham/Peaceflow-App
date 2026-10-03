@@ -169,6 +169,7 @@
       "contactTitle": "📞 Contact information",
       "contactSub": "So admin and the expert can proactively reach you when needed.",
       "phonePlaceholder": "Phone number *",
+      "phoneAccuracyNote": "Please enter an accurate phone number so our team can reach you right away if needed.",
       "socialPlaceholder": "Facebook / Threads (optional)",
       "oldRecordsTitle": "📎 Previous medical records",
       "oldRecordsDesc": "Medical records, prescriptions, or test results from elsewhere — helps the expert understand your situation better. <strong>Required:</strong> attach a photo/PDF, or add a specific note below — if you've never seen anyone else, write \"None\". Data is encrypted and only visible to the expert for this appointment.",
@@ -253,6 +254,7 @@
     "alerts": {
       "chooseDateTimeFirst": "Choose a date and time before continuing.",
       "enterContactPhone": "Please enter a contact phone number.",
+      "invalidContactPhone": "Invalid phone number format (e.g. 0901234567).",
       "medicalRecordRequired": "Please attach previous medical records, or add a specific note — if you've never seen anyone else, write \"None\".",
       "fileTooBig": "File \"{name}\" exceeds 5MB, please choose a smaller file.",
       "bookingFailed": "Couldn't book this session.",

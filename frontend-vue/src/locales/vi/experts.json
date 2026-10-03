@@ -169,6 +169,7 @@
       "contactTitle": "📞 Thông tin liên hệ",
       "contactSub": "Để admin và chuyên gia có thể chủ động liên hệ với bạn khi cần.",
       "phonePlaceholder": "Số điện thoại *",
+      "phoneAccuracyNote": "Vui lòng nhập đúng số điện thoại để đội ngũ PeaceFlow có thể hỗ trợ bạn ngay lập tức khi cần.",
       "socialPlaceholder": "Facebook / Threads (không bắt buộc)",
       "oldRecordsTitle": "📎 Hồ sơ khám cũ",
       "oldRecordsDesc": "Bệnh án, đơn thuốc, chỉ số thăm khám từ nơi khác — giúp chuyên gia hiểu tình trạng của bạn hơn. <strong>Bắt buộc:</strong> đính kèm ảnh/PDF, hoặc ghi chú cụ thể bên dưới — nếu chưa từng khám ở đâu khác, hãy ghi rõ \"Không có\". Dữ liệu được mã hoá, chỉ chuyên gia buổi hẹn này xem được.",
@@ -253,6 +254,7 @@
     "alerts": {
       "chooseDateTimeFirst": "Chọn ngày và giờ trước khi tiếp tục.",
       "enterContactPhone": "Vui lòng nhập số điện thoại liên hệ.",
+      "invalidContactPhone": "Số điện thoại không đúng định dạng (vd: 0901234567).",
       "medicalRecordRequired": "Vui lòng đính kèm hồ sơ khám cũ, hoặc ghi chú cụ thể — nếu chưa từng khám ở đâu khác, hãy ghi rõ \"Không có\".",
       "fileTooBig": "File \"{name}\" vượt quá 5MB, vui lòng chọn file nhỏ hơn.",
       "bookingFailed": "Không đặt được lịch tư vấn.",

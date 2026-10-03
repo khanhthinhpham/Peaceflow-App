@@ -475,12 +475,19 @@ router.get('/expert-bookings/upcoming', requireAuth, async (req, res) => {
   }
 });
 
+// Số di động VN: 10 số, bắt đầu 0, đầu số hợp lệ theo quy hoạch hiện hành của các nhà mạng
+// (03x Viettel, 05x Vietnamobile/Itel, 07x Mobifone, 08x Vinaphone/Viettel, 09x Viettel/
+// Vinaphone/Mobifone...). Chặn được số rõ ràng sai định dạng (thiếu số, đầu số không tồn
+// tại), KHÔNG xác minh được số đó có thật/đúng chủ hay không — xem thêm yêu cầu SMS OTP.
+const VN_PHONE_REGEX = /^0(3[2-9]|5[2689]|7[06-9]|8[1-9]|9[0-46-9])\d{7}$/;
+
 const bookingCreateSchema = z.object({
   session_type: z.enum(['voice', 'video']),
   duration_tier: z.enum(['quick', 'standard']),
   starts_at: z.coerce.date(),
   notes: z.string().max(1000).optional().nullable(),
-  contact_phone: z.string().trim().min(8, 'Vui lòng nhập số điện thoại liên hệ.').max(20),
+  contact_phone: z.string().trim()
+    .regex(VN_PHONE_REGEX, 'Số điện thoại không đúng định dạng (vd: 0901234567).'),
   contact_social: z.string().trim().max(255).optional().nullable()
 });
 
