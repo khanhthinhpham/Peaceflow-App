@@ -35,6 +35,7 @@
                  dịch ở đây. -->
             <div class="notif-item-title">{{ n.title }}</div>
             <div class="notif-item-body">{{ n.body }}</div>
+            <div class="notif-item-time">{{ formatDateTime(n.created_at) }}</div>
           </div>
         </a>
       </div>
@@ -46,16 +47,24 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount } from 'vue';
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 import { useNotificationsStore } from '../stores/notifications';
 import { goToLegacyPage, resolveAppRedirect } from '../lib/legacyApp';
 
-const { t } = useI18n();
+const { t, locale } = useI18n();
 const notif = useNotificationsStore();
 const panelEl = ref(null);
 const router = useRouter();
+
+const intlLocale = computed(() => (locale.value === 'en' ? 'en-US' : 'vi-VN'));
+function formatDateTime(value) {
+  if (!value) return '';
+  return new Intl.DateTimeFormat(intlLocale.value, {
+    day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Bangkok'
+  }).format(new Date(value));
+}
 
 // Vuốt sang trái 1 thông báo để ẩn nó đi. Chỉ thao tác DOM trực tiếp (không qua state Vue)
 // lúc đang kéo cho mượt — không re-render mỗi pixel di chuyển.
@@ -202,6 +211,7 @@ onBeforeUnmount(() => document.removeEventListener('click', handleOutsideClick))
 .notif-item-icon { font-size: 1.5rem; flex-shrink: 0; }
 .notif-item-title { font-size: 0.85rem; font-weight: 700; color: var(--text-primary); }
 .notif-item-body { font-size: 0.78rem; color: var(--text-secondary); margin-top: 2px; }
+.notif-item-time { font-size: 0.7rem; color: var(--text-light); margin-top: 4px; }
 .notif-panel-footer { padding: 10px 16px; text-align: center; border-top: 1px solid var(--kraft-light); }
 .notif-panel-footer button { font-size: 0.78rem; color: var(--mint-dark); background: none; border: none; cursor: pointer; font-weight: 600; }
 </style>
