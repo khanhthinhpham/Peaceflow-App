@@ -35,6 +35,8 @@ function toastMetaFor(notif) {
       return { icon: '📝', title: 'Bài viết chưa được duyệt', action: '/community' };
     case 'community_post_pending':
       return { icon: '📝', title: 'Bài viết chờ duyệt', action: '/admin/community' };
+    case 'expert_application_pending':
+      return { icon: '🩺', title: 'Hồ sơ chuyên gia mới', action: '/admin/experts' };
     case 'broadcast':
       return { icon: '📣', title: notif?.params?.title || 'Thông báo từ PeaceFlow', action: notif?.params?.actionUrl || '/dashboard' };
     case 'shared_record_sent':

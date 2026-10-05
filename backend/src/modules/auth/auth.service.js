@@ -168,6 +168,22 @@ export async function submitExpertApplication(userId, data, file) {
     console.error('Failed to send expert application email to admin:', e.message);
   }
 
+  // Thông báo trong app (chuông) cho mọi admin, song song với email ở trên — để admin thấy
+  // ngay cả khi không mở mail. Xem notification.routes.js (type 'expert_application_pending')
+  // để biết cách type này được hiển thị ở panel.
+  try {
+    const applicantName = data.full_name || user.full_name || user.email;
+    const adminsRes = await db.query(`select id from users where role = 'admin' or is_admin`);
+    for (const admin of adminsRes.rows) {
+      await db.query(
+        `insert into notifications (recipient_id, actor_name, type, message) values ($1, $2, 'expert_application_pending', $3)`,
+        [admin.id, applicantName, `${applicantName} vừa gửi hồ sơ đăng ký chuyên gia, cần duyệt.`]
+      );
+    }
+  } catch (e) {
+    console.error('Failed to create expert application notification for admins:', e.message);
+  }
+
   return {
     application: {
       id: application.id,

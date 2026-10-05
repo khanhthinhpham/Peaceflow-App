@@ -191,6 +191,20 @@ router.get('/notifications', requireAuth, async (req, res) => {
         });
         return;
       }
+      // Hồ sơ đăng ký chuyên gia mới, đang chờ admin duyệt (gửi cho admin)
+      if (row.type === 'expert_application_pending') {
+        notifications.push({
+          id: `expert-application-${row.group_key || new Date(row.latest).getTime()}`,
+          type: 'expert',
+          icon: '🩺',
+          title: L('Hồ sơ chuyên gia mới', 'New expert application'),
+          body: row.message,
+          action: '/admin/experts',
+          created_at: row.latest,
+          is_read: Boolean(row.all_read)
+        });
+        return;
+      }
       // Thông báo lịch hẹn chuyên gia
       if (row.type === 'booking_new' || row.type === 'booking_update') {
         notifications.push({
