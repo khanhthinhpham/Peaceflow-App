@@ -468,7 +468,11 @@ const auth = useAuthStore();
 
 // Danh sách slogan lấy từ chính file dịch (landing.slogans, mảng 27 câu) — không giữ bản
 // cứng ở đây nữa, để đổi ngôn ngữ thì slogan cũng đổi theo mà không cần đụng code.
-const SLOGAN_INDEX = Math.floor(Math.random() * 27);
+// Random theo ĐỘ DÀI MẢNG THỰC TẾ, không hardcode số — thêm/bớt câu trong landing.json
+// không cần sửa số ở đây nữa (trước đây hardcode 27 nên thêm câu mới không bao giờ được
+// chọn tới vì random bị giới hạn ở range cũ).
+const SLOGANS = tm('landing.slogans');
+const SLOGAN_INDEX = Math.floor(Math.random() * SLOGANS.length);
 const heroQuote = computed(() => tm('landing.slogans')[SLOGAN_INDEX]);
 
 const mobileNavOpen = ref(false);

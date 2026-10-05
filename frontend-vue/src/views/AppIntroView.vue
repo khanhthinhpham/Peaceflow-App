@@ -175,7 +175,9 @@ const router = useRouter();
 const current = ref(0);
 
 // Slide 1 dùng nguyên section .hero của landing page (xem template) nên không cần dữ liệu riêng.
-const SLOGAN_INDEX = Math.floor(Math.random() * 27);
+// Random theo độ dài mảng thực tế, không hardcode số — xem giải thích ở IndexView.vue.
+const SLOGANS = tm('landing.slogans');
+const SLOGAN_INDEX = Math.floor(Math.random() * SLOGANS.length);
 const heroQuote = computed(() => tm('landing.slogans')[SLOGAN_INDEX]);
 
 // Mỗi slide = 1 MỤC LỚN của landing page, bê nguyên markup/class thật từ IndexView.vue (xem
