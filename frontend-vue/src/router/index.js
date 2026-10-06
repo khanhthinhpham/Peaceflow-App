@@ -126,7 +126,16 @@ const router = createRouter({
         { path: 'review-status', name: 'expert-review-status', component: ExpertReviewStatusView, meta: { navKey: 'review-status' } }
       ]
     }
-  ]
+  ],
+  // Thiếu cấu hình này thì Vue Router mặc định GIỮ NGUYÊN vị trí cuộn cũ khi chuyển sang
+  // route khác (chỉ thay nội dung, không phải load lại trang thật) — nên bấm từ bài viết A
+  // (đang cuộn giữa trang) sang bài viết B thì B cũng mở ngay giữa trang B, không phải đầu
+  // trang. Trả về đầu trang cho MỌI điều hướng mới; riêng bấm back/forward thì khôi phục
+  // đúng vị trí cũ (savedPosition) — đúng hành vi người dùng mong đợi ở trình duyệt thường.
+  scrollBehavior(to, from, savedPosition) {
+    if (savedPosition) return savedPosition;
+    return { top: 0 };
+  }
 });
 
 export default router;
