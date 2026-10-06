@@ -20,6 +20,24 @@
         <h1 style="font-size:1.6rem;font-weight:800;margin:12px 0 6px;line-height:1.35;">{{ article.title }}</h1>
         <div style="font-size:0.8rem;color:var(--text-light);margin-bottom:24px;">{{ formatDate(article.publishedAt || article.createdAt) }} · {{ article.authorName }}</div>
         <div class="ins-article-body" v-html="renderedContent"></div>
+
+        <div class="article-share-row">
+          <span class="asr-label">{{ t('inspire.shareLabel') }}</span>
+          <a
+            class="asr-btn asr-fb"
+            :href="`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`"
+            target="_blank" rel="noopener"
+          >📘 Facebook</a>
+          <a
+            class="asr-btn asr-threads"
+            :href="`https://www.threads.net/intent/post?text=${encodeURIComponent(shareText)}`"
+            target="_blank" rel="noopener"
+          >🧵 Threads</a>
+          <!-- Instagram không có link web để chia sẻ bài viết ngoài trực tiếp (chỉ nhận ảnh
+               qua app di động) -> copy link để người dùng tự dán vào Story/Bio/tin nhắn. -->
+          <button type="button" class="asr-btn asr-ig" @click="shareInstagram">📸 Instagram</button>
+          <span v-if="shareCopied" class="asr-copied">{{ t('inspire.shareCopied') }}</span>
+        </div>
       </div>
     </article>
     <aside v-if="latestArticles.length" class="article-detail-sidebar">
@@ -69,6 +87,26 @@ const renderedContent = computed(() => {
   if (!article.value?.content) return '';
   return escapeHtml(article.value.content).split(/\n{2,}/).map((p) => `<p>${p.replace(/\n/g, '<br>')}</p>`).join('');
 });
+
+const shareUrl = computed(() => window.location.href);
+const shareText = computed(() => article.value?.title || '');
+const shareCopied = ref(false);
+let shareCopiedTimer = null;
+
+// Instagram không hỗ trợ link chia sẻ bài viết từ web (chỉ app di động mới share được) ->
+// copy link vào clipboard để người dùng tự dán vào Story/Bio/tin nhắn Instagram.
+async function shareInstagram() {
+  try {
+    await navigator.clipboard.writeText(shareUrl.value);
+  } catch (_e) {
+    // Clipboard API bị chặn (http không an toàn, quyền trình duyệt...) -> vẫn mở Instagram,
+    // chỉ là người dùng phải tự copy link bằng tay.
+  }
+  shareCopied.value = true;
+  window.clearTimeout(shareCopiedTimer);
+  shareCopiedTimer = window.setTimeout(() => { shareCopied.value = false; }, 2400);
+  window.open('https://www.instagram.com/', '_blank', 'noopener');
+}
 
 async function loadLatestArticles(currentArticleId) {
   try {
@@ -155,6 +193,45 @@ watch(() => route.params.id, load);
   line-height: 1.8;
   color: var(--text-primary);
   margin-bottom: 16px;
+}
+.article-share-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+  padding-top: 18px;
+  border-top: 1.5px dashed var(--kraft-light);
+}
+.asr-label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  margin-right: 4px;
+}
+.asr-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: var(--radius-full);
+  border: 1.5px solid var(--kraft-light);
+  background: var(--warm-white);
+  color: var(--text-primary);
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+  transition: var(--transition);
+}
+.asr-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-paper);
+}
+.asr-copied {
+  font-size: 0.74rem;
+  color: var(--mint-dark);
+  font-weight: 700;
 }
 @media (max-width: 900px), (hover: none) and (pointer: coarse) {
   .article-detail-layout {
