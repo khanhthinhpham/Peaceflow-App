@@ -18,11 +18,18 @@
     <button type="button" class="sb-icon-btn" @click="openInstagramModal" title="Instagram" aria-label="Instagram">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4.2"/><circle cx="17.3" cy="6.7" r="1.1" fill="currentColor" stroke="none"/></svg>
     </button>
-    <!-- Dialog chính thức của Meta, chạy được qua trình duyệt (không cần cài app Messenger) —
-         cần Facebook App ID riêng, xem FACEBOOK_APP_ID bên dưới. -->
+    <!-- Facebook CHẶN HẲN dialog/send (link web) trên mobile (xem tài liệu chính thức:
+         "It is not supported on mobile devices") — không liên quan gì tới có cài app hay
+         không, luôn lỗi trên mobile web dù máy có Messenger. Nên trên mobile đổi sang link
+         app "fb-messenger://" (custom URL scheme, nhảy thẳng vào app, KHÔNG qua web) — chỉ
+         hoạt động nếu máy đã cài app đó, máy chưa cài thì bấm sẽ không có gì xảy ra (giống
+         hệt giới hạn của Instagram), nhưng không còn bị lỗi 4202 nữa. Desktop vẫn dùng link
+         web như cũ vì chạy bình thường ở đó. -->
     <a
       class="sb-icon-btn"
-      :href="`https://m.facebook.com/dialog/send?link=${encodeURIComponent(url)}&app_id=${FACEBOOK_APP_ID}&redirect_uri=${encodeURIComponent(url)}&display=touch`"
+      :href="isMobile
+        ? `fb-messenger://share/?link=${encodeURIComponent(url)}`
+        : `https://www.facebook.com/dialog/send?link=${encodeURIComponent(url)}&app_id=${FACEBOOK_APP_ID}&redirect_uri=${encodeURIComponent(url)}&display=popup`"
       target="_blank" rel="noopener"
       title="Messenger" aria-label="Messenger"
     ><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.15 2 11.26c0 2.91 1.45 5.51 3.72 7.21V22l3.4-1.87c.91.25 1.87.39 2.88.39 5.52 0 10-4.15 10-9.26C22 6.15 17.52 2 12 2zm1.01 12.47-2.55-2.72-4.98 2.72 5.48-5.82 2.61 2.72 4.91-2.72-5.47 5.82z"/></svg></a>
@@ -73,6 +80,10 @@ const props = defineProps({
 
 const { t } = useI18n();
 
+// Dialog Messenger của Facebook bị chặn trên mobile web -> chỉ hiện nút đó ở desktop.
+const isMobile = typeof window !== 'undefined'
+  && window.matchMedia('(hover: none) and (pointer: coarse)').matches;
+
 // App "PeaceFlow Share" tạo ở developers.facebook.com, không gắn quyền/sản phẩm gì (chỉ để
 // lấy App ID dùng cho dialog/send) — đọc từ VITE_FACEBOOK_APP_ID nếu cần đổi mà không sửa
 // code, fallback về App ID thật đang dùng.
@@ -120,14 +131,16 @@ async function openInstagramModal() {
 .share-row {
   display: flex;
   align-items: center;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 8px;
+  width: 100%;
 }
 .sb-label {
   font-size: 0.8rem;
   font-weight: 700;
   color: var(--text-secondary);
   margin-right: 4px;
+  flex-shrink: 0;
 }
 .sb-btn {
   display: inline-flex;
@@ -152,19 +165,20 @@ async function openInstagramModal() {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 52px;
-  height: 52px;
+  flex: 1 1 0;
+  min-width: 0;
+  max-width: 52px;
+  aspect-ratio: 1;
   border-radius: 50%;
   border: none;
   background: none;
   color: var(--text-primary);
   cursor: pointer;
   transition: var(--transition);
-  flex-shrink: 0;
 }
 .sb-icon-btn svg {
-  width: 40px;
-  height: 40px;
+  width: 75%;
+  height: 75%;
 }
 .sb-icon-btn:hover {
   transform: translateY(-1px);
