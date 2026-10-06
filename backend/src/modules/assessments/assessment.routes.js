@@ -2,9 +2,45 @@ import { Router } from 'express';
 import multer from 'multer';
 import { requireAuth } from '../../common/middleware/auth.middleware.js';
 import { db } from '../../config/db.js';
+import { env } from '../../config/env.js';
 import { getAssessmentAiSummary } from '../ai/ai.service.js';
+import { isCrawlerRequest, renderShareHtml } from '../../common/utils/social-share.js';
 
 const router = Router();
+
+// Link mà nút Chia sẻ ở mỗi bài test trỏ tới (xem ShareButtons.vue + MoodAssessmentView.vue
+// frontendTestUrl()) — PUBLIC, không cần đăng nhập, vì bot quét link cũng không đăng nhập
+// được. `:code` chính là key chữ thường của bài test (vd 'dass21'), luôn bằng
+// `assessments.code.toLowerCase()` — xem MoodAssessmentView.vue dòng
+// `extra[a.code.toLowerCase()] = ...`. Không chia sẻ ĐIỂM SỐ/kết quả cá nhân nào ở đây, chỉ
+// giới thiệu tên + mô tả chung của bài test — xem lý do ở phần "cả 2" lúc thêm tính năng này.
+router.get('/assessments/:code/share', async (req, res) => {
+  const testUrl = `${env.frontendUrl}/mood-assessment?test=${encodeURIComponent(req.params.code.toLowerCase())}`;
+
+  try {
+    const r = await db.query(
+      `select name, description, description_en from assessments where lower(code) = lower($1) and active = true limit 1`,
+      [req.params.code]
+    );
+    const test = r.rows[0];
+    if (!test) return res.redirect(302, `${env.frontendUrl}/mood-assessment`);
+
+    if (!isCrawlerRequest(req)) return res.redirect(302, testUrl);
+
+    const description = (req.locale === 'en' && test.description_en) || test.description || '';
+
+    res.set('Content-Type', 'text/html; charset=utf-8');
+    return res.send(renderShareHtml({
+      title: test.name,
+      description,
+      image: `${env.frontendUrl}/favicon.jpg`,
+      targetUrl: testUrl
+    }));
+  } catch (error) {
+    console.error('Assessment share preview error:', error.message);
+    return res.redirect(302, testUrl);
+  }
+});
 
 const upload = multer({
   storage: multer.memoryStorage(),

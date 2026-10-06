@@ -5,6 +5,7 @@ import { db } from '../../config/db.js';
 import { env } from '../../config/env.js';
 import { broadcastToUsers } from '../notifications/notification.routes.js';
 import { translateToEnglish } from '../../common/services/translate.service.js';
+import { isCrawlerRequest, renderShareHtml } from '../../common/utils/social-share.js';
 
 const router = Router();
 
@@ -122,17 +123,6 @@ router.get('/articles/:id', async (req, res) => {
   }
 });
 
-// SPA Vue không server-render, nên bot quét link (Facebook/Threads/Zalo/Telegram...) chỉ
-// đọc được <meta og:*> TĨNH trong index.html — không bao giờ thấy tiêu đề/ảnh RIÊNG của
-// từng bài viết vì bot không chạy JavaScript. Route này là link mà nút Chia sẻ trỏ tới
-// thay vì link SPA thẳng: bot quét được trả HTML có og tag đúng bài; người dùng thật bấm
-// vào thì chuyển thẳng (302) sang đúng trang bài viết trên app, không nhận ra có bước này.
-function escapeHtmlAttr(s) {
-  return String(s || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-}
-
-const CRAWLER_UA_REGEX = /bot|crawl|spider|facebookexternalhit|facebot|whatsapp|telegram|threads|slackbot|discordbot|linkedinbot|pinterest|embedly|quora|vkshare|w3c_validator|redditbot|applebot|skypeuripreview/i;
-
 router.get('/articles/:id/share', async (req, res) => {
   const articleUrl = `${env.frontendUrl}/inspire/${req.params.id}`;
 
@@ -145,11 +135,8 @@ router.get('/articles/:id/share', async (req, res) => {
     const article = r.rows[0];
     if (!article) return res.redirect(302, `${env.frontendUrl}/inspire`);
 
-    const isBot = CRAWLER_UA_REGEX.test(req.headers['user-agent'] || '');
-    if (!isBot) return res.redirect(302, articleUrl);
+    if (!isCrawlerRequest(req)) return res.redirect(302, articleUrl);
 
-    const title = escapeHtmlAttr(article.title);
-    const description = escapeHtmlAttr(`${(article.content || '').trim().replace(/\s+/g, ' ').slice(0, 200)}…`);
     // Dựng URL ảnh bìa từ chính request này (host + prefix API thật đang phục vụ) thay vì
     // hardcode domain production — tự đúng ở mọi môi trường (local/staging/prod).
     const apiBaseUrl = `${req.protocol}://${req.get('host')}${env.apiPrefix}`;
@@ -158,22 +145,13 @@ router.get('/articles/:id/share', async (req, res) => {
       : `${env.frontendUrl}/favicon.jpg`;
 
     res.set('Content-Type', 'text/html; charset=utf-8');
-    // KHÔNG dùng <meta http-equiv="refresh"> ở đây: Facebook theo dõi nó như 1 bước chuyển
-    // hướng, rồi tự đi fetch tiếp articleUrl — thứ 404 với client không chạy JS như bot (xem
-    // phần giải thích ở isBot phía trên) — kết quả là nó VỨT BỎ og tag đúng vừa đọc được ở
-    // đây, lấy fallback từ trang 404 kia thay vào. Nhánh này CHỈ bot mới thấy (người dùng
-    // thật đã bị 302 redirect ở server từ trước `isBot` check), nên không cần refresh gì cả.
-    return res.send(`<!doctype html>
-<html lang="vi"><head>
-<meta charset="utf-8">
-<title>${title}</title>
-<meta property="og:type" content="article">
-<meta property="og:url" content="${escapeHtmlAttr(articleUrl)}">
-<meta property="og:title" content="${title}">
-<meta property="og:description" content="${description}">
-<meta property="og:image" content="${escapeHtmlAttr(image)}">
-<meta name="twitter:card" content="summary_large_image">
-</head><body><a href="${escapeHtmlAttr(articleUrl)}">${title}</a></body></html>`);
+    return res.send(renderShareHtml({
+      type: 'article',
+      title: article.title,
+      description: `${(article.content || '').trim().replace(/\s+/g, ' ').slice(0, 200)}…`,
+      image,
+      targetUrl: articleUrl
+    }));
   } catch (error) {
     console.error('Article share preview error:', error.message);
     return res.redirect(302, articleUrl);

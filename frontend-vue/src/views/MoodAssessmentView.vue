@@ -429,7 +429,7 @@
 import { ref, reactive, computed, watch, onMounted, onBeforeUnmount } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { useI18n } from 'vue-i18n';
-import { apiClient } from '../lib/apiClient';
+import { apiClient, SHARE_BASE_URL } from '../lib/apiClient';
 import { useAuthStore } from '../stores/auth';
 import ShareButtons from '../components/ShareButtons.vue';
 import { TESTS as TESTS_VI } from '../lib/assessmentTests';
@@ -519,8 +519,12 @@ const currentTestId = ref(null);
 
 // Chia sẻ (rủ làm thử) từng bài test — chỉ 1 popover mở tại 1 thời điểm, bấm ra ngoài là đóng.
 const shareCardKey = ref(null);
+// Trỏ về route /assessments/:code/share ở BACKEND (không phải thẳng link SPA) — route đó tự
+// biết trả HTML có og:title/og:description đúng bài test khi bot Facebook/Threads quét, và
+// tự chuyển người dùng thật sang đúng trang /mood-assessment?test=... Xem giải thích ở
+// assessment.routes.js (lý do giống hệt article.routes.js cho bài viết).
 function frontendTestUrl(testKey) {
-  return `${window.location.origin}/mood-assessment?test=${encodeURIComponent(testKey)}`;
+  return `${SHARE_BASE_URL}/assessments/${encodeURIComponent(testKey)}/share`;
 }
 function closeSharePopoverOnOutsideClick(event) {
   if (!shareCardKey.value) return;
