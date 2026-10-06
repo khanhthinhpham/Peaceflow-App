@@ -1,4 +1,17 @@
 {
+  "share": {
+    "label": "Chia sẻ:",
+    "copied": "Đã copy!",
+    "instagramTitle": "Chia sẻ qua Instagram",
+    "instagramDesc": "Instagram chưa hỗ trợ dán sẵn link khi đăng bài, bạn copy link bên dưới rồi dán vào Story/Bio/tin nhắn trong Instagram nhé.",
+    "copyBtn": "Copy link",
+    "closeBtn": "Đóng",
+    "openInstagramBtn": "Mở Instagram",
+    "moreBtn": "Chia sẻ qua...",
+    "testInviteBtn": "Chia sẻ bài test này",
+    "testInviteLabel": "Rủ bạn bè làm thử:",
+    "testInviteText": "Mình vừa làm bài test \"{testName}\" trên PeaceFlow, bạn thử xem sao nhé!"
+  },
   "nav": {
     "groupMain": "Chính",
     "groupConnect": "Kết nối",

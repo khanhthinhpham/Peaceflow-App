@@ -102,6 +102,17 @@
             :class="card.meta.cardClass"
             @click="openAssessment(card)"
           >
+            <!-- Rủ bạn bè làm thử CHÍNH bài test này (không kèm điểm số gì cả — an toàn về
+                 riêng tư), khác hẳn chia sẻ KẾT QUẢ cá nhân ở trang result bên dưới. -->
+            <button
+              type="button"
+              class="tsc-share-btn"
+              :title="t('share.testInviteBtn')"
+              @click.stop="shareCardKey = shareCardKey === card.key ? null : card.key"
+            >🔗</button>
+            <div v-if="shareCardKey === card.key" class="tsc-share-popover" @click.stop>
+              <ShareButtons :url="`${frontendTestUrl(card.key)}`" :text="card.meta.name" />
+            </div>
             <div class="tsc-icon" :style="card.meta.iconStyle">{{ card.meta.icon }}</div>
             <div class="tsc-name">{{ card.meta.name }}</div>
             <div class="tsc-fullname">{{ card.meta.fullname }}</div>
@@ -325,6 +336,18 @@
               <div class="rs-level-badge" style="background:rgba(255,255,255,0.4); border:1px solid currentColor;">{{ card.levelLabel }}</div>
             </div>
           </div>
+
+          <!-- CỐ Ý chỉ rủ bạn bè làm THỬ bài test (không kèm điểm số/kết quả cá nhân nào) —
+               kết quả test tâm lý (lo âu/trầm cảm...) là dữ liệu nhạy cảm, không nên lộ ra
+               ngoài app qua link share công khai. -->
+          <div class="result-share-row">
+            <ShareButtons
+              v-if="currentTestId"
+              :url="frontendTestUrl(currentTestId)"
+              :text="t('share.testInviteText', { testName: result.testName })"
+              :label="t('share.testInviteLabel')"
+            />
+          </div>
         </div>
 
         <div class="paper-card result-interpretation">
@@ -403,11 +426,12 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, watch, onMounted } from 'vue';
-import { useRouter } from 'vue-router';
+import { ref, reactive, computed, watch, onMounted, onBeforeUnmount } from 'vue';
+import { useRouter, useRoute } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { apiClient } from '../lib/apiClient';
 import { useAuthStore } from '../stores/auth';
+import ShareButtons from '../components/ShareButtons.vue';
 import { TESTS as TESTS_VI } from '../lib/assessmentTests';
 import { TESTS as TESTS_EN } from '../lib/assessmentTests.en';
 import { ASSESSMENT_META as ASSESSMENT_META_VI, ASSESSMENT_CATEGORIES as ASSESSMENT_CATEGORIES_VI } from '../lib/assessmentMeta';
@@ -417,6 +441,7 @@ const RESPONDENT_STORAGE_KEY = 'peaceflow_respondent_info';
 
 const auth = useAuthStore();
 const router = useRouter();
+const route = useRoute();
 const { t, locale } = useI18n();
 const intlLocale = computed(() => (locale.value === 'en' ? 'en-US' : 'vi-VN'));
 // Chọn bộ dữ liệu bài test theo ngôn ngữ UI — TESTS bị mutate trực tiếp ở chỗ khác
@@ -491,6 +516,19 @@ const ASSESSMENT_CATEGORIES = computed(() => (locale.value === 'en' ? ASSESSMENT
 const view = ref('selector'); // 'selector' | 'test' | 'result'
 const emergencyOpen = ref(false);
 const currentTestId = ref(null);
+
+// Chia sẻ (rủ làm thử) từng bài test — chỉ 1 popover mở tại 1 thời điểm, bấm ra ngoài là đóng.
+const shareCardKey = ref(null);
+function frontendTestUrl(testKey) {
+  return `${window.location.origin}/mood-assessment?test=${encodeURIComponent(testKey)}`;
+}
+function closeSharePopoverOnOutsideClick(event) {
+  if (!shareCardKey.value) return;
+  if (event.target.closest('.tsc-share-popover, .tsc-share-btn')) return;
+  shareCardKey.value = null;
+}
+onMounted(() => document.addEventListener('click', closeSharePopoverOnOutsideClick));
+onBeforeUnmount(() => document.removeEventListener('click', closeSharePopoverOnOutsideClick));
 const currentQIndex = ref(0);
 const answers = ref([]);
 const result = ref(null);
@@ -1108,9 +1146,17 @@ function backToSelector() {
 onMounted(() => {
   loadRespondentFromStorage();
 
-  loadAssessmentData().catch((error) => {
-    console.error('Assessment page init failed:', error);
-  });
+  loadAssessmentData()
+    .catch((error) => {
+      console.error('Assessment page init failed:', error);
+    })
+    .finally(() => {
+      // Deep-link từ nút Chia sẻ ở mỗi thẻ bài test (vd /mood-assessment?test=dass21) ->
+      // mở thẳng đúng bài đó, giống hệt bấm vào thẻ. Chờ load xong data ở trên trước (điểm
+      // cũ/bản test tùy chỉnh của admin) để mở bài vào đúng trạng thái, không thiếu dữ liệu.
+      const testKey = route.query.test;
+      if (testKey && TESTS.value[testKey]) startTest(testKey);
+    });
 });
 </script>
 

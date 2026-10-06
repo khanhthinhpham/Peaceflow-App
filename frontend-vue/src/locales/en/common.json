@@ -1,4 +1,17 @@
 {
+  "share": {
+    "label": "Share:",
+    "copied": "Copied!",
+    "instagramTitle": "Share via Instagram",
+    "instagramDesc": "Instagram doesn't support pre-filling a link when posting — copy the link below and paste it into your Story/Bio/DM on Instagram.",
+    "copyBtn": "Copy link",
+    "closeBtn": "Close",
+    "openInstagramBtn": "Open Instagram",
+    "moreBtn": "Share via...",
+    "testInviteBtn": "Share this test",
+    "testInviteLabel": "Invite friends to try it:",
+    "testInviteText": "I just took the \"{testName}\" test on PeaceFlow — give it a try too!"
+  },
   "nav": {
     "groupMain": "Main",
     "groupConnect": "Connect",

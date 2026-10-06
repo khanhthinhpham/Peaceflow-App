@@ -22,48 +22,10 @@
         <div class="ins-article-body" v-html="renderedContent"></div>
 
         <div class="article-share-row">
-          <span class="asr-label">{{ t('inspire.shareLabel') }}</span>
-          <a
-            class="asr-btn asr-fb"
-            :href="`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`"
-            target="_blank" rel="noopener"
-          >📘 Facebook</a>
-          <a
-            class="asr-btn asr-threads"
-            :href="`https://www.threads.net/intent/post?text=${encodeURIComponent(shareText)}`"
-            target="_blank" rel="noopener"
-          >🧵 Threads</a>
-          <!-- Instagram không có link web để chia sẻ bài viết ngoài trực tiếp (chỉ nhận ảnh
-               qua app di động) -> copy link để người dùng tự dán vào Story/Bio/tin nhắn. -->
-          <button type="button" class="asr-btn asr-ig" @click="openInstagramModal">📸 Instagram</button>
+          <ShareButtons :url="shareUrl" :text="article.title" />
         </div>
       </div>
     </article>
-
-    <!-- Instagram không hỗ trợ web intent để tự dán link vào bài đăng (xem shareInstagram) ->
-         modal này đóng vai cầu nối: link đã copy sẵn vào clipboard + hiện lại trong ô để bấm
-         Ctrl+V thủ công cho chắc (phòng trình duyệt chặn Clipboard API), cộng nút mở Instagram. -->
-    <div v-if="instagramModalOpen" class="asr-ig-overlay" @click.self="instagramModalOpen = false">
-      <div class="asr-ig-modal">
-        <div class="asr-ig-modal-title">📸 {{ t('inspire.shareInstagramTitle') }}</div>
-        <p class="asr-ig-modal-desc">{{ t('inspire.shareInstagramDesc') }}</p>
-        <div class="asr-ig-link-row">
-          <input
-            ref="instagramLinkInput"
-            class="asr-ig-link-input"
-            type="text"
-            readonly
-            :value="shareUrl"
-            @click="$event.target.select()"
-          >
-          <button type="button" class="asr-ig-copy-btn" @click="copyShareLink">{{ shareCopied ? t('inspire.shareCopied') : t('inspire.shareCopyBtn') }}</button>
-        </div>
-        <div class="asr-ig-modal-actions">
-          <button type="button" class="asr-btn" @click="instagramModalOpen = false">{{ t('inspire.shareCloseBtn') }}</button>
-          <a class="asr-btn asr-ig" href="https://www.instagram.com/" target="_blank" rel="noopener" @click="instagramModalOpen = false">{{ t('inspire.shareOpenInstagramBtn') }}</a>
-        </div>
-      </div>
-    </div>
     <aside v-if="latestArticles.length" class="article-detail-sidebar">
       <div class="article-latest-box">
         <h2>{{ t('inspire.latestTitle') }}</h2>
@@ -80,11 +42,12 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch, nextTick } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { apiClient, SHARE_BASE_URL } from '../lib/apiClient';
 import ArticleCard from '../components/ArticleCard.vue';
+import ShareButtons from '../components/ShareButtons.vue';
 
 const { t, locale } = useI18n();
 const route = useRoute();
@@ -118,36 +81,6 @@ const renderedContent = computed(() => {
 // SHARE_BASE_URL (domain "share.peaceflow.vn", đọc được từ VITE_SHARE_BASE_URL nếu cần đổi)
 // định nghĩa ở apiClient.js, không hardcode ở đây.
 const shareUrl = computed(() => `${SHARE_BASE_URL}/articles/${article.value?.id || ''}/share`);
-// Threads intent chỉ có 1 param "text" (không có "url" riêng như Facebook) -> phải tự nhét
-// link vào cuối text thì Threads mới nhận diện ra link và tự tạo card preview, nếu không
-// bài đăng chỉ có mỗi tiêu đề, không kèm gì để người xem bấm vào.
-const shareText = computed(() => `${article.value?.title || ''}\n\n${shareUrl.value}`);
-const shareCopied = ref(false);
-let shareCopiedTimer = null;
-
-// Instagram không hỗ trợ link chia sẻ bài viết từ web (chỉ app di động mới share được) ->
-// hiện modal có ô link (đã tự copy + tự chọn sẵn, phòng khi Clipboard API bị chặn thì
-// người dùng vẫn bấm Ctrl+V/Ctrl+C thủ công được ngay) + nút mở Instagram riêng.
-async function copyShareLink() {
-  try {
-    await navigator.clipboard.writeText(shareUrl.value);
-  } catch (_e) {
-    // Clipboard API bị chặn (http không an toàn, quyền trình duyệt...) -> ô input readonly
-    // đã tự select sẵn text, người dùng tự bấm Ctrl+C được.
-  }
-  shareCopied.value = true;
-  window.clearTimeout(shareCopiedTimer);
-  shareCopiedTimer = window.setTimeout(() => { shareCopied.value = false; }, 2400);
-}
-
-const instagramModalOpen = ref(false);
-const instagramLinkInput = ref(null);
-async function openInstagramModal() {
-  instagramModalOpen.value = true;
-  await copyShareLink();
-  await nextTick();
-  instagramLinkInput.value?.select();
-}
 
 async function loadLatestArticles(currentArticleId) {
   try {
@@ -243,97 +176,6 @@ watch(() => route.params.id, load);
   margin-top: 8px;
   padding-top: 18px;
   border-top: 1.5px dashed var(--kraft-light);
-}
-.asr-label {
-  font-size: 0.8rem;
-  font-weight: 700;
-  color: var(--text-secondary);
-  margin-right: 4px;
-}
-.asr-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 14px;
-  border-radius: var(--radius-full);
-  border: 1.5px solid var(--kraft-light);
-  background: var(--warm-white);
-  color: var(--text-primary);
-  font-size: 0.8rem;
-  font-weight: 700;
-  text-decoration: none;
-  cursor: pointer;
-  transition: var(--transition);
-}
-.asr-btn:hover {
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-paper);
-}
-.asr-copied {
-  font-size: 0.74rem;
-  color: var(--mint-dark);
-  font-weight: 700;
-}
-.asr-ig-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 1000;
-  background: rgba(0, 0, 0, 0.45);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
-}
-.asr-ig-modal {
-  background: var(--warm-white);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-paper-lg);
-  padding: 24px;
-  max-width: 420px;
-  width: 100%;
-}
-.asr-ig-modal-title {
-  font-size: 1.05rem;
-  font-weight: 800;
-  margin-bottom: 8px;
-}
-.asr-ig-modal-desc {
-  font-size: 0.85rem;
-  color: var(--text-secondary);
-  line-height: 1.6;
-  margin: 0 0 16px;
-}
-.asr-ig-link-row {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 18px;
-}
-.asr-ig-link-input {
-  flex: 1;
-  min-width: 0;
-  border: 1.5px solid var(--kraft-light);
-  border-radius: var(--radius-md);
-  padding: 8px 12px;
-  font-size: 0.8rem;
-  font-family: inherit;
-  background: var(--cream);
-  color: var(--text-primary);
-}
-.asr-ig-copy-btn {
-  flex-shrink: 0;
-  border: none;
-  border-radius: var(--radius-md);
-  padding: 8px 14px;
-  font-size: 0.8rem;
-  font-weight: 700;
-  color: white;
-  background: var(--mint-dark);
-  cursor: pointer;
-}
-.asr-ig-modal-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 8px;
 }
 @media (max-width: 900px), (hover: none) and (pointer: coarse) {
   .article-detail-layout {
