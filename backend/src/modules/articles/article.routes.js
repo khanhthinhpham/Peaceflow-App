@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import multer from 'multer';
+import sharp from 'sharp';
 import { requireAuth } from '../../common/middleware/auth.middleware.js';
 import { db } from '../../config/db.js';
 import { env } from '../../config/env.js';
@@ -163,6 +164,23 @@ router.get('/articles/:id/cover', async (req, res) => {
     const r = await db.query(`select cover_image, cover_image_mime from articles where id = $1`, [req.params.id]);
     const row = r.rows[0];
     if (!row?.cover_image) return res.status(404).end();
+
+    // AVIF chưa được hầu hết bot quét link MXH (Facebook/Messenger...) hỗ trợ cho og:image —
+    // ảnh bị rớt silent, kéo theo cả title/description cũng không hiện (xem article.routes.js
+    // /share). Admin lỡ upload file .avif thì tự chuyển sang JPEG ở đây, không cần sửa lại
+    // từng bài trong DB. Định dạng khác (jpeg/png/webp) giữ nguyên, không tốn CPU convert.
+    if (row.cover_image_mime === 'image/avif') {
+      try {
+        const jpegBuffer = await sharp(row.cover_image).jpeg({ quality: 85 }).toBuffer();
+        res.set('Content-Type', 'image/jpeg');
+        res.set('Cache-Control', 'public, max-age=86400');
+        return res.send(jpegBuffer);
+      } catch (convertError) {
+        console.error('Cover AVIF->JPEG convert error:', convertError.message);
+        // Convert lỗi thì vẫn trả ảnh gốc, còn hơn 500 trắng trang.
+      }
+    }
+
     res.set('Content-Type', row.cover_image_mime || 'image/jpeg');
     res.set('Cache-Control', 'public, max-age=86400');
     return res.send(row.cover_image);
