@@ -59,7 +59,7 @@
 import { ref, computed, onMounted, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import { useI18n } from 'vue-i18n';
-import { apiClient } from '../lib/apiClient';
+import { apiClient, API_BASE_URL } from '../lib/apiClient';
 import ArticleCard from '../components/ArticleCard.vue';
 
 const { t, locale } = useI18n();
@@ -88,7 +88,10 @@ const renderedContent = computed(() => {
   return escapeHtml(article.value.content).split(/\n{2,}/).map((p) => `<p>${p.replace(/\n/g, '<br>')}</p>`).join('');
 });
 
-const shareUrl = computed(() => window.location.href);
+// Trỏ về route /articles/:id/share ở BACKEND (không phải thẳng link SPA) — route đó tự biết
+// trả HTML có og:title/og:image đúng bài viết khi bot Facebook/Threads quét, và tự chuyển
+// người dùng thật sang đúng trang bài viết. Xem giải thích ở article.routes.js.
+const shareUrl = computed(() => `${API_BASE_URL}/articles/${article.value?.id || ''}/share`);
 const shareText = computed(() => article.value?.title || '');
 const shareCopied = ref(false);
 let shareCopiedTimer = null;

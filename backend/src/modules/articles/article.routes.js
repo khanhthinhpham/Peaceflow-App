@@ -2,6 +2,7 @@ import { Router } from 'express';
 import multer from 'multer';
 import { requireAuth } from '../../common/middleware/auth.middleware.js';
 import { db } from '../../config/db.js';
+import { env } from '../../config/env.js';
 import { broadcastToUsers } from '../notifications/notification.routes.js';
 import { translateToEnglish } from '../../common/services/translate.service.js';
 
@@ -118,6 +119,60 @@ router.get('/articles/:id', async (req, res) => {
   } catch (error) {
     console.error('Get article error:', error);
     return res.status(500).json({ success: false, message: 'Could not load article' });
+  }
+});
+
+// SPA Vue không server-render, nên bot quét link (Facebook/Threads/Zalo/Telegram...) chỉ
+// đọc được <meta og:*> TĨNH trong index.html — không bao giờ thấy tiêu đề/ảnh RIÊNG của
+// từng bài viết vì bot không chạy JavaScript. Route này là link mà nút Chia sẻ trỏ tới
+// thay vì link SPA thẳng: bot quét được trả HTML có og tag đúng bài; người dùng thật bấm
+// vào thì chuyển thẳng (302) sang đúng trang bài viết trên app, không nhận ra có bước này.
+function escapeHtmlAttr(s) {
+  return String(s || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+const CRAWLER_UA_REGEX = /bot|crawl|spider|facebookexternalhit|facebot|whatsapp|telegram|threads|slackbot|discordbot|linkedinbot|pinterest|embedly|quora|vkshare|w3c_validator|redditbot|applebot|skypeuripreview/i;
+
+router.get('/articles/:id/share', async (req, res) => {
+  const articleUrl = `${env.frontendUrl}/inspire/${req.params.id}`;
+
+  try {
+    const r = await db.query(
+      `select id, title, content, author_name, (cover_image is not null) as has_cover
+       from articles where id = $1 and status = 'published'`,
+      [req.params.id]
+    );
+    const article = r.rows[0];
+    if (!article) return res.redirect(302, `${env.frontendUrl}/inspire`);
+
+    const isBot = CRAWLER_UA_REGEX.test(req.headers['user-agent'] || '');
+    if (!isBot) return res.redirect(302, articleUrl);
+
+    const title = escapeHtmlAttr(article.title);
+    const description = escapeHtmlAttr(`${(article.content || '').trim().replace(/\s+/g, ' ').slice(0, 200)}…`);
+    // Dựng URL ảnh bìa từ chính request này (host + prefix API thật đang phục vụ) thay vì
+    // hardcode domain production — tự đúng ở mọi môi trường (local/staging/prod).
+    const apiBaseUrl = `${req.protocol}://${req.get('host')}${env.apiPrefix}`;
+    const image = article.has_cover
+      ? `${apiBaseUrl}/articles/${article.id}/cover`
+      : `${env.frontendUrl}/favicon.jpg`;
+
+    res.set('Content-Type', 'text/html; charset=utf-8');
+    return res.send(`<!doctype html>
+<html lang="vi"><head>
+<meta charset="utf-8">
+<title>${title}</title>
+<meta property="og:type" content="article">
+<meta property="og:url" content="${escapeHtmlAttr(articleUrl)}">
+<meta property="og:title" content="${title}">
+<meta property="og:description" content="${description}">
+<meta property="og:image" content="${escapeHtmlAttr(image)}">
+<meta name="twitter:card" content="summary_large_image">
+<meta http-equiv="refresh" content="0;url=${escapeHtmlAttr(articleUrl)}">
+</head><body><a href="${escapeHtmlAttr(articleUrl)}">${title}</a></body></html>`);
+  } catch (error) {
+    console.error('Article share preview error:', error.message);
+    return res.redirect(302, articleUrl);
   }
 });
 
