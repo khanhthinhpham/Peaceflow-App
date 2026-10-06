@@ -4,6 +4,10 @@
 import { getCurrentLocale } from '../locales';
 
 const PRODUCTION_API_BASE_URL = 'https://peaceflow-app.vercel.app/api/v1';
+// Domain riêng dùng CHO LINK CHIA SẺ (Facebook/Threads/Instagram) — CNAME trỏ về cùng 1
+// backend này (xem article.routes.js, route /articles/:id/share), chỉ khác tên miền cho
+// link hiện ra thân thiện hơn "peaceflow-app.vercel.app". Không ảnh hưởng API_BASE_URL.
+const PRODUCTION_SHARE_BASE_URL = 'https://share.peaceflow.vn/api/v1';
 
 function normalizeApiBaseUrl(value) {
   return String(value || '').trim().replace(/\/+$/, '');
@@ -51,6 +55,23 @@ export function getApiBaseUrl() {
 }
 
 export const API_BASE_URL = getApiBaseUrl();
+
+export function getShareBaseUrl() {
+  const explicitOverride = import.meta.env.VITE_SHARE_BASE_URL;
+  if (typeof explicitOverride === 'string' && explicitOverride.trim()) {
+    return normalizeApiBaseUrl(explicitOverride);
+  }
+
+  // Local/dev/ngrok (API_BASE_URL không phải domain production thật) -> domain share riêng
+  // không áp dụng được, dùng luôn API_BASE_URL hiện tại để test link chia sẻ vẫn chạy được.
+  if (API_BASE_URL !== normalizeApiBaseUrl(PRODUCTION_API_BASE_URL)) {
+    return API_BASE_URL;
+  }
+
+  return normalizeApiBaseUrl(PRODUCTION_SHARE_BASE_URL);
+}
+
+export const SHARE_BASE_URL = getShareBaseUrl();
 
 let refreshPromise = null;
 

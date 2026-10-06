@@ -83,7 +83,7 @@
 import { ref, computed, onMounted, watch, nextTick } from 'vue';
 import { useRoute } from 'vue-router';
 import { useI18n } from 'vue-i18n';
-import { apiClient, API_BASE_URL } from '../lib/apiClient';
+import { apiClient, SHARE_BASE_URL } from '../lib/apiClient';
 import ArticleCard from '../components/ArticleCard.vue';
 
 const { t, locale } = useI18n();
@@ -115,7 +115,9 @@ const renderedContent = computed(() => {
 // Trỏ về route /articles/:id/share ở BACKEND (không phải thẳng link SPA) — route đó tự biết
 // trả HTML có og:title/og:image đúng bài viết khi bot Facebook/Threads quét, và tự chuyển
 // người dùng thật sang đúng trang bài viết. Xem giải thích ở article.routes.js.
-const shareUrl = computed(() => `${API_BASE_URL}/articles/${article.value?.id || ''}/share`);
+// SHARE_BASE_URL (domain "share.peaceflow.vn", đọc được từ VITE_SHARE_BASE_URL nếu cần đổi)
+// định nghĩa ở apiClient.js, không hardcode ở đây.
+const shareUrl = computed(() => `${SHARE_BASE_URL}/articles/${article.value?.id || ''}/share`);
 // Threads intent chỉ có 1 param "text" (không có "url" riêng như Facebook) -> phải tự nhét
 // link vào cuối text thì Threads mới nhận diện ra link và tự tạo card preview, nếu không
 // bài đăng chỉ có mỗi tiêu đề, không kèm gì để người xem bấm vào.
