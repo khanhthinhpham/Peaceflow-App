@@ -22,7 +22,7 @@
          cần Facebook App ID riêng, xem FACEBOOK_APP_ID bên dưới. -->
     <a
       class="sb-icon-btn"
-      :href="`https://www.facebook.com/dialog/send?link=${encodeURIComponent(url)}&app_id=${FACEBOOK_APP_ID}&redirect_uri=${encodeURIComponent(url)}&display=popup`"
+      :href="`https://m.facebook.com/dialog/send?link=${encodeURIComponent(url)}&app_id=${FACEBOOK_APP_ID}&redirect_uri=${encodeURIComponent(url)}&display=touch`"
       target="_blank" rel="noopener"
       title="Messenger" aria-label="Messenger"
     ><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.15 2 11.26c0 2.91 1.45 5.51 3.72 7.21V22l3.4-1.87c.91.25 1.87.39 2.88.39 5.52 0 10-4.15 10-9.26C22 6.15 17.52 2 12 2zm1.01 12.47-2.55-2.72-4.98 2.72 5.48-5.82 2.61 2.72 4.91-2.72-5.47 5.82z"/></svg></a>
