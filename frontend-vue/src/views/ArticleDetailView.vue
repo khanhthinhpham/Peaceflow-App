@@ -116,7 +116,10 @@ const renderedContent = computed(() => {
 // trả HTML có og:title/og:image đúng bài viết khi bot Facebook/Threads quét, và tự chuyển
 // người dùng thật sang đúng trang bài viết. Xem giải thích ở article.routes.js.
 const shareUrl = computed(() => `${API_BASE_URL}/articles/${article.value?.id || ''}/share`);
-const shareText = computed(() => article.value?.title || '');
+// Threads intent chỉ có 1 param "text" (không có "url" riêng như Facebook) -> phải tự nhét
+// link vào cuối text thì Threads mới nhận diện ra link và tự tạo card preview, nếu không
+// bài đăng chỉ có mỗi tiêu đề, không kèm gì để người xem bấm vào.
+const shareText = computed(() => `${article.value?.title || ''}\n\n${shareUrl.value}`);
 const shareCopied = ref(false);
 let shareCopiedTimer = null;
 
