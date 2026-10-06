@@ -158,6 +158,11 @@ router.get('/articles/:id/share', async (req, res) => {
       : `${env.frontendUrl}/favicon.jpg`;
 
     res.set('Content-Type', 'text/html; charset=utf-8');
+    // KHÔNG dùng <meta http-equiv="refresh"> ở đây: Facebook theo dõi nó như 1 bước chuyển
+    // hướng, rồi tự đi fetch tiếp articleUrl — thứ 404 với client không chạy JS như bot (xem
+    // phần giải thích ở isBot phía trên) — kết quả là nó VỨT BỎ og tag đúng vừa đọc được ở
+    // đây, lấy fallback từ trang 404 kia thay vào. Nhánh này CHỈ bot mới thấy (người dùng
+    // thật đã bị 302 redirect ở server từ trước `isBot` check), nên không cần refresh gì cả.
     return res.send(`<!doctype html>
 <html lang="vi"><head>
 <meta charset="utf-8">
@@ -168,7 +173,6 @@ router.get('/articles/:id/share', async (req, res) => {
 <meta property="og:description" content="${description}">
 <meta property="og:image" content="${escapeHtmlAttr(image)}">
 <meta name="twitter:card" content="summary_large_image">
-<meta http-equiv="refresh" content="0;url=${escapeHtmlAttr(articleUrl)}">
 </head><body><a href="${escapeHtmlAttr(articleUrl)}">${title}</a></body></html>`);
   } catch (error) {
     console.error('Article share preview error:', error.message);
