@@ -4,7 +4,7 @@ import { requireAuth } from '../../common/middleware/auth.middleware.js';
 import { db } from '../../config/db.js';
 import { z } from 'zod';
 import { env } from '../../config/env.js';
-import { sendBookingRequestEmail, sendBookingCreatedAdminEmail, sendBookingStatusEmail, sendBookingConfirmedEmail, sendPayoutMethodChangedEmail } from '../../common/services/email.service.js';
+import { sendBookingRequestEmail, sendBookingCreatedAdminEmail, sendBookingCreatedClientEmail, sendPaymentClaimedClientEmail, sendPaymentConfirmedClientEmail, sendBookingStatusEmail, sendBookingConfirmedEmail, sendPayoutMethodChangedEmail } from '../../common/services/email.service.js';
 import { createZoomMeeting } from '../../common/services/zoom.service.js';
 import { generateOrderCode, transferContent, buildTransferContent, buildVietQrUrl, platformBankInfo, computeFee, isPayosEnabled, createPayosPayment, qrImageFromString, verifyPayosWebhook, lookupBankAccount, isVietqrLookupEnabled } from '../../common/services/payment.service.js';
 import { approveExpertApplication, rejectExpertApplication } from '../auth/auth.service.js';
@@ -656,6 +656,30 @@ router.post('/experts/:id/bookings', requireAuth, async (req, res) => {
       }
     }
 
+    // Báo THÂN CHỦ ngay khi tạo yêu cầu thành công — minh bạch từng bước, có bản ghi lại
+    // hướng dẫn chuyển khoản dù họ lỡ đóng tab/mất mạng giữa chừng.
+    try {
+      const bank = platformBankInfo();
+      if (clientNameRes.rows[0]?.email) {
+        await sendBookingCreatedClientEmail({
+          to: clientNameRes.rows[0].email,
+          clientName,
+          expertName: expert.full_name,
+          sessionType: payload.session_type,
+          startsAt: payload.starts_at,
+          amount,
+          bankName: bank.bankId,
+          bankAccountNo: bank.accountNo,
+          bankAccountName: bank.accountName,
+          transferContent: content,
+          expiresAt,
+          locale: req.locale
+        });
+      }
+    } catch (error) {
+      console.error('[email] booking created client notification failed:', error.message);
+    }
+
     return res.json({
       success: true,
       data: {
@@ -970,7 +994,7 @@ router.post('/bookings/:id/claim-payment', requireAuth, async (req, res) => {
     await db.query(`update expert_bookings set status = 'pending' where id = $1`, [booking.id]);
 
     const clientRes = await db.query(
-      `select coalesce(display_name, full_name, 'Một thân chủ') as name from users where id = $1`,
+      `select coalesce(display_name, full_name, 'Một thân chủ') as name, email from users where id = $1`,
       [req.user.sub]
     );
     const clientName = clientRes.rows[0]?.name || 'Một thân chủ';
@@ -982,6 +1006,21 @@ router.post('/bookings/:id/claim-payment', requireAuth, async (req, res) => {
     }
     // Báo chuyên gia (thông tin, không cần thao tác): có lịch đã thanh toán đang chờ duyệt.
     await notify(booking.expert_user_id, clientName, 'booking_new', `${clientName} đã đặt & thanh toán một lịch hẹn — đang chờ xác nhận.`, { code: 'booking_client_deposited', clientName });
+
+    // Báo THÂN CHỦ: hệ thống đã ghi nhận lời báo "đã chuyển khoản" của họ (minh bạch từng
+    // bước), tách biệt với email xác nhận THẬT ở bước admin confirm-payment bên dưới.
+    try {
+      if (clientRes.rows[0]?.email) {
+        await sendPaymentClaimedClientEmail({
+          to: clientRes.rows[0].email,
+          clientName,
+          expertName: booking.expert_name,
+          locale: req.locale
+        });
+      }
+    } catch (error) {
+      console.error('[email] payment claimed client notification failed:', error.message);
+    }
 
     return res.json({ success: true });
   } catch (error) {
@@ -2376,7 +2415,8 @@ router.post('/admin/bookings/:id/confirm-payment', requireAuth, async (req, res)
     const bRes = await db.query(
       `select b.*, e.user_id as expert_user_id, e.full_name as expert_name,
               eu.email as expert_email, eu.locale as expert_locale,
-              coalesce(cu.display_name, cu.full_name, 'Một thân chủ') as client_name
+              coalesce(cu.display_name, cu.full_name, 'Một thân chủ') as client_name,
+              cu.email as client_email, cu.locale as client_locale
        from expert_bookings b join experts e on e.id = b.expert_id
        left join users eu on eu.id = e.user_id
        left join users cu on cu.id = b.user_id
@@ -2387,6 +2427,7 @@ router.post('/admin/bookings/:id/confirm-payment', requireAuth, async (req, res)
     if (!b) return res.status(404).json({ success: false, message: 'Không tìm thấy lịch hẹn.' });
     if (b.status !== 'pending') return res.status(409).json({ success: false, message: 'Lịch không ở trạng thái chờ xác nhận thanh toán.' });
     const expertLocale = b.expert_locale === 'en' ? 'en' : 'vi';
+    const clientLocale = b.client_locale === 'en' ? 'en' : 'vi';
 
     // Đã nhận tiền → chuyển sang CHỜ CHUYÊN GIA NHẬN LỊCH (ghi sổ doanh thu khi chuyên gia nhận).
     await db.query(`update expert_bookings set status = 'awaiting_expert', paid_at = now() where id = $1`, [b.id]);
@@ -2412,6 +2453,21 @@ router.post('/admin/bookings/:id/confirm-payment', requireAuth, async (req, res)
       }
     } catch (e) {
       console.error('[email] booking request failed:', e.message);
+    }
+
+    // Báo THÂN CHỦ: admin đã xác nhận THẬT (khác với lúc họ tự báo "đã chuyển khoản" ở
+    // claim-payment) — minh bạch từng bước cho thân chủ biết hệ thống đã xử lý tới đâu.
+    try {
+      if (b.client_email) {
+        await sendPaymentConfirmedClientEmail({
+          to: b.client_email,
+          clientName: b.client_name,
+          expertName: b.expert_name,
+          locale: clientLocale
+        });
+      }
+    } catch (e) {
+      console.error('[email] payment confirmed client notification failed:', e.message);
     }
 
     // Gửi Web Push tới các thiết bị mà chuyên gia đã đăng ký. Hàm này tự bỏ qua

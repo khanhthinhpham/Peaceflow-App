@@ -13,10 +13,6 @@
       "connectNow": "💬 Kết nối chuyên gia ngay",
       "imOk": "Tôi ổn, đóng lại"
     },
-    "hotlineBanner": {
-      "text": "<strong>Đường dây nóng sức khỏe tâm thần:</strong> 0931773637 — Miễn phí, hoạt động 24/7. Nếu bạn đang trong tình trạng khủng hoảng, hãy gọi ngay.",
-      "callBtn": "Gọi ngay"
-    },
     "aiMatch": {
       "defaultTitle": "PeaceCat đang phân tích tín hiệu của bạn",
       "defaultSubtitle": "Bạn có thể xem toàn bộ danh sách chuyên gia bên dưới.",
@@ -186,6 +182,13 @@
       "totalLabel": "Tổng thanh toán",
       "contactLabel": "Liên hệ",
       "reminderNote": "⚠️ Bạn sẽ nhận được nhắc nhở 1 giờ trước buổi tư vấn. Hủy lịch miễn phí trước 24 giờ.",
+      "processGuide": {
+        "title": "📋 Sau khi đặt lịch thì sao?",
+        "step1": "Bạn thanh toán theo hướng dẫn (QR/chuyển khoản), xong thì bấm \"Đã chuyển khoản\" nhé.",
+        "step2": "PeaceFlow đối chiếu rồi chuyên gia sẽ xác nhận lịch cho bạn (thường trong vài giờ).",
+        "step3": "Chuyên gia xác nhận xong là phòng Zoom đã được chuẩn bị sẵn cho buổi hẹn của bạn.",
+        "step4": "Từ 10 phút trước giờ hẹn, quay lại chính trang Chuyên gia này — mục \"Lịch của tôi\" sẽ hiện ở trên cùng, bấm \"Vào phòng Zoom\" là gặp được chuyên gia."
+      },
       "confirmBtn": "✓ Xác nhận đặt lịch",
       "payment": {
         "title": "💳 Thanh toán giữ chỗ",

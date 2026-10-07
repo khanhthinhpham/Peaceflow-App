@@ -13,10 +13,6 @@
       "connectNow": "💬 Connect with an expert now",
       "imOk": "I'm okay, close"
     },
-    "hotlineBanner": {
-      "text": "<strong>Mental health hotline:</strong> 0931773637 — Free, available 24/7. If you're in crisis, call right now.",
-      "callBtn": "Call now"
-    },
     "aiMatch": {
       "defaultTitle": "PeaceCat is analyzing your signals",
       "defaultSubtitle": "You can browse the full expert list below.",
@@ -186,6 +182,13 @@
       "totalLabel": "Total payment",
       "contactLabel": "Contact",
       "reminderNote": "⚠️ You'll get a reminder 1 hour before the session. Free cancellation up to 24 hours in advance.",
+      "processGuide": {
+        "title": "📋 So what happens next?",
+        "step1": "Pay using the instructions (QR/bank transfer), then tap \"I've paid\".",
+        "step2": "We'll check it and the expert will confirm your booking (usually within a few hours).",
+        "step3": "Once they confirm, your Zoom room is already set up and waiting for your session.",
+        "step4": "Starting 10 minutes before the session, come back to this same Experts page — \"My bookings\" will show up at the top, tap \"Join Zoom\" to meet your expert."
+      },
       "confirmBtn": "✓ Confirm booking",
       "payment": {
         "title": "💳 Reservation payment",

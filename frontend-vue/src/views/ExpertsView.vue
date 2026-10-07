@@ -223,6 +223,15 @@
               <div style="margin-top:10px;padding:10px 12px;background:var(--peach-light);border:1.5px solid var(--peach);border-radius:var(--radius-sm);font-size:0.75rem;color:var(--text-secondary);line-height:1.5;">
                 {{ t('experts.booking.reminderNote') }}
               </div>
+              <div class="booking-process-guide">
+                <div class="bpg-title">{{ t('experts.booking.processGuide.title') }}</div>
+                <ol class="bpg-steps">
+                  <li>{{ t('experts.booking.processGuide.step1') }}</li>
+                  <li>{{ t('experts.booking.processGuide.step2') }}</li>
+                  <li>{{ t('experts.booking.processGuide.step3') }}</li>
+                  <li>{{ t('experts.booking.processGuide.step4') }}</li>
+                </ol>
+              </div>
             </div>
             <div style="display:flex;gap:10px;justify-content:flex-end;">
               <button class="btn-outline" @click="goBookingStep(3)">{{ t('experts.booking.backBtn') }}</button>
@@ -372,12 +381,6 @@
           <span v-if="walletBalance > 0" style="font-size:0.85rem;font-weight:800;color:var(--mint-dark);background:var(--mint-light);padding:8px 14px;border-radius:999px;border:1.5px solid var(--mint);">{{ t('experts.walletLabel', { amount: formatCurrency(walletBalance) }) }}</span>
           <button class="btn-primary" @click="emergencyOpen = true">{{ t('experts.emergencyBtn') }}</button>
         </div>
-      </div>
-
-      <div class="hotline-banner">
-        <span class="hb-icon">📞</span>
-        <div class="hb-text" v-html="t('experts.hotlineBanner.text')"></div>
-        <a href="tel:0931773637" class="hb-btn">{{ t('experts.hotlineBanner.callBtn') }}</a>
       </div>
 
       <div class="paper-card ai-match-banner">

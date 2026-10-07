@@ -297,6 +297,97 @@ export async function sendBookingCreatedAdminEmail({
   });
 }
 
+// Gửi cho THÂN CHỦ ngay khi họ tạo yêu cầu đặt lịch thành công (trước khi thanh toán) — kèm
+// hướng dẫn chuyển khoản để họ có bản ghi lại dù lỡ đóng tab/mất mạng giữa chừng.
+export async function sendBookingCreatedClientEmail({
+  to, clientName, expertName, sessionType, startsAt, amount, bankName, bankAccountNo, bankAccountName,
+  transferContent, expiresAt, locale = 'vi'
+}) {
+  if (!hasMailProvider() || !to) return;
+  const sessionLabel = (locale === 'en' ? SESSION_LABELS_EN : SESSION_LABELS)[sessionType] || sessionType;
+  const link = `${APP_URL}/experts`;
+  await sendMail({
+    from: FROM,
+    to,
+    subject: locale === 'en' ? '🗓️ Booking request received — PeaceFlow' : '🗓️ Đã nhận yêu cầu đặt lịch — PeaceFlow',
+    html: locale === 'en' ? `
+      <div style="font-family:sans-serif;max-width:520px;margin:0 auto;padding:32px 24px;">
+        <h2 style="color:#2D6A4F;margin-bottom:8px;">We've received your booking request</h2>
+        <p style="color:#555;line-height:1.6;">Hi ${clientName || 'there'}, your session with <strong>${expertName}</strong> is reserved and waiting for payment:</p>
+        <table style="width:100%;border-collapse:collapse;font-size:0.95rem;color:#333;margin:16px 0;">
+          <tr><td style="padding:6px 0;color:#888;width:150px;">Format</td><td><strong>${sessionLabel}</strong></td></tr>
+          <tr><td style="padding:6px 0;color:#888;">Time</td><td><strong>${formatBookingTime(startsAt, locale)}</strong></td></tr>
+          <tr><td style="padding:6px 0;color:#888;">Amount</td><td><strong>${Number(amount || 0).toLocaleString('vi-VN')}đ</strong></td></tr>
+        </table>
+        <div style="background:#F6F4EF;border:1px solid #E8CBA7;border-radius:10px;padding:14px 16px;margin:14px 0;color:#4A3728;">
+          🏦 <strong>${bankName || ''}</strong><br>Account: <strong>${bankAccountNo || ''}</strong> (${bankAccountName || ''})<br>Transfer note: <strong>${transferContent || ''}</strong>
+        </div>
+        <p style="color:#999;font-size:0.85rem;">Please pay before <strong>${formatBookingTime(expiresAt, locale)}</strong>, then tap "I've paid" in the app.</p>
+        <a href="${link}" style="display:inline-block;margin:16px 0;padding:12px 28px;background:#52B788;color:#fff;border-radius:8px;text-decoration:none;font-weight:700;">View my bookings</a>
+      </div>
+    ` : `
+      <div style="font-family:sans-serif;max-width:520px;margin:0 auto;padding:32px 24px;">
+        <h2 style="color:#2D6A4F;margin-bottom:8px;">Đã nhận yêu cầu đặt lịch của bạn</h2>
+        <p style="color:#555;line-height:1.6;">Xin chào ${clientName || 'bạn'}, buổi tư vấn với <strong>${expertName}</strong> đã được giữ chỗ, đang chờ thanh toán:</p>
+        <table style="width:100%;border-collapse:collapse;font-size:0.95rem;color:#333;margin:16px 0;">
+          <tr><td style="padding:6px 0;color:#888;width:150px;">Hình thức</td><td><strong>${sessionLabel}</strong></td></tr>
+          <tr><td style="padding:6px 0;color:#888;">Thời gian</td><td><strong>${formatBookingTime(startsAt, locale)}</strong></td></tr>
+          <tr><td style="padding:6px 0;color:#888;">Số tiền</td><td><strong>${Number(amount || 0).toLocaleString('vi-VN')}đ</strong></td></tr>
+        </table>
+        <div style="background:#F6F4EF;border:1px solid #E8CBA7;border-radius:10px;padding:14px 16px;margin:14px 0;color:#4A3728;">
+          🏦 <strong>${bankName || ''}</strong><br>Số TK: <strong>${bankAccountNo || ''}</strong> (${bankAccountName || ''})<br>Nội dung CK: <strong>${transferContent || ''}</strong>
+        </div>
+        <p style="color:#999;font-size:0.85rem;">Vui lòng thanh toán trước <strong>${formatBookingTime(expiresAt, locale)}</strong>, sau đó bấm "Đã chuyển khoản" trong app.</p>
+        <a href="${link}" style="display:inline-block;margin:16px 0;padding:12px 28px;background:#52B788;color:#fff;border-radius:8px;text-decoration:none;font-weight:700;">Xem lịch hẹn của tôi</a>
+      </div>
+    `
+  });
+}
+
+// Gửi cho THÂN CHỦ ngay khi họ bấm "Đã chuyển khoản" — xác nhận hệ thống đã ghi nhận, đang
+// chờ admin đối chiếu sao kê (chưa phải xác nhận thanh toán thật, chỉ là xác nhận ĐÃ BÁO).
+export async function sendPaymentClaimedClientEmail({ to, clientName, expertName, locale = 'vi' }) {
+  if (!hasMailProvider() || !to) return;
+  const link = `${APP_URL}/experts`;
+  const subject = locale === 'en' ? '📨 We got your payment notice — PeaceFlow' : '📨 Đã ghi nhận báo chuyển khoản — PeaceFlow';
+  const html = locale === 'en' ? `
+    <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:32px 24px;">
+      <h2 style="color:#2D6A4F;margin-bottom:8px;">We've got your payment notice</h2>
+      <p style="color:#555;line-height:1.6;">Hi ${clientName || 'there'}, we've recorded that you marked your session with <strong>${expertName}</strong> as paid. Our team will verify the transfer shortly, then the expert will confirm your slot.</p>
+      <a href="${link}" style="display:inline-block;margin:16px 0;padding:12px 28px;background:#52B788;color:#fff;border-radius:8px;text-decoration:none;font-weight:700;">View my bookings</a>
+    </div>
+  ` : `
+    <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:32px 24px;">
+      <h2 style="color:#2D6A4F;margin-bottom:8px;">Đã ghi nhận báo chuyển khoản</h2>
+      <p style="color:#555;line-height:1.6;">Xin chào ${clientName || 'bạn'}, hệ thống đã ghi nhận bạn báo đã chuyển khoản cho buổi tư vấn với <strong>${expertName}</strong>. Đội ngũ PeaceFlow sẽ đối chiếu sao kê trong ít phút, sau đó chuyên gia sẽ xác nhận lịch cho bạn.</p>
+      <a href="${link}" style="display:inline-block;margin:16px 0;padding:12px 28px;background:#52B788;color:#fff;border-radius:8px;text-decoration:none;font-weight:700;">Xem lịch hẹn của tôi</a>
+    </div>
+  `;
+  await sendMail({ from: FROM, to, subject, html });
+}
+
+// Gửi cho THÂN CHỦ ngay khi ADMIN xác nhận đã nhận tiền — khác với sendPaymentClaimedClientEmail
+// (đó là lúc thân chủ TỰ BÁO, đây là lúc admin THẬT SỰ xác nhận đối chiếu xong).
+export async function sendPaymentConfirmedClientEmail({ to, clientName, expertName, locale = 'vi' }) {
+  if (!hasMailProvider() || !to) return;
+  const link = `${APP_URL}/experts`;
+  const subject = locale === 'en' ? '✅ Payment confirmed — PeaceFlow' : '✅ Đã xác nhận thanh toán — PeaceFlow';
+  const html = locale === 'en' ? `
+    <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:32px 24px;">
+      <h2 style="color:#2D6A4F;margin-bottom:8px;">Your payment is confirmed</h2>
+      <p style="color:#555;line-height:1.6;">Hi ${clientName || 'there'}, we've confirmed your payment for the session with <strong>${expertName}</strong>. It's now waiting for the expert to accept — you'll get another email once they do.</p>
+      <a href="${link}" style="display:inline-block;margin:16px 0;padding:12px 28px;background:#52B788;color:#fff;border-radius:8px;text-decoration:none;font-weight:700;">View my bookings</a>
+    </div>
+  ` : `
+    <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:32px 24px;">
+      <h2 style="color:#2D6A4F;margin-bottom:8px;">Đã xác nhận thanh toán của bạn</h2>
+      <p style="color:#555;line-height:1.6;">Xin chào ${clientName || 'bạn'}, PeaceFlow đã xác nhận thanh toán cho buổi tư vấn với <strong>${expertName}</strong>. Lịch hẹn hiện đang chờ chuyên gia nhận — bạn sẽ nhận thêm 1 email khi chuyên gia xác nhận.</p>
+      <a href="${link}" style="display:inline-block;margin:16px 0;padding:12px 28px;background:#52B788;color:#fff;border-radius:8px;text-decoration:none;font-weight:700;">Xem lịch hẹn của tôi</a>
+    </div>
+  `;
+  await sendMail({ from: FROM, to, subject, html });
+}
+
 // Gửi cho thân chủ khi chuyên gia cập nhật trạng thái lịch hẹn.
 export async function sendBookingStatusEmail({ to, clientName, expertName, sessionType, startsAt, status, locale = 'vi' }) {
   if (!hasMailProvider() || !to) return;
