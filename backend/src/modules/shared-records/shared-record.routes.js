@@ -232,6 +232,19 @@ router.get('/shared-records/:id', requireAuth, async (req, res) => {
       [req.params.id]
     );
 
+    // Gộp thêm lịch hẹn của ĐÚNG thân chủ này với ĐÚNG bác sĩ này — mô tả tình trạng
+    // (notes) + hồ sơ khám đính kèm lúc đặt lịch (MedicalRecordsViewer đọc theo booking id)
+    // hiện ngay trong chi tiết hồ sơ gửi, để bác sĩ xem tất cả thông tin thân chủ 1 chỗ,
+    // không phải chạy qua lại nhiều tab.
+    const bookings = await db.query(
+      `select eb.id, eb.session_type, eb.starts_at, eb.status, eb.notes
+       from expert_bookings eb
+       join experts e on e.id = eb.expert_id
+       where eb.user_id = $1 and e.user_id = $2
+       order by eb.starts_at desc`,
+      [record.client_id, record.expert_id]
+    );
+
     return res.json({
       success: true,
       data: {
@@ -242,7 +255,8 @@ router.get('/shared-records/:id', requireAuth, async (req, res) => {
         clientName: record.client_name,
         expertName: record.expert_name,
         snapshot: record.snapshot,
-        responses: responses.rows
+        responses: responses.rows,
+        bookings: bookings.rows
       }
     });
   } catch (error) {

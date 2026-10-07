@@ -643,6 +643,21 @@ input:checked + .toggle-slider::before { transform: translateX(20px); }
   border-color: var(--mint);
 }
 .nav-item .ni { font-size: 1.1rem; width: 22px; text-align: center; }
+.expert-nav-badge {
+  margin-left: auto;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--coral, #ff8b8b);
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 800;
+  display: none;
+  align-items: center;
+  justify-content: center;
+}
+.expert-nav-badge.show { display: inline-flex; }
 
 /* Tab navigation */
 .view-tabs, .profile-tabs {

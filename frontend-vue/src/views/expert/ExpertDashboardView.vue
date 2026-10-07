@@ -8,37 +8,10 @@
       </div>
 
       <div class="expert-topbar-tools">
-        <button type="button" class="expert-bell-btn" aria-label="Thông báo" @click="notif.togglePanel()">
+        <button type="button" class="expert-bell-btn" data-notif-bell aria-label="Thông báo" @click="notif.togglePanel()">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
           <span class="expert-bell-badge" :style="{ display: notif.unread > 0 ? 'flex' : 'none' }">{{ Math.min(notif.unread, 9) }}</span>
         </button>
-        <div class="expert-status-toggle-slot">
-          <div v-if="hasProfile" class="expert-status-dropdown" ref="statusDropdownEl">
-            <button type="button" class="expert-status-trigger" :aria-expanded="statusMenuOpen" @click.stop="statusMenuOpen = !statusMenuOpen">
-              <span class="expert-status-dot" :class="`is-${currentStatus}`"></span>
-              <span>{{ STATUS_LABELS[currentStatus] }}</span>
-              <span class="expert-status-caret">∨</span>
-            </button>
-            <div v-if="statusMenuOpen" class="expert-status-menu">
-              <div class="expert-status-menu-title">Trạng thái hoạt động</div>
-              <button
-                v-for="s in STATUSES"
-                :key="s.key"
-                type="button"
-                class="expert-status-option"
-                :class="{ 'is-active': s.key === currentStatus }"
-                @click="changeStatus(s.key)"
-              >
-                <span class="expert-status-dot" :class="`is-${s.key}`"></span>
-                <span class="expert-status-option-copy">
-                  <strong>{{ s.label }}</strong>
-                  <small>{{ s.hint }}</small>
-                </span>
-              </button>
-            </div>
-          </div>
-        </div>
-        <div class="expert-avatar-chip" aria-hidden="true">{{ avatarInitials }}</div>
       </div>
     </header>
 
@@ -324,6 +297,7 @@ import { useRouter } from 'vue-router';
 import { apiClient } from '../../lib/apiClient';
 import { useExpertPortalStore } from '../../stores/expertPortal';
 import { useNotificationsStore } from '../../stores/notifications';
+import { useExpertBadgesStore } from '../../stores/expertBadges';
 import MedicalRecordsViewer from '../../components/MedicalRecordsViewer.vue';
 import ExpertStatusBanner from '../../components/ExpertStatusBanner.vue';
 
@@ -334,12 +308,6 @@ const BOOKING_TABS = [
   { key: 'upcoming', label: 'Sắp tới' },
   { key: 'completed', label: 'Đã hoàn thành' }
 ];
-const STATUSES = [
-  { key: 'online', label: 'Online', hint: 'Sẵn sàng nhận lịch' },
-  { key: 'busy', label: 'Bận', hint: 'Tạm không nhận lịch mới' },
-  { key: 'offline', label: 'Offline', hint: 'Không hoạt động' }
-];
-const STATUS_LABELS = { online: 'Online', busy: 'Bận', offline: 'Offline' };
 const WEEKDAYS = ['Chủ nhật', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'];
 const AVAILABILITY_DAY_ORDER = [1, 2, 3, 4, 5, 6, 0];
 const AVAILABILITY_DAY_LABELS = { 0: 'CN', 1: 'T2', 2: 'T3', 3: 'T4', 4: 'T5', 5: 'T6', 6: 'T7' };
@@ -400,6 +368,7 @@ function isThisWeek(value) {
 const router = useRouter();
 const expertPortal = useExpertPortalStore();
 const notif = useNotificationsStore();
+const expertBadges = useExpertBadgesStore();
 
 const banner = ref({ message: '', type: 'info' });
 function setBanner(message, type = 'info') {
@@ -409,30 +378,17 @@ function setBanner(message, type = 'info') {
 const hasProfile = ref(false);
 const profile = ref(null);
 const pageTitle = ref('Bảng điều khiển chuyên gia');
-const avatarInitials = ref('EX');
-
 const ratingText = computed(() => (Number(profile.value?.rating) > 0 ? Number(profile.value.rating).toFixed(1) : '—'));
 const priceText = computed(() => (profile.value && Number(profile.value.base_price) > 0 ? money(profile.value.base_price) : 'Chưa đặt giá'));
 
-const currentStatus = ref('offline');
-const statusMenuOpen = ref(false);
-const statusDropdownEl = ref(null);
-function handleOutsideClick(event) {
-  if (statusMenuOpen.value && statusDropdownEl.value && !statusDropdownEl.value.contains(event.target)) {
-    statusMenuOpen.value = false;
-  }
-}
-onMounted(() => document.addEventListener('click', handleOutsideClick));
-onBeforeUnmount(() => document.removeEventListener('click', handleOutsideClick));
-
-async function changeStatus(status) {
-  statusMenuOpen.value = false;
+// Không cần bác sĩ tự bật Online nữa — hễ vào khu chuyên gia là tự coi như đang hoạt động
+// (xem setAutoOnline bên dưới), bỏ hẳn UI chọn trạng thái thủ công.
+async function setAutoOnline(currentStatusValue) {
+  if (currentStatusValue === 'online') return;
   try {
-    await apiClient.patch('/expert-portal/status', { status });
-    currentStatus.value = status;
-    setBanner('Đã cập nhật trạng thái hoạt động.', 'success');
-  } catch (error) {
-    setBanner(error.message || 'Không thể cập nhật trạng thái.', 'error');
+    await apiClient.patch('/expert-portal/status', { status: 'online' });
+  } catch (_error) {
+    // Lỗi ở đây không quan trọng bằng việc hiển thị dashboard — im lặng bỏ qua.
   }
 }
 
@@ -488,6 +444,9 @@ async function loadBookingManagement() {
   try {
     const data = await apiClient.get('/expert-portal/bookings', { noCache: true });
     bookings.value = Array.isArray(data) ? data : [];
+    // Cập nhật luôn badge sidebar bằng chính data vừa tải, khỏi chờ ExpertLayout.vue tự fetch
+    // lại riêng (vd ngay sau khi bấm Nhận/Từ chối lịch ở đúng trang này).
+    expertBadges.setBadge('pendingBookings', bookings.value.filter((b) => b.status === 'awaiting_expert').length);
   } catch (_error) {
     bookings.value = [];
     bookingsError.value = true;
@@ -710,7 +669,6 @@ function renderDashboard(applicationState, overview) {
 
   const name = profile.value?.full_name || 'chuyên gia';
   pageTitle.value = `Xin chào, ${name} 👋`;
-  avatarInitials.value = (profile.value?.full_name || 'Expert').trim().split(/\s+/).slice(0, 2).map((p) => p.charAt(0).toUpperCase()).join('') || 'EX';
 
   if (!applicationState?.email_verified) {
     setBanner('Bạn cần xác minh email trước khi tiếp tục dùng khu vực chuyên gia.', 'info');
@@ -729,7 +687,7 @@ function setupExpertOperations(overview) {
   hasProfile.value = Boolean(overview?.expert);
   if (!hasProfile.value) return;
 
-  currentStatus.value = overview.expert.status || 'offline';
+  setAutoOnline(overview.expert.status);
   loadBookingManagement();
   loadAvailabilityEditor();
   loadAvailabilityExceptions();

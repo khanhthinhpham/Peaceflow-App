@@ -648,6 +648,33 @@
     color: var(--text-secondary);
 }
 
+/* Mobile: 36px/180px/180px (bảng gốc) cộng lại đã vượt quá bề rộng màn hình, khiến cột
+   "Câu hỏi" bị bóp còn vài chục px và xuống dòng từng chữ một. Thu nhỏ 2 cột
+   Trả lời/Điểm + bỏ cột # để nhường chỗ cho cột câu hỏi đọc được bình thường. */
+/* Mobile: .ca-selftest-score có white-space:nowrap nên khi xếp loại dài (vd "Sử dụng
+   internet bình thường") không co được, bị đẩy xuống dòng riêng và tràn ngang, vỡ layout.
+   Cho phép xuống dòng bình thường + chiếm trọn hàng riêng để không bị bóp. */
+@media (max-width: 700px) {
+    .ca-selftest-score {
+        white-space: normal;
+    }
+    .ca-detail-overlay { padding: 16px 8px; }
+    .ca-detail-box { padding: 16px 12px; }
+    .ca-detail-table { font-size: .78rem; }
+    .ca-detail-table th:first-child,
+    .ca-detail-table td:first-child {
+        display: none;
+    }
+    .ca-detail-table th:nth-child(3),
+    .ca-detail-table th:nth-child(4) {
+        width: 72px !important;
+    }
+    .ca-detail-table th,
+    .ca-detail-table td {
+        padding: 8px 6px;
+    }
+}
+
 .ca-detail-actions {
     display: flex;
     gap: 10px;

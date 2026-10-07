@@ -16,6 +16,7 @@
       >
         <span class="ni">{{ item.icon }}</span>
         <span>{{ item.label }}</span>
+        <span v-if="item.badge" class="expert-nav-badge" :class="{ show: badges[item.badge] > 0 }">{{ badgeLabel(badges[item.badge]) }}</span>
       </router-link>
     </nav>
 
@@ -57,22 +58,29 @@
 import { computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useAuthStore } from '../stores/auth';
+import { useExpertBadgesStore } from '../stores/expertBadges';
 
 defineProps({ sidebarOpen: { type: Boolean, default: false } });
 
 const NAV_ITEMS = [
-  { route: 'expert-clinical-protocols', key: 'clinical-protocols', icon: '📚', label: 'Quy trình lâm sàng' },
-  { route: 'expert-dashboard', key: 'dashboard', icon: '🏡', label: 'Tổng quan' },
+  { route: 'expert-dashboard', key: 'dashboard', icon: '🏡', label: 'Tổng quan', badge: 'pendingBookings' },
   { route: 'expert-client-assessments', key: 'client-assessments', icon: '🩺', label: 'Đánh giá lâm sàng' },
   { route: 'expert-shared-records', key: 'shared-records', icon: '📋', label: 'Hồ sơ thân chủ gửi' },
   { route: 'expert-payments', key: 'payments', icon: '💳', label: 'Thanh toán' },
   { route: 'expert-application', key: 'application', icon: '📋', label: 'Hồ sơ chuyên gia' },
-  { route: 'expert-review-status', key: 'review-status', icon: '🧾', label: 'Lịch sử xét duyệt' }
+  { route: 'expert-review-status', key: 'review-status', icon: '🧾', label: 'Lịch sử xét duyệt' },
+  { route: 'expert-clinical-protocols', key: 'clinical-protocols', icon: '📚', label: 'Quy trình lâm sàng' }
 ];
 
 const route = useRoute();
 const router = useRouter();
 const auth = useAuthStore();
+const badges = useExpertBadgesStore();
+
+function badgeLabel(count) {
+  const total = Number(count) || 0;
+  return total > 99 ? '99+' : String(total);
+}
 
 const activeKey = computed(() => route.meta?.navKey || null);
 const displayName = computed(() => auth.user?.display_name || auth.user?.full_name || 'PeaceFlow Expert');

@@ -51,8 +51,7 @@ body.expert-portal-body {
 }
 
 .expert-brand-mark,
-.expert-user-avatar,
-.expert-avatar-chip {
+.expert-user-avatar {
   display: grid;
   place-items: center;
   border-radius: 50%;
@@ -108,18 +107,10 @@ body.expert-portal-body {
   margin-bottom: 28px;
 }
 
-.expert-user-avatar,
-.expert-avatar-chip {
+.expert-user-avatar {
   width: 56px;
   height: 56px;
   font-size: 1.35rem;
-}
-
-.expert-avatar-chip {
-  width: 54px;
-  height: 54px;
-  font-size: 1.15rem;
-  flex: 0 0 auto;
 }
 
 .expert-user-copy {

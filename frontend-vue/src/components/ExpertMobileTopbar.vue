@@ -9,7 +9,7 @@
           <span class="expert-mobile-brand-role">Chuyên gia</span>
         </div>
       </router-link>
-      <button type="button" class="expert-mobile-notif-btn" aria-label="Mở thông báo" @click="notif.togglePanel()">
+      <button type="button" class="expert-mobile-notif-btn" data-notif-bell aria-label="Mở thông báo" @click="notif.togglePanel()">
         <span class="expert-mobile-notif-icon" aria-hidden="true">
           🔔
           <span class="expert-mobile-bell-badge" :class="{ show: notif.unread > 0 }">{{ Math.min(notif.unread, 9) }}</span>
@@ -31,6 +31,10 @@ const notif = useNotificationsStore();
   display: none;
   position: fixed;
   top: 0; left: 0; right: 0;
+  /* Global .mobile-topbar (style.css) ép height:44px cho topbar thường — ghi đè lại thành
+     auto ở đây vì nội dung bên trong (logo 2 dòng) cần đủ chỗ 60px (.mobile-topbar-inner),
+     không khai báo lại thì bị kẹt ở 44px toàn cục, tràn/cắt mất viền dưới. */
+  height: auto;
   padding-top: env(safe-area-inset-top, 0px);
   background: var(--warm-white);
   border-bottom: 2px solid var(--kraft-light);

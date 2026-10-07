@@ -7,11 +7,10 @@
         <p class="expert-page-subtitle">Nhập điểm CARS hoặc SDQ-25 (bản quan sát) thay cho client trong các buổi tư vấn.</p>
       </div>
       <div class="expert-topbar-tools">
-        <button type="button" class="expert-bell-btn" aria-label="Thông báo" @click="notif.togglePanel()">
+        <button type="button" class="expert-bell-btn" data-notif-bell aria-label="Thông báo" @click="notif.togglePanel()">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
           <span class="expert-bell-badge" :style="{ display: notif.unread > 0 ? 'flex' : 'none' }">{{ Math.min(notif.unread, 9) }}</span>
         </button>
-        <div class="expert-avatar-chip" aria-hidden="true">EX</div>
       </div>
     </header>
 
@@ -70,7 +69,7 @@
               <div class="ca-selftest-meta">{{ item.name }} · {{ formatDateTime(item.created_at) }}</div>
               <div v-if="item.note" class="ca-selftest-note">Ghi chú: {{ item.note }}</div>
             </div>
-            <div class="ca-selftest-score">{{ item.severity || 'Đã hoàn thành' }}<br>{{ item.total_score }}</div>
+            <div class="ca-selftest-score">{{ item.severity || 'Đã hoàn thành' }} · {{ item.total_score }}</div>
           </div>
         </div>
         <div id="caSelfTestPager" class="ca-pager">
@@ -338,7 +337,7 @@
               <div class="ca-selftest-name">{{ t.name }}</div>
               <div class="ca-selftest-meta">{{ formatDateTime(t.created_at) }}</div>
             </div>
-            <div class="ca-selftest-score">{{ t.severity || 'Đã hoàn thành' }}<br>{{ t.total_score }}</div>
+            <div class="ca-selftest-score">{{ t.severity || 'Đã hoàn thành' }} · {{ t.total_score }}</div>
           </div>
         </div>
       </div>
