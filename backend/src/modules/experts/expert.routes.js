@@ -945,10 +945,9 @@ router.post('/payments/webhook', async (req, res) => {
     );
     const b = upd.rows[0];
     if (b) {
-      // Tính "sessions" ngay khi thanh toán thành công (không đợi buổi hẹn hoàn thành) —
-      // theo yêu cầu: đặt lịch + trả tiền xong là tính, để hồ sơ chuyên gia phản ánh mức độ
-      // được tin dùng ngay, không cần chờ buổi hẹn diễn ra xong.
-      await db.query(`update experts set sessions_count = coalesce(sessions_count, 0) + 1 where id = $1`, [b.expert_id]);
+      // "sessions" giờ chỉ tính lúc chuyên gia bấm Xác nhận/Nhận lịch (PATCH
+      // /expert-portal/bookings/:id, status === 'confirmed'), không tính ở bước thanh toán
+      // này nữa — vì lúc này chuyên gia còn chưa nhận, có thể từ chối sau đó.
       const infoRes = await db.query(
         `select e.user_id as expert_user_id, coalesce(u.display_name, u.full_name, 'Thân chủ') as client_name
          from expert_bookings bk join experts e on e.id = bk.expert_id join users u on u.id = bk.user_id
@@ -1189,8 +1188,11 @@ router.patch('/expert-portal/bookings/:id', requireAuth, async (req, res) => {
     );
     const b = updated.rows[0];
 
-    // Nhận lịch → ghi sổ doanh thu (pending; thành payable khi hoàn thành).
+    // Nhận lịch → tính ngay 1 "phiên" (sessions_count hiển thị công khai trên card chuyên
+    // gia) + ghi sổ doanh thu (pending; thành payable khi chuyên gia bấm "Hoàn thành" —
+    // tiền KHÔNG tính theo bước nhận lịch này, xem nhánh status === 'completed' bên dưới).
     if (status === 'confirmed') {
+      await db.query(`update experts set sessions_count = coalesce(sessions_count, 0) + 1 where id = $1`, [expert.id]);
       const ledgerExists = await db.query(`select 1 from expert_ledger where booking_id = $1 limit 1`, [b.id]);
       if (!ledgerExists.rows[0]) {
         const fee = computeFee(b.amount || b.price || 0);
@@ -1204,6 +1206,11 @@ router.patch('/expert-portal/bookings/:id', requireAuth, async (req, res) => {
 
     // Từ chối / huỷ lịch ĐÃ thanh toán → hoàn 100% vào ví thân chủ.
     if (status === 'cancelled') {
+      // Lịch đã từng được nhận (đã tính 1 phiên ở trên) mà giờ bị huỷ → trừ lại, tránh đếm
+      // thừa phiên chưa từng diễn ra.
+      if (booking.status === 'confirmed') {
+        await db.query(`update experts set sessions_count = greatest(coalesce(sessions_count, 0) - 1, 0) where id = $1`, [expert.id]);
+      }
       const payRes = await db.query(`select status from payments where booking_id = $1 order by created_at desc limit 1`, [b.id]);
       if (payRes.rows[0]?.status === 'paid' && Number(b.amount) > 0) {
         await creditWallet(b.user_id, b.amount, 'refund', b.id, 'Hoàn 100% do chuyên gia từ chối / huỷ lịch');
@@ -1213,9 +1220,8 @@ router.patch('/expert-portal/bookings/:id', requireAuth, async (req, res) => {
       await db.query(`update expert_bookings set cancelled_at = now(), cancel_reason = 'expert' where id = $1`, [b.id]);
     }
 
-    // Hoàn thành → cộng số dư (số buổi "sessions_count" giờ tính ngay lúc thanh toán thành
-    // công, không đợi tới đây nữa — xem các điểm update sessions_count ở webhook thanh toán/
-    // xác nhận chuyển khoản/thanh toán ví).
+    // Hoàn thành → cộng số dư cho chuyên gia (tiền chỉ tính ở bước này, KHÔNG tính theo
+    // "sessions_count" — con số đó đã được cộng từ lúc nhận lịch ở nhánh 'confirmed' trên).
     if (status === 'completed') {
       await db.query(`update expert_ledger set status = 'payable' where booking_id = $1 and status = 'pending'`, [b.id]);
       await db.query(`update experts set balance = coalesce(balance, 0) + coalesce((select expert_earning from expert_ledger where booking_id = $1 limit 1), 0) where id = $2`, [b.id, expert.id]);
@@ -2432,8 +2438,8 @@ router.post('/admin/bookings/:id/confirm-payment', requireAuth, async (req, res)
     // Đã nhận tiền → chuyển sang CHỜ CHUYÊN GIA NHẬN LỊCH (ghi sổ doanh thu khi chuyên gia nhận).
     await db.query(`update expert_bookings set status = 'awaiting_expert', paid_at = now() where id = $1`, [b.id]);
     await db.query(`update payments set status = 'paid', paid_at = now() where booking_id = $1 and status = 'pending'`, [b.id]);
-    // Tính "sessions" ngay khi thanh toán được xác nhận, không đợi buổi hẹn hoàn thành.
-    await db.query(`update experts set sessions_count = coalesce(sessions_count, 0) + 1 where id = $1`, [b.expert_id]);
+    // "sessions" chỉ tính lúc chuyên gia bấm Xác nhận/Nhận lịch, không tính ở bước xác nhận
+    // thanh toán này.
 
     await notify(b.user_id, null, 'booking_update', 'Đã xác nhận thanh toán — đang chờ chuyên gia nhận lịch.', { code: 'booking_payment_confirmed_awaiting_expert' });
     await notify(b.expert_user_id, null, 'booking_new', 'Có lịch đã thanh toán — mời bạn nhận hoặc từ chối.', { code: 'booking_new_paid_awaiting_response' });
@@ -2558,8 +2564,8 @@ router.post('/bookings/:id/pay-wallet', requireAuth, async (req, res) => {
     );
     await db.query(`update payments set status = 'paid', paid_at = now(), provider = 'wallet' where booking_id = $1 and status = 'pending'`, [b.id]);
     await db.query(`update expert_bookings set status = 'awaiting_expert', paid_at = now() where id = $1`, [b.id]);
-    // Tính "sessions" ngay khi thanh toán bằng ví thành công, không đợi buổi hẹn hoàn thành.
-    await db.query(`update experts set sessions_count = coalesce(sessions_count, 0) + 1 where id = $1`, [b.expert_id]);
+    // "sessions" chỉ tính lúc chuyên gia bấm Xác nhận/Nhận lịch, không tính ở bước thanh
+    // toán bằng ví này.
 
     await notify(b.user_id, null, 'booking_update', 'Đã thanh toán bằng ví — đang chờ chuyên gia nhận lịch.', { code: 'booking_payment_wallet_awaiting_expert' });
     if (b.expert_user_id) await notify(b.expert_user_id, b.client_name, 'booking_new', 'Có lịch đã thanh toán — mời bạn nhận hoặc từ chối.', { code: 'booking_new_paid_awaiting_response' });

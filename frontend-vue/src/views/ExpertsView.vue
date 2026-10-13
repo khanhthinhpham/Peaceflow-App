@@ -593,10 +593,12 @@
 <script setup>
 import { ref, reactive, computed, onMounted, onBeforeUnmount } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { useRoute } from 'vue-router';
 import { apiClient } from '../lib/apiClient';
 import { useAuthStore } from '../stores/auth';
 import ShareRecordModal from '../components/ShareRecordModal.vue';
 
+const route = useRoute();
 const authStore = useAuthStore();
 const { t, tm, locale } = useI18n();
 const intlLocale = computed(() => (locale.value === 'en' ? 'en-US' : 'vi-VN'));
@@ -1254,6 +1256,13 @@ async function init() {
     preloadAvatars(experts.value);
     loadMyBookings();
     loadWallet();
+
+    // Đến từ trang khác (vd. kết quả bài test) với gợi ý 1 chuyên gia cụ thể — mở thẳng
+    // modal đặt lịch luôn, khỏi bắt người dùng tìm lại trong danh sách.
+    const bookExpertId = route.query.book;
+    if (bookExpertId && getExpertById(bookExpertId)) {
+      openBookingModal(bookExpertId);
+    }
   } catch (error) {
     console.error('Experts init failed:', error);
   }

@@ -409,7 +409,22 @@
               <div style="font-size:0.78rem;color:var(--text-secondary);">{{ t('moodAssessment.result.expertRecommendDesc') }}</div>
             </div>
           </div>
-          <router-link to="/experts" class="btn-primary" style="width:100%;justify-content:center;">{{ t('moodAssessment.result.bookNowBtn') }}</router-link>
+
+          <!-- Gợi ý đúng chuyên gia khớp với kết quả bài test (ghép qua tag chuyên môn,
+               xem GET /experts + buildMatchingTags ở backend) — nếu không tìm được ai phù
+               hợp thì fallback về nút chung dẫn sang trang Chuyên gia. -->
+          <div v-if="recommendedExperts.length" style="display:flex;flex-direction:column;gap:10px;margin-bottom:10px;">
+            <div v-for="expert in recommendedExperts" :key="expert.id" class="paper-card" style="display:flex;align-items:center;gap:10px;padding:10px;">
+              <div style="width:44px;height:44px;border-radius:50%;background:var(--warm-white);display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0;">{{ expert.avatar }}</div>
+              <div style="flex:1;min-width:0;">
+                <div style="font-weight:700;font-size:0.85rem;">{{ expert.name }}</div>
+                <div style="font-size:0.72rem;color:var(--text-secondary);">{{ expert.degree }}</div>
+                <div style="font-size:0.68rem;color:var(--text-light);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ expert.specialties.slice(0, 2).join(' · ') }}</div>
+              </div>
+              <router-link :to="`/experts?book=${expert.id}`" class="btn-primary" style="padding:6px 12px;font-size:0.78rem;flex-shrink:0;">{{ t('moodAssessment.result.bookNowBtn') }}</router-link>
+            </div>
+          </div>
+          <router-link v-else to="/experts" class="btn-primary" style="width:100%;justify-content:center;">{{ t('moodAssessment.result.bookNowBtn') }}</router-link>
         </div>
 
         <div style="padding:12px 16px;background:rgba(255,203,164,0.15);border:1.5px solid var(--peach);border-radius:var(--border-radius-sm);font-size:0.75rem;color:var(--text-secondary);margin-bottom:16px;line-height:1.6;" v-html="t('moodAssessment.result.disclaimer')"></div>
@@ -537,6 +552,7 @@ const currentQIndex = ref(0);
 const answers = ref([]);
 const result = ref(null);
 const resultSaveNote = ref('');
+const recommendedExperts = ref([]);
 const aiSummaryText = ref('');
 const aiSummaryLoading = ref(false);
 const aiInterpretation = ref('');
@@ -958,6 +974,7 @@ function finishTest() {
   aiSummaryText.value = '';
   aiSummaryLoading.value = false;
   aiInterpretation.value = '';
+  recommendedExperts.value = [];
 
   // Evaluate logic
   const subScores = {};
@@ -1093,6 +1110,22 @@ function finishTest() {
   });
 }
 
+// Gợi ý 1-2 chuyên gia khớp với đúng kết quả bài test vừa nộp — tái dùng logic ghép
+// "matched" sẵn có ở GET /experts (dựa trên bản ghi assessment_results mới nhất của user,
+// nên phải gọi SAU KHI /assessments/:code/submit đã lưu xong kết quả này).
+async function loadRecommendedExperts() {
+  try {
+    const data = await apiClient.get('/experts');
+    recommendedExperts.value = (data?.experts || [])
+      .filter((expert) => expert.matched)
+      .sort((a, b) => (b.rating || 0) - (a.rating || 0))
+      .slice(0, 2);
+  } catch (error) {
+    console.error('Load recommended experts failed:', error);
+    recommendedExperts.value = [];
+  }
+}
+
 async function loadAiSummary(resultId) {
   if (!resultId) return;
   aiSummaryLoading.value = true;
@@ -1130,7 +1163,8 @@ async function onAssessmentFinished(payload) {
 
     await Promise.all([
       loadAssessmentData(),
-      loadAiSummary(saved?.id)
+      loadAiSummary(saved?.id),
+      loadRecommendedExperts()
     ]);
   } catch (error) {
     console.error('Assessment submit failed:', error);
