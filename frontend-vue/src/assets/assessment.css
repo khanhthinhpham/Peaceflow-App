@@ -908,17 +908,16 @@
     color: var(--text-light);
 }
 
+/* Hiện/ẩn do v-show="result.isWarning" tự đảm nhiệm (set/xoá inline style display) —
+   KHÔNG đặt display:none mặc định ở đây nữa, vì Vue không gắn class .show như kiểu JS
+   thường cũ, nên đặt display:none mặc định sẽ khiến khối này không bao giờ hiện được dù
+   v-show đang true. */
 .expert-recommend {
     padding: 18px;
     background: rgba(195, 174, 214, 0.1);
     border: 2px solid var(--lavender);
     border-radius: var(--border-radius);
     margin-bottom: 16px;
-    display: none;
-}
-
-.expert-recommend.show {
-    display: block;
 }
 
 .result-actions {
