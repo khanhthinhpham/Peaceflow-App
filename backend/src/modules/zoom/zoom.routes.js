@@ -55,6 +55,30 @@ router.post(['/zoom/webhook', '/webho'], async (req, res) => {
       );
     }
 
+    // Zoom báo buổi gọi đã kết thúc → tự hoàn thành booking luôn, không đợi chuyên gia bấm
+    // tay "Hoàn thành" nữa (lý do ban đầu phải bấm tay: tránh trả tiền cho buổi chưa diễn ra
+    // — giờ có tín hiệu thật từ Zoom rồi nên an toàn để tự động).
+    if (meetingId && event === 'meeting.ended') {
+      const bookingRes = await db.query(
+        `select id, expert_id, user_id from expert_bookings where zoom_meeting_id = $1 and status = 'confirmed' limit 1`,
+        [meetingId]
+      );
+      const booking = bookingRes.rows[0];
+      if (booking) {
+        await db.query(`update expert_bookings set status = 'completed' where id = $1`, [booking.id]);
+        await db.query(`update expert_ledger set status = 'payable' where booking_id = $1 and status = 'pending'`, [booking.id]);
+        await db.query(
+          `update experts set balance = coalesce(balance, 0) + coalesce((select expert_earning from expert_ledger where booking_id = $1 limit 1), 0) where id = $2`,
+          [booking.id, booking.expert_id]
+        );
+        await db.query(
+          `insert into notifications (recipient_id, actor_name, type, message, params)
+           values ($1, 'PeaceFlow', 'booking_update', 'Buổi tư vấn đã kết thúc và được tự động đánh dấu hoàn thành.', $2::jsonb)`,
+          [booking.user_id, JSON.stringify({ code: 'booking_status_changed', status: 'completed' })]
+        ).catch((e) => console.error('[zoom webhook] notify failed:', e.message));
+      }
+    }
+
     return res.sendStatus(200);
   } catch (error) {
     console.error('[zoom webhook] failed:', error.message);

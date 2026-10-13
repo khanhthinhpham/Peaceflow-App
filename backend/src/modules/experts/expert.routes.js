@@ -84,7 +84,7 @@ router.get('/expert-portal/overview', requireAuth, async (req, res) => {
       db.query(
         `select
            count(*) filter (where status = 'confirmed' and starts_at >= now())::int as upcoming_sessions,
-           count(*) filter (where status = 'completed')::int as completed_sessions,
+           count(*) filter (where status in ('confirmed', 'completed'))::int as completed_sessions,
            count(distinct user_id)::int as total_clients,
            coalesce(sum(price) filter (
              where status in ('confirmed', 'completed')
@@ -1605,7 +1605,7 @@ router.get('/admin/overview', requireAuth, async (req, res) => {
         `select
            count(*)::int as total,
            count(*) filter (where (starts_at at time zone 'Asia/Ho_Chi_Minh')::date = (now() at time zone 'Asia/Ho_Chi_Minh')::date)::int as today,
-           count(*) filter (where status = 'completed')::int as completed,
+           count(*) filter (where status in ('confirmed', 'completed'))::int as completed,
            count(*) filter (where status = 'awaiting_expert')::int as awaiting_expert,
            count(*) filter (where status = 'confirmed' and starts_at >= now())::int as upcoming
          from expert_bookings`

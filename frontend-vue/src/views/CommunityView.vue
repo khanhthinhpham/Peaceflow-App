@@ -87,8 +87,8 @@
                 <span>{{ anonymousPosting ? t('community.composer.anonOn') : t('community.composer.anonOff') }}</span>
               </div>
             </div>
-            <textarea ref="postTextareaEl" class="pc-textarea" v-model="postContent" :placeholder="t('community.composer.placeholder')" maxlength="500"></textarea>
-            <div style="font-size:0.65rem;color:var(--text-light);text-align:right;margin-top:2px;"><span>{{ postContent.length }}</span>/500</div>
+            <textarea ref="postTextareaEl" class="pc-textarea" v-model="postContent" :placeholder="t('community.composer.placeholder')" maxlength="2000"></textarea>
+            <div style="font-size:0.65rem;color:var(--text-light);text-align:right;margin-top:2px;"><span>{{ postContent.length }}</span>/2000</div>
             <div class="pc-footer">
               <div class="pc-tags">
                 <span style="font-size:0.68rem;color:var(--text-light);">{{ t('community.composer.tagsLabel') }}</span>
@@ -180,10 +180,10 @@
                   <CommunityComment v-for="reply in repliesFor(post, comment.id)" :key="reply.id" :post="post" :comment="reply" :is-reply="true" :state="commentUiState(reply)" @edit="editComment(post.id, reply)" @save-edit="saveCommentEdit(post.id, reply.id, $event)" @cancel-edit="editingCommentId = null" @delete="deleteComment(post.id, reply.id)" />
                 </template>
                 <div class="comment-input-row">
-                  <input class="comment-input" v-model="newCommentDraft[post.id]" :placeholder="t('community.post.commentPlaceholder')" maxlength="500">
+                  <input class="comment-input" v-model="newCommentDraft[post.id]" :placeholder="t('community.post.commentPlaceholder')" maxlength="2000">
                   <button class="comment-send" @click="handleSubmitComment(post.id)">{{ t('community.post.sendBtn') }}</button>
                 </div>
-                <div style="font-size:0.65rem;color:var(--text-light);text-align:right;margin-top:2px;">{{ (newCommentDraft[post.id] || '').length }}/500</div>
+                <div style="font-size:0.65rem;color:var(--text-light);text-align:right;margin-top:2px;">{{ (newCommentDraft[post.id] || '').length }}/2000</div>
               </div>
             </article>
           </div>
@@ -326,8 +326,8 @@ const CommunityComment = {
           ]),
           props.state.editing
             ? h('div', null, [
-              h('textarea', { class: 'comment-edit-input', maxlength: 500, value: draft.value, onInput: (e) => { draft.value = e.target.value; } }),
-              h('div', { style: 'font-size:0.65rem;color:var(--text-light);text-align:right;margin-top:2px;' }, `${draft.value.length}/500`),
+              h('textarea', { class: 'comment-edit-input', maxlength: 2000, value: draft.value, onInput: (e) => { draft.value = e.target.value; } }),
+              h('div', { style: 'font-size:0.65rem;color:var(--text-light);text-align:right;margin-top:2px;' }, `${draft.value.length}/2000`),
               h('div', { class: 'comment-edit-actions' }, [
                 h('button', { class: 'comment-send', onClick: () => emit('save-edit', draft.value) }, t('community.comment.saveBtn')),
                 h('button', { class: 'btn-ghost', style: 'font-size:0.75rem;padding:3px 8px;', onClick: () => emit('cancel-edit') }, t('community.comment.cancelBtn'))
@@ -344,10 +344,10 @@ const CommunityComment = {
       (!props.isReply && props.state.replying)
         ? h('div', null, [
           h('div', { class: 'reply-input-row' }, [
-            h('input', { class: 'comment-input', placeholder: t('community.comment.replyPlaceholder', { name: props.comment.name || '' }), maxlength: 500, value: replyDraft.value, onInput: (e) => { replyDraft.value = e.target.value; } }),
+            h('input', { class: 'comment-input', placeholder: t('community.comment.replyPlaceholder', { name: props.comment.name || '' }), maxlength: 2000, value: replyDraft.value, onInput: (e) => { replyDraft.value = e.target.value; } }),
             h('button', { class: 'comment-send', onClick: () => emit('submit-reply', replyDraft.value) }, t('community.comment.sendBtn'))
           ]),
-          h('div', { style: 'font-size:0.65rem;color:var(--text-light);text-align:right;margin-top:2px;' }, `${replyDraft.value.length}/500`)
+          h('div', { style: 'font-size:0.65rem;color:var(--text-light);text-align:right;margin-top:2px;' }, `${replyDraft.value.length}/2000`)
         ])
         : null
     ]);
