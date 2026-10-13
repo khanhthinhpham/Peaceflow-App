@@ -549,7 +549,10 @@
                   <span class="ec-rating-num">{{ expert.rating }}</span>
                   <span class="ec-sessions">{{ t('experts.expertCard.sessionsUnit', { n: expert.sessions }) }}</span>
                 </div>
-                <div v-else class="ec-rating ec-rating-empty">{{ t('experts.expertCard.noRatingYet') }}</div>
+                <div v-else class="ec-rating ec-rating-empty">
+                  {{ t('experts.expertCard.noRatingYet') }}
+                  <span v-if="expert.sessions" class="ec-sessions">{{ t('experts.expertCard.sessionsUnit', { n: expert.sessions }) }}</span>
+                </div>
               </div>
             </div>
             <div class="ec-specialties">
