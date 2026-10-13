@@ -285,7 +285,32 @@
             <div class="q-category badge-pill badge-peach">{{ currentQuestion.catLabel }}</div>
             <div class="q-text">{{ currentQuestion.text }}</div>
             <div class="q-subtext">{{ currentTest.timeRef ? t('moodAssessment.test.timeRefPrefix', { time: currentTest.timeRef }) : '' }}</div>
-            <div class="likert-wrap" :class="`cols-${currentOptions.length}`">
+            <!-- Một vài câu của PSQI hỏi giờ giấc cụ thể (giờ đi ngủ/thức dậy, số phút/số
+                 tiếng) thay vì chọn trắc nghiệm — cần nhập số/giờ để tính đúng "hiệu suất giấc
+                 ngủ" theo công thức gốc, không gộp được vào likert như các câu khác. -->
+            <div v-if="currentQuestion.inputType" class="psqi-input-wrap" style="display:flex;align-items:center;gap:10px;justify-content:center;margin:20px 0;">
+              <input
+                v-if="currentQuestion.inputType === 'time'"
+                type="time"
+                class="psqi-input"
+                v-model="textAnswerDraft"
+                style="font-size:1.1rem;padding:10px 14px;border:2px solid var(--kraft-light);border-radius:var(--radius-sm);"
+              >
+              <template v-else>
+                <input
+                  type="number"
+                  inputmode="decimal"
+                  class="psqi-input"
+                  v-model="textAnswerDraft"
+                  :max="currentQuestion.inputMax"
+                  :step="currentQuestion.inputStep || 1"
+                  min="0"
+                  style="font-size:1.1rem;padding:10px 14px;border:2px solid var(--kraft-light);border-radius:var(--radius-sm);width:120px;text-align:center;"
+                >
+                <span v-if="currentQuestion.inputSuffix" style="color:var(--text-secondary);font-weight:700;">{{ currentQuestion.inputSuffix }}</span>
+              </template>
+            </div>
+            <div v-else class="likert-wrap" :class="`cols-${currentOptions.length}`">
               <div
                 v-for="(opt, oIdx) in currentOptions"
                 :key="oIdx"
@@ -299,8 +324,8 @@
             </div>
             <div class="q-nav">
               <button class="btn-outline" v-show="currentQIndex > 0" @click="prevQuestion">{{ t('moodAssessment.test.prevBtn') }}</button>
-              <div class="q-nav-info">{{ answers[currentQIndex] !== undefined ? t('moodAssessment.test.selectedHint') : t('moodAssessment.test.chooseHint') }}</div>
-              <button class="btn-primary" v-show="answers[currentQIndex] !== undefined" @click="nextQuestion">{{ t('moodAssessment.test.nextBtn') }}</button>
+              <div class="q-nav-info">{{ canProceed ? t('moodAssessment.test.selectedHint') : t('moodAssessment.test.chooseHint') }}</div>
+              <button class="btn-primary" v-show="canProceed" @click="currentQuestion.inputType ? confirmTextAnswer() : nextQuestion()">{{ t('moodAssessment.test.nextBtn') }}</button>
             </div>
           </div>
         </div>
@@ -550,6 +575,7 @@ onMounted(() => document.addEventListener('click', closeSharePopoverOnOutsideCli
 onBeforeUnmount(() => document.removeEventListener('click', closeSharePopoverOnOutsideClick));
 const currentQIndex = ref(0);
 const answers = ref([]);
+const textAnswerDraft = ref('');
 const result = ref(null);
 const resultSaveNote = ref('');
 const recommendedExperts = ref([]);
@@ -584,6 +610,19 @@ const currentQuestion = computed(() => currentTest.value?.questions[currentQInde
 const currentOptions = computed(() => currentQuestion.value?.likertOptions || currentTest.value?.likertOptions || []);
 const progressPct = computed(() => (currentTest.value ? Math.round((currentQIndex.value / currentTest.value.totalQ) * 100) : 0));
 const displayedProgressPct = computed(() => (forceFullProgress.value ? 100 : progressPct.value));
+const canProceed = computed(() => (
+  currentQuestion.value?.inputType
+    ? String(textAnswerDraft.value || '').trim() !== ''
+    : answers.value[currentQIndex.value] !== undefined
+));
+// Câu hỏi nhập giờ/số (PSQI) không tự lưu theo từng ký tự gõ — chỉ ghi vào answers[] khi
+// bấm "Tiếp tục" (confirmTextAnswer). Khi lùi/tới lại 1 câu đã nhập, nạp lại giá trị cũ vào
+// ô input để người dùng thấy đúng những gì đã trả lời.
+watch(currentQIndex, () => {
+  const q = currentQuestion.value;
+  const prevAnswer = answers.value[currentQIndex.value];
+  textAnswerDraft.value = (q?.inputType && prevAnswer !== undefined) ? String(prevAnswer) : '';
+});
 const resultSubtitle = computed(() => `${resultSubtitleBase.value}${resultSaveNote.value}`);
 const brokenResultImage = ref(false);
 const resultImageUrl = computed(() => {
@@ -895,6 +934,7 @@ function beginTestFlow(testId) {
   currentTestId.value = testId;
   currentQIndex.value = 0;
   answers.value = [];
+  textAnswerDraft.value = '';
   isAdvancing = false;
   hasFinishedCurrentTest = false;
   forceFullProgress.value = false;
@@ -944,8 +984,82 @@ function nextQuestion() {
   renderQuestion(currentQIndex.value + 1);
 }
 
+// Dành riêng cho câu hỏi dạng nhập giờ/số (hiện chỉ có ở PSQI) — Likert tự lưu điểm +
+// auto-advance ngay khi bấm (xem selectAnswer), còn kiểu nhập liệu này cần bấm "Tiếp tục"
+// mới ghi câu trả lời, vì người dùng cần thời gian gõ số thay vì chọn 1 lựa chọn có sẵn.
+function confirmTextAnswer() {
+  if (isAdvancing) return;
+  const val = String(textAnswerDraft.value || '').trim();
+  if (!val) return;
+
+  const q = currentQuestion.value;
+  const next = [...answers.value];
+  next[currentQIndex.value] = q.inputType === 'number' ? Number(val) : val;
+  answers.value = next;
+
+  if (currentQIndex.value < TESTS.value[currentTestId.value].totalQ - 1) {
+    nextQuestion();
+  } else {
+    forceFullProgress.value = true;
+    setTimeout(finishTest, 200);
+  }
+}
+
 function prevQuestion() {
   renderQuestion(currentQIndex.value - 1);
+}
+
+function parseTimeToMinutes(value) {
+  if (!value || typeof value !== 'string' || !value.includes(':')) return null;
+  const [h, m] = value.split(':').map(Number);
+  if (Number.isNaN(h) || Number.isNaN(m)) return null;
+  return h * 60 + m;
+}
+
+// Tính điểm PSQI qua đúng 7 thành phần theo quy trình kỹ thuật của Bộ Y tế (mục 36) —
+// không thể gộp vào cơ chế "cộng dồn indices" dùng chung cho các bài khác vì mỗi thành
+// phần có công thức/bảng quy đổi riêng (xem chỉ số câu hỏi ở assessmentTests.js: 0=giờ đi
+// ngủ, 1=phút vào giấc, 2=giờ thức dậy, 3=số giờ ngủ, 4-12=câu 5a-5i, 13=câu6, 14=câu7,
+// 15=câu8, 16=câu9).
+function computePsqiScore(a) {
+  const num = (v) => Number(v) || 0;
+
+  // TP1 - Chất lượng chủ quan = điểm câu 9.
+  const c1 = num(a[16]);
+
+  // TP2 - Độ trễ giấc ngủ = điểm câu 2 (quy đổi phút) + điểm câu 5a, quy đổi tổng (0-6) về 0-3.
+  const minutesScore = num(a[1]) <= 15 ? 0 : num(a[1]) <= 30 ? 1 : num(a[1]) <= 60 ? 2 : 3;
+  const latencySum = minutesScore + num(a[4]);
+  const c2 = latencySum === 0 ? 0 : latencySum <= 2 ? 1 : latencySum <= 4 ? 2 : 3;
+
+  // TP3 - Thời lượng ngủ = điểm câu 4 (số giờ ngủ thực tế).
+  const hoursSlept = num(a[3]);
+  const c3 = hoursSlept > 7 ? 0 : hoursSlept >= 6 ? 1 : hoursSlept >= 5 ? 2 : 3;
+
+  // TP4 - Hiệu suất giấc ngủ = (giờ ngủ được / giờ nằm trên giường) x 100%.
+  const bedMinutes = parseTimeToMinutes(a[0]);
+  const wakeMinutes = parseTimeToMinutes(a[2]);
+  let timeInBedHours = 0;
+  if (bedMinutes !== null && wakeMinutes !== null) {
+    let diff = wakeMinutes - bedMinutes;
+    if (diff <= 0) diff += 24 * 60; // qua đêm: đi ngủ tối hôm trước, dậy sáng hôm sau
+    timeInBedHours = diff / 60;
+  }
+  const efficiency = timeInBedHours > 0 ? (hoursSlept / timeInBedHours) * 100 : 100;
+  const c4 = efficiency > 85 ? 0 : efficiency >= 75 ? 1 : efficiency >= 65 ? 2 : 3;
+
+  // TP5 - Rối loạn giấc ngủ = tổng điểm 5b-5i, quy đổi theo bảng Bộ Y tế (0 / 1-9 / 10-18 / 19-27).
+  const disturbanceSum = [5, 6, 7, 8, 9, 10, 11, 12].reduce((sum, idx) => sum + num(a[idx]), 0);
+  const c5 = disturbanceSum === 0 ? 0 : disturbanceSum <= 9 ? 1 : disturbanceSum <= 18 ? 2 : 3;
+
+  // TP6 - Dùng thuốc ngủ = điểm câu 6 (thang 0-3 có sẵn).
+  const c6 = num(a[13]);
+
+  // TP7 - Rối loạn hoạt động ban ngày = tổng điểm câu 7 + câu 8, quy đổi (0 / 1-2 / 3-4 / 5-6).
+  const daytimeSum = num(a[14]) + num(a[15]);
+  const c7 = daytimeSum === 0 ? 0 : daytimeSum <= 2 ? 1 : daytimeSum <= 4 ? 2 : 3;
+
+  return c1 + c2 + c3 + c4 + c5 + c6 + c7;
 }
 
 function getSeverityRank(className) {
@@ -980,11 +1094,16 @@ function finishTest() {
   const subScores = {};
   Object.keys(testData.scoring).forEach((key) => {
     const sc = testData.scoring[key];
-    let rawSum = 0;
-    sc.indices.forEach((idx) => {
-      rawSum += (answerList[idx] || 0);
-    });
-    const finalScore = rawSum * sc.multiplier;
+    let finalScore;
+    if (sc.custom === 'psqi_v1') {
+      finalScore = computePsqiScore(answerList);
+    } else {
+      let rawSum = 0;
+      sc.indices.forEach((idx) => {
+        rawSum += (answerList[idx] || 0);
+      });
+      finalScore = rawSum * sc.multiplier;
+    }
     subScores[key] = { score: finalScore, config: sc };
   });
 

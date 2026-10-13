@@ -100,8 +100,8 @@ export const ASSESSMENT_META = {
         desc: 'Đánh giá chất lượng giấc ngủ trong tháng gần nhất.',
         category: 'sleep',
         badges: [
-            { className: 'badge-peach', label: '10 câu hỏi' },
-            { className: 'badge-mint', label: '~5 phút' },
+            { className: 'badge-peach', label: '17 câu hỏi' },
+            { className: 'badge-mint', label: '~8 phút' },
             { style: 'background:var(--kraft-light);color:var(--kraft-dark);border:1.5px solid var(--kraft);', label: 'Hàng tháng' }
         ]
     },

@@ -15,7 +15,7 @@ export const TESTS = {
         questions: [
             { text: "I couldn't feel any positive emotion at all", cat: 'depression', catLabel: 'Depression' },
             { text: 'I was aware of dryness of my mouth', cat: 'anxiety', catLabel: 'Anxiety' },
-            { text: "I couldn't experience any positive feelings at all", cat: 'depression', catLabel: 'Depression' },
+            { text: 'I found it hard to wind down', cat: 'stress', catLabel: 'Stress' },
             { text: 'I had difficulty breathing (rapid breathing, breathlessness without physical exertion)', cat: 'anxiety', catLabel: 'Anxiety' },
             { text: 'I found it difficult to work up the initiative to do things', cat: 'depression', catLabel: 'Depression' },
             { text: 'I tended to over-react to situations', cat: 'stress', catLabel: 'Stress' },
@@ -42,9 +42,9 @@ export const TESTS = {
             { emoji: '😰', label: 'Most of the time', score: 3 }
         ],
         scoring: {
-            depression: { indices: [0, 2, 4, 9, 12, 15, 16, 20], multiplier: 2, levels: [{ max: 9, 'label': 'Normal', 'class': 'level-0' }, { max: 13, 'label': 'Mild', 'class': 'level-1' }, { max: 20, 'label': 'Moderate', 'class': 'level-2' }, { max: 27, 'label': 'Severe', 'class': 'level-3' }, { max: 999, 'label': 'Extremely severe', 'class': 'level-4' }] },
+            depression: { indices: [0, 4, 9, 12, 15, 16, 20], multiplier: 2, levels: [{ max: 9, 'label': 'Normal', 'class': 'level-0' }, { max: 13, 'label': 'Mild', 'class': 'level-1' }, { max: 20, 'label': 'Moderate', 'class': 'level-2' }, { max: 27, 'label': 'Severe', 'class': 'level-3' }, { max: 999, 'label': 'Extremely severe', 'class': 'level-4' }] },
             anxiety: { indices: [1, 3, 6, 8, 14, 18, 19], multiplier: 2, levels: [{ max: 7, 'label': 'Normal', 'class': 'level-0' }, { max: 9, 'label': 'Mild', 'class': 'level-1' }, { max: 14, 'label': 'Moderate', 'class': 'level-2' }, { max: 19, 'label': 'Severe', 'class': 'level-3' }, { max: 999, 'label': 'Extremely severe', 'class': 'level-4' }] },
-            stress: { indices: [5, 7, 10, 11, 13, 17], multiplier: 2, levels: [{ max: 14, 'label': 'Normal', 'class': 'level-0' }, { max: 18, 'label': 'Mild', 'class': 'level-1' }, { max: 25, 'label': 'Moderate', 'class': 'level-2' }, { max: 33, 'label': 'Severe', 'class': 'level-3' }, { max: 999, 'label': 'Extremely severe', 'class': 'level-4' }] }
+            stress: { indices: [2, 5, 7, 10, 11, 13, 17], multiplier: 2, levels: [{ max: 14, 'label': 'Normal', 'class': 'level-0' }, { max: 18, 'label': 'Mild', 'class': 'level-1' }, { max: 25, 'label': 'Moderate', 'class': 'level-2' }, { max: 33, 'label': 'Severe', 'class': 'level-3' }, { max: 999, 'label': 'Extremely severe', 'class': 'level-4' }] }
         },
         prevScores: { depression: 6, anxiety: 8, stress: 10 }
     },
@@ -270,31 +270,36 @@ export const TESTS = {
         ],
         scoring: {
             depression: { indices: Array.from({ length: 21 }, (_, i) => i), multiplier: 1, levels: [
-                { max: 10, label: 'Normal', class: 'level-0' },
-                { max: 16, label: 'Mild mood disturbance', class: 'level-1' },
-                { max: 20, label: 'Borderline clinical depression', class: 'level-2' },
-                { max: 30, label: 'Moderate depression', class: 'level-3' },
-                { max: 40, label: 'Severe depression', class: 'level-4' },
-                { max: 999, label: 'Extreme depression', class: 'level-5' }
+                { max: 13, label: 'No depression', class: 'level-0' },
+                { max: 19, label: 'Mild depression', class: 'level-1' },
+                { max: 29, label: 'Moderate depression', class: 'level-2' },
+                { max: 999, label: 'Severe depression', class: 'level-3' }
             ] }
         }
     },
     psqi: {
-        name: 'PSQI', fullname: 'Pittsburgh Sleep Quality Index (standardized version)',
+        name: 'PSQI', fullname: 'Pittsburgh Sleep Quality Index (Ministry of Health protocol)',
         icon: '😴', iconBg: 'var(--peach-light)', iconBorder: 'var(--kraft)',
-        timeRef: 'Past 1 month', totalQ: 10, maxScore: 30,
+        timeRef: 'Past 1 month', totalQ: 17, maxScore: 21,
         subscales: ['sleep'],
         questions: [
-            { text: 'How would you rate your overall sleep quality?', cat: 'sleep', catLabel: 'Sleep', likertOptions: [{ emoji: '😀', label: 'Very good', score: 0 }, { emoji: '🙂', label: 'Fairly good', score: 1 }, { emoji: '😟', label: 'Fairly bad', score: 2 }, { emoji: '😰', label: 'Very bad', score: 3 }] },
-            { text: 'How long does it usually take you to fall asleep each night?', cat: 'sleep', catLabel: 'Sleep', likertOptions: [{ emoji: '⏱️', label: '< 15 minutes', score: 0 }, { emoji: '⏱️', label: '16 - 30 minutes', score: 1 }, { emoji: '⏱️', label: '31 - 60 minutes', score: 2 }, { emoji: '⏱️', label: '> 60 minutes', score: 3 }] },
-            { text: 'How many hours of actual sleep do you get per night? (not counting time spent tossing and turning)', cat: 'sleep', catLabel: 'Sleep', likertOptions: [{ emoji: '🛌', label: '> 7 hours', score: 0 }, { emoji: '🛌', label: '6 - 7 hours', score: 1 }, { emoji: '🛌', label: '5 - 6 hours', score: 2 }, { emoji: '🛌', label: '< 5 hours', score: 3 }] },
-            { text: "How often can you not get to sleep within 30 minutes?", cat: 'sleep', catLabel: 'Sleep' },
-            { text: 'How often do you wake up in the middle of the night or too early in the morning?', cat: 'sleep', catLabel: 'Sleep' },
-            { text: 'How often do you have to get up to use the bathroom?', cat: 'sleep', catLabel: 'Sleep' },
-            { text: 'How often do you have trouble sleeping because of coughing, difficulty breathing, or loud snoring?', cat: 'sleep', catLabel: 'Sleep' },
-            { text: 'How often do you sleep poorly because of nightmares, or feeling too hot or too cold?', cat: 'sleep', catLabel: 'Sleep' },
-            { text: 'How often do you need to take medicine (prescribed or over-the-counter) to help you sleep?', cat: 'sleep', catLabel: 'Sleep' },
-            { text: 'How often do you feel sleepy or tired during the day while working, driving, or socializing?', cat: 'sleep', catLabel: 'Sleep' }
+            { text: 'During the past month, what time have you usually gone to bed?', cat: 'sleep', catLabel: 'Sleep', inputType: 'time' },
+            { text: 'How many minutes has it usually taken you to fall asleep each night?', cat: 'sleep', catLabel: 'Sleep', inputType: 'number', inputSuffix: 'min', inputMax: 600 },
+            { text: 'During the past month, what time have you usually gotten up in the morning?', cat: 'sleep', catLabel: 'Sleep', inputType: 'time' },
+            { text: 'How many hours of actual sleep did you get at night? (this may be different than the number of hours you spent in bed)', cat: 'sleep', catLabel: 'Sleep', inputType: 'number', inputSuffix: 'hours', inputMax: 24, inputStep: 0.5 },
+            { text: '5a. Cannot get to sleep within 30 minutes', cat: 'sleep', catLabel: 'Sleep' },
+            { text: '5b. Wake up in the middle of the night or early morning', cat: 'sleep', catLabel: 'Sleep' },
+            { text: '5c. Have to get up to use the bathroom', cat: 'sleep', catLabel: 'Sleep' },
+            { text: '5d. Have trouble breathing', cat: 'sleep', catLabel: 'Sleep' },
+            { text: '5e. Cough or snore loudly', cat: 'sleep', catLabel: 'Sleep' },
+            { text: '5f. Feel too cold', cat: 'sleep', catLabel: 'Sleep' },
+            { text: '5g. Feel too hot', cat: 'sleep', catLabel: 'Sleep' },
+            { text: '5h. Have bad dreams', cat: 'sleep', catLabel: 'Sleep' },
+            { text: '5i. Have pain', cat: 'sleep', catLabel: 'Sleep' },
+            { text: '6. How often have you taken medicine to help you sleep (prescribed or over-the-counter)?', cat: 'sleep', catLabel: 'Sleep' },
+            { text: '7. How often have you had trouble staying awake while eating, driving, or socializing?', cat: 'sleep', catLabel: 'Sleep' },
+            { text: '8. How often have you had trouble keeping up enough enthusiasm to get things done?', cat: 'sleep', catLabel: 'Sleep' },
+            { text: '9. Overall, how would you rate your sleep quality?', cat: 'sleep', catLabel: 'Sleep', likertOptions: [{ emoji: '😀', label: 'Very good', score: 0 }, { emoji: '🙂', label: 'Fairly good', score: 1 }, { emoji: '😟', label: 'Fairly bad', score: 2 }, { emoji: '😰', label: 'Very bad', score: 3 }] }
         ],
         likertOptions: [
             { emoji: '✅', label: 'Not during the past month', score: 0 },
@@ -303,7 +308,7 @@ export const TESTS = {
             { emoji: '🚨', label: 'Three or more times a week', score: 3 }
         ],
         scoring: {
-            sleep: { indices: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9], multiplier: 1, levels: [{ max: 4, 'label': 'Very good', 'class': 'level-0' }, { max: 7, 'label': 'Meets the standard', 'class': 'level-1' }, { max: 14, 'label': 'At risk of insomnia', 'class': 'level-2' }, { max: 20, 'label': 'Severe insomnia', 'class': 'level-3' }, { max: 999, 'label': 'Especially severe', 'class': 'level-4' }] }
+            sleep: { custom: 'psqi_v1', levels: [{ max: 4, 'label': 'Good sleep quality', 'class': 'level-0' }, { max: 999, 'label': 'Poor sleep quality', 'class': 'level-3' }] }
         },
         prevScores: null
     },
@@ -452,11 +457,11 @@ export const TESTS = {
             { emoji: '✔️', label: 'Certainly true', score: 2 }
         ],
         scoring: {
-            emotional: { indices: [2, 7, 12, 15, 23], multiplier: 1, levels: [{ max: 3, 'label': 'Normal', 'class': 'level-0' }, { max: 10, 'label': 'Needs attention', 'class': 'level-2' }] },
-            conduct: { indices: [4, 6, 11, 17, 21], multiplier: 1, levels: [{ max: 2, 'label': 'Normal', 'class': 'level-0' }, { max: 10, 'label': 'Needs attention', 'class': 'level-2' }] },
-            hyperactivity: { indices: [1, 9, 14, 20, 24], multiplier: 1, levels: [{ max: 5, 'label': 'Normal', 'class': 'level-0' }, { max: 10, 'label': 'Needs attention', 'class': 'level-2' }] },
-            peer: { indices: [5, 10, 13, 18, 22], multiplier: 1, levels: [{ max: 2, 'label': 'Normal', 'class': 'level-0' }, { max: 10, 'label': 'Needs attention', 'class': 'level-2' }] },
-            prosocial: { indices: [0, 3, 8, 16, 19], multiplier: 1, levels: [{ max: 4, 'label': 'Needs more social-skills support', 'class': 'level-2' }, { max: 10, 'label': 'Good', 'class': 'level-0' }] },
+            emotional: { indices: [2, 7, 12, 15, 23], multiplier: 1, levels: [{ max: 5, 'label': 'Normal', 'class': 'level-0' }, { max: 6, 'label': 'Borderline', 'class': 'level-1' }, { max: 10, 'label': 'Abnormal', 'class': 'level-3' }] },
+            conduct: { indices: [4, 6, 11, 17, 21], multiplier: 1, levels: [{ max: 3, 'label': 'Normal', 'class': 'level-0' }, { max: 4, 'label': 'Borderline', 'class': 'level-1' }, { max: 10, 'label': 'Abnormal', 'class': 'level-3' }] },
+            hyperactivity: { indices: [1, 9, 14, 20, 24], multiplier: 1, levels: [{ max: 5, 'label': 'Normal', 'class': 'level-0' }, { max: 6, 'label': 'Borderline', 'class': 'level-1' }, { max: 10, 'label': 'Abnormal', 'class': 'level-3' }] },
+            peer: { indices: [5, 10, 13, 18, 22], multiplier: 1, levels: [{ max: 3, 'label': 'Normal', 'class': 'level-0' }, { max: 5, 'label': 'Borderline', 'class': 'level-1' }, { max: 10, 'label': 'Abnormal', 'class': 'level-3' }] },
+            prosocial: { indices: [0, 3, 8, 16, 19], multiplier: 1, levels: [{ max: 4, 'label': 'Needs more social-skills support', 'class': 'level-3' }, { max: 5, 'label': 'Borderline', 'class': 'level-1' }, { max: 10, 'label': 'Good', 'class': 'level-0' }] },
             total: { indices: [2, 7, 12, 15, 23, 4, 6, 11, 17, 21, 1, 9, 14, 20, 24, 5, 10, 13, 18, 22], multiplier: 1, levels: [{ max: 15, 'label': 'Normal', 'class': 'level-0' }, { max: 19, 'label': 'Borderline', 'class': 'level-1' }, { max: 999, 'label': 'Abnormal', 'class': 'level-3' }] }
         },
         prevScores: null

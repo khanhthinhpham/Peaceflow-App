@@ -102,8 +102,8 @@ export const ASSESSMENT_META = {
         desc: 'Assesses sleep quality over the past month.',
         category: 'sleep',
         badges: [
-            { className: 'badge-peach', label: '10 questions' },
-            { className: 'badge-mint', label: '~5 min' },
+            { className: 'badge-peach', label: '17 questions' },
+            { className: 'badge-mint', label: '~8 min' },
             { style: 'background:var(--kraft-light);color:var(--kraft-dark);border:1.5px solid var(--kraft);', label: 'Monthly' }
         ]
     },

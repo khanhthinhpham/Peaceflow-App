@@ -12,7 +12,7 @@ export const TESTS = {
         questions: [
             { text: 'Tôi không thể cảm nhận được bất kỳ cảm xúc tích cực nào', cat: 'depression', catLabel: 'Trầm cảm' },
             { text: 'Tôi cảm thấy khô miệng', cat: 'anxiety', catLabel: 'Lo âu' },
-            { text: 'Tôi không thể trải nghiệm bất kỳ cảm giác tích cực nào', cat: 'depression', catLabel: 'Trầm cảm' },
+            { text: 'Tôi thấy khó mà thoải mái được', cat: 'stress', catLabel: 'Căng thẳng' },
             { text: 'Tôi gặp khó khăn trong việc thở (thở gấp, khó thở dù không vận động)', cat: 'anxiety', catLabel: 'Lo âu' },
             { text: 'Tôi thấy khó có thể bắt đầu làm bất cứ việc gì', cat: 'depression', catLabel: 'Trầm cảm' },
             { text: 'Tôi có xu hướng phản ứng thái quá với các tình huống', cat: 'stress', catLabel: 'Căng thẳng' },
@@ -39,9 +39,9 @@ export const TESTS = {
             { emoji: '😰', label: 'Hầu hết lúc', score: 3 }
         ],
         scoring: {
-            depression: { indices: [0, 2, 4, 9, 12, 15, 16, 20], multiplier: 2, levels: [{ max: 9, 'label': 'Bình thường', 'class': 'level-0' }, { max: 13, 'label': 'Nhẹ', 'class': 'level-1' }, { max: 20, 'label': 'Vừa', 'class': 'level-2' }, { max: 27, 'label': 'Nặng', 'class': 'level-3' }, { max: 999, 'label': 'Rất nặng', 'class': 'level-4' }] },
+            depression: { indices: [0, 4, 9, 12, 15, 16, 20], multiplier: 2, levels: [{ max: 9, 'label': 'Bình thường', 'class': 'level-0' }, { max: 13, 'label': 'Nhẹ', 'class': 'level-1' }, { max: 20, 'label': 'Vừa', 'class': 'level-2' }, { max: 27, 'label': 'Nặng', 'class': 'level-3' }, { max: 999, 'label': 'Rất nặng', 'class': 'level-4' }] },
             anxiety: { indices: [1, 3, 6, 8, 14, 18, 19], multiplier: 2, levels: [{ max: 7, 'label': 'Bình thường', 'class': 'level-0' }, { max: 9, 'label': 'Nhẹ', 'class': 'level-1' }, { max: 14, 'label': 'Vừa', 'class': 'level-2' }, { max: 19, 'label': 'Nặng', 'class': 'level-3' }, { max: 999, 'label': 'Rất nặng', 'class': 'level-4' }] },
-            stress: { indices: [5, 7, 10, 11, 13, 17], multiplier: 2, levels: [{ max: 14, 'label': 'Bình thường', 'class': 'level-0' }, { max: 18, 'label': 'Nhẹ', 'class': 'level-1' }, { max: 25, 'label': 'Vừa', 'class': 'level-2' }, { max: 33, 'label': 'Nặng', 'class': 'level-3' }, { max: 999, 'label': 'Rất nặng', 'class': 'level-4' }] }
+            stress: { indices: [2, 5, 7, 10, 11, 13, 17], multiplier: 2, levels: [{ max: 14, 'label': 'Bình thường', 'class': 'level-0' }, { max: 18, 'label': 'Nhẹ', 'class': 'level-1' }, { max: 25, 'label': 'Vừa', 'class': 'level-2' }, { max: 33, 'label': 'Nặng', 'class': 'level-3' }, { max: 999, 'label': 'Rất nặng', 'class': 'level-4' }] }
         },
         prevScores: { depression: 6, anxiety: 8, stress: 10 }
     },
@@ -265,42 +265,58 @@ export const TESTS = {
                 { emoji: '😰', label: 'Tôi hoàn toàn mất hứng thú với tình dục.', score: 3 }
             ] }
         ],
+        // Ngưỡng theo đúng bảng "Trắc nghiệm trầm cảm Beck (BDI)" của Bộ Y tế: 4 mức
+        // 0-13/14-19/20-29/≥30 — KHÔNG phải 6 mức 10/16/20/30/40 như bản cũ (không khớp
+        // mốc nào với bảng gốc).
         scoring: {
             depression: { indices: Array.from({ length: 21 }, (_, i) => i), multiplier: 1, levels: [
-                { max: 10, label: 'Bình thường', class: 'level-0' },
-                { max: 16, label: 'Rối loạn khí sắc nhẹ', class: 'level-1' },
-                { max: 20, label: 'Trầm cảm lâm sàng mức giới hạn', class: 'level-2' },
-                { max: 30, label: 'Trầm cảm mức độ vừa', class: 'level-3' },
-                { max: 40, label: 'Trầm cảm nặng', class: 'level-4' },
-                { max: 999, label: 'Trầm cảm rất nặng', class: 'level-5' }
+                { max: 13, label: 'Không có trầm cảm', class: 'level-0' },
+                { max: 19, label: 'Trầm cảm nhẹ', class: 'level-1' },
+                { max: 29, label: 'Trầm cảm vừa', class: 'level-2' },
+                { max: 999, label: 'Trầm cảm nặng', class: 'level-3' }
             ] }
         }
     },
     psqi: {
-        name: 'PSQI', fullname: 'Pittsburgh Sleep Quality Index (Bản chuẩn hóa trắc nghiệm)',
+        name: 'PSQI', fullname: 'Pittsburgh Sleep Quality Index (Theo quy trình Bộ Y tế)',
         icon: '😴', iconBg: 'var(--peach-light)', iconBorder: 'var(--kraft)',
-        timeRef: '1 tháng qua', totalQ: 10, maxScore: 30,
+        timeRef: '1 tháng qua', totalQ: 17, maxScore: 21,
         subscales: ['sleep'],
+        // Cấu trúc 17 câu dưới đây bám đúng "Phụ lục trắc nghiệm chất lượng giấc ngủ Pittsburgh
+        // (PSQI)" trong tài liệu quy trình kỹ thuật của Bộ Y tế: 4 câu đầu hỏi giờ giấc cụ thể
+        // (inputType 'time'/'number', không phải trắc nghiệm chọn) để tính "hiệu suất giấc ngủ",
+        // 9 câu tiếp là mục 5 (a-i) hỏi tần suất gặp vấn đề gây mất ngủ, rồi câu 6-7-8-9. Mục
+        // 5k ("lý do khác", tự điền) KHÔNG đưa vào vì là mục tự do, không bắt buộc theo bản gốc.
         questions: [
-            { text: 'Bạn đánh giá chất lượng giấc ngủ tổng thể của mình ở mức nào?', cat: 'sleep', catLabel: 'Giấc ngủ', likertOptions: [{ emoji: '😀', label: 'Rất tốt', score: 0 }, { emoji: '🙂', label: 'Khá tốt', score: 1 }, { emoji: '😟', label: 'Khá kém', score: 2 }, { emoji: '😰', label: 'Rất kém', score: 3 }] },
-            { text: 'Bạn thường mất bao lâu để chìm vào giấc ngủ mỗi đêm?', cat: 'sleep', catLabel: 'Giấc ngủ', likertOptions: [{ emoji: '⏱️', label: '< 15 phút', score: 0 }, { emoji: '⏱️', label: '16 - 30 phút', score: 1 }, { emoji: '⏱️', label: '31 - 60 phút', score: 2 }, { emoji: '⏱️', label: '> 60 phút', score: 3 }] },
-            { text: 'Bạn thực sự ngủ được bao nhiêu tiếng mỗi đêm? (Không tính thời gian nằm trằn trọc)', cat: 'sleep', catLabel: 'Giấc ngủ', likertOptions: [{ emoji: '🛌', label: '> 7 tiếng', score: 0 }, { emoji: '🛌', label: '6 - 7 tiếng', score: 1 }, { emoji: '🛌', label: '5 - 6 tiếng', score: 2 }, { emoji: '🛌', label: '< 5 tiếng', score: 3 }] },
-            { text: 'Tần suất bạn không thể chìm vào giấc ngủ trong vòng 30 phút?', cat: 'sleep', catLabel: 'Giấc ngủ' },
-            { text: 'Tần suất bạn thức giấc giữa đêm hoặc dậy quá sớm vào buổi sáng?', cat: 'sleep', catLabel: 'Giấc ngủ' },
-            { text: 'Tần suất bạn phải thức dậy đi lại để đi vệ sinh?', cat: 'sleep', catLabel: 'Giấc ngủ' },
-            { text: 'Tần suất bạn gặp khó khăn do ho, khó thở hoặc ngáy to?', cat: 'sleep', catLabel: 'Giấc ngủ' },
-            { text: 'Tần suất bạn ngủ không ngon vì gặp ác mộng, hoặc cảm thấy quá nóng/quá lạnh?', cat: 'sleep', catLabel: 'Giấc ngủ' },
-            { text: 'Tần suất bạn phải dùng thuốc (được kê đơn hoặc không) để dễ ngủ?', cat: 'sleep', catLabel: 'Giấc ngủ' },
-            { text: 'Tần suất bạn cảm thấy buồn ngủ, mệt mỏi vào ban ngày khi làm việc, lái xe hay giao tiếp?', cat: 'sleep', catLabel: 'Giấc ngủ' }
+            { text: 'Trong tháng qua, bạn thường lên giường đi ngủ lúc mấy giờ?', cat: 'sleep', catLabel: 'Giấc ngủ', inputType: 'time' },
+            { text: 'Mỗi đêm bạn thường mất bao nhiêu phút mới chợp mắt được?', cat: 'sleep', catLabel: 'Giấc ngủ', inputType: 'number', inputSuffix: 'phút', inputMax: 600 },
+            { text: 'Trong tháng qua, bạn thường thức dậy buổi sáng lúc mấy giờ?', cat: 'sleep', catLabel: 'Giấc ngủ', inputType: 'time' },
+            { text: 'Mỗi đêm bạn thực sự ngủ được mấy tiếng đồng hồ? (không tính thời gian nằm trằn trọc)', cat: 'sleep', catLabel: 'Giấc ngủ', inputType: 'number', inputSuffix: 'tiếng', inputMax: 24, inputStep: 0.5 },
+            { text: '5a. Không thể ngủ được trong vòng 30 phút', cat: 'sleep', catLabel: 'Giấc ngủ' },
+            { text: '5b. Tỉnh dậy lúc nửa đêm hoặc quá sớm vào buổi sáng', cat: 'sleep', catLabel: 'Giấc ngủ' },
+            { text: '5c. Phải thức dậy để sử dụng nhà vệ sinh', cat: 'sleep', catLabel: 'Giấc ngủ' },
+            { text: '5d. Khó thở', cat: 'sleep', catLabel: 'Giấc ngủ' },
+            { text: '5e. Ho hoặc ngáy to', cat: 'sleep', catLabel: 'Giấc ngủ' },
+            { text: '5f. Cảm thấy rất lạnh', cat: 'sleep', catLabel: 'Giấc ngủ' },
+            { text: '5g. Cảm thấy rất nóng', cat: 'sleep', catLabel: 'Giấc ngủ' },
+            { text: '5h. Có ác mộng', cat: 'sleep', catLabel: 'Giấc ngủ' },
+            { text: '5i. Thấy đau', cat: 'sleep', catLabel: 'Giấc ngủ' },
+            { text: '6. Bạn có thường phải sử dụng thuốc ngủ không (theo đơn hoặc tự mua)?', cat: 'sleep', catLabel: 'Giấc ngủ' },
+            { text: '7. Bạn có hay gặp khó khăn để giữ đầu óc tỉnh táo lúc ăn, lái xe hay làm việc không?', cat: 'sleep', catLabel: 'Giấc ngủ' },
+            { text: '8. Bạn có gặp khó khăn để duy trì hứng thú hoàn thành công việc không?', cat: 'sleep', catLabel: 'Giấc ngủ' },
+            { text: '9. Nhìn chung, bạn đánh giá chất lượng giấc ngủ của mình như thế nào?', cat: 'sleep', catLabel: 'Giấc ngủ', likertOptions: [{ emoji: '😀', label: 'Rất tốt', score: 0 }, { emoji: '🙂', label: 'Tương đối tốt', score: 1 }, { emoji: '😟', label: 'Tương đối kém', score: 2 }, { emoji: '😰', label: 'Rất kém', score: 3 }] }
         ],
         likertOptions: [
-            { emoji: '✅', label: 'Không bao giờ trong tháng qua', score: 0 },
-            { emoji: '🟡', label: 'Tuyệt đối hiếm (< 1 lần/tuần)', score: 1 },
-            { emoji: '🟠', label: 'Vài lần (1-2 lần/tuần)', score: 2 },
-            { emoji: '🚨', label: 'Thường xuyên (≥ 3 lần/tuần)', score: 3 }
+            { emoji: '✅', label: 'Không có trong tháng qua', score: 0 },
+            { emoji: '🟡', label: 'Ít hơn 1 lần/tuần', score: 1 },
+            { emoji: '🟠', label: '1-2 lần/tuần', score: 2 },
+            { emoji: '🚨', label: '3 lần/tuần trở lên', score: 3 }
         ],
+        // custom: 'psqi_v1' báo cho finishTest() biết bài này KHÔNG tính điểm theo kiểu
+        // "cộng dồn indices" như các bài khác — PSQI tính qua 7 thành phần riêng biệt (xem
+        // computePsqiScore() ở MoodAssessmentView.vue) rồi mới cộng lại thành tổng 0-21.
         scoring: {
-            sleep: { indices: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9], multiplier: 1, levels: [{ max: 4, 'label': 'Rất tốt', 'class': 'level-0' }, { max: 7, 'label': 'Đạt tiêu chuẩn', 'class': 'level-1' }, { max: 14, 'label': 'Nguy cơ Mất ngủ', 'class': 'level-2' }, { max: 20, 'label': 'Mất ngủ trầm trọng', 'class': 'level-3' }, { max: 999, 'label': 'Đặc biệt nghiêm trọng', 'class': 'level-4' }] }
+            sleep: { custom: 'psqi_v1', levels: [{ max: 4, 'label': 'Chất lượng giấc ngủ tốt', 'class': 'level-0' }, { max: 999, 'label': 'Chất lượng giấc ngủ suy giảm', 'class': 'level-3' }] }
         },
         prevScores: null
     },
@@ -448,12 +464,17 @@ export const TESTS = {
             { emoji: '➖', label: 'Đúng một phần', score: 1 },
             { emoji: '✔️', label: 'Chắc chắn đúng', score: 2 }
         ],
+        // Ngưỡng từng tiểu thang theo đúng bảng "Khó khăn chung | Con" (tự đánh giá) của Bộ
+        // Y tế — bản cũ gộp "Ranh giới" + "Bất thường" thành 1 mức "Cần chú ý" và lệch mốc
+        // "Bình thường" ở 3/5 tiểu thang (Cảm xúc/Hành vi/Bạn bè), khiến trẻ bình thường bị
+        // gắn nhãn cần chú ý oan; Thân thiện xã hội (điểm càng cao càng tốt) cũng thiếu mức
+        // ranh giới.
         scoring: {
-            emotional: { indices: [2, 7, 12, 15, 23], multiplier: 1, levels: [{ max: 3, 'label': 'Bình thường', 'class': 'level-0' }, { max: 10, 'label': 'Cần chú ý', 'class': 'level-2' }] },
-            conduct: { indices: [4, 6, 11, 17, 21], multiplier: 1, levels: [{ max: 2, 'label': 'Bình thường', 'class': 'level-0' }, { max: 10, 'label': 'Cần chú ý', 'class': 'level-2' }] },
-            hyperactivity: { indices: [1, 9, 14, 20, 24], multiplier: 1, levels: [{ max: 5, 'label': 'Bình thường', 'class': 'level-0' }, { max: 10, 'label': 'Cần chú ý', 'class': 'level-2' }] },
-            peer: { indices: [5, 10, 13, 18, 22], multiplier: 1, levels: [{ max: 2, 'label': 'Bình thường', 'class': 'level-0' }, { max: 10, 'label': 'Cần chú ý', 'class': 'level-2' }] },
-            prosocial: { indices: [0, 3, 8, 16, 19], multiplier: 1, levels: [{ max: 4, 'label': 'Cần hỗ trợ thêm kỹ năng xã hội', 'class': 'level-2' }, { max: 10, 'label': 'Tốt', 'class': 'level-0' }] },
+            emotional: { indices: [2, 7, 12, 15, 23], multiplier: 1, levels: [{ max: 5, 'label': 'Bình thường', 'class': 'level-0' }, { max: 6, 'label': 'Ranh giới', 'class': 'level-1' }, { max: 10, 'label': 'Bất thường', 'class': 'level-3' }] },
+            conduct: { indices: [4, 6, 11, 17, 21], multiplier: 1, levels: [{ max: 3, 'label': 'Bình thường', 'class': 'level-0' }, { max: 4, 'label': 'Ranh giới', 'class': 'level-1' }, { max: 10, 'label': 'Bất thường', 'class': 'level-3' }] },
+            hyperactivity: { indices: [1, 9, 14, 20, 24], multiplier: 1, levels: [{ max: 5, 'label': 'Bình thường', 'class': 'level-0' }, { max: 6, 'label': 'Ranh giới', 'class': 'level-1' }, { max: 10, 'label': 'Bất thường', 'class': 'level-3' }] },
+            peer: { indices: [5, 10, 13, 18, 22], multiplier: 1, levels: [{ max: 3, 'label': 'Bình thường', 'class': 'level-0' }, { max: 5, 'label': 'Ranh giới', 'class': 'level-1' }, { max: 10, 'label': 'Bất thường', 'class': 'level-3' }] },
+            prosocial: { indices: [0, 3, 8, 16, 19], multiplier: 1, levels: [{ max: 4, 'label': 'Cần hỗ trợ thêm kỹ năng xã hội', 'class': 'level-3' }, { max: 5, 'label': 'Ranh giới', 'class': 'level-1' }, { max: 10, 'label': 'Tốt', 'class': 'level-0' }] },
             total: { indices: [2, 7, 12, 15, 23, 4, 6, 11, 17, 21, 1, 9, 14, 20, 24, 5, 10, 13, 18, 22], multiplier: 1, levels: [{ max: 15, 'label': 'Bình thường', 'class': 'level-0' }, { max: 19, 'label': 'Ranh giới', 'class': 'level-1' }, { max: 999, 'label': 'Bất thường', 'class': 'level-3' }] }
         },
         prevScores: null
