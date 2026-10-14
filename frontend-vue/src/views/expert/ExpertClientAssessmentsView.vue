@@ -148,7 +148,7 @@
         </div>
       </div>
 
-      <div>
+      <div id="caHistoryList">
         <p v-if="moodHistoryLoading" class="ca-empty">Đang tải...</p>
         <p v-else-if="moodHistoryError" class="ca-empty">Không tải được lịch sử check-in.</p>
         <p v-else-if="!moodShared" class="ca-empty">Client này chưa bật "Chia sẻ check-in hàng ngày với chuyên gia" trong Cài đặt.</p>
