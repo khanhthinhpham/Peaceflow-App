@@ -737,6 +737,27 @@
     font-size: 1rem;
 }
 
+.ec-share-btn {
+    border: 1.5px solid var(--kraft-light);
+    background: var(--warm-white);
+    border-radius: 50%;
+    width: 26px;
+    height: 26px;
+    font-size: 0.8rem;
+    line-height: 1;
+    cursor: pointer;
+    opacity: 0.45;
+    transition: var(--transition);
+}
+.ec-share-btn:hover {
+    opacity: 0.8;
+}
+.ec-share-btn.is-shared {
+    opacity: 1;
+    border-color: var(--mint-dark);
+    background: var(--mint-light);
+}
+
 .ec-sentiment {
     font-size: 0.65rem;
     font-weight: 700;

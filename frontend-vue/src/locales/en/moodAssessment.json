@@ -1,5 +1,9 @@
 {
   "moodAssessment": {
+    "shareWithExperts": {
+      "title": "🩺 Share test results with my expert",
+      "desc": "Experts you've booked can see your self-test results."
+    },
     "emergency": {
       "title": "You are not alone",
       "text": "If your score is high and you're struggling right now, let someone help you.",

@@ -959,7 +959,7 @@ async function uploadPendingMedicalRecords(bookingId) {
     if (medicalRecordNote.value.trim()) formData.set('note', medicalRecordNote.value.trim());
     await apiClient.postForm(`/bookings/${bookingId}/medical-records`, formData);
   } catch (error) {
-    console.error('Gửi hồ sơ khám cũ thất bại:', error);
+    console.error('Gửi hồ sơ tham vấn cũ thất bại:', error);
   } finally {
     medicalRecordFiles.value = [];
     medicalRecordNote.value = '';

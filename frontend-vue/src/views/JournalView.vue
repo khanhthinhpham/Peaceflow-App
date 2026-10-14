@@ -197,7 +197,16 @@
                     <div class="ec-title">{{ entry.title || t('journal.untitled') }}</div>
                     <div class="ec-date">{{ formatDateTime(entry.created_at) }}</div>
                   </div>
-                  <div class="ec-mood-emoji">{{ getEntryPresentation(entry).emoji }}</div>
+                  <div style="display:flex;align-items:center;gap:6px;">
+                    <button
+                      type="button"
+                      class="ec-share-btn"
+                      :class="{ 'is-shared': entry.shared_with_experts }"
+                      :title="entry.shared_with_experts ? t('journal.shareWithExperts.onTitle') : t('journal.shareWithExperts.offTitle')"
+                      @click.stop="toggleEntryShare(entry)"
+                    >🩺</button>
+                    <div class="ec-mood-emoji">{{ getEntryPresentation(entry).emoji }}</div>
+                  </div>
                 </div>
                 <div class="ec-meta-row">
                   <span class="ec-sentiment" :class="getEntryPresentation(entry).sentiment">{{ getEntryPresentation(entry).sentimentLabel }}</span>
@@ -648,6 +657,18 @@ function clearEditor() {
 }
 function viewEntry(id) {
   activeEntry.value = entries.value.find((e) => String(e.id) === String(id)) || null;
+}
+
+// Chia sẻ TỪNG bài nhật ký với chuyên gia — khác mood check-in/bài test (công tắc toàn
+// cục): mỗi bài tự bật/tắt riêng, không ảnh hưởng các bài khác.
+async function toggleEntryShare(entry) {
+  const next = !entry.shared_with_experts;
+  entry.shared_with_experts = next;
+  try {
+    await apiClient.patch(`/journal/${entry.id}`, { shared_with_experts: next });
+  } catch (_e) {
+    entry.shared_with_experts = !next;
+  }
 }
 function closeEntryModal(event) {
   if (event.target.classList.contains('modal-overlay')) activeEntry.value = null;

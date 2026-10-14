@@ -26,7 +26,14 @@
             <div class="page-title">{{ t('moodAssessment.selector.pageTitle') }}</div>
             <div class="page-subtitle">{{ t('moodAssessment.selector.pageSubtitle') }}</div>
           </div>
-          <div style="display:flex;gap:8px;">
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+            <label class="badge-pill" :title="t('moodAssessment.shareWithExperts.desc')" style="cursor:pointer;gap:6px;border:1.5px solid var(--kraft-light);background:var(--warm-white);">
+              <span style="font-size:0.72rem;font-weight:700;">{{ t('moodAssessment.shareWithExperts.title') }}</span>
+              <label class="toggle-switch" style="transform:scale(0.72);margin:-4px -6px;">
+                <input type="checkbox" v-model="shareAssessmentsWithExperts" :disabled="shareAssessmentsSaving" @change="toggleShareAssessmentsWithExperts">
+                <span class="toggle-slider"></span>
+              </label>
+            </label>
             <router-link to="/mood-checkin" class="btn-outline">{{ t('moodAssessment.selector.back') }}</router-link>
             <router-link to="/mood-chat" class="btn-outline">{{ t('moodAssessment.selector.chatAi') }}</router-link>
           </div>
@@ -1344,6 +1351,21 @@ function backToSelector() {
   guidedAssessment.value = null;
 }
 
+// Công tắc toàn cục "Chia sẻ bài test tự làm với chuyên gia" — giống hệt mood check-in
+// (cùng đọc/ghi qua PUT/GET /profile), khác với nhật ký (chia sẻ riêng từng bài).
+const shareAssessmentsWithExperts = ref(false);
+const shareAssessmentsSaving = ref(false);
+async function toggleShareAssessmentsWithExperts() {
+  shareAssessmentsSaving.value = true;
+  try {
+    await apiClient.put('/profile', { share_assessments_with_experts: shareAssessmentsWithExperts.value });
+  } catch (_e) {
+    shareAssessmentsWithExperts.value = !shareAssessmentsWithExperts.value;
+  } finally {
+    shareAssessmentsSaving.value = false;
+  }
+}
+
 onMounted(() => {
   loadRespondentFromStorage();
 
@@ -1358,6 +1380,10 @@ onMounted(() => {
       const testKey = route.query.test;
       if (testKey && TESTS.value[testKey]) startTest(testKey);
     });
+
+  apiClient.get('/profile').then((profileData) => {
+    shareAssessmentsWithExperts.value = profileData?.share_assessments_with_experts ?? false;
+  }).catch(() => {});
 });
 </script>
 

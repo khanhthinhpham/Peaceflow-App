@@ -1,5 +1,9 @@
 {
   "journal": {
+    "shareWithExperts": {
+      "onTitle": "Đang chia sẻ bài này với chuyên gia — bấm để ngừng",
+      "offTitle": "Chia sẻ riêng bài này với chuyên gia"
+    },
     "breadcrumbDashboard": "Tổng quan",
     "breadcrumbJournal": "Nhật ký cảm xúc",
     "title": "📝 Nhật Ký Cảm Xúc",

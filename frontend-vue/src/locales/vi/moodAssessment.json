@@ -1,5 +1,9 @@
 {
   "moodAssessment": {
+    "shareWithExperts": {
+      "title": "🩺 Chia sẻ bài test với chuyên gia",
+      "desc": "Chuyên gia đã đặt lịch với bạn sẽ thấy kết quả các bài test tự làm."
+    },
     "emergency": {
       "title": "Bạn không đơn độc",
       "text": "Nếu điểm số cao và bạn đang cảm thấy khó khăn, hãy để ai đó giúp bạn ngay bây giờ.",

@@ -1568,6 +1568,141 @@ router.get('/expert-portal/clients/:userId/mood-history', requireAuth, async (re
   }
 });
 
+// Lịch sử bài test TỰ LÀM của 1 client (không phải CARS/SDQ-25 do chuyên gia chấm hộ) —
+// CHỈ xem được khi (1) có quan hệ booking confirmed/completed, VÀ (2) client đã bật "Chia
+// sẻ bài test tự làm với chuyên gia" trong Cài đặt (user_profiles.share_assessments_with_
+// experts). Cùng mô hình công tắc toàn cục như mood-history ở trên.
+router.get('/expert-portal/clients/:userId/self-assessments', requireAuth, async (req, res) => {
+  try {
+    if (req.user.role !== 'expert') {
+      return res.status(403).json({ success: false, message: 'Expert access required' });
+    }
+    const eRes = await db.query(`select id from experts where user_id = $1 limit 1`, [req.user.sub]);
+    const expert = eRes.rows[0];
+    if (!expert) {
+      return res.status(404).json({ success: false, message: 'Expert profile not found' });
+    }
+
+    const relation = await db.query(
+      `select 1 from expert_bookings
+       where expert_id = $1 and user_id = $2 and status in ('confirmed', 'completed')
+       limit 1`,
+      [expert.id, req.params.userId]
+    );
+    if (!relation.rows[0]) {
+      return res.status(403).json({ success: false, message: 'Client không thuộc danh sách của bạn' });
+    }
+
+    const sharing = await db.query(
+      `select coalesce(share_assessments_with_experts, false) as shared from user_profiles where user_id = $1`,
+      [req.params.userId]
+    );
+    if (!sharing.rows[0]?.shared) {
+      return res.json({ success: true, data: { shared: false, results: [], total: 0, page: 0, limit: 0 } });
+    }
+
+    const page = Math.max(0, parseInt(req.query.page, 10) || 0);
+    const limit = Math.min(100, Math.max(1, parseInt(req.query.limit, 10) || 20));
+    const conditions = ['ar.user_id = $1', 'ar.administered_by is null'];
+    const params = [req.params.userId];
+    if (req.query.from) {
+      params.push(req.query.from);
+      conditions.push(`ar.created_at >= $${params.length}::date`);
+    }
+    if (req.query.to) {
+      params.push(req.query.to);
+      conditions.push(`ar.created_at < ($${params.length}::date + interval '1 day')`);
+    }
+    const whereClause = conditions.join(' and ');
+
+    const [countRes, r] = await Promise.all([
+      db.query(`select count(*)::int as total from assessment_results ar where ${whereClause}`, params),
+      db.query(
+        `select ar.id, a.code, a.name, ar.total_score, ar.severity, ar.dimension_scores,
+                ar.interpreted_result, ar.raw_answers, (ar.attachment_file is not null) as has_attachment,
+                ar.created_at
+         from assessment_results ar
+         join assessments a on a.id = ar.assessment_id
+         where ${whereClause}
+         order by ar.created_at desc
+         limit ${limit} offset ${page * limit}`,
+        params
+      )
+    ]);
+    return res.json({
+      success: true,
+      data: {
+        shared: true,
+        results: r.rows.map((row) => ({ ...row, total_score: Number(row.total_score || 0) })),
+        total: countRes.rows[0]?.total || 0,
+        page,
+        limit
+      }
+    });
+  } catch (error) {
+    console.error('Expert client self-assessments error:', error);
+    return res.status(500).json({ success: false, message: 'Could not fetch client self-assessments' });
+  }
+});
+
+// Nhật ký của 1 client mà CHÍNH client đã tự bật chia sẻ cho TỪNG bài (không phải công tắc
+// toàn cục) — vẫn cần có quan hệ booking confirmed/completed mới xem được.
+router.get('/expert-portal/clients/:userId/journal', requireAuth, async (req, res) => {
+  try {
+    if (req.user.role !== 'expert') {
+      return res.status(403).json({ success: false, message: 'Expert access required' });
+    }
+    const eRes = await db.query(`select id from experts where user_id = $1 limit 1`, [req.user.sub]);
+    const expert = eRes.rows[0];
+    if (!expert) {
+      return res.status(404).json({ success: false, message: 'Expert profile not found' });
+    }
+
+    const relation = await db.query(
+      `select 1 from expert_bookings
+       where expert_id = $1 and user_id = $2 and status in ('confirmed', 'completed')
+       limit 1`,
+      [expert.id, req.params.userId]
+    );
+    if (!relation.rows[0]) {
+      return res.status(403).json({ success: false, message: 'Client không thuộc danh sách của bạn' });
+    }
+
+    const page = Math.max(0, parseInt(req.query.page, 10) || 0);
+    const limit = Math.min(100, Math.max(1, parseInt(req.query.limit, 10) || 20));
+    const conditions = ['user_id = $1', 'shared_with_experts = true'];
+    const params = [req.params.userId];
+    if (req.query.from) {
+      params.push(req.query.from);
+      conditions.push(`created_at >= $${params.length}::date`);
+    }
+    if (req.query.to) {
+      params.push(req.query.to);
+      conditions.push(`created_at < ($${params.length}::date + interval '1 day')`);
+    }
+    const whereClause = conditions.join(' and ');
+
+    const [countRes, r] = await Promise.all([
+      db.query(`select count(*)::int as total from journal_entries where ${whereClause}`, params),
+      db.query(
+        `select id, title, content, tags, mood_before, mood_after, sentiment_score, created_at
+         from journal_entries
+         where ${whereClause}
+         order by created_at desc
+         limit ${limit} offset ${page * limit}`,
+        params
+      )
+    ]);
+    return res.json({
+      success: true,
+      data: { entries: r.rows, total: countRes.rows[0]?.total || 0, page, limit }
+    });
+  } catch (error) {
+    console.error('Expert client journal error:', error);
+    return res.status(500).json({ success: false, message: 'Could not fetch client journal' });
+  }
+});
+
 // Chuyên gia nộp kết quả đánh giá lâm sàng thay cho client (CARS, SDQ25 bản quan sát).
 // Chỉ cho phép với các mã trong EXPERT_ADMINISTERED_ASSESSMENT_CODES và khi có quan hệ booking hợp lệ.
 router.post('/expert-portal/clients/:userId/assessments/:code/submit', requireAuth, async (req, res) => {

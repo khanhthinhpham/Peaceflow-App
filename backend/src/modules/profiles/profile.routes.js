@@ -33,7 +33,8 @@ router.put('/profile', requireAuth, async (req, res) => {
       goals,
       onboarding_answers,
       personalization_weights,
-      share_mood_with_experts
+      share_mood_with_experts,
+      share_assessments_with_experts
     } = req.body;
 
     console.log(`Updating profile for user ${req.user.sub}`);
@@ -50,6 +51,7 @@ router.put('/profile', requireAuth, async (req, res) => {
            onboarding_answers = case when $9::jsonb is null then onboarding_answers else coalesce(onboarding_answers, '{}'::jsonb) || $9::jsonb end,
            personalization_weights = case when $10::jsonb is null then personalization_weights else coalesce(personalization_weights, '{}'::jsonb) || $10::jsonb end,
            share_mood_with_experts = coalesce($11, share_mood_with_experts),
+           share_assessments_with_experts = coalesce($12, share_assessments_with_experts),
            updated_at = now()
        where user_id = $1
        returning *`,
@@ -64,7 +66,8 @@ router.put('/profile', requireAuth, async (req, res) => {
         goals ? JSON.stringify(goals) : null,
         onboarding_answers ? JSON.stringify(onboarding_answers) : null,
         personalization_weights ? JSON.stringify(personalization_weights) : null,
-        typeof share_mood_with_experts === 'boolean' ? share_mood_with_experts : null
+        typeof share_mood_with_experts === 'boolean' ? share_mood_with_experts : null,
+        typeof share_assessments_with_experts === 'boolean' ? share_assessments_with_experts : null
       ]
     );
 

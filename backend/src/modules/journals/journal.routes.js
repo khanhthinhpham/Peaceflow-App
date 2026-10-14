@@ -30,6 +30,7 @@ router.get('/journal', requireAuth, async (req, res) => {
          mood_after,
          sentiment_score,
          is_private,
+         shared_with_experts,
          null::text as mood
        from journal_entries
        where user_id = $1
@@ -40,6 +41,30 @@ router.get('/journal', requireAuth, async (req, res) => {
   } catch (error) {
     console.error('Journal list error:', error.message, error.stack);
     return res.status(500).json({ success: false, message: 'Could not fetch journal entries' });
+  }
+});
+
+// PATCH /api/v1/journal/:id — hiện chỉ dùng để bật/tắt chia sẻ TỪNG bài nhật ký với
+// chuyên gia (khác mood check-in: không có công tắc toàn cục, mỗi bài tự chọn riêng).
+router.patch('/journal/:id', requireAuth, async (req, res) => {
+  try {
+    const { shared_with_experts } = req.body;
+    if (typeof shared_with_experts !== 'boolean') {
+      return res.status(400).json({ success: false, message: 'shared_with_experts must be a boolean' });
+    }
+    const result = await db.query(
+      `update journal_entries set shared_with_experts = $3, updated_at = now()
+       where id = $1 and user_id = $2
+       returning id, shared_with_experts`,
+      [req.params.id, req.user.sub, shared_with_experts]
+    );
+    if (!result.rows[0]) {
+      return res.status(404).json({ success: false, message: 'Không tìm thấy bài nhật ký này.' });
+    }
+    return res.json({ success: true, data: result.rows[0] });
+  } catch (error) {
+    console.error('Journal share toggle error:', error.message);
+    return res.status(500).json({ success: false, message: 'Could not update journal entry' });
   }
 });
 

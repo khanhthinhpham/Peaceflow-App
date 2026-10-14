@@ -178,6 +178,122 @@
       </div>
     </section>
 
+    <section v-if="selectedClient" class="expert-panel expert-section ca-history-panel">
+      <div class="expert-section-head">
+        <div>
+          <h2 class="expert-section-title">📋 Bài test tự làm</h2>
+        </div>
+      </div>
+
+      <div v-if="selfAssessShared" class="ca-search-bar">
+        <div class="ca-search-field">
+          <label for="caSelfAssessFrom">Từ ngày</label>
+          <input v-model="selfAssessFrom" type="date" id="caSelfAssessFrom" class="form-input" @change="applySelfAssessDateFilter">
+        </div>
+        <div class="ca-search-field">
+          <label for="caSelfAssessTo">Đến ngày</label>
+          <input v-model="selfAssessTo" type="date" id="caSelfAssessTo" class="form-input" @change="applySelfAssessDateFilter">
+        </div>
+        <div class="ca-search-actions">
+          <button type="button" class="btn-outline" @click="setSelfAssessQuickRange(7)">7 ngày</button>
+          <button type="button" class="btn-outline" @click="setSelfAssessQuickRange(30)">1 tháng</button>
+          <button type="button" class="btn-outline" @click="setSelfAssessQuickRange(90)">3 tháng</button>
+          <button type="button" class="btn-outline" @click="clearSelfAssessDateFilter">Tất cả</button>
+        </div>
+      </div>
+
+      <div id="caHistoryList">
+        <p v-if="selfAssessLoading" class="ca-empty">Đang tải...</p>
+        <p v-else-if="selfAssessError" class="ca-empty">Không tải được lịch sử bài test.</p>
+        <p v-else-if="!selfAssessShared" class="ca-empty">Client này chưa bật "Chia sẻ bài test tự làm với chuyên gia" trong Cài đặt.</p>
+        <p v-else-if="!selfAssessments.length" class="ca-empty">Không có bài test nào trong khoảng thời gian này.</p>
+        <div v-for="item in selfAssessments" :key="item.id" class="ca-history-item" @click="openDetailModal(item, selectedClient)">
+          <span><strong>{{ item.name }}</strong> — {{ item.severity || 'Đã hoàn thành' }} ({{ item.total_score }})</span>
+          <span>{{ formatDateTime(item.created_at) }}</span>
+        </div>
+      </div>
+
+      <div v-if="selfAssessShared && selfAssessTotal" class="ca-pager">
+        <span class="ca-pager-meta">{{ selfAssessFrom1 }}–{{ selfAssessTo1 }} trong {{ selfAssessTotal }}</span>
+        <template v-if="selfAssessTotalPages > 1">
+          <button type="button" class="ca-page-btn" :disabled="selfAssessPage === 0" title="Trang đầu" @click="loadSelfAssessments(0)">« Đầu</button>
+          <button type="button" class="ca-page-btn" :disabled="selfAssessPage === 0" @click="loadSelfAssessments(selfAssessPage - 1)">‹ Trước</button>
+          <template v-for="(p, idx) in selfAssessPageWindow" :key="idx">
+            <span v-if="p === '…'" class="ca-page-ellipsis">…</span>
+            <button v-else type="button" class="ca-page-btn" :class="{ active: p === selfAssessPage }" @click="loadSelfAssessments(p)">{{ p + 1 }}</button>
+          </template>
+          <button type="button" class="ca-page-btn" :disabled="selfAssessPage >= selfAssessTotalPages - 1" @click="loadSelfAssessments(selfAssessPage + 1)">Sau ›</button>
+          <button type="button" class="ca-page-btn" :disabled="selfAssessPage >= selfAssessTotalPages - 1" title="Trang cuối" @click="loadSelfAssessments(selfAssessTotalPages - 1)">Cuối »</button>
+        </template>
+      </div>
+    </section>
+
+    <section v-if="selectedClient" class="expert-panel expert-section ca-history-panel">
+      <div class="expert-section-head">
+        <div>
+          <h2 class="expert-section-title">📝 Nhật ký được chia sẻ</h2>
+        </div>
+      </div>
+
+      <div class="ca-search-bar">
+        <div class="ca-search-field">
+          <label for="caJournalFrom">Từ ngày</label>
+          <input v-model="journalFrom" type="date" id="caJournalFrom" class="form-input" @change="applyJournalDateFilter">
+        </div>
+        <div class="ca-search-field">
+          <label for="caJournalTo">Đến ngày</label>
+          <input v-model="journalTo" type="date" id="caJournalTo" class="form-input" @change="applyJournalDateFilter">
+        </div>
+        <div class="ca-search-actions">
+          <button type="button" class="btn-outline" @click="setJournalQuickRange(7)">7 ngày</button>
+          <button type="button" class="btn-outline" @click="setJournalQuickRange(30)">1 tháng</button>
+          <button type="button" class="btn-outline" @click="setJournalQuickRange(90)">3 tháng</button>
+          <button type="button" class="btn-outline" @click="clearJournalDateFilter">Tất cả</button>
+        </div>
+      </div>
+
+      <div id="caHistoryList">
+        <p v-if="journalLoading" class="ca-empty">Đang tải...</p>
+        <p v-else-if="journalError" class="ca-empty">Không tải được nhật ký.</p>
+        <p v-else-if="!journalEntries.length" class="ca-empty">Client chưa chia sẻ bài nhật ký nào (mỗi bài phải tự bật chia sẻ riêng).</p>
+        <div v-for="item in journalEntries" :key="item.id" class="ca-history-item" @click="openJournalDetail(item)">
+          <span>
+            <strong>{{ item.title || '(Không tiêu đề)' }}</strong>
+            <span v-if="item.tags && item.tags.length" style="color:var(--text-secondary);"> · {{ item.tags.join(', ') }}</span>
+          </span>
+          <span>{{ formatDateTime(item.created_at) }}</span>
+        </div>
+      </div>
+
+      <div v-if="journalTotal" class="ca-pager">
+        <span class="ca-pager-meta">{{ journalFrom1 }}–{{ journalTo1 }} trong {{ journalTotal }}</span>
+        <template v-if="journalTotalPages > 1">
+          <button type="button" class="ca-page-btn" :disabled="journalPage === 0" title="Trang đầu" @click="loadJournalEntries(0)">« Đầu</button>
+          <button type="button" class="ca-page-btn" :disabled="journalPage === 0" @click="loadJournalEntries(journalPage - 1)">‹ Trước</button>
+          <template v-for="(p, idx) in journalPageWindow" :key="idx">
+            <span v-if="p === '…'" class="ca-page-ellipsis">…</span>
+            <button v-else type="button" class="ca-page-btn" :class="{ active: p === journalPage }" @click="loadJournalEntries(p)">{{ p + 1 }}</button>
+          </template>
+          <button type="button" class="ca-page-btn" :disabled="journalPage >= journalTotalPages - 1" @click="loadJournalEntries(journalPage + 1)">Sau ›</button>
+          <button type="button" class="ca-page-btn" :disabled="journalPage >= journalTotalPages - 1" title="Trang cuối" @click="loadJournalEntries(journalTotalPages - 1)">Cuối »</button>
+        </template>
+      </div>
+    </section>
+
+    <!-- Chi tiết 1 bài nhật ký đã chia sẻ -->
+    <div class="ca-detail-overlay" :class="{ show: journalDetailOpen }">
+      <div class="ca-detail-box">
+        <div class="ca-detail-head">
+          <div>
+            <div class="ca-detail-title">{{ journalDetailItem?.title || '(Không tiêu đề)' }}</div>
+            <div class="ca-detail-meta">{{ journalDetailItem ? formatDateTime(journalDetailItem.created_at) : '' }}</div>
+          </div>
+          <button type="button" class="ca-detail-close" @click="journalDetailOpen = false">✕</button>
+        </div>
+        <p style="white-space:pre-wrap;line-height:1.6;">{{ journalDetailItem?.content }}</p>
+      </div>
+    </div>
+
     <!-- Detail modal -->
     <div class="ca-detail-overlay" :class="{ show: showDetail }">
       <div class="ca-detail-box">
@@ -748,6 +864,12 @@ function selectClient(userId) {
   moodFrom.value = '';
   moodTo.value = '';
   loadMoodHistory(0);
+  selfAssessFrom.value = '';
+  selfAssessTo.value = '';
+  loadSelfAssessments(0);
+  journalFrom.value = '';
+  journalTo.value = '';
+  loadJournalEntries(0);
 }
 
 async function submitCars() {
@@ -871,6 +993,124 @@ function clearMoodDateFilter() {
   moodFrom.value = '';
   moodTo.value = '';
   loadMoodHistory(0);
+}
+
+// ===== Bài test tự làm — cùng mô hình công tắc toàn cục + lọc ngày + phân trang như mood =====
+const selfAssessments = ref([]);
+const selfAssessShared = ref(true);
+const selfAssessLoading = ref(false);
+const selfAssessError = ref(false);
+const selfAssessFrom = ref('');
+const selfAssessTo = ref('');
+const selfAssessPage = ref(0);
+const selfAssessLimit = 20;
+const selfAssessTotal = ref(0);
+const selfAssessTotalPages = computed(() => Math.max(1, Math.ceil(selfAssessTotal.value / selfAssessLimit)));
+const selfAssessFrom1 = computed(() => selfAssessPage.value * selfAssessLimit + 1);
+const selfAssessTo1 = computed(() => Math.min(selfAssessTotal.value, (selfAssessPage.value + 1) * selfAssessLimit));
+const selfAssessPageWindow = computed(() => pageWindow(selfAssessPage.value, selfAssessTotalPages.value));
+
+async function loadSelfAssessments(page = 0) {
+  if (!selectedClient.value) return;
+  selfAssessPage.value = page;
+  selfAssessLoading.value = true;
+  selfAssessError.value = false;
+  try {
+    const qs = new URLSearchParams({ page: String(page), limit: String(selfAssessLimit) });
+    if (selfAssessFrom.value) qs.set('from', selfAssessFrom.value);
+    if (selfAssessTo.value) qs.set('to', selfAssessTo.value);
+    const data = await apiClient.get(`/expert-portal/clients/${selectedClient.value.user_id}/self-assessments?${qs}`, { noCache: true });
+    selfAssessShared.value = Boolean(data?.shared);
+    selfAssessments.value = data?.results || [];
+    selfAssessTotal.value = data?.total || 0;
+  } catch (_error) {
+    selfAssessments.value = [];
+    selfAssessShared.value = true;
+    selfAssessTotal.value = 0;
+    selfAssessError.value = true;
+  } finally {
+    selfAssessLoading.value = false;
+  }
+}
+
+function applySelfAssessDateFilter() {
+  loadSelfAssessments(0);
+}
+
+function setSelfAssessQuickRange(days) {
+  const to = new Date();
+  const from = new Date();
+  from.setDate(from.getDate() - days);
+  selfAssessTo.value = to.toISOString().slice(0, 10);
+  selfAssessFrom.value = from.toISOString().slice(0, 10);
+  loadSelfAssessments(0);
+}
+
+function clearSelfAssessDateFilter() {
+  selfAssessFrom.value = '';
+  selfAssessTo.value = '';
+  loadSelfAssessments(0);
+}
+
+// ===== Nhật ký được chia sẻ — chia sẻ TỪNG bài riêng, không có công tắc toàn cục =====
+const journalEntries = ref([]);
+const journalLoading = ref(false);
+const journalError = ref(false);
+const journalFrom = ref('');
+const journalTo = ref('');
+const journalPage = ref(0);
+const journalLimit = 20;
+const journalTotal = ref(0);
+const journalTotalPages = computed(() => Math.max(1, Math.ceil(journalTotal.value / journalLimit)));
+const journalFrom1 = computed(() => journalPage.value * journalLimit + 1);
+const journalTo1 = computed(() => Math.min(journalTotal.value, (journalPage.value + 1) * journalLimit));
+const journalPageWindow = computed(() => pageWindow(journalPage.value, journalTotalPages.value));
+const journalDetailOpen = ref(false);
+const journalDetailItem = ref(null);
+
+async function loadJournalEntries(page = 0) {
+  if (!selectedClient.value) return;
+  journalPage.value = page;
+  journalLoading.value = true;
+  journalError.value = false;
+  try {
+    const qs = new URLSearchParams({ page: String(page), limit: String(journalLimit) });
+    if (journalFrom.value) qs.set('from', journalFrom.value);
+    if (journalTo.value) qs.set('to', journalTo.value);
+    const data = await apiClient.get(`/expert-portal/clients/${selectedClient.value.user_id}/journal?${qs}`, { noCache: true });
+    journalEntries.value = data?.entries || [];
+    journalTotal.value = data?.total || 0;
+  } catch (_error) {
+    journalEntries.value = [];
+    journalTotal.value = 0;
+    journalError.value = true;
+  } finally {
+    journalLoading.value = false;
+  }
+}
+
+function applyJournalDateFilter() {
+  loadJournalEntries(0);
+}
+
+function setJournalQuickRange(days) {
+  const to = new Date();
+  const from = new Date();
+  from.setDate(from.getDate() - days);
+  journalTo.value = to.toISOString().slice(0, 10);
+  journalFrom.value = from.toISOString().slice(0, 10);
+  loadJournalEntries(0);
+}
+
+function clearJournalDateFilter() {
+  journalFrom.value = '';
+  journalTo.value = '';
+  loadJournalEntries(0);
+}
+
+function openJournalDetail(item) {
+  journalDetailItem.value = item;
+  journalDetailOpen.value = true;
 }
 
 const history = ref([]);
