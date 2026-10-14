@@ -4,7 +4,7 @@
       <div class="expert-topbar-copy">
         <p class="expert-page-kicker">PeaceFlow Expert</p>
         <h1 class="expert-page-title">Đánh giá lâm sàng</h1>
-        <p class="expert-page-subtitle">Nhập điểm CARS hoặc SDQ-25 (bản quan sát) thay cho client trong các buổi tư vấn.</p>
+        <p class="expert-page-subtitle">Xem kết quả tự làm test và check-in tâm trạng hàng ngày của client.</p>
       </div>
       <div class="expert-topbar-tools">
         <button type="button" class="expert-bell-btn" data-notif-bell aria-label="Thông báo" @click="notif.togglePanel()">
@@ -120,73 +120,6 @@
             <div class="ca-client-meta">{{ c.email || '' }}</div>
             <div class="ca-client-meta">Lịch gần nhất: {{ formatDateTime(c.last_booking_at) }}</div>
           </div>
-        </div>
-      </div>
-    </section>
-
-    <section v-if="selectedClient" class="expert-panel expert-section ca-form-panel">
-      <div class="expert-section-head">
-        <div>
-          <h2 class="expert-section-title">{{ formTitle }}</h2>
-          <p class="expert-section-copy">Client: {{ selectedClient.full_name || selectedClient.email }}</p>
-        </div>
-        <div class="ca-test-switch">
-          <button v-for="opt in TEST_SWITCH_OPTIONS" :key="opt.code" type="button" class="ca-switch-btn" :class="{ 'is-active': testType === opt.code }" @click="testType = opt.code">{{ opt.label }}</button>
-        </div>
-      </div>
-      <div id="caFormBody">
-        <template v-if="testType === 'CARS'">
-          <div v-for="domain in CARS_DOMAINS" :key="domain.key" class="ca-domain">
-            <div class="ca-domain-label">{{ domain.label }}</div>
-            <div class="ca-scale-row">
-              <button
-                v-for="v in CARS_SCALE_VALUES"
-                :key="v"
-                type="button"
-                class="ca-scale-btn"
-                :class="{ 'is-half': !Number.isInteger(v), 'is-selected': carsAnswers[domain.key] === v }"
-                @click="carsAnswers[domain.key] = v"
-              >{{ v }}</button>
-            </div>
-            <div class="ca-domain-desc">{{ Number.isInteger(carsAnswers[domain.key]) ? (domain.levels[carsAnswers[domain.key]] || '') : '' }}</div>
-          </div>
-          <div class="ca-submit-row">
-            <button type="button" class="btn-primary" @click="submitCars">Nộp đánh giá CARS</button>
-          </div>
-        </template>
-        <template v-else>
-          <div v-for="item in SDQ_OBS_ITEMS" :key="item.n" class="ca-sdq-item">
-            <div class="ca-sdq-text">{{ item.n }}. {{ item.text }}</div>
-            <div class="ca-sdq-opts">
-              <button
-                v-for="opt in SDQ_OBS_OPTIONS"
-                :key="opt.label"
-                type="button"
-                class="ca-sdq-opt"
-                :class="{ 'is-selected': sdqAnswers[item.n] === (item.reverse ? opt.reverse : opt.normal) }"
-                @click="sdqAnswers[item.n] = (item.reverse ? opt.reverse : opt.normal)"
-              >{{ opt.label }}</button>
-            </div>
-          </div>
-          <div class="ca-submit-row">
-            <button type="button" class="btn-primary" @click="submitSdqObs">Nộp đánh giá SDQ-25</button>
-          </div>
-        </template>
-      </div>
-    </section>
-    <section v-if="selectedClient" class="expert-panel expert-section ca-history-panel">
-      <div class="expert-section-head">
-        <div>
-          <h2 class="expert-section-title">Lịch sử đánh giá đã ghi cho client này</h2>
-        </div>
-      </div>
-      <div id="caHistoryList">
-        <p v-if="historyLoading" class="ca-empty">Đang tải lịch sử...</p>
-        <p v-else-if="historyError" class="ca-empty">Không tải được lịch sử đánh giá.</p>
-        <p v-else-if="!history.length" class="ca-empty">Chưa có đánh giá nào được bạn ghi cho client này.</p>
-        <div v-for="item in history" :key="item.id" class="ca-history-item" @click="openDetailModal(item, selectedClient)">
-          <span><strong>{{ item.name }}</strong> — {{ item.severity || 'Đã hoàn thành' }} ({{ item.total_score }})</span>
-          <span>{{ formatDateTime(item.created_at) }}</span>
         </div>
       </div>
     </section>
