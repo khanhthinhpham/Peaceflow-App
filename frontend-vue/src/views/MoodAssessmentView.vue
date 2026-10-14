@@ -1264,7 +1264,10 @@ function finishTest() {
     interpretedResult: {
       is_warning: isWarning,
       summary_html: analysisStr,
-      dominant_dimension: overallSeverity?.key || null
+      dominant_dimension: overallSeverity?.key || null,
+      // Dùng để backend dựng đúng link ảnh banner (assessment-images/{code}/{class}.png)
+      // cho preview chia sẻ kết quả (share-card) — xem resultImageUrl ở trên, cùng quy ước.
+      overall_level_class: overallSeverity?.className || 'level-0'
     }
   });
 }

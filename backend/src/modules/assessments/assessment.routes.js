@@ -49,11 +49,17 @@ router.get('/assessments/:code/share', async (req, res) => {
 // người dùng phải tự bấm "Chia sẻ" trên kết quả của MÌNH thì link này mới được lộ ra.
 // Chỉ trả: tên bài test, điểm, mức xếp loại — KHÔNG trả raw_answers, respondent_name/age,
 // note, hay bất kỳ thông tin định danh user_id nào.
+// Chỉ 12 bài này có sẵn ảnh banner riêng theo từng mức độ ở frontend-vue/public/
+// assessment-images/{code}/{level-class}.png (khớp đúng ảnh hiện ngay trên trang kết quả
+// thật, xem resultImageUrl trong MoodAssessmentView.vue) — bài nào không có trong danh sách
+// thì rơi về favicon chung, tránh trỏ tới ảnh không tồn tại (404 trên Facebook/Threads).
+const RESULT_BANNER_TEST_CODES = new Set(['audit', 'bdi', 'dass21', 'gad7', 'hars', 'iat', 'isi', 'mmse', 'phq9', 'psqi', 'pss']);
+
 router.get('/assessments/results/:id/share-card', async (req, res) => {
   const targetUrl = `${env.frontendUrl}/shared-result/${encodeURIComponent(req.params.id)}`;
   try {
     const r = await db.query(
-      `select a.name, ar.total_score, ar.severity
+      `select a.name, a.code, ar.total_score, ar.severity, ar.interpreted_result
        from assessment_results ar
        join assessments a on a.id = ar.assessment_id
        where ar.id = $1
@@ -69,11 +75,17 @@ router.get('/assessments/results/:id/share-card', async (req, res) => {
       ? `Kết quả: ${result.total_score} điểm — mức "${result.severity}". Thử làm bài test này xem bạn thế nào nhé!`
       : `Kết quả: ${result.total_score} điểm. Thử làm bài test này xem bạn thế nào nhé!`;
 
+    const testCode = String(result.code || '').toLowerCase();
+    const levelClass = result.interpreted_result?.overall_level_class || 'level-0';
+    const image = RESULT_BANNER_TEST_CODES.has(testCode)
+      ? `${env.frontendUrl}/assessment-images/${testCode}/${levelClass}.png`
+      : `${env.frontendUrl}/favicon.jpg`;
+
     res.set('Content-Type', 'text/html; charset=utf-8');
     return res.send(renderShareHtml({
       title: `Kết quả ${result.name} của tôi`,
       description,
-      image: `${env.frontendUrl}/favicon.jpg`,
+      image,
       targetUrl
     }));
   } catch (error) {
@@ -87,7 +99,7 @@ router.get('/assessments/results/:id/share-card', async (req, res) => {
 router.get('/assessments/results/:id/public', async (req, res) => {
   try {
     const r = await db.query(
-      `select a.name, a.code, ar.total_score, ar.severity, ar.dimension_scores, ar.created_at
+      `select a.name, a.code, ar.total_score, ar.severity, ar.dimension_scores, ar.interpreted_result, ar.created_at
        from assessment_results ar
        join assessments a on a.id = ar.assessment_id
        where ar.id = $1
@@ -96,13 +108,20 @@ router.get('/assessments/results/:id/public', async (req, res) => {
     );
     const result = r.rows[0];
     if (!result) return res.status(404).json({ success: false, message: 'Không tìm thấy kết quả này.' });
+    const testCode = String(result.code || '').toLowerCase();
+    const levelClass = result.interpreted_result?.overall_level_class || 'level-0';
+    const imageUrl = RESULT_BANNER_TEST_CODES.has(testCode)
+      ? `/assessment-images/${testCode}/${levelClass}.png`
+      : null;
     return res.json({
       success: true,
       data: {
         testName: result.name,
         testCode: result.code,
+        imageUrl,
         totalScore: Number(result.total_score),
         severity: result.severity,
+        isWarning: Boolean(result.interpreted_result?.is_warning),
         dimensionScores: result.dimension_scores,
         createdAt: result.created_at
       }
