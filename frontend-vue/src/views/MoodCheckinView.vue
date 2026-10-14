@@ -5,8 +5,15 @@
         <div class="page-title">{{ t('moodCheckin.title') }}</div>
         <div class="page-subtitle">{{ t('moodCheckin.subtitle') }}</div>
       </div>
-      <div style="display:flex;gap:8px;align-items:center;">
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
         <span class="badge-pill badge-mint">{{ todayBadgeText }}</span>
+        <label class="badge-pill" :title="t('moodCheckin.shareWithExperts.desc')" style="cursor:pointer;gap:6px;border:1.5px solid var(--kraft-light);background:var(--warm-white);">
+          <span style="font-size:0.72rem;font-weight:700;">{{ t('moodCheckin.shareWithExperts.title') }}</span>
+          <label class="toggle-switch" style="transform:scale(0.72);margin:-4px -6px;">
+            <input type="checkbox" v-model="shareMoodWithExperts" :disabled="shareMoodSaving" @change="toggleShareMoodWithExperts">
+            <span class="toggle-slider"></span>
+          </label>
+        </label>
         <router-link to="/dashboard" class="btn-outline">{{ t('moodCheckin.backDashboard') }}</router-link>
       </div>
     </div>
@@ -30,19 +37,6 @@
         <div class="mode-title">{{ t('moodCheckin.modes.testTitle') }}</div>
         <div class="mode-desc">{{ t('moodCheckin.modes.testDesc') }}</div>
         <div class="mode-time">{{ t('moodCheckin.modes.testTime') }}</div>
-      </div>
-    </div>
-
-    <div class="paper-card" style="margin-bottom:16px;padding:10px 16px;">
-      <div class="toggle-row" style="margin:0;gap:10px;">
-        <div class="tr-left">
-          <div class="tr-title" style="font-size:0.82rem;">{{ t('moodCheckin.shareWithExperts.title') }}</div>
-          <div class="tr-desc" style="font-size:0.7rem;">{{ t('moodCheckin.shareWithExperts.desc') }}</div>
-        </div>
-        <label class="toggle-switch">
-          <input type="checkbox" v-model="shareMoodWithExperts" :disabled="shareMoodSaving" @change="toggleShareMoodWithExperts">
-          <span class="toggle-slider"></span>
-        </label>
       </div>
     </div>
 
