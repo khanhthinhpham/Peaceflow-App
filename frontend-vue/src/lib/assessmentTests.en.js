@@ -13,9 +13,9 @@ export const TESTS = {
         timeRef: 'Past 2 weeks', totalQ: 21, maxScore: 42,
         subscales: ['depression', 'anxiety', 'stress'],
         questions: [
-            { text: "I couldn't feel any positive emotion at all", cat: 'depression', catLabel: 'Depression' },
-            { text: 'I was aware of dryness of my mouth', cat: 'anxiety', catLabel: 'Anxiety' },
             { text: 'I found it hard to wind down', cat: 'stress', catLabel: 'Stress' },
+            { text: 'I was aware of dryness of my mouth', cat: 'anxiety', catLabel: 'Anxiety' },
+            { text: "I couldn't feel any positive emotion at all", cat: 'depression', catLabel: 'Depression' },
             { text: 'I had difficulty breathing (rapid breathing, breathlessness without physical exertion)', cat: 'anxiety', catLabel: 'Anxiety' },
             { text: 'I found it difficult to work up the initiative to do things', cat: 'depression', catLabel: 'Depression' },
             { text: 'I tended to over-react to situations', cat: 'stress', catLabel: 'Stress' },
@@ -42,9 +42,9 @@ export const TESTS = {
             { emoji: '😰', label: 'Most of the time', score: 3 }
         ],
         scoring: {
-            depression: { indices: [0, 4, 9, 12, 15, 16, 20], multiplier: 2, levels: [{ max: 9, 'label': 'Normal', 'class': 'level-0' }, { max: 13, 'label': 'Mild', 'class': 'level-1' }, { max: 20, 'label': 'Moderate', 'class': 'level-2' }, { max: 27, 'label': 'Severe', 'class': 'level-3' }, { max: 999, 'label': 'Extremely severe', 'class': 'level-4' }] },
+            depression: { indices: [2, 4, 9, 12, 15, 16, 20], multiplier: 2, levels: [{ max: 9, 'label': 'Normal', 'class': 'level-0' }, { max: 13, 'label': 'Mild', 'class': 'level-1' }, { max: 20, 'label': 'Moderate', 'class': 'level-2' }, { max: 27, 'label': 'Severe', 'class': 'level-3' }, { max: 999, 'label': 'Extremely severe', 'class': 'level-4' }] },
             anxiety: { indices: [1, 3, 6, 8, 14, 18, 19], multiplier: 2, levels: [{ max: 7, 'label': 'Normal', 'class': 'level-0' }, { max: 9, 'label': 'Mild', 'class': 'level-1' }, { max: 14, 'label': 'Moderate', 'class': 'level-2' }, { max: 19, 'label': 'Severe', 'class': 'level-3' }, { max: 999, 'label': 'Extremely severe', 'class': 'level-4' }] },
-            stress: { indices: [2, 5, 7, 10, 11, 13, 17], multiplier: 2, levels: [{ max: 14, 'label': 'Normal', 'class': 'level-0' }, { max: 18, 'label': 'Mild', 'class': 'level-1' }, { max: 25, 'label': 'Moderate', 'class': 'level-2' }, { max: 33, 'label': 'Severe', 'class': 'level-3' }, { max: 999, 'label': 'Extremely severe', 'class': 'level-4' }] }
+            stress: { indices: [0, 5, 7, 10, 11, 13, 17], multiplier: 2, levels: [{ max: 14, 'label': 'Normal', 'class': 'level-0' }, { max: 18, 'label': 'Mild', 'class': 'level-1' }, { max: 25, 'label': 'Moderate', 'class': 'level-2' }, { max: 33, 'label': 'Severe', 'class': 'level-3' }, { max: 999, 'label': 'Extremely severe', 'class': 'level-4' }] }
         },
         prevScores: { depression: 6, anxiety: 8, stress: 10 }
     },

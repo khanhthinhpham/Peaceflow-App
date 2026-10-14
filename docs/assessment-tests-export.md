@@ -1,6 +1,6 @@
 # Tổng hợp bài test tâm lý — PeaceFlow
 
-Tài liệu xuất tự động từ dữ liệu bài test đang chạy trong hệ thống (`frontend-vue/src/lib/assessmentTests.js` và các nhóm bổ sung), gồm toàn bộ 28 bài: câu hỏi, các phương án trả lời kèm điểm, và công thức/ngưỡng xếp loại cho từng thang điểm.
+Tài liệu tổng hợp toàn bộ 28 bài test tâm lý đang dùng trong hệ thống: câu hỏi, các phương án trả lời kèm điểm, và công thức/ngưỡng xếp loại cho từng thang điểm.
 
 ## Mục lục
 
@@ -9,7 +9,7 @@ Tài liệu xuất tự động từ dữ liệu bài test đang chạy trong h�
 3. HARS — Hamilton Anxiety Rating Scale
 4. PHQ-9 — Patient Health Questionnaire-9
 5. BDI — Thang Đánh Giá Trầm Cảm Beck (Beck Depression Inventory)
-6. PSQI — Pittsburgh Sleep Quality Index (Bản chuẩn hóa trắc nghiệm)
+6. PSQI — Pittsburgh Sleep Quality Index (Theo quy trình Bộ Y tế)
 7. PSS — Perceived Stress Scale — Thang đo stress cảm nhận
 8. SDQ-25 — Bảng hỏi Điểm mạnh & Khó khăn (Tự đánh giá)
 9. MMSE — Mini-Mental State Exam — Trạng thái tâm thần tối thiểu
@@ -45,9 +45,9 @@ Tài liệu xuất tự động từ dữ liệu bài test đang chạy trong h�
 
 | # | Câu hỏi | Nhóm |
 |---|---|---|
-| 1 | Tôi không thể cảm nhận được bất kỳ cảm xúc tích cực nào | Trầm cảm |
+| 1 | Tôi thấy khó mà thoải mái được | Căng thẳng |
 | 2 | Tôi cảm thấy khô miệng | Lo âu |
-| 3 | Tôi không thể trải nghiệm bất kỳ cảm giác tích cực nào | Trầm cảm |
+| 3 | Tôi không thể cảm nhận được bất kỳ cảm xúc tích cực nào | Trầm cảm |
 | 4 | Tôi gặp khó khăn trong việc thở (thở gấp, khó thở dù không vận động) | Lo âu |
 | 5 | Tôi thấy khó có thể bắt đầu làm bất cứ việc gì | Trầm cảm |
 | 6 | Tôi có xu hướng phản ứng thái quá với các tình huống | Căng thẳng |
@@ -70,7 +70,7 @@ Tài liệu xuất tự động từ dữ liệu bài test đang chạy trong h�
 ### Cách tính điểm
 
 **Trầm cảm (`depression`):**
-- Công thức: Tổng điểm câu {1, 3, 5, 10, 13, 16, 17, 21} × 2
+- Công thức: Tổng điểm câu {3, 5, 10, 13, 16, 17, 21} × 2
 - Xếp loại:
 
   | Khoảng điểm | Xếp loại |
@@ -94,7 +94,7 @@ Tài liệu xuất tự động từ dữ liệu bài test đang chạy trong h�
   | > 19 | Rất nặng |
 
 **Căng thẳng (`stress`):**
-- Công thức: Tổng điểm câu {6, 8, 11, 12, 14, 18} × 2
+- Công thức: Tổng điểm câu {1, 6, 8, 11, 12, 14, 18} × 2
 - Xếp loại:
 
   | Khoảng điểm | Xếp loại |
@@ -398,105 +398,79 @@ Tài liệu xuất tự động từ dữ liệu bài test đang chạy trong h�
 
   | Khoảng điểm | Xếp loại |
   |---|---|
-  | 0–10 | Bình thường |
-  | 11–16 | Rối loạn khí sắc nhẹ |
-  | 17–20 | Trầm cảm lâm sàng mức giới hạn |
-  | 21–30 | Trầm cảm mức độ vừa |
-  | 31–40 | Trầm cảm nặng |
-  | > 40 | Trầm cảm rất nặng |
+  | 0–13 | Không có trầm cảm |
+  | 14–19 | Trầm cảm nhẹ |
+  | 20–29 | Trầm cảm vừa |
+  | ≥ 30 | Trầm cảm nặng |
 
 
 ---
 
-## PSQI — Pittsburgh Sleep Quality Index (Bản chuẩn hóa trắc nghiệm)
+## PSQI — Pittsburgh Sleep Quality Index (Theo quy trình Bộ Y tế)
 
-*Mã hệ thống: `psqi` · Số câu: 10 · Điểm tối đa: 30 · Mốc thời gian hỏi: 1 tháng qua*
+*Mã hệ thống: `psqi` · Số câu: 17 · Điểm tối đa: 21 · Mốc thời gian hỏi: 1 tháng qua*
 
 ### Câu hỏi & đáp án
 
-**Câu 1 (Giấc ngủ):** Bạn đánh giá chất lượng giấc ngủ tổng thể của mình ở mức nào?
+**Câu 1 (Giấc ngủ) — nhập giờ:** Trong tháng qua, bạn thường lên giường đi ngủ lúc mấy giờ?
+
+**Câu 2 (Giấc ngủ) — nhập số phút:** Mỗi đêm bạn thường mất bao nhiêu phút mới chợp mắt được?
+
+**Câu 3 (Giấc ngủ) — nhập giờ:** Trong tháng qua, bạn thường thức dậy buổi sáng lúc mấy giờ?
+
+**Câu 4 (Giấc ngủ) — nhập số tiếng:** Mỗi đêm bạn thực sự ngủ được mấy tiếng đồng hồ? (không tính thời gian nằm trằn trọc)
+
+**Câu 5 (Giấc ngủ) → Câu 12 (Giấc ngủ):** các câu con mục 5a-5i, dùng chung 1 thang trả lời:
+
+- ✅ Không có trong tháng qua — 0 điểm
+- 🟡 Ít hơn 1 lần/tuần — 1 điểm
+- 🟠 1-2 lần/tuần — 2 điểm
+- 🚨 3 lần/tuần trở lên — 3 điểm
+
+| # | Câu hỏi |
+|---|---|
+| 5 | 5a. Không thể ngủ được trong vòng 30 phút |
+| 6 | 5b. Tỉnh dậy lúc nửa đêm hoặc quá sớm vào buổi sáng |
+| 7 | 5c. Phải thức dậy để sử dụng nhà vệ sinh |
+| 8 | 5d. Khó thở |
+| 9 | 5e. Ho hoặc ngáy to |
+| 10 | 5f. Cảm thấy rất lạnh |
+| 11 | 5g. Cảm thấy rất nóng |
+| 12 | 5h. Có ác mộng |
+| 13 | 5i. Thấy đau |
+| 14 | 6. Bạn có thường phải sử dụng thuốc ngủ không (theo đơn hoặc tự mua)? |
+| 15 | 7. Bạn có hay gặp khó khăn để giữ đầu óc tỉnh táo lúc ăn, lái xe hay làm việc không? |
+| 16 | 8. Bạn có gặp khó khăn để duy trì hứng thú hoàn thành công việc không? |
+
+**Câu 17 (Giấc ngủ):** 9. Nhìn chung, bạn đánh giá chất lượng giấc ngủ của mình như thế nào?
 
 - 😀 Rất tốt — 0 điểm
-- 🙂 Khá tốt — 1 điểm
-- 😟 Khá kém — 2 điểm
+- 🙂 Tương đối tốt — 1 điểm
+- 😟 Tương đối kém — 2 điểm
 - 😰 Rất kém — 3 điểm
-
-**Câu 2 (Giấc ngủ):** Bạn thường mất bao lâu để chìm vào giấc ngủ mỗi đêm?
-
-- ⏱️ < 15 phút — 0 điểm
-- ⏱️ 16 - 30 phút — 1 điểm
-- ⏱️ 31 - 60 phút — 2 điểm
-- ⏱️ > 60 phút — 3 điểm
-
-**Câu 3 (Giấc ngủ):** Bạn thực sự ngủ được bao nhiêu tiếng mỗi đêm? (Không tính thời gian nằm trằn trọc)
-
-- 🛌 > 7 tiếng — 0 điểm
-- 🛌 6 - 7 tiếng — 1 điểm
-- 🛌 5 - 6 tiếng — 2 điểm
-- 🛌 < 5 tiếng — 3 điểm
-
-**Câu 4 (Giấc ngủ):** Tần suất bạn không thể chìm vào giấc ngủ trong vòng 30 phút?
-
-- ✅ Không bao giờ trong tháng qua — 0 điểm
-- 🟡 Tuyệt đối hiếm (< 1 lần/tuần) — 1 điểm
-- 🟠 Vài lần (1-2 lần/tuần) — 2 điểm
-- 🚨 Thường xuyên (≥ 3 lần/tuần) — 3 điểm
-
-**Câu 5 (Giấc ngủ):** Tần suất bạn thức giấc giữa đêm hoặc dậy quá sớm vào buổi sáng?
-
-- ✅ Không bao giờ trong tháng qua — 0 điểm
-- 🟡 Tuyệt đối hiếm (< 1 lần/tuần) — 1 điểm
-- 🟠 Vài lần (1-2 lần/tuần) — 2 điểm
-- 🚨 Thường xuyên (≥ 3 lần/tuần) — 3 điểm
-
-**Câu 6 (Giấc ngủ):** Tần suất bạn phải thức dậy đi lại để đi vệ sinh?
-
-- ✅ Không bao giờ trong tháng qua — 0 điểm
-- 🟡 Tuyệt đối hiếm (< 1 lần/tuần) — 1 điểm
-- 🟠 Vài lần (1-2 lần/tuần) — 2 điểm
-- 🚨 Thường xuyên (≥ 3 lần/tuần) — 3 điểm
-
-**Câu 7 (Giấc ngủ):** Tần suất bạn gặp khó khăn do ho, khó thở hoặc ngáy to?
-
-- ✅ Không bao giờ trong tháng qua — 0 điểm
-- 🟡 Tuyệt đối hiếm (< 1 lần/tuần) — 1 điểm
-- 🟠 Vài lần (1-2 lần/tuần) — 2 điểm
-- 🚨 Thường xuyên (≥ 3 lần/tuần) — 3 điểm
-
-**Câu 8 (Giấc ngủ):** Tần suất bạn ngủ không ngon vì gặp ác mộng, hoặc cảm thấy quá nóng/quá lạnh?
-
-- ✅ Không bao giờ trong tháng qua — 0 điểm
-- 🟡 Tuyệt đối hiếm (< 1 lần/tuần) — 1 điểm
-- 🟠 Vài lần (1-2 lần/tuần) — 2 điểm
-- 🚨 Thường xuyên (≥ 3 lần/tuần) — 3 điểm
-
-**Câu 9 (Giấc ngủ):** Tần suất bạn phải dùng thuốc (được kê đơn hoặc không) để dễ ngủ?
-
-- ✅ Không bao giờ trong tháng qua — 0 điểm
-- 🟡 Tuyệt đối hiếm (< 1 lần/tuần) — 1 điểm
-- 🟠 Vài lần (1-2 lần/tuần) — 2 điểm
-- 🚨 Thường xuyên (≥ 3 lần/tuần) — 3 điểm
-
-**Câu 10 (Giấc ngủ):** Tần suất bạn cảm thấy buồn ngủ, mệt mỏi vào ban ngày khi làm việc, lái xe hay giao tiếp?
-
-- ✅ Không bao giờ trong tháng qua — 0 điểm
-- 🟡 Tuyệt đối hiếm (< 1 lần/tuần) — 1 điểm
-- 🟠 Vài lần (1-2 lần/tuần) — 2 điểm
-- 🚨 Thường xuyên (≥ 3 lần/tuần) — 3 điểm
 
 ### Cách tính điểm
 
-**Giấc ngủ (`sleep`):**
-- Công thức: Tổng điểm câu {1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
+Không dùng công thức "cộng dồn 1 danh sách câu" như các bài khác — PSQI tính qua **7 thành phần** riêng biệt rồi cộng lại thành tổng 0-21:
+
+| Thành phần | Cách tính |
+|---|---|
+| 1. Chất lượng chủ quan | = điểm câu 17 (câu 9 gốc) |
+| 2. Độ trễ giấc ngủ | = điểm quy đổi câu 2 (≤15'→0, 16-30'→1, 31-60'→2, >60'→3) **+** điểm câu 5a (câu #5), rồi quy đổi tổng (0-6) → 0 ⇒ 0đ · 1-2 ⇒ 1đ · 3-4 ⇒ 2đ · 5-6 ⇒ 3đ |
+| 3. Thời lượng ngủ | = điểm quy đổi câu 4 (>7h→0, 6-7h→1, 5-6h→2, <5h→3) |
+| 4. Hiệu suất giấc ngủ | = (giờ ngủ được ÷ giờ nằm trên giường [từ câu 1 & câu 3]) × 100% → >85%→0 · 75-84%→1 · 65-74%→2 · <65%→3 |
+| 5. Rối loạn giấc ngủ | = tổng điểm câu #6-#13 (5b-5i) → 0⇒0đ · 1-9⇒1đ · 10-18⇒2đ · 19-27⇒3đ |
+| 6. Dùng thuốc ngủ | = điểm câu #14 (câu 6 gốc) |
+| 7. Rối loạn hoạt động ban ngày | = tổng điểm câu #15 + #16 (câu 7+8 gốc) → 0⇒0đ · 1-2⇒1đ · 3-4⇒2đ · 5-6⇒3đ |
+
+**Tổng PSQI = Thành phần 1 + 2 + ... + 7 (0-21 điểm)**
+
 - Xếp loại:
 
   | Khoảng điểm | Xếp loại |
   |---|---|
-  | 0–4 | Rất tốt |
-  | 5–7 | Đạt tiêu chuẩn |
-  | 8–14 | Nguy cơ Mất ngủ |
-  | 15–20 | Mất ngủ trầm trọng |
-  | > 20 | Đặc biệt nghiêm trọng |
+  | 0–4 | Chất lượng giấc ngủ tốt |
+  | ≥ 5 | Chất lượng giấc ngủ suy giảm |
 
 
 ---
@@ -766,8 +740,9 @@ Tài liệu xuất tự động từ dữ liệu bài test đang chạy trong h�
 
   | Khoảng điểm | Xếp loại |
   |---|---|
-  | 0–3 | Bình thường |
-  | 4–10 | Cần chú ý |
+  | 0–5 | Bình thường |
+  | 6 | Ranh giới |
+  | 7–10 | Bất thường |
 
 **Hành vi (`conduct`):**
 - Công thức: Tổng điểm câu {5, 7, 12, 18, 22}
@@ -775,8 +750,9 @@ Tài liệu xuất tự động từ dữ liệu bài test đang chạy trong h�
 
   | Khoảng điểm | Xếp loại |
   |---|---|
-  | 0–2 | Bình thường |
-  | 3–10 | Cần chú ý |
+  | 0–3 | Bình thường |
+  | 4 | Ranh giới |
+  | 5–10 | Bất thường |
 
 **Tăng động (`hyperactivity`):**
 - Công thức: Tổng điểm câu {2, 10, 15, 21, 25}
@@ -785,7 +761,8 @@ Tài liệu xuất tự động từ dữ liệu bài test đang chạy trong h�
   | Khoảng điểm | Xếp loại |
   |---|---|
   | 0–5 | Bình thường |
-  | 6–10 | Cần chú ý |
+  | 6 | Ranh giới |
+  | 7–10 | Bất thường |
 
 **Bạn bè (`peer`):**
 - Công thức: Tổng điểm câu {6, 11, 14, 19, 23}
@@ -793,17 +770,19 @@ Tài liệu xuất tự động từ dữ liệu bài test đang chạy trong h�
 
   | Khoảng điểm | Xếp loại |
   |---|---|
-  | 0–2 | Bình thường |
-  | 3–10 | Cần chú ý |
+  | 0–3 | Bình thường |
+  | 4–5 | Ranh giới |
+  | 6–10 | Bất thường |
 
-**Xã hội tích cực (`prosocial`):**
+**Xã hội tích cực (`prosocial`)** *(điểm càng cao càng tốt — chiều ngược lại với 4 thang trên):*
 - Công thức: Tổng điểm câu {1, 4, 9, 17, 20}
 - Xếp loại:
 
   | Khoảng điểm | Xếp loại |
   |---|---|
   | 0–4 | Cần hỗ trợ thêm kỹ năng xã hội |
-  | 5–10 | Tốt |
+  | 5 | Ranh giới |
+  | 6–10 | Tốt |
 
 **Tổng điểm (`total`):**
 - Công thức: Tổng điểm câu {3, 8, 13, 16, 24, 5, 7, 12, 18, 22, 2, 10, 15, 21, 25, 6, 11, 14, 19, 23}
@@ -2816,5 +2795,5 @@ Tài liệu xuất tự động từ dữ liệu bài test đang chạy trong h�
 
 ## Phụ lục: Raven CPM (test hình, không nằm trong khuôn dạng câu hỏi/đáp án văn bản)
 
-Bài Raven Màu (Colored Progressive Matrices) dùng 36 tấm hình (bộ A/AB/B, mỗi bộ 12 tấm), người làm chọn 1 trong 6 mảnh để hoàn thiện hình — không phải dạng câu hỏi Likert nên không liệt kê trong bảng trên. Đáp án đúng và bảng chuẩn hoá theo tuổi (4–11 tuổi) được giữ nguyên trong `frontend-vue/src/lib/ravenTest.js`, trích từ tài liệu "Key test Raven.docx" và "KHÓA ĐIỂM RAVEN MÀU – TRẺ EM – 2008".
+Bài Raven Màu (Colored Progressive Matrices) dùng 36 tấm hình (bộ A/AB/B, mỗi bộ 12 tấm), người làm chọn 1 trong 6 mảnh để hoàn thiện hình — không phải dạng câu hỏi Likert nên không liệt kê trong bảng trên. Đáp án đúng và bảng chuẩn hoá theo tuổi (4–11 tuổi) vẫn được giữ đầy đủ trong hệ thống.
 

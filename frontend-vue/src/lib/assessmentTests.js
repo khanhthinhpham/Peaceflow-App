@@ -10,9 +10,9 @@ export const TESTS = {
         timeRef: '2 tuần qua', totalQ: 21, maxScore: 42,
         subscales: ['depression', 'anxiety', 'stress'],
         questions: [
-            { text: 'Tôi không thể cảm nhận được bất kỳ cảm xúc tích cực nào', cat: 'depression', catLabel: 'Trầm cảm' },
-            { text: 'Tôi cảm thấy khô miệng', cat: 'anxiety', catLabel: 'Lo âu' },
             { text: 'Tôi thấy khó mà thoải mái được', cat: 'stress', catLabel: 'Căng thẳng' },
+            { text: 'Tôi cảm thấy khô miệng', cat: 'anxiety', catLabel: 'Lo âu' },
+            { text: 'Tôi không thể cảm nhận được bất kỳ cảm xúc tích cực nào', cat: 'depression', catLabel: 'Trầm cảm' },
             { text: 'Tôi gặp khó khăn trong việc thở (thở gấp, khó thở dù không vận động)', cat: 'anxiety', catLabel: 'Lo âu' },
             { text: 'Tôi thấy khó có thể bắt đầu làm bất cứ việc gì', cat: 'depression', catLabel: 'Trầm cảm' },
             { text: 'Tôi có xu hướng phản ứng thái quá với các tình huống', cat: 'stress', catLabel: 'Căng thẳng' },
@@ -39,9 +39,9 @@ export const TESTS = {
             { emoji: '😰', label: 'Hầu hết lúc', score: 3 }
         ],
         scoring: {
-            depression: { indices: [0, 4, 9, 12, 15, 16, 20], multiplier: 2, levels: [{ max: 9, 'label': 'Bình thường', 'class': 'level-0' }, { max: 13, 'label': 'Nhẹ', 'class': 'level-1' }, { max: 20, 'label': 'Vừa', 'class': 'level-2' }, { max: 27, 'label': 'Nặng', 'class': 'level-3' }, { max: 999, 'label': 'Rất nặng', 'class': 'level-4' }] },
+            depression: { indices: [2, 4, 9, 12, 15, 16, 20], multiplier: 2, levels: [{ max: 9, 'label': 'Bình thường', 'class': 'level-0' }, { max: 13, 'label': 'Nhẹ', 'class': 'level-1' }, { max: 20, 'label': 'Vừa', 'class': 'level-2' }, { max: 27, 'label': 'Nặng', 'class': 'level-3' }, { max: 999, 'label': 'Rất nặng', 'class': 'level-4' }] },
             anxiety: { indices: [1, 3, 6, 8, 14, 18, 19], multiplier: 2, levels: [{ max: 7, 'label': 'Bình thường', 'class': 'level-0' }, { max: 9, 'label': 'Nhẹ', 'class': 'level-1' }, { max: 14, 'label': 'Vừa', 'class': 'level-2' }, { max: 19, 'label': 'Nặng', 'class': 'level-3' }, { max: 999, 'label': 'Rất nặng', 'class': 'level-4' }] },
-            stress: { indices: [2, 5, 7, 10, 11, 13, 17], multiplier: 2, levels: [{ max: 14, 'label': 'Bình thường', 'class': 'level-0' }, { max: 18, 'label': 'Nhẹ', 'class': 'level-1' }, { max: 25, 'label': 'Vừa', 'class': 'level-2' }, { max: 33, 'label': 'Nặng', 'class': 'level-3' }, { max: 999, 'label': 'Rất nặng', 'class': 'level-4' }] }
+            stress: { indices: [0, 5, 7, 10, 11, 13, 17], multiplier: 2, levels: [{ max: 14, 'label': 'Bình thường', 'class': 'level-0' }, { max: 18, 'label': 'Nhẹ', 'class': 'level-1' }, { max: 25, 'label': 'Vừa', 'class': 'level-2' }, { max: 33, 'label': 'Nặng', 'class': 'level-3' }, { max: 999, 'label': 'Rất nặng', 'class': 'level-4' }] }
         },
         prevScores: { depression: 6, anxiety: 8, stress: 10 }
     },
