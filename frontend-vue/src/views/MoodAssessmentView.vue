@@ -1062,6 +1062,24 @@ function computePsqiScore(a) {
   return c1 + c2 + c3 + c4 + c5 + c6 + c7;
 }
 
+// EPI: thang Hướng ngoại (E) và Độ tin cậy/Lie (S) chấm điểm ĐẢO CHIỀU theo từng câu —
+// câu trong trueIndices tính điểm khi trả lời "Có" (score=1), câu trong falseIndices
+// tính điểm khi trả lời "Không" (score=0). Khác thang Tính thần kinh (toàn bộ cùng
+// chiều), nên cần hàm riêng thay vì cộng dồn theo indices/multiplier chuẩn.
+function computeKeyedScore(answerList, trueIndices, falseIndices) {
+  let score = 0;
+  trueIndices.forEach((idx) => { if (Number(answerList[idx]) === 1) score += 1; });
+  falseIndices.forEach((idx) => { if (Number(answerList[idx]) === 0) score += 1; });
+  return score;
+}
+
+// Vanderbilt: mỗi lĩnh vực sàng lọc bằng cách ĐẾM số câu đạt điểm 2 ("Thường xuyên")
+// hoặc 3 ("Rất thường xuyên") trở lên, không phải cộng tổng điểm — nên điểm hiển thị ở
+// đây chính là SỐ CÂU đạt ngưỡng đó (so với countThreshold để xếp loại).
+function computeCountThresholdScore(answerList, indices) {
+  return indices.filter((idx) => Number(answerList[idx]) >= 2).length;
+}
+
 function getSeverityRank(className) {
   if (className === 'level-4') return 4;
   if (className === 'level-3') return 3;
@@ -1097,6 +1115,10 @@ function finishTest() {
     let finalScore;
     if (sc.custom === 'psqi_v1') {
       finalScore = computePsqiScore(answerList);
+    } else if (sc.custom === 'epi_keyed') {
+      finalScore = computeKeyedScore(answerList, sc.trueIndices, sc.falseIndices);
+    } else if (sc.custom === 'count_threshold') {
+      finalScore = computeCountThresholdScore(answerList, sc.indices);
     } else {
       let rawSum = 0;
       sc.indices.forEach((idx) => {

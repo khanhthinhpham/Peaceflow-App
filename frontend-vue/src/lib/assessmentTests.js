@@ -7,7 +7,7 @@ export const TESTS = {
     dass21: {
         name: 'DASS-21', fullname: 'Depression Anxiety Stress Scales',
         icon: '📊', iconBg: 'var(--peach-light)', iconBorder: 'var(--peach)',
-        timeRef: '2 tuần qua', totalQ: 21, maxScore: 42,
+        timeRef: '2 tuần qua', totalQ: 21, maxScore: 21,
         subscales: ['depression', 'anxiety', 'stress'],
         questions: [
             { text: 'Tôi thấy khó mà thoải mái được', cat: 'stress', catLabel: 'Căng thẳng' },
@@ -38,10 +38,12 @@ export const TESTS = {
             { emoji: '😟', label: 'Thường xuyên', score: 2 },
             { emoji: '😰', label: 'Hầu hết lúc', score: 3 }
         ],
+        // Dùng thẳng điểm thô 7 câu/thang (tối đa 21), KHÔNG nhân đôi — ngưỡng lấy nguyên
+        // từ bảng xếp loại dành riêng cho DASS-21 (không phải mượn bảng của bản 42 câu).
         scoring: {
-            depression: { indices: [2, 4, 9, 12, 15, 16, 20], multiplier: 2, levels: [{ max: 9, 'label': 'Bình thường', 'class': 'level-0' }, { max: 13, 'label': 'Nhẹ', 'class': 'level-1' }, { max: 20, 'label': 'Vừa', 'class': 'level-2' }, { max: 27, 'label': 'Nặng', 'class': 'level-3' }, { max: 999, 'label': 'Rất nặng', 'class': 'level-4' }] },
-            anxiety: { indices: [1, 3, 6, 8, 14, 18, 19], multiplier: 2, levels: [{ max: 7, 'label': 'Bình thường', 'class': 'level-0' }, { max: 9, 'label': 'Nhẹ', 'class': 'level-1' }, { max: 14, 'label': 'Vừa', 'class': 'level-2' }, { max: 19, 'label': 'Nặng', 'class': 'level-3' }, { max: 999, 'label': 'Rất nặng', 'class': 'level-4' }] },
-            stress: { indices: [0, 5, 7, 10, 11, 13, 17], multiplier: 2, levels: [{ max: 14, 'label': 'Bình thường', 'class': 'level-0' }, { max: 18, 'label': 'Nhẹ', 'class': 'level-1' }, { max: 25, 'label': 'Vừa', 'class': 'level-2' }, { max: 33, 'label': 'Nặng', 'class': 'level-3' }, { max: 999, 'label': 'Rất nặng', 'class': 'level-4' }] }
+            depression: { indices: [2, 4, 9, 12, 15, 16, 20], multiplier: 1, levels: [{ max: 4, 'label': 'Bình thường', 'class': 'level-0' }, { max: 6, 'label': 'Nhẹ', 'class': 'level-1' }, { max: 10, 'label': 'Vừa', 'class': 'level-2' }, { max: 13, 'label': 'Nặng', 'class': 'level-3' }, { max: 999, 'label': 'Rất nặng', 'class': 'level-4' }] },
+            anxiety: { indices: [1, 3, 6, 8, 14, 18, 19], multiplier: 1, levels: [{ max: 3, 'label': 'Bình thường', 'class': 'level-0' }, { max: 5, 'label': 'Nhẹ', 'class': 'level-1' }, { max: 7, 'label': 'Vừa', 'class': 'level-2' }, { max: 9, 'label': 'Nặng', 'class': 'level-3' }, { max: 999, 'label': 'Rất nặng', 'class': 'level-4' }] },
+            stress: { indices: [0, 5, 7, 10, 11, 13, 17], multiplier: 1, levels: [{ max: 7, 'label': 'Bình thường', 'class': 'level-0' }, { max: 9, 'label': 'Nhẹ', 'class': 'level-1' }, { max: 12, 'label': 'Vừa', 'class': 'level-2' }, { max: 16, 'label': 'Nặng', 'class': 'level-3' }, { max: 999, 'label': 'Rất nặng', 'class': 'level-4' }] }
         },
         prevScores: { depression: 6, anxiety: 8, stress: 10 }
     },
@@ -98,10 +100,14 @@ export const TESTS = {
             { emoji: '🔴', label: 'Nặng', score: 3 },
             { emoji: '🚨', label: 'Rất nặng', score: 4 }
         ],
+        // Bảng ngưỡng phân loại tổng điểm HARS trong tài liệu quy trình Bộ Y tế chỉ nêu tên 5
+        // mức (Không có/Nhẹ/Vừa/Nặng/Rất nặng) nhưng BỎ TRỐNG toàn bộ cột số điểm (đã kiểm tra
+        // trực tiếp trong file gốc) — nên không có căn cứ để tự đặt ngưỡng, chỉ hiển thị điểm
+        // thô, không gắn nhãn mức độ.
         scoring: {
             psychic: { indices: [0, 1, 2, 3, 4, 5, 13], multiplier: 1, levels: [{ max: 999, 'label': 'Tâm lý', 'class': 'level-1' }] },
             somatic: { indices: [6, 7, 8, 9, 10, 11, 12], multiplier: 1, levels: [{ max: 999, 'label': 'Thể chất', 'class': 'level-2' }] },
-            total: { indices: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13], multiplier: 1, levels: [{ max: 17, 'label': 'Bình thường / Nhẹ', 'class': 'level-0' }, { max: 24, 'label': 'Vừa', 'class': 'level-2' }, { max: 30, 'label': 'Nặng', 'class': 'level-3' }, { max: 999, 'label': 'Rất nặng', 'class': 'level-4' }] }
+            total: { indices: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13], multiplier: 1, levels: [{ max: 999, 'label': 'Điểm tổng HARS (tài liệu Bộ Y tế không quy định ngưỡng phân loại mức độ)', 'class': 'level-1' }] }
         },
         prevScores: null
     },
@@ -524,14 +530,16 @@ export const TESTS = {
             { emoji: '❌', label: 'Sai', score: 0 },
             { emoji: '✅', label: 'Đúng', score: 1 }
         ],
+        // Bảng ngưỡng MMSE trong tài liệu quy trình Bộ Y tế CHỈ ghi đúng 1 mốc có số (≤13 =
+        // Suy giảm nặng) — 3 mức còn lại (Không suy giảm/Nhẹ/Vừa) bị để trống trong chính tài
+        // liệu gốc (đã kiểm tra trực tiếp). Nên chỉ giữ đúng mốc duy nhất này, không tự đặt
+        // thêm ranh giới 19/23 không có căn cứ.
         scoring: {
             total: {
                 indices: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18], multiplier: 1,
                 levels: [
                     { max: 13, 'label': 'Suy giảm nặng', 'class': 'level-3' },
-                    { max: 19, 'label': 'Suy giảm vừa', 'class': 'level-2' },
-                    { max: 23, 'label': 'Suy giảm nhẹ', 'class': 'level-1' },
-                    { max: 999, 'label': 'Không suy giảm nhận thức', 'class': 'level-0' }
+                    { max: 999, 'label': 'Trên 13 điểm (tài liệu Bộ Y tế không quy định thêm ngưỡng chi tiết)', 'class': 'level-1' }
                 ]
             }
         },

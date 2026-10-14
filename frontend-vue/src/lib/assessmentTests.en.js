@@ -10,7 +10,7 @@ export const TESTS = {
     dass21: {
         name: 'DASS-21', fullname: 'Depression Anxiety Stress Scales',
         icon: '📊', iconBg: 'var(--peach-light)', iconBorder: 'var(--peach)',
-        timeRef: 'Past 2 weeks', totalQ: 21, maxScore: 42,
+        timeRef: 'Past 2 weeks', totalQ: 21, maxScore: 21,
         subscales: ['depression', 'anxiety', 'stress'],
         questions: [
             { text: 'I found it hard to wind down', cat: 'stress', catLabel: 'Stress' },
@@ -42,9 +42,9 @@ export const TESTS = {
             { emoji: '😰', label: 'Most of the time', score: 3 }
         ],
         scoring: {
-            depression: { indices: [2, 4, 9, 12, 15, 16, 20], multiplier: 2, levels: [{ max: 9, 'label': 'Normal', 'class': 'level-0' }, { max: 13, 'label': 'Mild', 'class': 'level-1' }, { max: 20, 'label': 'Moderate', 'class': 'level-2' }, { max: 27, 'label': 'Severe', 'class': 'level-3' }, { max: 999, 'label': 'Extremely severe', 'class': 'level-4' }] },
-            anxiety: { indices: [1, 3, 6, 8, 14, 18, 19], multiplier: 2, levels: [{ max: 7, 'label': 'Normal', 'class': 'level-0' }, { max: 9, 'label': 'Mild', 'class': 'level-1' }, { max: 14, 'label': 'Moderate', 'class': 'level-2' }, { max: 19, 'label': 'Severe', 'class': 'level-3' }, { max: 999, 'label': 'Extremely severe', 'class': 'level-4' }] },
-            stress: { indices: [0, 5, 7, 10, 11, 13, 17], multiplier: 2, levels: [{ max: 14, 'label': 'Normal', 'class': 'level-0' }, { max: 18, 'label': 'Mild', 'class': 'level-1' }, { max: 25, 'label': 'Moderate', 'class': 'level-2' }, { max: 33, 'label': 'Severe', 'class': 'level-3' }, { max: 999, 'label': 'Extremely severe', 'class': 'level-4' }] }
+            depression: { indices: [2, 4, 9, 12, 15, 16, 20], multiplier: 1, levels: [{ max: 4, 'label': 'Normal', 'class': 'level-0' }, { max: 6, 'label': 'Mild', 'class': 'level-1' }, { max: 10, 'label': 'Moderate', 'class': 'level-2' }, { max: 13, 'label': 'Severe', 'class': 'level-3' }, { max: 999, 'label': 'Extremely severe', 'class': 'level-4' }] },
+            anxiety: { indices: [1, 3, 6, 8, 14, 18, 19], multiplier: 1, levels: [{ max: 3, 'label': 'Normal', 'class': 'level-0' }, { max: 5, 'label': 'Mild', 'class': 'level-1' }, { max: 7, 'label': 'Moderate', 'class': 'level-2' }, { max: 9, 'label': 'Severe', 'class': 'level-3' }, { max: 999, 'label': 'Extremely severe', 'class': 'level-4' }] },
+            stress: { indices: [0, 5, 7, 10, 11, 13, 17], multiplier: 1, levels: [{ max: 7, 'label': 'Normal', 'class': 'level-0' }, { max: 9, 'label': 'Mild', 'class': 'level-1' }, { max: 12, 'label': 'Moderate', 'class': 'level-2' }, { max: 16, 'label': 'Severe', 'class': 'level-3' }, { max: 999, 'label': 'Extremely severe', 'class': 'level-4' }] }
         },
         prevScores: { depression: 6, anxiety: 8, stress: 10 }
     },
@@ -104,7 +104,7 @@ export const TESTS = {
         scoring: {
             psychic: { indices: [0, 1, 2, 3, 4, 5, 13], multiplier: 1, levels: [{ max: 999, 'label': 'Psychological', 'class': 'level-1' }] },
             somatic: { indices: [6, 7, 8, 9, 10, 11, 12], multiplier: 1, levels: [{ max: 999, 'label': 'Physical', 'class': 'level-2' }] },
-            total: { indices: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13], multiplier: 1, levels: [{ max: 17, 'label': 'Normal / Mild', 'class': 'level-0' }, { max: 24, 'label': 'Moderate', 'class': 'level-2' }, { max: 30, 'label': 'Severe', 'class': 'level-3' }, { max: 999, 'label': 'Very severe', 'class': 'level-4' }] }
+            total: { indices: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13], multiplier: 1, levels: [{ max: 999, 'label': 'Total HARS score (the Ministry of Health source does not define severity cutoffs)', 'class': 'level-1' }] }
         },
         prevScores: null
     },
@@ -516,9 +516,7 @@ export const TESTS = {
                 indices: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18], multiplier: 1,
                 levels: [
                     { max: 13, 'label': 'Severe impairment', 'class': 'level-3' },
-                    { max: 19, 'label': 'Moderate impairment', 'class': 'level-2' },
-                    { max: 23, 'label': 'Mild impairment', 'class': 'level-1' },
-                    { max: 999, 'label': 'No cognitive impairment', 'class': 'level-0' }
+                    { max: 999, 'label': 'Above 13 (the Ministry of Health source does not define further cutoffs)', 'class': 'level-1' }
                 ]
             }
         },

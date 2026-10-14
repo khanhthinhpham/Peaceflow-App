@@ -2,97 +2,90 @@
 // 35. TRẮC NGHIỆM NHÂN CÁCH EYSENCK (EPI) và 44. TRẮC NGHIỆM RỐI LOẠN TĂNG ĐỘNG
 // GIẢM CHÚ Ý VANDERBILT (VADRS - phiên bản dành cho cha mẹ).
 //
-// LƯU Ý QUAN TRỌNG VỀ CHẤM ĐIỂM (xem chi tiết đầy đủ trong group6_meta.md):
-// - EPI: chỉ tiểu thang "neuroticism" (24 câu, cột N/KOD trong bảng khóa nguồn — TẤT
-//   CẢ đều chấm điểm khi trả lời "Có") vừa khớp với khuôn dạng chấm điểm chuẩn của
-//   engine (tổng điểm theo indices dùng chung 1 bộ likertOptions). Hai tiểu thang còn
-//   lại — "E" (Hướng ngoại, 24 câu) và "S" (Độ tin cậy, 9 câu) — có chấm điểm ĐẢO
-//   CHIỀU theo từng câu (một số câu tính điểm khi trả lời "Có", số khác tính điểm khi
-//   trả lời "Không", theo đúng "bảng khóa" gốc). Engine hiện tại (chỉ nhân multiplier
-//   đơn, không đảo dấu theo từng câu) KHÔNG thể hiện đúng cách chấm này, nên phần
-//   scoring cho "extraversion" và "lie" bị BỎ QUA ở đây — xem bảng khóa đầy đủ + thuật
-//   toán trong group6_meta.md để lập trình viên tự bổ sung logic tùy biến.
-// - Vanderbilt: theo đúng hướng dẫn nguồn, cả 5 lĩnh vực đều được sàng lọc bằng cách
-//   ĐẾM SỐ CÂU đạt điểm 2-3 trên một NGƯỠNG SỐ LƯỢNG (ví dụ 6/9, 4/8, 3/14, 3/7),
-//   KHÔNG PHẢI cộng tổng điểm rồi so ngưỡng như các thang đo khác. Khuôn dạng
-//   `scoring.levels` (dải theo tổng điểm) không biểu diễn được thuật toán đếm-ngưỡng
-//   này, nên toàn bộ `scoring` bị BỎ TRỐNG — xem thuật toán đầy đủ bằng lời trong
-//   group6_meta.md.
+// GHI CHÚ VỀ CÁCH CHẤM ĐIỂM (đối chiếu trực tiếp bảng khóa/bảng ngưỡng gốc trong docx):
+// - EPI: "extraversion" (E, 24 câu) và "lie" (S, 9 câu) chấm điểm ĐẢO CHIỀU theo từng
+//   câu (bảng khóa gốc: 1 số câu tính điểm khi trả lời "Có", số khác tính điểm khi trả
+//   lời "Không") — khác "neuroticism" (toàn bộ 24 câu đều tính điểm khi "Có"). Dùng
+//   `custom: 'epi_keyed'` + `trueIndices`/`falseIndices` (xem computeKeyedScore() ở
+//   MoodAssessmentView.vue) để tính đúng, thay vì khuôn `indices`/`multiplier` chung.
+//   Ngưỡng "Trung bình" của Hướng ngoại (7-15đ) và độ tin cậy Lie-scale (≤4 câu trùng
+//   khóa = đáng tin cậy) lấy nguyên văn từ mục "Đánh giá"/"Kết quả" của quy trình gốc.
+// - Vanderbilt: cả 5 lĩnh vực được sàng lọc bằng cách ĐẾM SỐ CÂU đạt điểm 2 ("Thường
+//   xuyên") hoặc 3 ("Rất thường xuyên") rồi so với NGƯỠNG SỐ LƯỢNG ghi trong bảng
+//   "VANDERBILT | Điểm đánh giá" của quy trình gốc (Giảm chú ý 6/9, Tăng hoạt động
+//   6/9, Thách thức chống đối 4/8, Hành vi ứng xử 3/14, Lo âu/trầm cảm 3/7) — KHÔNG
+//   PHẢI cộng tổng điểm rồi so dải như các thang khác. Dùng `custom: 'count_threshold'`
+//   (xem computeCountThresholdScore() ở MoodAssessmentView.vue).
 
 export const TESTS = {
     epi: {
         name: 'EPI', fullname: 'Trắc nghiệm Nhân cách Eysenck (Eysenck Personality Inventory)',
         icon: '🎭', iconBg: 'var(--rose-light)', iconBorder: 'var(--rose)',
         timeRef: 'Nhìn chung, về bản thân bạn', totalQ: 57, maxScore: 24,
-        subscales: ['neuroticism'],
+        subscales: ['neuroticism', 'extraversion', 'lie'],
         questions: [
-            { text: 'Bạn thường mong muốn những điều mới lạ, gây hồi hộp.', cat: 'e', catLabel: 'Hướng ngoại' },
-            { text: 'Bạn cần những người bạn có thể hiểu, động viên, an ủi mình.', cat: 'n', catLabel: 'Tính thần kinh' },
-            { text: 'Bạn là người vô tư, không bận tâm đến điều gì.', cat: 'e', catLabel: 'Hướng ngoại' },
-            { text: 'Bạn cảm thấy khó khăn trong việc từ chối một điều gì đó.', cat: 'n', catLabel: 'Tính thần kinh' },
-            { text: 'Bạn có suy nghĩ kỹ trước khi quyết định một việc gì đó.', cat: 'e', catLabel: 'Hướng ngoại' },
-            { text: 'Bạn luôn giữ lời hứa bất kể điều đó có thuận lợi hay không đối với bạn.', cat: 's', catLabel: 'Độ tin cậy' },
-            { text: 'Tâm trạng của bạn thường hay thất thường.', cat: 'n', catLabel: 'Tính thần kinh' },
-            { text: 'Bạn thường hành động hay phát ngôn rất nhanh không cần suy nghĩ.', cat: 'e', catLabel: 'Hướng ngoại' },
-            { text: 'Bạn thường cảm thấy mình bất hạnh mà không rõ nguyên nhân.', cat: 'n', catLabel: 'Tính thần kinh' },
-            { text: 'Bạn thường bảo vệ đến cùng ý kiến của mình trong các cuộc tranh luận.', cat: 'e', catLabel: 'Hướng ngoại' },
-            { text: 'Bạn thường cảm thấy rụt rè, ngượng ngùng khi nói chuyện với người khác giới không quen.', cat: 'n', catLabel: 'Tính thần kinh' },
-            { text: 'Đôi lúc bạn không kiềm chế được và nổi nóng.', cat: 's', catLabel: 'Độ tin cậy' },
-            { text: 'Bạn thường hành động một cách bồng bột.', cat: 'e', catLabel: 'Hướng ngoại' },
-            { text: 'Bạn thường day dứt vì đã làm một việc lẽ ra không nên làm.', cat: 'n', catLabel: 'Tính thần kinh' },
-            { text: 'Bạn thường thích đọc sách hơn là gặp gỡ mọi người.', cat: 'e', catLabel: 'Hướng ngoại' },
-            { text: 'Bạn dễ tự ái, phật lòng.', cat: 'n', catLabel: 'Tính thần kinh' },
-            { text: 'Bạn thích nhập hội với bạn bè.', cat: 'e', catLabel: 'Hướng ngoại' },
-            { text: 'Đôi lúc bạn có ý nghĩ mà ban đầu không muốn cho người khác biết.', cat: 's', catLabel: 'Độ tin cậy' },
-            { text: 'Đôi khi bạn cảm thấy mình đầy nghị lực, nhiệt tình làm mọi việc nhưng có lúc lại hoàn toàn uể oải.', cat: 'n', catLabel: 'Tính thần kinh' },
-            { text: 'Bạn thích thà ít bạn nhưng thân còn hơn.', cat: 'e', catLabel: 'Hướng ngoại' },
-            { text: 'Bạn hay mơ mộng.', cat: 'n', catLabel: 'Tính thần kinh' },
-            { text: 'Bạn phản ứng lại ngay khi người ta nói nặng lời với bạn.', cat: 'e', catLabel: 'Hướng ngoại' },
-            { text: 'Bạn thường day dứt khi mình có lỗi.', cat: 'n', catLabel: 'Tính thần kinh' },
-            { text: 'Tất cả những thói quen của bạn đều là tốt và cần thiết.', cat: 's', catLabel: 'Độ tin cậy' },
-            { text: 'Bạn có khả năng truyền cảm hứng và gây cười trong nhóm bạn bè.', cat: 'e', catLabel: 'Hướng ngoại' },
-            { text: 'Bạn là một người nhạy cảm.', cat: 'n', catLabel: 'Tính thần kinh' },
-            { text: 'Bạn là một người hoạt bát, vui vẻ.', cat: 'e', catLabel: 'Hướng ngoại' },
-            { text: 'Sau khi làm một việc quan trọng, bạn thường có cảm giác rằng lẽ ra có thể làm việc đó tốt hơn.', cat: 'n', catLabel: 'Tính thần kinh' },
-            { text: 'Bạn thường im lặng ở chốn có người lạ.', cat: 'e', catLabel: 'Hướng ngoại' },
-            { text: 'Bạn cũng có lúc đồn chuyện, phao tin.', cat: 's', catLabel: 'Độ tin cậy' },
-            { text: 'Bạn thường mất ngủ vì những ý nghĩ khác nhau trong đầu.', cat: 'n', catLabel: 'Tính thần kinh' },
-            { text: 'Nếu muốn biết điều gì đó bạn thường thích tự tìm hiểu hơn là hỏi người khác.', cat: 'e', catLabel: 'Hướng ngoại' },
-            { text: 'Bạn thường hay hồi hộp.', cat: 'n', catLabel: 'Tính thần kinh' },
-            { text: 'Bạn thích công việc đòi hỏi phải tập trung chú ý liên tục.', cat: 'e', catLabel: 'Hướng ngoại' },
-            { text: 'Cũng có lúc bạn run lên vì vui sướng hay sợ hãi.', cat: 'n', catLabel: 'Tính thần kinh' },
-            { text: 'Bạn luôn trả cước phí giao thông đầy đủ mặc dù không bị kiểm soát.', cat: 's', catLabel: 'Độ tin cậy' },
-            { text: 'Bạn cảm thấy khó chịu khi ở nơi mà người ta hay châm chọc nhau.', cat: 'e', catLabel: 'Hướng ngoại' },
-            { text: 'Bạn dễ nổi giận.', cat: 'n', catLabel: 'Tính thần kinh' },
-            { text: 'Bạn thích công việc đòi hỏi hành động nhanh chóng.', cat: 'e', catLabel: 'Hướng ngoại' },
-            { text: 'Bạn thấy hồi hộp khi cảm thấy những việc bất lợi có thể xảy ra.', cat: 'n', catLabel: 'Tính thần kinh' },
-            { text: 'Bạn đi đứng ung dung, chậm rãi.', cat: 'e', catLabel: 'Hướng ngoại' },
-            { text: 'Đã có lúc bạn đến nơi hẹn hoặc đi làm muộn.', cat: 's', catLabel: 'Độ tin cậy' },
-            { text: 'Bạn thường có ác mộng.', cat: 'n', catLabel: 'Tính thần kinh' },
-            { text: 'Bạn thích trò chuyện đến nỗi không bao giờ bỏ qua cơ hội bắt chuyện với cả những người không quen biết.', cat: 'e', catLabel: 'Hướng ngoại' },
-            { text: 'Bạn hay lo lắng vì có chỗ đau nào đó trên cơ thể.', cat: 'n', catLabel: 'Tính thần kinh' },
-            { text: 'Bạn cảm thấy khổ sở khi lâu không được giao thiệp rộng rãi với mọi người.', cat: 'e', catLabel: 'Hướng ngoại' },
-            { text: 'Bạn là người dễ cáu kỉnh.', cat: 'n', catLabel: 'Tính thần kinh' },
-            { text: 'Trong số những người quen có những người bạn không thích.', cat: 's', catLabel: 'Độ tin cậy' },
-            { text: 'Bạn là người rất tự tin.', cat: 'e', catLabel: 'Hướng ngoại' },
-            { text: 'Bạn dễ phật ý khi có người chỉ ra các khuyết điểm của bạn.', cat: 'n', catLabel: 'Tính thần kinh' },
-            { text: 'Bạn nghĩ rằng khó có thể thực sự thoải mái ở các cuộc liên hoan.', cat: 'e', catLabel: 'Hướng ngoại' },
-            { text: 'Bạn cảm thấy không yên tâm khi thua kém bạn bè ở điểm nào đó.', cat: 'n', catLabel: 'Tính thần kinh' },
-            { text: 'Bạn dễ dàng mang lại sự vui vẻ cho một cuộc họp mặt khá tẻ nhạt.', cat: 'e', catLabel: 'Hướng ngoại' },
-            { text: 'Bạn thường hay nói về những vấn đề mà mình chưa nắm chắc.', cat: 's', catLabel: 'Độ tin cậy' },
-            { text: 'Bạn lo lắng về sức khỏe của mình.', cat: 'n', catLabel: 'Tính thần kinh' },
-            { text: 'Bạn thích trêu đùa người khác.', cat: 'e', catLabel: 'Hướng ngoại' },
-            { text: 'Bạn bị mất ngủ.', cat: 'n', catLabel: 'Tính thần kinh' }
+            { text: 'Bạn thường mong muốn những điều mới lạ, gây hồi hộp.', cat: 'extraversion', catLabel: 'Hướng ngoại' },
+            { text: 'Bạn cần những người bạn có thể hiểu, động viên, an ủi mình.', cat: 'neuroticism', catLabel: 'Tính thần kinh' },
+            { text: 'Bạn là người vô tư, không bận tâm đến điều gì.', cat: 'extraversion', catLabel: 'Hướng ngoại' },
+            { text: 'Bạn cảm thấy khó khăn trong việc từ chối một điều gì đó.', cat: 'neuroticism', catLabel: 'Tính thần kinh' },
+            { text: 'Bạn có suy nghĩ kỹ trước khi quyết định một việc gì đó.', cat: 'extraversion', catLabel: 'Hướng ngoại' },
+            { text: 'Bạn luôn giữ lời hứa bất kể điều đó có thuận lợi hay không đối với bạn.', cat: 'lie', catLabel: 'Độ tin cậy' },
+            { text: 'Tâm trạng của bạn thường hay thất thường.', cat: 'neuroticism', catLabel: 'Tính thần kinh' },
+            { text: 'Bạn thường hành động hay phát ngôn rất nhanh không cần suy nghĩ.', cat: 'extraversion', catLabel: 'Hướng ngoại' },
+            { text: 'Bạn thường cảm thấy mình bất hạnh mà không rõ nguyên nhân.', cat: 'neuroticism', catLabel: 'Tính thần kinh' },
+            { text: 'Bạn thường bảo vệ đến cùng ý kiến của mình trong các cuộc tranh luận.', cat: 'extraversion', catLabel: 'Hướng ngoại' },
+            { text: 'Bạn thường cảm thấy rụt rè, ngượng ngùng khi nói chuyện với người khác giới không quen.', cat: 'neuroticism', catLabel: 'Tính thần kinh' },
+            { text: 'Đôi lúc bạn không kiềm chế được và nổi nóng.', cat: 'lie', catLabel: 'Độ tin cậy' },
+            { text: 'Bạn thường hành động một cách bồng bột.', cat: 'extraversion', catLabel: 'Hướng ngoại' },
+            { text: 'Bạn thường day dứt vì đã làm một việc lẽ ra không nên làm.', cat: 'neuroticism', catLabel: 'Tính thần kinh' },
+            { text: 'Bạn thường thích đọc sách hơn là gặp gỡ mọi người.', cat: 'extraversion', catLabel: 'Hướng ngoại' },
+            { text: 'Bạn dễ tự ái, phật lòng.', cat: 'neuroticism', catLabel: 'Tính thần kinh' },
+            { text: 'Bạn thích nhập hội với bạn bè.', cat: 'extraversion', catLabel: 'Hướng ngoại' },
+            { text: 'Đôi lúc bạn có ý nghĩ mà ban đầu không muốn cho người khác biết.', cat: 'lie', catLabel: 'Độ tin cậy' },
+            { text: 'Đôi khi bạn cảm thấy mình đầy nghị lực, nhiệt tình làm mọi việc nhưng có lúc lại hoàn toàn uể oải.', cat: 'neuroticism', catLabel: 'Tính thần kinh' },
+            { text: 'Bạn thích thà ít bạn nhưng thân còn hơn.', cat: 'extraversion', catLabel: 'Hướng ngoại' },
+            { text: 'Bạn hay mơ mộng.', cat: 'neuroticism', catLabel: 'Tính thần kinh' },
+            { text: 'Bạn phản ứng lại ngay khi người ta nói nặng lời với bạn.', cat: 'extraversion', catLabel: 'Hướng ngoại' },
+            { text: 'Bạn thường day dứt khi mình có lỗi.', cat: 'neuroticism', catLabel: 'Tính thần kinh' },
+            { text: 'Tất cả những thói quen của bạn đều là tốt và cần thiết.', cat: 'lie', catLabel: 'Độ tin cậy' },
+            { text: 'Bạn có khả năng truyền cảm hứng và gây cười trong nhóm bạn bè.', cat: 'extraversion', catLabel: 'Hướng ngoại' },
+            { text: 'Bạn là một người nhạy cảm.', cat: 'neuroticism', catLabel: 'Tính thần kinh' },
+            { text: 'Bạn là một người hoạt bát, vui vẻ.', cat: 'extraversion', catLabel: 'Hướng ngoại' },
+            { text: 'Sau khi làm một việc quan trọng, bạn thường có cảm giác rằng lẽ ra có thể làm việc đó tốt hơn.', cat: 'neuroticism', catLabel: 'Tính thần kinh' },
+            { text: 'Bạn thường im lặng ở chốn có người lạ.', cat: 'extraversion', catLabel: 'Hướng ngoại' },
+            { text: 'Bạn cũng có lúc đồn chuyện, phao tin.', cat: 'lie', catLabel: 'Độ tin cậy' },
+            { text: 'Bạn thường mất ngủ vì những ý nghĩ khác nhau trong đầu.', cat: 'neuroticism', catLabel: 'Tính thần kinh' },
+            { text: 'Nếu muốn biết điều gì đó bạn thường thích tự tìm hiểu hơn là hỏi người khác.', cat: 'extraversion', catLabel: 'Hướng ngoại' },
+            { text: 'Bạn thường hay hồi hộp.', cat: 'neuroticism', catLabel: 'Tính thần kinh' },
+            { text: 'Bạn thích công việc đòi hỏi phải tập trung chú ý liên tục.', cat: 'extraversion', catLabel: 'Hướng ngoại' },
+            { text: 'Cũng có lúc bạn run lên vì vui sướng hay sợ hãi.', cat: 'neuroticism', catLabel: 'Tính thần kinh' },
+            { text: 'Bạn luôn trả cước phí giao thông đầy đủ mặc dù không bị kiểm soát.', cat: 'lie', catLabel: 'Độ tin cậy' },
+            { text: 'Bạn cảm thấy khó chịu khi ở nơi mà người ta hay châm chọc nhau.', cat: 'extraversion', catLabel: 'Hướng ngoại' },
+            { text: 'Bạn dễ nổi giận.', cat: 'neuroticism', catLabel: 'Tính thần kinh' },
+            { text: 'Bạn thích công việc đòi hỏi hành động nhanh chóng.', cat: 'extraversion', catLabel: 'Hướng ngoại' },
+            { text: 'Bạn thấy hồi hộp khi cảm thấy những việc bất lợi có thể xảy ra.', cat: 'neuroticism', catLabel: 'Tính thần kinh' },
+            { text: 'Bạn đi đứng ung dung, chậm rãi.', cat: 'extraversion', catLabel: 'Hướng ngoại' },
+            { text: 'Đã có lúc bạn đến nơi hẹn hoặc đi làm muộn.', cat: 'lie', catLabel: 'Độ tin cậy' },
+            { text: 'Bạn thường có ác mộng.', cat: 'neuroticism', catLabel: 'Tính thần kinh' },
+            { text: 'Bạn thích trò chuyện đến nỗi không bao giờ bỏ qua cơ hội bắt chuyện với cả những người không quen biết.', cat: 'extraversion', catLabel: 'Hướng ngoại' },
+            { text: 'Bạn hay lo lắng vì có chỗ đau nào đó trên cơ thể.', cat: 'neuroticism', catLabel: 'Tính thần kinh' },
+            { text: 'Bạn cảm thấy khổ sở khi lâu không được giao thiệp rộng rãi với mọi người.', cat: 'extraversion', catLabel: 'Hướng ngoại' },
+            { text: 'Bạn là người dễ cáu kỉnh.', cat: 'neuroticism', catLabel: 'Tính thần kinh' },
+            { text: 'Trong số những người quen có những người bạn không thích.', cat: 'lie', catLabel: 'Độ tin cậy' },
+            { text: 'Bạn là người rất tự tin.', cat: 'extraversion', catLabel: 'Hướng ngoại' },
+            { text: 'Bạn dễ phật ý khi có người chỉ ra các khuyết điểm của bạn.', cat: 'neuroticism', catLabel: 'Tính thần kinh' },
+            { text: 'Bạn nghĩ rằng khó có thể thực sự thoải mái ở các cuộc liên hoan.', cat: 'extraversion', catLabel: 'Hướng ngoại' },
+            { text: 'Bạn cảm thấy không yên tâm khi thua kém bạn bè ở điểm nào đó.', cat: 'neuroticism', catLabel: 'Tính thần kinh' },
+            { text: 'Bạn dễ dàng mang lại sự vui vẻ cho một cuộc họp mặt khá tẻ nhạt.', cat: 'extraversion', catLabel: 'Hướng ngoại' },
+            { text: 'Bạn thường hay nói về những vấn đề mà mình chưa nắm chắc.', cat: 'lie', catLabel: 'Độ tin cậy' },
+            { text: 'Bạn lo lắng về sức khỏe của mình.', cat: 'neuroticism', catLabel: 'Tính thần kinh' },
+            { text: 'Bạn thích trêu đùa người khác.', cat: 'extraversion', catLabel: 'Hướng ngoại' },
+            { text: 'Bạn bị mất ngủ.', cat: 'neuroticism', catLabel: 'Tính thần kinh' }
         ],
         likertOptions: [
             { emoji: '✅', label: 'Có', score: 1 },
             { emoji: '❌', label: 'Không', score: 0 }
         ],
-        // Chỉ tiểu thang "neuroticism" (tính thần kinh — 24 câu, cột N/KOD trong bảng khóa
-        // nguồn) là chấm điểm 1-chiều (tất cả 24 câu đều tính 1 điểm khi trả lời "Có"),
-        // nên vừa khớp khuôn dạng indices/multiplier chuẩn. "extraversion" (E, 24 câu) và
-        // "lie" (S, 9 câu) có chấm điểm đảo chiều theo từng câu — KHÔNG đưa vào đây, xem
-        // group6_meta.md để biết bảng khóa đầy đủ và cách lập trình bổ sung.
         scoring: {
             neuroticism: {
                 indices: [1, 3, 6, 8, 10, 13, 15, 18, 20, 22, 25, 27, 30, 32, 34, 37, 39, 42, 44, 46, 49, 51, 54, 56],
@@ -101,6 +94,31 @@ export const TESTS = {
                     { max: 7, 'label': 'Ổn định (thấp)', 'class': 'level-0' },
                     { max: 16, 'label': 'Trung bình', 'class': 'level-1' },
                     { max: 999, 'label': 'Không ổn định (cao)', 'class': 'level-2' }
+                ]
+            },
+            // Khóa "E" (Hướng nội-hướng ngoại): câu tính điểm khi "Có" — 1,3,8,10,13,17,22,
+            // 25,27,39,44,46,49,53,56 (gốc) → câu tính điểm khi "Không" — 5,15,20,29,32,34,
+            // 37,41,51 (gốc). Ngưỡng "trung bình" 7-15đ lấy nguyên văn mục Đánh giá gốc.
+            extraversion: {
+                custom: 'epi_keyed',
+                trueIndices: [0, 2, 7, 9, 12, 16, 21, 24, 26, 38, 43, 45, 48, 52, 55],
+                falseIndices: [4, 14, 19, 28, 31, 33, 36, 40, 50],
+                levels: [
+                    { max: 6, 'label': 'Hướng nội', 'class': 'level-1' },
+                    { max: 15, 'label': 'Trung bình', 'class': 'level-0' },
+                    { max: 999, 'label': 'Hướng ngoại', 'class': 'level-1' }
+                ]
+            },
+            // Khóa "S" (Độ tin cậy): câu tính điểm khi "Có" — 6,24,36 (gốc) → câu tính điểm
+            // khi "Không" — 12,18,30,42,48,54 (gốc). Quy ước gốc: "Số câu trả lời trùng với
+            // S từ 4 trở xuống là kết quả đáng tin cậy".
+            lie: {
+                custom: 'epi_keyed',
+                trueIndices: [5, 23, 35],
+                falseIndices: [11, 17, 29, 41, 47, 53],
+                levels: [
+                    { max: 4, 'label': 'Đáng tin cậy', 'class': 'level-0' },
+                    { max: 999, 'label': 'Không đáng tin cậy — có thể đã trả lời thiếu trung thực, nên làm lại', 'class': 'level-2' }
                 ]
             }
         },
@@ -166,11 +184,28 @@ export const TESTS = {
             { emoji: '😟', label: 'Thường xuyên', score: 2 },
             { emoji: '😣', label: 'Rất thường xuyên', score: 3 }
         ],
-        // BỎ TRỐNG có chủ đích: cả 5 lĩnh vực đều chấm điểm bằng cách ĐẾM số câu đạt điểm
-        // 2 ("Thường xuyên") hoặc 3 ("Rất thường xuyên") rồi so với một NGƯỠNG SỐ LƯỢNG
-        // (6/9, 6/9, 4/8, 3/14, 3/7) — không phải cộng tổng điểm rồi so dải như
-        // `scoring.levels` chuẩn của engine. Xem thuật toán đầy đủ trong group6_meta.md.
-        scoring: {},
+        scoring: {
+            inattention: {
+                custom: 'count_threshold', indices: [0, 1, 2, 3, 4, 5, 6, 7, 8], countThreshold: 6,
+                levels: [{ max: 5, 'label': 'Không có dấu hiệu rối loạn', 'class': 'level-0' }, { max: 999, 'label': "Có dấu hiệu rối loạn (≥6/9 câu ở mức 'Thường xuyên' trở lên)", 'class': 'level-3' }]
+            },
+            hyperactivity: {
+                custom: 'count_threshold', indices: [9, 10, 11, 12, 13, 14, 15, 16, 17], countThreshold: 6,
+                levels: [{ max: 5, 'label': 'Không có dấu hiệu rối loạn', 'class': 'level-0' }, { max: 999, 'label': "Có dấu hiệu rối loạn (≥6/9 câu ở mức 'Thường xuyên' trở lên)", 'class': 'level-3' }]
+            },
+            oppositional: {
+                custom: 'count_threshold', indices: [18, 19, 20, 21, 22, 23, 24, 25], countThreshold: 4,
+                levels: [{ max: 3, 'label': 'Không có dấu hiệu rối loạn', 'class': 'level-0' }, { max: 999, 'label': "Có dấu hiệu rối loạn (≥4/8 câu ở mức 'Thường xuyên' trở lên)", 'class': 'level-3' }]
+            },
+            conduct: {
+                custom: 'count_threshold', indices: [26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39], countThreshold: 3,
+                levels: [{ max: 2, 'label': 'Không có dấu hiệu rối loạn', 'class': 'level-0' }, { max: 999, 'label': "Có dấu hiệu rối loạn (≥3/14 câu ở mức 'Thường xuyên' trở lên)", 'class': 'level-3' }]
+            },
+            anxiety_depression: {
+                custom: 'count_threshold', indices: [40, 41, 42, 43, 44, 45, 46], countThreshold: 3,
+                levels: [{ max: 2, 'label': 'Không có dấu hiệu rối loạn', 'class': 'level-0' }, { max: 999, 'label': "Có dấu hiệu rối loạn (≥3/7 câu ở mức 'Thường xuyên' trở lên)", 'class': 'level-3' }]
+            }
+        },
         prevScores: null
     }
 };

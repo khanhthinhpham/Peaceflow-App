@@ -37,7 +37,7 @@ Tài liệu tổng hợp toàn bộ 28 bài test tâm lý đang dùng trong hệ
 
 ## DASS-21 — Depression Anxiety Stress Scales
 
-*Mã hệ thống: `dass21` · Số câu: 21 · Điểm tối đa: 42 · Mốc thời gian hỏi: 2 tuần qua*
+*Mã hệ thống: `dass21` · Số câu: 21 · Điểm tối đa: 21 (mỗi thang) · Mốc thời gian hỏi: 2 tuần qua*
 
 ### Câu hỏi & đáp án
 
@@ -70,40 +70,40 @@ Tài liệu tổng hợp toàn bộ 28 bài test tâm lý đang dùng trong hệ
 ### Cách tính điểm
 
 **Trầm cảm (`depression`):**
-- Công thức: Tổng điểm câu {3, 5, 10, 13, 16, 17, 21} × 2
+- Công thức: Tổng điểm câu {3, 5, 10, 13, 16, 17, 21}
 - Xếp loại:
 
   | Khoảng điểm | Xếp loại |
   |---|---|
-  | 0–9 | Bình thường |
-  | 10–13 | Nhẹ |
-  | 14–20 | Vừa |
-  | 21–27 | Nặng |
-  | > 27 | Rất nặng |
+  | 0–4 | Bình thường |
+  | 5–6 | Nhẹ |
+  | 7–10 | Vừa |
+  | 11–13 | Nặng |
+  | ≥ 14 | Rất nặng |
 
 **Lo âu (`anxiety`):**
-- Công thức: Tổng điểm câu {2, 4, 7, 9, 15, 19, 20} × 2
+- Công thức: Tổng điểm câu {2, 4, 7, 9, 15, 19, 20}
+- Xếp loại:
+
+  | Khoảng điểm | Xếp loại |
+  |---|---|
+  | 0–3 | Bình thường |
+  | 4–5 | Nhẹ |
+  | 6–7 | Vừa |
+  | 8–9 | Nặng |
+  | ≥ 10 | Rất nặng |
+
+**Căng thẳng (`stress`):**
+- Công thức: Tổng điểm câu {1, 6, 8, 11, 12, 14, 18}
 - Xếp loại:
 
   | Khoảng điểm | Xếp loại |
   |---|---|
   | 0–7 | Bình thường |
   | 8–9 | Nhẹ |
-  | 10–14 | Vừa |
-  | 15–19 | Nặng |
-  | > 19 | Rất nặng |
-
-**Căng thẳng (`stress`):**
-- Công thức: Tổng điểm câu {1, 6, 8, 11, 12, 14, 18} × 2
-- Xếp loại:
-
-  | Khoảng điểm | Xếp loại |
-  |---|---|
-  | 0–14 | Bình thường |
-  | 15–18 | Nhẹ |
-  | 19–25 | Vừa |
-  | 26–33 | Nặng |
-  | > 33 | Rất nặng |
+  | 10–12 | Vừa |
+  | 13–16 | Nặng |
+  | ≥ 17 | Rất nặng |
 
 
 ---
@@ -192,10 +192,7 @@ Tài liệu tổng hợp toàn bộ 28 bài test tâm lý đang dùng trong hệ
 
   | Khoảng điểm | Xếp loại |
   |---|---|
-  | 0–17 | Bình thường / Nhẹ |
-  | 18–24 | Vừa |
-  | 25–30 | Nặng |
-  | > 30 | Rất nặng |
+  | > -1 | Điểm tổng HARS (tài liệu Bộ Y tế không quy định ngưỡng phân loại mức độ) |
 
 
 ---
@@ -918,9 +915,7 @@ Không dùng công thức "cộng dồn 1 danh sách câu" như các bài khác 
   | Khoảng điểm | Xếp loại |
   |---|---|
   | 0–13 | Suy giảm nặng |
-  | 14–19 | Suy giảm vừa |
-  | 20–23 | Suy giảm nhẹ |
-  | > 23 | Không suy giảm nhận thức |
+  | ≥ 14 | Trên 13 điểm (tài liệu Bộ Y tế không quy định thêm ngưỡng chi tiết) |
 
 
 ---
@@ -2727,6 +2722,25 @@ Không dùng công thức "cộng dồn 1 danh sách câu" như các bài khác 
   | 8–16 | Trung bình |
   | > 16 | Không ổn định (cao) |
 
+**Hướng ngoại (`extraversion`)** *(chấm điểm đảo chiều theo từng câu — không phải cộng dồn 1 chiều):*
+- Công thức: +1 điểm nếu trả lời "Có" ở câu {1, 3, 8, 10, 13, 17, 22, 25, 27, 39, 44, 46, 49, 53, 56}; +1 điểm nếu trả lời "Không" ở câu {5, 15, 20, 29, 32, 34, 37, 41, 51}
+- Xếp loại:
+
+  | Khoảng điểm | Xếp loại |
+  |---|---|
+  | 0–6 | Hướng nội |
+  | 7–15 | Trung bình |
+  | > 15 | Hướng ngoại |
+
+**Độ tin cậy (`lie`)** *(không phải nét nhân cách — dùng để kiểm tra độ trung thực của câu trả lời):*
+- Công thức: +1 điểm nếu trả lời "Có" ở câu {6, 24, 36}; +1 điểm nếu trả lời "Không" ở câu {12, 18, 30, 42, 48, 54}
+- Xếp loại:
+
+  | Khoảng điểm | Xếp loại |
+  |---|---|
+  | 0–4 | Đáng tin cậy |
+  | > 4 | Không đáng tin cậy — có thể đã trả lời thiếu trung thực, nên làm lại |
+
 
 ---
 
@@ -2789,6 +2803,18 @@ Không dùng công thức "cộng dồn 1 danh sách câu" như các bài khác 
 | 47 | E dè và dễ ngượng ngùng | Lo âu/Trầm cảm |
 
 ### Cách tính điểm
+
+Không cộng tổng điểm rồi so dải như các bài khác — mỗi lĩnh vực sàng lọc bằng cách **đếm số câu đạt điểm 2 ("Thường xuyên") hoặc 3 ("Rất thường xuyên")** rồi so với 1 ngưỡng số lượng:
+
+| Lĩnh vực | Câu hỏi | Ngưỡng (số câu đạt ≥2 / tổng số câu) |
+|---|---|---|
+| Giảm chú ý (`inattention`) | 1–9 | ≥ 6/9 → Có dấu hiệu rối loạn |
+| Tăng hoạt động/Xung động (`hyperactivity`) | 10–18 | ≥ 6/9 → Có dấu hiệu rối loạn |
+| Thách thức chống đối (`oppositional`) | 19–26 | ≥ 4/8 → Có dấu hiệu rối loạn |
+| Hành vi ứng xử (`conduct`) | 27–40 | ≥ 3/14 → Có dấu hiệu rối loạn |
+| Lo âu/Trầm cảm (`anxiety_depression`) | 41–47 | ≥ 3/7 → Có dấu hiệu rối loạn |
+
+Dưới ngưỡng ở mỗi lĩnh vực → "Không có dấu hiệu rối loạn".
 
 
 ---
