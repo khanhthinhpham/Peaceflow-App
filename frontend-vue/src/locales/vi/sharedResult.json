@@ -1,0 +1,11 @@
+{
+  "sharedResult": {
+    "loading": "Đang tải kết quả...",
+    "notFound": "Không tìm thấy kết quả này — có thể link đã hết hạn hoặc không đúng.",
+    "tryTestsBtn": "Xem các bài test",
+    "title": "Kết quả bài test \"{testName}\"",
+    "disclaimer": "Kết quả này chỉ mang tính tham khảo, không phải chẩn đoán y khoa.",
+    "tryThisTestBtn": "Làm bài \"{testName}\"",
+    "homeBtn": "Về trang chủ PeaceFlow"
+  }
+}

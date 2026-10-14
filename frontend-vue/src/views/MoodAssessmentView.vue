@@ -362,12 +362,19 @@
             </div>
           </div>
 
-          <!-- CỐ Ý chỉ rủ bạn bè làm THỬ bài test (không kèm điểm số/kết quả cá nhân nào) —
-               kết quả test tâm lý (lo âu/trầm cảm...) là dữ liệu nhạy cảm, không nên lộ ra
-               ngoài app qua link share công khai. -->
+          <!-- Có kết quả đã lưu (savedResultId) -> chia sẻ ĐÚNG kết quả này (link riêng,
+               kèm điểm/mức xếp loại trong caption). Người dùng tự bấm chia sẻ nên đây là lựa
+               chọn của chính họ — không tự động công khai kết quả cho ai khác. Chưa lưu được
+               (vd lỗi mạng) thì rơi về mời bạn bè làm thử chung chung như cũ, không kèm điểm. -->
           <div class="result-share-row">
             <ShareButtons
-              v-if="currentTestId"
+              v-if="savedResultId"
+              :url="resultShareUrl(savedResultId)"
+              :text="t('share.resultShareText', { testName: result.testName, level: result.overallSeverityLabel, score: result.overallScore })"
+              :label="t('share.resultShareLabel')"
+            />
+            <ShareButtons
+              v-else-if="currentTestId"
               :url="frontendTestUrl(currentTestId)"
               :text="t('share.testInviteText', { testName: result.testName })"
               :label="t('share.testInviteLabel')"
@@ -566,6 +573,11 @@ const shareCardKey = ref(null);
 function frontendTestUrl(testKey) {
   return `${SHARE_BASE_URL}/assessments/${encodeURIComponent(testKey)}/share`;
 }
+// Link chia sẻ ĐÚNG kết quả vừa làm (chỉ có khi đã lưu thành công — xem savedResultId) —
+// khác frontendTestUrl() ở trên (chỉ giới thiệu chung bài test, không kèm điểm số).
+function resultShareUrl(resultId) {
+  return `${SHARE_BASE_URL}/assessments/results/${encodeURIComponent(resultId)}/share-card`;
+}
 function closeSharePopoverOnOutsideClick(event) {
   if (!shareCardKey.value) return;
   if (event.target.closest('.tsc-share-popover, .tsc-share-btn')) return;
@@ -579,6 +591,9 @@ const textAnswerDraft = ref('');
 const result = ref(null);
 const resultSaveNote = ref('');
 const recommendedExperts = ref([]);
+// ID bản ghi kết quả vừa lưu — chỉ có khi lưu thành công (xem onAssessmentFinished), dùng
+// để dựng link chia sẻ ĐÚNG KẾT QUẢ này (khác hẳn link mời làm thử chung chung).
+const savedResultId = ref(null);
 const aiSummaryText = ref('');
 const aiSummaryLoading = ref(false);
 const aiInterpretation = ref('');
@@ -1107,6 +1122,7 @@ function finishTest() {
   aiSummaryLoading.value = false;
   aiInterpretation.value = '';
   recommendedExperts.value = [];
+  savedResultId.value = null;
 
   // Evaluate logic
   const subScores = {};
@@ -1214,7 +1230,9 @@ function finishTest() {
     interpretation,
     comparison,
     isWarning,
-    overallLevelClass: overallSeverity?.className || 'level-0'
+    overallLevelClass: overallSeverity?.className || 'level-0',
+    overallSeverityLabel: overallSeverity?.label || '',
+    overallScore: overallSeverity?.score ?? null
   };
   brokenResultImage.value = false;
   view.value = 'result';
@@ -1301,6 +1319,7 @@ async function onAssessmentFinished(payload) {
     });
 
     resultSaveNote.value = t('moodAssessment.dates.savedNote');
+    savedResultId.value = saved?.id || null;
 
     await Promise.all([
       loadAssessmentData(),

@@ -5,6 +5,7 @@ import AppLayout from '../layouts/AppLayout.vue';
 import DashboardView from '../views/DashboardView.vue';
 import MoodCheckinView from '../views/MoodCheckinView.vue';
 import MoodAssessmentView from '../views/MoodAssessmentView.vue';
+import SharedResultView from '../views/SharedResultView.vue';
 import RavenTestView from '../views/RavenTestView.vue';
 import TasksView from '../views/TasksView.vue';
 import TaskDetailView from '../views/TaskDetailView.vue';
@@ -66,6 +67,8 @@ const router = createRouter({
     { path: '/expert-apply', name: 'expert-apply', component: ApplyExpertView },
     // Trang gốc không có sidebar dùng chung — giữ đứng ngoài AppLayout như bản cũ.
     { path: '/raven-test', name: 'raven-test', component: RavenTestView },
+    // Trang xem kết quả bài test đã được chia sẻ công khai (qua link, không cần đăng nhập).
+    { path: '/shared-result/:id', name: 'shared-result', component: SharedResultView },
     {
       path: '/',
       component: AppLayout,

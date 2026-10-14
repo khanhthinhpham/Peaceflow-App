@@ -65,10 +65,12 @@ import viInspire from './vi/inspire.json';
 import enInspire from './en/inspire.json';
 import viAppIntro from './vi/appIntro.json';
 import enAppIntro from './en/appIntro.json';
+import viSharedResult from './vi/sharedResult.json';
+import enSharedResult from './en/sharedResult.json';
 
 const messages = {
-  vi: { ...viCommon, ...viAuth, ...viLanding, ...viDashboard, ...viMoodCheckin, ...viTasksPage, ...viJournal, ...viProfile, ...viSettingsPage, ...viOnboarding, ...viEmergency, ...viMoodChat, ...viMoodAssessment, ...viCommunity, ...viExperts, ...viReport, ...viTaskDetail, ...viAchievements, ...viApplyExpert, ...viRavenTest, ...viTaskBreathing, ...viVerifyEmail, ...viResetPassword, ...viTaskMeditation, ...viForgotPassword, ...viDonate, ...viPushPrompt, ...viGuestEmergencyTasks, ...viInspire, ...viAppIntro },
-  en: { ...enCommon, ...enAuth, ...enLanding, ...enDashboard, ...enMoodCheckin, ...enTasksPage, ...enJournal, ...enProfile, ...enSettingsPage, ...enOnboarding, ...enEmergency, ...enMoodChat, ...enMoodAssessment, ...enCommunity, ...enExperts, ...enReport, ...enTaskDetail, ...enAchievements, ...enApplyExpert, ...enRavenTest, ...enTaskBreathing, ...enVerifyEmail, ...enResetPassword, ...enTaskMeditation, ...enForgotPassword, ...enDonate, ...enPushPrompt, ...enGuestEmergencyTasks, ...enInspire, ...enAppIntro }
+  vi: { ...viCommon, ...viAuth, ...viLanding, ...viDashboard, ...viMoodCheckin, ...viTasksPage, ...viJournal, ...viProfile, ...viSettingsPage, ...viOnboarding, ...viEmergency, ...viMoodChat, ...viMoodAssessment, ...viCommunity, ...viExperts, ...viReport, ...viTaskDetail, ...viAchievements, ...viApplyExpert, ...viRavenTest, ...viTaskBreathing, ...viVerifyEmail, ...viResetPassword, ...viTaskMeditation, ...viForgotPassword, ...viDonate, ...viPushPrompt, ...viGuestEmergencyTasks, ...viInspire, ...viAppIntro, ...viSharedResult },
+  en: { ...enCommon, ...enAuth, ...enLanding, ...enDashboard, ...enMoodCheckin, ...enTasksPage, ...enJournal, ...enProfile, ...enSettingsPage, ...enOnboarding, ...enEmergency, ...enMoodChat, ...enMoodAssessment, ...enCommunity, ...enExperts, ...enReport, ...enTaskDetail, ...enAchievements, ...enApplyExpert, ...enRavenTest, ...enTaskBreathing, ...enVerifyEmail, ...enResetPassword, ...enTaskMeditation, ...enForgotPassword, ...enDonate, ...enPushPrompt, ...enGuestEmergencyTasks, ...enInspire, ...enAppIntro, ...enSharedResult }
 };
 
 // ===== Chọn ngôn ngữ mặc định =====

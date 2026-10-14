@@ -10,7 +10,9 @@
     "moreBtn": "Chia sẻ qua...",
     "testInviteBtn": "Chia sẻ bài test này",
     "testInviteLabel": "Rủ bạn bè làm thử:",
-    "testInviteText": "Mình vừa làm bài test \"{testName}\" trên PeaceFlow, bạn thử xem sao nhé!"
+    "testInviteText": "Mình vừa làm bài test \"{testName}\" trên PeaceFlow, bạn thử xem sao nhé!",
+    "resultShareLabel": "Chia sẻ kết quả:",
+    "resultShareText": "Mình vừa làm bài test \"{testName}\" trên PeaceFlow và đạt mức \"{level}\" ({score} điểm). Thử làm xem bạn thế nào nhé!"
   },
   "nav": {
     "groupMain": "Chính",

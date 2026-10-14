@@ -1,0 +1,11 @@
+{
+  "sharedResult": {
+    "loading": "Loading result...",
+    "notFound": "This result could not be found — the link may be expired or incorrect.",
+    "tryTestsBtn": "Browse tests",
+    "title": "\"{testName}\" test result",
+    "disclaimer": "This result is for reference only and is not a medical diagnosis.",
+    "tryThisTestBtn": "Take the \"{testName}\" test",
+    "homeBtn": "Back to PeaceFlow home"
+  }
+}

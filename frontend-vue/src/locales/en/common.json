@@ -10,7 +10,9 @@
     "moreBtn": "Share via...",
     "testInviteBtn": "Share this test",
     "testInviteLabel": "Invite friends to try it:",
-    "testInviteText": "I just took the \"{testName}\" test on PeaceFlow — give it a try too!"
+    "testInviteText": "I just took the \"{testName}\" test on PeaceFlow — give it a try too!",
+    "resultShareLabel": "Share my result:",
+    "resultShareText": "I just took the \"{testName}\" test on PeaceFlow and got \"{level}\" ({score} points). Try it yourself!"
   },
   "nav": {
     "groupMain": "Main",

@@ -42,6 +42,77 @@ router.get('/assessments/:code/share', async (req, res) => {
   }
 });
 
+// Trang chia sẻ KẾT QUẢ cụ thể (khác route /:code/share ở trên — đó chỉ giới thiệu
+// chung bài test). PUBLIC, không cần đăng nhập — vì bot quét link cũng không đăng nhập
+// được, và người nhận link (bạn bè) cũng không có tài khoản của người chia sẻ. `:id` là
+// UUID ngẫu nhiên của assessment_results nên không ai đoán ra link của người khác được;
+// người dùng phải tự bấm "Chia sẻ" trên kết quả của MÌNH thì link này mới được lộ ra.
+// Chỉ trả: tên bài test, điểm, mức xếp loại — KHÔNG trả raw_answers, respondent_name/age,
+// note, hay bất kỳ thông tin định danh user_id nào.
+router.get('/assessments/results/:id/share-card', async (req, res) => {
+  const targetUrl = `${env.frontendUrl}/shared-result/${encodeURIComponent(req.params.id)}`;
+  try {
+    const r = await db.query(
+      `select a.name, ar.total_score, ar.severity
+       from assessment_results ar
+       join assessments a on a.id = ar.assessment_id
+       where ar.id = $1
+       limit 1`,
+      [req.params.id]
+    );
+    const result = r.rows[0];
+    if (!result) return res.redirect(302, `${env.frontendUrl}/mood-assessment`);
+
+    if (!isCrawlerRequest(req)) return res.redirect(302, targetUrl);
+
+    const description = result.severity
+      ? `Kết quả: ${result.total_score} điểm — mức "${result.severity}". Thử làm bài test này xem bạn thế nào nhé!`
+      : `Kết quả: ${result.total_score} điểm. Thử làm bài test này xem bạn thế nào nhé!`;
+
+    res.set('Content-Type', 'text/html; charset=utf-8');
+    return res.send(renderShareHtml({
+      title: `Kết quả ${result.name} của tôi`,
+      description,
+      image: `${env.frontendUrl}/favicon.jpg`,
+      targetUrl
+    }));
+  } catch (error) {
+    console.error('Assessment result share-card error:', error.message);
+    return res.redirect(302, `${env.frontendUrl}/mood-assessment`);
+  }
+});
+
+// Dữ liệu công khai cho trang xem kết quả đã chia sẻ (SharedResultView.vue) — chỉ những
+// trường được phép lộ công khai, xem ghi chú ở route share-card phía trên.
+router.get('/assessments/results/:id/public', async (req, res) => {
+  try {
+    const r = await db.query(
+      `select a.name, a.code, ar.total_score, ar.severity, ar.dimension_scores, ar.created_at
+       from assessment_results ar
+       join assessments a on a.id = ar.assessment_id
+       where ar.id = $1
+       limit 1`,
+      [req.params.id]
+    );
+    const result = r.rows[0];
+    if (!result) return res.status(404).json({ success: false, message: 'Không tìm thấy kết quả này.' });
+    return res.json({
+      success: true,
+      data: {
+        testName: result.name,
+        testCode: result.code,
+        totalScore: Number(result.total_score),
+        severity: result.severity,
+        dimensionScores: result.dimension_scores,
+        createdAt: result.created_at
+      }
+    });
+  } catch (error) {
+    console.error('Assessment result public fetch error:', error.message);
+    return res.status(500).json({ success: false, message: 'Could not fetch result' });
+  }
+});
+
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 8 * 1024 * 1024 },
