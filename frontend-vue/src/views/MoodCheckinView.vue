@@ -33,11 +33,11 @@
       </div>
     </div>
 
-    <div class="paper-card" style="margin-bottom:20px;">
-      <div class="toggle-row" style="margin:0;">
+    <div class="paper-card" style="margin-bottom:16px;padding:10px 16px;">
+      <div class="toggle-row" style="margin:0;gap:10px;">
         <div class="tr-left">
-          <div class="tr-title">{{ t('moodCheckin.shareWithExperts.title') }}</div>
-          <div class="tr-desc">{{ t('moodCheckin.shareWithExperts.desc') }}</div>
+          <div class="tr-title" style="font-size:0.82rem;">{{ t('moodCheckin.shareWithExperts.title') }}</div>
+          <div class="tr-desc" style="font-size:0.7rem;">{{ t('moodCheckin.shareWithExperts.desc') }}</div>
         </div>
         <label class="toggle-switch">
           <input type="checkbox" v-model="shareMoodWithExperts" :disabled="shareMoodSaving" @change="toggleShareMoodWithExperts">
