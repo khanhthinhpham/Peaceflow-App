@@ -33,6 +33,19 @@
       </div>
     </div>
 
+    <div class="paper-card" style="margin-bottom:20px;">
+      <div class="toggle-row" style="margin:0;">
+        <div class="tr-left">
+          <div class="tr-title">{{ t('moodCheckin.shareWithExperts.title') }}</div>
+          <div class="tr-desc">{{ t('moodCheckin.shareWithExperts.desc') }}</div>
+        </div>
+        <label class="toggle-switch">
+          <input type="checkbox" v-model="shareMoodWithExperts" :disabled="shareMoodSaving" @change="toggleShareMoodWithExperts">
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+    </div>
+
     <div class="panel active">
       <div class="paper-card checkin-card">
         <div class="step-indicator">
@@ -435,6 +448,23 @@ function resetCheckin() {
   step.value = 1;
 }
 
+// Công tắc "Chia sẻ check-in hàng ngày với chuyên gia" — đồng bộ với đúng cột
+// user_profiles.share_mood_with_experts mà SettingsView.vue dùng (2 nơi cùng đọc/ghi 1
+// trạng thái, không phải 2 cài đặt khác nhau).
+const shareMoodWithExperts = ref(false);
+const shareMoodSaving = ref(false);
+async function toggleShareMoodWithExperts() {
+  shareMoodSaving.value = true;
+  try {
+    await apiClient.put('/profile', { share_mood_with_experts: shareMoodWithExperts.value });
+  } catch (_e) {
+    // Lỗi lưu thì rollback lại UI để không hiện sai trạng thái thật trên server.
+    shareMoodWithExperts.value = !shareMoodWithExperts.value;
+  } finally {
+    shareMoodSaving.value = false;
+  }
+}
+
 onMounted(async () => {
   if (!auth.isAuthenticated) {
     alert(t('moodCheckin.alerts.pleaseLogin'));
@@ -443,6 +473,12 @@ onMounted(async () => {
   }
   await loadRemoteProgress();
   await syncTodayCheckinBadge();
+  try {
+    const profileData = await apiClient.get('/profile');
+    shareMoodWithExperts.value = profileData?.share_mood_with_experts ?? false;
+  } catch (_e) {
+    // Không tải được thì giữ mặc định false, không chặn luồng check-in chính.
+  }
 });
 </script>
 

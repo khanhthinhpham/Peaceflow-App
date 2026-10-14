@@ -1497,6 +1497,55 @@ router.get('/expert-portal/clients/:userId/assessments', requireAuth, async (req
   }
 });
 
+// Lịch sử check-in tâm trạng hàng ngày của 1 client — CHỈ xem được khi (1) chuyên gia này
+// đang/đã có lịch hẹn confirmed/completed với client đó, VÀ (2) client đã tự bật "Chia sẻ
+// check-in hàng ngày với chuyên gia" trong Cài đặt (user_profiles.share_mood_with_experts).
+// Mặc định TẮT — có lịch hẹn không tự động cho xem tâm trạng hàng ngày của client.
+router.get('/expert-portal/clients/:userId/mood-history', requireAuth, async (req, res) => {
+  try {
+    if (req.user.role !== 'expert') {
+      return res.status(403).json({ success: false, message: 'Expert access required' });
+    }
+    const eRes = await db.query(`select id from experts where user_id = $1 limit 1`, [req.user.sub]);
+    const expert = eRes.rows[0];
+    if (!expert) {
+      return res.status(404).json({ success: false, message: 'Expert profile not found' });
+    }
+
+    const relation = await db.query(
+      `select 1 from expert_bookings
+       where expert_id = $1 and user_id = $2 and status in ('confirmed', 'completed')
+       limit 1`,
+      [expert.id, req.params.userId]
+    );
+    if (!relation.rows[0]) {
+      return res.status(403).json({ success: false, message: 'Client không thuộc danh sách của bạn' });
+    }
+
+    const sharing = await db.query(
+      `select coalesce(share_mood_with_experts, false) as shared from user_profiles where user_id = $1`,
+      [req.params.userId]
+    );
+    if (!sharing.rows[0]?.shared) {
+      return res.json({ success: true, data: { shared: false, checkins: [] } });
+    }
+
+    const r = await db.query(
+      `select id, mood_score, anxiety_score, stress_score, energy_score, sleep_quality_score,
+              dominant_emotion, triggers, notes, created_at
+       from mood_checkins
+       where user_id = $1
+       order by created_at desc
+       limit 90`,
+      [req.params.userId]
+    );
+    return res.json({ success: true, data: { shared: true, checkins: r.rows } });
+  } catch (error) {
+    console.error('Expert client mood-history error:', error);
+    return res.status(500).json({ success: false, message: 'Could not fetch client mood history' });
+  }
+});
+
 // Chuyên gia nộp kết quả đánh giá lâm sàng thay cho client (CARS, SDQ25 bản quan sát).
 // Chỉ cho phép với các mã trong EXPERT_ADMINISTERED_ASSESSMENT_CODES và khi có quan hệ booking hợp lệ.
 router.post('/expert-portal/clients/:userId/assessments/:code/submit', requireAuth, async (req, res) => {

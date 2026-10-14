@@ -191,6 +191,28 @@
       </div>
     </section>
 
+    <section v-if="selectedClient" class="expert-panel expert-section ca-history-panel">
+      <div class="expert-section-head">
+        <div>
+          <h2 class="expert-section-title">🩺 Check-in tâm trạng hàng ngày</h2>
+        </div>
+      </div>
+      <div>
+        <p v-if="moodHistoryLoading" class="ca-empty">Đang tải...</p>
+        <p v-else-if="moodHistoryError" class="ca-empty">Không tải được lịch sử check-in.</p>
+        <p v-else-if="!moodShared" class="ca-empty">Client này chưa bật "Chia sẻ check-in hàng ngày với chuyên gia" trong Cài đặt.</p>
+        <p v-else-if="!moodHistory.length" class="ca-empty">Client chưa có lượt check-in nào.</p>
+        <div v-for="item in moodHistory" :key="item.id" class="ca-history-item">
+          <span>
+            <strong>Tâm trạng: {{ item.mood_score }}/10</strong>
+            <span v-if="item.dominant_emotion"> — {{ item.dominant_emotion }}</span>
+            <span v-if="item.notes" style="color:var(--text-secondary);"> · {{ item.notes }}</span>
+          </span>
+          <span>{{ formatDateTime(item.created_at) }}</span>
+        </div>
+      </div>
+    </section>
+
     <!-- Detail modal -->
     <div class="ca-detail-overlay" :class="{ show: showDetail }">
       <div class="ca-detail-box">
@@ -758,6 +780,7 @@ function selectClient(userId) {
   Object.keys(carsAnswers).forEach((k) => delete carsAnswers[k]);
   Object.keys(sdqAnswers).forEach((k) => delete sdqAnswers[k]);
   loadHistory();
+  loadMoodHistory();
 }
 
 async function submitCars() {
@@ -820,6 +843,30 @@ async function submitSdqObs() {
     loadHistory();
   } catch (error) {
     setBanner(error.message || 'Không thể lưu kết quả SDQ-25.', 'error');
+  }
+}
+
+// Lịch sử check-in tâm trạng hàng ngày — client phải tự bật "Chia sẻ check-in với chuyên
+// gia" trong Cài đặt thì mới có dữ liệu (xem GET /expert-portal/clients/:id/mood-history),
+// không phải cứ có lịch hẹn là tự động thấy được.
+const moodHistory = ref([]);
+const moodShared = ref(true);
+const moodHistoryLoading = ref(false);
+const moodHistoryError = ref(false);
+async function loadMoodHistory() {
+  if (!selectedClient.value) return;
+  moodHistoryLoading.value = true;
+  moodHistoryError.value = false;
+  try {
+    const data = await apiClient.get(`/expert-portal/clients/${selectedClient.value.user_id}/mood-history`, { noCache: true });
+    moodShared.value = Boolean(data?.shared);
+    moodHistory.value = data?.checkins || [];
+  } catch (_error) {
+    moodHistory.value = [];
+    moodShared.value = true;
+    moodHistoryError.value = true;
+  } finally {
+    moodHistoryLoading.value = false;
   }
 }
 

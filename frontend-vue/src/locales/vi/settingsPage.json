@@ -138,6 +138,8 @@
     "privacy": {
       "title": "Quyền riêng tư",
       "subtitle": "Kiểm soát cách dữ liệu của bạn được dùng trong sản phẩm",
+      "shareMoodTitle": "🩺 Chia sẻ check-in hàng ngày với chuyên gia",
+      "shareMoodDesc": "Khi bật, các chuyên gia đang/đã đặt lịch với bạn sẽ thấy được lịch sử check-in tâm trạng hàng ngày để theo dõi tiến độ và đưa hướng hỗ trợ phù hợp.",
       "shareDataTitle": "📤 Chia sẻ dữ liệu để cá nhân hóa",
       "shareDataDesc": "Cho phép hệ thống dùng mood, journal và task để đưa gợi ý tốt hơn",
       "analyticsTitle": "📈 Phân tích ẩn danh",

@@ -385,6 +385,13 @@
             </div>
             <div class="toggle-row">
               <div class="tr-left">
+                <div class="tr-title">{{ t('settingsPage.privacy.shareMoodTitle') }}</div>
+                <div class="tr-desc">{{ t('settingsPage.privacy.shareMoodDesc') }}</div>
+              </div>
+              <label class="toggle-switch"><input type="checkbox" v-model="form.shareMoodWithExperts" @change="persistSettings('privacy')"><span class="toggle-slider"></span></label>
+            </div>
+            <div class="toggle-row">
+              <div class="tr-left">
                 <div class="tr-title">{{ t('settingsPage.privacy.shareDataTitle') }}</div>
                 <div class="tr-desc">{{ t('settingsPage.privacy.shareDataDesc') }}</div>
               </div>
@@ -672,7 +679,8 @@ const form = reactive({
   aiMascot: true,
   privacyShareData: false,
   privacyAnonAnalytics: true,
-  privacyProfileVisibility: 'private'
+  privacyProfileVisibility: 'private',
+  shareMoodWithExperts: false
 });
 
 const toastVisible = ref(false);
@@ -770,6 +778,8 @@ function renderPrivacy() {
   form.privacyShareData = support.privacy_share_data ?? false;
   form.privacyAnonAnalytics = support.privacy_anonymous_analytics ?? true;
   form.privacyProfileVisibility = support.profile_visibility || 'private';
+  // Cột riêng trên user_profiles (không nằm trong support_preferences) — đọc thẳng từ gốc.
+  form.shareMoodWithExperts = profile.value?.share_mood_with_experts ?? false;
 }
 
 function renderPage() {
@@ -843,6 +853,7 @@ function buildProfilePayload() {
   const existingOnboarding = getOnboardingAnswers();
 
   return {
+    share_mood_with_experts: form.shareMoodWithExperts,
     support_preferences: {
       ...existingSupport,
       notifications: {

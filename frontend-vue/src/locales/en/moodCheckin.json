@@ -3,6 +3,10 @@
     "title": "💭 Mood Check-in",
     "subtitle": "Pick the method that fits — PeaceCat is always listening 🐱",
     "backDashboard": "← Dashboard",
+    "shareWithExperts": {
+      "title": "🩺 Share daily check-ins with my expert(s)",
+      "desc": "Turn on so any expert you're currently/previously booked with can see your daily mood progress (you can turn this off anytime in Settings)."
+    },
     "todayDone": "✅ Today's check-in: Done",
     "todayNotDone": "✅ Today's check-in: Not yet",
     "modes": {

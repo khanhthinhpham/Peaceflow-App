@@ -138,6 +138,8 @@
     "privacy": {
       "title": "Privacy",
       "subtitle": "Control how your data is used within the product",
+      "shareMoodTitle": "🩺 Share daily check-ins with my expert(s)",
+      "shareMoodDesc": "When on, any expert you're currently/previously booked with can see your daily mood check-in history to track your progress and offer the right guidance.",
       "shareDataTitle": "📤 Share data for personalization",
       "shareDataDesc": "Let the system use mood, journal, and task data for better suggestions",
       "analyticsTitle": "📈 Anonymous analytics",

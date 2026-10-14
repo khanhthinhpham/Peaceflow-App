@@ -3,6 +3,10 @@
     "title": "💭 Khảo Sát Tâm Trạng",
     "subtitle": "Chọn phương thức phù hợp — PeaceCat luôn lắng nghe bạn 🐱",
     "backDashboard": "← Dashboard",
+    "shareWithExperts": {
+      "title": "🩺 Chia sẻ check-in hàng ngày với chuyên gia",
+      "desc": "Bật để các chuyên gia đang/đã đặt lịch với bạn thấy được tiến độ tâm trạng hàng ngày (có thể tắt lại bất cứ lúc nào trong Cài đặt)."
+    },
     "todayDone": "✅ Check-in hôm nay: Rồi",
     "todayNotDone": "✅ Check-in hôm nay: Chưa",
     "modes": {
