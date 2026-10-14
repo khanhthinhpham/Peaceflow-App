@@ -1527,19 +1527,41 @@ router.get('/expert-portal/clients/:userId/mood-history', requireAuth, async (re
       [req.params.userId]
     );
     if (!sharing.rows[0]?.shared) {
-      return res.json({ success: true, data: { shared: false, checkins: [] } });
+      return res.json({ success: true, data: { shared: false, checkins: [], total: 0, page: 0, limit: 0 } });
     }
 
-    const r = await db.query(
-      `select id, mood_score, anxiety_score, stress_score, energy_score, sleep_quality_score,
-              dominant_emotion, triggers, notes, created_at
-       from mood_checkins
-       where user_id = $1
-       order by created_at desc
-       limit 90`,
-      [req.params.userId]
-    );
-    return res.json({ success: true, data: { shared: true, checkins: r.rows } });
+    // Lọc theo khoảng ngày (vd xem riêng 1 tháng) + phân trang — ?from=YYYY-MM-DD,
+    // ?to=YYYY-MM-DD, ?page=0-based, ?limit=mặc định 20 (tối đa 100/trang).
+    const page = Math.max(0, parseInt(req.query.page, 10) || 0);
+    const limit = Math.min(100, Math.max(1, parseInt(req.query.limit, 10) || 20));
+    const conditions = ['user_id = $1'];
+    const params = [req.params.userId];
+    if (req.query.from) {
+      params.push(req.query.from);
+      conditions.push(`created_at >= $${params.length}::date`);
+    }
+    if (req.query.to) {
+      params.push(req.query.to);
+      conditions.push(`created_at < ($${params.length}::date + interval '1 day')`);
+    }
+    const whereClause = conditions.join(' and ');
+
+    const [countRes, r] = await Promise.all([
+      db.query(`select count(*)::int as total from mood_checkins where ${whereClause}`, params),
+      db.query(
+        `select id, mood_score, anxiety_score, stress_score, energy_score, sleep_quality_score,
+                dominant_emotion, triggers, notes, created_at
+         from mood_checkins
+         where ${whereClause}
+         order by created_at desc
+         limit ${limit} offset ${page * limit}`,
+        params
+      )
+    ]);
+    return res.json({
+      success: true,
+      data: { shared: true, checkins: r.rows, total: countRes.rows[0]?.total || 0, page, limit }
+    });
   } catch (error) {
     console.error('Expert client mood-history error:', error);
     return res.status(500).json({ success: false, message: 'Could not fetch client mood history' });

@@ -130,11 +130,29 @@
           <h2 class="expert-section-title">🩺 Check-in tâm trạng hàng ngày</h2>
         </div>
       </div>
+
+      <div v-if="moodShared" class="ca-search-bar">
+        <div class="ca-search-field">
+          <label for="caMoodFrom">Từ ngày</label>
+          <input v-model="moodFrom" type="date" id="caMoodFrom" class="form-input" @change="applyMoodDateFilter">
+        </div>
+        <div class="ca-search-field">
+          <label for="caMoodTo">Đến ngày</label>
+          <input v-model="moodTo" type="date" id="caMoodTo" class="form-input" @change="applyMoodDateFilter">
+        </div>
+        <div class="ca-search-actions">
+          <button type="button" class="btn-outline" @click="setMoodQuickRange(7)">7 ngày</button>
+          <button type="button" class="btn-outline" @click="setMoodQuickRange(30)">1 tháng</button>
+          <button type="button" class="btn-outline" @click="setMoodQuickRange(90)">3 tháng</button>
+          <button type="button" class="btn-outline" @click="clearMoodDateFilter">Tất cả</button>
+        </div>
+      </div>
+
       <div>
         <p v-if="moodHistoryLoading" class="ca-empty">Đang tải...</p>
         <p v-else-if="moodHistoryError" class="ca-empty">Không tải được lịch sử check-in.</p>
         <p v-else-if="!moodShared" class="ca-empty">Client này chưa bật "Chia sẻ check-in hàng ngày với chuyên gia" trong Cài đặt.</p>
-        <p v-else-if="!moodHistory.length" class="ca-empty">Client chưa có lượt check-in nào.</p>
+        <p v-else-if="!moodHistory.length" class="ca-empty">Không có lượt check-in nào trong khoảng thời gian này.</p>
         <div v-for="item in moodHistory" :key="item.id" class="ca-history-item">
           <span>
             <strong>Tâm trạng: {{ item.mood_score }}/10</strong>
@@ -143,6 +161,20 @@
           </span>
           <span>{{ formatDateTime(item.created_at) }}</span>
         </div>
+      </div>
+
+      <div v-if="moodShared && moodTotal" class="ca-pager">
+        <span class="ca-pager-meta">{{ moodFrom1 }}–{{ moodTo1 }} trong {{ moodTotal }}</span>
+        <template v-if="moodTotalPages > 1">
+          <button type="button" class="ca-page-btn" :disabled="moodPage === 0" title="Trang đầu" @click="loadMoodHistory(0)">« Đầu</button>
+          <button type="button" class="ca-page-btn" :disabled="moodPage === 0" @click="loadMoodHistory(moodPage - 1)">‹ Trước</button>
+          <template v-for="(p, idx) in moodPageWindow" :key="idx">
+            <span v-if="p === '…'" class="ca-page-ellipsis">…</span>
+            <button v-else type="button" class="ca-page-btn" :class="{ active: p === moodPage }" @click="loadMoodHistory(p)">{{ p + 1 }}</button>
+          </template>
+          <button type="button" class="ca-page-btn" :disabled="moodPage >= moodTotalPages - 1" @click="loadMoodHistory(moodPage + 1)">Sau ›</button>
+          <button type="button" class="ca-page-btn" :disabled="moodPage >= moodTotalPages - 1" title="Trang cuối" @click="loadMoodHistory(moodTotalPages - 1)">Cuối »</button>
+        </template>
       </div>
     </section>
 
@@ -713,7 +745,9 @@ function selectClient(userId) {
   Object.keys(carsAnswers).forEach((k) => delete carsAnswers[k]);
   Object.keys(sdqAnswers).forEach((k) => delete sdqAnswers[k]);
   loadHistory();
-  loadMoodHistory();
+  moodFrom.value = '';
+  moodTo.value = '';
+  loadMoodHistory(0);
 }
 
 async function submitCars() {
@@ -781,26 +815,62 @@ async function submitSdqObs() {
 
 // Lịch sử check-in tâm trạng hàng ngày — client phải tự bật "Chia sẻ check-in với chuyên
 // gia" trong Cài đặt thì mới có dữ liệu (xem GET /expert-portal/clients/:id/mood-history),
-// không phải cứ có lịch hẹn là tự động thấy được.
+// không phải cứ có lịch hẹn là tự động thấy được. Có lọc theo khoảng ngày + phân trang vì
+// client check-in gần như mỗi ngày, vài tháng là dồn lại rất nhiều dòng.
 const moodHistory = ref([]);
 const moodShared = ref(true);
 const moodHistoryLoading = ref(false);
 const moodHistoryError = ref(false);
-async function loadMoodHistory() {
+const moodFrom = ref('');
+const moodTo = ref('');
+const moodPage = ref(0);
+const moodLimit = 20;
+const moodTotal = ref(0);
+const moodTotalPages = computed(() => Math.max(1, Math.ceil(moodTotal.value / moodLimit)));
+const moodFrom1 = computed(() => moodPage.value * moodLimit + 1);
+const moodTo1 = computed(() => Math.min(moodTotal.value, (moodPage.value + 1) * moodLimit));
+const moodPageWindow = computed(() => pageWindow(moodPage.value, moodTotalPages.value));
+
+async function loadMoodHistory(page = 0) {
   if (!selectedClient.value) return;
+  moodPage.value = page;
   moodHistoryLoading.value = true;
   moodHistoryError.value = false;
   try {
-    const data = await apiClient.get(`/expert-portal/clients/${selectedClient.value.user_id}/mood-history`, { noCache: true });
+    const qs = new URLSearchParams({ page: String(page), limit: String(moodLimit) });
+    if (moodFrom.value) qs.set('from', moodFrom.value);
+    if (moodTo.value) qs.set('to', moodTo.value);
+    const data = await apiClient.get(`/expert-portal/clients/${selectedClient.value.user_id}/mood-history?${qs}`, { noCache: true });
     moodShared.value = Boolean(data?.shared);
     moodHistory.value = data?.checkins || [];
+    moodTotal.value = data?.total || 0;
   } catch (_error) {
     moodHistory.value = [];
     moodShared.value = true;
+    moodTotal.value = 0;
     moodHistoryError.value = true;
   } finally {
     moodHistoryLoading.value = false;
   }
+}
+
+function applyMoodDateFilter() {
+  loadMoodHistory(0);
+}
+
+function setMoodQuickRange(days) {
+  const to = new Date();
+  const from = new Date();
+  from.setDate(from.getDate() - days);
+  moodTo.value = to.toISOString().slice(0, 10);
+  moodFrom.value = from.toISOString().slice(0, 10);
+  loadMoodHistory(0);
+}
+
+function clearMoodDateFilter() {
+  moodFrom.value = '';
+  moodTo.value = '';
+  loadMoodHistory(0);
 }
 
 const history = ref([]);
