@@ -14,11 +14,11 @@
       <form v-if="token && !invalidToken && !done" style="text-align:left;" @submit.prevent="handleSubmit">
         <div class="form-group">
           <label class="form-label">{{ t('resetPassword.form.newPasswordLabel') }}</label>
-          <input v-model="password" type="password" class="form-input" :placeholder="t('resetPassword.form.newPasswordPlaceholder')" required minlength="8" autocomplete="new-password">
+          <PasswordField v-model="password" :placeholder="t('resetPassword.form.newPasswordPlaceholder')" required minlength="8" autocomplete="new-password" />
         </div>
         <div class="form-group">
           <label class="form-label">{{ t('resetPassword.form.confirmPasswordLabel') }}</label>
-          <input v-model="confirmPassword" type="password" class="form-input" :placeholder="t('resetPassword.form.confirmPasswordPlaceholder')" required minlength="8" autocomplete="new-password">
+          <PasswordField v-model="confirmPassword" :placeholder="t('resetPassword.form.confirmPasswordPlaceholder')" required minlength="8" autocomplete="new-password" />
         </div>
         <button type="submit" class="btn-primary" style="width:100%;font-size:1rem;padding:12px;margin-top:8px;" :disabled="submitting">
           {{ submitting ? t('resetPassword.form.submitting') : t('resetPassword.form.submitBtn') }}
@@ -33,6 +33,7 @@ import { ref, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { apiClient } from '../lib/apiClient';
+import PasswordField from '../components/PasswordField.vue';
 
 const route = useRoute();
 const router = useRouter();

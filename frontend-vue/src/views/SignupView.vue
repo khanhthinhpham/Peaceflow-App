@@ -53,13 +53,13 @@
 
         <div class="form-group">
           <label class="form-label" for="password">{{ t('signup.passwordLabel') }}</label>
-          <input v-model="password" type="password" id="password" class="form-input" :placeholder="t('signup.passwordPlaceholder')" required minlength="8" autocomplete="new-password">
+          <PasswordField v-model="password" id="password" :placeholder="t('signup.passwordPlaceholder')" required minlength="8" autocomplete="new-password" />
           <div class="field-hint">{{ t('signup.passwordHint') }}</div>
         </div>
 
         <div class="form-group">
           <label class="form-label" for="confirmPassword">{{ t('signup.confirmPasswordLabel') }}</label>
-          <input v-model="confirmPassword" type="password" id="confirmPassword" class="form-input" :placeholder="t('signup.confirmPasswordPlaceholder')" required minlength="8" autocomplete="new-password">
+          <PasswordField v-model="confirmPassword" id="confirmPassword" :placeholder="t('signup.confirmPasswordPlaceholder')" required minlength="8" autocomplete="new-password" />
         </div>
 
         <label class="checkbox-group">
@@ -94,6 +94,7 @@ import { apiClient } from '../lib/apiClient';
 import { goToLegacyPage } from '../lib/legacyApp';
 import { isNativeApp } from '../lib/native';
 import { getCurrentLocale } from '../locales';
+import PasswordField from '../components/PasswordField.vue';
 
 const GOOGLE_CLIENT_ID = '287402483358-uiec013q9obn1m8j82ejhkdmuoi3ku6v.apps.googleusercontent.com';
 const nativeGoogleLoading = ref(false);

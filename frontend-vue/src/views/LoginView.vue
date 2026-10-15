@@ -33,7 +33,7 @@
         </div>
         <div class="form-group" style="margin-bottom: 8px;">
           <label class="form-label">{{ t('login.passwordLabel') }}</label>
-          <input v-model="password" type="password" class="form-input" :placeholder="t('login.passwordPlaceholder')" required autocomplete="current-password">
+          <PasswordField v-model="password" :placeholder="t('login.passwordPlaceholder')" required autocomplete="current-password" />
         </div>
         <div style="text-align:right;margin-bottom:16px;">
           <router-link to="/forgot-password" style="font-size:0.82rem;color:var(--text-light);">{{ t('login.forgotPassword') }}</router-link>
@@ -62,6 +62,7 @@ import { apiClient } from '../lib/apiClient';
 import { goToLegacyPage, resolveAppRedirect } from '../lib/legacyApp';
 import { isNativeApp } from '../lib/native';
 import { getCurrentLocale } from '../locales';
+import PasswordField from '../components/PasswordField.vue';
 
 const GOOGLE_CLIENT_ID = '287402483358-uiec013q9obn1m8j82ejhkdmuoi3ku6v.apps.googleusercontent.com';
 const nativeGoogleLoading = ref(false);

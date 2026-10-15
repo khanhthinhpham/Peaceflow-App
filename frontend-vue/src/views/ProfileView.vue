@@ -300,16 +300,16 @@
             <div class="sc-title">{{ t('profile.privacy.securityTitle') }}</div>
             <div class="form-group">
               <label class="form-label">{{ t('profile.privacy.currentPassword') }}</label>
-              <input type="password" class="form-input" placeholder="••••••••">
+              <PasswordField placeholder="••••••••" />
             </div>
             <div class="form-row">
               <div class="form-group">
                 <label class="form-label">{{ t('profile.privacy.newPassword') }}</label>
-                <input type="password" class="form-input" placeholder="••••••••">
+                <PasswordField placeholder="••••••••" />
               </div>
               <div class="form-group">
                 <label class="form-label">{{ t('profile.privacy.confirmPassword') }}</label>
-                <input type="password" class="form-input" placeholder="••••••••">
+                <PasswordField placeholder="••••••••" />
               </div>
             </div>
             <div class="toggle-row">
@@ -426,6 +426,7 @@ import { apiClient } from '../lib/apiClient';
 import { EventLogger } from '../lib/eventLogger';
 import { useAuthStore } from '../stores/auth';
 import LanguageSwitcher from '../components/LanguageSwitcher.vue';
+import PasswordField from '../components/PasswordField.vue';
 
 const { t, locale } = useI18n();
 const auth = useAuthStore();

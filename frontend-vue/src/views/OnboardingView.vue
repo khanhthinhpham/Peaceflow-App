@@ -42,7 +42,7 @@
 
           <div class="auth-form">
             <input v-model="authEmail" type="email" class="form-input" :placeholder="t('onboarding.auth.emailPlaceholder')">
-            <input v-model="authPassword" type="password" class="form-input" :placeholder="t('onboarding.auth.passwordPlaceholder')">
+            <PasswordField v-model="authPassword" :placeholder="t('onboarding.auth.passwordPlaceholder')" />
             <button class="btn-next" style="width:100%;justify-content:center;" @click="nextStep">
               {{ t('onboarding.auth.createAccount') }}
             </button>
@@ -91,6 +91,7 @@ import { useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { useAuthStore } from '../stores/auth';
 import { apiClient } from '../lib/apiClient';
+import PasswordField from '../components/PasswordField.vue';
 
 const router = useRouter();
 const auth = useAuthStore();
