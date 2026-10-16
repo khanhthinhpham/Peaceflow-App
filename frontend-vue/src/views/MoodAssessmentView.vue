@@ -340,7 +340,7 @@
 
       <!-- ===== RESULT PANEL ===== -->
       <div class="result-panel" :class="{ active: view === 'result' }" v-if="result">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px;">
+        <div class="result-toolbar" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px;">
           <button class="btn-outline" @click="backToSelector">{{ t('moodAssessment.result.backBtn') }}</button>
           <div style="display:flex;gap:8px;">
             <button class="btn-outline" @click="retakeTest">{{ t('moodAssessment.result.retakeBtn') }}</button>
@@ -466,7 +466,7 @@
           <router-link v-else to="/experts" class="btn-primary" style="width:100%;justify-content:center;">{{ t('moodAssessment.result.bookNowBtn') }}</router-link>
         </div>
 
-        <div style="padding:12px 16px;background:rgba(255,203,164,0.15);border:1.5px solid var(--peach);border-radius:var(--border-radius-sm);font-size:0.75rem;color:var(--text-secondary);margin-bottom:16px;line-height:1.6;" v-html="t('moodAssessment.result.disclaimer')"></div>
+        <div class="result-disclaimer" style="padding:12px 16px;background:rgba(255,203,164,0.15);border:1.5px solid var(--peach);border-radius:var(--border-radius-sm);font-size:0.75rem;color:var(--text-secondary);margin-bottom:16px;line-height:1.6;" v-html="t('moodAssessment.result.disclaimer')"></div>
 
         <div class="result-actions">
           <router-link to="/tasks" class="btn-primary">{{ t('moodAssessment.result.startTasksBtn') }}</router-link>

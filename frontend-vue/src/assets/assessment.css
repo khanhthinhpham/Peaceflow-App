@@ -603,6 +603,39 @@
     animation: fade-in 0.5s ease;
 }
 
+/* Màn hình rộng: bỏ khung hẹp 760px, chia 2 cột — trái là thẻ điểm (banner + điểm số),
+   phải là nhận xét/AI/so sánh/gợi ý chuyên gia — để không phải cuộn dài xuống dưới và tận
+   dụng 2 bên trống. Thanh nút, lưu ý và nút điều hướng vẫn chiếm trọn chiều ngang. */
+@media (min-width: 1000px) {
+    .result-panel.active {
+        display: grid;
+        grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+        column-gap: 20px;
+        align-items: start;
+        max-width: 1280px;
+    }
+
+    .result-panel.active > .result-toolbar,
+    .result-panel.active > .result-disclaimer,
+    .result-panel.active > .result-actions {
+        grid-column: 1 / -1;
+    }
+
+    .result-panel.active > .result-header {
+        grid-column: 1;
+        grid-row: 2 / span 20;
+        position: sticky;
+        top: 16px;
+    }
+
+    .result-panel.active > .result-interpretation,
+    .result-panel.active > .result-ai-summary,
+    .result-panel.active > .result-comparison,
+    .result-panel.active > .expert-recommend {
+        grid-column: 2;
+    }
+}
+
 .result-header {
     padding: 20px 24px;
     background: linear-gradient(135deg, var(--mint-light), var(--sky-light));
