@@ -3,6 +3,9 @@ import { db } from '../../config/db.js';
 import { verifyAccessToken } from '../../common/utils/jwt.js';
 import { findUserById } from '../auth/auth.repository.js';
 import { requireAuth } from '../../common/middleware/auth.middleware.js';
+import { sendScreeningRedAlertEmail } from '../../common/services/email.service.js';
+import { buildScreeningExcelBuffer } from '../../common/services/screening-export.service.js';
+import { env } from '../../config/env.js';
 
 const router = Router();
 
@@ -105,6 +108,42 @@ router.post('/screening/responses', attachUserIfPresent, async (req, res) => {
         body.confirmNote || null
       ]
     );
+
+    // Mức Đỏ -> báo ngay: cho cả đầu mối trường (nếu có cấu hình contact_email) VÀ admin
+    // phụ trách chung (env.screeningAdminEmails) — admin luôn nhận, kèm file Excel đầy đủ
+    // để xem ngay không cần đăng nhập vào trang quản trị. "Bắn và quên": lỗi gửi mail
+    // không được làm hỏng việc nộp phiếu của học sinh.
+    if (band === 'do') {
+      (async () => {
+        const school = body.schoolId
+          ? (await db.query(`select name, contact_email from screening_schools where id = $1`, [body.schoolId])).rows[0]
+          : null;
+
+        if (school?.contact_email) {
+          await sendScreeningRedAlertEmail({
+            to: school.contact_email,
+            schoolName: school.name,
+            studentName: body.studentName,
+            grade: body.grade,
+            className: body.className,
+            total
+          });
+        }
+
+        if (env.screeningAdminEmails.length) {
+          const buffer = await buildScreeningExcelBuffer({});
+          await sendScreeningRedAlertEmail({
+            to: env.screeningAdminEmails,
+            schoolName: school?.name,
+            studentName: body.studentName,
+            grade: body.grade,
+            className: body.className,
+            total,
+            attachment: { filename: `sang-loc-truong-hoc-${new Date().toISOString().slice(0, 10)}.xlsx`, content: buffer }
+          });
+        }
+      })().catch((error) => console.error('Send screening red alert email error:', error?.message || error));
+    }
 
     return res.json({ success: true, data: { id: r.rows[0].id, riskBand: band, total } });
   } catch (error) {

@@ -10,11 +10,6 @@
         <p class="screening-step-desc" style="margin-bottom:18px;">Dành cho học sinh, phụ huynh hoặc giáo viên muốn đăng ký hỗ trợ cụ thể cho 1 học sinh. Các trường có dấu * là bắt buộc.</p>
 
         <div class="form-group">
-          <label class="form-label">Email *</label>
-          <input v-model="form.email" type="email" class="form-input" placeholder="you@example.com">
-        </div>
-
-        <div class="form-group">
           <label class="form-label">Người cung cấp thông tin *</label>
           <div class="screening-checklist">
             <label v-for="opt in INFORMANT_OPTIONS" :key="opt.key" class="screening-check-item">
@@ -23,6 +18,16 @@
             </label>
           </div>
           <input v-if="form.informant === 'khac'" v-model="form.informantOther" type="text" class="form-input" style="margin-top:8px;" placeholder="Ghi rõ...">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Email{{ emailPhoneRequired ? ' *' : ' (không bắt buộc)' }}</label>
+          <input v-model="form.email" type="email" class="form-input" placeholder="you@example.com">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Số điện thoại{{ emailPhoneRequired ? ' *' : ' (không bắt buộc)' }}</label>
+          <input v-model="form.phone" type="text" class="form-input" placeholder="09xxxxxxxx">
         </div>
 
         <div class="form-group">
@@ -117,11 +122,6 @@
           <input v-if="form.supportFormat.includes('khac')" v-model="form.supportFormatOther" type="text" class="form-input" style="margin-top:8px;" placeholder="Ghi rõ...">
         </div>
 
-        <div class="form-group">
-          <label class="form-label">Số điện thoại *</label>
-          <input v-model="form.phone" type="text" class="form-input" placeholder="09xxxxxxxx">
-        </div>
-
         <label class="screening-check-item" style="margin-top:4px;">
           <input type="checkbox" v-model="form.consent">
           Tôi xác nhận các thông tin trên được cung cấp nhằm mục đích giúp nhà trường hiểu và hỗ trợ học sinh phù hợp hơn.
@@ -148,7 +148,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue';
+import { ref, reactive, computed, onMounted } from 'vue';
 import { apiClient } from '../lib/apiClient';
 
 const GRADES = ['6', '7', '8', '9', '10', '11', '12'];
@@ -214,9 +214,14 @@ const submitting = ref(false);
 const submitError = ref('');
 const submitted = ref(false);
 
+// Học sinh tự điền thường không muốn/không tiện cho email-SĐT riêng; cha mẹ/giáo viên thì
+// nhà trường cần liên hệ lại được nên 2 trường này bắt buộc với họ.
+const emailPhoneRequired = computed(() => form.informant === 'cha_me' || form.informant === 'giao_vien');
+
 function validate() {
-  if (!form.email.trim()) return 'Vui lòng nhập email.';
   if (!form.informant) return 'Vui lòng chọn người cung cấp thông tin.';
+  if (emailPhoneRequired.value && !form.email.trim()) return 'Vui lòng nhập email.';
+  if (emailPhoneRequired.value && !form.phone.trim()) return 'Vui lòng nhập số điện thoại.';
   if (!form.schoolId) return 'Vui lòng chọn trường.';
   if (!form.grade) return 'Vui lòng chọn khối.';
   if (!form.className.trim()) return 'Vui lòng nhập lớp.';
@@ -225,7 +230,6 @@ function validate() {
   if (!form.issueDescription.trim()) return 'Vui lòng mô tả rõ hơn về vấn đề.';
   if (!form.riskLevel) return 'Vui lòng chọn mức độ cần hỗ trợ.';
   if (!form.supportFormat.length) return 'Vui lòng chọn ít nhất một hình thức mong muốn hỗ trợ.';
-  if (!form.phone.trim()) return 'Vui lòng nhập số điện thoại.';
   return '';
 }
 

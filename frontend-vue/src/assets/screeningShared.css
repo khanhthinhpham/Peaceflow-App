@@ -126,6 +126,21 @@
     border-color: var(--mint-dark);
     background: var(--mint-light);
 }
+.screening-score-note {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 10px 14px;
+    border-radius: var(--border-radius-sm);
+    border: 2px solid var(--kraft-light);
+    margin-bottom: 18px;
+    font-weight: 700;
+    font-size: 0.88rem;
+}
+.screening-score-note.band-xanh { border-color: #4caf7d; background: rgba(76,175,125,0.1); }
+.screening-score-note.band-vang { border-color: #e0a92d; background: rgba(224,169,45,0.12); }
+.screening-score-note.band-do { border-color: #e05c5c; background: rgba(224,92,92,0.1); }
 .screening-risk-guide-img {
     display: block;
     width: 100%;

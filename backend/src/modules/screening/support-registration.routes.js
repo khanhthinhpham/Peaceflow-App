@@ -44,11 +44,17 @@ router.post('/support-registrations', attachUserIfPresent, async (req, res) => {
     const issueDescription = (body.issueDescription || '').trim();
     const phone = (body.phone || '').trim();
 
-    if (!email || !className || !studentName || !issueDescription || !phone) {
-      return res.status(400).json({ success: false, message: 'Vui lòng điền đủ các trường bắt buộc.' });
-    }
     if (!INFORMANT_KEYS.includes(body.informant)) {
       return res.status(400).json({ success: false, message: 'Vui lòng chọn người cung cấp thông tin.' });
+    }
+    if (!className || !studentName || !issueDescription) {
+      return res.status(400).json({ success: false, message: 'Vui lòng điền đủ các trường bắt buộc.' });
+    }
+    // Học sinh tự điền thường không muốn/không tiện cho liên hệ riêng; cha mẹ/giáo viên thì
+    // nhà trường cần liên hệ lại được nên bắt buộc với họ (khớp validate ở frontend).
+    const contactRequired = body.informant === 'cha_me' || body.informant === 'giao_vien';
+    if (contactRequired && (!email || !phone)) {
+      return res.status(400).json({ success: false, message: 'Vui lòng nhập email và số điện thoại.' });
     }
     const riskLevel = RISK_LEVEL_KEYS.includes(body.riskLevel) ? body.riskLevel : null;
     if (!riskLevel) {
@@ -72,12 +78,12 @@ router.post('/support-registrations', attachUserIfPresent, async (req, res) => {
         $18, $19, $20
       ) returning id, created_at`,
       [
-        req.user?.id || null, email, body.informant, body.informantOther || null,
+        req.user?.id || null, email || null, body.informant, body.informantOther || null,
         body.schoolId || null, body.schoolOther || null, body.grade || null, body.gradeOther || null, className, studentName,
         JSON.stringify(pickKnownKeys(body.issueCategories, ISSUE_CATEGORY_KEYS)), body.issueCategoriesOther || null, issueDescription,
         riskLevel, body.riskLevelOther || null,
         JSON.stringify(pickKnownKeys(body.supportFormat, SUPPORT_FORMAT_KEYS)), body.supportFormatOther || null,
-        phone, Boolean(body.consent), body.confirmNote || null
+        phone || null, Boolean(body.consent), body.confirmNote || null
       ]
     );
 
@@ -126,6 +132,52 @@ router.get('/admin/support-registrations', requireAuth, async (req, res) => {
   } catch (error) {
     console.error('Admin list support registrations error:', error);
     return res.status(500).json({ success: false, message: 'Không tải được danh sách phiếu đăng ký.' });
+  }
+});
+
+router.get('/admin/support-registrations/summary', requireAuth, async (req, res) => {
+  try {
+    if (!req.user?.is_admin) return res.status(403).json({ success: false, message: 'Admin only' });
+
+    const conditions = [];
+    const params = [];
+    if (req.query.schoolId) {
+      params.push(req.query.schoolId);
+      conditions.push(`r.school_id = $${params.length}`);
+    }
+    const where = conditions.length ? `where ${conditions.join(' and ')}` : '';
+
+    const [byRisk, byIssue, bySupportFormat, total] = await Promise.all([
+      db.query(`select risk_level, count(*)::int as count from support_registrations r ${where} group by risk_level`, params),
+      db.query(
+        `select key as issue_category, count(*)::int as count
+         from support_registrations r, jsonb_array_elements_text(r.issue_categories) as key
+         ${where}
+         group by key order by count desc`,
+        params
+      ),
+      db.query(
+        `select key as support_format, count(*)::int as count
+         from support_registrations r, jsonb_array_elements_text(r.support_format) as key
+         ${where}
+         group by key order by count desc`,
+        params
+      ),
+      db.query(`select count(*)::int as total from support_registrations r ${where}`, params)
+    ]);
+
+    return res.json({
+      success: true,
+      data: {
+        total: total.rows[0]?.total || 0,
+        byRisk: byRisk.rows,
+        byIssue: byIssue.rows,
+        bySupportFormat: bySupportFormat.rows
+      }
+    });
+  } catch (error) {
+    console.error('Admin support registration summary error:', error);
+    return res.status(500).json({ success: false, message: 'Không tạo được bản tổng hợp.' });
   }
 });
 

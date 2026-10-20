@@ -6,10 +6,14 @@
         <h1 class="admin-page-title">Sàng lọc trường học</h1>
         <p class="admin-page-sub">Phiếu khảo sát/sàng lọc đầu năm — link cho học sinh: <code>{{ formUrl }}</code> <button type="button" class="btn-outline" style="padding:2px 8px;font-size:0.72rem;" @click="copyLink">Sao chép</button></p>
       </div>
-      <div style="display:flex;gap:8px;">
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+        <span style="font-size:.72rem;font-weight:800;color:var(--text-light);text-transform:uppercase;">Sàng lọc HSSV:</span>
         <button type="button" class="btn-outline" :class="{ active: tab === 'responses' }" @click="tab = 'responses'">📋 Danh sách phiếu</button>
         <button type="button" class="btn-outline" :class="{ active: tab === 'summary' }" @click="tab = 'summary'">📊 Tổng hợp</button>
-        <button type="button" class="btn-outline" :class="{ active: tab === 'schools' }" @click="tab = 'schools'">🏫 Trường</button>
+        <span style="font-size:.72rem;font-weight:800;color:var(--text-light);text-transform:uppercase;margin-left:8px;">Đăng ký hỗ trợ:</span>
+        <button type="button" class="btn-outline" :class="{ active: tab === 'regResponses' }" @click="tab = 'regResponses'">📝 Danh sách</button>
+        <button type="button" class="btn-outline" :class="{ active: tab === 'regSummary' }" @click="tab = 'regSummary'">📊 Tổng hợp</button>
+        <button type="button" class="btn-outline" :class="{ active: tab === 'schools' }" @click="tab = 'schools'" style="margin-left:8px;">🏫 Trường</button>
       </div>
     </div>
 
@@ -31,17 +35,30 @@
           <option value="xanh">🟢 Xanh</option>
         </select>
       </div>
-      <div style="width:160px;">
-        <label style="font-size:.8rem;font-weight:700;display:block;margin-bottom:4px;">Từ ngày</label>
-        <input v-model="filterFrom" type="date" class="admin-input">
+      <div v-if="tab === 'regResponses'" style="min-width:150px;">
+        <label style="font-size:.8rem;font-weight:700;display:block;margin-bottom:4px;">Mức độ</label>
+        <select v-model="filterRiskBand" class="admin-input">
+          <option value="">Tất cả</option>
+          <option value="do">🔴 Đỏ</option>
+          <option value="vang">🟡 Vàng</option>
+          <option value="xanh">🟢 Xanh</option>
+          <option value="khac">Khác</option>
+        </select>
       </div>
-      <div style="width:160px;">
-        <label style="font-size:.8rem;font-weight:700;display:block;margin-bottom:4px;">Đến ngày</label>
-        <input v-model="filterTo" type="date" class="admin-input">
-      </div>
+      <template v-if="tab === 'responses' || tab === 'summary'">
+        <div style="width:160px;">
+          <label style="font-size:.8rem;font-weight:700;display:block;margin-bottom:4px;">Từ ngày</label>
+          <input v-model="filterFrom" type="date" class="admin-input">
+        </div>
+        <div style="width:160px;">
+          <label style="font-size:.8rem;font-weight:700;display:block;margin-bottom:4px;">Đến ngày</label>
+          <input v-model="filterTo" type="date" class="admin-input">
+        </div>
+      </template>
       <button type="button" class="btn-primary" @click="runFilter">🔍 Lọc</button>
       <button type="button" class="btn-outline" @click="resetFilter">Xoá lọc</button>
-      <button v-if="tab === 'responses'" type="button" class="btn-outline" @click="exportCsv">⬇️ Xuất CSV</button>
+      <button v-if="tab === 'responses'" type="button" class="btn-outline" :disabled="exportingXlsx" @click="exportXlsx">⬇️ {{ exportingXlsx ? 'Đang xuất...' : 'Xuất Excel (2 sheet)' }}</button>
+      <button v-if="tab === 'regResponses'" type="button" class="btn-outline" :disabled="exportingRegXlsx" @click="exportRegXlsx">⬇️ {{ exportingRegXlsx ? 'Đang xuất...' : 'Xuất Excel (2 sheet)' }}</button>
     </div>
 
     <!-- ===== Danh sách phiếu ===== -->
@@ -71,29 +88,63 @@
       <div v-else-if="summary" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;">
         <div class="admin-card">
           <h3 style="margin-top:0;">Tổng số phiếu: {{ summary.total }}</h3>
-          <div v-for="row in summary.byBand" :key="row.risk_band" style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px dashed var(--kraft-light);">
-            <span :class="`screening-band-label band-${row.risk_band}`">{{ bandLabel(row.risk_band) }}</span>
-            <strong>{{ row.count }}</strong>
-          </div>
+          <AdminChart type="pie" :labels="summary.byBand.map((r) => bandLabel(r.risk_band))" :values="summary.byBand.map((r) => r.count)" :colors="summary.byBand.map((r) => BAND_COLORS[r.risk_band])" />
         </div>
         <div class="admin-card">
           <h3 style="margin-top:0;">Khó khăn phổ biến</h3>
-          <div v-for="row in summary.byDifficulty" :key="row.difficulty" style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px dashed var(--kraft-light);font-size:.85rem;">
-            <span>{{ difficultyLabel(row.difficulty) }}</span>
-            <strong>{{ row.count }}</strong>
-          </div>
-          <p v-if="!summary.byDifficulty.length" class="admin-empty" style="padding:8px 0;">Chưa có dữ liệu.</p>
+          <AdminChart v-if="summary.byDifficulty.length" type="bar" :labels="summary.byDifficulty.map((r) => difficultyLabel(r.difficulty))" :values="summary.byDifficulty.map((r) => r.count)" :height="Math.max(160, summary.byDifficulty.length * 34)" />
+          <p v-else class="admin-empty" style="padding:8px 0;">Chưa có dữ liệu.</p>
         </div>
         <div class="admin-card">
           <h3 style="margin-top:0;">Nhu cầu hỗ trợ phổ biến</h3>
-          <div v-for="row in summary.bySupportNeed" :key="row.support_need" style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px dashed var(--kraft-light);font-size:.85rem;">
-            <span>{{ supportNeedLabel(row.support_need) }}</span>
-            <strong>{{ row.count }}</strong>
-          </div>
-          <p v-if="!summary.bySupportNeed.length" class="admin-empty" style="padding:8px 0;">Chưa có dữ liệu.</p>
+          <AdminChart v-if="summary.bySupportNeed.length" type="bar" :labels="summary.bySupportNeed.map((r) => supportNeedLabel(r.support_need))" :values="summary.bySupportNeed.map((r) => r.count)" :height="Math.max(160, summary.bySupportNeed.length * 34)" />
+          <p v-else class="admin-empty" style="padding:8px 0;">Chưa có dữ liệu.</p>
         </div>
       </div>
       <p style="font-size:.78rem;color:var(--text-light);margin-top:12px;">Gửi báo cáo tự động hàng tháng cho đầu mối trường sẽ bổ sung sau khi có thông tin liên hệ — hiện tại dùng nút "Xuất CSV" ở tab Danh sách phiếu để gửi thủ công.</p>
+    </template>
+
+    <!-- ===== Đăng ký hỗ trợ: danh sách ===== -->
+    <template v-else-if="tab === 'regResponses'">
+      <div v-if="regLoading" class="admin-card admin-empty">Đang tải...</div>
+      <div v-else-if="regLoadError" class="admin-card admin-empty" style="color:var(--coral);">{{ regLoadError }}</div>
+      <div v-else-if="!regItems.length" class="admin-card admin-empty">Chưa có phiếu đăng ký nào khớp bộ lọc.</div>
+      <template v-else>
+        <div v-for="item in regItems" :key="item.id" class="admin-card" style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;cursor:pointer;" @click="openRegDetail(item)">
+          <span class="screening-band-dot" :class="`band-${item.risk_level}`"></span>
+          <div style="flex:1 1 220px;min-width:0;">
+            <span style="font-weight:800;">{{ item.student_name }}{{ item.grade ? ` — Khối ${item.grade}${item.class_name ? ' / ' + item.class_name : ''}` : '' }}</span>
+            <div style="color:var(--text-secondary);font-size:.84rem;margin-top:3px;">{{ item.school_name || item.school_other || 'Chưa rõ trường' }} · {{ dt(item.created_at) }}</div>
+            <div style="color:var(--text-light);font-size:.78rem;margin-top:3px;">Người đăng ký: {{ informantLabel(item.informant) }} · {{ item.email }}</div>
+          </div>
+          <div style="text-align:right;font-size:.85rem;font-weight:700;white-space:nowrap;flex-shrink:0;">
+            <span :class="`screening-band-label band-${item.risk_level}`">{{ bandLabel(item.risk_level) }}</span>
+            <div style="font-size:.72rem;color:var(--text-light);font-weight:400;">{{ item.phone }}</div>
+          </div>
+        </div>
+      </template>
+      <AdminPager :page="regPage" :total-pages="regTotalPages" @go="loadReg" />
+    </template>
+
+    <!-- ===== Đăng ký hỗ trợ: tổng hợp ===== -->
+    <template v-else-if="tab === 'regSummary'">
+      <div v-if="regSummaryLoading" class="admin-card admin-empty">Đang tải...</div>
+      <div v-else-if="regSummary" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;">
+        <div class="admin-card">
+          <h3 style="margin-top:0;">Tổng số phiếu: {{ regSummary.total }}</h3>
+          <AdminChart type="pie" :labels="regSummary.byRisk.map((r) => bandLabel(r.risk_level))" :values="regSummary.byRisk.map((r) => r.count)" :colors="regSummary.byRisk.map((r) => BAND_COLORS[r.risk_level])" />
+        </div>
+        <div class="admin-card">
+          <h3 style="margin-top:0;">Vấn đề phổ biến</h3>
+          <AdminChart v-if="regSummary.byIssue.length" type="bar" :labels="regSummary.byIssue.map((r) => issueCategoryLabel(r.issue_category))" :values="regSummary.byIssue.map((r) => r.count)" :height="Math.max(160, regSummary.byIssue.length * 34)" />
+          <p v-else class="admin-empty" style="padding:8px 0;">Chưa có dữ liệu.</p>
+        </div>
+        <div class="admin-card">
+          <h3 style="margin-top:0;">Hình thức hỗ trợ mong muốn</h3>
+          <AdminChart v-if="regSummary.bySupportFormat.length" type="bar" :labels="regSummary.bySupportFormat.map((r) => supportFormatLabel(r.support_format))" :values="regSummary.bySupportFormat.map((r) => r.count)" :height="Math.max(160, regSummary.bySupportFormat.length * 34)" />
+          <p v-else class="admin-empty" style="padding:8px 0;">Chưa có dữ liệu.</p>
+        </div>
+      </div>
     </template>
 
     <!-- ===== Quản lý trường ===== -->
@@ -172,13 +223,52 @@
         </template>
       </div>
     </div>
+
+    <!-- ===== Chi tiết phiếu đăng ký hỗ trợ ===== -->
+    <div class="ca-detail-overlay" :class="{ show: showRegDetail }">
+      <div class="ca-detail-box" style="max-width:640px;">
+        <div class="ca-detail-head">
+          <div>
+            <div class="ca-detail-title">{{ regDetailItem?.student_name }}</div>
+            <div class="ca-detail-meta">{{ regDetailItem?.school_name || regDetailItem?.school_other }} · Khối {{ regDetailItem?.grade || regDetailItem?.grade_other }} / {{ regDetailItem?.class_name }} · {{ dt(regDetailItem?.created_at) }}</div>
+          </div>
+          <button type="button" class="ca-detail-close" @click="showRegDetail = false">✕</button>
+        </div>
+        <template v-if="regDetailItem">
+          <p><span :class="`screening-band-label band-${regDetailItem.risk_level}`">{{ bandLabel(regDetailItem.risk_level) }}</span>{{ regDetailItem.risk_level_other ? ` — ${regDetailItem.risk_level_other}` : '' }}</p>
+          <p>Người cung cấp thông tin: <strong>{{ informantLabel(regDetailItem.informant) }}</strong>{{ regDetailItem.informant_other ? ` (${regDetailItem.informant_other})` : '' }} · {{ regDetailItem.email }}</p>
+
+          <h4>Vấn đề học sinh đang gặp phải</h4>
+          <ul>
+            <li v-for="k in regDetailItem.issue_categories" :key="k">{{ issueCategoryLabel(k) }}</li>
+            <li v-if="regDetailItem.issue_categories_other">Khác: {{ regDetailItem.issue_categories_other }}</li>
+          </ul>
+          <p>{{ regDetailItem.issue_description }}</p>
+
+          <h4>Hình thức mong muốn hỗ trợ</h4>
+          <ul>
+            <li v-for="k in regDetailItem.support_format" :key="k">{{ supportFormatLabel(k) }}</li>
+            <li v-if="regDetailItem.support_format_other">Khác: {{ regDetailItem.support_format_other }}</li>
+          </ul>
+
+          <p>SĐT: {{ regDetailItem.phone }}</p>
+          <p>Đồng ý cung cấp thông tin: <strong>{{ regDetailItem.consent ? 'Có' : 'Không' }}</strong></p>
+          <p v-if="regDetailItem.confirm_note">Chia sẻ thêm: {{ regDetailItem.confirm_note }}</p>
+        </template>
+      </div>
+    </div>
   </main>
 </template>
 
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue';
+import ExcelJS from 'exceljs';
+import { Chart, registerables } from 'chart.js';
 import { apiClient } from '../../lib/apiClient';
 import AdminPager from '../../components/AdminPager.vue';
+import AdminChart from '../../components/AdminChart.vue';
+
+Chart.register(...registerables);
 
 const DIFFICULTY_LABELS = {
   ap_luc_hoc_tap: 'Áp lực học tập, thi cử', lo_lang_cang_thang: 'Lo lắng, căng thẳng',
@@ -197,12 +287,70 @@ const SUPPORT_NEED_LABELS = {
 };
 const REFERRAL_CATEGORY_LABELS = { hoc_tap: 'Học tập', huong_nghiep: 'Hướng nghiệp', giao_tiep: 'Giao tiếp và các mối quan hệ', phat_trien_ban_than: 'Phát triển bản thân' };
 const SUPPORT_FORMAT_LABELS = { tai_lieu: 'Tài liệu/hướng dẫn', tu_van_truong: 'Tư vấn/hỗ trợ tại trường', ket_noi_chuyen_gia: 'Kết nối chuyên gia', ho_tro_khan: 'Hỗ trợ khẩn' };
-const BAND_LABELS = { do: '🔴 Đỏ — ưu tiên', vang: '🟡 Vàng — cần quan tâm', xanh: '🟢 Xanh — nhẹ' };
+const BAND_LABELS = { do: '🔴 Đỏ — ưu tiên', vang: '🟡 Vàng — cần quan tâm', xanh: '🟢 Xanh — nhẹ', khac: 'Khác' };
+const BAND_COLORS = { do: '#e05c5c', vang: '#e0a92d', xanh: '#4caf7d', khac: '#b9b2a4' };
+const CHART_PALETTE = ['#4a9e8e', '#e0955a', '#8a6aaa', '#4a90aa', '#e05c5c', '#e0a92d', '#4caf7d', '#b9b2a4'];
+
+// Vẽ 1 biểu đồ Chart.js lên canvas TẠM (không gắn vào DOM) để lấy ảnh PNG nhúng vào Excel —
+// độc lập với các <AdminChart> đang hiển thị trên trang, nên export được dù đang đứng ở
+// tab Danh sách (chưa mở tab Tổng hợp để các component chart kia được mount).
+function renderChartImage({ type, labels, values, colors }, width = 480, height = 280) {
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+  const isPie = type === 'pie';
+  const finalColors = colors && colors.length ? colors : labels.map((_, i) => CHART_PALETTE[i % CHART_PALETTE.length]);
+  const chart = new Chart(canvas, {
+    type,
+    data: {
+      labels,
+      datasets: [{
+        data: values,
+        backgroundColor: isPie ? finalColors : finalColors[0],
+        borderWidth: isPie ? 2 : 0,
+        borderColor: isPie ? '#ffffff' : undefined
+      }]
+    },
+    options: {
+      responsive: false,
+      animation: false,
+      indexAxis: type === 'bar' ? 'y' : undefined,
+      plugins: { legend: { display: isPie, position: 'right' } },
+      scales: isPie ? undefined : { x: { beginAtZero: true, ticks: { precision: 0 } } }
+    }
+  });
+  const dataUrl = canvas.toDataURL('image/png');
+  chart.destroy();
+  return dataUrl;
+}
+
+// `cursor` là { value: <row hiện tại> } — dùng object để hàm có thể tự tăng con trỏ dòng
+// (truyền số nguyên thường thì không sửa được giá trị ở nơi gọi).
+function addChartImage(wb, ws, cursor, chartSpec, width = 480, height = 280) {
+  const dataUrl = renderChartImage(chartSpec, width, height);
+  const imageId = wb.addImage({ base64: dataUrl.split(',')[1], extension: 'png' });
+  ws.addImage(imageId, { tl: { col: 3, row: cursor.value }, ext: { width, height } });
+  cursor.value += Math.ceil(height / 20) + 2;
+}
+
+async function downloadWorkbookBlob(wb, filename) {
+  const buffer = await wb.xlsx.writeBuffer();
+  const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+const INFORMANT_LABELS = { hoc_sinh: 'Học sinh', cha_me: 'Cha/mẹ hoặc người thân', giao_vien: 'Giáo viên/cán bộ nhà trường', khac: 'Khác' };
 
 const difficultyLabel = (k) => DIFFICULTY_LABELS[k] || k;
 const supportNeedLabel = (k) => SUPPORT_NEED_LABELS[k] || k;
 const referralCategoryLabel = (k) => REFERRAL_CATEGORY_LABELS[k] || k;
+const issueCategoryLabel = (k) => REFERRAL_CATEGORY_LABELS[k] || k; // dùng chung keys với "Vấn đề học sinh đang gặp phải" của Đăng ký hỗ trợ
 const supportFormatLabel = (k) => SUPPORT_FORMAT_LABELS[k] || k;
+const informantLabel = (k) => INFORMANT_LABELS[k] || k;
 const bandLabel = (b) => BAND_LABELS[b] || b;
 
 function dt(value) {
@@ -288,6 +436,8 @@ async function loadSummary() {
 function runFilter() {
   appliedFilters.value = { schoolId: filterSchoolId.value, riskBand: filterRiskBand.value, from: filterFrom.value, to: filterTo.value };
   if (tab.value === 'summary') loadSummary();
+  else if (tab.value === 'regResponses') loadReg(0);
+  else if (tab.value === 'regSummary') loadRegSummary();
   else load(0);
 }
 function resetFilter() {
@@ -298,21 +448,185 @@ function resetFilter() {
   runFilter();
 }
 
-function exportCsv() {
-  const header = ['Trường', 'Học sinh', 'Khối', 'Lớp', 'Giới tính', 'Điểm (Phần 2)', 'Mức độ', 'Khó khăn', 'Nhu cầu hỗ trợ', 'Đồng ý liên hệ', 'Liên hệ', 'Ngày gửi'];
-  const rows = items.value.map((it) => [
-    it.school_name || '', it.student_name || '', it.grade || '', it.class_name || '', it.gender || '',
-    it.wellbeing_total, bandLabel(it.risk_band), it.difficulties.map(difficultyLabel).join('; '),
-    it.support_needs.map(supportNeedLabel).join('; '), it.consent_contact ? 'Có' : 'Không', it.contact || '', dt(it.created_at)
-  ]);
-  const csv = [header, ...rows].map((row) => row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(',')).join('\n');
-  const blob = new Blob([`﻿${csv}`], { type: 'text/csv;charset=utf-8;' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `sang-loc-truong-hoc-${new Date().toISOString().slice(0, 10)}.csv`;
-  a.click();
-  URL.revokeObjectURL(url);
+const exportingXlsx = ref(false);
+async function exportXlsx() {
+  exportingXlsx.value = true;
+  try {
+    const [summaryData, listData] = await Promise.all([
+      apiClient.get(`/admin/screening/summary?${buildQuery().toString()}`, { noCache: true }),
+      apiClient.get(`/admin/screening/responses?${buildQuery({ limit: '10000', offset: '0' }).toString()}`, { noCache: true })
+    ]);
+
+    const wb = new ExcelJS.Workbook();
+    const wsSummary = wb.addWorksheet('Tổng hợp');
+    wsSummary.addRow(['Tổng số phiếu', summaryData.total]);
+    wsSummary.addRow([]);
+    wsSummary.addRow(['Mức độ', 'Số lượng']);
+    summaryData.byBand.forEach((r) => wsSummary.addRow([bandLabel(r.risk_band), r.count]));
+    wsSummary.addRow([]);
+    wsSummary.addRow(['Khó khăn phổ biến', 'Số lượng']);
+    summaryData.byDifficulty.forEach((r) => wsSummary.addRow([difficultyLabel(r.difficulty), r.count]));
+    wsSummary.addRow([]);
+    wsSummary.addRow(['Nhu cầu hỗ trợ phổ biến', 'Số lượng']);
+    summaryData.bySupportNeed.forEach((r) => wsSummary.addRow([supportNeedLabel(r.support_need), r.count]));
+
+    const cursor = { value: 0 };
+    addChartImage(wb, wsSummary, cursor, {
+      type: 'pie',
+      labels: summaryData.byBand.map((r) => bandLabel(r.risk_band)),
+      values: summaryData.byBand.map((r) => r.count),
+      colors: summaryData.byBand.map((r) => BAND_COLORS[r.risk_band])
+    });
+    if (summaryData.byDifficulty.length) {
+      addChartImage(wb, wsSummary, cursor, {
+        type: 'bar',
+        labels: summaryData.byDifficulty.map((r) => difficultyLabel(r.difficulty)),
+        values: summaryData.byDifficulty.map((r) => r.count)
+      }, 480, Math.max(200, summaryData.byDifficulty.length * 26));
+    }
+    if (summaryData.bySupportNeed.length) {
+      addChartImage(wb, wsSummary, cursor, {
+        type: 'bar',
+        labels: summaryData.bySupportNeed.map((r) => supportNeedLabel(r.support_need)),
+        values: summaryData.bySupportNeed.map((r) => r.count)
+      }, 480, Math.max(200, summaryData.bySupportNeed.length * 26));
+    }
+
+    const wsList = wb.addWorksheet('Danh sách phiếu');
+    wsList.addRow(['Trường', 'Học sinh', 'Khối', 'Lớp', 'Giới tính', 'Điểm (Phần 2)', 'Mức độ', 'Khó khăn', 'Nhu cầu hỗ trợ', 'Đồng ý liên hệ', 'Liên hệ', 'Ngày gửi']);
+    (listData.items || []).forEach((it) => {
+      wsList.addRow([
+        it.school_name || '', it.student_name || '', it.grade || '', it.class_name || '', it.gender || '',
+        it.wellbeing_total, bandLabel(it.risk_band), (it.difficulties || []).map(difficultyLabel).join('; '),
+        (it.support_needs || []).map(supportNeedLabel).join('; '), it.consent_contact ? 'Có' : 'Không', it.contact || '', dt(it.created_at)
+      ]);
+    });
+
+    await downloadWorkbookBlob(wb, `sang-loc-truong-hoc-${new Date().toISOString().slice(0, 10)}.xlsx`);
+  } catch (error) {
+    alert(error.message || 'Không xuất được file.');
+  } finally {
+    exportingXlsx.value = false;
+  }
+}
+
+// ===== Đăng ký hỗ trợ: danh sách =====
+const regItems = ref([]);
+const regPage = ref(0);
+const regLimit = 20;
+const regTotal = ref(0);
+const regLoading = ref(false);
+const regLoadError = ref('');
+const regTotalPages = computed(() => Math.max(1, Math.ceil(regTotal.value / regLimit)));
+
+function buildRegQuery(extra = {}) {
+  const qs = new URLSearchParams(extra);
+  if (appliedFilters.value.schoolId) qs.set('schoolId', appliedFilters.value.schoolId);
+  if (appliedFilters.value.riskBand) qs.set('riskLevel', appliedFilters.value.riskBand);
+  return qs;
+}
+
+async function loadReg(p = regPage.value) {
+  regPage.value = Math.max(0, p);
+  regLoading.value = true;
+  regLoadError.value = '';
+  try {
+    const qs = buildRegQuery({ limit: String(regLimit), offset: String(regPage.value * regLimit) });
+    const data = await apiClient.get(`/admin/support-registrations?${qs.toString()}`, { noCache: true });
+    regItems.value = (data?.items || []).map((it) => ({
+      ...it,
+      issue_categories: it.issue_categories || [],
+      support_format: it.support_format || []
+    }));
+    regTotal.value = data?.total || 0;
+  } catch (_e) {
+    regLoadError.value = 'Không tải được danh sách.';
+  } finally {
+    regLoading.value = false;
+  }
+}
+
+const regSummary = ref(null);
+const regSummaryLoading = ref(false);
+async function loadRegSummary() {
+  regSummaryLoading.value = true;
+  try {
+    const qs = buildRegQuery();
+    regSummary.value = await apiClient.get(`/admin/support-registrations/summary?${qs.toString()}`, { noCache: true });
+  } catch (_e) {
+    regSummary.value = null;
+  } finally {
+    regSummaryLoading.value = false;
+  }
+}
+
+const exportingRegXlsx = ref(false);
+async function exportRegXlsx() {
+  exportingRegXlsx.value = true;
+  try {
+    const [summaryData, listData] = await Promise.all([
+      apiClient.get(`/admin/support-registrations/summary?${buildRegQuery().toString()}`, { noCache: true }),
+      apiClient.get(`/admin/support-registrations?${buildRegQuery({ limit: '10000', offset: '0' }).toString()}`, { noCache: true })
+    ]);
+
+    const wb = new ExcelJS.Workbook();
+    const wsSummary = wb.addWorksheet('Tổng hợp');
+    wsSummary.addRow(['Tổng số phiếu', summaryData.total]);
+    wsSummary.addRow([]);
+    wsSummary.addRow(['Mức độ', 'Số lượng']);
+    summaryData.byRisk.forEach((r) => wsSummary.addRow([bandLabel(r.risk_level), r.count]));
+    wsSummary.addRow([]);
+    wsSummary.addRow(['Vấn đề phổ biến', 'Số lượng']);
+    summaryData.byIssue.forEach((r) => wsSummary.addRow([issueCategoryLabel(r.issue_category), r.count]));
+    wsSummary.addRow([]);
+    wsSummary.addRow(['Hình thức hỗ trợ mong muốn', 'Số lượng']);
+    summaryData.bySupportFormat.forEach((r) => wsSummary.addRow([supportFormatLabel(r.support_format), r.count]));
+
+    const cursor = { value: 0 };
+    addChartImage(wb, wsSummary, cursor, {
+      type: 'pie',
+      labels: summaryData.byRisk.map((r) => bandLabel(r.risk_level)),
+      values: summaryData.byRisk.map((r) => r.count),
+      colors: summaryData.byRisk.map((r) => BAND_COLORS[r.risk_level])
+    });
+    if (summaryData.byIssue.length) {
+      addChartImage(wb, wsSummary, cursor, {
+        type: 'bar',
+        labels: summaryData.byIssue.map((r) => issueCategoryLabel(r.issue_category)),
+        values: summaryData.byIssue.map((r) => r.count)
+      }, 480, Math.max(200, summaryData.byIssue.length * 26));
+    }
+    if (summaryData.bySupportFormat.length) {
+      addChartImage(wb, wsSummary, cursor, {
+        type: 'bar',
+        labels: summaryData.bySupportFormat.map((r) => supportFormatLabel(r.support_format)),
+        values: summaryData.bySupportFormat.map((r) => r.count)
+      }, 480, Math.max(200, summaryData.bySupportFormat.length * 26));
+    }
+
+    const wsList = wb.addWorksheet('Danh sách đăng ký');
+    wsList.addRow(['Trường', 'Học sinh cần hỗ trợ', 'Khối', 'Lớp', 'Người cung cấp thông tin', 'Email', 'Vấn đề', 'Mô tả', 'Mức độ', 'Hình thức hỗ trợ', 'SĐT', 'Ngày gửi']);
+    (listData.items || []).forEach((it) => {
+      wsList.addRow([
+        it.school_name || it.school_other || '', it.student_name || '', it.grade || it.grade_other || '', it.class_name || '',
+        informantLabel(it.informant), it.email || '', (it.issue_categories || []).map(issueCategoryLabel).join('; '), it.issue_description || '',
+        bandLabel(it.risk_level), (it.support_format || []).map(supportFormatLabel).join('; '), it.phone || '', dt(it.created_at)
+      ]);
+    });
+
+    await downloadWorkbookBlob(wb, `dang-ky-ho-tro-${new Date().toISOString().slice(0, 10)}.xlsx`);
+  } catch (error) {
+    alert(error.message || 'Không xuất được file.');
+  } finally {
+    exportingRegXlsx.value = false;
+  }
+}
+
+const showRegDetail = ref(false);
+const regDetailItem = ref(null);
+function openRegDetail(item) {
+  regDetailItem.value = item;
+  showRegDetail.value = true;
 }
 
 // ===== Chi tiết =====
@@ -376,9 +690,12 @@ onMounted(async () => {
 watch(tab, (next) => {
   if (next === 'summary' && !summary.value) loadSummary();
   if (next === 'schools' && !schoolsFull.value.length) loadSchoolsFull();
+  if (next === 'regResponses' && !regItems.value.length) loadReg(0);
+  if (next === 'regSummary' && !regSummary.value) loadRegSummary();
 });
 </script>
 
+<style scoped src="../../assets/clientAssessments.css"></style>
 <style scoped>
 .screening-band-dot {
     width: 12px;
@@ -389,8 +706,10 @@ watch(tab, (next) => {
 .screening-band-dot.band-do { background: #e05c5c; }
 .screening-band-dot.band-vang { background: #e0a92d; }
 .screening-band-dot.band-xanh { background: #4caf7d; }
+.screening-band-dot.band-khac { background: var(--kraft-light); }
 .screening-band-label.band-do { color: #c93f3f; }
 .screening-band-label.band-vang { color: #ad7f12; }
 .screening-band-label.band-xanh { color: #2f8a5c; }
+.screening-band-label.band-khac { color: var(--text-secondary); }
 .btn-outline.active { background: var(--mint-light); border-color: var(--mint-dark); }
 </style>

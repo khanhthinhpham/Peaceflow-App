@@ -7,6 +7,7 @@ import { runStreakWarningJob, runStreakLostNotificationJob } from '../jobs/strea
 import { runCleanupJob } from '../jobs/cleanup.job.js';
 import { runCommunityChallengeRewardJob } from '../jobs/community-challenge-reward.job.js';
 import { runCommunityWeeklyChallengeJob } from '../jobs/community-weekly-challenge.job.js';
+import { runScreeningMonthlyDigestJob } from '../jobs/screening-monthly-digest.job.js';
 
 const router = Router();
 
@@ -62,6 +63,22 @@ router.get('/cron/run-jobs', verifyCronSecret, async (req, res) => {
       results.streak_warning = `ok (sent=${r.sent})`;
     } catch (e) {
       results.streak_warning = e.message;
+    }
+  }
+
+  // Tổng hợp sàng lọc trường học (mức Vàng/Xanh) — chỉ gửi 1 lần/tháng, vào khung giờ 20h VN
+  // của NGÀY CUỐI THÁNG (dùng chung khung giờ cron đã có sẵn, không cần thêm lịch Vercel).
+  if (vnHour === 20) {
+    const vnDate = new Date(Date.now() + 7 * 60 * 60 * 1000);
+    // Toàn bộ tính bằng UTC getters/Date.UTC — tránh phụ thuộc timezone của máy chạy server.
+    const lastDayOfMonth = new Date(Date.UTC(vnDate.getUTCFullYear(), vnDate.getUTCMonth() + 1, 0)).getUTCDate();
+    const isLastDayOfMonth = vnDate.getUTCDate() === lastDayOfMonth;
+    if (isLastDayOfMonth) {
+      try {
+        results.screening_monthly_digest = await runScreeningMonthlyDigestJob();
+      } catch (e) {
+        results.screening_monthly_digest = e.message;
+      }
     }
   }
 

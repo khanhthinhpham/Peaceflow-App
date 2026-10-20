@@ -497,6 +497,58 @@ export async function sendBookingConfirmedEmail({ to, recipientName, expertName,
   });
 }
 
+// Phiếu sàng lọc đầu năm bị xếp "Đỏ" (cần ưu tiên hỗ trợ ngay) — báo NGAY cho đầu mối
+// trường qua email, không đợi tổng hợp cuối tháng như mức Vàng/Xanh. `attachment` (tuỳ
+// chọn) là file Excel tổng hợp đầy đủ — dùng khi gửi cho admin, không gửi cho trường.
+export async function sendScreeningRedAlertEmail({ to, schoolName, studentName, grade, className, total, attachment }) {
+  if (!hasMailProvider() || !to) return;
+  const link = `${APP_URL}/admin/screening`;
+  const subject = `🔴 Cần ưu tiên hỗ trợ — ${studentName || 'Học sinh'} (${schoolName || ''})`;
+  const html = `
+    <div style="font-family:sans-serif;max-width:520px;margin:0 auto;padding:32px 24px;">
+      <h2 style="color:#c93f3f;margin-bottom:8px;">🔴 Học sinh cần ưu tiên hỗ trợ ngay</h2>
+      <p style="color:#555;line-height:1.6;">Phiếu khảo sát/sàng lọc đầu năm vừa ghi nhận 1 trường hợp mức độ <strong>Đỏ</strong> tại <strong>${schoolName || 'trường của bạn'}</strong>:</p>
+      <div style="background:#fdeceb;border:1px solid #e05c5c;border-radius:10px;padding:14px 16px;margin:14px 0;color:#4A3728;">
+        <strong>${studentName || 'Chưa rõ tên'}</strong>${grade ? ` — Khối ${grade}` : ''}${className ? ` / ${className}` : ''}<br>
+        Điểm Phần 2: <strong>${total}/30</strong>
+      </div>
+      <p style="color:#555;line-height:1.6;">Vui lòng xem chi tiết và liên hệ hỗ trợ kịp thời.</p>
+      <a href="${link}" style="display:inline-block;margin:16px 0;padding:12px 28px;background:#e05c5c;color:#fff;border-radius:8px;text-decoration:none;font-weight:700;">Xem chi tiết</a>
+    </div>
+  `;
+  await sendMail({
+    from: FROM, to, subject, html,
+    ...(attachment ? { attachments: [attachment] } : {})
+  });
+}
+
+// Tổng hợp định kỳ cuối tháng — gửi 1 email duy nhất cho đầu mối quản trị (không phải từng
+// trường), kèm theo file Excel đầy đủ (giống bản admin tự xuất thủ công). Bao gồm CẢ 3 mức
+// Đỏ/Vàng/Xanh trong kỳ (mức Đỏ cũng xuất hiện lại ở đây dù đã báo ngay lúc phát sinh, vì
+// đây là báo cáo tổng kết định kỳ, không phải cảnh báo tức thời).
+export async function sendScreeningMonthlyDigestEmail({ to, periodLabel, total, doCount, vangCount, xanhCount, schoolCount, attachment }) {
+  if (!hasMailProvider() || !to) return;
+  const link = `${APP_URL}/admin/screening`;
+  const subject = `📊 Tổng hợp sàng lọc tâm lý ${periodLabel}`;
+  const html = `
+    <div style="font-family:sans-serif;max-width:520px;margin:0 auto;padding:32px 24px;">
+      <h2 style="color:#2D6A4F;margin-bottom:8px;">📊 Tổng hợp sàng lọc tâm lý — ${periodLabel}</h2>
+      <p style="color:#555;line-height:1.6;">Có <strong>${total}</strong> phiếu khảo sát từ <strong>${schoolCount}</strong> trường trong kỳ này:</p>
+      <div style="background:#F6F4EF;border:1px solid #E8CBA7;border-radius:10px;padding:14px 16px;margin:14px 0;color:#4A3728;">
+        🔴 Đỏ — cần ưu tiên: <strong>${doCount}</strong><br>
+        🟡 Vàng — cần được quan tâm: <strong>${vangCount}</strong><br>
+        🟢 Xanh — mức độ nhẹ: <strong>${xanhCount}</strong>
+      </div>
+      <p style="color:#555;line-height:1.6;">Chi tiết đầy đủ theo từng trường và từng phiếu có trong file Excel đính kèm.</p>
+      <a href="${link}" style="display:inline-block;margin:16px 0;padding:12px 28px;background:#52B788;color:#fff;border-radius:8px;text-decoration:none;font-weight:700;">Mở trang quản trị</a>
+    </div>
+  `;
+  await sendMail({
+    from: FROM, to, subject, html,
+    ...(attachment ? { attachments: [attachment] } : {})
+  });
+}
+
 function hasMailProvider() {
   return getConfiguredMailProviders().length > 0;
 }

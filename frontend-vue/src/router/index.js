@@ -72,16 +72,15 @@ const router = createRouter({
     { path: '/raven-test', name: 'raven-test', component: RavenTestView },
     // Trang xem kết quả bài test đã được chia sẻ công khai (qua link, không cần đăng nhập).
     { path: '/shared-result/:id', name: 'shared-result', component: SharedResultView },
-    // Phiếu khảo sát/sàng lọc đầu năm cho trường học — công khai, học sinh có thể chưa có
-    // tài khoản PeaceFlow nên đứng ngoài AppLayout, không cần đăng nhập.
-    { path: '/sang-loc-dau-nam', name: 'screening-form', component: ScreeningFormView },
-    // Phiếu đăng ký hỗ trợ — form RIÊNG, khác với phiếu khảo sát/sàng lọc đầu năm ở trên.
-    { path: '/dang-ky-ho-tro', name: 'support-registration', component: SupportRegistrationView },
     {
       path: '/',
       component: AppLayout,
       children: [
         { path: 'dashboard', name: 'dashboard', component: DashboardView, meta: { navKey: 'dashboard' } },
+        // Công khai (không cần đăng nhập — Sidebar/NotificationPanel tự xử lý trạng thái
+        // chưa đăng nhập), nhưng vẫn nằm trong AppLayout để giữ sidebar như mọi trang khác.
+        { path: 'sang-loc-dau-nam', name: 'screening-form', component: ScreeningFormView },
+        { path: 'dang-ky-ho-tro', name: 'support-registration', component: SupportRegistrationView },
         { path: 'mood-checkin', name: 'mood-checkin', component: MoodCheckinView, meta: { navKey: 'mood' } },
         { path: 'mood-assessment', name: 'mood-assessment', component: MoodAssessmentView, meta: { navKey: 'tests' } },
         { path: 'tasks', name: 'tasks', component: TasksView, meta: { navKey: 'tasks' } },

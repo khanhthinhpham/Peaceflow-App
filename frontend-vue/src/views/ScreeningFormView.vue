@@ -12,6 +12,13 @@
           <div class="screening-progress-label">Phần {{ step + 1 }} / {{ STEP_COUNT }}</div>
         </div>
 
+        <!-- Đã có điểm từ Phần 2 — note luôn điểm + mức độ Xanh/Vàng/Đỏ lên đây để em biết,
+             thay vì để tới cuối mới xem (ẩn ở Phần 1 vì chưa có điểm). -->
+        <div v-if="step >= 2 && wellbeingResult" class="screening-score-note" :class="`band-${wellbeingResult.band}`">
+          <span class="screening-score-note-score">{{ wellbeingResult.total }}/30 điểm</span>
+          <span class="screening-score-note-band">{{ wellbeingResult.bandLabel }}</span>
+        </div>
+
         <!-- Phần 1: Thông tin chung -->
         <section v-if="step === 0">
           <h2 class="screening-step-title">Phần 1. Thông tin chung</h2>
@@ -179,14 +186,6 @@
             </div>
           </div>
 
-          <div class="form-group">
-            <label class="form-label">Số điện thoại</label>
-            <input v-model="form.referralPhone" type="text" class="form-input" placeholder="Không bắt buộc">
-          </div>
-          <div class="form-group">
-            <label class="form-label">Mô tả (không bắt buộc)</label>
-            <textarea v-model="form.referralDescription" class="form-input" rows="3"></textarea>
-          </div>
         </section>
 
         <!-- Phần 7: Xác nhận -->
@@ -307,9 +306,18 @@ const form = reactive({
   referralCategories: [],
   referralRiskLevel: '',
   referralSupportFormat: [],
-  referralPhone: '',
-  referralDescription: '',
   confirmNote: ''
+});
+
+// Nhân bản ĐÚNG công thức chấm điểm server-side (riskBandFromScore ở screening.routes.js)
+// để note ngay cho em xem, không cần đợi submit xong. Server vẫn tự tính lại khi lưu,
+// đây chỉ là xem trước.
+const WELLBEING_BAND_LABELS = { do: '🔴 Đỏ — cần ưu tiên hỗ trợ ngay', vang: '🟡 Vàng — cần được quan tâm', xanh: '🟢 Xanh — mức độ nhẹ' };
+const wellbeingResult = computed(() => {
+  if (!form.wellbeingScores.every((n) => n >= 1)) return null;
+  const total = form.wellbeingScores.reduce((sum, n) => sum + n, 0);
+  const band = total <= 10 ? 'do' : total <= 19 ? 'vang' : 'xanh';
+  return { total, band, bandLabel: WELLBEING_BAND_LABELS[band] };
 });
 
 const canNext = computed(() => {
@@ -349,8 +357,6 @@ async function submit() {
       referralCategories: form.referralCategories,
       referralRiskLevel: form.referralRiskLevel || null,
       referralSupportFormat: form.referralSupportFormat,
-      referralPhone: form.referralPhone,
-      referralDescription: form.referralDescription,
       confirmNote: form.confirmNote
     });
     submitted.value = true;

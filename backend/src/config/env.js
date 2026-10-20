@@ -36,6 +36,11 @@ export const env = {
   brevoFrom: process.env.BREVO_FROM,
   emailFrom: process.env.EMAIL_FROM || 'PeaceFlow <onboarding@resend.dev>',
   adminEmail: process.env.ADMIN_EMAIL || 'peaceflow.vn@gmail.com',
+  // Người nhận báo đỏ tức thời + tổng hợp cuối tháng của phiếu sàng lọc tâm lý trường học
+  // (xem src/jobs/screening-monthly-digest.job.js, screening.routes.js). Nhiều người thì
+  // cách nhau bằng dấu phẩy trong SCREENING_ADMIN_EMAIL.
+  screeningAdminEmails: (process.env.SCREENING_ADMIN_EMAIL || 'khanhthinhpham@gmail.com,hoangtu251004@gmail.com')
+    .split(',').map((e) => e.trim()).filter(Boolean),
   apiPublicUrl: (process.env.API_PUBLIC_URL || `http://localhost:${process.env.PORT || 4000}`).replace(/\/+$/, ''),
   googleClientId: process.env.GOOGLE_CLIENT_ID,
   frontendUrl: process.env.FRONTEND_URL || 'https://peaceflow.vn',
