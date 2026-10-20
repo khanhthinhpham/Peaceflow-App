@@ -74,7 +74,8 @@ const NAV_ITEMS = [
   { route: 'admin-community-challenges', key: 'community-challenges', icon: '🔥', label: 'Thử thách cộng đồng' },
   { route: 'admin-articles', key: 'articles', icon: '📰', label: 'Quản lý bài viết' },
   { route: 'admin-broadcast', key: 'broadcast', icon: '📣', label: 'Gửi thông báo hàng loạt' },
-  { route: 'admin-ai-usage', key: 'ai-usage', icon: '🤖', label: 'Quản lý AI' }
+  { route: 'admin-ai-usage', key: 'ai-usage', icon: '🤖', label: 'Quản lý AI' },
+  { route: 'admin-screening', key: 'screening', icon: '🏫', label: 'Sàng lọc trường học' }
 ];
 
 const route = useRoute();

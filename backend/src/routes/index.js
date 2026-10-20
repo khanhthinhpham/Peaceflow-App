@@ -17,6 +17,7 @@ import notificationRoutes from '../modules/notifications/notification.routes.js'
 import cronRoutes from './cron.routes.js';
 import aiRoutes from '../modules/ai/ai.routes.js';
 import zoomRoutes from '../modules/zoom/zoom.routes.js';
+import screeningRoutes from '../modules/screening/screening.routes.js';
 
 const router = Router();
 
@@ -38,5 +39,6 @@ router.use('/', notificationRoutes);
 router.use('/', cronRoutes);
 router.use('/', aiRoutes);
 router.use('/', zoomRoutes);
+router.use('/', screeningRoutes);
 
 export default router;

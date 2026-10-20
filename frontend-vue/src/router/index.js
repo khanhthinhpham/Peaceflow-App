@@ -51,6 +51,8 @@ import ExpertReviewStatusView from '../views/expert/ExpertReviewStatusView.vue';
 import ExpertPaymentsView from '../views/expert/ExpertPaymentsView.vue';
 import ExpertSharedRecordsView from '../views/expert/ExpertSharedRecordsView.vue';
 import ExpertClinicalProtocolsView from '../views/expert/ExpertClinicalProtocolsView.vue';
+import ScreeningFormView from '../views/ScreeningFormView.vue';
+import AdminScreeningView from '../views/admin/AdminScreeningView.vue';
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -69,6 +71,9 @@ const router = createRouter({
     { path: '/raven-test', name: 'raven-test', component: RavenTestView },
     // Trang xem kết quả bài test đã được chia sẻ công khai (qua link, không cần đăng nhập).
     { path: '/shared-result/:id', name: 'shared-result', component: SharedResultView },
+    // Phiếu khảo sát/sàng lọc đầu năm cho trường học — công khai, học sinh có thể chưa có
+    // tài khoản PeaceFlow nên đứng ngoài AppLayout, không cần đăng nhập.
+    { path: '/sang-loc-dau-nam', name: 'screening-form', component: ScreeningFormView },
     {
       path: '/',
       component: AppLayout,
@@ -111,7 +116,8 @@ const router = createRouter({
         { path: 'community-challenges', name: 'admin-community-challenges', component: AdminCommunityChallengesView, meta: { navKey: 'community-challenges' } },
         { path: 'broadcast', name: 'admin-broadcast', component: AdminBroadcastView, meta: { navKey: 'broadcast' } },
         { path: 'assessment-results', name: 'admin-assessment-results', component: AdminAssessmentResultsView, meta: { navKey: 'assessment-results' } },
-        { path: 'ai-usage', name: 'admin-ai-usage', component: AdminAiUsageView, meta: { navKey: 'ai-usage' } }
+        { path: 'ai-usage', name: 'admin-ai-usage', component: AdminAiUsageView, meta: { navKey: 'ai-usage' } },
+        { path: 'screening', name: 'admin-screening', component: AdminScreeningView, meta: { navKey: 'screening' } }
       ]
     },
     // Khu chuyên gia — shell/sidebar riêng (CSS grid), không dùng chung AppLayout.
