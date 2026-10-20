@@ -154,7 +154,23 @@
             <div class="tsc-last">{{ t('moodAssessment.selector.ravenLastLabel') }}</div>
           </div>
 
-          <div v-if="!pagedTestCards.length && !showRavenCard" class="paper-card" style="padding:18px;color:var(--text-secondary);">
+          <div
+            v-if="showScreeningCard"
+            class="test-select-card sdq"
+            @click="router.push('/sang-loc-dau-nam')"
+          >
+            <div class="tsc-icon" style="background:var(--sky-light);border-color:var(--sky);">🏫</div>
+            <div class="tsc-name">Khám sàng lọc HSSV</div>
+            <div class="tsc-fullname">Phiếu khảo sát/sàng lọc đầu năm (dành cho trường học)</div>
+            <div class="tsc-desc">Tìm hiểu nhu cầu hỗ trợ tâm lý – xã hội của học sinh, giúp nhà trường xây dựng kế hoạch tư vấn phù hợp.</div>
+            <div class="tsc-meta">
+              <span class="badge-pill badge-sky">7 phần</span>
+              <span class="badge-pill badge-mint">~10 phút</span>
+              <span class="badge-pill" style="background:var(--peach-light);color:#a1683f;border:1.5px solid var(--peach);">Dành cho trường học</span>
+            </div>
+          </div>
+
+          <div v-if="!pagedTestCards.length && !showRavenCard && !showScreeningCard" class="paper-card" style="padding:18px;color:var(--text-secondary);">
             {{ t('moodAssessment.selector.noResults') }}
           </div>
         </div>
@@ -806,6 +822,16 @@ const showRavenCard = computed(() => {
   const ravenName = t('moodAssessment.selector.ravenName').toLowerCase();
   const ravenFullname = t('moodAssessment.selector.ravenFullname').toLowerCase();
   return ravenName.includes(query) || ravenFullname.includes(query);
+});
+
+// Thẻ "Khám sàng lọc HSSV" — không phải bài Likert tự chấm trong TESTS nên đứng ngoài
+// pagedTestCards, dẫn sang trang riêng /sang-loc-dau-nam (form 7 phần cho trường học).
+// Không lọc theo category vì không thuộc nhóm lâm sàng nào cụ thể, chỉ áp search + trang 1.
+const showScreeningCard = computed(() => {
+  if (catalogPage.value !== 1) return false;
+  const query = testSearchQuery.value.trim().toLowerCase();
+  if (!query) return true;
+  return 'khám sàng lọc hssv'.includes(query) || 'phiếu khảo sát sàng lọc đầu năm'.includes(query);
 });
 
 const historyCards = computed(() => history.value.map((item) => {
