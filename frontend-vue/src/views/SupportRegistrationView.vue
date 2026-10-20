@@ -122,10 +122,12 @@
           <input v-if="form.supportFormat.includes('khac')" v-model="form.supportFormatOther" type="text" class="form-input" style="margin-top:8px;" placeholder="Ghi rõ...">
         </div>
 
-        <label class="screening-check-item" style="margin-top:4px;">
-          <input type="checkbox" v-model="form.consent">
-          Tôi xác nhận các thông tin trên được cung cấp nhằm mục đích giúp nhà trường hiểu và hỗ trợ học sinh phù hợp hơn.
-        </label>
+        <div class="screening-consent-box">
+          <label class="screening-consent-item">
+            <input type="checkbox" v-model="form.consent">
+            <span>Tôi xác nhận các thông tin trên được cung cấp nhằm mục đích giúp nhà trường hiểu và hỗ trợ học sinh phù hợp hơn.</span>
+          </label>
+        </div>
         <div class="form-group" style="margin-top:10px;">
           <label class="form-label">Chia sẻ thêm (không bắt buộc)</label>
           <textarea v-model="form.confirmNote" class="form-input" rows="3"></textarea>

@@ -105,6 +105,27 @@
     cursor: pointer;
 }
 .screening-check-item input { margin-top: 3px; flex-shrink: 0; }
+
+/* Ô xác nhận đứng tách hẳn khỏi các checklist phía trên (border-top + nền riêng), tránh bị
+   đọc nhầm là 1 lựa chọn nữa trong nhóm "Hình thức mong muốn hỗ trợ" ngay bên trên. */
+.screening-consent-box {
+    margin-top: 22px;
+    padding-top: 18px;
+    border-top: 1.5px dashed var(--kraft-light);
+}
+.screening-consent-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 12px 14px;
+    border: 1.5px solid var(--mint-dark);
+    border-radius: var(--border-radius-sm);
+    background: var(--mint-light);
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+.screening-consent-item input { margin-top: 3px; flex-shrink: 0; }
 .screening-check-hint {
     font-size: 0.72rem;
     color: var(--text-secondary);
@@ -175,6 +196,19 @@
 .screening-done {
     text-align: center;
     padding: 40px 24px;
+}
+.screening-emergency-suggest {
+    margin-top: 22px;
+    padding: 18px 16px;
+    border: 1.5px solid var(--coral);
+    background: var(--coral-light);
+    border-radius: var(--border-radius-sm);
+}
+.screening-emergency-suggest p {
+    margin: 0 0 12px;
+    font-size: 0.88rem;
+    color: var(--text-primary);
+    line-height: 1.6;
 }
 @media (max-width: 640px) {
     .screening-card { margin: 12px 0 0; padding: 18px; }

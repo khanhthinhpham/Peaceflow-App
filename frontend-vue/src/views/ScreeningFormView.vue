@@ -210,6 +210,13 @@
         <div style="font-size:2.4rem;">✅</div>
         <h2 class="screening-step-title">Đã gửi phiếu khảo sát!</h2>
         <p class="screening-step-desc">Cảm ơn em đã chia sẻ. Nhà trường sẽ xem xét và liên hệ nếu em đồng ý hoặc nếu cần hỗ trợ thêm.</p>
+
+        <!-- Kết quả Phần 2 ra mức Đỏ — gợi ý luôn lối vào hỗ trợ khẩn cấp, không đợi nhà
+             trường liên hệ lại (có thể mất thời gian), vì đây là lúc em đang cần nhất. -->
+        <div v-if="wellbeingResult?.band === 'do'" class="screening-emergency-suggest">
+          <p>Nếu em đang cảm thấy không ổn, đừng chờ đợi một mình — có người sẵn sàng lắng nghe ngay bây giờ.</p>
+          <router-link to="/emergency" class="btn-primary" style="background:var(--coral);border-color:var(--coral-dark, var(--coral));">🆘 Hỗ trợ khẩn cấp</router-link>
+        </div>
       </div>
     </div>
   </div>
