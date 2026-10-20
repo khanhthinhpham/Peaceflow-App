@@ -129,7 +129,7 @@ router.post('/screening/responses', attachUserIfPresent, async (req, res) => {
           grade: body.grade,
           className: body.className,
           createdAt: r.rows[0].created_at,
-          total,
+          total, wellbeingScores: scores,
           difficulties, difficultiesOther: body.difficultiesOther,
           supportNeeds, supportNeedsOther: body.supportNeedsOther,
           shareNote: body.shareNote, consentContact: Boolean(body.consentContact), contact: body.contact,

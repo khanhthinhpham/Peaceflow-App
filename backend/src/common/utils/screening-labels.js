@@ -21,6 +21,17 @@ export const REFERRAL_CATEGORY_LABELS = { hoc_tap: 'Học tập', huong_nghiep: 
 export const SUPPORT_FORMAT_LABELS = { tai_lieu: 'Tài liệu/hướng dẫn', tu_van_truong: 'Tư vấn/hỗ trợ tại trường', ket_noi_chuyen_gia: 'Kết nối chuyên gia', ho_tro_khan: 'Hỗ trợ khẩn' };
 export const BAND_LABELS = { do: 'Đỏ — cần ưu tiên', vang: 'Vàng — cần quan tâm', xanh: 'Xanh — nhẹ' };
 
+// Đúng 6 câu Phần 2 (ScreeningFormView.vue) — cần hiển thị kèm điểm từng câu để người đọc
+// (đầu mối trường, admin) hiểu VÌ SAO ra điểm đó, không phải chỉ thấy "6/30" trơ trọi.
+export const WELLBEING_QUESTIONS = [
+  'Em cảm thấy nhìn chung mình thích nghi được với việc học ở trường.',
+  'Em không cảm thấy áp lực vì học tập, điểm số hoặc thi cử.',
+  'Em cảm thấy có ít nhất một thầy/cô mà em có thể trao đổi khi cần.',
+  'Em cảm thấy có bạn bè hoặc người thân có thể lắng nghe em.',
+  'Em không cảm thấy khó ngủ, mệt mỏi hoặc mất tập trung vì lo lắng.',
+  'Em cảm thấy mình biết cách tìm kiếm sự giúp đỡ khi gặp khó khăn.'
+];
+
 export const difficultyLabel = (k) => DIFFICULTY_LABELS[k] || k;
 export const supportNeedLabel = (k) => SUPPORT_NEED_LABELS[k] || k;
 export const referralCategoryLabel = (k) => REFERRAL_CATEGORY_LABELS[k] || k;

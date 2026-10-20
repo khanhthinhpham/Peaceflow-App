@@ -192,6 +192,11 @@
         <template v-if="detailItem">
           <p><span :class="`screening-band-label band-${detailItem.risk_band}`">{{ bandLabel(detailItem.risk_band) }}</span> — {{ detailItem.wellbeing_total }}/30 điểm (Phần 2)</p>
 
+          <h4>Chi tiết điểm Phần 2 <span style="font-weight:400;color:var(--text-light);font-size:.78rem;">(thang 1 = hoàn toàn không đúng, 5 = rất đúng)</span></h4>
+          <ul>
+            <li v-for="(q, i) in WELLBEING_QUESTIONS" :key="i">{{ q }} — <strong>{{ detailItem.wellbeing_scores?.[i] ?? '?' }}/5</strong></li>
+          </ul>
+
           <h4>Khó khăn đang gặp</h4>
           <p v-if="!detailItem.difficulties.length && !detailItem.difficulties_other">Không ghi nhận.</p>
           <ul v-else>
@@ -270,6 +275,16 @@ import AdminChart from '../../components/AdminChart.vue';
 
 Chart.register(...registerables);
 
+// Đúng 6 câu Phần 2 (ScreeningFormView.vue) — hiện kèm điểm từng câu trong khung chi tiết
+// để admin hiểu VÌ SAO ra tổng điểm đó, không phải chỉ thấy "X/30" trơ trọi.
+const WELLBEING_QUESTIONS = [
+  'Em cảm thấy nhìn chung mình thích nghi được với việc học ở trường.',
+  'Em không cảm thấy áp lực vì học tập, điểm số hoặc thi cử.',
+  'Em cảm thấy có ít nhất một thầy/cô mà em có thể trao đổi khi cần.',
+  'Em cảm thấy có bạn bè hoặc người thân có thể lắng nghe em.',
+  'Em không cảm thấy khó ngủ, mệt mỏi hoặc mất tập trung vì lo lắng.',
+  'Em cảm thấy mình biết cách tìm kiếm sự giúp đỡ khi gặp khó khăn.'
+];
 const DIFFICULTY_LABELS = {
   ap_luc_hoc_tap: 'Áp lực học tập, thi cử', lo_lang_cang_thang: 'Lo lắng, căng thẳng',
   buon_chan_mat_hung_thu: 'Buồn chán, mất hứng thú', kho_kiem_soat_cam_xuc: 'Khó kiểm soát cảm xúc',

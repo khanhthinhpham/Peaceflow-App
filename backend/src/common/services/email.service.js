@@ -1,6 +1,6 @@
 import { env } from '../../config/env.js';
 import { sendMail, getConfiguredMailProviders } from './mail-transport.js';
-import { difficultyLabel, supportNeedLabel, referralCategoryLabel, supportFormatLabel, bandLabel } from '../utils/screening-labels.js';
+import { difficultyLabel, supportNeedLabel, referralCategoryLabel, supportFormatLabel, bandLabel, WELLBEING_QUESTIONS } from '../utils/screening-labels.js';
 
 const FROM = env.emailFrom;
 const APP_URL = env.frontendUrl;
@@ -506,7 +506,7 @@ export async function sendBookingConfirmedEmail({ to, recipientName, expertName,
 // phiếu đăng ký hỗ trợ) — KHÔNG kèm file Excel tổng hợp toàn bộ (để dành cho báo cáo cuối
 // tháng), vì cảnh báo tức thời chỉ cần đúng 1 trường hợp này.
 export async function sendScreeningRedAlertEmail({
-  to, schoolName, studentName, grade, className, createdAt, total,
+  to, schoolName, studentName, grade, className, createdAt, total, wellbeingScores = [],
   difficulties = [], difficultiesOther, supportNeeds = [], supportNeedsOther,
   shareNote, consentContact, contact,
   referralCategories = [], referralRiskLevel, referralSupportFormat = [],
@@ -518,11 +518,18 @@ export async function sendScreeningRedAlertEmail({
   const dateLabel = createdAt ? new Intl.DateTimeFormat('vi-VN', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(createdAt)) : '';
   const difficultiesList = [...difficulties.map(difficultyLabel), difficultiesOther ? `Khác: ${difficultiesOther}` : null].filter(Boolean);
   const supportNeedsList = [...supportNeeds.map(supportNeedLabel), supportNeedsOther ? `Khác: ${supportNeedsOther}` : null].filter(Boolean);
+  // Điểm từng câu Phần 2 — để người đọc hiểu VÌ SAO ra tổng điểm đó, không phải chỉ thấy
+  // "X/30" trơ trọi không giải thích gì.
+  const wellbeingRows = WELLBEING_QUESTIONS.map((q, i) => `${q} — <strong>${wellbeingScores[i] ?? '?'}/5</strong>`);
   const html = `
     <div style="font-family:sans-serif;max-width:520px;margin:0 auto;padding:32px 24px;">
       <h2 style="color:#c93f3f;margin-bottom:4px;">${studentName || 'Chưa rõ tên'}</h2>
       <p style="color:#999;font-size:0.85rem;margin:0 0 14px;">${schoolName || ''}${grade ? ` · Khối ${grade}` : ''}${className ? ` / ${className}` : ''}${dateLabel ? ` · ${dateLabel}` : ''}</p>
       <p style="color:#c93f3f;font-weight:700;">🔴 Đỏ — cần ưu tiên hỗ trợ ngay — ${total}/30 điểm (Phần 2)</p>
+      ${wellbeingRows.length ? `
+      <p style="margin-bottom:2px;"><strong>Chi tiết điểm Phần 2 — thang 1 (hoàn toàn không đúng) đến 5 (rất đúng)</strong></p>
+      <p style="color:#555;margin-top:2px;line-height:1.7;">${wellbeingRows.join('<br>')}</p>
+      ` : ''}
 
       ${difficultiesList.length ? `<p style="margin-bottom:2px;"><strong>Khó khăn đang gặp</strong></p><p style="color:#555;margin-top:2px;">${difficultiesList.join('<br>')}</p>` : ''}
       ${supportNeedsList.length ? `<p style="margin-bottom:2px;"><strong>Nhu cầu hỗ trợ</strong></p><p style="color:#555;margin-top:2px;">${supportNeedsList.join('<br>')}</p>` : ''}
