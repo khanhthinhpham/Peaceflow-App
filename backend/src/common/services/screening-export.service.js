@@ -1,28 +1,6 @@
 import ExcelJS from 'exceljs';
 import { db } from '../../config/db.js';
-
-// Nhãn tiếng Việt — trùng với các map hiển thị bên admin (AdminScreeningView.vue), giữ
-// riêng 1 bản ở backend vì 2 nơi khác runtime, không import chéo frontend/backend được.
-const DIFFICULTY_LABELS = {
-  ap_luc_hoc_tap: 'Áp lực học tập, thi cử', lo_lang_cang_thang: 'Lo lắng, căng thẳng',
-  buon_chan_mat_hung_thu: 'Buồn chán, mất hứng thú', kho_kiem_soat_cam_xuc: 'Khó kiểm soát cảm xúc',
-  mau_thuan_ban_be: 'Mâu thuẫn với bạn bè', mau_thuan_gia_dinh: 'Mâu thuẫn với cha mẹ/người thân',
-  bi_treu_choc_bat_nat: 'Bị trêu chọc, bắt nạt hoặc cô lập', kho_khan_mang_xa_hoi: 'Khó khăn khi sử dụng mạng xã hội',
-  kho_khan_dinh_huong_nghe_nghiep: 'Khó khăn về định hướng nghề nghiệp', kho_khan_hoan_canh_gia_dinh: 'Khó khăn về hoàn cảnh gia đình',
-  khong_co_kho_khan: 'Không có khó khăn đáng kể'
-};
-const SUPPORT_NEED_LABELS = {
-  ky_nang_quan_ly_cang_thang: 'Kỹ năng quản lý căng thẳng', ky_nang_hoc_tap: 'Kỹ năng học tập hiệu quả',
-  ky_nang_dieu_hoa_cam_xuc: 'Kỹ năng điều hoà cảm xúc', ky_nang_giao_tiep: 'Kỹ năng giao tiếp và giải quyết mâu thuẫn',
-  phong_chong_bao_luc: 'Phòng chống bạo lực học đường', an_toan_mang: 'An toàn trên môi trường mạng',
-  tu_van_huong_nghiep: 'Tư vấn hướng nghiệp', tro_chuyen_rieng: 'Trò chuyện riêng với thầy/cô hoặc tổ tư vấn',
-  khong_co_nhu_cau: 'Không có nhu cầu hiện tại'
-};
-const BAND_LABELS = { do: 'Đỏ — cần ưu tiên', vang: 'Vàng — cần quan tâm', xanh: 'Xanh — nhẹ' };
-
-const difficultyLabel = (k) => DIFFICULTY_LABELS[k] || k;
-const supportNeedLabel = (k) => SUPPORT_NEED_LABELS[k] || k;
-const bandLabel = (b) => BAND_LABELS[b] || b;
+import { difficultyLabel, supportNeedLabel, bandLabel } from '../utils/screening-labels.js';
 
 function dt(value) {
   if (!value) return '';

@@ -4,7 +4,6 @@ import { verifyAccessToken } from '../../common/utils/jwt.js';
 import { findUserById } from '../auth/auth.repository.js';
 import { requireAuth } from '../../common/middleware/auth.middleware.js';
 import { sendScreeningRedAlertEmail } from '../../common/services/email.service.js';
-import { buildScreeningExcelBuffer } from '../../common/services/screening-export.service.js';
 import { env } from '../../config/env.js';
 
 const router = Router();
@@ -80,6 +79,10 @@ router.post('/screening/responses', attachUserIfPresent, async (req, res) => {
 
     const gender = ['male', 'female', 'unspecified'].includes(body.gender) ? body.gender : 'unspecified';
     const referralRiskLevel = ['xanh', 'vang', 'do'].includes(body.referralRiskLevel) ? body.referralRiskLevel : null;
+    const difficulties = pickKnownKeys(body.difficulties, DIFFICULTY_KEYS);
+    const supportNeeds = pickKnownKeys(body.supportNeeds, SUPPORT_NEED_KEYS);
+    const referralCategories = pickKnownKeys(body.referralCategories, REFERRAL_CATEGORY_KEYS);
+    const referralSupportFormat = pickKnownKeys(body.referralSupportFormat, REFERRAL_SUPPORT_FORMAT_KEYS);
 
     const r = await db.query(
       `insert into screening_responses (
@@ -100,48 +103,40 @@ router.post('/screening/responses', attachUserIfPresent, async (req, res) => {
       [
         body.schoolId || null, req.user?.id || null, body.studentName || null, body.grade || null, body.className || null, gender, body.contact || null,
         JSON.stringify(scores), total, band,
-        JSON.stringify(pickKnownKeys(body.difficulties, DIFFICULTY_KEYS)), body.difficultiesOther || null,
-        JSON.stringify(pickKnownKeys(body.supportNeeds, SUPPORT_NEED_KEYS)), body.supportNeedsOther || null,
+        JSON.stringify(difficulties), body.difficultiesOther || null,
+        JSON.stringify(supportNeeds), body.supportNeedsOther || null,
         body.shareNote || null, Boolean(body.consentContact),
-        JSON.stringify(pickKnownKeys(body.referralCategories, REFERRAL_CATEGORY_KEYS)), referralRiskLevel,
-        JSON.stringify(pickKnownKeys(body.referralSupportFormat, REFERRAL_SUPPORT_FORMAT_KEYS)), body.referralPhone || null, body.referralDescription || null,
+        JSON.stringify(referralCategories), referralRiskLevel,
+        JSON.stringify(referralSupportFormat), body.referralPhone || null, body.referralDescription || null,
         body.confirmNote || null
       ]
     );
 
-    // Mức Đỏ -> báo ngay: cho cả đầu mối trường (nếu có cấu hình contact_email) VÀ admin
-    // phụ trách chung (env.screeningAdminEmails) — admin luôn nhận, kèm file Excel đầy đủ
-    // để xem ngay không cần đăng nhập vào trang quản trị. "Bắn và quên": lỗi gửi mail
-    // không được làm hỏng việc nộp phiếu của học sinh.
+    // Mức Đỏ -> báo ngay cho đầu mối trường (nếu có contact_email) + admin phụ trách chung
+    // (env.screeningAdminEmails), CÙNG 1 nội dung: đầy đủ chi tiết của đúng 1 phiếu này
+    // (như khung xem chi tiết bên admin) — KHÔNG kèm file Excel tổng hợp (để dành riêng cho
+    // báo cáo cuối tháng). "Bắn và quên": lỗi gửi mail không được làm hỏng việc nộp phiếu.
     if (band === 'do') {
       (async () => {
         const school = body.schoolId
           ? (await db.query(`select name, contact_email from screening_schools where id = $1`, [body.schoolId])).rows[0]
           : null;
+        const recipients = [school?.contact_email, ...env.screeningAdminEmails].filter(Boolean);
+        if (!recipients.length) return;
 
-        if (school?.contact_email) {
-          await sendScreeningRedAlertEmail({
-            to: school.contact_email,
-            schoolName: school.name,
-            studentName: body.studentName,
-            grade: body.grade,
-            className: body.className,
-            total
-          });
-        }
-
-        if (env.screeningAdminEmails.length) {
-          const buffer = await buildScreeningExcelBuffer({});
-          await sendScreeningRedAlertEmail({
-            to: env.screeningAdminEmails,
-            schoolName: school?.name,
-            studentName: body.studentName,
-            grade: body.grade,
-            className: body.className,
-            total,
-            attachment: { filename: `sang-loc-truong-hoc-${new Date().toISOString().slice(0, 10)}.xlsx`, content: buffer }
-          });
-        }
+        await sendScreeningRedAlertEmail({
+          to: recipients,
+          schoolName: school?.name,
+          studentName: body.studentName,
+          grade: body.grade,
+          className: body.className,
+          createdAt: r.rows[0].created_at,
+          total,
+          difficulties, difficultiesOther: body.difficultiesOther,
+          supportNeeds, supportNeedsOther: body.supportNeedsOther,
+          shareNote: body.shareNote, consentContact: Boolean(body.consentContact), contact: body.contact,
+          referralCategories, referralRiskLevel, referralSupportFormat
+        });
       })().catch((error) => console.error('Send screening red alert email error:', error?.message || error));
     }
 

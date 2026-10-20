@@ -1,5 +1,6 @@
 import { env } from '../../config/env.js';
 import { sendMail, getConfiguredMailProviders } from './mail-transport.js';
+import { difficultyLabel, supportNeedLabel, referralCategoryLabel, supportFormatLabel, bandLabel } from '../utils/screening-labels.js';
 
 const FROM = env.emailFrom;
 const APP_URL = env.frontendUrl;
@@ -500,26 +501,46 @@ export async function sendBookingConfirmedEmail({ to, recipientName, expertName,
 // Phiếu sàng lọc đầu năm bị xếp "Đỏ" (cần ưu tiên hỗ trợ ngay) — báo NGAY cho đầu mối
 // trường qua email, không đợi tổng hợp cuối tháng như mức Vàng/Xanh. `attachment` (tuỳ
 // chọn) là file Excel tổng hợp đầy đủ — dùng khi gửi cho admin, không gửi cho trường.
-export async function sendScreeningRedAlertEmail({ to, schoolName, studentName, grade, className, total, attachment }) {
+// Nội dung email cảnh báo Đỏ: đúng những gì admin thấy trong khung chi tiết 1 phiếu bên
+// trang quản trị (tên, trường/khối/lớp/ngày, điểm, khó khăn, nhu cầu hỗ trợ, chia sẻ thêm,
+// phiếu đăng ký hỗ trợ) — KHÔNG kèm file Excel tổng hợp toàn bộ (để dành cho báo cáo cuối
+// tháng), vì cảnh báo tức thời chỉ cần đúng 1 trường hợp này.
+export async function sendScreeningRedAlertEmail({
+  to, schoolName, studentName, grade, className, createdAt, total,
+  difficulties = [], difficultiesOther, supportNeeds = [], supportNeedsOther,
+  shareNote, consentContact, contact,
+  referralCategories = [], referralRiskLevel, referralSupportFormat = []
+}) {
   if (!hasMailProvider() || !to) return;
   const link = `${APP_URL}/admin/screening`;
   const subject = `🔴 Cần ưu tiên hỗ trợ — ${studentName || 'Học sinh'} (${schoolName || ''})`;
+  const dateLabel = createdAt ? new Intl.DateTimeFormat('vi-VN', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(createdAt)) : '';
+  const difficultiesList = [...difficulties.map(difficultyLabel), difficultiesOther ? `Khác: ${difficultiesOther}` : null].filter(Boolean);
+  const supportNeedsList = [...supportNeeds.map(supportNeedLabel), supportNeedsOther ? `Khác: ${supportNeedsOther}` : null].filter(Boolean);
   const html = `
     <div style="font-family:sans-serif;max-width:520px;margin:0 auto;padding:32px 24px;">
-      <h2 style="color:#c93f3f;margin-bottom:8px;">🔴 Học sinh cần ưu tiên hỗ trợ ngay</h2>
-      <p style="color:#555;line-height:1.6;">Phiếu khảo sát/sàng lọc đầu năm vừa ghi nhận 1 trường hợp mức độ <strong>Đỏ</strong> tại <strong>${schoolName || 'trường của bạn'}</strong>:</p>
-      <div style="background:#fdeceb;border:1px solid #e05c5c;border-radius:10px;padding:14px 16px;margin:14px 0;color:#4A3728;">
-        <strong>${studentName || 'Chưa rõ tên'}</strong>${grade ? ` — Khối ${grade}` : ''}${className ? ` / ${className}` : ''}<br>
-        Điểm Phần 2: <strong>${total}/30</strong>
-      </div>
-      <p style="color:#555;line-height:1.6;">Vui lòng xem chi tiết và liên hệ hỗ trợ kịp thời.</p>
-      <a href="${link}" style="display:inline-block;margin:16px 0;padding:12px 28px;background:#e05c5c;color:#fff;border-radius:8px;text-decoration:none;font-weight:700;">Xem chi tiết</a>
+      <h2 style="color:#c93f3f;margin-bottom:4px;">${studentName || 'Chưa rõ tên'}</h2>
+      <p style="color:#999;font-size:0.85rem;margin:0 0 14px;">${schoolName || ''}${grade ? ` · Khối ${grade}` : ''}${className ? ` / ${className}` : ''}${dateLabel ? ` · ${dateLabel}` : ''}</p>
+      <p style="color:#c93f3f;font-weight:700;">🔴 Đỏ — cần ưu tiên hỗ trợ ngay — ${total}/30 điểm (Phần 2)</p>
+
+      ${difficultiesList.length ? `<p style="margin-bottom:2px;"><strong>Khó khăn đang gặp</strong></p><p style="color:#555;margin-top:2px;">${difficultiesList.join('<br>')}</p>` : ''}
+      ${supportNeedsList.length ? `<p style="margin-bottom:2px;"><strong>Nhu cầu hỗ trợ</strong></p><p style="color:#555;margin-top:2px;">${supportNeedsList.join('<br>')}</p>` : ''}
+
+      <p style="margin-bottom:2px;"><strong>Chia sẻ thêm</strong></p>
+      <p style="color:#555;margin-top:2px;">${shareNote || 'Không có.'}</p>
+      <p style="color:#555;">Đồng ý được liên hệ: <strong>${consentContact ? 'Có' : 'Không'}</strong>${contact ? ` · Liên hệ: ${contact}` : ''}</p>
+
+      ${(referralCategories.length || referralRiskLevel) ? `
+      <p style="margin-bottom:2px;"><strong>Phiếu đăng ký hỗ trợ</strong></p>
+      ${referralCategories.length ? `<p style="color:#555;margin:2px 0;">Vấn đề: ${referralCategories.map(referralCategoryLabel).join(', ')}</p>` : ''}
+      ${referralRiskLevel ? `<p style="color:#555;margin:2px 0;">Tự nhận định mức độ: ${bandLabel(referralRiskLevel)}</p>` : ''}
+      ${referralSupportFormat.length ? `<p style="color:#555;margin:2px 0;">Hình thức mong muốn: ${referralSupportFormat.map(supportFormatLabel).join(', ')}</p>` : ''}
+      ` : ''}
+
+      <a href="${link}" style="display:inline-block;margin:16px 0;padding:12px 28px;background:#e05c5c;color:#fff;border-radius:8px;text-decoration:none;font-weight:700;">Xem trên trang quản trị</a>
     </div>
   `;
-  await sendMail({
-    from: FROM, to, subject, html,
-    ...(attachment ? { attachments: [attachment] } : {})
-  });
+  await sendMail({ from: FROM, to, subject, html });
 }
 
 // Tổng hợp định kỳ cuối tháng — gửi 1 email duy nhất cho đầu mối quản trị (không phải từng
