@@ -60,6 +60,12 @@
           <div class="hc-desc">{{ t('emergency.hotlines.mainDesc') }}</div>
           <div class="hc-badge">{{ t('emergency.hotlines.mainBadge') }}</div>
         </a>
+        <router-link to="/dang-ky-ho-tro" class="paper-card hotline-card hc-screening">
+          <div class="hc-icon">🏫</div>
+          <div class="hc-label" style="font-size:0.95rem;">Đăng ký hỗ trợ HSSV</div>
+          <div class="hc-desc">Phiếu khảo sát/sàng lọc đầu năm dành cho học sinh, sinh viên</div>
+          <div class="hc-badge">Trường học</div>
+        </router-link>
         <router-link to="/experts" class="paper-card hotline-card hc-expert">
           <div class="hc-icon">🩺</div>
           <div class="hc-num">{{ t('emergency.hotlines.expertNum') }}</div>

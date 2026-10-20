@@ -122,7 +122,7 @@
 /* ===== HOTLINE CARDS ===== */
 .hotline-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(4, 1fr);
     gap: 14px;
     margin-bottom: 24px;
 }
@@ -184,6 +184,17 @@
     background: var(--coral-light);
     color: #c05050;
     border: 1px solid var(--coral);
+}
+
+.hc-screening {
+    border-color: #4a7fd6;
+    background: linear-gradient(135deg, rgba(74, 127, 214, 0.08), var(--warm-white));
+}
+
+.hc-screening .hc-badge {
+    background: rgba(74, 127, 214, 0.12);
+    color: #2f5ba8;
+    border: 1px solid #4a7fd6;
 }
 
 .hc-expert {
@@ -884,6 +895,13 @@
 }
 
 /* ===== RESPONSIVE ===== */
+/* 4 thẻ full ngang quá chật ở tablet — xuống 2x2 trước khi dồn về 1 cột ở mobile hẳn. */
+@media (max-width: 1100px) {
+    .hotline-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
 @media (max-width: 900px), (hover: none) and (pointer: coarse) {
     .main-content {
         padding: 16px 16px 20px;

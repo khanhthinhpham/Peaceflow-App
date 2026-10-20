@@ -52,6 +52,7 @@ import ExpertPaymentsView from '../views/expert/ExpertPaymentsView.vue';
 import ExpertSharedRecordsView from '../views/expert/ExpertSharedRecordsView.vue';
 import ExpertClinicalProtocolsView from '../views/expert/ExpertClinicalProtocolsView.vue';
 import ScreeningFormView from '../views/ScreeningFormView.vue';
+import SupportRegistrationView from '../views/SupportRegistrationView.vue';
 import AdminScreeningView from '../views/admin/AdminScreeningView.vue';
 
 const router = createRouter({
@@ -74,6 +75,8 @@ const router = createRouter({
     // Phiếu khảo sát/sàng lọc đầu năm cho trường học — công khai, học sinh có thể chưa có
     // tài khoản PeaceFlow nên đứng ngoài AppLayout, không cần đăng nhập.
     { path: '/sang-loc-dau-nam', name: 'screening-form', component: ScreeningFormView },
+    // Phiếu đăng ký hỗ trợ — form RIÊNG, khác với phiếu khảo sát/sàng lọc đầu năm ở trên.
+    { path: '/dang-ky-ho-tro', name: 'support-registration', component: SupportRegistrationView },
     {
       path: '/',
       component: AppLayout,

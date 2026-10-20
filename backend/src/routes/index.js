@@ -18,6 +18,7 @@ import cronRoutes from './cron.routes.js';
 import aiRoutes from '../modules/ai/ai.routes.js';
 import zoomRoutes from '../modules/zoom/zoom.routes.js';
 import screeningRoutes from '../modules/screening/screening.routes.js';
+import supportRegistrationRoutes from '../modules/screening/support-registration.routes.js';
 
 const router = Router();
 
@@ -40,5 +41,6 @@ router.use('/', cronRoutes);
 router.use('/', aiRoutes);
 router.use('/', zoomRoutes);
 router.use('/', screeningRoutes);
+router.use('/', supportRegistrationRoutes);
 
 export default router;

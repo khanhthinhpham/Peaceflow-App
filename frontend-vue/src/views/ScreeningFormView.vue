@@ -1,7 +1,10 @@
 <template>
   <div class="screening-page">
     <div class="screening-shell">
-      <img src="/images/screening-banner.png" alt="Phiếu khảo sát/sàng lọc đầu năm" class="screening-banner">
+      <div class="screening-banner-wrap">
+        <img src="/images/screening-banner.png" alt="Phiếu khảo sát/sàng lọc đầu năm" class="screening-banner">
+        <router-link to="/dashboard" class="screening-exit-btn" aria-label="Thoát">✕</router-link>
+      </div>
 
       <div class="paper-card screening-card" v-if="!submitted">
         <div class="screening-progress">
@@ -151,6 +154,7 @@
 
           <div class="form-group">
             <label class="form-label">Mức độ cần hỗ trợ theo nhận định ban đầu</label>
+            <img src="/images/risk-level-guide.png" alt="Hướng dẫn mức độ Xanh/Vàng/Đỏ" class="screening-risk-guide-img">
             <div class="screening-risk-options">
               <label
                 v-for="opt in RISK_LEVEL_OPTIONS"
@@ -359,138 +363,4 @@ async function submit() {
 </script>
 
 <style scoped src="../assets/assessment.css"></style>
-<style scoped>
-.screening-page {
-    min-height: 100vh;
-    background: var(--cream);
-    padding: 0 0 40px;
-}
-.screening-shell {
-    max-width: 720px;
-    margin: 0 auto;
-}
-.screening-banner {
-    display: block;
-    width: 100%;
-    height: auto;
-}
-.screening-card {
-    margin: -24px 16px 0;
-    padding: 24px;
-    position: relative;
-}
-.screening-progress {
-    margin-bottom: 20px;
-}
-.screening-progress-bar {
-    height: 6px;
-    border-radius: 999px;
-    background: var(--kraft-light);
-    overflow: hidden;
-}
-.screening-progress-fill {
-    height: 100%;
-    background: var(--mint-dark);
-    transition: width 0.3s ease;
-}
-.screening-progress-label {
-    font-size: 0.72rem;
-    color: var(--text-light);
-    margin-top: 6px;
-    font-weight: 700;
-}
-.screening-step-title {
-    font-size: 1.15rem;
-    font-weight: 800;
-    margin: 0 0 6px;
-}
-.screening-step-desc {
-    font-size: 0.85rem;
-    color: var(--text-secondary);
-    margin: 0 0 18px;
-}
-.screening-likert-block {
-    margin-bottom: 22px;
-}
-.screening-likert-text {
-    font-weight: 700;
-    font-size: 0.9rem;
-    margin-bottom: 6px;
-}
-.screening-likert-scale-hint {
-    display: flex;
-    justify-content: space-between;
-    font-size: 0.68rem;
-    color: var(--text-light);
-    margin-bottom: 6px;
-}
-.screening-checklist {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-.screening-check-item {
-    display: flex;
-    align-items: flex-start;
-    gap: 10px;
-    padding: 10px 12px;
-    border: 1.5px solid var(--kraft-light);
-    border-radius: var(--border-radius-sm);
-    background: var(--warm-white);
-    font-size: 0.85rem;
-    cursor: pointer;
-}
-.screening-check-item input { margin-top: 3px; flex-shrink: 0; }
-.screening-check-hint {
-    font-size: 0.72rem;
-    color: var(--text-secondary);
-    margin-top: 2px;
-    font-weight: 400;
-}
-.screening-radio-pill {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 10px 18px;
-    border: 1.5px solid var(--kraft-light);
-    border-radius: 999px;
-    cursor: pointer;
-    font-weight: 700;
-    font-size: 0.85rem;
-}
-.screening-radio-pill.selected {
-    border-color: var(--mint-dark);
-    background: var(--mint-light);
-}
-.screening-risk-options {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-.screening-risk-card {
-    display: block;
-    padding: 12px 14px;
-    border: 2px solid var(--kraft-light);
-    border-radius: var(--border-radius-sm);
-    cursor: pointer;
-}
-.screening-risk-card input { margin-right: 8px; }
-.screening-risk-card.band-xanh.selected { border-color: #4caf7d; background: rgba(76,175,125,0.1); }
-.screening-risk-card.band-vang.selected { border-color: #e0a92d; background: rgba(224,169,45,0.12); }
-.screening-risk-card.band-do.selected { border-color: #e05c5c; background: rgba(224,92,92,0.1); }
-.screening-nav {
-    display: flex;
-    justify-content: space-between;
-    gap: 10px;
-    margin-top: 20px;
-    padding-top: 16px;
-    border-top: 1.5px dashed var(--kraft-light);
-}
-.screening-done {
-    text-align: center;
-    padding: 40px 24px;
-}
-@media (max-width: 640px) {
-    .screening-card { margin: -20px 12px 0; padding: 18px; }
-}
-</style>
+<style scoped src="../assets/screeningShared.css"></style>
