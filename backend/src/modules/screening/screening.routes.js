@@ -113,19 +113,17 @@ router.post('/screening/responses', attachUserIfPresent, async (req, res) => {
     );
 
     // Mức Đỏ -> báo ngay cho đầu mối trường (nếu có contact_email) + admin phụ trách chung
-    // (env.screeningAdminEmails), CÙNG 1 nội dung: đầy đủ chi tiết của đúng 1 phiếu này
-    // (như khung xem chi tiết bên admin) — KHÔNG kèm file Excel tổng hợp (để dành riêng cho
-    // báo cáo cuối tháng). "Bắn và quên": lỗi gửi mail không được làm hỏng việc nộp phiếu.
+    // (env.screeningAdminEmails) — đầy đủ chi tiết của đúng 1 phiếu này NGAY TRONG EMAIL
+    // (không bắt phải đăng nhập mới xem được, đề phòng đầu mối trường không có tài khoản
+    // admin). Nút "Xem trên trang quản trị" CHỈ thêm cho admin — đầu mối trường không có
+    // quyền vào /admin nên nút đó với họ vô dụng, dễ gây hiểu lầm là phải bấm mới xem được.
     if (band === 'do') {
       (async () => {
         const school = body.schoolId
           ? (await db.query(`select name, contact_email from screening_schools where id = $1`, [body.schoolId])).rows[0]
           : null;
-        const recipients = [school?.contact_email, ...env.screeningAdminEmails].filter(Boolean);
-        if (!recipients.length) return;
 
-        await sendScreeningRedAlertEmail({
-          to: recipients,
+        const basePayload = {
           schoolName: school?.name,
           studentName: body.studentName,
           grade: body.grade,
@@ -136,7 +134,14 @@ router.post('/screening/responses', attachUserIfPresent, async (req, res) => {
           supportNeeds, supportNeedsOther: body.supportNeedsOther,
           shareNote: body.shareNote, consentContact: Boolean(body.consentContact), contact: body.contact,
           referralCategories, referralRiskLevel, referralSupportFormat
-        });
+        };
+
+        if (school?.contact_email) {
+          await sendScreeningRedAlertEmail({ ...basePayload, to: school.contact_email, includeAdminLink: false });
+        }
+        if (env.screeningAdminEmails.length) {
+          await sendScreeningRedAlertEmail({ ...basePayload, to: env.screeningAdminEmails, includeAdminLink: true });
+        }
       })().catch((error) => console.error('Send screening red alert email error:', error?.message || error));
     }
 

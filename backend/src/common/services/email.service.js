@@ -509,7 +509,8 @@ export async function sendScreeningRedAlertEmail({
   to, schoolName, studentName, grade, className, createdAt, total,
   difficulties = [], difficultiesOther, supportNeeds = [], supportNeedsOther,
   shareNote, consentContact, contact,
-  referralCategories = [], referralRiskLevel, referralSupportFormat = []
+  referralCategories = [], referralRiskLevel, referralSupportFormat = [],
+  includeAdminLink = false
 }) {
   if (!hasMailProvider() || !to) return;
   const link = `${APP_URL}/admin/screening`;
@@ -537,7 +538,7 @@ export async function sendScreeningRedAlertEmail({
       ${referralSupportFormat.length ? `<p style="color:#555;margin:2px 0;">Hình thức mong muốn: ${referralSupportFormat.map(supportFormatLabel).join(', ')}</p>` : ''}
       ` : ''}
 
-      <a href="${link}" style="display:inline-block;margin:16px 0;padding:12px 28px;background:#e05c5c;color:#fff;border-radius:8px;text-decoration:none;font-weight:700;">Xem trên trang quản trị</a>
+      ${includeAdminLink ? `<a href="${link}" style="display:inline-block;margin:16px 0;padding:12px 28px;background:#e05c5c;color:#fff;border-radius:8px;text-decoration:none;font-weight:700;">Xem trên trang quản trị</a>` : ''}
     </div>
   `;
   await sendMail({ from: FROM, to, subject, html });
