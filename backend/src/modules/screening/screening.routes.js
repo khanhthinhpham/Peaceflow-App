@@ -5,6 +5,7 @@ import { findUserById } from '../auth/auth.repository.js';
 import { requireAuth } from '../../common/middleware/auth.middleware.js';
 import { sendScreeningRedAlertEmail } from '../../common/services/email.service.js';
 import { env } from '../../config/env.js';
+import { getScreeningAiSummary } from '../ai/ai.service.js';
 
 const router = Router();
 
@@ -149,6 +150,45 @@ router.post('/screening/responses', attachUserIfPresent, async (req, res) => {
   } catch (error) {
     console.error('Submit screening response error:', error);
     return res.status(500).json({ success: false, message: 'Không gửi được phiếu khảo sát.' });
+  }
+});
+
+// Nhận xét AI cho TOÀN BỘ phiếu, không chỉ điểm Phần 2 — kết hợp cả khó khăn đang gặp
+// (Phần 3), nhu cầu hỗ trợ (Phần 4), chia sẻ thêm (Phần 5), và phiếu đăng ký hỗ trợ tự
+// chọn (Phần 6) để AI nhìn được bức tranh đầy đủ, không chỉ mỗi con số. Public (không cần
+// đăng nhập) vì form sàng lọc tự nó đã công khai — chỉ cần biết id phiếu vừa nộp (uuid) là
+// xem được, không có gì nhạy cảm hơn những gì chính phiếu đó chứa.
+router.post('/screening/responses/:id/ai-summary', async (req, res) => {
+  try {
+    const result = await db.query(
+      `select wellbeing_scores, wellbeing_total, risk_band,
+              difficulties, difficulties_other, support_needs, support_needs_other,
+              share_note, referral_categories, referral_risk_level, referral_support_format
+       from screening_responses where id = $1 limit 1`,
+      [req.params.id]
+    );
+    const row = result.rows[0];
+    if (!row) {
+      return res.status(404).json({ success: false, message: 'Không tìm thấy phiếu này.' });
+    }
+
+    const { summary, interpretation } = await getScreeningAiSummary({
+      userId: req.user?.id || null,
+      wellbeingScores: row.wellbeing_scores || [],
+      total: row.wellbeing_total,
+      band: row.risk_band,
+      difficulties: row.difficulties || [], difficultiesOther: row.difficulties_other,
+      supportNeeds: row.support_needs || [], supportNeedsOther: row.support_needs_other,
+      shareNote: row.share_note,
+      referralCategories: row.referral_categories || [], referralRiskLevel: row.referral_risk_level,
+      referralSupportFormat: row.referral_support_format || [],
+      locale: req.locale
+    });
+
+    return res.json({ success: true, data: { summary, interpretation } });
+  } catch (error) {
+    console.error('Screening AI summary error:', error);
+    return res.status(500).json({ success: false, message: 'Không thể tạo nhận xét AI lúc này.' });
   }
 });
 

@@ -211,6 +211,20 @@
         <h2 class="screening-step-title">Đã gửi phiếu khảo sát!</h2>
         <p class="screening-step-desc">Cảm ơn em đã chia sẻ. Nhà trường sẽ xem xét và liên hệ nếu em đồng ý hoặc nếu cần hỗ trợ thêm.</p>
 
+        <div class="paper-card result-ai-summary" style="text-align:left;" v-if="aiSummaryLoading || aiSummaryText">
+          <div class="ai-summary-header">
+            <span class="ai-summary-icon">🤖</span>
+            <span class="ri-title" style="margin-bottom:0;">Nhận xét từ AI</span>
+            <span class="badge-pill badge-mint" style="margin-left:auto;">AI</span>
+          </div>
+          <div v-if="aiSummaryLoading" class="ai-summary-loading">Đang phân tích kết quả...</div>
+          <div v-else class="ai-summary-text">{{ aiSummaryText }}</div>
+          <template v-if="aiInterpretation">
+            <div class="ai-summary-task-title">Gợi ý</div>
+            <div class="ai-summary-text">{{ aiInterpretation }}</div>
+          </template>
+        </div>
+
         <!-- Kết quả Phần 2 ra mức Đỏ — gợi ý luôn lối vào hỗ trợ khẩn cấp, không đợi nhà
              trường liên hệ lại (có thể mất thời gian), vì đây là lúc em đang cần nhất. -->
         <div v-if="wellbeingResult?.band === 'do'" class="screening-emergency-suggest">
@@ -342,12 +356,33 @@ const submitting = ref(false);
 const submitError = ref('');
 const submitted = ref(false);
 
+// Nhận xét AI cho kết quả Phần 2 — dùng chung endpoint/giọng văn với các bài test tự làm
+// khác (DASS-21, GAD-7...) ở MoodAssessmentView.vue.
+const aiSummaryText = ref('');
+const aiSummaryLoading = ref(false);
+const aiInterpretation = ref('');
+async function loadAiSummary(responseId) {
+  if (!responseId) return;
+  aiSummaryLoading.value = true;
+  try {
+    const data = await apiClient.post(`/screening/responses/${responseId}/ai-summary`, {});
+    aiSummaryText.value = data?.summary || '';
+    aiInterpretation.value = data?.interpretation || '';
+  } catch (error) {
+    console.error('Screening AI summary load failed:', error);
+    aiSummaryText.value = '';
+    aiInterpretation.value = '';
+  } finally {
+    aiSummaryLoading.value = false;
+  }
+}
+
 async function submit() {
   if (!canNext.value) return;
   submitting.value = true;
   submitError.value = '';
   try {
-    await apiClient.post('/screening/responses', {
+    const data = await apiClient.post('/screening/responses', {
       schoolId: form.schoolId,
       studentName: form.studentName,
       grade: form.grade,
@@ -367,6 +402,7 @@ async function submit() {
       confirmNote: form.confirmNote
     });
     submitted.value = true;
+    loadAiSummary(data?.id);
   } catch (error) {
     submitError.value = error.message || 'Không gửi được phiếu khảo sát, vui lòng thử lại.';
   } finally {

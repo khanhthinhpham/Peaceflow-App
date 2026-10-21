@@ -9,6 +9,7 @@
       <a href="#features" class="mnp-link" @click="closeMobileNav">✨ {{ t('landing.nav.features') }}</a>
       <a href="#how-it-works" class="mnp-link" @click="closeMobileNav">💡 {{ t('landing.nav.howItWorks') }}</a>
       <router-link to="/mood-assessment" class="mnp-link">📋 {{ t('landing.nav.tests') }}</router-link>
+      <router-link to="/journal" class="mnp-link">📝 {{ t('landing.nav.journal') }}</router-link>
       <router-link to="/experts" class="mnp-link">🩺 {{ t('landing.nav.experts') }}</router-link>
       <router-link to="/community" class="mnp-link">👥 {{ t('landing.nav.community') }}</router-link>
       <router-link to="/emergency" class="mnp-link" style="color:var(--coral);">🆘 {{ t('landing.nav.emergency') }}</router-link>
@@ -58,6 +59,7 @@
         <a href="#features" class="nav-link">{{ t('landing.nav.features') }}</a>
         <a href="#how-it-works" class="nav-link">{{ t('landing.nav.howItWorks') }}</a>
         <router-link to="/mood-assessment" class="nav-link">{{ t('landing.nav.tests') }}</router-link>
+        <router-link to="/journal" class="nav-link">{{ t('landing.nav.journal') }}</router-link>
         <router-link to="/experts" class="nav-link">{{ t('landing.nav.experts') }}</router-link>
         <router-link to="/community" class="nav-link">{{ t('landing.nav.community') }}</router-link>
         <router-link to="/emergency" class="nav-link" style="color:var(--coral);">🆘 {{ t('landing.nav.emergency') }}</router-link>

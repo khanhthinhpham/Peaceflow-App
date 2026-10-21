@@ -299,8 +299,10 @@ import { ref, reactive, computed, onMounted, onBeforeUnmount, nextTick } from 'v
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 import { apiClient } from '../lib/apiClient';
+import { useAuthStore } from '../stores/auth';
 
 const { t, tm, locale } = useI18n();
+const auth = useAuthStore();
 
 // Locale cho Intl/toLocaleString — 'vi' -> 'vi-VN', 'en' -> 'en-US'. Cùng mẫu đã dùng ở
 // DashboardView.vue — trước đây hardcode 'vi-VN' ở formatDateTime/editorDateLabel/
@@ -684,9 +686,46 @@ const activeEntryInsight = computed(() => {
       : t('journal.ai.detailInsightNeutral');
 });
 
+// Khách chưa đăng nhập viết xong bấm Lưu: KHÔNG mất bài đang viết — lưu tạm vào
+// localStorage rồi đưa sang /login, LoginView sẽ tự đưa họ quay lại /journal sau khi đăng
+// nhập xong (dùng chung cơ chế peaceflow_post_login_redirect mà apiClient.js đã có sẵn cho
+// các trang hết hạn phiên), rồi onMounted ở trên khôi phục lại đúng bài đang viết.
+const JOURNAL_DRAFT_KEY = 'peaceflow_journal_draft';
+function saveDraftAndRedirectToLogin() {
+  localStorage.setItem(JOURNAL_DRAFT_KEY, JSON.stringify({
+    title: title.value,
+    content: content.value,
+    selectedMood: selectedMood.value,
+    selectedTags: Array.from(selectedTags),
+    isPrivate: isPrivate.value
+  }));
+  sessionStorage.setItem('peaceflow_post_login_redirect', '/journal');
+  router.push('/login');
+}
+function restoreDraftIfAny() {
+  const raw = localStorage.getItem(JOURNAL_DRAFT_KEY);
+  if (!raw) return;
+  localStorage.removeItem(JOURNAL_DRAFT_KEY);
+  try {
+    const draft = JSON.parse(raw);
+    title.value = draft.title || '';
+    content.value = draft.content || '';
+    selectedMood.value = draft.selectedMood || null;
+    selectedTags.clear();
+    (draft.selectedTags || []).forEach((tag) => selectedTags.add(tag));
+    isPrivate.value = draft.isPrivate ?? true;
+  } catch (_error) {
+    // Nháp hỏng -> bỏ qua, không chặn trang load.
+  }
+}
+
 async function saveEntry() {
   if (!content.value.trim()) {
     alert(t('journal.alerts.emptyContent'));
+    return;
+  }
+  if (!auth.isAuthenticated) {
+    saveDraftAndRedirectToLogin();
     return;
   }
 
@@ -748,6 +787,17 @@ function handleSwrUpdate(event) {
 
 onMounted(async () => {
   window.addEventListener('peaceflow:swr-update', handleSwrUpdate);
+
+  // Trang xem được công khai — chỉ bắt đăng nhập lúc bấm Lưu (xem saveEntry). Khách chưa
+  // đăng nhập thì KHÔNG gọi /journal, /dashboard (đều yêu cầu đăng nhập): gọi vào sẽ dính
+  // 401, rồi bị apiClient tự redirect sang /login (xem redirectToLogin trong apiClient.js)
+  // — đúng cái hành vi ta đang cố bỏ.
+  if (!auth.isAuthenticated) {
+    calendarMonth.value = new Date();
+    restoreDraftIfAny();
+    return;
+  }
+
   try {
     const [entriesData, dashboardData] = await Promise.all([
       apiClient.get('/journal'),
@@ -756,6 +806,7 @@ onMounted(async () => {
     entries.value = (entriesData || []).map((e) => ({ ...e, tags: normalizeArray(e.tags) }));
     dashboard.value = dashboardData || null;
     calendarMonth.value = new Date();
+    restoreDraftIfAny();
   } catch (error) {
     console.error('Failed to initialize journal page:', error);
   }

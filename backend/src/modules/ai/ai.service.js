@@ -4,6 +4,7 @@ import { db } from '../../config/db.js';
 import { buildUserContext } from './ai.context.js';
 import { logAiUsage } from './ai.usage.js';
 import { detectCrisisSignals, ensureCrisisResources, logCrisisFlag } from './ai.safety.js';
+import { difficultyLabel, supportNeedLabel, referralCategoryLabel, supportFormatLabel, bandLabel, WELLBEING_QUESTIONS } from '../../common/utils/screening-labels.js';
 
 async function callRAG(ctx, sessionId, locale = 'vi') {
     const response = await fetch(`${env.ragBaseUrl}/recommend`, {
@@ -575,6 +576,84 @@ ${dimensionLines ? `Điểm theo từng khía cạnh:\n${dimensionLines}` : ''}`
     const interpretation = parsed.interpretation || '';
     writeSummaryCache(cacheKey, 'assessment_summary', summary, [], interpretation);
     return { summary, interpretation };
+}
+
+function buildScreeningSystemInstruction(locale = 'vi') {
+    return `Bạn là trợ lý tâm lý của app PeaceFlow. Học sinh vừa hoàn thành "Phiếu khảo sát/sàng lọc tâm lý đầu năm học" — một phiếu nhiều phần (không chỉ 1 bài test điểm số đơn thuần): cảm nhận chung về học tập/cuộc sống (có điểm số), khó khăn đang gặp, nhu cầu mong muốn được hỗ trợ, và có thể kèm phần tự đăng ký hỗ trợ cụ thể hơn.
+NGÔN NGỮ TRẢ LỜI: ${locale === 'en' ? 'viết summary và interpretation bằng tiếng Anh (English)' : 'viết summary và interpretation bằng tiếng Việt'}.
+Trả về 2 nội dung, dựa trên TOÀN BỘ thông tin học sinh cung cấp (không chỉ điểm số), kết hợp các phần lại với nhau để đưa ra bức tranh tổng thể:
+
+1. summary — LỜI NHẮN cho học sinh (3-5 câu): giọng ấm áp, đồng cảm, ngôi thứ hai ("em"). Ghi nhận đúng những gì em đang trải qua (dựa trên khó khăn cụ thể em đã chọn/chia sẻ, không chỉ điểm số), rồi đưa ra hướng thiết thực em có thể làm để dễ chịu hơn, gắn với đúng nhu cầu hỗ trợ em đã chọn nếu có.
+
+2. interpretation — NHẬN ĐỊNH TỔNG THỂ cho nhà trường/tổ tư vấn tham khảo (3-5 câu): kết hợp điểm Phần cảm nhận chung, khó khăn đang gặp, và phần tự đăng ký hỗ trợ (nếu có) để nêu:
+   - Bức tranh tổng thể về tình trạng của học sinh — có nhất quán giữa điểm số và các khó khăn/mong muốn đã chọn không, hay có điểm mâu thuẫn đáng chú ý (vd điểm không quá thấp nhưng chọn khó khăn nghiêm trọng như bị bắt nạt/bạo lực — cần ưu tiên xem xét dù điểm số không phản ánh hết).
+   - Mặt nào đang bị ảnh hưởng nhiều nhất.
+   - Mức độ cần theo dõi/can thiệp, và có nên ưu tiên liên hệ sớm hay không.
+
+GIỚI HẠN BẮT BUỘC cho cả 2 phần:
+- KHÔNG chẩn đoán bệnh, KHÔNG gọi tên bệnh lý. Chỉ nói về BIỂU HIỆN và MỨC ĐỘ.
+- Diễn đạt bằng ngôn ngữ khả năng ("có thể...", "thường đi cùng với..."), không nói chắc chắn về tình trạng y khoa.
+- KHÔNG kê thuốc, không hướng dẫn dùng thuốc.
+- Nếu có dấu hiệu cần ưu tiên (mức độ Đỏ, hoặc khó khăn nghiêm trọng như bạo lực/bắt nạt/tự làm hại), nhắc rõ nên liên hệ chuyên gia/người có trách nhiệm sớm — nói theo cách trấn an, không gây hoảng.
+- Đây là thông tin tham khảo, không thay thế đánh giá chuyên môn trực tiếp.`;
+}
+
+// Nhận xét AI cho "Phiếu khảo sát/sàng lọc tâm lý đầu năm học" — KHÔNG dùng
+// ai_summary_cache: phiếu này có thể chứa "Chia sẻ thêm" là văn bản tự do riêng tư của học
+// sinh, nên phải gọi AI tươi mỗi lần (giống lý do getChatReply không dùng cache chung —
+// xem ghi chú ở readSummaryCache), không coi là an toàn để tái dùng giữa những người khác
+// có cùng điểm số như getAssessmentAiSummary (input ở đó CHỈ là số, không có chữ tự do).
+export async function getScreeningAiSummary({
+    userId = null, wellbeingScores = [], total, band,
+    difficulties = [], difficultiesOther, supportNeeds = [], supportNeedsOther,
+    shareNote, referralCategories = [], referralRiskLevel, referralSupportFormat = [],
+    locale = 'vi'
+}) {
+    const wellbeingLines = WELLBEING_QUESTIONS.map((q, i) => `- ${q} => ${wellbeingScores[i] ?? '?'}/5`).join('\n');
+    const difficultyLines = [...difficulties.map(difficultyLabel), difficultiesOther ? `Khác: ${difficultiesOther}` : null].filter(Boolean);
+    const supportNeedLines = [...supportNeeds.map(supportNeedLabel), supportNeedsOther ? `Khác: ${supportNeedsOther}` : null].filter(Boolean);
+    const referralLines = [
+        referralCategories.length ? `Vấn đề tự đăng ký: ${referralCategories.map(referralCategoryLabel).join(', ')}` : null,
+        referralRiskLevel ? `Học sinh tự nhận định mức độ: ${bandLabel(referralRiskLevel)}` : null,
+        referralSupportFormat.length ? `Hình thức mong muốn: ${referralSupportFormat.map(supportFormatLabel).join(', ')}` : null
+    ].filter(Boolean);
+
+    const userContent = `Tổng điểm Phần "Cảm nhận chung": ${total}/30, xếp mức: ${bandLabel(band)}.
+Điểm từng câu:
+${wellbeingLines}
+
+Khó khăn đang gặp: ${difficultyLines.length ? difficultyLines.join('; ') : 'Không ghi nhận.'}
+Nhu cầu hỗ trợ mong muốn: ${supportNeedLines.length ? supportNeedLines.join('; ') : 'Không ghi nhận.'}
+${shareNote ? `Học sinh chia sẻ thêm: "${shareNote}"` : ''}
+${referralLines.length ? referralLines.join('\n') : ''}`;
+
+    const startedAt = Date.now();
+    let parsed;
+    let usage;
+    try {
+        ({ parsed, usage } = await callGeminiJson(buildScreeningSystemInstruction(locale), [{ parts: [{ text: userContent }] }], RECOMMENDATION_SCHEMA));
+    } catch (error) {
+        logAiUsage({
+            userId,
+            feature: 'screening_summary',
+            model: env.geminiModel,
+            latencyMs: Date.now() - startedAt,
+            success: false,
+            errorMessage: error.message
+        });
+        throw error;
+    }
+
+    logAiUsage({
+        userId,
+        feature: 'screening_summary',
+        model: usage.model,
+        usage,
+        latencyMs: Date.now() - startedAt,
+        topics: ['screening', bandLabel(band)].filter(Boolean)
+    });
+
+    return { summary: parsed.summary || '', interpretation: parsed.interpretation || '' };
 }
 
 const DAILY_MESSAGE_SCHEMA = {
