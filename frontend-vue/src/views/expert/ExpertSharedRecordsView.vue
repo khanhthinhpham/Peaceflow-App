@@ -16,7 +16,11 @@
 
     <ExpertStatusBanner :message="banner.message" :type="banner.type" />
 
-    <section class="expert-panel expert-section">
+    <!-- Danh sách & chi tiết dùng CHUNG khu vực nội dung chính (không che sidebar/topbar của
+         ExpertLayout nữa — trước đây .sr-fullscreen dùng position:fixed; inset:0 nên phủ
+         luôn cả sidebar, khiến bấm vào 1 hồ sơ là mất hết điều hướng). Chỉ ẩn/hiện qua lại
+         giữa 2 section, vẫn nằm trong <main> như mọi trang khác trong Expert Portal. -->
+    <section v-if="!showDetail" class="expert-panel expert-section">
       <div class="expert-section-head">
         <div>
           <h2 class="expert-section-title">Danh sách hồ sơ đã nhận</h2>
@@ -55,138 +59,157 @@
       </div>
     </section>
 
-    <!-- Detail: full màn hình (không phải popup nhỏ nữa) — thông tin 1 thân chủ nhiều khi
-         khá dài (nhiều lịch hẹn + nhật ký + test), cần đủ chỗ để đọc thoải mái. -->
-    <div class="sr-fullscreen" :class="{ show: showDetail }">
-      <div class="sr-fullscreen-inner" v-if="showDetail">
-        <div class="ca-detail-head sr-fullscreen-head">
-          <div>
-            <div class="ca-detail-title">{{ detailRecord?.clientName || '...' }}</div>
-            <div class="ca-detail-meta" v-if="detailRecord">Gửi lúc {{ formatDateTime(detailRecord.sentAt) }}</div>
-          </div>
-          <button type="button" class="ca-detail-close" @click="closeDetail">✕</button>
+    <section v-else class="expert-panel expert-section sr-detail-panel">
+      <div class="ca-detail-head">
+        <div>
+          <div class="ca-detail-title">{{ detailRecord?.clientName || '...' }}</div>
+          <div class="ca-detail-meta" v-if="detailRecord">Gửi lúc {{ formatDateTime(detailRecord.sentAt) }}</div>
         </div>
+        <button type="button" class="ca-detail-close" @click="closeDetail">✕ Quay lại danh sách</button>
+      </div>
 
-        <p v-if="detailLoading" class="ca-empty">Đang tải...</p>
-        <template v-else-if="detailRecord">
-          <div v-if="detailRecord.status === 'revoked'" class="sr-revoked-banner">⚠️ Thân chủ đã thu hồi hồ sơ này lúc {{ formatDateTime(detailRecord.revokedAt) }}.</div>
+      <p v-if="detailLoading" class="ca-empty">Đang tải...</p>
+      <template v-else-if="detailRecord">
+        <div v-if="detailRecord.status === 'revoked'" class="sr-revoked-banner">⚠️ Thân chủ đã thu hồi hồ sơ này lúc {{ formatDateTime(detailRecord.revokedAt) }}.</div>
 
-          <!-- Dropdown lọc nội bộ: tách từng loại thông tin ra, thay vì dồn hết xuống 1 trang
-               dài phải cuộn qua nhiều mục không liên quan tới nhau (và đỡ vỡ dòng như tab bar
-               ngang cũ với 5 mục). -->
-          <div class="sr-tab-filter-wrap">
-            <button type="button" class="sr-tab-filter-btn" data-sr-tab-filter-btn @click="tabFilterOpen = !tabFilterOpen">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
-              {{ activeTabInfo.label }}
-              <span v-if="activeTabInfo.count !== null" class="sr-tab-count">{{ activeTabInfo.count }}</span>
-              <span class="sr-tab-filter-caret">▾</span>
-            </button>
-            <div v-if="tabFilterOpen" ref="tabFilterDropdownEl" class="sr-tab-filter-menu">
-              <button
-                v-for="tab in detailTabs"
-                :key="tab.key"
-                type="button"
-                class="sr-tab-filter-item"
-                :class="{ active: detailTab === tab.key }"
-                @click="detailTab = tab.key; tabFilterOpen = false"
-              >{{ tab.label }}<span v-if="tab.count !== null" class="sr-tab-count">{{ tab.count }}</span></button>
-            </div>
+        <!-- 2 cột: trái 2/3 là tổng quan (biểu đồ tâm trạng + lịch gộp), phải 1/3 là tab lọc
+             chi tiết từng loại (như bản cũ trước khi có lịch) — xem đủ cả 2 kiểu cùng lúc. -->
+        <div class="sr-detail-columns">
+          <div class="sr-detail-col-left">
+            <!-- Biểu đồ xu hướng tâm trạng — khác bản chất với lịch (đường theo thời gian
+                 thay vì xem theo từng ngày rời rạc) nên giữ riêng, không gộp vào lịch. -->
+            <ExpertMoodChart v-if="detailRecord.snapshot?.moodCheckins?.length" :checkins="detailRecord.snapshot.moodCheckins" />
+
+            <!-- Toàn bộ dữ liệu gộp vào 1 lịch, mỗi loại 1 màu chấm riêng — bấm vào ngày có
+                 dữ liệu để xem nhanh đúng ngày đó. -->
+            <ExpertRecordsCalendar
+              :bookings="detailRecord.bookings || []"
+              :journal-entries="detailRecord.snapshot?.journalEntries || []"
+              :mood-checkins="detailRecord.snapshot?.moodCheckins || []"
+              :assessment-results="detailRecord.snapshot?.assessmentResults || []"
+              :responses="detailRecord.responses || []"
+            />
           </div>
 
-          <!-- Lịch hẹn & mô tả tình trạng: mỗi lịch gọn 1 dòng, bấm vào mới mở ra xem mô tả +
-               hồ sơ khám — tránh dồn 5-10 lịch cũ/huỷ/hết hạn đập thẳng vào mắt cùng lúc. -->
-          <div v-show="detailTab === 'bookings'" class="sr-detail-section">
-            <p v-if="!detailRecord.bookings?.length" class="ca-empty">Thân chủ chưa từng đặt lịch với bạn.</p>
-
-            <template v-if="detailRecord.bookings?.length">
-              <p v-if="!activeBookings.length" class="ca-empty" style="margin-bottom:10px;">Không có lịch hẹn nào đang hoạt động.</p>
-              <div v-for="b in activeBookings" :key="b.id" class="sr-booking-row">
-                <button type="button" class="sr-booking-summary" @click="toggleBookingOpen(b.id)">
-                  <span class="sr-booking-status-dot" :class="`is-${b.status}`"></span>
-                  <span class="sr-booking-summary-main">
-                    <strong>Hồ sơ cuộc gọi ngày {{ formatDate(b.starts_at) }}</strong>
-                    <span class="ca-selftest-meta">{{ formatTime(b.starts_at) }} · {{ BOOKING_STATUS_LABELS[b.status] || b.status }}</span>
-                  </span>
-                  <span class="sr-booking-caret" :class="{ open: openBookingIds.has(b.id) }">▾</span>
-                </button>
-                <div v-if="openBookingIds.has(b.id)" class="sr-booking-detail">
-                  <p v-if="b.notes" class="sr-detail-content">{{ b.notes }}</p>
-                  <p v-else class="sr-detail-content" style="color:var(--text-light);">Thân chủ chưa để lại mô tả tình trạng.</p>
-                  <MedicalRecordsViewer :booking-id="b.id" />
-                </div>
+          <div class="sr-detail-col-right">
+            <!-- Dropdown lọc nội bộ: tách từng loại thông tin ra, thay vì dồn hết xuống 1
+                 trang dài phải cuộn qua nhiều mục không liên quan tới nhau. -->
+            <div class="sr-tab-filter-wrap">
+              <button type="button" class="sr-tab-filter-btn" data-sr-tab-filter-btn @click="tabFilterOpen = !tabFilterOpen">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+                {{ activeTabInfo.label }}
+                <span v-if="activeTabInfo.count !== null" class="sr-tab-count">{{ activeTabInfo.count }}</span>
+                <span class="sr-tab-filter-caret">▾</span>
+              </button>
+              <div v-if="tabFilterOpen" ref="tabFilterDropdownEl" class="sr-tab-filter-menu">
+                <button
+                  v-for="tab in detailTabs"
+                  :key="tab.key"
+                  type="button"
+                  class="sr-tab-filter-item"
+                  :class="{ active: detailTab === tab.key }"
+                  @click="detailTab = tab.key; tabFilterOpen = false"
+                >{{ tab.label }}<span v-if="tab.count !== null" class="sr-tab-count">{{ tab.count }}</span></button>
               </div>
+            </div>
 
-              <!-- Lịch sử (đã xong/huỷ/hết hạn) gộp vào 1 khối đóng sẵn, tránh dàn hàng ngang
-                   hàng với lịch đang hoạt động và làm loãng mắt người xem. -->
-              <div v-if="historyBookings.length" class="sr-booking-history">
-                <button type="button" class="sr-booking-history-toggle" @click="historyOpen = !historyOpen">
-                  <span>🗂️ Lịch sử ({{ historyBookings.length }})</span>
-                  <span class="sr-booking-caret" :class="{ open: historyOpen }">▾</span>
-                </button>
-                <div v-if="historyOpen" class="sr-booking-history-body">
-                  <div v-for="b in historyBookings" :key="b.id" class="sr-booking-row is-history">
-                    <button type="button" class="sr-booking-summary" @click="toggleBookingOpen(b.id)">
-                      <span class="sr-booking-status-dot" :class="`is-${b.status}`"></span>
-                      <span class="sr-booking-summary-main">
-                        <strong>Hồ sơ cuộc gọi ngày {{ formatDate(b.starts_at) }}</strong>
-                        <span class="ca-selftest-meta">{{ formatTime(b.starts_at) }} · {{ BOOKING_STATUS_LABELS[b.status] || b.status }}</span>
-                      </span>
-                      <span class="sr-booking-caret" :class="{ open: openBookingIds.has(b.id) }">▾</span>
-                    </button>
-                    <div v-if="openBookingIds.has(b.id)" class="sr-booking-detail">
-                      <p v-if="b.notes" class="sr-detail-content">{{ b.notes }}</p>
-                      <p v-else class="sr-detail-content" style="color:var(--text-light);">Thân chủ chưa để lại mô tả tình trạng.</p>
-                      <MedicalRecordsViewer :booking-id="b.id" />
+            <!-- Lịch hẹn & mô tả tình trạng: mỗi lịch gọn 1 dòng, bấm vào mới mở ra xem mô
+                 tả + hồ sơ khám — tránh dồn 5-10 lịch cũ/huỷ/hết hạn đập thẳng vào mắt. -->
+            <div v-show="detailTab === 'bookings'" class="sr-detail-section">
+              <p v-if="!detailRecord.bookings?.length" class="ca-empty">Thân chủ chưa từng đặt lịch với bạn.</p>
+
+              <template v-if="detailRecord.bookings?.length">
+                <p v-if="!activeBookings.length" class="ca-empty" style="margin-bottom:10px;">Không có lịch hẹn nào đang hoạt động.</p>
+                <div v-for="b in activeBookings" :key="b.id" class="sr-booking-row">
+                  <button type="button" class="sr-booking-summary" @click="toggleBookingOpen(b.id)">
+                    <span class="sr-booking-status-dot" :class="`is-${b.status}`"></span>
+                    <span class="sr-booking-summary-main">
+                      <strong>Hồ sơ cuộc gọi ngày {{ formatDate(b.starts_at) }}</strong>
+                      <span class="ca-selftest-meta">{{ formatTime(b.starts_at) }} · {{ BOOKING_STATUS_LABELS[b.status] || b.status }}</span>
+                    </span>
+                    <span class="sr-booking-caret" :class="{ open: openBookingIds.has(b.id) }">▾</span>
+                  </button>
+                  <div v-if="openBookingIds.has(b.id)" class="sr-booking-detail">
+                    <p v-if="b.notes" class="sr-detail-content">{{ b.notes }}</p>
+                    <p v-else class="sr-detail-content" style="color:var(--text-light);">Thân chủ chưa để lại mô tả tình trạng.</p>
+                    <MedicalRecordsViewer :booking-id="b.id" />
+                  </div>
+                </div>
+
+                <!-- Lịch sử (đã xong/huỷ/hết hạn) gộp vào 1 khối đóng sẵn. -->
+                <div v-if="historyBookings.length" class="sr-booking-history">
+                  <button type="button" class="sr-booking-history-toggle" @click="historyOpen = !historyOpen">
+                    <span>🗂️ Lịch sử ({{ historyBookings.length }})</span>
+                    <span class="sr-booking-caret" :class="{ open: historyOpen }">▾</span>
+                  </button>
+                  <div v-if="historyOpen" class="sr-booking-history-body">
+                    <div v-for="b in historyBookings" :key="b.id" class="sr-booking-row is-history">
+                      <button type="button" class="sr-booking-summary" @click="toggleBookingOpen(b.id)">
+                        <span class="sr-booking-status-dot" :class="`is-${b.status}`"></span>
+                        <span class="sr-booking-summary-main">
+                          <strong>Hồ sơ cuộc gọi ngày {{ formatDate(b.starts_at) }}</strong>
+                          <span class="ca-selftest-meta">{{ formatTime(b.starts_at) }} · {{ BOOKING_STATUS_LABELS[b.status] || b.status }}</span>
+                        </span>
+                        <span class="sr-booking-caret" :class="{ open: openBookingIds.has(b.id) }">▾</span>
+                      </button>
+                      <div v-if="openBookingIds.has(b.id)" class="sr-booking-detail">
+                        <p v-if="b.notes" class="sr-detail-content">{{ b.notes }}</p>
+                        <p v-else class="sr-detail-content" style="color:var(--text-light);">Thân chủ chưa để lại mô tả tình trạng.</p>
+                        <MedicalRecordsViewer :booking-id="b.id" />
+                      </div>
                     </div>
                   </div>
                 </div>
+              </template>
+            </div>
+
+            <div v-show="detailTab === 'journal'" class="sr-detail-section">
+              <p v-if="!detailRecord.snapshot?.journalEntries?.length" class="ca-empty">Không có nhật ký nào trong hồ sơ này.</p>
+              <div v-for="j in detailRecord.snapshot?.journalEntries" :key="j.id" class="sr-detail-item">
+                <div class="ca-selftest-name">{{ j.title || '(Không có tiêu đề)' }}</div>
+                <div class="ca-selftest-meta">{{ formatDateTime(j.created_at) }}</div>
+                <p class="sr-detail-content">{{ j.content }}</p>
               </div>
-            </template>
-          </div>
-
-          <div v-show="detailTab === 'journal'" class="sr-detail-section">
-            <p v-if="!detailRecord.snapshot?.journalEntries?.length" class="ca-empty">Không có nhật ký nào trong hồ sơ này.</p>
-            <div v-for="j in detailRecord.snapshot?.journalEntries" :key="j.id" class="sr-detail-item">
-              <div class="ca-selftest-name">{{ j.title || '(Không có tiêu đề)' }}</div>
-              <div class="ca-selftest-meta">{{ formatDateTime(j.created_at) }}</div>
-              <p class="sr-detail-content">{{ j.content }}</p>
-            </div>
-          </div>
-
-          <div v-show="detailTab === 'mood'" class="sr-detail-section">
-            <p v-if="!detailRecord.snapshot?.moodCheckins?.length" class="ca-empty">Không có check-in nào trong hồ sơ này.</p>
-            <ExpertMoodChart v-else :checkins="detailRecord.snapshot.moodCheckins" />
-            <div v-for="m in detailRecord.snapshot?.moodCheckins" :key="m.id" class="sr-detail-item">
-              <div class="ca-selftest-name">{{ m.dominant_emotion || '—' }} ({{ m.mood_score }}/10)</div>
-              <div class="ca-selftest-meta">{{ formatDateTime(m.created_at) }}</div>
-              <p v-if="m.notes" class="sr-detail-content">{{ m.notes }}</p>
-            </div>
-          </div>
-
-          <div v-show="detailTab === 'tests'" class="sr-detail-section">
-            <p v-if="!detailRecord.snapshot?.assessmentResults?.length" class="ca-empty">Không có kết quả bài test nào trong hồ sơ này.</p>
-            <div v-for="a in detailRecord.snapshot?.assessmentResults" :key="a.id" class="sr-detail-item">
-              <div class="ca-selftest-name">{{ a.assessment_name }} — {{ a.severity || '—' }} ({{ a.total_score }})</div>
-              <div class="ca-selftest-meta">{{ formatDateTime(a.created_at) }}</div>
-            </div>
-          </div>
-
-          <div v-show="detailTab === 'responses'" class="sr-detail-section">
-            <p v-if="!detailRecord.responses.length" class="ca-empty">Bạn chưa phản hồi hồ sơ này.</p>
-            <div v-for="resp in detailRecord.responses" :key="resp.id" class="sr-response-bubble">
-              <div>{{ resp.content }}</div>
-              <div class="ca-selftest-meta">{{ formatDateTime(resp.created_at) }}</div>
             </div>
 
-            <div class="sr-reply-box">
-              <textarea v-model="replyText" class="form-input sr-reply-textarea" placeholder="Nhập phản hồi hoặc phương án/đơn thuốc cho thân chủ..."></textarea>
-              <p v-if="replyError" style="color:var(--coral);font-size:0.85rem;margin:4px 0 0;">{{ replyError }}</p>
-              <button type="button" class="ca-export-btn" style="margin-top:8px;" :disabled="sendingReply" @click="submitReply">{{ sendingReply ? 'Đang gửi...' : '💬 Gửi phản hồi' }}</button>
+            <div v-show="detailTab === 'mood'" class="sr-detail-section">
+              <p v-if="!detailRecord.snapshot?.moodCheckins?.length" class="ca-empty">Không có check-in nào trong hồ sơ này.</p>
+              <div v-for="m in detailRecord.snapshot?.moodCheckins" :key="m.id" class="sr-detail-item">
+                <div class="ca-selftest-name">{{ m.dominant_emotion || '—' }} ({{ m.mood_score }}/10)</div>
+                <div class="ca-selftest-meta">{{ formatDateTime(m.created_at) }}</div>
+                <p v-if="m.notes" class="sr-detail-content">{{ m.notes }}</p>
+              </div>
             </div>
+
+            <div v-show="detailTab === 'tests'" class="sr-detail-section">
+              <p v-if="!detailRecord.snapshot?.assessmentResults?.length" class="ca-empty">Không có kết quả bài test nào trong hồ sơ này.</p>
+              <div v-for="a in detailRecord.snapshot?.assessmentResults" :key="a.id" class="sr-detail-item">
+                <div class="ca-selftest-name">{{ a.assessment_name }} — {{ a.severity || '—' }} ({{ a.total_score }})</div>
+                <div class="ca-selftest-meta">{{ formatDateTime(a.created_at) }}</div>
+              </div>
+            </div>
+
           </div>
-        </template>
-      </div>
-    </div>
+        </div>
+
+        <!-- Phản hồi đứng RIÊNG, không nằm trong dropdown tab — đây là trao đổi trực tiếp
+             với thân chủ, bác sĩ cần thấy/gửi được ngay, không phải chọn đúng tab mới thấy. -->
+        <div class="sr-response-section">
+          <h3 class="sr-response-title">💬 Phản hồi cho thân chủ</h3>
+          <p v-if="!detailRecord.responses.length" class="ca-empty">Bạn chưa phản hồi hồ sơ này.</p>
+          <div v-for="resp in detailRecord.responses" :key="resp.id" class="sr-response-bubble">
+            <div>{{ resp.content }}</div>
+            <div class="ca-selftest-meta">{{ formatDateTime(resp.created_at) }}</div>
+          </div>
+
+          <div class="sr-reply-box">
+            <textarea v-model="replyText" class="form-input sr-reply-textarea" placeholder="Nhập phản hồi hoặc phương án/đơn thuốc cho thân chủ..."></textarea>
+            <p v-if="replyError" style="color:var(--coral);font-size:0.85rem;margin:4px 0 0;">{{ replyError }}</p>
+            <button type="button" class="ca-export-btn" style="margin-top:8px;" :disabled="sendingReply" @click="submitReply">{{ sendingReply ? 'Đang gửi...' : '💬 Gửi phản hồi' }}</button>
+          </div>
+        </div>
+      </template>
+    </section>
   </main>
 </template>
 
@@ -195,24 +218,15 @@ import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
 import { apiClient } from '../../lib/apiClient';
 import { useNotificationsStore } from '../../stores/notifications';
 import ExpertStatusBanner from '../../components/ExpertStatusBanner.vue';
-import MedicalRecordsViewer from '../../components/MedicalRecordsViewer.vue';
+import ExpertRecordsCalendar from '../../components/ExpertRecordsCalendar.vue';
 import ExpertMoodChart from '../../components/ExpertMoodChart.vue';
+import MedicalRecordsViewer from '../../components/MedicalRecordsViewer.vue';
 
 const notif = useNotificationsStore();
 const banner = ref({ message: '', type: 'info' });
 function setBanner(message, type = 'info') {
   banner.value = { message: message || '', type };
 }
-
-// Giữ đúng nhãn như ExpertDashboardView.vue để nhất quán xuyên suốt expert portal.
-const SESSION_TYPE_LABELS = { voice: '📞 Gọi thoại', video: '🎥 Video call' };
-const BOOKING_STATUS_LABELS = {
-  awaiting_expert: 'Chờ bạn nhận',
-  confirmed: 'Đã xác nhận',
-  completed: 'Đã hoàn thành',
-  cancelled: 'Đã huỷ',
-  expired: 'Đã hết hạn'
-};
 
 function formatDateTime(value) {
   if (!value) return 'Chưa có';
@@ -226,6 +240,15 @@ function formatTime(value) {
   if (!value) return '';
   return new Intl.DateTimeFormat('vi-VN', { timeStyle: 'short' }).format(new Date(value));
 }
+
+// Giữ đúng nhãn như ExpertDashboardView.vue để nhất quán xuyên suốt expert portal.
+const BOOKING_STATUS_LABELS = {
+  awaiting_expert: 'Chờ bạn nhận',
+  confirmed: 'Đã xác nhận',
+  completed: 'Đã hoàn thành',
+  cancelled: 'Đã huỷ',
+  expired: 'Đã hết hạn'
+};
 
 const records = ref([]);
 const loading = ref(false);
@@ -275,8 +298,8 @@ const replyText = ref('');
 const replyError = ref('');
 const sendingReply = ref(false);
 
-// Tab nội bộ trong trang chi tiết full-screen — mặc định mở "Lịch hẹn" vì đó là thứ bác sĩ
-// cần xem đầu tiên trước buổi hẹn, các mục còn lại xem khi cần.
+// Tab lọc chi tiết ở cột phải — mặc định mở "Lịch hẹn" vì đó là thứ bác sĩ cần xem đầu
+// tiên trước buổi hẹn, các mục còn lại xem khi cần.
 const detailTab = ref('bookings');
 const openBookingIds = ref(new Set());
 function toggleBookingOpen(id) {
@@ -295,8 +318,7 @@ const detailTabs = computed(() => [
   { key: 'bookings', label: '📅 Lịch hẹn', count: detailRecord.value?.bookings?.length ?? null },
   { key: 'journal', label: '📔 Nhật ký', count: detailRecord.value?.snapshot?.journalEntries?.length ?? null },
   { key: 'mood', label: '🌤️ Check-in', count: detailRecord.value?.snapshot?.moodCheckins?.length ?? null },
-  { key: 'tests', label: '🩺 Kết quả test', count: detailRecord.value?.snapshot?.assessmentResults?.length ?? null },
-  { key: 'responses', label: '💬 Phản hồi', count: detailRecord.value?.responses?.length ?? null }
+  { key: 'tests', label: '🩺 Kết quả test', count: detailRecord.value?.snapshot?.assessmentResults?.length ?? null }
 ]);
 const activeTabInfo = computed(() => detailTabs.value.find((tab) => tab.key === detailTab.value) || detailTabs.value[0]);
 
@@ -398,39 +420,51 @@ onMounted(loadRecords);
     padding: 10px 12px;
     margin-bottom: 14px;
 }
-/* Full màn hình thay cho popup nhỏ giữa trang — tách riêng class để KHÔNG đụng tới
-   .ca-detail-overlay/.ca-detail-box dùng chung với ExpertClientAssessmentsView.vue. */
-.sr-fullscreen {
-    position: fixed;
-    inset: 0;
-    z-index: 900;
-    background: var(--warm-white, #fffdf7);
-    display: none;
-    flex-direction: column;
+/* Khung chi tiết đứng NGAY TRONG <main> (cùng khu vực với danh sách), không còn
+   position:fixed phủ toàn màn hình — xem ghi chú trong template vì sao đổi.
+   .expert-section (expertPortal.css) đặt padding:0 cho CẢ class này (để .sr-list-body tự
+   lo padding riêng) — section danh sách có .sr-list-body bù lại, còn section chi tiết này
+   thì không có lớp bọc nào bù, nên phải tự thêm padding ở đây. */
+.sr-detail-panel {
+    padding: 24px 28px 32px;
 }
-.sr-fullscreen.show {
-    display: flex;
-}
-.sr-fullscreen-inner {
-    flex: 1;
-    min-height: 0;
-    overflow-y: auto;
-    padding: 24px 32px 40px;
-    max-width: 900px;
-    width: 100%;
-    margin: 0 auto;
-}
-.sr-fullscreen-head {
+.sr-detail-panel .ca-detail-head {
     position: sticky;
     top: 0;
     background: var(--warm-white, #fffdf7);
-    padding-top: 4px;
+    z-index: 2;
     padding-bottom: 14px;
     margin-bottom: 10px;
-    z-index: 2;
 }
-@media (max-width: 640px) {
-    .sr-fullscreen-inner { padding: 16px 16px 28px; }
+/* .ca-detail-close dùng chung (clientAssessments.css) vốn chỉ để làm nút "✕" nhỏ đóng
+   popup — giờ nút này mang chữ "Quay lại danh sách" nên ghi đè riêng tại đây thành dạng
+   nút bo tròn bình thường, KHÔNG sửa file CSS dùng chung (ExpertClientAssessmentsView.vue
+   vẫn cần giữ nguyên nút "✕" trơn của nó). */
+.sr-detail-panel .ca-detail-close {
+    font-size: 0.85rem;
+    font-weight: 700;
+    white-space: nowrap;
+    padding: 8px 16px;
+    border: 1.5px solid var(--kraft-light, #e8cba7);
+    border-radius: 50px;
+    background: var(--warm-white, #fffdf7);
+    color: var(--text-secondary);
+}
+.sr-detail-panel .ca-detail-close:hover {
+    background: var(--mint-light);
+    border-color: var(--mint);
+}
+
+/* 2 cột: trái 2/3 (biểu đồ + lịch), phải 1/3 (tab chi tiết) — bên trái từng tràn hết cỡ
+   màn hình khi đứng 1 mình (chart/lịch kéo giãn méo), giới hạn lại bằng cột 2fr/1fr. */
+.sr-detail-columns {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 24px;
+    align-items: start;
+}
+@media (max-width: 900px) {
+    .sr-detail-columns { grid-template-columns: 1fr; }
 }
 
 .sr-tab-filter-wrap {
@@ -590,6 +624,16 @@ onMounted(loadRecords);
     padding: 10px 12px;
     margin-bottom: 8px;
     font-size: 0.86rem;
+}
+.sr-response-section {
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1.5px dashed var(--kraft-light, #e8cba7);
+}
+.sr-response-title {
+    font-weight: 800;
+    font-size: 1rem;
+    margin: 0 0 12px;
 }
 .sr-reply-box {
     margin-top: 10px;
