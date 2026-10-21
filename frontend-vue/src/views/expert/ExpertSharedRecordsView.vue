@@ -155,6 +155,7 @@
 
           <div v-show="detailTab === 'mood'" class="sr-detail-section">
             <p v-if="!detailRecord.snapshot?.moodCheckins?.length" class="ca-empty">Không có check-in nào trong hồ sơ này.</p>
+            <ExpertMoodChart v-else :checkins="detailRecord.snapshot.moodCheckins" />
             <div v-for="m in detailRecord.snapshot?.moodCheckins" :key="m.id" class="sr-detail-item">
               <div class="ca-selftest-name">{{ m.dominant_emotion || '—' }} ({{ m.mood_score }}/10)</div>
               <div class="ca-selftest-meta">{{ formatDateTime(m.created_at) }}</div>
@@ -195,6 +196,7 @@ import { apiClient } from '../../lib/apiClient';
 import { useNotificationsStore } from '../../stores/notifications';
 import ExpertStatusBanner from '../../components/ExpertStatusBanner.vue';
 import MedicalRecordsViewer from '../../components/MedicalRecordsViewer.vue';
+import ExpertMoodChart from '../../components/ExpertMoodChart.vue';
 
 const notif = useNotificationsStore();
 const banner = ref({ message: '', type: 'info' });
