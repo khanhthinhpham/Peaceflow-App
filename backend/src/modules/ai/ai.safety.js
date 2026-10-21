@@ -106,18 +106,23 @@ export function ensureCrisisResources(reply) {
 // emergency.routes.js đang dùng, nên: risk engine đếm được (làm tăng chỉ số rủi ro của
 // người dùng), và /emergency/summary cũng thống kê được.
 // Kiểu "bắn và quên" giống logAiUsage: việc ghi log KHÔNG được phép làm hỏng lượt chat.
-export function logCrisisFlag(userId, matchedPhrases = []) {
-    if (!userId) return;
+// `source` phân biệt nơi phát hiện ('ai_chat' mặc định, hoặc 'screening_summary' cho phiếu
+// sàng lọc trường học...). `userId` có thể null — phiếu sàng lọc phần lớn là HỌC SINH CHƯA
+// ĐĂNG NHẬP (ẩn danh), nên KHÔNG được bỏ qua chỉ vì thiếu user_id như trước (emergency_logs.
+// user_id vốn đã nullable — xem migration 0008). Bỏ sót đúng nhóm dễ tổn thương nhất chỉ vì
+// họ không có tài khoản là đi ngược với tinh thần "ưu tiên bắt sót ít hơn bắt nhầm ít" của
+// cả module này.
+export function logCrisisFlag(userId, matchedPhrases = [], { source = 'ai_chat' } = {}) {
     // Cùng định dạng cảnh báo với emergency.routes.js để admin lọc log theo một từ khoá.
-    console.warn(`[CRISIS_FLAG] user_id=${userId} source=ai_chat matched=${matchedPhrases.length}`);
+    console.warn(`[CRISIS_FLAG] user_id=${userId || 'anonymous'} source=${source} matched=${matchedPhrases.length}`);
     db.query(
         `insert into emergency_logs (user_id, event_type, payload)
          values ($1, 'crisis_flag', $2::jsonb)`,
         [
-            userId,
+            userId || null,
             // Chỉ lưu cụm từ khoá đã khớp (danh sách cố định do ta tự định nghĩa), KHÔNG
             // lưu câu người dùng gõ — giữ đúng nguyên tắc không lưu nội dung chat.
-            JSON.stringify({ source: 'ai_chat', matched: matchedPhrases })
+            JSON.stringify({ source, matched: matchedPhrases })
         ]
     ).catch((error) => {
         console.error('[AI] ghi crisis_flag thất bại:', error.message);

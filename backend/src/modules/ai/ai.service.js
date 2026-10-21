@@ -595,7 +595,14 @@ GIỚI HẠN BẮT BUỘC cho cả 2 phần:
 - Diễn đạt bằng ngôn ngữ khả năng ("có thể...", "thường đi cùng với..."), không nói chắc chắn về tình trạng y khoa.
 - KHÔNG kê thuốc, không hướng dẫn dùng thuốc.
 - Nếu có dấu hiệu cần ưu tiên (mức độ Đỏ, hoặc khó khăn nghiêm trọng như bạo lực/bắt nạt/tự làm hại), nhắc rõ nên liên hệ chuyên gia/người có trách nhiệm sớm — nói theo cách trấn an, không gây hoảng.
-- Đây là thông tin tham khảo, không thay thế đánh giá chuyên môn trực tiếp.`;
+- Đây là thông tin tham khảo, không thay thế đánh giá chuyên môn trực tiếp.
+
+QUY TẮC AN TOÀN BẮT BUỘC — NGƯỜI ĐỌC LÀ HỌC SINH (có thể là trẻ vị thành niên, từ 11-18 tuổi):
+- TUYỆT ĐỐI không dùng từ ngữ khiến học sinh hoảng sợ, xấu hổ, hoặc cảm thấy bị phán xét/dán nhãn. Không viết kiểu "em có vấn đề nghiêm trọng" hay liệt kê bệnh lý.
+- KHÔNG mô tả chi tiết cách thức tự làm hại bản thân, tự tử, hay bất kỳ hành vi nguy hiểm nào — kể cả khi chỉ để "cảnh báo tránh". Nếu cần nhắc tới, chỉ nói chung chung kiểu "có ý nghĩ muốn làm hại bản thân" rồi hướng ngay tới việc tìm người lớn/chuyên gia, không mô tả thêm.
+- KHÔNG đưa lời khuyên có thể gây hại nếu làm theo sai cách (vd không gợi ý tự xử lý bạo lực/bắt nạt một mình, không gợi ý đối đầu trực tiếp với người bắt nạt).
+- Nếu phần "Khó khăn đang gặp" hoặc "Chia sẻ thêm" có dấu hiệu bị bắt nạt, bạo lực, xâm hại, hoặc ý nghĩ muốn làm hại bản thân/không muốn sống: PHẢI nhắc rõ trong summary rằng đây là chuyện quan trọng, em KHÔNG có lỗi, và em nên nói với một người lớn tin cậy (giáo viên, tổ tư vấn, cha mẹ) hoặc gọi đường dây nóng sức khỏe tâm thần 0931773637 (miễn phí, 24/7) càng sớm càng tốt — không chờ nhà trường liên hệ lại.
+- Giọng văn luôn mang tính xây dựng, hướng tới hy vọng và hành động cụ thể, không bi kịch hoá vấn đề.`;
 }
 
 // Nhận xét AI cho "Phiếu khảo sát/sàng lọc tâm lý đầu năm học" — KHÔNG dùng
@@ -653,7 +660,21 @@ ${referralLines.length ? referralLines.join('\n') : ''}`;
         topics: ['screening', bandLabel(band)].filter(Boolean)
     });
 
-    return { summary: parsed.summary || '', interpretation: parsed.interpretation || '' };
+    let summary = parsed.summary || '';
+    let interpretation = parsed.interpretation || '';
+
+    // Lưới an toàn PHÍA SERVER — giống cơ chế đã có cho chat (ai.safety.js): không tin
+    // tuyệt đối vào việc model tuân theo QUY TẮC AN TOÀN ở trên. Quét "Chia sẻ thêm" (văn
+    // bản tự do duy nhất trong phiếu) tìm dấu hiệu khủng hoảng — có thì BẮT BUỘC câu trả
+    // lời có số đường dây nóng, bất kể model đã tự nêu hay chưa. Đối tượng là học sinh nên
+    // thà thừa 1 câu còn hơn thiếu 1 lần cần.
+    const crisisSignals = detectCrisisSignals(shareNote);
+    if (crisisSignals.length) {
+        summary = ensureCrisisResources(summary);
+        logCrisisFlag(userId, crisisSignals, { source: 'screening_summary' });
+    }
+
+    return { summary, interpretation };
 }
 
 const DAILY_MESSAGE_SCHEMA = {

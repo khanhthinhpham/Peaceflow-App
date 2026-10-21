@@ -6,6 +6,7 @@ import { requireAuth } from '../../common/middleware/auth.middleware.js';
 import { sendScreeningRedAlertEmail } from '../../common/services/email.service.js';
 import { env } from '../../config/env.js';
 import { getScreeningAiSummary } from '../ai/ai.service.js';
+import { detectCrisisSignals, logCrisisFlag } from '../ai/ai.safety.js';
 
 const router = Router();
 
@@ -113,12 +114,14 @@ router.post('/screening/responses', attachUserIfPresent, async (req, res) => {
       ]
     );
 
-    // Mức Đỏ -> báo ngay cho đầu mối trường (nếu có contact_email) + admin phụ trách chung
-    // (env.screeningAdminEmails) — đầy đủ chi tiết của đúng 1 phiếu này NGAY TRONG EMAIL
-    // (không bắt phải đăng nhập mới xem được, đề phòng đầu mối trường không có tài khoản
-    // admin). Nút "Xem trên trang quản trị" CHỈ thêm cho admin — đầu mối trường không có
-    // quyền vào /admin nên nút đó với họ vô dụng, dễ gây hiểu lầm là phải bấm mới xem được.
-    if (band === 'do') {
+    // Mức Đỏ, HOẶC "Chia sẻ thêm" có dấu hiệu khủng hoảng (tự làm hại/không muốn sống...) dù
+    // điểm ra Vàng/Xanh -> báo ngay, không chờ nhà trường đọc được phần chia sẻ. Đối tượng
+    // là học sinh (có thể vị thành niên) nên thà báo thừa còn hơn bỏ sót 1 lần cần (cùng
+    // triết lý với lưới an toàn ai.safety.js dùng cho chat).
+    const crisisSignals = detectCrisisSignals(body.shareNote);
+    if (band === 'do' || crisisSignals.length) {
+      if (crisisSignals.length) logCrisisFlag(req.user?.id || null, crisisSignals, { source: 'screening_submit' });
+
       (async () => {
         const school = body.schoolId
           ? (await db.query(`select name, contact_email from screening_schools where id = $1`, [body.schoolId])).rows[0]
@@ -130,7 +133,7 @@ router.post('/screening/responses', attachUserIfPresent, async (req, res) => {
           grade: body.grade,
           className: body.className,
           createdAt: r.rows[0].created_at,
-          total, wellbeingScores: scores,
+          total, wellbeingScores: scores, band, crisisDetected: crisisSignals.length > 0,
           difficulties, difficultiesOther: body.difficultiesOther,
           supportNeeds, supportNeedsOther: body.supportNeedsOther,
           shareNote: body.shareNote, consentContact: Boolean(body.consentContact), contact: body.contact,

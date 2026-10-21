@@ -506,7 +506,7 @@ export async function sendBookingConfirmedEmail({ to, recipientName, expertName,
 // phiếu đăng ký hỗ trợ) — KHÔNG kèm file Excel tổng hợp toàn bộ (để dành cho báo cáo cuối
 // tháng), vì cảnh báo tức thời chỉ cần đúng 1 trường hợp này.
 export async function sendScreeningRedAlertEmail({
-  to, schoolName, studentName, grade, className, createdAt, total, wellbeingScores = [],
+  to, schoolName, studentName, grade, className, createdAt, total, wellbeingScores = [], band = 'do', crisisDetected = false,
   difficulties = [], difficultiesOther, supportNeeds = [], supportNeedsOther,
   shareNote, consentContact, contact,
   referralCategories = [], referralRiskLevel, referralSupportFormat = [],
@@ -514,18 +514,26 @@ export async function sendScreeningRedAlertEmail({
 }) {
   if (!hasMailProvider() || !to) return;
   const link = `${APP_URL}/admin/screening`;
-  const subject = `🔴 Cần ưu tiên hỗ trợ — ${studentName || 'Học sinh'} (${schoolName || ''})`;
+  // Band thật có thể KHÔNG phải Đỏ — trường hợp "Chia sẻ thêm" có dấu hiệu khủng hoảng dù
+  // điểm Phần 2 ra Vàng/Xanh vẫn phải báo ngay (xem screening.routes.js), nên không được ghi
+  // cứng "Đỏ" khi thực tế không phải, dễ gây hiểu lầm/mất tin cậy với đầu mối trường.
+  const subject = crisisDetected && band !== 'do'
+    ? `⚠️ Cần chú ý — ${studentName || 'Học sinh'} (${schoolName || ''})`
+    : `🔴 Cần ưu tiên hỗ trợ — ${studentName || 'Học sinh'} (${schoolName || ''})`;
   const dateLabel = createdAt ? new Intl.DateTimeFormat('vi-VN', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(createdAt)) : '';
   const difficultiesList = [...difficulties.map(difficultyLabel), difficultiesOther ? `Khác: ${difficultiesOther}` : null].filter(Boolean);
   const supportNeedsList = [...supportNeeds.map(supportNeedLabel), supportNeedsOther ? `Khác: ${supportNeedsOther}` : null].filter(Boolean);
   // Điểm từng câu Phần 2 — để người đọc hiểu VÌ SAO ra tổng điểm đó, không phải chỉ thấy
   // "X/30" trơ trọi không giải thích gì.
   const wellbeingRows = WELLBEING_QUESTIONS.map((q, i) => `${q} — <strong>${wellbeingScores[i] ?? '?'}/5</strong>`);
+  const headline = crisisDetected
+    ? `⚠️ Phát hiện dấu hiệu cần chú ý trong nội dung chia sẻ — mức ${bandLabel(band)}, ${total}/30 điểm (Phần 2)`
+    : `🔴 Đỏ — cần ưu tiên hỗ trợ ngay — ${total}/30 điểm (Phần 2)`;
   const html = `
     <div style="font-family:sans-serif;max-width:520px;margin:0 auto;padding:32px 24px;">
       <h2 style="color:#c93f3f;margin-bottom:4px;">${studentName || 'Chưa rõ tên'}</h2>
       <p style="color:#999;font-size:0.85rem;margin:0 0 14px;">${schoolName || ''}${grade ? ` · Khối ${grade}` : ''}${className ? ` / ${className}` : ''}${dateLabel ? ` · ${dateLabel}` : ''}</p>
-      <p style="color:#c93f3f;font-weight:700;">🔴 Đỏ — cần ưu tiên hỗ trợ ngay — ${total}/30 điểm (Phần 2)</p>
+      <p style="color:#c93f3f;font-weight:700;">${headline}</p>
       ${wellbeingRows.length ? `
       <p style="margin-bottom:2px;"><strong>Chi tiết điểm Phần 2 — thang 1 (hoàn toàn không đúng) đến 5 (rất đúng)</strong></p>
       <p style="color:#555;margin-top:2px;line-height:1.7;">${wellbeingRows.join('<br>')}</p>
@@ -534,7 +542,7 @@ export async function sendScreeningRedAlertEmail({
       ${difficultiesList.length ? `<p style="margin-bottom:2px;"><strong>Khó khăn đang gặp</strong></p><p style="color:#555;margin-top:2px;">${difficultiesList.join('<br>')}</p>` : ''}
       ${supportNeedsList.length ? `<p style="margin-bottom:2px;"><strong>Nhu cầu hỗ trợ</strong></p><p style="color:#555;margin-top:2px;">${supportNeedsList.join('<br>')}</p>` : ''}
 
-      <p style="margin-bottom:2px;"><strong>Chia sẻ thêm</strong></p>
+      <p style="margin-bottom:2px;"><strong>Chia sẻ thêm</strong>${crisisDetected ? ' <span style="color:#c93f3f;">⚠️ có dấu hiệu cần quan tâm đặc biệt</span>' : ''}</p>
       <p style="color:#555;margin-top:2px;">${shareNote || 'Không có.'}</p>
       <p style="color:#555;">Đồng ý được liên hệ: <strong>${consentContact ? 'Có' : 'Không'}</strong>${contact ? ` · Liên hệ: ${contact}` : ''}</p>
 
