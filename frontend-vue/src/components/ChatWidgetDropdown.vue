@@ -93,7 +93,7 @@ onBeforeUnmount(() => document.removeEventListener('click', handleOutsideClick))
 }
 .cwd-search-wrap {
   padding: 8px 12px;
-  border-bottom: 1px solid var(--kraft-light);
+  /* border-bottom: 1px solid var(--kraft-light); */
 }
 .cwd-search {
   width: 100%;

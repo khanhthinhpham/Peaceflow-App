@@ -71,8 +71,16 @@ export const useChatWidgetStore = defineStore('chatWidget', {
     // (hiện 2 dù chỉ có 1 tin nhắn thật) nếu sự kiện lỡ bắn trùng — tải lại luôn lấy đúng số
     // thật từ DB nên không bao giờ lệch, và badge cũng tự cập nhật ngay, không cần đợi bấm
     // dropdown mới thấy.
+    // Tăng ngay +1 tại chỗ để badge phản hồi tức thì (không phải đợi round-trip API mới thấy
+    // đổi — gây cảm giác delay), SAU ĐÓ vẫn tải lại từ server để chốt đúng số thật (sửa ngay
+    // nếu lỡ có sai lệch, vd 2 sự kiện trùng tới cùng lúc) — kết hợp phản hồi nhanh + luôn đúng.
     _handleChatMessageEvent(e) {
-      if (!e.detail?.params?.conversationId) return;
+      const conversationId = e.detail?.params?.conversationId;
+      if (!conversationId) return;
+      if (!this.openWindows.some((w) => w.id === conversationId)) {
+        const conv = this.conversations.find((c) => c.id === conversationId);
+        if (conv) conv.unread_count = (conv.unread_count || 0) + 1;
+      }
       this.loadConversations();
     },
 
