@@ -51,7 +51,6 @@ import ExpertReviewStatusView from '../views/expert/ExpertReviewStatusView.vue';
 import ExpertPaymentsView from '../views/expert/ExpertPaymentsView.vue';
 import ExpertSharedRecordsView from '../views/expert/ExpertSharedRecordsView.vue';
 import ExpertClinicalProtocolsView from '../views/expert/ExpertClinicalProtocolsView.vue';
-import ExpertMessagesView from '../views/expert/ExpertMessagesView.vue';
 import MessagesView from '../views/MessagesView.vue';
 import ScreeningFormView from '../views/ScreeningFormView.vue';
 import SupportRegistrationView from '../views/SupportRegistrationView.vue';
@@ -132,7 +131,7 @@ const router = createRouter({
       children: [
         { path: '', redirect: '/expert/dashboard' },
         { path: 'dashboard', name: 'expert-dashboard', component: ExpertDashboardView, meta: { navKey: 'dashboard' } },
-        { path: 'messages', name: 'expert-messages', component: ExpertMessagesView, meta: { navKey: 'messages' } },
+        { path: 'messages', name: 'expert-messages', component: MessagesView, meta: { navKey: 'messages' } },
         { path: 'client-assessments', name: 'expert-client-assessments', component: ExpertClientAssessmentsView, meta: { navKey: 'client-assessments' } },
         { path: 'clinical-protocols', name: 'expert-clinical-protocols', component: ExpertClinicalProtocolsView, meta: { navKey: 'clinical-protocols' } },
         { path: 'shared-records', name: 'expert-shared-records', component: ExpertSharedRecordsView, meta: { navKey: 'shared-records' } },

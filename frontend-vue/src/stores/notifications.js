@@ -105,11 +105,22 @@ export const useNotificationsStore = defineStore('notifications', {
         if (!this.notifications.some((item) => item.id === nextNotification.id)) {
           this.notifications.unshift(nextNotification);
         }
-        this.pushToast({ type: notif.type, icon: meta.icon, title: meta.title, body: notif.message, action: meta.action });
+
+        // Tin nhắn chat mới: nếu đang ở ngay trang Tin nhắn (user hoặc expert), KHÔNG bắn
+        // popup toast nữa — trang Tin nhắn tự cập nhật số chưa đọc cạnh từng hội thoại qua
+        // sự kiện 'peaceflow:chat-message' bên dưới, popup lúc này chỉ gây rối không cần thiết.
+        const onMessagesPage = window.location.pathname.includes('/messages');
+        const isChatMessage = notif?.type === 'chat_message';
+        if (!(isChatMessage && onMessagesPage)) {
+          this.pushToast({ type: notif.type, icon: meta.icon, title: meta.title, body: notif.message, action: meta.action });
+        }
         this.unread++;
 
         if (notif?.type === 'booking_new' || notif?.type === 'booking_update') {
           window.dispatchEvent(new CustomEvent('peaceflow:booking-changed', { detail: notif }));
+        }
+        if (isChatMessage) {
+          window.dispatchEvent(new CustomEvent('peaceflow:chat-message', { detail: notif }));
         }
       });
     },

@@ -1,5 +1,5 @@
 <template>
-  <main class="messages-page">
+  <main class="messages-page" :class="{ 'expert-main': isExpertPortal }">
     <div class="messages-layout" :class="{ 'show-thread': activeId }">
       <aside class="conv-list">
         <h1 class="conv-list-title">{{ t('messages.title') }}</h1>
@@ -16,9 +16,9 @@
           :class="{ active: c.id === activeId }"
           @click="selectConversation(c.id)"
         >
-          <div class="conv-avatar">{{ c.expert_avatar || '🩺' }}</div>
+          <div class="conv-avatar">{{ c.avatar }}</div>
           <div class="conv-info">
-            <div class="conv-name">{{ c.expert_name }}</div>
+            <div class="conv-name">{{ c.name }}</div>
             <div class="conv-preview">{{ c.last_message_preview || '' }}</div>
           </div>
           <div v-if="c.unread_count > 0" class="conv-badge">{{ c.unread_count }}</div>
@@ -28,7 +28,7 @@
       <section class="thread-pane">
         <div v-if="activeId" class="thread-header">
           <button type="button" class="thread-back" @click="activeId = null">{{ t('messages.backToList') }}</button>
-          <div class="thread-header-name">{{ activeConversation?.expert_name }}</div>
+          <div class="thread-header-name">{{ activeConversation?.name }}</div>
         </div>
         <ChatThread
           v-if="activeId"
@@ -65,11 +65,30 @@ const messagesLoading = ref(false);
 const sending = ref(false);
 
 const activeConversation = computed(() => conversations.value.find((c) => c.id === activeId.value));
+// Trang này được dùng chung cho cả 2 route (/messages trong shell user thường, /expert/messages
+// trong shell Chuyên gia dạng CSS grid) — cần biết đang ở shell nào để áp đúng class layout
+// (.expert-main bù padding-top cho topbar mobile riêng của khu Chuyên gia).
+const isExpertPortal = computed(() => route.path.startsWith('/expert'));
 
+// Gộp CHUNG 1 danh sách: hội thoại với vai trò thân chủ (mình đặt lịch người khác) VÀ vai
+// trò chuyên gia (người khác đặt lịch mình) — vì với 1 tài khoản vừa là chuyên gia vừa có
+// thể tự đặt lịch người khác, "tin nhắn với thân chủ" theo đúng nghĩa thực tế là CẢ 2 chiều,
+// không nên tách 2 trang riêng chỉ vì khác route. 2 mục sidebar (chính + khu Chuyên gia) đều
+// trỏ về đúng trang này.
 async function loadConversations() {
   loading.value = true;
   try {
-    conversations.value = await apiClient.get('/chat/conversations', { noCache: true });
+    const isExpert = auth.user?.role === 'expert';
+    const [asClient, asExpert] = await Promise.all([
+      apiClient.get('/chat/conversations', { noCache: true }).catch(() => []),
+      isExpert ? apiClient.get('/expert-portal/chat/conversations', { noCache: true }).catch(() => []) : Promise.resolve([])
+    ]);
+    const merged = [
+      ...asClient.map((c) => ({ id: c.id, expertId: c.expert_id, name: c.expert_name, avatar: c.expert_avatar || '🩺', last_message_at: c.last_message_at, last_message_preview: c.last_message_preview, unread_count: c.unread_count })),
+      ...asExpert.map((c) => ({ id: c.id, userId: c.user_id, name: c.client_name, avatar: '🙂', last_message_at: c.last_message_at, last_message_preview: c.last_message_preview, unread_count: c.unread_count }))
+    ];
+    merged.sort((a, b) => new Date(b.last_message_at || 0) - new Date(a.last_message_at || 0));
+    conversations.value = merged;
   } catch (_e) {
     // Danh sách rỗng là đủ, không cần chặn trang bằng lỗi.
   } finally {
@@ -132,7 +151,7 @@ async function handleSend(content) {
 async function openByExpertQuery() {
   const expertId = route.query.expert;
   if (!expertId) return;
-  const existing = conversations.value.find((c) => c.expert_id === expertId);
+  const existing = conversations.value.find((c) => c.expertId === expertId);
   if (existing) {
     selectConversation(existing.id);
     return;
@@ -146,7 +165,18 @@ async function openByExpertQuery() {
   }
 }
 
+// Hội thoại khác (không phải đang mở) có tin nhắn mới trong lúc đang ở trang Tin nhắn — chỉ
+// cần tăng số chưa đọc cạnh hội thoại đó, không cần popup (đã tắt popup ở notifications.js
+// khi đang ở trang này). Hội thoại ĐANG MỞ thì kênh subscribeChatMessages riêng đã lo rồi.
+function handleChatMessageEvent(e) {
+  const conversationId = e.detail?.params?.conversationId;
+  if (!conversationId || conversationId === activeId.value) return;
+  const conv = conversations.value.find((c) => c.id === conversationId);
+  if (conv) conv.unread_count = (conv.unread_count || 0) + 1;
+}
+
 onMounted(async () => {
+  window.addEventListener('peaceflow:chat-message', handleChatMessageEvent);
   await loadConversations();
   // Mở thẳng 1 hội thoại cụ thể khi nhảy từ thông báo "có tin nhắn mới" (?conversation=<id>) —
   // ưu tiên trước query ?expert vì đã biết chính xác hội thoại nào, không cần dò/tạo lại.
@@ -156,7 +186,10 @@ onMounted(async () => {
     await openByExpertQuery();
   }
 });
-onBeforeUnmount(() => unsubscribeChatMessages());
+onBeforeUnmount(() => {
+  unsubscribeChatMessages();
+  window.removeEventListener('peaceflow:chat-message', handleChatMessageEvent);
+});
 </script>
 
 <style scoped>
