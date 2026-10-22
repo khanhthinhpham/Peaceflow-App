@@ -50,6 +50,7 @@ let _chatChannel = null;
 
 export function subscribeChatMessages(conversationId, onNew) {
   if (!conversationId) return;
+  console.log('[chat-realtime] subscribing to conversation', conversationId);
   _chatClient = _chatClient || createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
   _chatChannel = _chatClient
@@ -60,9 +61,12 @@ export function subscribeChatMessages(conversationId, onNew) {
       table: 'chat_messages',
       filter: `conversation_id=eq.${conversationId}`
     }, (payload) => {
+      console.log('[chat-realtime] received new message', payload.new);
       onNew(payload.new);
     })
-    .subscribe();
+    .subscribe((status) => {
+      console.log('[chat-realtime] channel status:', status);
+    });
 }
 
 export function unsubscribeChatMessages() {
