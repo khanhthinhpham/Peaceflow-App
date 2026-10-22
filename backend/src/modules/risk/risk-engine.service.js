@@ -7,12 +7,14 @@ export class RiskEngineService {
    */
   static async calculateStressIndex(userId) {
     try {
-      const [latestMood, latestJournal, recentEmergencyCount, taskStats, profile] = await Promise.all([
+      const [latestMood, latestJournal, recentEmergencyCount, taskStats, profile, latestAssessment, latestScreening] = await Promise.all([
         this._getLatestMood(userId),
         this._getLatestJournal(userId),
         this._countEmergencyEventsLast7Days(userId),
         this._getTaskStatsLast7Days(userId),
-        this._getUserProfile(userId)
+        this._getUserProfile(userId),
+        this._getLatestAssessmentResult(userId),
+        this._getLatestScreeningBand(userId)
       ]);
 
       // Normalization (0-100)
@@ -24,17 +26,43 @@ export class RiskEngineService {
       const Journal = this._calculateJournalNegativity(latestJournal?.sentiment_score);
       const Emergency = this._calculateEmergencyFrequency(recentEmergencyCount);
 
-      const stressIndex = (
-        0.22 * A +
-        0.22 * S +
-        0.18 * M +
-        0.15 * Sleep +
-        0.10 * TaskAvoid +
-        0.08 * Journal +
-        0.05 * Emergency
-      );
+      // 2 nguồn "tình trạng" bổ sung: kết quả bài test chuẩn hóa gần nhất (PHQ-9/GAD-7...)
+      // và mức Xanh/Vàng/Đỏ của lần Sàng lọc HSSV gần nhất (chỉ có khi user đã đăng nhập lúc
+      // làm khảo sát — screening_responses.user_id có thể null với phiếu ẩn danh). Cả 2 CHỈ
+      // được cộng vào công thức khi thực sự có dữ liệu — không ép giá trị mặc định 30/50 như
+      // các yếu tố khác, để không làm loãng điểm của người chưa từng làm test/khảo sát.
+      const AssessmentSeverity = this._severityToRiskScore(latestAssessment?.severity);
+      const ScreeningBand = this._bandToRiskScore(latestScreening?.risk_band);
 
-      const riskLevel = this._classifyRisk(stressIndex);
+      // weight gốc (cộng = 1.00) nhân hệ số 0.8 để nhường 0.20 tổng trọng số cho 2 nguồn mới
+      // khi có đủ dữ liệu cả 2 — khi thiếu 1 hoặc cả 2, chuẩn hóa lại theo đúng tổng trọng số
+      // THỰC SỰ đang có mặt (xem vòng lặp bên dưới), không lệch thang điểm 0-100.
+      const weightedFactors = [
+        { weight: 0.22 * 0.8, value: A },
+        { weight: 0.22 * 0.8, value: S },
+        { weight: 0.18 * 0.8, value: M },
+        { weight: 0.15 * 0.8, value: Sleep },
+        { weight: 0.10 * 0.8, value: TaskAvoid },
+        { weight: 0.08 * 0.8, value: Journal },
+        { weight: 0.05 * 0.8, value: Emergency },
+        ...(AssessmentSeverity !== null ? [{ weight: 0.10, value: AssessmentSeverity }] : []),
+        ...(ScreeningBand !== null ? [{ weight: 0.10, value: ScreeningBand }] : [])
+      ];
+      const totalWeight = weightedFactors.reduce((sum, f) => sum + f.weight, 0);
+      let stressIndex = weightedFactors.reduce((sum, f) => sum + f.weight * f.value, 0) / totalWeight;
+
+      let riskLevel = this._classifyRisk(stressIndex);
+
+      // Ghi đè trực tiếp: "tình trạng khẩn cấp" (Đỏ hoặc severity ở mức nghiêm trọng/khủng
+      // hoảng) phải LUÔN đẩy thẳng lên critical để bên gợi ý bài tập (RecommendationEngineService)
+      // bật ngay nhánh bài tập khẩn cấp — không để bị pha loãng bởi tâm trạng tạm thời ổn ở
+      // các yếu tố khác khiến điểm trung bình không vượt ngưỡng 75.
+      const isCrisisOverride = latestScreening?.risk_band === 'do' || this._isCrisisSeverity(latestAssessment?.severity);
+      if (isCrisisOverride) {
+        stressIndex = Math.max(stressIndex, 85);
+        riskLevel = 'critical';
+      }
+
       const primaryTrigger = this._detectPrimaryTrigger(profile, latestMood, latestJournal, { Sleep, Journal });
 
       const factors = {
@@ -44,7 +72,9 @@ export class RiskEngineService {
         sleep_risk: Sleep,
         task_avoid: TaskAvoid,
         journal_negativity: Journal,
-        emergency_frequency: Emergency
+        emergency_frequency: Emergency,
+        ...(AssessmentSeverity !== null ? { assessment_severity: AssessmentSeverity } : {}),
+        ...(ScreeningBand !== null ? { screening_band: ScreeningBand } : {})
       };
 
       // Fire-and-forget — không block response
@@ -109,6 +139,31 @@ export class RiskEngineService {
   static _calculateEmergencyFrequency(count) {
     // min(count, 5) * 20
     return Math.min(count || 0, 5) * 20;
+  }
+
+  // severity là text tự do do frontend tính rồi gửi lên khi nộp bài test (vd "Nghiêm trọng",
+  // "Severe", "Trung bình nặng"...) — dò từ khóa giống hệt cách frontend tô màu badge mức độ
+  // ở MoodAssessmentView.vue (getSeverityBadgeStyle) để nhất quán 2 nơi, không cần sửa schema
+  // thêm cột enum riêng.
+  static _severityToRiskScore(severity) {
+    if (!severity) return null;
+    const value = String(severity).toLowerCase();
+    if (value.includes('nghiêm') || value.includes('severe') || value.includes('nặng')) return 95;
+    if (value.includes('vừa') || value.includes('moderate') || value.includes('poor')) return 55;
+    return 20; // minimal/mild/nhẹ/tối thiểu
+  }
+
+  static _isCrisisSeverity(severity) {
+    if (!severity) return false;
+    const value = String(severity).toLowerCase();
+    return value.includes('nghiêm') || value.includes('severe') || value.includes('nặng');
+  }
+
+  static _bandToRiskScore(band) {
+    if (band === 'do') return 100;
+    if (band === 'vang') return 55;
+    if (band === 'xanh') return 10;
+    return null;
   }
 
   static _classifyRisk(index) {
@@ -207,6 +262,24 @@ export class RiskEngineService {
       skipped: parseInt(row.skipped, 10) || 0,
       expired: parseInt(row.expired, 10) || 0
     };
+  }
+
+  static async _getLatestAssessmentResult(userId) {
+    const result = await db.query(
+      'SELECT severity, total_score FROM assessment_results WHERE user_id = $1 ORDER BY created_at DESC LIMIT 1',
+      [userId]
+    );
+    return result.rows[0];
+  }
+
+  // Phiếu Sàng lọc HSSV công khai có thể nộp ẩn danh (user_id null) — chỉ lấy được khi học
+  // sinh đã đăng nhập app lúc làm khảo sát (xem screening.routes.js).
+  static async _getLatestScreeningBand(userId) {
+    const result = await db.query(
+      'SELECT risk_band FROM screening_responses WHERE user_id = $1 ORDER BY created_at DESC LIMIT 1',
+      [userId]
+    );
+    return result.rows[0];
   }
 
   static async _getUserProfile(userId) {

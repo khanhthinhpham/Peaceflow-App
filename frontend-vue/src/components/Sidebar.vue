@@ -323,7 +323,11 @@ async function handleLogout() {
   transition: var(--transition); text-decoration: none;
 }
 @media (max-width: 900px), (hover: none) and (pointer: coarse) {
-  .sidebar { transform: translateX(-100%); transition: transform 0.3s ease; }
+  /* Thu gọn sidebar (--sidebar-width:0px) chỉ là tính năng desktop và được nhớ qua
+     localStorage — nếu user từng thu gọn ở desktop rồi mở app trên mobile, biến này vẫn
+     mang giá trị 0px khiến sidebar "mở" nhưng width = 0 (nhìn như không mở được gì). Mobile
+     luôn dùng width cố định, bỏ qua hẳn biến collapse của desktop. */
+  .sidebar { width: 240px !important; transform: translateX(-100%); transition: transform 0.3s ease; }
   .sidebar.open { transform: translateX(0); }
 }
 </style>
