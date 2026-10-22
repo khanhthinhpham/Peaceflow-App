@@ -754,4 +754,9 @@ onMounted(() => {
 });
 </script>
 
-<style scoped src="../assets/community.css"></style>
+<!-- KHÔNG scoped: CommunityComment là component JS thuần dùng h() (không qua compiler của
+     file .vue này) nên các thẻ nó render không được gắn thuộc tính data-v-xxxx — nếu để scoped,
+     mọi CSS của bình luận/reply (.ci-bubble, .comment-reply, nút Trả lời, ô nhập reply...) sẽ
+     không khớp được selector và coi như không có style. Đã kiểm tra không có tên class nào ở
+     đây trùng với file khác nên bỏ scoped an toàn. -->
+<style src="../assets/community.css"></style>
