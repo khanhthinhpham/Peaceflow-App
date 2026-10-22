@@ -1,10 +1,24 @@
 import { Router } from 'express';
+import multer from 'multer';
 import { requireAuth } from '../../common/middleware/auth.middleware.js';
 import { db } from '../../config/db.js';
 import { sendPushToUser } from '../notifications/notification.routes.js';
 import { detectCrisisSignals, logCrisisFlag } from '../ai/ai.safety.js';
 
 const router = Router();
+
+// Giới hạn 5MB — khớp convention chung toàn app (ảnh bìa bài viết, avatar chuyên gia...).
+const attachmentUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 5 * 1024 * 1024 }
+});
+
+function attachmentPreviewLabel(mime) {
+  if (!mime) return '📎 Tệp đính kèm';
+  if (mime.startsWith('image/')) return '📷 Hình ảnh';
+  if (mime.startsWith('audio/')) return '🎤 Tin nhắn thoại';
+  return '📎 Tệp đính kèm';
+}
 
 async function insertNotification(recipientId, actorName, type, postId, message, params = null) {
   const groupKey = `${type}:${postId}:${recipientId}`;
@@ -209,7 +223,8 @@ router.get('/chat/conversations/:id/messages', requireAuth, async (req, res) => 
     const offset = Math.max(parseInt(req.query.offset, 10) || 0, 0);
 
     const r = await db.query(
-      `select id, sender_user_id, content, created_at, read_at
+      `select id, sender_user_id, content, created_at, read_at,
+              attachment_id, attachment_mime, attachment_filename
        from chat_messages
        where conversation_id = $1
        order by created_at desc
@@ -223,27 +238,38 @@ router.get('/chat/conversations/:id/messages', requireAuth, async (req, res) => 
   }
 });
 
-router.post('/chat/conversations/:id/messages', requireAuth, async (req, res) => {
+router.post('/chat/conversations/:id/messages', requireAuth, attachmentUpload.single('attachment'), async (req, res) => {
   try {
     const access = await resolveParticipant(req.user.sub, req.params.id);
     if (!access) return res.status(403).json({ success: false, message: 'Không có quyền gửi tin nhắn trong hội thoại này.' });
 
     const content = (req.body.content || '').trim();
-    if (!content) return res.status(400).json({ success: false, message: 'Nội dung tin nhắn trống.' });
+    const file = req.file;
+    if (!content && !file) return res.status(400).json({ success: false, message: 'Nội dung tin nhắn trống.' });
     if (content.length > 4000) return res.status(400).json({ success: false, message: 'Tin nhắn quá dài.' });
 
     const { conversation, role } = access;
 
+    let attachmentId = null;
+    if (file) {
+      const attachRes = await db.query(
+        `insert into chat_attachments (data) values ($1) returning id`,
+        [file.buffer]
+      );
+      attachmentId = attachRes.rows[0].id;
+    }
+
     const r = await db.query(
-      `insert into chat_messages (conversation_id, sender_user_id, content)
-       values ($1, $2, $3)
-       returning id, sender_user_id, content, created_at, read_at`,
-      [conversation.id, req.user.sub, content]
+      `insert into chat_messages (conversation_id, sender_user_id, content, attachment_id, attachment_mime, attachment_filename)
+       values ($1, $2, $3, $4, $5, $6)
+       returning id, sender_user_id, content, created_at, read_at, attachment_id, attachment_mime, attachment_filename`,
+      [conversation.id, req.user.sub, content, attachmentId, file?.mimetype || null, file?.originalname || null]
     );
 
+    const preview = content ? content.slice(0, 200) : attachmentPreviewLabel(file?.mimetype);
     await db.query(
       `update chat_conversations set last_message_at = now(), last_message_preview = $2 where id = $1`,
-      [conversation.id, content.slice(0, 200)]
+      [conversation.id, preview]
     );
 
     // Người gửi là CLIENT -> dò tín hiệu khủng hoảng trong tin nhắn, dùng lại đúng bộ phát
@@ -281,6 +307,35 @@ router.post('/chat/conversations/:id/messages', requireAuth, async (req, res) =>
   } catch (error) {
     console.error('Send chat message error:', error);
     return res.status(500).json({ success: false, message: 'Không gửi được tin nhắn.' });
+  }
+});
+
+// Phục vụ lại bytes của 1 đính kèm — xác thực người gọi thuộc đúng hội thoại chứa tin nhắn đó
+// (join attachment -> message -> conversation), không public như ảnh bìa bài viết vì nội dung
+// chat là riêng tư giữa 2 người.
+router.get('/chat/attachments/:id', requireAuth, async (req, res) => {
+  try {
+    const r = await db.query(
+      `select ca.data, cm.attachment_mime, cm.attachment_filename, cm.conversation_id
+       from chat_attachments ca
+       join chat_messages cm on cm.attachment_id = ca.id
+       where ca.id = $1`,
+      [req.params.id]
+    );
+    const row = r.rows[0];
+    if (!row) return res.status(404).end();
+
+    const access = await resolveParticipant(req.user.sub, row.conversation_id);
+    if (!access) return res.status(403).end();
+
+    const isInline = (row.attachment_mime || '').startsWith('image/') || (row.attachment_mime || '').startsWith('audio/');
+    res.set('Content-Type', row.attachment_mime || 'application/octet-stream');
+    res.set('Content-Disposition', isInline ? 'inline' : `attachment; filename="${encodeURIComponent(row.attachment_filename || 'file')}"`);
+    res.set('Cache-Control', 'private, max-age=86400');
+    return res.send(row.data);
+  } catch (error) {
+    console.error('Get chat attachment error:', error);
+    return res.status(500).end();
   }
 });
 

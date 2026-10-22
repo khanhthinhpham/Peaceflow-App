@@ -49,10 +49,18 @@ async function loadMessages() {
   }
 }
 
-async function handleSend(content) {
+async function handleSend({ content, file }) {
   sending.value = true;
   try {
-    const created = await apiClient.post(`/chat/conversations/${props.conversation.id}/messages`, { content });
+    let created;
+    if (file) {
+      const fd = new FormData();
+      fd.append('content', content);
+      fd.append('attachment', file);
+      created = await apiClient.postForm(`/chat/conversations/${props.conversation.id}/messages`, fd);
+    } else {
+      created = await apiClient.post(`/chat/conversations/${props.conversation.id}/messages`, { content });
+    }
     messages.value.push(created);
   } catch (_e) {
     // v1: lỗi mạng thì người dùng gõ lại.

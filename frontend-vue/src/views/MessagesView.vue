@@ -131,14 +131,22 @@ watch(activeId, (id, prevId) => {
   });
 });
 
-async function handleSend(content) {
+async function handleSend({ content, file }) {
   if (!activeId.value) return;
   sending.value = true;
   try {
-    const created = await apiClient.post(`/chat/conversations/${activeId.value}/messages`, { content });
+    let created;
+    if (file) {
+      const fd = new FormData();
+      fd.append('content', content);
+      fd.append('attachment', file);
+      created = await apiClient.postForm(`/chat/conversations/${activeId.value}/messages`, fd);
+    } else {
+      created = await apiClient.post(`/chat/conversations/${activeId.value}/messages`, { content });
+    }
     messages.value.push(created);
     const conv = conversations.value.find((c) => c.id === activeId.value);
-    if (conv) conv.last_message_preview = content.slice(0, 200);
+    if (conv) conv.last_message_preview = content ? content.slice(0, 200) : conv.last_message_preview;
   } catch (_e) {
     // Gửi lỗi — người dùng vẫn thấy ô nhập còn nội dung (ChatThread chỉ xoá draft khi emit
     // thành công phía component, nhưng emit xảy ra trước khi biết kết quả API nên không rollback
