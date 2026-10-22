@@ -301,6 +301,23 @@ router.get('/notifications', requireAuth, async (req, res) => {
         });
         return;
       }
+      // Tin nhắn chat expert-client (xem chat.routes.js) — trước đây rơi vào nhánh fallback
+      // "cảm xúc" bên dưới (icon ❤️, nhảy vào /community) vì không có case riêng.
+      if (row.type === 'chat_message') {
+        const base = req.user.role === 'expert' ? '/expert/messages' : '/messages';
+        const conversationId = params?.conversationId;
+        notifications.push({
+          id: `notif-${row.group_key}`,
+          type: 'community',
+          icon: '💬',
+          title: L('Tin nhắn mới', 'New message'),
+          body: localizedBody || row.message,
+          action: conversationId ? `${base}?conversation=${conversationId}` : base,
+          created_at: row.latest,
+          is_read: Boolean(row.all_read)
+        });
+        return;
+      }
       const isComment = row.type === 'comment';
       const count = row.total;
       const title = isComment

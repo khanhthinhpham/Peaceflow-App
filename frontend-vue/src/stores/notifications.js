@@ -49,6 +49,20 @@ function toastMetaFor(notif) {
       return { icon: '✅', title: 'Hồ sơ đã được duyệt', action: '/expert/dashboard' };
     case 'expert_rejected':
       return { icon: '📋', title: 'Kết quả hồ sơ chuyên gia', action: '/expert-apply' };
+    case 'chat_message': {
+      // Chuyên gia và user thường có 2 trang Tin nhắn khác nhau (/expert/messages vs
+      // /messages) — tra theo role của NGƯỜI ĐANG ĐĂNG NHẬP (người nhận thông báo), không
+      // phải người gửi tin nhắn. Kèm conversationId để mở thẳng đúng hội thoại, không phải
+      // chỉ nhảy vào danh sách rồi tự tìm.
+      const auth = useAuthStore();
+      const base = auth.user?.role === 'expert' ? '/expert/messages' : '/messages';
+      const conversationId = notif?.params?.conversationId;
+      return {
+        icon: '💬',
+        title: 'Tin nhắn mới',
+        action: conversationId ? `${base}?conversation=${conversationId}` : base
+      };
+    }
     default:
       return { icon: '❤️', title: 'Cảm xúc mới', action: '/community' };
   }

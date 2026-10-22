@@ -148,7 +148,13 @@ async function openByExpertQuery() {
 
 onMounted(async () => {
   await loadConversations();
-  await openByExpertQuery();
+  // Mở thẳng 1 hội thoại cụ thể khi nhảy từ thông báo "có tin nhắn mới" (?conversation=<id>) —
+  // ưu tiên trước query ?expert vì đã biết chính xác hội thoại nào, không cần dò/tạo lại.
+  if (route.query.conversation) {
+    selectConversation(route.query.conversation);
+  } else {
+    await openByExpertQuery();
+  }
 });
 onBeforeUnmount(() => unsubscribeChatMessages());
 </script>

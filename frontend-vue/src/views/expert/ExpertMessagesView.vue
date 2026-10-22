@@ -43,6 +43,7 @@
 
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue';
+import { useRoute } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { apiClient } from '../../lib/apiClient';
 import { useAuthStore } from '../../stores/auth';
@@ -50,6 +51,7 @@ import { subscribeChatMessages, unsubscribeChatMessages } from '../../lib/supaba
 import ChatThread from '../../components/ChatThread.vue';
 
 const { t } = useI18n();
+const route = useRoute();
 const auth = useAuthStore();
 
 const conversations = ref([]);
@@ -119,7 +121,10 @@ async function handleSend(content) {
   }
 }
 
-onMounted(loadConversations);
+onMounted(async () => {
+  await loadConversations();
+  if (route.query.conversation) selectConversation(route.query.conversation);
+});
 onBeforeUnmount(() => unsubscribeChatMessages());
 </script>
 
