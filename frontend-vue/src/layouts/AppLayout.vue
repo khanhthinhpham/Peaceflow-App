@@ -1,7 +1,7 @@
 <template>
-  <div :class="{ 'mood-chat-layout': isMoodChat }" :style="sidebarCollapsed ? { '--sidebar-width': '0px' } : {}">
+  <div :class="{ 'mood-chat-layout': isMoodChat, 'messages-layout-shell': isMessagesPage }" :style="sidebarCollapsed ? { '--sidebar-width': '0px' } : {}">
     <div v-if="sidebarOpen" class="sidebar-overlay open" @click="sidebarOpen = false"></div>
-    <MobileTopbar v-if="!isMoodChat" :sidebar-open="sidebarOpen" @toggle-sidebar="sidebarOpen = !sidebarOpen" />
+    <MobileTopbar v-if="!isMoodChat && !isMessagesPage" :sidebar-open="sidebarOpen" @toggle-sidebar="sidebarOpen = !sidebarOpen" />
     <Sidebar
       :sidebar-open="sidebarOpen"
       :collapsed="sidebarCollapsed"
@@ -20,7 +20,7 @@
     <div class="shell-host">
       <router-view />
     </div>
-    <BottomNav v-if="!sidebarOpen && !isMoodChat" />
+    <BottomNav v-if="!sidebarOpen && !isMoodChat && !isMessagesPage" />
 
     <NotificationPanel />
     <ToastStack />
@@ -142,6 +142,13 @@ auth.waitForAuth().then(() => {
     padding-bottom: calc(60px + env(safe-area-inset-bottom, 0px));
   }
   .mood-chat-layout .shell-host {
+    margin-top: 0;
+    min-height: 100dvh;
+    padding-bottom: 0;
+  }
+  /* Trang Tin nhắn có header và thanh soạn riêng, nên dùng trọn viewport thay vì bị
+     MobileTopbar/BottomNav của layout bao quanh. */
+  .messages-layout-shell .shell-host {
     margin-top: 0;
     min-height: 100dvh;
     padding-bottom: 0;

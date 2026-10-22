@@ -61,7 +61,7 @@ async function handleSend({ content, file }) {
     } else {
       created = await apiClient.post(`/chat/conversations/${props.conversation.id}/messages`, { content });
     }
-    messages.value.push(created);
+    appendMessage(created);
   } catch (_e) {
     // v1: lỗi mạng thì người dùng gõ lại.
   } finally {
@@ -69,9 +69,14 @@ async function handleSend({ content, file }) {
   }
 }
 
+function appendMessage(message) {
+  if (!message || messages.value.some((item) => item.id === message.id)) return;
+  messages.value.push(message);
+}
+
 function onRealtimeMessage(row) {
-  if (messages.value.some((m) => m.id === row.id)) return;
-  messages.value.push(row);
+  // Realtime có thể đến trước response của request vừa gửi, nên gộp theo id.
+  appendMessage(row);
   if (row.sender_user_id !== auth.user?.id) {
     apiClient.post(`/chat/conversations/${props.conversation.id}/read`, {}).catch(() => {});
   }

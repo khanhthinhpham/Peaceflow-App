@@ -2,7 +2,12 @@
   <main class="messages-page" :class="{ 'expert-main': isExpertPortal }">
     <div class="messages-layout" :class="{ 'show-thread': activeId }">
       <aside class="conv-list">
-        <h1 class="conv-list-title">{{ t('messages.title') }}</h1>
+        <div class="conv-list-header">
+          <button type="button" class="messages-back" :aria-label="t('common.back')" @click="goBack">
+            <span aria-hidden="true">←</span>
+          </button>
+          <h1 class="conv-list-title">{{ t('messages.title') }}</h1>
+        </div>
         <div v-if="loading" style="padding:16px;font-size:0.8rem;color:var(--text-light);">...</div>
         <div v-else-if="!conversations.length" class="conv-empty">
           <div>{{ t('messages.listEmpty') }}</div>
@@ -27,7 +32,7 @@
 
       <section class="thread-pane">
         <div v-if="activeId" class="thread-header">
-          <button type="button" class="thread-back" @click="activeId = null">{{ t('messages.backToList') }}</button>
+          <button type="button" class="thread-back" :aria-label="t('messages.backToList')" :title="t('messages.backToList')" @click="activeId = null">←</button>
           <div class="thread-header-name">{{ activeConversation?.name }}</div>
         </div>
         <ChatThread
@@ -46,7 +51,7 @@
 
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { apiClient } from '../lib/apiClient';
 import { useAuthStore } from '../stores/auth';
@@ -55,6 +60,7 @@ import ChatThread from '../components/ChatThread.vue';
 
 const { t } = useI18n();
 const route = useRoute();
+const router = useRouter();
 const auth = useAuthStore();
 
 const conversations = ref([]);
@@ -114,6 +120,14 @@ function selectConversation(id) {
   activeId.value = id;
 }
 
+function goBack() {
+  if (window.history.length > 1) {
+    router.back();
+    return;
+  }
+  router.push(isExpertPortal.value ? '/expert/dashboard' : '/dashboard');
+}
+
 watch(activeId, (id, prevId) => {
   if (prevId) {
     unsubscribeChatMessages(prevId);
@@ -122,14 +136,18 @@ watch(activeId, (id, prevId) => {
   if (!id) return;
   loadMessages(id);
   subscribeChatMessages(id, (row) => {
-    // Tránh trùng với tin nhắn optimistic vừa tự thêm khi chính mình gửi.
-    if (messages.value.some((m) => m.id === row.id)) return;
-    messages.value.push(row);
+    // Tin tự gửi có thể về qua realtime trước khi HTTP POST trả về; luôn gộp theo id.
+    appendMessage(row);
     if (row.sender_user_id !== auth.user?.id) {
       apiClient.post(`/chat/conversations/${id}/read`, {}).catch(() => {});
     }
   });
 });
+
+function appendMessage(message) {
+  if (!message || messages.value.some((item) => item.id === message.id)) return;
+  messages.value.push(message);
+}
 
 async function handleSend({ content, file }) {
   if (!activeId.value) return;
@@ -144,7 +162,7 @@ async function handleSend({ content, file }) {
     } else {
       created = await apiClient.post(`/chat/conversations/${activeId.value}/messages`, { content });
     }
-    messages.value.push(created);
+    appendMessage(created);
     const conv = conversations.value.find((c) => c.id === activeId.value);
     if (conv) conv.last_message_preview = content ? content.slice(0, 200) : conv.last_message_preview;
   } catch (_e) {
@@ -206,11 +224,13 @@ onBeforeUnmount(() => {
 .messages-page {
   margin-left: 0;
   padding: 0;
-  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
 }
 .messages-layout {
   display: grid;
   grid-template-columns: 300px 1fr;
+  grid-template-rows: minmax(0, 1fr);
   height: 100%;
 }
 .conv-list {
@@ -218,10 +238,37 @@ onBeforeUnmount(() => {
   overflow-y: auto;
   background: var(--warm-white);
 }
-.conv-list-title {
+.conv-list-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   padding: 18px 16px 10px;
+}
+.conv-list-title {
+  margin: 0;
   font-size: 1.1rem;
   font-weight: 800;
+}
+.messages-back,
+.thread-back {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: none;
+  color: var(--mint-dark);
+  cursor: pointer;
+  font-weight: 700;
+}
+.messages-back {
+  display: none;
+  flex: 0 0 32px;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  font-size: 1.25rem;
+  line-height: 1;
+  border-radius: 50%;
 }
 .conv-empty {
   padding: 16px;
@@ -293,12 +340,17 @@ onBeforeUnmount(() => {
   border-bottom: 1.5px solid var(--kraft-light, #e8cba7);
 }
 .thread-back {
-  border: none;
-  background: none;
-  cursor: pointer;
-  font-size: 0.8rem;
-  font-weight: 700;
-  color: var(--mint-dark);
+  flex: 0 0 32px;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  font-size: 1.25rem;
+  line-height: 1;
+  border-radius: 50%;
+}
+.messages-back:hover,
+.thread-back:hover {
+  background: var(--mint-light);
 }
 .thread-header-name {
   font-weight: 800;
@@ -309,6 +361,12 @@ onBeforeUnmount(() => {
   color: var(--text-light);
 }
 @media (max-width: 900px), (hover: none) and (pointer: coarse) {
+  .conv-list-header {
+    padding: 12px 16px 10px;
+  }
+  .messages-back {
+    display: inline-flex;
+  }
   .messages-layout {
     grid-template-columns: 1fr;
   }
@@ -320,6 +378,10 @@ onBeforeUnmount(() => {
   }
   .messages-layout.show-thread .thread-pane {
     display: flex;
+  }
+  .thread-pane {
+    height: 100%;
+    overflow: hidden;
   }
   .thread-header {
     display: flex;
