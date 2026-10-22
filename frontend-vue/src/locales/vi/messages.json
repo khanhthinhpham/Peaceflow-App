@@ -1,0 +1,16 @@
+{
+  "messages": {
+    "title": "Tin nhắn",
+    "listEmpty": "Chưa có hội thoại nào.",
+    "listEmptyHint": "Đặt lịch với 1 chuyên gia để bắt đầu nhắn tin.",
+    "selectConversation": "Chọn 1 hội thoại để xem tin nhắn.",
+    "threadEmpty": "Chưa có tin nhắn nào — gửi lời chào đầu tiên nhé!",
+    "inputPlaceholder": "Nhập tin nhắn...",
+    "sendBtn": "Gửi",
+    "loadError": "Không tải được dữ liệu, thử lại sau.",
+    "sendError": "Gửi tin nhắn thất bại.",
+    "noAccessToChat": "Bạn cần có lịch hẹn đã xác nhận với chuyên gia này mới nhắn tin được.",
+    "chatBtn": "💬 Nhắn tin",
+    "backToList": "← Danh sách hội thoại"
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "messages": {
+    "title": "Messages",
+    "listEmpty": "No conversations yet.",
+    "listEmptyHint": "Book a session with an expert to start chatting.",
+    "selectConversation": "Select a conversation to view messages.",
+    "threadEmpty": "No messages yet — say hello!",
+    "inputPlaceholder": "Type a message...",
+    "sendBtn": "Send",
+    "loadError": "Could not load data, please try again.",
+    "sendError": "Failed to send message.",
+    "noAccessToChat": "You need a confirmed booking with this expert to chat.",
+    "chatBtn": "💬 Message",
+    "backToList": "← Conversation list"
+  }
+}

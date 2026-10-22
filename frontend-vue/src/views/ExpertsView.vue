@@ -423,7 +423,8 @@
               </div>
               <span class="mb-badge" :style="{ color: bookingStatusBadge(b).color, background: bookingStatusBadge(b).bg }">{{ t(bookingStatusBadge(b).labelKey) }}</span>
               <div class="mb-actions">
-                <div v-if="b.status === 'completed'">
+                <div v-if="b.status === 'completed'" class="mb-action-row">
+                  <router-link class="btn-outline" style="padding:6px 12px;font-size:0.8rem;" :to="{ name: 'messages', query: { expert: b.expert_id } }">{{ t('messages.chatBtn') }}</router-link>
                   <div v-if="b.review_rating" style="color:#f5a623;font-weight:800;white-space:nowrap;">{{ '★'.repeat(b.review_rating) }}</div>
                   <button v-else class="btn-primary" style="padding:6px 14px;font-size:0.82rem;" @click="openReviewModal(b.id, b.expert_name)">{{ t('experts.myBookings.reviewBtn') }}</button>
                 </div>
@@ -433,6 +434,7 @@
                 </div>
                 <div v-else-if="['pending', 'awaiting_expert', 'confirmed'].includes(b.status)" class="mb-action-row">
                   <button v-if="b.status === 'confirmed' && b.zoom_join_url" type="button" class="btn-primary" style="padding:6px 12px;font-size:0.8rem;" @click="openZoomRoom(b.id)">{{ t('experts.myBookings.zoomBtn') }}</button>
+                  <router-link v-if="b.status === 'confirmed'" class="btn-outline" style="padding:6px 12px;font-size:0.8rem;" :to="{ name: 'messages', query: { expert: b.expert_id } }">{{ t('messages.chatBtn') }}</router-link>
                   <button class="btn-outline" style="padding:6px 12px;font-size:0.8rem;" @click="cancelMyBooking(b.id)">{{ t('experts.myBookings.cancelBtn') }}</button>
                 </div>
               </div>

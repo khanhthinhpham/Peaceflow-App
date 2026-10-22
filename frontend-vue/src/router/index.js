@@ -51,6 +51,8 @@ import ExpertReviewStatusView from '../views/expert/ExpertReviewStatusView.vue';
 import ExpertPaymentsView from '../views/expert/ExpertPaymentsView.vue';
 import ExpertSharedRecordsView from '../views/expert/ExpertSharedRecordsView.vue';
 import ExpertClinicalProtocolsView from '../views/expert/ExpertClinicalProtocolsView.vue';
+import ExpertMessagesView from '../views/expert/ExpertMessagesView.vue';
+import MessagesView from '../views/MessagesView.vue';
 import ScreeningFormView from '../views/ScreeningFormView.vue';
 import SupportRegistrationView from '../views/SupportRegistrationView.vue';
 import AdminScreeningView from '../views/admin/AdminScreeningView.vue';
@@ -87,6 +89,7 @@ const router = createRouter({
         { path: 'task-detail', name: 'task-detail', component: TaskDetailView, meta: { navKey: 'tasks' } },
         { path: 'journal', name: 'journal', component: JournalView, meta: { navKey: 'journal' } },
         { path: 'experts', name: 'experts', component: ExpertsView, meta: { navKey: 'experts' } },
+        { path: 'messages', name: 'messages', component: MessagesView, meta: { navKey: 'messages' } },
         { path: 'community', name: 'community', component: CommunityView, meta: { navKey: 'community' } },
         { path: 'inspire', name: 'inspire', component: InspireView, meta: { navKey: 'inspire' } },
         { path: 'inspire/:id', name: 'inspire-detail', component: ArticleDetailView, meta: { navKey: 'inspire' } },
@@ -129,6 +132,7 @@ const router = createRouter({
       children: [
         { path: '', redirect: '/expert/dashboard' },
         { path: 'dashboard', name: 'expert-dashboard', component: ExpertDashboardView, meta: { navKey: 'dashboard' } },
+        { path: 'messages', name: 'expert-messages', component: ExpertMessagesView, meta: { navKey: 'messages' } },
         { path: 'client-assessments', name: 'expert-client-assessments', component: ExpertClientAssessmentsView, meta: { navKey: 'client-assessments' } },
         { path: 'clinical-protocols', name: 'expert-clinical-protocols', component: ExpertClinicalProtocolsView, meta: { navKey: 'clinical-protocols' } },
         { path: 'shared-records', name: 'expert-shared-records', component: ExpertSharedRecordsView, meta: { navKey: 'shared-records' } },

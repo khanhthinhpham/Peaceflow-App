@@ -64,6 +64,7 @@ defineProps({ sidebarOpen: { type: Boolean, default: false } });
 
 const NAV_ITEMS = [
   { route: 'expert-dashboard', key: 'dashboard', icon: '🏡', label: 'Tổng quan', badge: 'pendingBookings' },
+  { route: 'expert-messages', key: 'messages', icon: '💬', label: 'Tin nhắn' },
   { route: 'expert-client-assessments', key: 'client-assessments', icon: '🩺', label: 'Đánh giá lâm sàng' },
   { route: 'expert-shared-records', key: 'shared-records', icon: '📋', label: 'Hồ sơ thân chủ gửi' },
   { route: 'expert-payments', key: 'payments', icon: '💳', label: 'Thanh toán' },

@@ -42,3 +42,32 @@ export function unsubscribeNotifications() {
     _channel = null;
   }
 }
+
+// Kênh riêng cho 1 hội thoại chat đang mở — tách biến/channel riêng với notifications ở trên
+// vì có thể cả 2 cùng chạy song song (khung chat mở + badge thông báo chung vẫn cần sống).
+let _chatClient = null;
+let _chatChannel = null;
+
+export function subscribeChatMessages(conversationId, onNew) {
+  if (!conversationId) return;
+  _chatClient = _chatClient || createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  _chatChannel = _chatClient
+    .channel(`chat_messages:${conversationId}`)
+    .on('postgres_changes', {
+      event: 'INSERT',
+      schema: 'public',
+      table: 'chat_messages',
+      filter: `conversation_id=eq.${conversationId}`
+    }, (payload) => {
+      onNew(payload.new);
+    })
+    .subscribe();
+}
+
+export function unsubscribeChatMessages() {
+  if (_chatChannel && _chatClient) {
+    _chatClient.removeChannel(_chatChannel);
+    _chatChannel = null;
+  }
+}
