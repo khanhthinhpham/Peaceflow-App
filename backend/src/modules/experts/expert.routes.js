@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import multer from 'multer';
 import { requireAuth } from '../../common/middleware/auth.middleware.js';
+import { resolveSafeContentType } from '../../common/utils/safeFileServe.js';
 import { db } from '../../config/db.js';
 import { z } from 'zod';
 import { env } from '../../config/env.js';
@@ -820,8 +821,9 @@ router.get('/bookings/:id/medical-records/:recordId/file', requireAuth, async (r
     if (!record) return res.status(404).json({ success: false, message: 'File not found' });
 
     const plain = decryptBuffer(record.file);
-    res.setHeader('Content-Type', record.mime);
-    res.setHeader('Content-Disposition', `inline; filename="${encodeURIComponent(record.filename)}"`);
+    const { mime, inline } = await resolveSafeContentType(plain, record.mime);
+    res.setHeader('Content-Type', mime);
+    res.setHeader('Content-Disposition', `${inline ? 'inline' : 'attachment'}; filename="${encodeURIComponent(record.filename)}"`);
     return res.send(plain);
   } catch (error) {
     console.error('Download medical record error:', error);
@@ -2246,7 +2248,9 @@ router.get('/experts/:id/avatar', requireAuth, async (req, res) => {
     if (!row || !row.avatar_photo) {
       return res.status(404).json({ success: false, message: 'Chưa có ảnh đại diện' });
     }
-    res.set('Content-Type', row.avatar_photo_mime || 'image/jpeg');
+    const { mime, inline } = await resolveSafeContentType(row.avatar_photo, row.avatar_photo_mime);
+    res.set('Content-Type', mime);
+    res.set('Content-Disposition', inline ? 'inline' : 'attachment; filename="avatar"');
     res.set('Cache-Control', 'private, max-age=3600');
     return res.send(row.avatar_photo);
   } catch (error) {

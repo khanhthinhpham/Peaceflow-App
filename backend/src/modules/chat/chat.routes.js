@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import multer from 'multer';
 import { requireAuth } from '../../common/middleware/auth.middleware.js';
+import { resolveSafeContentType } from '../../common/utils/safeFileServe.js';
 import { db } from '../../config/db.js';
 import { sendPushToUser } from '../notifications/notification.routes.js';
 import { detectCrisisSignals, logCrisisFlag } from '../ai/ai.safety.js';
@@ -341,9 +342,9 @@ router.get('/chat/attachments/:id', requireAuth, async (req, res) => {
     const access = await resolveParticipant(req.user.sub, row.conversation_id);
     if (!access) return res.status(403).end();
 
-    const isInline = (row.attachment_mime || '').startsWith('image/') || (row.attachment_mime || '').startsWith('audio/');
-    res.set('Content-Type', row.attachment_mime || 'application/octet-stream');
-    res.set('Content-Disposition', isInline ? 'inline' : `attachment; filename="${encodeURIComponent(row.attachment_filename || 'file')}"`);
+    const { mime, inline } = await resolveSafeContentType(row.data, row.attachment_mime);
+    res.set('Content-Type', mime);
+    res.set('Content-Disposition', inline ? 'inline' : `attachment; filename="${encodeURIComponent(row.attachment_filename || 'file')}"`);
     res.set('Cache-Control', 'private, max-age=86400');
     return res.send(row.data);
   } catch (error) {

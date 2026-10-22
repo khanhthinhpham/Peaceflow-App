@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import multer from 'multer';
 import { requireAuth } from '../../common/middleware/auth.middleware.js';
+import { resolveSafeContentType } from '../../common/utils/safeFileServe.js';
 import { db } from '../../config/db.js';
 import { RecommendationEngineService } from '../risk/recommendation-engine.service.js';
 import { BadgeAwardService } from '../progress/badge-award.service.js';
@@ -44,7 +45,9 @@ router.get('/tasks/:id/cover', async (req, res) => {
     const r = await db.query(`select cover_image, cover_image_mime from tasks where id = $1`, [req.params.id]);
     const row = r.rows[0];
     if (!row?.cover_image) return res.status(404).end();
-    res.set('Content-Type', row.cover_image_mime || 'image/jpeg');
+    const { mime, inline } = await resolveSafeContentType(row.cover_image, row.cover_image_mime);
+    res.set('Content-Type', mime);
+    res.set('Content-Disposition', inline ? 'inline' : 'attachment; filename="cover"');
     res.set('Cache-Control', 'public, max-age=86400');
     return res.send(row.cover_image);
   } catch (error) {

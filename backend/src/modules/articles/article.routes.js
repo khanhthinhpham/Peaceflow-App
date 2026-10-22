@@ -3,6 +3,7 @@ import multer from 'multer';
 import sharp from 'sharp';
 import sanitizeHtml from 'sanitize-html';
 import { requireAuth } from '../../common/middleware/auth.middleware.js';
+import { resolveSafeContentType } from '../../common/utils/safeFileServe.js';
 import { db } from '../../config/db.js';
 import { env } from '../../config/env.js';
 import { broadcastToUsers } from '../notifications/notification.routes.js';
@@ -202,7 +203,9 @@ router.get('/articles/:id/cover', async (req, res) => {
       }
     }
 
-    res.set('Content-Type', row.cover_image_mime || 'image/jpeg');
+    const { mime, inline } = await resolveSafeContentType(row.cover_image, row.cover_image_mime);
+    res.set('Content-Type', mime);
+    res.set('Content-Disposition', inline ? 'inline' : 'attachment; filename="cover"');
     res.set('Cache-Control', 'public, max-age=86400');
     return res.send(row.cover_image);
   } catch (error) {

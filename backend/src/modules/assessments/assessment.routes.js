@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import multer from 'multer';
 import { requireAuth } from '../../common/middleware/auth.middleware.js';
+import { resolveSafeContentType } from '../../common/utils/safeFileServe.js';
 import { db } from '../../config/db.js';
 import { env } from '../../config/env.js';
 import { getAssessmentAiSummary } from '../ai/ai.service.js';
@@ -478,8 +479,9 @@ router.get('/assessments/results/:id/attachment', requireAuth, async (req, res) 
       return res.status(403).json({ success: false, message: 'Không có quyền xem ảnh này' });
     }
 
-    res.set('Content-Type', row.attachment_mime || 'application/octet-stream');
-    res.set('Content-Disposition', `inline; filename="${encodeURIComponent(row.attachment_filename || 'anh-dinh-kem')}"`);
+    const { mime, inline } = await resolveSafeContentType(row.attachment_file, row.attachment_mime);
+    res.set('Content-Type', mime);
+    res.set('Content-Disposition', `${inline ? 'inline' : 'attachment'}; filename="${encodeURIComponent(row.attachment_filename || 'anh-dinh-kem')}"`);
     return res.send(row.attachment_file);
   } catch (error) {
     console.error('Assessment attachment fetch error:', error);
