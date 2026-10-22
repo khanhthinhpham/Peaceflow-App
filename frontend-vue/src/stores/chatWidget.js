@@ -66,20 +66,14 @@ export const useChatWidgetStore = defineStore('chatWidget', {
       this.openWindows = this.openWindows.filter((w) => w.id !== id);
     },
 
-    // Tin nhắn mới tới (từ sự kiện 'peaceflow:chat-message' đã có sẵn ở notifications.js) cho
-    // 1 hội thoại KHÔNG đang mở trong khung nổi — tăng số chưa đọc để hiện badge trên nút tròn
-    // + trong dropdown, không cần tự subscribe lại kênh notifications riêng.
+    // Tin nhắn mới tới (từ sự kiện 'peaceflow:chat-message' đã có sẵn ở notifications.js) —
+    // TẢI LẠI danh sách từ server thay vì tự cộng dồn +1 ở client. Tự cộng dồn từng bị sai số
+    // (hiện 2 dù chỉ có 1 tin nhắn thật) nếu sự kiện lỡ bắn trùng — tải lại luôn lấy đúng số
+    // thật từ DB nên không bao giờ lệch, và badge cũng tự cập nhật ngay, không cần đợi bấm
+    // dropdown mới thấy.
     _handleChatMessageEvent(e) {
-      const conversationId = e.detail?.params?.conversationId;
-      if (!conversationId) return;
-      if (this.openWindows.some((w) => w.id === conversationId)) return;
-      const conv = this.conversations.find((c) => c.id === conversationId);
-      if (conv) {
-        conv.unread_count = (conv.unread_count || 0) + 1;
-      } else {
-        // Hội thoại chưa từng nằm trong danh sách (vd mới nhận booking) — tải lại cho chắc.
-        this.loadConversations();
-      }
+      if (!e.detail?.params?.conversationId) return;
+      this.loadConversations();
     },
 
     init() {

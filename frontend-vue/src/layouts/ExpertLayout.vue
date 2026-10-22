@@ -10,6 +10,7 @@
 
     <NotificationPanel />
 
+    <NotificationWidgetButton />
     <ChatWidgetButton />
     <ChatWidgetDropdown />
     <ChatFloatingWindow v-for="(w, i) in chatWidget.openWindows" :key="w.id" :conversation="w" :index="i" />
@@ -22,6 +23,7 @@ import { useRoute, useRouter } from 'vue-router';
 import ExpertSidebar from '../components/ExpertSidebar.vue';
 import ExpertMobileTopbar from '../components/ExpertMobileTopbar.vue';
 import NotificationPanel from '../components/NotificationPanel.vue';
+import NotificationWidgetButton from '../components/NotificationWidgetButton.vue';
 import ChatWidgetButton from '../components/ChatWidgetButton.vue';
 import ChatWidgetDropdown from '../components/ChatWidgetDropdown.vue';
 import ChatFloatingWindow from '../components/ChatFloatingWindow.vue';

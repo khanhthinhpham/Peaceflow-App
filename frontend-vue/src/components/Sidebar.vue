@@ -70,13 +70,6 @@
     </nav>
 
     <div class="sidebar-bottom">
-      <button class="notif-bell-btn" data-notif-bell @click="notif.togglePanel()">
-        <span style="font-size:1.1rem;position:relative;">
-          🔔
-          <span v-if="notif.unread > 0" class="notif-badge">{{ Math.min(notif.unread, 9) }}</span>
-        </span>
-        {{ t('sidebar.notifications') }}
-      </button>
       <div class="user-card-mini">
         <div class="user-avatar-mini" :style="avatarStyle">{{ avatarEmoji }}</div>
         <div class="user-info-mini">
@@ -100,7 +93,6 @@ import { computed, ref, onMounted, onBeforeUnmount } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRoute, useRouter } from 'vue-router';
 import { useAuthStore } from '../stores/auth';
-import { useNotificationsStore } from '../stores/notifications';
 import { goToLegacyPage } from '../lib/legacyApp';
 import { apiClient } from '../lib/apiClient';
 
@@ -156,7 +148,6 @@ const NAV_SECTIONS = [
 const route = useRoute();
 const router = useRouter();
 const auth = useAuthStore();
-const notif = useNotificationsStore();
 
 const activeKey = computed(() => route.meta?.navKey || null);
 const isExpert = computed(() => Boolean(auth.user?.is_expert));
@@ -288,17 +279,6 @@ async function handleLogout() {
   text-transform: uppercase; letter-spacing: 1.5px; padding: 10px 12px 4px;
 }
 .sidebar-bottom { padding: 12px; border-top: 2px dashed var(--kraft-light); margin-top: auto; }
-.notif-bell-btn {
-  display: flex; align-items: center; gap: 8px; width: 100%; background: none;
-  border: 1.5px solid var(--kraft-light); border-radius: var(--radius-sm); padding: 9px 12px;
-  cursor: pointer; margin-bottom: 8px; font-family: inherit; color: var(--text-secondary);
-  font-size: 0.85rem; font-weight: 600;
-}
-.notif-badge {
-  display: flex; position: absolute; top: -4px; right: -6px; background: var(--coral);
-  color: white; font-size: 0.55rem; font-weight: 800; width: 14px; height: 14px;
-  border-radius: 50%; align-items: center; justify-content: center;
-}
 .user-card-mini {
   display: flex; align-items: center; gap: 10px; padding: 10px 12px;
   background: var(--cream); border-radius: var(--radius-sm); border: 1.5px solid var(--kraft-light);

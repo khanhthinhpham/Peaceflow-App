@@ -4,10 +4,14 @@
       <span>{{ t('messages.title') }}</span>
       <button class="cwd-close" @click="chat.closeDropdown()" aria-label="Đóng">✕</button>
     </div>
+    <div class="cwd-search-wrap">
+      <input v-model="search" type="text" class="cwd-search" :placeholder="t('messages.searchPlaceholder')">
+    </div>
     <div v-if="chat.loading" class="cwd-empty">...</div>
     <div v-else-if="!chat.conversations.length" class="cwd-empty">{{ t('messages.listEmpty') }}</div>
+    <div v-else-if="!filteredConversations.length" class="cwd-empty">{{ t('messages.searchEmpty') }}</div>
     <button
-      v-for="c in chat.conversations"
+      v-for="c in filteredConversations"
       :key="c.id"
       type="button"
       class="cwd-item"
@@ -25,13 +29,20 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount } from 'vue';
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useChatWidgetStore } from '../stores/chatWidget';
 
 const { t } = useI18n();
 const chat = useChatWidgetStore();
 const panelEl = ref(null);
+const search = ref('');
+
+const filteredConversations = computed(() => {
+  const q = search.value.trim().toLowerCase();
+  if (!q) return chat.conversations;
+  return chat.conversations.filter((c) => (c.name || '').toLowerCase().includes(q));
+});
 
 function handleOutsideClick(event) {
   if (!chat.dropdownOpen) return;
@@ -80,6 +91,23 @@ onBeforeUnmount(() => document.removeEventListener('click', handleOutsideClick))
   color: var(--text-secondary);
   font-size: 0.82rem;
 }
+.cwd-search-wrap {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--kraft-light);
+}
+.cwd-search {
+  width: 100%;
+  padding: 7px 12px;
+  border: 1.5px solid var(--kraft-light);
+  border-radius: 50px;
+  background: var(--cream, #fff8f0);
+  font-family: 'Nunito', sans-serif;
+  font-size: 0.8rem;
+  outline: none;
+}
+.cwd-search:focus {
+  border-color: var(--mint);
+}
 .cwd-item {
   display: flex;
   align-items: center;
@@ -90,7 +118,6 @@ onBeforeUnmount(() => document.removeEventListener('click', handleOutsideClick))
   background: none;
   cursor: pointer;
   text-align: left;
-  border-bottom: 1px solid var(--kraft-light);
 }
 .cwd-item:hover {
   background: var(--mint-light);

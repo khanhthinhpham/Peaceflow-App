@@ -12,6 +12,8 @@
     "noAccessToChat": "Bạn cần có lịch hẹn đã xác nhận với chuyên gia này mới nhắn tin được.",
     "chatBtn": "💬 Nhắn tin",
     "backToList": "← Danh sách hội thoại",
-    "viewAll": "Xem tất cả"
+    "viewAll": "Xem tất cả",
+    "searchPlaceholder": "Tìm kiếm...",
+    "searchEmpty": "Không tìm thấy hội thoại nào."
   }
 }
