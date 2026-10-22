@@ -27,6 +27,18 @@ body.expert-portal-body {
   grid-template-columns: 280px minmax(0, 1fr);
 }
 
+/* Chừa chỗ cho 2 nút tròn nổi cố định (chuông + chat) ở góc trên-phải (desktop, >900px) —
+   không thì chúng đè lên nội dung page tự đặt ở góc trên-phải. 2 nút tự ẩn dưới 900px nên
+   bỏ padding này trong media query mobile (xem @media max-width:1180px bên dưới). */
+#expertPageHost {
+  padding-top: 64px;
+}
+@media (max-width: 900px), (hover: none) and (pointer: coarse) {
+  #expertPageHost {
+    padding-top: 0;
+  }
+}
+
 .expert-sidebar {
   position: sticky;
   top: 0;

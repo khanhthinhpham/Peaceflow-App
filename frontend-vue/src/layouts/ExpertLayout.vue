@@ -10,15 +10,17 @@
 
     <NotificationPanel />
 
-    <NotificationWidgetButton />
-    <ChatWidgetButton />
-    <ChatWidgetDropdown />
-    <ChatFloatingWindow v-for="(w, i) in chatWidget.openWindows" :key="w.id" :conversation="w" :index="i" />
+    <template v-if="!isMessagesPage">
+      <NotificationWidgetButton />
+      <ChatWidgetButton />
+      <ChatWidgetDropdown />
+      <ChatFloatingWindow v-for="(w, i) in chatWidget.openWindows" :key="w.id" :conversation="w" :index="i" />
+    </template>
   </div>
 </template>
 
 <script setup>
-import { ref, watch, onMounted, onBeforeUnmount } from 'vue';
+import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import ExpertSidebar from '../components/ExpertSidebar.vue';
 import ExpertMobileTopbar from '../components/ExpertMobileTopbar.vue';
@@ -38,6 +40,7 @@ const sidebarOpen = ref(false);
 const ready = ref(false);
 const route = useRoute();
 const router = useRouter();
+const isMessagesPage = computed(() => route.name === 'expert-messages');
 watch(() => route.fullPath, () => { sidebarOpen.value = false; });
 
 const auth = useAuthStore();
