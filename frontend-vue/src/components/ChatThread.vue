@@ -4,11 +4,13 @@
       <div v-if="!loading && !messages.length" class="ct-empty">{{ t('messages.threadEmpty') }}</div>
       <div v-for="msg in messages" :key="msg.id" class="ct-msg" :class="{ mine: msg.sender_user_id === currentUserId }">
         <div v-if="msg.attachment_id" class="ct-attachment">
+          <div v-if="attachmentErrors[msg.id]" class="ct-attach-error">⚠️ Không tải được tệp</div>
+          <div v-else-if="!attachmentUrls[msg.id]" class="ct-attach-loading">Đang tải...</div>
           <img
-            v-if="isImageMime(msg.attachment_mime)"
+            v-else-if="isImageMime(msg.attachment_mime)"
             :src="attachmentUrls[msg.id]"
             class="ct-attach-img"
-            @click="attachmentUrls[msg.id] && openFull(attachmentUrls[msg.id])"
+            @click="openFull(attachmentUrls[msg.id])"
           >
           <audio v-else-if="isAudioMime(msg.attachment_mime)" :src="attachmentUrls[msg.id]" controls class="ct-attach-audio"></audio>
           <a v-else :href="attachmentUrls[msg.id]" :download="msg.attachment_filename" class="ct-attach-file">📎 {{ msg.attachment_filename || 'Tệp đính kèm' }}</a>
@@ -27,14 +29,18 @@
 
     <div class="ct-input-row">
       <input ref="fileInputEl" type="file" class="ct-file-input-hidden" @change="onFileSelected">
-      <button type="button" class="ct-icon-btn" :disabled="isRecording" title="Đính kèm ảnh/file" @click="fileInputEl?.click()">📎</button>
+      <button type="button" class="ct-icon-btn" :disabled="isRecording" title="Đính kèm ảnh/file" @click="fileInputEl?.click()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+      </button>
       <button
         type="button"
         class="ct-icon-btn"
         :class="{ recording: isRecording }"
         :title="isRecording ? 'Dừng ghi âm' : 'Ghi âm'"
         @click="toggleRecording"
-      >🎤</button>
+      >
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><path d="M12 19v4M8 23h8"/></svg>
+      </button>
       <input
         v-model="draft"
         class="ct-input"
@@ -43,7 +49,9 @@
         :disabled="isRecording"
         @keydown.enter="submit"
       >
-      <button type="button" class="ct-send-btn" :disabled="sending || (!draft.trim() && !pendingFile)" @click="submit">{{ t('messages.sendBtn') }}</button>
+      <button type="button" class="ct-send-btn" :disabled="sending || (!draft.trim() && !pendingFile)" @click="submit" :title="t('messages.sendBtn')">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M2 21l21-9L2 3v7l15 2-15 2z"/></svg>
+      </button>
     </div>
   </div>
 </template>
@@ -150,14 +158,16 @@ function submit() {
 // phải fetch qua apiClient (có Bearer token) rồi tạo blob URL, giống cách app đang làm cho
 // ảnh bìa bài viết (AdminArticlesView.vue).
 const attachmentUrls = reactive({});
+const attachmentErrors = reactive({});
 async function resolveAttachmentUrls(list) {
   for (const msg of list) {
-    if (!msg.attachment_id || attachmentUrls[msg.id]) continue;
+    if (!msg.attachment_id || attachmentUrls[msg.id] || attachmentErrors[msg.id]) continue;
     try {
       const blob = await apiClient.getBlob(`/chat/attachments/${msg.attachment_id}`);
       attachmentUrls[msg.id] = URL.createObjectURL(blob);
-    } catch (_e) {
-      // Bỏ qua — 1 đính kèm lỗi không nên chặn cả khung chat.
+    } catch (e) {
+      console.error('[chat attachment] tải thất bại cho message', msg.id, e);
+      attachmentErrors[msg.id] = true;
     }
   }
 }
@@ -238,6 +248,18 @@ defineExpose({ scrollToBottom });
   max-width: 220px;
   height: 36px;
 }
+.ct-attach-loading,
+.ct-attach-error {
+  padding: 9px 13px;
+  border-radius: var(--radius-sm, 10px);
+  background: var(--cream, #fff8f0);
+  border: 1.5px solid var(--kraft-light, #e8cba7);
+  font-size: 0.78rem;
+  color: var(--text-light);
+}
+.ct-attach-error {
+  color: var(--coral-dark);
+}
 .ct-attach-file {
   display: inline-block;
   padding: 9px 13px;
@@ -306,25 +328,26 @@ defineExpose({ scrollToBottom });
   width: 34px;
   height: 34px;
   border-radius: 50%;
-  border: 1.5px solid var(--kraft-light, #e8cba7);
-  background: var(--cream, #fff8f0);
-  font-size: 0.95rem;
+  border: none;
+  background: none;
+  color: var(--text-secondary);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
 }
+.ct-icon-btn svg {
+  width: 20px;
+  height: 20px;
+}
 .ct-icon-btn:hover {
-  background: var(--mint-light);
-  border-color: var(--mint);
+  color: var(--mint-dark);
 }
 .ct-icon-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
 .ct-icon-btn.recording {
-  background: var(--coral-light, #ffe5e5);
-  border-color: var(--coral);
   color: var(--coral-dark);
   animation: ct-pulse 1.2s ease-in-out infinite;
 }
@@ -335,30 +358,32 @@ defineExpose({ scrollToBottom });
 .ct-input {
   flex: 1;
   padding: 9px 14px;
-  border: 1.5px solid var(--kraft-light, #e8cba7);
+  border: none;
   border-radius: 50px;
   background: var(--cream, #fff8f0);
   font-family: 'Nunito', sans-serif;
   font-size: 0.85rem;
   outline: none;
 }
-.ct-input:focus {
-  border-color: var(--mint);
-}
 .ct-input:disabled {
   opacity: 0.6;
 }
 .ct-send-btn {
-  padding: 9px 18px;
-  border: 1.5px solid var(--mint-dark);
-  border-radius: 50px;
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: none;
   background: var(--mint);
   color: var(--text-primary);
-  font-family: 'Nunito', sans-serif;
-  font-size: 0.82rem;
-  font-weight: 700;
   cursor: pointer;
-  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.ct-send-btn svg {
+  width: 16px;
+  height: 16px;
 }
 .ct-send-btn:disabled {
   opacity: 0.5;

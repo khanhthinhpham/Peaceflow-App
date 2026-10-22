@@ -1,5 +1,5 @@
 <template>
-  <div class="chat-floating-window" :style="{ right: `${16 + index * 296}px` }">
+  <div class="chat-floating-window" :style="{ right: `${16 + index * 376}px` }">
     <div class="cfw-header">
       <div class="cfw-avatar">{{ conversation.avatar }}</div>
       <div class="cfw-name">{{ conversation.name }}</div>
@@ -89,8 +89,8 @@ onBeforeUnmount(() => unsubscribeChatMessages(props.conversation.id));
   position: fixed;
   bottom: 0;
   z-index: 250;
-  width: 280px;
-  height: 380px;
+  width: 360px;
+  height: 520px;
   display: flex;
   flex-direction: column;
   background: var(--warm-white);
