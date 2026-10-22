@@ -24,7 +24,14 @@
     "emergencyBanner": {
       "title": "🆘 Ưu tiên an toàn cho bạn lúc này",
       "desc": "PeaceFlow phát hiện mức cần hỗ trợ cao từ dữ liệu gần đây. Bạn có thể mở khu hỗ trợ khẩn cấp hoặc liên hệ người tin tưởng.",
-      "openBtn": "Mở hỗ trợ khẩn cấp"
+      "openBtn": "Mở hỗ trợ khẩn cấp",
+      "reasonPrefix": "Lý do:",
+      "reasons": {
+        "screening_red": "kết quả Sàng lọc HSSV gần nhất của bạn ở mức Đỏ.",
+        "assessment_severe": "bài test \"{assessmentName}\" gần nhất của bạn ở mức \"{severity}\".",
+        "frequent_emergency_button": "bạn đã dùng nút hỗ trợ khẩn cấp nhiều lần trong 7 ngày qua.",
+        "mood_composite": "tâm trạng, lo âu và căng thẳng của bạn đang ở mức cao trong các lần check-in gần đây."
+      }
     },
     "stats": {
       "moodLabel": "Tâm trạng hôm nay",

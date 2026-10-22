@@ -39,7 +39,8 @@ router.get('/reports/summary', requireAuth, async (req, res) => {
         badges_count: badgesRes.rows[0]?.badges_count || 0,
         stress_index: riskRes.stress_index,
         risk_level: riskRes.risk_level,
-        show_emergency_banner: Boolean(riskRes.show_emergency_banner)
+        show_emergency_banner: Boolean(riskRes.show_emergency_banner),
+        emergency_reason: riskRes.emergency_reason || null
       }
     });
   } catch (error) {
@@ -463,7 +464,8 @@ router.get('/dashboard', requireAuth, async (req, res) => {
           primary_trigger: fallbackRisk.primary_trigger || null,
           show_emergency_banner: Boolean(
             recommendations.show_emergency_banner ?? fallbackRisk.show_emergency_banner
-          )
+          ),
+          emergency_reason: fallbackRisk.emergency_reason || null
         },
         progress: {
           ...progress,

@@ -24,7 +24,14 @@
     "emergencyBanner": {
       "title": "🆘 Your safety comes first right now",
       "desc": "PeaceFlow detected a high need for support from your recent data. You can open the emergency support area or reach out to someone you trust.",
-      "openBtn": "Open emergency support"
+      "openBtn": "Open emergency support",
+      "reasonPrefix": "Reason:",
+      "reasons": {
+        "screening_red": "your latest School Screening result was at the Red level.",
+        "assessment_severe": "your latest \"{assessmentName}\" test result was at the \"{severity}\" level.",
+        "frequent_emergency_button": "you've used the emergency support button several times in the past 7 days.",
+        "mood_composite": "your mood, anxiety and stress have been high in recent check-ins."
+      }
     },
     "stats": {
       "moodLabel": "Today's mood",

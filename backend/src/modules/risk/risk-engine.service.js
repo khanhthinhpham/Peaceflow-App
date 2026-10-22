@@ -65,6 +65,26 @@ export class RiskEngineService {
 
       const primaryTrigger = this._detectPrimaryTrigger(profile, latestMood, latestJournal, { Sleep, Journal });
 
+      // Lý do cụ thể để hiển thị trong banner "Ưu tiên an toàn" ở Dashboard — người dùng cần
+      // biết TẠI SAO banner bật lên, không chỉ 1 câu chung chung. Ưu tiên theo đúng thứ tự đã
+      // xét ở trên: Đỏ sàng lọc > bài test nghiêm trọng > tổ hợp nhiều yếu tố (không có 1
+      // nguồn rõ ràng để chỉ đích danh).
+      let emergencyReason = null;
+      if (latestScreening?.risk_band === 'do') {
+        emergencyReason = { code: 'screening_red', params: {} };
+      } else if (this._isCrisisSeverity(latestAssessment?.severity)) {
+        emergencyReason = {
+          code: 'assessment_severe',
+          params: { assessmentName: latestAssessment.assessment_name, severity: latestAssessment.severity }
+        };
+      } else if (riskLevel === 'critical' || stressIndex >= 75) {
+        if (Emergency >= 60) {
+          emergencyReason = { code: 'frequent_emergency_button', params: {} };
+        } else {
+          emergencyReason = { code: 'mood_composite', params: {} };
+        }
+      }
+
       const factors = {
         anxiety: A,
         stress: S,
@@ -89,6 +109,7 @@ export class RiskEngineService {
         primary_trigger: primaryTrigger,
         factors,
         show_emergency_banner: riskLevel === 'critical' || stressIndex >= 75,
+        emergency_reason: emergencyReason,
         _latestMood: latestMood,
         _profile: profile
       };
@@ -266,7 +287,10 @@ export class RiskEngineService {
 
   static async _getLatestAssessmentResult(userId) {
     const result = await db.query(
-      'SELECT severity, total_score FROM assessment_results WHERE user_id = $1 ORDER BY created_at DESC LIMIT 1',
+      `SELECT ar.severity, ar.total_score, a.name as assessment_name
+       FROM assessment_results ar
+       JOIN assessments a ON a.id = ar.assessment_id
+       WHERE ar.user_id = $1 ORDER BY ar.created_at DESC LIMIT 1`,
       [userId]
     );
     return result.rows[0];

@@ -44,6 +44,7 @@
         <div>
           <div style="font-size:0.95rem;font-weight:800;color:#c05050;">{{ t('dashboard.emergencyBanner.title') }}</div>
           <div style="font-size:0.82rem;color:var(--text-secondary);margin-top:4px;">{{ t('dashboard.emergencyBanner.desc') }}</div>
+          <div v-if="emergencyReasonText" style="font-size:0.76rem;color:#c05050;margin-top:6px;font-weight:600;">{{ t('dashboard.emergencyBanner.reasonPrefix') }} {{ emergencyReasonText }}</div>
         </div>
         <router-link to="/emergency" class="btn-primary" style="white-space:nowrap;">{{ t('dashboard.emergencyBanner.openBtn') }}</router-link>
       </div>
@@ -342,6 +343,11 @@ const checkinPromptTitle = computed(() => {
 const progress = computed(() => data.value?.progress || null);
 const summary = computed(() => data.value?.summary || null);
 const showEmergencyBanner = computed(() => Boolean(summary.value?.show_emergency_banner));
+const emergencyReasonText = computed(() => {
+  const reason = summary.value?.emergency_reason;
+  if (!reason?.code) return '';
+  return t(`dashboard.emergencyBanner.reasons.${reason.code}`, reason.params || {});
+});
 const isNewUser = computed(() => Boolean(data.value) && !data.value.latest_mood && (progress.value?.total_xp ?? 0) === 0);
 
 const stats = computed(() => {
