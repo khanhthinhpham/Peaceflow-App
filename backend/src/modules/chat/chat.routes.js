@@ -43,6 +43,31 @@ async function resolveParticipant(userSub, conversationId) {
   return null;
 }
 
+// Tự tạo sẵn (nếu chưa có) 1 hội thoại cho MỌI cặp expert-client đủ điều kiện booking — để
+// danh sách "Tin nhắn" hiện ra ngay cả khi chưa ai chủ động bấm "Nhắn tin" lần nào. Idempotent
+// (ON CONFLICT DO NOTHING) nên gọi mỗi lần load danh sách không tốn kém/không trùng lặp.
+async function materializeConversationsForClient(userId) {
+  await db.query(
+    `insert into chat_conversations (expert_id, user_id)
+     select distinct eb.expert_id, eb.user_id
+     from expert_bookings eb
+     where eb.user_id = $1 and eb.status in ('confirmed', 'completed')
+     on conflict (expert_id, user_id) do nothing`,
+    [userId]
+  );
+}
+
+async function materializeConversationsForExpert(expertId) {
+  await db.query(
+    `insert into chat_conversations (expert_id, user_id)
+     select distinct eb.expert_id, eb.user_id
+     from expert_bookings eb
+     where eb.expert_id = $1 and eb.status in ('confirmed', 'completed')
+     on conflict (expert_id, user_id) do nothing`,
+    [expertId]
+  );
+}
+
 async function hasQualifyingBooking(expertId, userId) {
   const r = await db.query(
     `select 1 from expert_bookings
@@ -119,6 +144,7 @@ router.post('/chat/conversations', requireAuth, async (req, res) => {
 
 router.get('/chat/conversations', requireAuth, async (req, res) => {
   try {
+    await materializeConversationsForClient(req.user.sub);
     const data = await mapConversationsForClient(req.user.sub);
     return res.json({ success: true, data });
   } catch (error) {
@@ -163,6 +189,7 @@ router.get('/expert-portal/chat/conversations', requireAuth, async (req, res) =>
     const expertId = await getExpertIdByUser(req.user.sub);
     if (!expertId) return res.json({ success: true, data: [] });
 
+    await materializeConversationsForExpert(expertId);
     const data = await mapConversationsForExpert(expertId, req.user.sub);
     return res.json({ success: true, data });
   } catch (error) {
