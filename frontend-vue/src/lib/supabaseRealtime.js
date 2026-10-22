@@ -52,14 +52,16 @@ export function unsubscribeNotifications() {
   }
 }
 
-// Kênh riêng cho 1 hội thoại chat đang mở — biến channel tách riêng với notifications (2 kênh
-// độc lập chạy song song trên cùng 1 client), nhưng dùng chung getClient() ở trên.
-let _chatChannel = null;
+// CÓ THỂ có nhiều hội thoại mở realtime CÙNG LÚC (trang Tin nhắn + tối đa 2 khung chat nổi) —
+// dùng Map khoá theo conversationId, mỗi hội thoại 1 kênh riêng, không ghi đè lẫn nhau như
+// trước (khi còn là 1 biến đơn, mở khung 2 sẽ làm mất tham chiếu kênh của khung 1).
+const _chatChannels = new Map();
 
 export function subscribeChatMessages(conversationId, onNew) {
   if (!conversationId) return;
+  if (_chatChannels.has(conversationId)) unsubscribeChatMessages(conversationId);
 
-  _chatChannel = getClient()
+  const channel = getClient()
     .channel(`chat_messages:${conversationId}`)
     .on('postgres_changes', {
       event: 'INSERT',
@@ -70,11 +72,13 @@ export function subscribeChatMessages(conversationId, onNew) {
       onNew(payload.new);
     })
     .subscribe();
+  _chatChannels.set(conversationId, channel);
 }
 
-export function unsubscribeChatMessages() {
-  if (_chatChannel) {
-    getClient().removeChannel(_chatChannel);
-    _chatChannel = null;
+export function unsubscribeChatMessages(conversationId) {
+  const channel = _chatChannels.get(conversationId);
+  if (channel) {
+    getClient().removeChannel(channel);
+    _chatChannels.delete(conversationId);
   }
 }

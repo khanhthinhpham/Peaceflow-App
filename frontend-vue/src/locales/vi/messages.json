@@ -11,6 +11,7 @@
     "sendError": "Gửi tin nhắn thất bại.",
     "noAccessToChat": "Bạn cần có lịch hẹn đã xác nhận với chuyên gia này mới nhắn tin được.",
     "chatBtn": "💬 Nhắn tin",
-    "backToList": "← Danh sách hội thoại"
+    "backToList": "← Danh sách hội thoại",
+    "viewAll": "Xem tất cả"
   }
 }

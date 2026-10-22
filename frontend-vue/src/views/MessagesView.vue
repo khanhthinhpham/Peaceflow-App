@@ -115,8 +115,10 @@ function selectConversation(id) {
 }
 
 watch(activeId, (id, prevId) => {
-  unsubscribeChatMessages();
-  if (prevId) messages.value = [];
+  if (prevId) {
+    unsubscribeChatMessages(prevId);
+    messages.value = [];
+  }
   if (!id) return;
   loadMessages(id);
   subscribeChatMessages(id, (row) => {
@@ -187,7 +189,7 @@ onMounted(async () => {
   }
 });
 onBeforeUnmount(() => {
-  unsubscribeChatMessages();
+  if (activeId.value) unsubscribeChatMessages(activeId.value);
   window.removeEventListener('peaceflow:chat-message', handleChatMessageEvent);
 });
 </script>

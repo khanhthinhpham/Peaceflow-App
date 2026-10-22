@@ -26,6 +26,10 @@
     <ToastStack />
     <PushPromptModal />
     <DonateModal />
+
+    <ChatWidgetButton />
+    <ChatWidgetDropdown />
+    <ChatFloatingWindow v-for="(w, i) in chatWidget.openWindows" :key="w.id" :conversation="w" :index="i" />
   </div>
 </template>
 
@@ -40,8 +44,12 @@ import NotificationPanel from '../components/NotificationPanel.vue';
 import ToastStack from '../components/ToastStack.vue';
 import PushPromptModal from '../components/PushPromptModal.vue';
 import DonateModal from '../components/DonateModal.vue';
+import ChatWidgetButton from '../components/ChatWidgetButton.vue';
+import ChatWidgetDropdown from '../components/ChatWidgetDropdown.vue';
+import ChatFloatingWindow from '../components/ChatFloatingWindow.vue';
 import { useAuthStore } from '../stores/auth';
 import { useNotificationsStore } from '../stores/notifications';
+import { useChatWidgetStore } from '../stores/chatWidget';
 
 const { t } = useI18n();
 const sidebarOpen = ref(false);
@@ -58,7 +66,11 @@ watch(() => route.fullPath, () => { sidebarOpen.value = false; });
 
 const auth = useAuthStore();
 const notif = useNotificationsStore();
-auth.waitForAuth().then(() => notif.init());
+const chatWidget = useChatWidgetStore();
+auth.waitForAuth().then(() => {
+  notif.init();
+  chatWidget.init();
+});
 </script>
 
 <style scoped>

@@ -11,6 +11,7 @@
     "sendError": "Failed to send message.",
     "noAccessToChat": "You need a confirmed booking with this expert to chat.",
     "chatBtn": "💬 Message",
-    "backToList": "← Conversation list"
+    "backToList": "← Conversation list",
+    "viewAll": "View all"
   }
 }
