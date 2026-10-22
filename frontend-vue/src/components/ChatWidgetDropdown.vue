@@ -58,7 +58,7 @@ onBeforeUnmount(() => document.removeEventListener('click', handleOutsideClick))
 <style scoped>
 .chat-widget-dropdown {
   position: fixed;
-  top: 68px;
+  top: 82px;
   right: 16px;
   z-index: 250;
   width: 320px;

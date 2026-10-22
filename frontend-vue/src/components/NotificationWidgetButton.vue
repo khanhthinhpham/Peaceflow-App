@@ -14,11 +14,12 @@ const notif = useNotificationsStore();
 <style scoped>
 .notif-widget-btn {
   position: fixed;
-  top: 16px;
+  top: 30px;
   right: 68px;
   z-index: 250;
-  width: 44px;
-  height: 44px;
+  /* Match the 45px rendered height of the Check-in / Emergency pill actions. */
+  width: 45px;
+  height: 45px;
   border-radius: 50%;
   border: 2px solid var(--kraft-light, #e8cba7);
   background: var(--warm-white);

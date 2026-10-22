@@ -129,11 +129,6 @@ auth.waitForAuth().then(() => {
   position: relative;
   transition: margin-left 0.3s ease, width 0.3s ease;
   background: var(--warm-white);
-  /* Chừa chỗ cho 2 nút tròn nổi cố định (chuông + chat) ở góc trên-phải (desktop) — nếu
-     không, chúng đè lên bất kỳ nội dung nào trang tự đặt ở góc trên-phải (vd nút "←
-     Dashboard" trong page-header của MoodCheckinView.vue). Chỉ cần ở desktop vì 2 nút này
-     tự ẩn dưới 900px (xem ChatWidgetButton.vue/NotificationWidgetButton.vue). */
-  padding-top: 64px;
   /* Android 15+ (target SDK 35+) buộc edge-to-edge — nội dung vẽ tràn xuống dưới cả
      thanh điều hướng hệ thống nếu không tự chừa. Trên web env(...) = 0px, không đổi gì. */
   padding-bottom: env(safe-area-inset-bottom, 0px);
@@ -142,7 +137,6 @@ auth.waitForAuth().then(() => {
   .shell-host {
     margin-left: 0;
     width: 100vw;
-    padding-top: 0;
     margin-top: calc(44px + env(safe-area-inset-top, 0px));
     min-height: calc(100vh - 44px - env(safe-area-inset-top, 0px));
     padding-bottom: calc(60px + env(safe-area-inset-bottom, 0px));

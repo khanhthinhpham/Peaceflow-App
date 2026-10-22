@@ -171,6 +171,13 @@ onBeforeUnmount(() => document.removeEventListener('click', handleOutsideClick))
   line-height: 1;
 }
 .notif-panel-close:active { color: var(--text-primary); }
+/* Desktop: nút chuông nổi (NotificationWidgetButton.vue) nằm ở top:30px, không phải top:68px
+   như chuông trong MobileTopbar.vue (<900px) — panel phải mở đúng ngay dưới nút đó. */
+@media (min-width: 901px) {
+  .notif-panel {
+    top: 82px;
+  }
+}
 @media (max-width: 640px) {
   .notif-panel {
     left: 12px;

@@ -23,7 +23,7 @@
           <div class="page-title">{{ t('tasksPage.title') }}</div>
           <div class="page-subtitle">{{ subtitleText }}</div>
         </div>
-        <div style="display:flex;gap:8px;">
+        <div style="display:flex;gap:8px;margin-right:120px;">
           <router-link v-if="!guestEmergencyMode" to="/mood-checkin" class="btn-outline">{{ t('tasksPage.checkinBtn') }}</router-link>
           <router-link v-else to="/login" class="btn-outline">{{ t('tasksPage.checkinBtn') }}</router-link>
           <button class="btn-primary" @click="emergencyOpen = true">{{ t('tasksPage.emergencyBtn') }}</button>

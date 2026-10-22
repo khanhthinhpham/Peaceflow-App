@@ -5,8 +5,7 @@
         <div class="page-title">{{ t('moodCheckin.title') }}</div>
         <div class="page-subtitle">{{ t('moodCheckin.subtitle') }}</div>
       </div>
-      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-        <span class="badge-pill badge-mint">{{ todayBadgeText }}</span>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-right:120px;">
         <label class="badge-pill" :title="t('moodCheckin.shareWithExperts.desc')" style="cursor:pointer;gap:6px;border:1.5px solid var(--kraft-light);background:var(--warm-white);">
           <span style="font-size:0.72rem;font-weight:700;">{{ t('moodCheckin.shareWithExperts.title') }}</span>
           <label class="toggle-switch" style="transform:scale(0.72);margin:-4px -6px;">
@@ -14,7 +13,6 @@
             <span class="toggle-slider"></span>
           </label>
         </label>
-        <router-link to="/dashboard" class="btn-outline">{{ t('moodCheckin.backDashboard') }}</router-link>
       </div>
     </div>
 
@@ -269,19 +267,6 @@ const expandedBodyGroups = reactive(new Set());
 
 const selectedMoodOption = computed(() => MOOD_OPTIONS.find((o) => o.id === checkinData.moodId) || null);
 const selectedMoodLabel = computed(() => (selectedMoodOption.value ? t(selectedMoodOption.value.labelKey) : ''));
-
-// Ánh xạ ngược nhãn tiếng Việt backend trả về (todayLabel) sang đúng ngôn ngữ đang hiển thị
-// — không tìm thấy (dữ liệu cũ/khác định dạng) thì hiện nguyên văn thay vì mất trắng.
-const todayLabelDisplay = computed(() => {
-  if (!todayLabel.value) return '';
-  const found = MOOD_OPTIONS.find((o) => o.viLabel === todayLabel.value);
-  return found ? t(found.labelKey) : todayLabel.value;
-});
-
-const todayBadgeText = computed(() => {
-  const base = todayDone.value ? t('moodCheckin.todayDone') : t('moodCheckin.todayNotDone');
-  return todayDone.value && todayLabelDisplay.value ? `${base} · ${todayLabelDisplay.value}` : base;
-});
 
 const mascotMoodText = computed(() => (
   selectedMoodLabel.value

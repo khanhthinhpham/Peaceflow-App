@@ -26,7 +26,7 @@
             <div class="page-title">{{ t('moodAssessment.selector.pageTitle') }}</div>
             <div class="page-subtitle">{{ t('moodAssessment.selector.pageSubtitle') }}</div>
           </div>
-          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-right:120px;">
             <label class="badge-pill" :title="t('moodAssessment.shareWithExperts.desc')" style="cursor:pointer;gap:6px;border:1.5px solid var(--kraft-light);background:var(--warm-white);">
               <span style="font-size:0.72rem;font-weight:700;">{{ t('moodAssessment.shareWithExperts.title') }}</span>
               <label class="toggle-switch" style="transform:scale(0.72);margin:-4px -6px;">
@@ -34,8 +34,6 @@
                 <span class="toggle-slider"></span>
               </label>
             </label>
-            <router-link to="/mood-checkin" class="btn-outline">{{ t('moodAssessment.selector.back') }}</router-link>
-            <router-link to="/mood-chat" class="btn-outline">{{ t('moodAssessment.selector.chatAi') }}</router-link>
           </div>
         </div>
 
