@@ -7,7 +7,7 @@
     <div class="cwd-search-wrap">
       <input v-model="search" type="text" class="cwd-search" :placeholder="t('messages.searchPlaceholder')">
     </div>
-    <div v-if="chat.loading" class="cwd-empty">...</div>
+    <div v-if="chat.loading && !chat.conversations.length" class="cwd-empty">...</div>
     <div v-else-if="!chat.conversations.length" class="cwd-empty">{{ t('messages.listEmpty') }}</div>
     <div v-else-if="!filteredConversations.length" class="cwd-empty">{{ t('messages.searchEmpty') }}</div>
     <button
