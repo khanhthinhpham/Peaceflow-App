@@ -16,7 +16,7 @@
       >
         <div class="ct-msg-row">
           <div class="ct-message-content" :class="{ 'has-reply': msg.reply_to_message_id }">
-            <div v-if="msg.reply_to_message_id" class="ct-reply-quote">
+            <div v-if="msg.reply_to_message_id" class="ct-reply-quote" @click.stop="jumpToMessage(msg.reply_to_message_id)">
               <span class="ct-reply-quote-label">↩</span>
               <span>{{ replyPreview(msg) }}</span>
             </div>
@@ -29,7 +29,7 @@
                 class="ct-attach-img"
                 @click="openFull(attachmentUrls[msg.id])"
               >
-              <audio v-else-if="isAudioMime(msg.attachment_mime)" :src="attachmentUrls[msg.id]" controls class="ct-attach-audio"></audio>
+              <audio v-else-if="isAudioMime(msg.attachment_mime)" :src="attachmentUrls[msg.id]" controls controlslist="nodownload noplaybackrate" class="ct-attach-audio"></audio>
               <a v-else :href="attachmentUrls[msg.id]" :download="msg.attachment_filename" class="ct-attach-file">📎 {{ msg.attachment_filename || 'Tệp đính kèm' }}</a>
             </div>
             <div v-if="msg.content" class="ct-bubble">{{ msg.content }}</div>
@@ -129,6 +129,14 @@ function openFull(url) { window.open(url, '_blank'); }
 function replyPreview(message) {
   const original = props.messages.find((item) => item.id === message.reply_to_message_id);
   return message.reply_to_content || original?.content || message.reply_to_attachment_filename || original?.attachment_filename || message.content || message.attachment_filename || '';
+}
+
+function jumpToMessage(id) {
+  const el = msgEls.get(id);
+  if (!el) return;
+  el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  el.classList.add('flash-highlight');
+  setTimeout(() => el.classList.remove('flash-highlight'), 900);
 }
 
 function chooseReply(message) {
@@ -350,16 +358,10 @@ defineExpose({ scrollToBottom });
   gap: 6px;
   min-width: 0;
 }
-/* Nút reply nằm SÁT bong bóng (cùng 1 hàng flex, không phải absolute lệch ra ngoài) — để
-   không có khoảng trống giữa bong bóng và nút khi rê chuột ngang qua, tránh bị tắt hover
-   giữa chừng trước khi bấm kịp. Tin "của mình" đảo hàng để nút nằm bên trái (phía ngoài). */
 .ct-msg.mine .ct-msg-row {
   flex-direction: row-reverse;
 }
 .ct-message-content {
-  /* Bắt buộc cần min-width:0 — mặc định flex item không co được nhỏ hơn kích thước gốc của
-     nội dung bên trong (vd thẻ <audio> gốc trình duyệt rộng ~300px). Thiếu dòng này thì hàng
-     ảnh/voice/file sẽ tràn rộng, đẩy nút reply ra ngoài vùng nhìn thấy/bị cắt mất. */
   min-width: 0;
   flex-shrink: 1;
 }
@@ -404,10 +406,31 @@ defineExpose({ scrollToBottom });
   display: block;
 }
 .ct-attach-audio {
-  /* 180px thay vì 220px — phải chừa đủ chỗ cho nút reply (30px + 6px gap) trong khung
-     .ct-msg hẹp nhất (khung chat nổi 360px, trừ padding còn ~236px khả dụng). */
-  width: 180px;
-  height: 36px;
+  display: block;
+  width: 240px;
+  height: 32px;
+  border-radius: var(--radius-sm, 10px);
+  background: var(--cream, #fff8f0);
+  border: 1.5px solid var(--kraft-light, #e8cba7);
+}
+.ct-msg.mine .ct-attach-audio {
+  background: var(--mint-light);
+  border-color: var(--mint-dark);
+}
+/* Ẩn nút menu 3 chấm và thanh chỉnh âm lượng, thu nhỏ chữ thời gian — chỉ Chromium/WebKit
+   hỗ trợ các pseudo-element này để tuỳ biến giao diện <audio> gốc trình duyệt. */
+.ct-attach-audio::-webkit-media-controls-overflow-button,
+.ct-attach-audio::-webkit-media-controls-mute-button,
+.ct-attach-audio::-webkit-media-controls-volume-slider,
+.ct-attach-audio::-webkit-media-controls-volume-control-container {
+  display: none !important;
+}
+.ct-attach-audio::-webkit-media-controls-current-time-display,
+.ct-attach-audio::-webkit-media-controls-time-remaining-display {
+  font-size: 11px;
+}
+.ct-msg:has(.ct-attach-audio) {
+  max-width: 88%;
 }
 .ct-attach-loading,
 .ct-attach-error {
@@ -487,9 +510,21 @@ defineExpose({ scrollToBottom });
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  cursor: pointer;
 }
 .ct-reply-quote-label { flex: 0 0 auto; font-size: 0.8rem; opacity: 0.8; }
 .ct-reply-quote span:last-child { overflow: hidden; text-overflow: ellipsis; }
+@keyframes ct-flash-highlight {
+  0%, 100% { background-color: transparent; }
+  30% { background-color: var(--mint-light, rgba(120, 190, 160, 0.35)); }
+}
+.ct-msg.flash-highlight .ct-bubble,
+.ct-msg.flash-highlight .ct-message-content.has-reply,
+.ct-msg.flash-highlight .ct-attach-audio,
+.ct-msg.flash-highlight .ct-attach-file,
+.ct-msg.flash-highlight .ct-attach-img {
+  animation: ct-flash-highlight 0.9s ease;
+}
 .ct-pending-file {
   display: flex;
   align-items: center;
