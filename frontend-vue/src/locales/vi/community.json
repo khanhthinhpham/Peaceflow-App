@@ -97,7 +97,8 @@
       "editBtn": "Sửa",
       "deleteBtn": "Xóa",
       "sendBtn": "Gửi",
-      "replyPlaceholder": "Trả lời {name}..."
+      "replyPlaceholder": "Trả lời {name}...",
+      "replyingToLabel": "Trả lời {name}"
     },
     "leaderboard": {
       "title": "🏆 Bảng xếp hạng",

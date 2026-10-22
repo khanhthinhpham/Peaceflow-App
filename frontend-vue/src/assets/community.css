@@ -786,6 +786,130 @@
     line-height: 1.5;
 }
 
+.ci-reply-to {
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: var(--mint-dark);
+    margin-bottom: 3px;
+}
+
+.comment-reply {
+    margin-left: 32px;
+}
+
+.ci-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 4px;
+}
+
+.ci-action-btn {
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: var(--text-light);
+    font-family: 'Nunito', sans-serif;
+    padding: 0;
+    transition: var(--transition);
+}
+
+.ci-action-btn:hover {
+    color: var(--mint-dark);
+}
+
+.ci-action-btn.danger:hover {
+    color: var(--coral-dark);
+}
+
+.ci-reactions {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 5px;
+    flex-wrap: wrap;
+}
+
+.ci-reaction-btn {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    padding: 2px 7px;
+    border: 1.5px solid var(--kraft-light);
+    border-radius: 50px;
+    background: var(--warm-white);
+    cursor: pointer;
+    font-size: 0.72rem;
+    transition: var(--transition);
+}
+
+.ci-reaction-btn:hover {
+    background: var(--mint-light);
+    border-color: var(--mint);
+}
+
+.ci-reaction-btn.reacted {
+    background: var(--mint-light);
+    border-color: var(--mint-dark);
+}
+
+.ci-reaction-btn.reacted.heart {
+    background: var(--coral-light);
+    border-color: var(--coral);
+}
+
+.ci-reaction-btn.reacted.hug {
+    background: var(--peach-light);
+    border-color: var(--peach);
+}
+
+.ci-reaction-btn.reacted.strong {
+    background: var(--sky-light);
+    border-color: var(--sky);
+}
+
+.ci-reaction-btn.reacted.star {
+    background: var(--gold-light);
+    border-color: var(--gold);
+}
+
+.ci-reaction-count {
+    font-size: 0.65rem;
+    color: var(--text-light);
+    font-weight: 700;
+}
+
+.comment-edit-input {
+    width: 100%;
+    min-height: 60px;
+    padding: 7px 10px;
+    border: 1.5px solid var(--kraft-light);
+    border-radius: var(--border-radius-sm);
+    font-family: 'Nunito', sans-serif;
+    font-size: 0.8rem;
+    resize: vertical;
+    outline: none;
+}
+
+.comment-edit-input:focus {
+    border-color: var(--mint);
+}
+
+.comment-edit-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 6px;
+}
+
+.reply-input-row {
+    display: flex;
+    gap: 6px;
+    margin-top: 6px;
+    margin-left: 34px;
+}
+
 .comment-input-row {
     display: flex;
     gap: 6px;

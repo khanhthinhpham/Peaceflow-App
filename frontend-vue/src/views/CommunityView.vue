@@ -176,8 +176,8 @@
                   <div style="font-size:0.72rem;color:var(--text-light);margin-bottom:8px;">{{ t('community.post.noComments') }}</div>
                 </template>
                 <template v-for="comment in topLevelComments(post)" :key="comment.id">
-                  <CommunityComment :post="post" :comment="comment" :is-reply="false" :state="commentUiState(comment)" @edit="editComment(post.id, comment)" @save-edit="saveCommentEdit(post.id, comment.id, $event)" @cancel-edit="editingCommentId = null" @delete="deleteComment(post.id, comment.id)" @toggle-reply="toggleReply(post.id, comment.id)" @submit-reply="submitReply(post.id, comment.id, $event)" />
-                  <CommunityComment v-for="reply in repliesFor(post, comment.id)" :key="reply.id" :post="post" :comment="reply" :is-reply="true" :state="commentUiState(reply)" @edit="editComment(post.id, reply)" @save-edit="saveCommentEdit(post.id, reply.id, $event)" @cancel-edit="editingCommentId = null" @delete="deleteComment(post.id, reply.id)" />
+                  <CommunityComment :post="post" :comment="comment" :is-reply="false" :state="commentUiState(comment)" @edit="editComment(post.id, comment)" @save-edit="saveCommentEdit(post.id, comment.id, $event)" @cancel-edit="editingCommentId = null" @delete="deleteComment(post.id, comment.id)" @toggle-reply="toggleReply(post.id, comment.id)" @submit-reply="submitReply(post.id, comment.id, $event)" @toggle-reaction="handleToggleCommentReaction(post.id, comment.id, $event)" />
+                  <CommunityComment v-for="reply in repliesFor(post, comment.id)" :key="reply.id" :post="post" :comment="reply" :is-reply="true" :reply-to-name="replyToName(post, reply)" :state="commentUiState(reply)" @edit="editComment(post.id, reply)" @save-edit="saveCommentEdit(post.id, reply.id, $event)" @cancel-edit="editingCommentId = null" @delete="deleteComment(post.id, reply.id)" @toggle-reply="toggleReply(post.id, reply.id)" @submit-reply="submitReply(post.id, reply.id, $event)" @toggle-reaction="handleToggleCommentReaction(post.id, reply.id, $event)" />
                 </template>
                 <div class="comment-input-row">
                   <input class="comment-input" v-model="newCommentDraft[post.id]" :placeholder="t('community.post.commentPlaceholder')" maxlength="2000">
@@ -308,14 +308,24 @@ const FEED_FILTERS = [
 
 // Component con hiển thị 1 bình luận (dùng lại cho cả top-level & reply, khớp renderSingleComment gốc).
 // Đây là component object thuần (không phải <script setup>) nên tự gọi useI18n() riêng trong setup().
+const COMMENT_REACTION_META = {
+  heart: '❤️', hug: '🤗', strong: '💪', star: '⭐'
+};
+
 const CommunityComment = {
-  props: ['post', 'comment', 'isReply', 'state'],
-  emits: ['edit', 'save-edit', 'cancel-edit', 'delete', 'toggle-reply', 'submit-reply'],
+  props: ['post', 'comment', 'isReply', 'replyToName', 'state'],
+  emits: ['edit', 'save-edit', 'cancel-edit', 'delete', 'toggle-reply', 'submit-reply', 'toggle-reaction'],
   setup(props, { emit }) {
     const { t } = useI18n();
     const draft = ref(props.comment.text || '');
     const replyDraft = ref('');
-    return () => h('div', null, [
+    // Đọc reactions/myReactions NGAY TRONG hàm render (không destructure ngoài setup) để phản
+    // ứng đúng khi handleToggleCommentReaction cập nhật lại mảng post.comments — nếu lấy ra
+    // ngoài này, giá trị sẽ bị đóng băng ở lần render đầu tiên dù props.comment đã đổi.
+    return () => {
+    const reactions = props.comment.reactions || {};
+    const myReactions = props.comment.myReactions || {};
+    return h('div', null, [
       h('div', { class: ['comment-item', props.isReply ? 'comment-reply' : ''] }, [
         h('div', { class: 'ci-avatar' }, props.comment.avatar || '🌿'),
         h('div', { class: 'ci-bubble' }, [
@@ -324,6 +334,7 @@ const CommunityComment = {
             props.comment.isAdmin ? h('span', { style: 'font-size:0.6rem;font-weight:800;background:var(--coral);color:#fff;padding:1px 6px;border-radius:6px;border:1px solid var(--coral-dark);white-space:nowrap;' }, t('community.comment.adminBadge')) : null,
             props.comment.isExpert ? h('span', { style: 'font-size:0.6rem;font-weight:800;background:var(--mint);color:var(--text-primary);padding:1px 6px;border-radius:6px;border:1px solid var(--mint-dark);white-space:nowrap;' }, t('community.comment.expertBadge')) : null
           ]),
+          props.replyToName ? h('div', { class: 'ci-reply-to' }, `↪ ${t('community.comment.replyingToLabel', { name: props.replyToName })}`) : null,
           props.state.editing
             ? h('div', null, [
               h('textarea', { class: 'comment-edit-input', maxlength: 2000, value: draft.value, onInput: (e) => { draft.value = e.target.value; } }),
@@ -334,15 +345,22 @@ const CommunityComment = {
               ])
             ])
             : h('div', { class: 'ci-text' }, props.comment.text || ''),
+          !props.state.editing ? h('div', { class: 'ci-reactions' },
+            Object.entries(COMMENT_REACTION_META).map(([key, icon]) => h('button', {
+              key,
+              class: ['ci-reaction-btn', myReactions[key] ? `reacted ${key}` : ''],
+              onClick: () => emit('toggle-reaction', key)
+            }, [icon, (reactions[key] || 0) > 0 ? h('span', { class: 'ci-reaction-count' }, String(reactions[key])) : null]))
+          ) : null,
           !props.state.editing ? h('div', { class: 'ci-actions' }, [
-            !props.isReply ? h('button', { class: 'ci-action-btn', onClick: () => emit('toggle-reply') }, t('community.comment.replyBtn')) : null,
+            h('button', { class: 'ci-action-btn', onClick: () => emit('toggle-reply') }, t('community.comment.replyBtn')),
             props.state.isOwn ? h('button', { class: 'ci-action-btn', onClick: () => emit('edit') }, t('community.comment.editBtn')) : null,
             props.state.isOwn ? h('button', { class: 'ci-action-btn danger', onClick: () => emit('delete') }, t('community.comment.deleteBtn')) : null
           ]) : null
         ])
       ]),
-      (!props.isReply && props.state.replying)
-        ? h('div', null, [
+      props.state.replying
+        ? h('div', { class: props.isReply ? 'comment-reply' : '' }, [
           h('div', { class: 'reply-input-row' }, [
             h('input', { class: 'comment-input', placeholder: t('community.comment.replyPlaceholder', { name: props.comment.name || '' }), maxlength: 2000, value: replyDraft.value, onInput: (e) => { replyDraft.value = e.target.value; } }),
             h('button', { class: 'comment-send', onClick: () => emit('submit-reply', replyDraft.value) }, t('community.comment.sendBtn'))
@@ -351,6 +369,7 @@ const CommunityComment = {
         ])
         : null
     ]);
+    };
   }
 };
 
@@ -475,8 +494,34 @@ function isOwnPost(post) {
 function topLevelComments(post) {
   return (post.comments || []).filter((c) => !c.parentId);
 }
-function repliesFor(post, parentId) {
-  return (post.comments || []).filter((c) => c.parentId === parentId);
+function findComment(post, id) {
+  return (post.comments || []).find((c) => c.id === id);
+}
+// Reply có thể là reply-của-reply (DB cho phép parent_id lồng bao nhiêu cấp cũng được) — đi
+// ngược chuỗi parentId để tìm bình luận gốc (top-level) mà 1 reply thuộc về, rồi gom phẳng
+// TẤT CẢ hậu duệ của 1 bình luận gốc vào chung 1 danh sách hiển thị (kiểu Messenger/Facebook:
+// không thụt lề vô hạn, chỉ 2 tầng — gốc & reply — kèm nhãn "Trả lời {tên}" khi cần biết rõ
+// đang nói với ai).
+function rootIdOf(post, comment) {
+  let current = comment;
+  const seen = new Set();
+  while (current?.parentId && !seen.has(current.id)) {
+    seen.add(current.id);
+    const parent = findComment(post, current.parentId);
+    if (!parent) break;
+    current = parent;
+  }
+  return current?.id;
+}
+function repliesFor(post, topLevelId) {
+  return (post.comments || []).filter((c) => c.parentId && rootIdOf(post, c) === topLevelId);
+}
+function replyToName(post, comment) {
+  if (!comment.parentId) return null;
+  const parent = findComment(post, comment.parentId);
+  // Không hiện nhãn khi parent chính là bình luận gốc (đã rõ ràng vì nằm ngay dưới nó) — chỉ
+  // hiện khi đây là reply-của-reply, cần ghi rõ đang trả lời ai giữa danh sách phẳng.
+  return parent?.parentId ? parent.name : null;
 }
 function commentUiState(comment) {
   const myId = auth.user?.id;
@@ -660,6 +705,40 @@ async function deleteComment(postId, commentId) {
     showToast(error.message || t('community.toast.commentDeleteFailed'));
   }
 }
+async function handleToggleCommentReaction(postId, commentId, reactionType) {
+  const post = posts.value.find((p) => p.id === postId);
+  const comment = post && findComment(post, commentId);
+  if (!comment) return;
+
+  const wasReacted = Boolean(comment.myReactions?.[reactionType]);
+
+  function patchComment(postCurrent, patcher) {
+    return { ...postCurrent, comments: (postCurrent.comments || []).map((c) => c.id === commentId ? patcher(c) : c) };
+  }
+
+  updatePostState(postId, (current) => patchComment(current, (c) => ({
+    ...c,
+    reactions: { ...c.reactions, [reactionType]: Math.max(0, (c.reactions?.[reactionType] || 0) + (wasReacted ? -1 : 1)) },
+    myReactions: { ...c.myReactions, [reactionType]: !wasReacted }
+  })));
+
+  try {
+    const result = await apiClient.post(`/community/comments/${commentId}/reactions`, { reaction_type: reactionType });
+    updatePostState(postId, (current) => patchComment(current, (c) => ({
+      ...c,
+      reactions: { heart: 0, hug: 0, strong: 0, star: 0, ...(result.reactions || {}) },
+      myReactions: { ...c.myReactions, [reactionType]: Boolean(result.reacted) }
+    })));
+  } catch (error) {
+    updatePostState(postId, (current) => patchComment(current, (c) => ({
+      ...c,
+      reactions: { ...c.reactions, [reactionType]: Math.max(0, (c.reactions?.[reactionType] || 0) + (wasReacted ? 1 : -1)) },
+      myReactions: { ...c.myReactions, [reactionType]: wasReacted }
+    })));
+    showToast(error.message || t('community.toast.reactionFailed'));
+  }
+}
+
 function toggleReply(postId, commentId) {
   replyingTo.value = replyingTo.value === commentId ? null : commentId;
 }

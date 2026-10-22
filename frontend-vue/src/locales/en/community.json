@@ -97,7 +97,8 @@
       "editBtn": "Edit",
       "deleteBtn": "Delete",
       "sendBtn": "Send",
-      "replyPlaceholder": "Reply to {name}..."
+      "replyPlaceholder": "Reply to {name}...",
+      "replyingToLabel": "Replying to {name}"
     },
     "leaderboard": {
       "title": "🏆 Leaderboard",

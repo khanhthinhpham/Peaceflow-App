@@ -71,7 +71,21 @@ router.get('/community', requireAuth, async (req, res) => {
                  'author_is_expert', (select exists(select 1 from experts e where e.user_id = c.user_id)),
                  'author_is_admin', (cu.role = 'admin' or cu.is_admin),
                  'is_anonymous', c.is_anonymous,
-                 'created_at', c.created_at
+                 'created_at', c.created_at,
+                 'reactions', (
+                   select coalesce(jsonb_object_agg(cr.reaction_type, cr.count_value), '{}'::jsonb)
+                   from (
+                     select reaction_type, count(*)::int as count_value
+                     from comment_reactions
+                     where comment_id = c.id
+                     group by reaction_type
+                   ) cr
+                 ),
+                 'my_reactions', (
+                   select coalesce(jsonb_object_agg(cr2.reaction_type, true), '{}'::jsonb)
+                   from comment_reactions cr2
+                   where cr2.comment_id = c.id and cr2.user_id = $1
+                 )
                )
              ) filter (where c.id is not null),
              '[]'::json
@@ -480,6 +494,89 @@ router.post('/community/posts/:id/reactions', requireAuth, async (req, res) => {
   }
 });
 
+// POST /api/v1/community/comments/:id/reactions — thả/bỏ cảm xúc cho 1 bình luận/reply
+// (cùng cơ chế toggle + 4 loại cảm xúc như community/posts/:id/reactions ở trên, chỉ đổi
+// bảng/cột tương ứng sang comment_reactions/comment_id).
+router.post('/community/comments/:id/reactions', requireAuth, async (req, res) => {
+  try {
+    const reactionType = String(req.body.reaction_type || '').toLowerCase();
+    if (!['heart', 'hug', 'strong', 'star'].includes(reactionType)) {
+      return res.status(400).json({ success: false, message: 'Invalid reaction type' });
+    }
+
+    const existing = await db.query(
+      `select id
+       from comment_reactions
+       where comment_id = $1
+         and user_id = $2
+         and reaction_type = $3
+       limit 1`,
+      [req.params.id, req.user.sub, reactionType]
+    );
+
+    let reacted = false;
+    if (existing.rows[0]) {
+      await db.query(`delete from comment_reactions where id = $1`, [existing.rows[0].id]);
+      reacted = false;
+    } else {
+      await db.query(
+        `delete from comment_reactions where comment_id = $1 and user_id = $2`,
+        [req.params.id, req.user.sub]
+      );
+      await db.query(
+        `insert into comment_reactions (comment_id, user_id, reaction_type)
+         values ($1, $2, $3)`,
+        [req.params.id, req.user.sub, reactionType]
+      );
+      reacted = true;
+
+      // Kick off notification work — floating promise, không block response
+      const commentId = req.params.id;
+      const actorId = req.user.sub;
+      ;(async () => {
+        const [commentRes, actorRes] = await Promise.all([
+          db.query(`select user_id from community_comments where id = $1 limit 1`, [commentId]),
+          db.query(`select coalesce(display_name, full_name, 'Ai đó') as name from users where id = $1 limit 1`, [actorId])
+        ]);
+        const commentOwnerId = commentRes.rows[0]?.user_id;
+        if (!commentOwnerId || commentOwnerId === actorId) return;
+        const emojiMap = { heart: '❤️', hug: '🤗', strong: '💪', star: '⭐' };
+        const actorName = actorRes.rows[0]?.name || 'Ai đó';
+        const emoji = emojiMap[reactionType] || '👍';
+        const msg = `${actorName} đã thả ${emoji} vào bình luận của bạn.`;
+        getUserLocale(commentOwnerId).then((pushLocale) => {
+          const pushBody = buildNotificationMessage('reaction_comment', { actorName, emoji }, pushLocale) || msg;
+          sendPushToUser(commentOwnerId, pushLocale === 'en' ? `${emoji} New reaction` : `${emoji} Cảm xúc mới`, pushBody, '/community').catch(() => {});
+        }).catch(() => {});
+        insertNotification(commentOwnerId, actorName, 'reaction', commentId, msg, { code: 'reaction_comment', actorName, emoji }).catch(() => {});
+      })().catch(e => console.error('[BG] comment reaction notify:', e.message));
+    }
+
+    const counts = await db.query(
+      `select reaction_type, count(*)::int as count_value
+       from comment_reactions
+       where comment_id = $1
+       group by reaction_type`,
+      [req.params.id]
+    );
+
+    return res.json({
+      success: true,
+      data: {
+        reaction_type: reactionType,
+        reacted,
+        reactions: counts.rows.reduce((acc, row) => {
+          acc[row.reaction_type] = row.count_value;
+          return acc;
+        }, {})
+      }
+    });
+  } catch (error) {
+    console.error('Community comment reaction error:', error);
+    return res.status(500).json({ success: false, message: 'Could not update comment reaction' });
+  }
+});
+
 // POST /api/v1/community/posts/:id/report — báo cáo bài viết
 router.post('/community/posts/:id/report', requireAuth, async (req, res) => {
   try {
@@ -630,7 +727,9 @@ function mapPost(row) {
       name: comment.author_name || 'Người dùng',
       isExpert: !comment.is_anonymous && Boolean(comment.author_is_expert),
       isAdmin: !comment.is_anonymous && Boolean(comment.author_is_admin),
-      text: comment.content
+      text: comment.content,
+      reactions: { heart: 0, hug: 0, strong: 0, star: 0, ...(comment.reactions || {}) },
+      myReactions: { heart: false, hug: false, strong: false, star: false, ...(comment.my_reactions || {}) }
     })) : [],
     showComments: false,
     collapsed: false,
