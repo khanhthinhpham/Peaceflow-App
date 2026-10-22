@@ -86,7 +86,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, watch, nextTick, onBeforeUnmount } from 'vue';
+import { ref, reactive, watch, nextTick, onMounted, onBeforeUnmount } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { apiClient } from '../lib/apiClient';
 
@@ -197,12 +197,21 @@ function endTouch(message, event) {
   const dx = touchStart ? touch.clientX - touchStart.x : 0;
   const dy = touchStart ? touch.clientY - touchStart.y : 0;
   const wasSwiping = isSwiping;
+  const wasHeld = !holdTimer;
   snapBack(message.id);
   if (holdTimer) clearTimeout(holdTimer);
   holdTimer = null;
   touchStart = null;
   isSwiping = false;
-  if (wasSwiping && Math.abs(dx) > SWIPE_THRESHOLD && Math.abs(dx) > Math.abs(dy)) chooseReply(message);
+  if (wasSwiping && Math.abs(dx) > SWIPE_THRESHOLD && Math.abs(dx) > Math.abs(dy)) {
+    chooseReply(message);
+    return;
+  }
+  // Chạm nhanh (chưa đủ 450ms để kích hoạt giữ lâu) cũng hiện/ẩn nút reply luôn — không bắt
+  // người dùng phải giữ lâu mới thấy nút, vì trên di động thao tác chạm nhanh thường gặp hơn.
+  if (!wasSwiping && !wasHeld) {
+    actionMessageId.value = actionMessageId.value === message.id ? null : message.id;
+  }
 }
 
 function snapBack(id) {
@@ -315,6 +324,18 @@ onBeforeUnmount(() => {
   if (pendingFilePreview.value) URL.revokeObjectURL(pendingFilePreview.value);
   micStream?.getTracks().forEach((track) => track.stop());
   cancelHold();
+  document.removeEventListener('touchstart', closeActionsOutside);
+});
+
+// Chạm ra ngoài tin nhắn đang mở nút reply (kể cả ra ngoài hẳn khung chat, không chỉ trong
+// danh sách tin nhắn) thì ẩn nút đi luôn — tránh nút bị "dính" mãi trên di động.
+function closeActionsOutside(event) {
+  if (!actionMessageId.value) return;
+  const activeEl = msgEls.get(actionMessageId.value);
+  if (activeEl && !activeEl.contains(event.target)) actionMessageId.value = null;
+}
+onMounted(() => {
+  document.addEventListener('touchstart', closeActionsOutside, { passive: true });
 });
 
 defineExpose({ scrollToBottom });
@@ -464,12 +485,18 @@ defineExpose({ scrollToBottom });
   opacity: 0;
   transition: opacity 0.15s ease, max-height 0.15s ease, margin 0.15s ease;
 }
-.ct-msg:hover .ct-time,
 .ct-msg:focus-within .ct-time,
 .ct-msg.show-actions .ct-time {
   max-height: 16px;
   margin-top: 3px;
   opacity: 1;
+}
+@media (hover: hover) {
+  .ct-msg:hover .ct-time {
+    max-height: 16px;
+    margin-top: 3px;
+    opacity: 1;
+  }
 }
 .ct-reply-btn {
   flex: 0 0 auto;
@@ -490,11 +517,16 @@ defineExpose({ scrollToBottom });
   transition: opacity 0.15s ease;
 }
 .ct-reply-btn svg { width: 17px; height: 17px; }
-.ct-msg:hover .ct-reply-btn,
 .ct-msg:focus-within .ct-reply-btn,
 .ct-msg.show-actions .ct-reply-btn {
   opacity: 1;
   pointer-events: auto;
+}
+@media (hover: hover) {
+  .ct-msg:hover .ct-reply-btn {
+    opacity: 1;
+    pointer-events: auto;
+  }
 }
 .ct-reply-quote {
   max-width: 100%;
