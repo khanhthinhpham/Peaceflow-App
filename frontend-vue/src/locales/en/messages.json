@@ -12,6 +12,8 @@
     "noAccessToChat": "You need a confirmed booking with this expert to chat.",
     "chatBtn": "💬 Message",
     "backToList": "← Conversation list",
+    "reply": "Reply",
+    "cancelReply": "Cancel reply",
     "viewAll": "View all",
     "searchPlaceholder": "Search...",
     "searchEmpty": "No conversations found."

@@ -149,7 +149,7 @@ function appendMessage(message) {
   messages.value.push(message);
 }
 
-async function handleSend({ content, file }) {
+async function handleSend({ content, file, replyToMessageId }) {
   if (!activeId.value) return;
   sending.value = true;
   try {
@@ -158,9 +158,10 @@ async function handleSend({ content, file }) {
       const fd = new FormData();
       fd.append('content', content);
       fd.append('attachment', file);
+      if (replyToMessageId) fd.append('replyToMessageId', replyToMessageId);
       created = await apiClient.postForm(`/chat/conversations/${activeId.value}/messages`, fd);
     } else {
-      created = await apiClient.post(`/chat/conversations/${activeId.value}/messages`, { content });
+      created = await apiClient.post(`/chat/conversations/${activeId.value}/messages`, { content, replyToMessageId });
     }
     appendMessage(created);
     const conv = conversations.value.find((c) => c.id === activeId.value);

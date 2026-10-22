@@ -223,11 +223,14 @@ router.get('/chat/conversations/:id/messages', requireAuth, async (req, res) => 
     const offset = Math.max(parseInt(req.query.offset, 10) || 0, 0);
 
     const r = await db.query(
-      `select id, sender_user_id, content, created_at, read_at,
-              attachment_id, attachment_mime, attachment_filename
-       from chat_messages
-       where conversation_id = $1
-       order by created_at desc
+      `select m.id, m.sender_user_id, m.content, m.created_at, m.read_at,
+              m.attachment_id, m.attachment_mime, m.attachment_filename, m.reply_to_message_id,
+              replied.content as reply_to_content, replied.sender_user_id as reply_to_sender_user_id,
+              replied.attachment_filename as reply_to_attachment_filename
+       from chat_messages m
+       left join chat_messages replied on replied.id = m.reply_to_message_id
+       where m.conversation_id = $1
+       order by m.created_at desc
        limit $2 offset $3`,
       [req.params.id, limit, offset]
     );
@@ -249,6 +252,14 @@ router.post('/chat/conversations/:id/messages', requireAuth, attachmentUpload.si
     if (content.length > 4000) return res.status(400).json({ success: false, message: 'Tin nhắn quá dài.' });
 
     const { conversation, role } = access;
+    const replyToMessageId = req.body.replyToMessageId || null;
+    if (replyToMessageId) {
+      const replied = await db.query(
+        `select id from chat_messages where id = $1 and conversation_id = $2`,
+        [replyToMessageId, conversation.id]
+      );
+      if (!replied.rowCount) return res.status(400).json({ success: false, message: 'Tin nhắn được trả lời không hợp lệ.' });
+    }
 
     let attachmentId = null;
     if (file) {
@@ -260,10 +271,10 @@ router.post('/chat/conversations/:id/messages', requireAuth, attachmentUpload.si
     }
 
     const r = await db.query(
-      `insert into chat_messages (conversation_id, sender_user_id, content, attachment_id, attachment_mime, attachment_filename)
-       values ($1, $2, $3, $4, $5, $6)
-       returning id, sender_user_id, content, created_at, read_at, attachment_id, attachment_mime, attachment_filename`,
-      [conversation.id, req.user.sub, content, attachmentId, file?.mimetype || null, file?.originalname || null]
+      `insert into chat_messages (conversation_id, sender_user_id, content, attachment_id, attachment_mime, attachment_filename, reply_to_message_id)
+       values ($1, $2, $3, $4, $5, $6, $7)
+       returning id, sender_user_id, content, created_at, read_at, attachment_id, attachment_mime, attachment_filename, reply_to_message_id`,
+      [conversation.id, req.user.sub, content, attachmentId, file?.mimetype || null, file?.originalname || null, replyToMessageId]
     );
 
     const preview = content ? content.slice(0, 200) : attachmentPreviewLabel(file?.mimetype);

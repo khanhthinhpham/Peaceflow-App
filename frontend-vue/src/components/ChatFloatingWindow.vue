@@ -49,7 +49,7 @@ async function loadMessages() {
   }
 }
 
-async function handleSend({ content, file }) {
+async function handleSend({ content, file, replyToMessageId }) {
   sending.value = true;
   try {
     let created;
@@ -57,9 +57,10 @@ async function handleSend({ content, file }) {
       const fd = new FormData();
       fd.append('content', content);
       fd.append('attachment', file);
+      if (replyToMessageId) fd.append('replyToMessageId', replyToMessageId);
       created = await apiClient.postForm(`/chat/conversations/${props.conversation.id}/messages`, fd);
     } else {
-      created = await apiClient.post(`/chat/conversations/${props.conversation.id}/messages`, { content });
+      created = await apiClient.post(`/chat/conversations/${props.conversation.id}/messages`, { content, replyToMessageId });
     }
     appendMessage(created);
   } catch (_e) {
