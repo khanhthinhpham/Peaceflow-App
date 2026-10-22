@@ -506,7 +506,7 @@ export async function sendBookingConfirmedEmail({ to, recipientName, expertName,
 // phiếu đăng ký hỗ trợ) — KHÔNG kèm file Excel tổng hợp toàn bộ (để dành cho báo cáo cuối
 // tháng), vì cảnh báo tức thời chỉ cần đúng 1 trường hợp này.
 export async function sendScreeningRedAlertEmail({
-  to, schoolName, studentName, grade, className, createdAt, total, wellbeingScores = [], band = 'do', crisisDetected = false,
+  to, caseCode, schoolName, studentName, grade, className, createdAt, total, wellbeingScores = [], band = 'do', crisisDetected = false,
   difficulties = [], difficultiesOther, supportNeeds = [], supportNeedsOther,
   shareNote, consentContact, contact,
   referralCategories = [], referralRiskLevel, referralSupportFormat = [],
@@ -514,26 +514,27 @@ export async function sendScreeningRedAlertEmail({
 }) {
   if (!hasMailProvider() || !to) return;
   const link = `${APP_URL}/admin/screening`;
-  // Band thật có thể KHÔNG phải Đỏ — trường hợp "Chia sẻ thêm" có dấu hiệu khủng hoảng dù
-  // điểm Phần 2 ra Vàng/Xanh vẫn phải báo ngay (xem screening.routes.js), nên không được ghi
-  // cứng "Đỏ" khi thực tế không phải, dễ gây hiểu lầm/mất tin cậy với đầu mối trường.
-  const subject = crisisDetected && band !== 'do'
-    ? `⚠️ Cần chú ý — ${studentName || 'Học sinh'} (${schoolName || ''})`
-    : `🔴 Cần ưu tiên hỗ trợ — ${studentName || 'Học sinh'} (${schoolName || ''})`;
+  const isRed = band === 'do';
+  const themeColor = isRed ? '#c93f3f' : '#ad7f12';
+  // Tiêu đề Đỏ khớp đúng mẫu trong tài liệu "Cổng dữ liệu số tư vấn học đường Nghệ An"
+  // (kèm "cần xác nhận tiếp nhận" — nhắc đầu mối trường phải phản hồi đã nhận, không chỉ
+  // đọc qua). Vàng dùng mẫu tương tự nhưng mức độ nhẹ hơn, không đòi xác nhận gấp.
+  const subject = isRed
+    ? `[CẢNH BÁO ĐỎ] Có học sinh cần hỗ trợ khẩn – cần xác nhận tiếp nhận — ${studentName || 'Học sinh'} (${schoolName || ''})`
+    : `[CẢNH BÁO VÀNG] Có học sinh cần được quan tâm — ${studentName || 'Học sinh'} (${schoolName || ''})`;
   const dateLabel = createdAt ? new Intl.DateTimeFormat('vi-VN', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(createdAt)) : '';
   const difficultiesList = [...difficulties.map(difficultyLabel), difficultiesOther ? `Khác: ${difficultiesOther}` : null].filter(Boolean);
   const supportNeedsList = [...supportNeeds.map(supportNeedLabel), supportNeedsOther ? `Khác: ${supportNeedsOther}` : null].filter(Boolean);
   // Điểm từng câu Phần 2 — để người đọc hiểu VÌ SAO ra tổng điểm đó, không phải chỉ thấy
   // "X/30" trơ trọi không giải thích gì.
   const wellbeingRows = WELLBEING_QUESTIONS.map((q, i) => `${q} — <strong>${wellbeingScores[i] ?? '?'}/5</strong>`);
-  const headline = crisisDetected
-    ? `⚠️ Phát hiện dấu hiệu cần chú ý trong nội dung chia sẻ — mức ${bandLabel(band)}, ${total}/30 điểm (Phần 2)`
-    : `🔴 Đỏ — cần ưu tiên hỗ trợ ngay — ${total}/30 điểm (Phần 2)`;
+  const headline = `${isRed ? '🔴' : '🟡'} ${bandLabel(band)} — ${total}/30 điểm (Phần 2)${crisisDetected ? ' — phát hiện qua nội dung chia sẻ' : ''}`;
   const html = `
     <div style="font-family:sans-serif;max-width:520px;margin:0 auto;padding:32px 24px;">
-      <h2 style="color:#c93f3f;margin-bottom:4px;">${studentName || 'Chưa rõ tên'}</h2>
+      ${caseCode ? `<p style="color:#999;font-size:0.78rem;margin:0 0 6px;">Mã hồ sơ: <strong>${caseCode}</strong></p>` : ''}
+      <h2 style="color:${themeColor};margin-bottom:4px;">${studentName || 'Chưa rõ tên'}</h2>
       <p style="color:#999;font-size:0.85rem;margin:0 0 14px;">${schoolName || ''}${grade ? ` · Khối ${grade}` : ''}${className ? ` / ${className}` : ''}${dateLabel ? ` · ${dateLabel}` : ''}</p>
-      <p style="color:#c93f3f;font-weight:700;">${headline}</p>
+      <p style="color:${themeColor};font-weight:700;">${headline}</p>
       ${wellbeingRows.length ? `
       <p style="margin-bottom:2px;"><strong>Chi tiết điểm Phần 2 — thang 1 (hoàn toàn không đúng) đến 5 (rất đúng)</strong></p>
       <p style="color:#555;margin-top:2px;line-height:1.7;">${wellbeingRows.join('<br>')}</p>
@@ -542,7 +543,7 @@ export async function sendScreeningRedAlertEmail({
       ${difficultiesList.length ? `<p style="margin-bottom:2px;"><strong>Khó khăn đang gặp</strong></p><p style="color:#555;margin-top:2px;">${difficultiesList.join('<br>')}</p>` : ''}
       ${supportNeedsList.length ? `<p style="margin-bottom:2px;"><strong>Nhu cầu hỗ trợ</strong></p><p style="color:#555;margin-top:2px;">${supportNeedsList.join('<br>')}</p>` : ''}
 
-      <p style="margin-bottom:2px;"><strong>Chia sẻ thêm</strong>${crisisDetected ? ' <span style="color:#c93f3f;">⚠️ có dấu hiệu cần quan tâm đặc biệt</span>' : ''}</p>
+      <p style="margin-bottom:2px;"><strong>Chia sẻ thêm</strong>${crisisDetected ? ` <span style="color:${themeColor};">⚠️ có dấu hiệu cần quan tâm đặc biệt</span>` : ''}</p>
       <p style="color:#555;margin-top:2px;">${shareNote || 'Không có.'}</p>
       <p style="color:#555;">Đồng ý được liên hệ: <strong>${consentContact ? 'Có' : 'Không'}</strong>${contact ? ` · Liên hệ: ${contact}` : ''}</p>
 
@@ -553,7 +554,32 @@ export async function sendScreeningRedAlertEmail({
       ${referralSupportFormat.length ? `<p style="color:#555;margin:2px 0;">Hình thức mong muốn: ${referralSupportFormat.map(supportFormatLabel).join(', ')}</p>` : ''}
       ` : ''}
 
-      ${includeAdminLink ? `<a href="${link}" style="display:inline-block;margin:16px 0;padding:12px 28px;background:#e05c5c;color:#fff;border-radius:8px;text-decoration:none;font-weight:700;">Xem trên trang quản trị</a>` : ''}
+      ${includeAdminLink ? `<a href="${link}" style="display:inline-block;margin:16px 0;padding:12px 28px;background:${themeColor};color:#fff;border-radius:8px;text-decoration:none;font-weight:700;">Xem trên trang quản trị</a>` : ''}
+    </div>
+  `;
+  await sendMail({ from: FROM, to, subject, html });
+}
+
+// Mức Xanh -> tự động trả lời NGƯỜI NỘP phiếu (không phải trường/admin) kèm hướng dẫn tự
+// trợ giúp cơ bản — đúng luồng tài liệu ("Xanh: gửi email phản hồi và tài liệu phù hợp").
+// Chỉ gửi được khi ô liên hệ (tuỳ chọn, SĐT hoặc email) điền đúng định dạng email — xem
+// looksLikeEmail() ở screening.routes.js.
+export async function sendScreeningSelfHelpEmail({ to, studentName, locale = 'vi' }) {
+  if (!hasMailProvider() || !to) return;
+  const subject = locale === 'en' ? '🌿 A few things that might help you' : '🌿 Vài điều có thể giúp em cảm thấy nhẹ nhõm hơn';
+  const html = `
+    <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:32px 24px;">
+      <h2 style="color:#2D6A4F;margin-bottom:8px;">Chào ${studentName || 'em'} 🌿</h2>
+      <p style="color:#555;line-height:1.7;">Cảm ơn em đã hoàn thành phiếu khảo sát/sàng lọc đầu năm. Kết quả hiện tại của em ở mức nhẹ — đây là vài điều nhỏ có thể giúp em duy trì cảm giác ổn định:</p>
+      <ul style="color:#555;line-height:1.8;padding-left:20px;">
+        <li>Giữ giờ ngủ đều đặn, tránh dùng điện thoại ngay trước khi ngủ.</li>
+        <li>Mỗi ngày dành vài phút hít thở sâu hoặc đi bộ nhẹ khi thấy căng thẳng.</li>
+        <li>Chia sẻ với 1 người em tin tưởng (bạn bè, thầy/cô, người thân) khi có điều muốn nói.</li>
+        <li>Viết nhật ký ngắn mỗi ngày về điều khiến em vui hoặc biết ơn.</li>
+      </ul>
+      <p style="color:#555;line-height:1.7;">Nếu sau này cảm thấy cần hỗ trợ nhiều hơn, em có thể đăng ký bất cứ lúc nào:</p>
+      <a href="${APP_URL}/dang-ky-ho-tro" style="display:inline-block;margin:10px 0;padding:12px 28px;background:#52B788;color:#fff;border-radius:8px;text-decoration:none;font-weight:700;">Đăng ký hỗ trợ</a>
+      <p style="color:#999;font-size:0.8rem;line-height:1.6;margin-top:20px;">Email này được gửi tự động vì em đã điền email liên hệ trong phiếu khảo sát. Nếu cần hỗ trợ khẩn, gọi ngay 0931773637 (miễn phí, 24/7) hoặc 115.</p>
     </div>
   `;
   await sendMail({ from: FROM, to, subject, html });

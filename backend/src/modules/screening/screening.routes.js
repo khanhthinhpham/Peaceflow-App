@@ -3,10 +3,11 @@ import { db } from '../../config/db.js';
 import { verifyAccessToken } from '../../common/utils/jwt.js';
 import { findUserById } from '../auth/auth.repository.js';
 import { requireAuth } from '../../common/middleware/auth.middleware.js';
-import { sendScreeningRedAlertEmail } from '../../common/services/email.service.js';
+import { sendScreeningRedAlertEmail, sendScreeningSelfHelpEmail } from '../../common/services/email.service.js';
 import { env } from '../../config/env.js';
 import { getScreeningAiSummary } from '../ai/ai.service.js';
 import { detectCrisisSignals, logCrisisFlag } from '../ai/ai.safety.js';
+import { nextCaseCode } from '../../common/utils/case-code.js';
 
 const router = Router();
 
@@ -53,6 +54,15 @@ function riskBandFromScore(total) {
   return 'xanh';
 }
 
+// Theo tài liệu "Cổng dữ liệu số tư vấn học đường Nghệ An": Đỏ phải tự động bật cho CẢ
+// "bạo lực, xâm hại, đe dọa" — không chỉ dựa vào điểm số Phần 2 (1 học sinh có thể điểm
+// không quá thấp nhưng vẫn đang bị bắt nạt/bạo lực nghiêm trọng).
+const FORCE_RED_DIFFICULTY_KEYS = new Set(['bi_treu_choc_bat_nat']);
+
+function looksLikeEmail(value) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value || '').trim());
+}
+
 // ===== CÔNG KHAI =====
 
 router.get('/screening/schools', async (_req, res) => {
@@ -77,7 +87,6 @@ router.post('/screening/responses', attachUserIfPresent, async (req, res) => {
       return res.status(400).json({ success: false, message: 'Vui lòng trả lời đủ 6 câu ở Phần 2.' });
     }
     const total = scores.reduce((sum, n) => sum + n, 0);
-    const band = riskBandFromScore(total);
 
     const gender = ['male', 'female', 'unspecified'].includes(body.gender) ? body.gender : 'unspecified';
     const referralRiskLevel = ['xanh', 'vang', 'do'].includes(body.referralRiskLevel) ? body.referralRiskLevel : null;
@@ -86,24 +95,33 @@ router.post('/screening/responses', attachUserIfPresent, async (req, res) => {
     const referralCategories = pickKnownKeys(body.referralCategories, REFERRAL_CATEGORY_KEYS);
     const referralSupportFormat = pickKnownKeys(body.referralSupportFormat, REFERRAL_SUPPORT_FORMAT_KEYS);
 
+    // Đỏ tự động: điểm thấp (riskBandFromScore), HOẶC đã chọn khó khăn thuộc nhóm bắt
+    // nạt/bạo lực (FORCE_RED_DIFFICULTY_KEYS), HOẶC "Chia sẻ thêm" có dấu hiệu khủng hoảng —
+    // bất kể điểm số, vì 1 trong 3 điều kiện này đã đủ nghiêm trọng (đúng yêu cầu tài liệu).
+    const crisisSignals = detectCrisisSignals(body.shareNote);
+    const forcedRedByDifficulty = difficulties.some((d) => FORCE_RED_DIFFICULTY_KEYS.has(d));
+    const band = (forcedRedByDifficulty || crisisSignals.length) ? 'do' : riskBandFromScore(total);
+
+    const caseCode = await nextCaseCode();
+
     const r = await db.query(
       `insert into screening_responses (
-        school_id, user_id, student_name, grade, class_name, gender, contact,
+        case_code, school_id, user_id, student_name, grade, class_name, gender, contact,
         wellbeing_scores, wellbeing_total, risk_band,
         difficulties, difficulties_other, support_needs, support_needs_other,
         share_note, consent_contact,
         referral_categories, referral_risk_level, referral_support_format, referral_phone, referral_description,
         confirm_note
       ) values (
-        $1, $2, $3, $4, $5, $6, $7,
-        $8::jsonb, $9, $10,
-        $11::jsonb, $12, $13::jsonb, $14,
-        $15, $16,
-        $17::jsonb, $18, $19::jsonb, $20, $21,
-        $22
+        $1, $2, $3, $4, $5, $6, $7, $8,
+        $9::jsonb, $10, $11,
+        $12::jsonb, $13, $14::jsonb, $15,
+        $16, $17,
+        $18::jsonb, $19, $20::jsonb, $21, $22,
+        $23
       ) returning id, created_at`,
       [
-        body.schoolId || null, req.user?.id || null, body.studentName || null, body.grade || null, body.className || null, gender, body.contact || null,
+        caseCode, body.schoolId || null, req.user?.id || null, body.studentName || null, body.grade || null, body.className || null, gender, body.contact || null,
         JSON.stringify(scores), total, band,
         JSON.stringify(difficulties), body.difficultiesOther || null,
         JSON.stringify(supportNeeds), body.supportNeedsOther || null,
@@ -114,21 +132,19 @@ router.post('/screening/responses', attachUserIfPresent, async (req, res) => {
       ]
     );
 
-    // Mức Đỏ, HOẶC "Chia sẻ thêm" có dấu hiệu khủng hoảng (tự làm hại/không muốn sống...) dù
-    // điểm ra Vàng/Xanh -> báo ngay, không chờ nhà trường đọc được phần chia sẻ. Đối tượng
-    // là học sinh (có thể vị thành niên) nên thà báo thừa còn hơn bỏ sót 1 lần cần (cùng
-    // triết lý với lưới an toàn ai.safety.js dùng cho chat).
-    const crisisSignals = detectCrisisSignals(body.shareNote);
-    if (band === 'do' || crisisSignals.length) {
-      if (crisisSignals.length) logCrisisFlag(req.user?.id || null, crisisSignals, { source: 'screening_submit' });
+    if (crisisSignals.length) logCrisisFlag(req.user?.id || null, crisisSignals, { source: 'screening_submit' });
 
+    // Đỏ HOẶC Vàng -> báo ngay cho tổ tư vấn (đầu mối trường) + admin, không đợi tổng hợp
+    // cuối tháng — đúng luồng tài liệu ("Vàng: gửi email thông báo cho tổ tư vấn" ngay khi
+    // phát sinh, không gộp chờ). Mức Xanh xử lý riêng bên dưới (tự trả lời người nộp).
+    if (band === 'do' || band === 'vang') {
       (async () => {
         const school = body.schoolId
           ? (await db.query(`select name, contact_email from screening_schools where id = $1`, [body.schoolId])).rows[0]
           : null;
 
         const basePayload = {
-          schoolName: school?.name,
+          caseCode, schoolName: school?.name,
           studentName: body.studentName,
           grade: body.grade,
           className: body.className,
@@ -149,7 +165,15 @@ router.post('/screening/responses', attachUserIfPresent, async (req, res) => {
       })().catch((error) => console.error('Send screening red alert email error:', error?.message || error));
     }
 
-    return res.json({ success: true, data: { id: r.rows[0].id, riskBand: band, total } });
+    // Xanh -> tự động gửi email tài liệu tự trợ giúp CHO NGƯỜI NỘP (nếu ô liên hệ điền
+    // đúng định dạng email) — đúng luồng tài liệu ("Xanh: gửi email phản hồi và tài liệu
+    // phù hợp"). Phiếu để ô liên hệ tự do (SĐT hoặc email) nên phải tự nhận diện định dạng.
+    if (band === 'xanh' && looksLikeEmail(body.contact)) {
+      sendScreeningSelfHelpEmail({ to: body.contact, studentName: body.studentName, locale: req.locale })
+        .catch((error) => console.error('Send screening self-help email error:', error?.message || error));
+    }
+
+    return res.json({ success: true, data: { id: r.rows[0].id, caseCode, riskBand: band, total } });
   } catch (error) {
     console.error('Submit screening response error:', error);
     return res.status(500).json({ success: false, message: 'Không gửi được phiếu khảo sát.' });

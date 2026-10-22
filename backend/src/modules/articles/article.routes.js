@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import multer from 'multer';
 import sharp from 'sharp';
+import sanitizeHtml from 'sanitize-html';
 import { requireAuth } from '../../common/middleware/auth.middleware.js';
 import { db } from '../../config/db.js';
 import { env } from '../../config/env.js';
@@ -28,6 +29,26 @@ const coverUpload = multer({
 // `locale` chỉ ảnh hưởng phía PUBLIC (trang đọc bài) — admin luôn thấy label tiếng Việt gốc
 // để quản lý (không truyền locale ở các route /admin/*), khớp label_en fallback về label
 // tiếng Việt nếu admin chưa dịch tên danh mục.
+// Nội dung giờ là HTML từ trình soạn thảo rich-text ở admin (bold/italic/căn lề/danh sách) —
+// sanitize lại ở backend (không chỉ tin phía client) trước khi lưu, phòng admin bị chiếm
+// tài khoản gửi thẳng script độc hại qua API, vì bài công khai render bằng v-html cho mọi
+// người dùng xem.
+const ARTICLE_HTML_OPTIONS = {
+  allowedTags: ['p', 'br', 'strong', 'b', 'em', 'i', 'u', 'ul', 'ol', 'li', 'a', 'div', 'span'],
+  allowedAttributes: { a: ['href', 'target', 'rel'], div: ['style'], span: ['style'], p: ['style'] },
+  allowedStyles: { '*': { 'text-align': [/^left$|^right$|^center$|^justify$/] } },
+  allowedSchemes: ['http', 'https', 'mailto']
+};
+
+function sanitizeArticleHtml(html) {
+  return sanitizeHtml(html || '', ARTICLE_HTML_OPTIONS);
+}
+
+// Dùng để build excerpt/description từ content đã là HTML — bóc hết thẻ, không chỉ escape.
+function stripHtml(html) {
+  return (html || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+}
+
 async function getCategoriesMap(locale = 'vi') {
   const r = await db.query(`select key, label, label_en from article_categories order by sort_order, created_at`);
   return Object.fromEntries(r.rows.map((row) => [row.key, locale === 'en' ? (row.label_en || row.label) : row.label]));
@@ -59,7 +80,7 @@ function mapArticle(row, categoriesMap, { withContent = false } = {}) {
     publishedAt: row.published_at,
     // Đoạn trích ngắn cho danh sách/bài nổi bật — cắt sẵn ở SQL (left(content,220)) để
     // không phải kéo cả content đầy đủ (có bài >5000 ký tự) về chỉ để hiển thị vài dòng.
-    ...(!withContent && row.content ? { excerpt: `${row.content.trim().replace(/\s+/g, ' ')}…` } : {}),
+    ...(!withContent && row.content ? { excerpt: `${stripHtml(row.content)}…` } : {}),
     ...(withContent ? { content: row.content } : {})
   };
 }
@@ -149,7 +170,7 @@ router.get('/articles/:id/share', async (req, res) => {
     return res.send(renderShareHtml({
       type: 'article',
       title: article.title,
-      description: `${(article.content || '').trim().replace(/\s+/g, ' ').slice(0, 200)}…`,
+      description: `${stripHtml(article.content).slice(0, 200)}…`,
       image,
       targetUrl: articleUrl
     }));
@@ -292,14 +313,14 @@ router.post('/admin/articles', requireAuth, coverUpload.single('cover'), async (
       [
         title.trim(),
         finalCategory,
-        content,
+        sanitizeArticleHtml(content),
         finalStatus,
         (author_name || '').trim() || 'Đội ngũ PeaceFlow',
         req.user.sub,
         req.file?.buffer || null,
         req.file?.mimetype || null,
         (title_en || '').trim() || null,
-        (content_en || '').trim() || null
+        (content_en || '').trim() ? sanitizeArticleHtml(content_en.trim()) : null
       ]
     );
     const newId = r.rows[0].id;
@@ -341,11 +362,11 @@ router.put('/admin/articles/:id', requireAuth, coverUpload.single('cover'), asyn
     const params = [
       title?.trim(),
       finalCategory,
-      content,
+      content ? sanitizeArticleHtml(content) : content,
       finalStatus,
       (author_name || '').trim() || 'Đội ngũ PeaceFlow',
       (title_en || '').trim() || null,
-      (content_en || '').trim() || null,
+      (content_en || '').trim() ? sanitizeArticleHtml(content_en.trim()) : null,
       req.params.id
     ];
     let coverClause = '';

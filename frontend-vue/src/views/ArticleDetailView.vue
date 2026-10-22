@@ -45,6 +45,7 @@
 import { ref, computed, onMounted, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import { useI18n } from 'vue-i18n';
+import DOMPurify from 'dompurify';
 import { apiClient, SHARE_BASE_URL } from '../lib/apiClient';
 import ArticleCard from '../components/ArticleCard.vue';
 import ShareButtons from '../components/ShareButtons.vue';
@@ -65,15 +66,10 @@ function formatDate(v) {
   } catch (_e) { return ''; }
 }
 
-// Nội dung là plain text nhập từ textarea admin (không phải HTML tuỳ ý người dùng) — chỉ
-// escape rồi giữ xuống dòng, tránh phải nhúng thư viện rich-text editor cho MVP này.
-function escapeHtml(s) {
-  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-}
-const renderedContent = computed(() => {
-  if (!article.value?.content) return '';
-  return escapeHtml(article.value.content).split(/\n{2,}/).map((p) => `<p>${p.replace(/\n/g, '<br>')}</p>`).join('');
-});
+// Nội dung giờ là HTML thật từ trình soạn thảo rich-text của admin (RichTextEditor.vue) —
+// sanitize lại lần nữa ở đây (không chỉ tin phía admin) trước khi render bằng v-html, phòng
+// trường hợp dữ liệu cũ/bị can thiệp trực tiếp qua API chứa script độc hại.
+const renderedContent = computed(() => DOMPurify.sanitize(article.value?.content || ''));
 
 // Trỏ về route /articles/:id/share ở BACKEND (không phải thẳng link SPA) — route đó tự biết
 // trả HTML có og:title/og:image đúng bài viết khi bot Facebook/Threads quét, và tự chuyển
@@ -167,6 +163,17 @@ watch(() => route.params.id, load);
   line-height: 1.8;
   color: var(--text-primary);
   margin-bottom: 16px;
+}
+.ins-article-body :deep(ul),
+.ins-article-body :deep(ol) {
+  font-size: 0.95rem;
+  line-height: 1.8;
+  color: var(--text-primary);
+  margin: 0 0 16px;
+  padding-left: 26px;
+}
+.ins-article-body :deep(a) {
+  color: var(--sky-dark, #4a90aa);
 }
 .article-share-row {
   display: flex;

@@ -75,7 +75,7 @@
         </div>
         <div>
           <label style="display:block;font-size:0.8rem;font-weight:700;margin-bottom:6px;">Nội dung</label>
-          <textarea v-model="form.content" rows="10" class="admin-input" style="width:100%;font-family:inherit;" placeholder="Nội dung bài viết..."></textarea>
+          <RichTextEditor v-model="form.content" placeholder="Nội dung bài viết..." />
         </div>
 
         <button type="button" class="btn-outline" style="font-size:0.8rem;align-self:flex-start;" @click="enOpen = !enOpen">
@@ -95,7 +95,7 @@
           </div>
           <div>
             <label style="display:block;font-size:0.8rem;font-weight:700;margin-bottom:6px;">Content (English)</label>
-            <textarea v-model="form.contentEn" rows="8" class="admin-input" style="width:100%;font-family:inherit;" placeholder="English content..."></textarea>
+            <RichTextEditor v-model="form.contentEn" placeholder="English content..." />
           </div>
           <div style="font-size:0.72rem;color:var(--text-light);">Dịch máy chỉ là bản nháp — nhớ đọc lại và chỉnh sửa trước khi lưu.</div>
         </div>
@@ -145,7 +145,9 @@
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue';
+import DOMPurify from 'dompurify';
 import { apiClient } from '../../lib/apiClient';
+import RichTextEditor from '../../components/RichTextEditor.vue';
 
 const articles = ref([]);
 const categories = ref({});
@@ -164,8 +166,14 @@ const enOpen = ref(false);
 const translating = ref(false);
 const translateError = ref('');
 
+// Trình soạn thảo rich text có thể để lại thẻ rỗng (vd "<br>") dù người dùng chưa gõ gì —
+// strip tag trước khi kiểm tra "đã nhập nội dung chưa" để không bị lọt qua validate.
+function plainTextOf(html) {
+  return (html || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+}
+
 async function autoTranslate() {
-  if (!form.title.trim() && !form.content.trim()) {
+  if (!form.title.trim() && !plainTextOf(form.content)) {
     translateError.value = 'Cần nhập tiêu đề/nội dung tiếng Việt trước đã.';
     return;
   }
@@ -175,7 +183,9 @@ async function autoTranslate() {
   try {
     const data = await apiClient.post('/admin/articles/translate-preview', {
       title: form.title,
-      content: form.content
+      // Dịch máy (MyMemory) chỉ hiểu text thuần — bóc hết thẻ HTML của trình soạn thảo
+      // trước khi gửi, tránh dịch lẫn cả tag/dịch sai định dạng.
+      content: plainTextOf(form.content)
     });
     form.titleEn = data.titleEn;
     form.contentEn = data.contentEn;
@@ -328,7 +338,7 @@ function onCoverChange(e) {
 }
 
 async function save() {
-  if (!form.title.trim() || !form.content.trim()) {
+  if (!form.title.trim() || !plainTextOf(form.content)) {
     formError.value = 'Cần nhập tiêu đề và nội dung.';
     return;
   }
@@ -338,12 +348,12 @@ async function save() {
     const fd = new FormData();
     fd.append('title', form.title.trim());
     fd.append('category', form.category);
-    fd.append('content', form.content);
+    fd.append('content', DOMPurify.sanitize(form.content));
     fd.append('author_name', form.authorName.trim());
     fd.append('status', form.published ? 'published' : 'draft');
     fd.append('notify_users', form.published && form.notifyUsers ? 'true' : 'false');
     fd.append('title_en', form.titleEn.trim());
-    fd.append('content_en', form.contentEn.trim());
+    fd.append('content_en', DOMPurify.sanitize(form.contentEn.trim()));
     if (coverFile.value) fd.append('cover', coverFile.value);
 
     if (editingId.value) {

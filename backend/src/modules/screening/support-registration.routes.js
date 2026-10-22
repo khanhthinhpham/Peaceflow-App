@@ -3,6 +3,7 @@ import { db } from '../../config/db.js';
 import { verifyAccessToken } from '../../common/utils/jwt.js';
 import { findUserById } from '../auth/auth.repository.js';
 import { requireAuth } from '../../common/middleware/auth.middleware.js';
+import { nextCaseCode } from '../../common/utils/case-code.js';
 
 const router = Router();
 
@@ -61,24 +62,26 @@ router.post('/support-registrations', attachUserIfPresent, async (req, res) => {
       return res.status(400).json({ success: false, message: 'Vui lòng chọn mức độ cần hỗ trợ.' });
     }
 
+    const caseCode = await nextCaseCode();
+
     const r = await db.query(
       `insert into support_registrations (
-        user_id, email, informant, informant_other,
+        case_code, user_id, email, informant, informant_other,
         school_id, school_other, grade, grade_other, class_name, student_name,
         issue_categories, issue_categories_other, issue_description,
         risk_level, risk_level_other,
         support_format, support_format_other,
         phone, consent, confirm_note
       ) values (
-        $1, $2, $3, $4,
-        $5, $6, $7, $8, $9, $10,
-        $11::jsonb, $12, $13,
-        $14, $15,
-        $16::jsonb, $17,
-        $18, $19, $20
+        $1, $2, $3, $4, $5,
+        $6, $7, $8, $9, $10, $11,
+        $12::jsonb, $13, $14,
+        $15, $16,
+        $17::jsonb, $18,
+        $19, $20, $21
       ) returning id, created_at`,
       [
-        req.user?.id || null, email || null, body.informant, body.informantOther || null,
+        caseCode, req.user?.id || null, email || null, body.informant, body.informantOther || null,
         body.schoolId || null, body.schoolOther || null, body.grade || null, body.gradeOther || null, className, studentName,
         JSON.stringify(pickKnownKeys(body.issueCategories, ISSUE_CATEGORY_KEYS)), body.issueCategoriesOther || null, issueDescription,
         riskLevel, body.riskLevelOther || null,
@@ -87,7 +90,7 @@ router.post('/support-registrations', attachUserIfPresent, async (req, res) => {
       ]
     );
 
-    return res.json({ success: true, data: { id: r.rows[0].id } });
+    return res.json({ success: true, data: { id: r.rows[0].id, caseCode } });
   } catch (error) {
     console.error('Submit support registration error:', error);
     return res.status(500).json({ success: false, message: 'Không gửi được phiếu đăng ký.' });

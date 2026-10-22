@@ -25,6 +25,7 @@
     "@capawesome/capacitor-android-edge-to-edge-support": "^8.0.8",
     "@capgo/capacitor-social-login": "^8.4.5",
     "chart.js": "^4.5.1",
+    "dompurify": "^3.4.17",
     "exceljs": "^4.4.0",
     "pinia": "^4.0.3",
     "vue": "^3.5.41",
