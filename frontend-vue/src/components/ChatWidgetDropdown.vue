@@ -17,7 +17,10 @@
       class="cwd-item"
       @click="chat.openWindow(c)"
     >
-      <div class="cwd-avatar">{{ c.avatar }}</div>
+      <div class="cwd-avatar">
+        <img v-if="avatarUrls[c.id] || c.clientAvatarUrl" :src="avatarUrls[c.id] || c.clientAvatarUrl" alt="">
+        <template v-else>{{ c.avatar }}</template>
+      </div>
       <div class="cwd-info">
         <div class="cwd-name">{{ c.name }}</div>
         <div class="cwd-preview">{{ c.last_message_preview || '' }}</div>
@@ -29,8 +32,9 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
+import { ref, reactive, computed, watch, onMounted, onBeforeUnmount } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { apiClient } from '../lib/apiClient';
 import { useChatWidgetStore } from '../stores/chatWidget';
 
 const { t } = useI18n();
@@ -43,6 +47,23 @@ const filteredConversations = computed(() => {
   if (!q) return chat.conversations;
   return chat.conversations.filter((c) => (c.name || '').toLowerCase().includes(q));
 });
+
+// Ảnh thật của chuyên gia (nếu đã upload) thay cho emoji — cùng cách tải blob có Bearer
+// token như ExpertsView.vue dùng cho danh sách chuyên gia.
+const avatarUrls = reactive({});
+const avatarUrlCache = new Map();
+async function loadAvatars(list) {
+  await Promise.all(list.filter((c) => c.expertId && c.hasAvatarPhoto && !avatarUrls[c.id]).map(async (c) => {
+    try {
+      if (!avatarUrlCache.has(c.expertId)) {
+        const blob = await apiClient.getBlob(`/experts/${c.expertId}/avatar`);
+        avatarUrlCache.set(c.expertId, URL.createObjectURL(blob));
+      }
+      avatarUrls[c.id] = avatarUrlCache.get(c.expertId);
+    } catch (_err) { /* giữ nguyên emoji mặc định */ }
+  }));
+}
+watch(() => chat.conversations, (list) => loadAvatars(list), { immediate: true });
 
 function handleOutsideClick(event) {
   if (!chat.dropdownOpen) return;
@@ -133,6 +154,12 @@ onBeforeUnmount(() => document.removeEventListener('click', handleOutsideClick))
   justify-content: center;
   font-size: 1rem;
   flex-shrink: 0;
+  overflow: hidden;
+}
+.cwd-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 .cwd-info {
   flex: 1;

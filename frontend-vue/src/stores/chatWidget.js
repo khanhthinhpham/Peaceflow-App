@@ -33,8 +33,8 @@ export const useChatWidgetStore = defineStore('chatWidget', {
           isExpert ? apiClient.get('/expert-portal/chat/conversations', { noCache: true }).catch(() => []) : Promise.resolve([])
         ]);
         const merged = [
-          ...asClient.map((c) => ({ id: c.id, name: c.expert_name, avatar: c.expert_avatar || '🩺', last_message_at: c.last_message_at, last_message_preview: c.last_message_preview, unread_count: c.unread_count })),
-          ...asExpert.map((c) => ({ id: c.id, name: c.client_name, avatar: '🙂', last_message_at: c.last_message_at, last_message_preview: c.last_message_preview, unread_count: c.unread_count }))
+          ...asClient.map((c) => ({ id: c.id, name: c.expert_name, avatar: c.expert_avatar || '🩺', expertId: c.expert_id, hasAvatarPhoto: !!c.expert_has_avatar_photo, last_message_at: c.last_message_at, last_message_preview: c.last_message_preview, unread_count: c.unread_count })),
+          ...asExpert.map((c) => ({ id: c.id, name: c.client_name, avatar: '🙂', clientAvatarUrl: c.client_avatar_url && !c.client_avatar_url.startsWith('emoji:') ? c.client_avatar_url : null, last_message_at: c.last_message_at, last_message_preview: c.last_message_preview, unread_count: c.unread_count }))
         ];
         merged.sort((a, b) => new Date(b.last_message_at || 0) - new Date(a.last_message_at || 0));
         this.conversations = merged;
@@ -57,7 +57,7 @@ export const useChatWidgetStore = defineStore('chatWidget', {
         return;
       }
       if (this.openWindows.length >= MAX_OPEN_WINDOWS) this.openWindows.shift();
-      this.openWindows.push({ id: conv.id, name: conv.name, avatar: conv.avatar });
+      this.openWindows.push({ id: conv.id, name: conv.name, avatar: conv.avatar, expertId: conv.expertId, hasAvatarPhoto: conv.hasAvatarPhoto, clientAvatarUrl: conv.clientAvatarUrl });
       const c = this.conversations.find((x) => x.id === conv.id);
       if (c) c.unread_count = 0;
       this.dropdownOpen = false;

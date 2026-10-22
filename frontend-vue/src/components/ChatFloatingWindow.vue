@@ -1,7 +1,10 @@
 <template>
   <div class="chat-floating-window" :style="{ right: `${16 + index * 376}px` }">
     <div class="cfw-header">
-      <div class="cfw-avatar">{{ conversation.avatar }}</div>
+      <div class="cfw-avatar">
+        <img v-if="avatarUrl" :src="avatarUrl" alt="">
+        <template v-else>{{ conversation.avatar }}</template>
+      </div>
       <div class="cfw-name">{{ conversation.name }}</div>
       <button type="button" class="cfw-close" @click="chat.closeWindow(conversation.id)" aria-label="Đóng">✕</button>
     </div>
@@ -36,6 +39,15 @@ const chat = useChatWidgetStore();
 const messages = ref([]);
 const messagesLoading = ref(false);
 const sending = ref(false);
+
+// Ảnh thật của chuyên gia (nếu đã upload) thay cho emoji mặc định — cùng cách tải blob có
+// Bearer token như ExpertsView.vue dùng cho danh sách chuyên gia.
+const avatarUrl = ref(props.conversation.clientAvatarUrl || null);
+if (props.conversation.expertId && props.conversation.hasAvatarPhoto) {
+  apiClient.getBlob(`/experts/${props.conversation.expertId}/avatar`)
+    .then((blob) => { avatarUrl.value = URL.createObjectURL(blob); })
+    .catch(() => {});
+}
 
 async function loadMessages() {
   messagesLoading.value = true;
@@ -87,7 +99,10 @@ onMounted(() => {
   loadMessages();
   subscribeChatMessages(props.conversation.id, onRealtimeMessage);
 });
-onBeforeUnmount(() => unsubscribeChatMessages(props.conversation.id));
+onBeforeUnmount(() => {
+  unsubscribeChatMessages(props.conversation.id);
+  if (avatarUrl.value?.startsWith('blob:')) URL.revokeObjectURL(avatarUrl.value);
+});
 </script>
 
 <style scoped>
@@ -126,6 +141,12 @@ onBeforeUnmount(() => unsubscribeChatMessages(props.conversation.id));
   justify-content: center;
   font-size: 0.8rem;
   flex-shrink: 0;
+  overflow: hidden;
+}
+.cfw-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 .cfw-name {
   flex: 1;
