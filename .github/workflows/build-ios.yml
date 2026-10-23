@@ -1,11 +1,10 @@
-# Build thử app iOS (chưa ký) trên macOS runner của GitHub Actions — dùng để xác nhận
-# project Capacitor sinh ra compile sạch mà không cần máy Mac thật. Chạy thủ công
-# (workflow_dispatch) vì chỉ cần khi thay đổi liên quan tới mobile, không chạy mỗi lần push.
+# Build app iOS cho THIẾT BỊ THẬT, CHƯA KÝ, đóng gói thành .ipa để tải về rồi tự ký bằng
+# Apple ID cá nhân (miễn phí) qua Sideloadly trên Windows — không cần Mac, không cần tài
+# khoản Apple Developer Program ($99/năm) ở bước này. Chạy thủ công (workflow_dispatch).
 #
-# Đây CHƯA PHẢI bước build bản release để nộp App Store — bản đó cần thêm chứng chỉ ký
-# (Distribution certificate + provisioning profile) từ Apple Developer Program, sẽ bổ sung
-# riêng khi đã có tài khoản.
-name: Build iOS (unsigned, simulator)
+# LƯU Ý: app ký bằng Apple ID miễn phí chỉ dùng được 7 ngày rồi phải cài lại (giới hạn của
+# Apple, không phải lỗi). Muốn lên App Store/TestFlight thì mới cần Developer Program.
+name: Build iOS (unsigned .ipa for sideload)
 
 on:
   workflow_dispatch:
@@ -35,14 +34,30 @@ jobs:
       - name: Select Xcode version
         run: sudo xcode-select -s /Applications/Xcode.app
 
-      - name: Build for iOS Simulator (no signing required)
+      - name: Build for real iOS device (unsigned)
         working-directory: frontend-vue/ios/App
         run: |
           xcodebuild \
             -project App.xcodeproj \
             -scheme App \
-            -sdk iphonesimulator \
-            -configuration Debug \
-            -destination 'generic/platform=iOS Simulator' \
+            -sdk iphoneos \
+            -configuration Release \
+            -destination 'generic/platform=iOS' \
+            -derivedDataPath build \
             CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
             build
+
+      - name: Package unsigned .ipa
+        working-directory: frontend-vue/ios/App
+        run: |
+          mkdir -p Payload
+          cp -R build/Build/Products/Release-iphoneos/App.app Payload/
+          zip -r PeaceFlow-unsigned.ipa Payload
+
+      - name: Upload .ipa artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: PeaceFlow-unsigned-ipa
+          path: frontend-vue/ios/App/PeaceFlow-unsigned.ipa
+          retention-days: 14
