@@ -87,21 +87,20 @@ jobs:
           </plist>
           PLIST
 
+      # Cấu hình ký (CODE_SIGN_STYLE=Manual, DEVELOPMENT_TEAM, provisioning profile...) đã
+      # được set thẳng trong project.pbxproj CHỈ cho target "App" — KHÔNG truyền qua dòng
+      # lệnh ở đây, vì truyền qua CLI sẽ ép áp dụng lên toàn bộ graph build kể cả các Swift
+      # Package phụ thuộc (vd AppAuth của Google Sign-In), mà các package đó không hỗ trợ
+      # provisioning profile nên sẽ làm archive fail ("does not support provisioning profiles").
       - name: Archive signed app
         working-directory: frontend-vue/ios/App
-        env:
-          TEAM_ID: ${{ secrets.IOS_TEAM_ID }}
         run: |
           xcodebuild archive \
             -project App.xcodeproj \
             -scheme App \
             -configuration Release \
             -archivePath "$RUNNER_TEMP/App.xcarchive" \
-            -destination 'generic/platform=iOS' \
-            CODE_SIGN_STYLE=Manual \
-            DEVELOPMENT_TEAM="$TEAM_ID" \
-            PROVISIONING_PROFILE_SPECIFIER="PeaceFlow AppStore" \
-            CODE_SIGN_IDENTITY="Apple Distribution"
+            -destination 'generic/platform=iOS'
 
       - name: Export signed .ipa
         run: |
