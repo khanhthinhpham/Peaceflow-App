@@ -2,11 +2,14 @@
 # Apple Developer Portal, xuất ra file .ipa đã ký sẵn sàng nộp App Store Connect — chạy trên
 # macOS runner của GitHub Actions nên không cần máy Mac thật. Chạy thủ công (workflow_dispatch).
 #
-# Cần 4 repository secrets (Settings → Secrets and variables → Actions):
+# Cần 7 repository secrets (Settings → Secrets and variables → Actions):
 #   IOS_P12_BASE64                   — file .p12 (cert + private key) đã mã hoá base64
 #   IOS_P12_PASSWORD                 — mật khẩu của file .p12
 #   IOS_PROVISIONING_PROFILE_BASE64  — file .mobileprovision đã mã hoá base64
 #   IOS_TEAM_ID                      — Team ID trên Apple Developer (vd H48B8C4PA3)
+#   ASC_API_KEY_ID                   — Key ID của App Store Connect API key
+#   ASC_API_ISSUER_ID                — Issuer ID của App Store Connect API key
+#   ASC_API_KEY_BASE64               — file .p8 (API key) đã mã hoá base64
 name: Build & Sign iOS (.ipa for App Store)
 
 on:
@@ -117,6 +120,22 @@ jobs:
           name: PeaceFlow-signed-ipa
           path: dist-ipa/PeaceFlow-signed.ipa
           retention-days: 14
+
+      # altool tự tìm API key trong ~/.appstoreconnect/private_keys/AuthKey_<KeyID>.p8 — không
+      # cần đăng nhập Apple ID tương tác, phù hợp chạy headless trên CI.
+      - name: Upload build to App Store Connect
+        env:
+          ASC_API_KEY_ID: ${{ secrets.ASC_API_KEY_ID }}
+          ASC_API_ISSUER_ID: ${{ secrets.ASC_API_ISSUER_ID }}
+          ASC_API_KEY_BASE64: ${{ secrets.ASC_API_KEY_BASE64 }}
+        run: |
+          mkdir -p ~/.appstoreconnect/private_keys
+          echo "$ASC_API_KEY_BASE64" | base64 --decode -o ~/.appstoreconnect/private_keys/AuthKey_${ASC_API_KEY_ID}.p8
+          xcrun altool --upload-app \
+            --type ios \
+            --file dist-ipa/PeaceFlow-signed.ipa \
+            --apiKey "$ASC_API_KEY_ID" \
+            --apiIssuer "$ASC_API_ISSUER_ID"
 
       # Dọn keychain tạm sau khi xong, kể cả khi job fail giữa chừng — không để lại cert trên
       # runner (runner dùng xong sẽ bị huỷ hoàn toàn nên bước này chỉ là vệ sinh thêm).
