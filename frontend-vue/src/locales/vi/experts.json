@@ -98,12 +98,12 @@
       "step2Title": "Nhận diện vấn đề",
       "step2En": "Identifying Concerns",
       "step2Desc": "Chuyên gia sẽ đặt các câu hỏi gợi mở để tìm hiểu sâu về lý do bạn tìm đến sự hỗ trợ, những lo âu hiện tại hoặc các sự kiện gần đây ảnh hưởng đến tâm trí và hành vi của bạn.",
-      "step3Title": "Đánh giá chuyên sâu",
-      "step3En": "Clinical Assessment",
-      "step3Desc": "Thông qua phỏng vấn lâm sàng và quan sát chi tiết, chuyên gia sẽ áp dụng các bài kiểm tra chuẩn hóa y khoa như DASS-21, GAD-7, PHQ-9 hoặc PSQI. Việc đánh giá có hệ thống này giúp đo lường chính xác mức độ triệu chứng.",
-      "step4Title": "Thảo luận & Hướng điều trị",
-      "step4En": "Treatment Planning",
-      "step4Desc": "Chuyên gia sẽ tổng hợp kết quả, cùng bạn thảo luận để thống nhất các mục tiêu trị liệu. Từ đó, một lộ trình can thiệp cá nhân hóa sẽ được đưa ra để giúp bạn từng bước vượt qua khó khăn."
+      "step3Title": "Tìm hiểu sâu hơn",
+      "step3En": "Self-Assessment Tools",
+      "step3Desc": "Thông qua trò chuyện cởi mở và quan sát, chuyên gia có thể gợi ý bạn làm thêm một số bài tự đánh giá tham khảo như DASS-21, GAD-7, PHQ-9 hoặc PSQI. Đây là công cụ hỗ trợ tham khảo, không phải xét nghiệm hay chẩn đoán y khoa.",
+      "step4Title": "Thảo luận & Gợi ý hướng hỗ trợ",
+      "step4En": "Support Planning",
+      "step4Desc": "Chuyên gia sẽ cùng bạn trao đổi để thống nhất các mục tiêu hỗ trợ phù hợp. Từ đó, một số gợi ý đồng hành cá nhân hóa sẽ được đưa ra để giúp bạn từng bước vượt qua khó khăn."
     },
     "filters": {
       "all": "🌿 Tất cả",
@@ -225,7 +225,7 @@
       "experienceLabel": "Năm KN",
       "bioTitle": "👤 Giới thiệu",
       "credentialsTitle": "🎓 Bằng cấp & Chứng chỉ",
-      "approachesTitle": "🧠 Phương pháp trị liệu",
+      "approachesTitle": "🧠 Phương pháp hỗ trợ",
       "reviewsTitle": "⭐ Đánh giá từ người dùng",
       "bookNowBtn": "📅 Đặt lịch ngay",
       "closeBtn": "Đóng"

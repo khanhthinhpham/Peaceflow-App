@@ -270,10 +270,10 @@ export const TESTS = {
         ],
         scoring: {
             depression: { indices: Array.from({ length: 21 }, (_, i) => i), multiplier: 1, levels: [
-                { max: 13, label: 'No depression', class: 'level-0' },
-                { max: 19, label: 'Mild depression', class: 'level-1' },
-                { max: 29, label: 'Moderate depression', class: 'level-2' },
-                { max: 999, label: 'Severe depression', class: 'level-3' }
+                { max: 13, label: 'No signs of depression', class: 'level-0' },
+                { max: 19, label: 'Signs of mild depression', class: 'level-1' },
+                { max: 29, label: 'Signs of moderate depression', class: 'level-2' },
+                { max: 999, label: 'Signs of severe depression', class: 'level-3' }
             ] }
         }
     },
@@ -620,7 +620,7 @@ export const TESTS = {
             { emoji: '🚨', label: 'Always', score: 5 }
         ],
         scoring: {
-            total: { indices: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19], multiplier: 1, levels: [{ max: 30, 'label': 'Normal internet use', 'class': 'level-0' }, { max: 49, 'label': 'Mild dependence on the internet', 'class': 'level-1' }, { max: 79, 'label': 'Moderate dependence on the internet', 'class': 'level-2' }, { max: 999, 'label': 'Severe dependence on the internet', 'class': 'level-3' }] }
+            total: { indices: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19], multiplier: 1, levels: [{ max: 30, 'label': 'Normal internet use', 'class': 'level-0' }, { max: 49, 'label': 'Mild dependence on the internet', 'class': 'level-1' }, { max: 79, 'label': 'Moderate dependence on the internet', 'class': 'level-2' }, { max: 999, 'label': 'Signs of high dependence on the internet', 'class': 'level-3' }] }
         },
         prevScores: null
     },

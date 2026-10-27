@@ -98,12 +98,12 @@
       "step2Title": "Identifying the Issue",
       "step2En": "Identifying Concerns",
       "step2Desc": "The expert asks open-ended questions to explore in depth why you're seeking support, your current worries, or recent events affecting your mind and behavior.",
-      "step3Title": "In-depth Assessment",
+      "step3Title": "Getting to Know You Better",
       "step3En": "Clinical Assessment",
-      "step3Desc": "Through clinical interviewing and detailed observation, the expert applies standardized medical tests such as DASS-21, GAD-7, PHQ-9, or PSQI. This systematic assessment helps accurately measure symptom severity.",
-      "step4Title": "Discussion & Treatment Direction",
+      "step3Desc": "Through open conversation and observation, the expert may suggest some reference self-assessment tools such as DASS-21, GAD-7, PHQ-9, or PSQI. These are reference support tools, not medical tests or a diagnosis.",
+      "step4Title": "Discussion & Support Suggestions",
       "step4En": "Treatment Planning",
-      "step4Desc": "The expert summarizes the findings and discusses with you to agree on treatment goals. From there, a personalized intervention plan is created to help you overcome your difficulties step by step."
+      "step4Desc": "The expert summarizes the conversation and discusses with you to agree on support goals. From there, some personalized companion suggestions are shared to help you overcome your difficulties step by step."
     },
     "filters": {
       "all": "🌿 All",
@@ -225,7 +225,7 @@
       "experienceLabel": "Years exp.",
       "bioTitle": "👤 About",
       "credentialsTitle": "🎓 Credentials & Certifications",
-      "approachesTitle": "🧠 Therapy approaches",
+      "approachesTitle": "🧠 Support approaches",
       "reviewsTitle": "⭐ User reviews",
       "bookNowBtn": "📅 Book now",
       "closeBtn": "Close"

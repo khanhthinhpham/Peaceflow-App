@@ -494,6 +494,31 @@ router.post('/community/posts/:id/reactions', requireAuth, async (req, res) => {
   }
 });
 
+// GET /api/v1/community/posts/:id/reactions?type=heart — danh sách người đã thả 1 loại cảm
+// xúc cho bài viết (để hiện khi hover/giữ đè nút cảm xúc). Cảm xúc không có cơ chế ẩn danh
+// (khác với bài viết/bình luận), nên luôn trả tên thật.
+router.get('/community/posts/:id/reactions', requireAuth, async (req, res) => {
+  try {
+    const reactionType = String(req.query.type || '').toLowerCase();
+    if (!['heart', 'hug', 'strong', 'star'].includes(reactionType)) {
+      return res.status(400).json({ success: false, message: 'Invalid reaction type' });
+    }
+    const r = await db.query(
+      `select coalesce(u.display_name, u.full_name, 'Người dùng') as name
+       from community_reactions cr
+       join users u on u.id = cr.user_id
+       where cr.post_id = $1 and cr.reaction_type = $2
+       order by cr.created_at desc
+       limit 50`,
+      [req.params.id, reactionType]
+    );
+    return res.json({ success: true, data: r.rows.map((row) => row.name) });
+  } catch (error) {
+    console.error('List post reactors error:', error);
+    return res.status(500).json({ success: false, message: 'Could not fetch reactors' });
+  }
+});
+
 // POST /api/v1/community/comments/:id/reactions — thả/bỏ cảm xúc cho 1 bình luận/reply
 // (cùng cơ chế toggle + 4 loại cảm xúc như community/posts/:id/reactions ở trên, chỉ đổi
 // bảng/cột tương ứng sang comment_reactions/comment_id).

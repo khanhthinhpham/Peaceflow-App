@@ -1,6 +1,6 @@
 <template>
   <div class="community-page">
-    <div class="toast" :class="{ show: toastVisible }">⭐ <span>{{ toastText }}</span></div>
+    <div class="toast" :class="{ show: toastVisible }"><span>{{ toastText }}</span></div>
 
     <!-- Report Modal -->
     <div class="modal-overlay" :class="{ show: reportOpen }" @click="closeReportIfOutside">
@@ -24,23 +24,20 @@
         <span>{{ t('community.breadcrumbCurrent') }}</span>
       </div>
 
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px;">
+      <div class="comm-header">
         <div>
-          <div style="font-size:1.5rem;font-weight:800;">{{ t('community.pageTitle') }}</div>
-          <div style="font-size:0.85rem;color:var(--text-secondary);">{{ t('community.pageSubtitle') }}</div>
+          <h1 class="comm-title">{{ t('community.pageTitle') }}</h1>
+          <p class="comm-subtitle">{{ t('community.pageSubtitle') }}</p>
+          <div class="comm-stats-line">
+            <span><strong>{{ formatCompactNumber(summary?.members) }}</strong> {{ t('community.stats.members') }}</span>
+            <span><strong>{{ formatCompactNumber(summary?.posts) }}</strong> {{ t('community.stats.posts') }}</span>
+            <span><strong>{{ formatCompactNumber(summary?.reactions) }}</strong> {{ t('community.stats.reactions') }}</span>
+            <span><strong>{{ formatPercent(summary?.positive_rate ?? 100) }}</strong> {{ t('community.stats.positive') }}</span>
+          </div>
         </div>
-        <button class="btn-primary" @click="scrollToComposer">{{ t('community.shareNowBtn') }}</button>
-      </div>
-
-      <div class="comm-stats">
-        <div class="paper-card cs-item"><div class="cs-num">{{ formatCompactNumber(summary?.members) }}</div><div class="cs-label">{{ t('community.stats.members') }}</div></div>
-        <div class="paper-card cs-item"><div class="cs-num">{{ formatCompactNumber(summary?.posts) }}</div><div class="cs-label">{{ t('community.stats.posts') }}</div></div>
-        <div class="paper-card cs-item"><div class="cs-num">{{ formatCompactNumber(summary?.reactions) }}</div><div class="cs-label">{{ t('community.stats.reactions') }}</div></div>
-        <div class="paper-card cs-item"><div class="cs-num">{{ formatPercent(summary?.positive_rate ?? 100) }}</div><div class="cs-label">{{ t('community.stats.positive') }}</div></div>
       </div>
 
       <div v-if="challenge" class="paper-card challenge-banner">
-        <div class="cb-deco">{{ challenge.icon || '🎯' }}</div>
         <div class="cb-top">
           <div><div class="cb-badge">{{ t('community.challengeBanner.badge') }}</div></div>
           <button class="cb-join-btn" :disabled="joinedChallenge" :style="{ opacity: joinedChallenge ? 0.8 : 1 }" @click="joinChallenge">{{ joinedChallenge ? t('community.challengeBanner.joined') : t('community.challengeBanner.joinNow') }}</button>
@@ -55,13 +52,13 @@
           <div class="cb-progress-bar"><div class="cb-progress-fill" :style="{ width: Math.min(100, Number(challenge.progress_percent || 0)) + '%' }"></div></div>
         </div>
         <div class="cb-cta-row">
-          <router-link v-for="cta in challengeCtaLinks" :key="cta.to" :to="cta.to" class="cb-cta-btn">{{ cta.icon }} {{ cta.label }}</router-link>
+          <router-link v-for="cta in challengeCtaLinks" :key="cta.to" :to="cta.to" class="cb-cta-btn">{{ cta.label }}</router-link>
         </div>
         <div class="cb-stats">
-          <div class="cb-stat">👥 <strong>{{ formatCompactNumber(challenge.participants) }}</strong> {{ t('community.challengeBanner.participants') }}</div>
+          <div class="cb-stat"><strong>{{ formatCompactNumber(challenge.participants) }}</strong> {{ t('community.challengeBanner.participants') }}</div>
           <div class="cb-stat">{{ t('community.challengeBanner.daysActiveLabel') }} <strong>{{ formatCompactNumber(challenge.days_active) }}</strong> {{ t('community.challengeBanner.daysActiveUnit') }}</div>
           <div class="cb-stat">{{ t('community.challengeBanner.rewardLabel') }} <strong>+{{ challenge.reward_xp ?? 0 }} XP</strong></div>
-          <div v-if="challengeRewarded" class="cb-stat cb-stat-rewarded">✅ {{ t('community.challengeBanner.rewardedLabel') }}</div>
+          <div v-if="challengeRewarded" class="cb-stat cb-stat-rewarded">{{ t('community.challengeBanner.rewardedLabel') }}</div>
         </div>
         <div v-if="joinedChallenge && !challengeRewarded" class="cb-reward-note">{{ challenge.reward_note }}</div>
       </div>
@@ -69,21 +66,14 @@
       <div class="community-layout">
         <!-- LEFT: Feed -->
         <div>
-          <div class="mod-note">
-            <span>🤖</span>
-            <span>{{ t('community.modNote') }}</span>
-          </div>
+          <div class="mod-note">{{ t('community.modNote') }}</div>
 
           <!-- Post Composer -->
           <div class="paper-card post-composer" id="postComposer">
             <div class="pc-header">
               <div class="pc-avatar">{{ anonymousPosting ? '🌿' : '🐱' }}</div>
-              <div style="flex:1;">
-                <div style="font-size:0.82rem;font-weight:700;margin-bottom:2px;">{{ t('community.composer.title') }}</div>
-                <div style="font-size:0.68rem;color:var(--text-light);">{{ t('community.composer.subtitle') }}</div>
-              </div>
+              <div style="flex:1;font-size:0.82rem;font-weight:700;">{{ t('community.composer.title') }}</div>
               <div class="pc-anon-toggle" :class="{ active: anonymousPosting }" @click="anonymousPosting = !anonymousPosting">
-                <span>{{ anonymousPosting ? '🌿' : '👤' }}</span>
                 <span>{{ anonymousPosting ? t('community.composer.anonOn') : t('community.composer.anonOff') }}</span>
               </div>
             </div>
@@ -106,14 +96,13 @@
           </div>
 
           <div class="post-feed">
-            <div v-if="!filteredPosts.length" class="paper-card post-card" style="text-align:center;padding:32px 20px;">
-              <div style="font-size:2rem;margin-bottom:10px;">💬</div>
-              <div style="font-weight:700;color:var(--text-primary);margin-bottom:6px;">{{ currentFilter === 'all' ? t('community.feed.emptyAllTitle') : t('community.feed.emptyFilterTitle') }}</div>
-              <div style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:16px;line-height:1.6;">{{ currentFilter === 'all' ? t('community.feed.emptyAllDesc') : t('community.feed.emptyFilterDesc') }}</div>
-              <button style="padding:10px 22px;background:var(--mint-dark);color:white;border:none;border-radius:50px;font-weight:700;font-size:0.85rem;cursor:pointer;" @click="scrollToComposer">{{ t('community.feed.writeNowBtn') }}</button>
+            <div v-if="!filteredPosts.length" class="feed-empty">
+              <div class="feed-empty-title">{{ currentFilter === 'all' ? t('community.feed.emptyAllTitle') : t('community.feed.emptyFilterTitle') }}</div>
+              <div class="feed-empty-desc">{{ currentFilter === 'all' ? t('community.feed.emptyAllDesc') : t('community.feed.emptyFilterDesc') }}</div>
+              <button class="btn-outline" @click="scrollToComposer">{{ t('community.feed.writeNowBtn') }}</button>
             </div>
 
-            <article v-for="post in filteredPosts" :key="post.id" class="paper-card post-card">
+            <article v-for="post in filteredPosts" :key="post.id" class="post-card">
               <div class="post-header">
                 <div class="post-author">
                   <div class="pa-avatar" :class="post.anon ? 'anon' : 'user'">{{ post.avatar || '🌿' }}</div>
@@ -139,7 +128,7 @@
                 </div>
               </div>
               <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
-                <div class="post-tag" :class="post.tagClass || ''">{{ post.tagLabel || t('community.post.defaultTag') }}</div>
+                <div class="post-tag" :class="post.tagClass || ''">{{ FEED_FILTERS.some((f) => f.id === post.tag && f.id !== 'all') ? t(`community.filters.${post.tag}`) : t('community.post.defaultTag') }}</div>
                 <span v-if="isOwnPost(post) && post.moderationStatus === 'pending'" style="font-size:0.68rem;font-weight:700;padding:2px 8px;border-radius:999px;background:rgba(255,193,7,.16);color:#8a6d00;border:1px solid rgba(255,193,7,.5);">{{ t('community.post.pendingBadge') }}</span>
                 <span v-else-if="isOwnPost(post) && post.moderationStatus === 'rejected'" style="font-size:0.68rem;font-weight:700;padding:2px 8px;border-radius:999px;background:rgba(255,139,139,.14);color:var(--coral-dark,#e05555);border:1px solid var(--coral,#ff8b8b);">{{ t('community.post.rejectedBadge') }}</span>
               </div>
@@ -157,18 +146,74 @@
               </template>
 
               <div class="post-reactions">
-                <button
-                  v-for="(meta, key) in REACTION_META"
-                  :key="key"
-                  class="reaction-btn"
-                  :class="{ reacted: post.myReactions?.[key], [key]: post.myReactions?.[key] }"
-                  @click="handleToggleReaction(post.id, key)"
+                <div
+                  class="like-wrap"
+                  @pointerenter="$event.pointerType === 'mouse' && onLikeHoverStart(post.id)"
+                  @pointerleave="$event.pointerType === 'mouse' && onLikeHoverEnd()"
+                  @touchstart.passive="onLikeTouchStart(post.id)"
+                  @touchend="onLikeTouchEnd"
+                  @touchcancel="onLikeTouchEnd"
+                  @focusin="onLikeFocusIn($event, post.id)"
+                  @focusout="onLikeFocusOut"
                 >
-                  <span>{{ meta.icon }}</span>
-                  <span>{{ t(meta.labelKey) }}</span>
-                  <span class="reaction-count">{{ formatCompactNumber(post.reactions?.[key] || 0) }}</span>
+                  <button
+                    type="button"
+                    class="react-btn"
+                    :class="myReactionOf(post) ? ['reacted', myReactionOf(post)] : ''"
+                    :aria-pressed="Boolean(myReactionOf(post))"
+                    :aria-label="t(REACTION_META[myReactionOf(post) || 'heart'].labelKey)"
+                    :title="t(REACTION_META[myReactionOf(post) || 'heart'].labelKey)"
+                    @click="onLikeClick(post)"
+                    @contextmenu.prevent
+                  >
+                    <span v-if="myReactionOf(post)" class="react-emoji" aria-hidden="true">{{ REACTION_META[myReactionOf(post)].icon }}</span>
+                    <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" /></svg>
+                    <span v-if="totalReactions(post)">{{ formatCompactNumber(totalReactions(post)) }}</span>
+                  </button>
+                  <div v-if="pickerPostId === post.id" class="react-picker" role="toolbar">
+                    <button
+                      v-for="(meta, key) in REACTION_META"
+                      :key="key"
+                      type="button"
+                      class="react-option"
+                      :class="{ active: myReactionOf(post) === key }"
+                      :title="t(meta.labelKey)"
+                      :aria-label="t(meta.labelKey)"
+                      @click="pickReaction(post, key)"
+                    >{{ meta.icon }}</button>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  class="react-btn"
+                  :aria-label="t('community.post.commentsBtn', { n: formatCompactNumber(post.comments?.length || 0) })"
+                  :title="t('community.post.commentsBtn', { n: formatCompactNumber(post.comments?.length || 0) })"
+                  @click="toggleComments(post.id)"
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z" /></svg>
+                  <span v-if="post.comments?.length">{{ formatCompactNumber(post.comments.length) }}</span>
                 </button>
-                <button class="comment-btn" @click="toggleComments(post.id)">{{ t('community.post.commentsBtn', { n: formatCompactNumber(post.comments?.length || 0) }) }}</button>
+
+                <div v-if="reactionSummary(post).length" class="reaction-summary">
+                  <span
+                    v-for="key in reactionSummary(post)"
+                    :key="key"
+                    class="summary-item"
+                    :title="t(REACTION_META[key].labelKey)"
+                    @mouseenter="onReactorHoverStart(post.id, key)"
+                    @mouseleave="onReactorHoverEnd"
+                    @click="showReactorPopover(post.id, key)"
+                  >
+                    {{ REACTION_META[key].icon }}
+                    <div v-if="isReactorPopoverOpen(post.id, key)" class="reactor-popover">
+                      <div v-if="reactorPopover.loading" class="reactor-popover-loading">{{ t('community.post.reactorsLoading') }}</div>
+                      <div v-else-if="reactorPopover.error" class="reactor-popover-error">{{ t('community.post.reactorsError') }}</div>
+                      <div v-else-if="!reactorPopover.names?.length" class="reactor-popover-empty">{{ t('community.post.reactorsEmpty') }}</div>
+                      <div v-else class="reactor-popover-list">{{ reactorPopover.names.join(', ') }}</div>
+                    </div>
+                  </span>
+                </div>
               </div>
 
               <div class="comments-section" :class="{ show: openComments.has(post.id) }">
@@ -190,8 +235,8 @@
         </div>
 
         <!-- RIGHT: Sidebar -->
-        <div>
-          <div class="paper-card leaderboard-card">
+        <aside class="comm-aside">
+          <section class="aside-section leaderboard-card">
             <div class="lc-title">{{ t('community.leaderboard.title') }}</div>
             <div class="lb-tabs">
               <div class="lb-tab" :class="{ active: leaderboardTab === 'xp' }" @click="leaderboardTab = 'xp'">{{ t('community.leaderboard.xpTab') }}</div>
@@ -213,9 +258,9 @@
               </template>
             </div>
             <div class="lb-hide-toggle" @click="toggleLeaderboardHidden">{{ leaderboardHidden ? t('community.leaderboard.showBtn') : t('community.leaderboard.hideBtn') }}</div>
-          </div>
+          </section>
 
-          <div class="paper-card challenges-card">
+          <section class="aside-section challenges-card">
             <div class="cc-title">{{ t('community.challengesCard.title') }}</div>
             <div
               v-for="(pc, idx) in personalChallenges"
@@ -225,7 +270,7 @@
               @click="pc.status === 'active' && goToChallengeCta(pc.metric_type)"
             >
               <div class="ci-header">
-                <div class="ci-name">{{ pc.icon }} {{ pc.title }}</div>
+                <div class="ci-name">{{ pc.title }}</div>
                 <div class="ci-xp">+{{ pc.xp }} XP</div>
               </div>
               <div class="ci-progress"><div class="ci-fill" :style="{ width: pc.progress_percent + '%' }"></div></div>
@@ -239,15 +284,14 @@
               </div>
             </div>
             <div v-if="!personalChallenges.length" style="font-size:0.78rem;color:var(--text-light);padding:6px 2px;">{{ t('community.challengesCard.empty') }}</div>
-          </div>
+          </section>
 
-          <div class="paper-card mentor-card">
+          <section class="aside-section mentor-card">
             <div class="mc-title">{{ t('community.mentor.title') }}</div>
-            <div style="font-size:0.72rem;color:var(--text-secondary);margin-bottom:10px;line-height:1.5;">{{ t('community.mentor.subtitle') }}</div>
             <div>
               <div v-if="!mentors.length" style="font-size:0.72rem;color:var(--text-secondary);">{{ t('community.mentor.noMentors') }}</div>
               <div v-for="(mentor, index) in mentors" :key="index" class="mentor-item">
-                <div class="mi-avatar">{{ ['🌟', '🧘', '🌿'][index % 3] }}</div>
+                <div class="mi-avatar">{{ (mentor.name || t('community.mentor.defaultName')).trim().charAt(0).toUpperCase() }}</div>
                 <div class="mi-info">
                   <div class="mi-name">{{ mentor.name || t('community.mentor.defaultName') }}</div>
                   <div class="mi-level">{{ t('community.mentor.statsLabel', { level: mentor.current_level || 5, xp: formatCompactNumber(mentor.total_xp || 0), streak: formatCompactNumber(mentor.current_streak || 0) }) }}</div>
@@ -256,25 +300,25 @@
               </div>
             </div>
             <div style="font-size:0.72rem;color:var(--text-light);margin-top:6px;text-align:center;">{{ t('community.mentor.footerHint') }}</div>
-          </div>
+          </section>
 
-          <div class="paper-card" style="padding:14px;margin-bottom:14px;">
-            <div style="font-size:0.82rem;font-weight:700;margin-bottom:8px;">{{ t('community.rules.title') }}</div>
-            <div style="display:flex;flex-direction:column;gap:5px;">
-              <div style="font-size:0.72rem;color:var(--text-secondary);display:flex;gap:5px;"><span>💚</span><span>{{ t('community.rules.rule1') }}</span></div>
-              <div style="font-size:0.72rem;color:var(--text-secondary);display:flex;gap:5px;"><span>🔒</span><span>{{ t('community.rules.rule2') }}</span></div>
-              <div style="font-size:0.72rem;color:var(--text-secondary);display:flex;gap:5px;"><span>🚫</span><span>{{ t('community.rules.rule3') }}</span></div>
-              <div style="font-size:0.72rem;color:var(--text-secondary);display:flex;gap:5px;"><span>🆘</span><span>{{ t('community.rules.rule4') }}</span></div>
-            </div>
-          </div>
-        </div>
+          <section class="aside-section">
+            <div class="lc-title">{{ t('community.rules.title') }}</div>
+            <ol class="rules-list">
+              <li>{{ t('community.rules.rule1') }}</li>
+              <li>{{ t('community.rules.rule2') }}</li>
+              <li>{{ t('community.rules.rule3') }}</li>
+              <li>{{ t('community.rules.rule4') }}</li>
+            </ol>
+          </section>
+        </aside>
       </div>
     </main>
   </div>
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted, nextTick, h } from 'vue';
+import { ref, reactive, computed, onMounted, onBeforeUnmount, nextTick, h } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { apiClient } from '../lib/apiClient';
 import { useAuthStore } from '../stores/auth';
@@ -397,15 +441,15 @@ const joinedChallenge = computed(() => Boolean(challenge.value?.joined));
 // nhiem vu. Admin them loai chi so moi trong tuong lai se can bo sung them 1 nhanh o day.
 const CHALLENGE_CTA_BY_METRIC = {
   meditation_minutes: [
-    { to: '/task-meditation', icon: '🧘', labelKey: 'ctaMeditation' },
-    { to: '/task-breathing', icon: '💨', labelKey: 'ctaBreathing' }
+    { to: '/task-meditation', labelKey: 'ctaMeditation' },
+    { to: '/task-breathing', labelKey: 'ctaBreathing' }
   ],
-  journal_entries: [{ to: '/journal', icon: '📝', labelKey: 'ctaJournal' }],
-  task_completions: [{ to: '/tasks', icon: '🎯', labelKey: 'ctaTasks' }]
+  journal_entries: [{ to: '/journal', labelKey: 'ctaJournal' }],
+  task_completions: [{ to: '/tasks', labelKey: 'ctaTasks' }]
 };
 const challengeCtaLinks = computed(() => {
   const defs = CHALLENGE_CTA_BY_METRIC[challenge.value?.metric_type] || [];
-  return defs.map((d) => ({ to: d.to, icon: d.icon, label: t(`community.challengeBanner.${d.labelKey}`) }));
+  return defs.map((d) => ({ to: d.to, label: t(`community.challengeBanner.${d.labelKey}`) }));
 });
 const challengeRewarded = computed(() => Boolean(challenge.value?.rewarded));
 const selectedTags = ref([]);
@@ -603,6 +647,135 @@ async function handleToggleReaction(postId, reactionType) {
       myReactions: { ...(current.myReactions || {}), [reactionType]: wasReacted }
     }));
     showToast(error.message || t('community.toast.reactionFailed'));
+  }
+}
+
+// Hiện danh sách người đã thả 1 loại cảm xúc — hover trên desktop, giữ đè 1 lát trên mobile.
+// Cache theo "postId:type" để không gọi lại API khi hover qua hover lại cùng 1 nút.
+const reactorPopover = reactive({ postId: null, type: null, names: null, loading: false, error: false });
+const reactorCache = new Map();
+
+function isReactorPopoverOpen(postId, type) {
+  return reactorPopover.postId === postId && reactorPopover.type === type;
+}
+
+async function loadReactors(postId, type) {
+  const cacheKey = `${postId}:${type}`;
+  if (reactorCache.has(cacheKey)) {
+    reactorPopover.names = reactorCache.get(cacheKey);
+    reactorPopover.loading = false;
+    reactorPopover.error = false;
+    return;
+  }
+  reactorPopover.loading = true;
+  reactorPopover.error = false;
+  reactorPopover.names = null;
+  try {
+    const names = await apiClient.get(`/community/posts/${postId}/reactions?type=${encodeURIComponent(type)}`, { noCache: true });
+    reactorCache.set(cacheKey, names);
+    if (isReactorPopoverOpen(postId, type)) {
+      reactorPopover.names = names;
+      reactorPopover.loading = false;
+    }
+  } catch (_error) {
+    if (isReactorPopoverOpen(postId, type)) {
+      reactorPopover.error = true;
+      reactorPopover.loading = false;
+    }
+  }
+}
+
+function showReactorPopover(postId, type) {
+  reactorPopover.postId = postId;
+  reactorPopover.type = type;
+  loadReactors(postId, type);
+}
+function hideReactorPopover() {
+  reactorPopover.postId = null;
+  reactorPopover.type = null;
+}
+
+function onReactorHoverStart(postId, type) {
+  showReactorPopover(postId, type);
+}
+function onReactorHoverEnd() {
+  hideReactorPopover();
+}
+// Nút cảm xúc kiểu Facebook: bấm = thả/gỡ (mặc định "heart"), rê chuột hoặc giữ lâu = mở thanh chọn.
+const pickerPostId = ref(null);
+let pickerOpenTimer = null;
+let pickerCloseTimer = null;
+let likeLongPressTimer = null;
+let likeSuppressClick = false;
+
+function myReactionOf(post) {
+  return Object.keys(REACTION_META).find((key) => post.myReactions?.[key]) || null;
+}
+function totalReactions(post) {
+  return Object.keys(REACTION_META).reduce((sum, key) => sum + Number(post.reactions?.[key] || 0), 0);
+}
+function reactionSummary(post) {
+  return Object.keys(REACTION_META)
+    .filter((key) => Number(post.reactions?.[key] || 0) > 0)
+    .sort((a, b) => Number(post.reactions[b]) - Number(post.reactions[a]))
+    .slice(0, 3);
+}
+function clearPickerTimers() {
+  clearTimeout(pickerOpenTimer);
+  clearTimeout(pickerCloseTimer);
+}
+function closePicker() {
+  clearPickerTimers();
+  pickerPostId.value = null;
+}
+function onLikeHoverStart(postId) {
+  clearPickerTimers();
+  if (pickerPostId.value === postId) return;
+  pickerOpenTimer = setTimeout(() => { pickerPostId.value = postId; }, 450);
+}
+function onLikeHoverEnd() {
+  clearPickerTimers();
+  pickerCloseTimer = setTimeout(() => { pickerPostId.value = null; }, 300);
+}
+function onLikeTouchStart(postId) {
+  clearTimeout(likeLongPressTimer);
+  likeLongPressTimer = setTimeout(() => {
+    likeLongPressTimer = null;
+    likeSuppressClick = true;
+    pickerPostId.value = postId;
+  }, 450);
+}
+function onLikeTouchEnd() {
+  clearTimeout(likeLongPressTimer);
+  likeLongPressTimer = null;
+}
+function onLikeFocusIn(event, postId) {
+  if (event.target.matches(':focus-visible')) pickerPostId.value = postId;
+}
+function onLikeFocusOut(event) {
+  if (!event.currentTarget.contains(event.relatedTarget)) closePicker();
+}
+function onLikeClick(post) {
+  // Giữ lâu để mở thanh chọn thì nhả tay ra vẫn bắn click — bỏ qua đúng lần đó.
+  if (likeSuppressClick) {
+    likeSuppressClick = false;
+    return;
+  }
+  closePicker();
+  handleToggleReaction(post.id, myReactionOf(post) || 'heart');
+}
+function pickReaction(post, key) {
+  closePicker();
+  if (myReactionOf(post) !== key) handleToggleReaction(post.id, key);
+}
+function onDocumentPointerDown(event) {
+  if (!event.target.closest?.('.like-wrap')) closePicker();
+  if (!event.target.closest?.('.reaction-summary')) hideReactorPopover();
+}
+function onDocumentKeydown(event) {
+  if (event.key === 'Escape') {
+    closePicker();
+    hideReactorPopover();
   }
 }
 
@@ -830,6 +1003,14 @@ async function fetchCommunity() {
 
 onMounted(() => {
   fetchCommunity();
+  document.addEventListener('pointerdown', onDocumentPointerDown);
+  document.addEventListener('keydown', onDocumentKeydown);
+});
+onBeforeUnmount(() => {
+  document.removeEventListener('pointerdown', onDocumentPointerDown);
+  document.removeEventListener('keydown', onDocumentKeydown);
+  clearPickerTimers();
+  clearTimeout(likeLongPressTimer);
 });
 </script>
 

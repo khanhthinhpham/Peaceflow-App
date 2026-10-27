@@ -173,7 +173,7 @@ const GROUP1_TESTS_VI = {
             { emoji: '🚨', label: 'Rất nặng', score: 4 }
         ],
         scoring: {
-            depression: { indices: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16], multiplier: 1, levels: [{ max: 7, 'label': 'Không có trầm cảm', 'class': 'level-0' }, { max: 13, 'label': 'Trầm cảm nhẹ', 'class': 'level-1' }, { max: 18, 'label': 'Trầm cảm vừa', 'class': 'level-2' }, { max: 22, 'label': 'Trầm cảm nặng', 'class': 'level-3' }, { max: 999, 'label': 'Trầm cảm rất nặng', 'class': 'level-4' }] }
+            depression: { indices: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16], multiplier: 1, levels: [{ max: 7, 'label': 'Không có dấu hiệu trầm cảm', 'class': 'level-0' }, { max: 13, 'label': 'Dấu hiệu trầm cảm nhẹ', 'class': 'level-1' }, { max: 18, 'label': 'Dấu hiệu trầm cảm vừa', 'class': 'level-2' }, { max: 22, 'label': 'Dấu hiệu trầm cảm nặng', 'class': 'level-3' }, { max: 999, 'label': 'Dấu hiệu trầm cảm rất nặng', 'class': 'level-4' }] }
         },
         prevScores: null
     },
@@ -217,7 +217,7 @@ const GROUP1_TESTS_VI = {
             { emoji: '😢', label: 'Luôn luôn', score: 2 }
         ],
         scoring: {
-            depression: { indices: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26], multiplier: 1, levels: [{ max: 12, 'label': 'Không có trầm cảm', 'class': 'level-0' }, { max: 19, 'label': 'Có dấu hiệu trầm cảm', 'class': 'level-1' }, { max: 999, 'label': 'Có trầm cảm', 'class': 'level-2' }] }
+            depression: { indices: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26], multiplier: 1, levels: [{ max: 12, 'label': 'Không có dấu hiệu trầm cảm', 'class': 'level-0' }, { max: 19, 'label': 'Có dấu hiệu trầm cảm nhẹ', 'class': 'level-1' }, { max: 999, 'label': 'Có dấu hiệu trầm cảm rõ rệt', 'class': 'level-2' }] }
         },
         prevScores: null
     },
@@ -263,7 +263,7 @@ const GROUP1_TESTS_VI = {
             { emoji: '❌', label: 'Không đúng', score: 0 }
         ],
         scoring: {
-            depression: { indices: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29], multiplier: 1, levels: [{ max: 9, 'label': 'Không có trầm cảm', 'class': 'level-0' }, { max: 19, 'label': 'Trầm cảm nhẹ', 'class': 'level-1' }, { max: 999, 'label': 'Trầm cảm nặng', 'class': 'level-2' }] }
+            depression: { indices: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29], multiplier: 1, levels: [{ max: 9, 'label': 'Không có dấu hiệu trầm cảm', 'class': 'level-0' }, { max: 19, 'label': 'Dấu hiệu trầm cảm nhẹ', 'class': 'level-1' }, { max: 999, 'label': 'Dấu hiệu trầm cảm rõ rệt', 'class': 'level-2' }] }
         },
         prevScores: null
     },
@@ -371,7 +371,7 @@ const GROUP1_TESTS_VI = {
             { emoji: '😢', label: 'Thường xuyên', score: 3 }
         ],
         scoring: {
-            depression: { indices: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9], multiplier: 1, levels: [{ max: 9, 'label': 'Không có trầm cảm', 'class': 'level-0' }, { max: 12, 'label': 'Có nguy cơ trầm cảm', 'class': 'level-1' }, { max: 999, 'label': 'Có trầm cảm', 'class': 'level-2' }] }
+            depression: { indices: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9], multiplier: 1, levels: [{ max: 9, 'label': 'Không có dấu hiệu trầm cảm', 'class': 'level-0' }, { max: 12, 'label': 'Có nguy cơ trầm cảm', 'class': 'level-1' }, { max: 999, 'label': 'Có dấu hiệu trầm cảm rõ rệt', 'class': 'level-2' }] }
         },
         prevScores: null
     }

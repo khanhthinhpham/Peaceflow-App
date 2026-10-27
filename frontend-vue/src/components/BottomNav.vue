@@ -16,14 +16,18 @@
       class="bn-item"
       :class="{ active: activeKey === item.key }"
     >
-      <span class="bn-icon-static">{{ item.icon }}</span>
+      <svg class="bn-icon-static" viewBox="0 0 24 24" aria-hidden="true">
+        <component :is="el.tag" v-for="(el, i) in ICONS[item.key]" :key="i" v-bind="el.attrs" />
+      </svg>
       <span class="bn-label">{{ t(item.labelKey) }}</span>
     </router-link>
 
     <!-- Vòng tròn icon nổi — dùng CHUNG 1 giá trị animatedPercent với đường cong (SVG ở trên)
          nên luôn trượt y hệt nhau theo từng khung hình, không bao giờ lệch nhịp. -->
     <div v-if="activeIndex > -1" class="bn-floating-circle" :style="{ left: animatedPercent + '%' }">
-      <span class="bn-floating-icon">{{ activeItem?.icon }}</span>
+      <svg class="bn-floating-icon" viewBox="0 0 24 24" aria-hidden="true">
+        <component :is="el.tag" v-for="(el, i) in ICONS[activeItem.key]" :key="i" v-bind="el.attrs" />
+      </svg>
     </div>
   </nav>
 </template>
@@ -36,12 +40,33 @@ import { useRoute } from 'vue-router';
 // Đồng bộ đúng 5 mục "CHÍNH" của Sidebar.vue (cùng route/navKey) — bottom nav chỉ là
 // lối tắt nhanh cho các tính năng dùng hằng ngày, sidebar/drawer vẫn giữ đủ mọi mục.
 const NAV_ITEMS = [
-  { key: 'mood', icon: '💭', labelKey: 'nav.mood', route: 'mood-checkin' },
-  { key: 'tests', icon: '📋', labelKey: 'nav.tests', route: 'mood-assessment' },
-  { key: 'dashboard', icon: '🏡', labelKey: 'nav.dashboard', route: 'dashboard' },
-  { key: 'tasks', icon: '🎮', labelKey: 'nav.tasks', route: 'tasks' },
-  { key: 'journal', icon: '📝', labelKey: 'nav.journal', route: 'journal' }
+  { key: 'mood', labelKey: 'nav.mood', route: 'mood-checkin' },
+  { key: 'tests', labelKey: 'nav.tests', route: 'mood-assessment' },
+  { key: 'dashboard', labelKey: 'nav.dashboard', route: 'dashboard' },
+  { key: 'tasks', labelKey: 'nav.tasks', route: 'tasks' },
+  { key: 'journal', labelKey: 'nav.journal', route: 'journal' }
 ];
+// Icon nét đơn sắc (đường vẽ theo bộ Lucide, giấy phép ISC) — tô bằng currentColor.
+const path = (d) => ({ tag: 'path', attrs: { d } });
+const circle = (r) => ({ tag: 'circle', attrs: { cx: 12, cy: 12, r } });
+const ICONS = {
+  mood: [circle(10), path('M8 14s1.5 2 4 2 4-2 4-2'), path('M9 9h.01'), path('M15 9h.01')],
+  tests: [
+    { tag: 'rect', attrs: { x: 8, y: 2, width: 8, height: 4, rx: 1 } },
+    path('M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2'),
+    path('M12 11h4'), path('M12 16h4'), path('M8 11h.01'), path('M8 16h.01')
+  ],
+  dashboard: [
+    path('M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8'),
+    path('M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z')
+  ],
+  tasks: [circle(10), circle(6), circle(2)],
+  journal: [
+    path('M13.4 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7.4'),
+    path('M2 6h4'), path('M2 10h4'), path('M2 14h4'), path('M2 18h4'),
+    path('M21.378 5.626a1 1 0 1 0-3.004-3.004l-5.01 5.012a2 2 0 0 0-.506.854l-.837 2.87a.5.5 0 0 0 .62.62l2.87-.837a2 2 0 0 0 .854-.506z')
+  ]
+};
 const NOTCH_HALF_WIDTH = 19; // % chiều rộng thanh — độ rộng nửa đường cong mỗi bên
 
 const { t } = useI18n();
@@ -142,9 +167,17 @@ const strokePath = computed(() => paths.value.strokePath);
   -webkit-tap-highlight-color: transparent;
   padding: 10px 4px;
 }
+.bn-icon-static,
+.bn-floating-icon {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
 .bn-icon-static {
-  font-size: 1.35rem;
-  line-height: 1;
+  width: 22px;
+  height: 22px;
 }
 .bn-label {
   font-size: 0.6rem;
@@ -174,8 +207,9 @@ const strokePath = computed(() => paths.value.strokePath);
   pointer-events: none;
 }
 .bn-floating-icon {
-  font-size: 1.85rem;
-  line-height: 1;
+  width: 26px;
+  height: 26px;
+  color: #fff;
 }
 @media (max-width: 900px), (hover: none) and (pointer: coarse) {
   .bottom-nav { display: flex; }

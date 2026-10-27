@@ -1,0 +1,178 @@
+- generic [active] [ref=f1e1]:
+  - generic [ref=f1e3]:
+    - complementary [ref=f1e4]:
+      - link "🌿 PeaceFlow" [ref=f1e6] [cursor=pointer]:
+        - /url: /?stay=1
+        - generic [ref=f1e7]: 🌿
+        - generic [ref=f1e8]: PeaceFlow
+      - navigation [ref=f1e9]:
+        - generic [ref=f1e10]: Chính
+        - link "🏡 Tổng quan" [ref=f1e11] [cursor=pointer]:
+          - /url: /dashboard
+          - generic [ref=f1e12]: 🏡
+          - text: Tổng quan
+        - link "💭 Tâm trạng" [ref=f1e13] [cursor=pointer]:
+          - /url: /mood-checkin
+          - generic [ref=f1e14]: 💭
+          - text: Tâm trạng
+        - link "📋 Bài test" [ref=f1e15] [cursor=pointer]:
+          - /url: /mood-assessment
+          - generic [ref=f1e16]: 📋
+          - text: Bài test
+        - link "🎮 Nhiệm vụ" [ref=f1e17] [cursor=pointer]:
+          - /url: /tasks
+          - generic [ref=f1e18]: 🎮
+          - text: Nhiệm vụ
+        - link "📝 Nhật ký" [ref=f1e19] [cursor=pointer]:
+          - /url: /journal
+          - generic [ref=f1e20]: 📝
+          - text: Nhật ký
+        - generic [ref=f1e21]: Kết nối
+        - link "🩺 Chuyên gia" [ref=f1e22] [cursor=pointer]:
+          - /url: /experts
+          - generic [ref=f1e23]: 🩺
+          - text: Chuyên gia
+        - link "💬 Tin nhắn" [ref=f1e24] [cursor=pointer]:
+          - /url: /messages
+          - generic [ref=f1e25]: 💬
+          - text: Tin nhắn
+        - link "👥 Cộng đồng" [ref=f1e26] [cursor=pointer]:
+          - /url: /community
+          - generic [ref=f1e27]: 👥
+          - text: Cộng đồng
+        - link "💌 Góc chia sẻ" [ref=f1e28] [cursor=pointer]:
+          - /url: /inspire
+          - generic [ref=f1e29]: 💌
+          - text: Góc chia sẻ
+        - generic [ref=f1e30]: Phân tích
+        - link "📊 Báo cáo" [ref=f1e31] [cursor=pointer]:
+          - /url: /report
+          - generic [ref=f1e32]: 📊
+          - text: Báo cáo
+        - link "🏅 Thành tích" [ref=f1e33] [cursor=pointer]:
+          - /url: /achievements
+          - generic [ref=f1e34]: 🏅
+          - text: Thành tích
+        - generic [ref=f1e35]: Cài đặt
+        - link "👤 Hồ sơ" [ref=f1e36] [cursor=pointer]:
+          - /url: /profile
+          - generic [ref=f1e37]: 👤
+          - text: Hồ sơ
+        - link "⚙️ Cài đặt" [ref=f1e38] [cursor=pointer]:
+          - /url: /settings
+          - generic [ref=f1e39]: ⚙️
+          - text: Cài đặt
+        - link "🔐 Đăng nhập" [ref=f1e40] [cursor=pointer]:
+          - /url: /login
+          - generic [ref=f1e41]: 🔐
+          - text: Đăng nhập
+      - generic [ref=f1e42]:
+        - generic [ref=f1e43]:
+          - generic [ref=f1e44]: 🐱
+          - generic [ref=f1e45]:
+            - generic [ref=f1e46]: Người dùng
+            - generic [ref=f1e48]: ⭐ -- XP · Level --
+        - link "🆘 Hỗ trợ khẩn cấp" [ref=f1e49] [cursor=pointer]:
+          - /url: /emergency
+    - button "◀" [ref=f1e50] [cursor=pointer]
+    - generic [ref=f1e52]:
+      - generic [ref=f1e53]: ⭐
+      - main [ref=f1e54]:
+        - generic [ref=f1e55]:
+          - link "🏡 Tổng quan" [ref=f1e56] [cursor=pointer]:
+            - /url: /dashboard
+          - generic [ref=f1e57]: ›
+          - generic [ref=f1e58]: 👥 Cộng đồng
+        - generic [ref=f1e59]:
+          - generic [ref=f1e60]:
+            - generic [ref=f1e61]: 👥 Cộng Đồng PeaceFlow
+            - generic [ref=f1e62]: Không gian chia sẻ ẩn danh — không phán xét — chỉ có yêu thương 💚
+          - button "✏️ Chia sẻ ngay" [ref=f1e63] [cursor=pointer]
+        - generic [ref=f1e64]:
+          - generic [ref=f1e65]:
+            - generic [ref=f1e66]: "0"
+            - generic [ref=f1e67]: Thành viên
+          - generic [ref=f1e68]:
+            - generic [ref=f1e69]: "0"
+            - generic [ref=f1e70]: Bài chia sẻ
+          - generic [ref=f1e71]:
+            - generic [ref=f1e72]: "0"
+            - generic [ref=f1e73]: Lượt reaction ❤️
+          - generic [ref=f1e74]:
+            - generic [ref=f1e75]: 100%
+            - generic [ref=f1e76]: Tích cực
+        - generic [ref=f1e77]:
+          - generic [ref=f1e78]:
+            - generic [ref=f1e79]:
+              - generic [ref=f1e80]: 🤖
+              - generic [ref=f1e81]: Cộng đồng này được AI và moderator giám sát 24/7. Mọi nội dung tiêu cực, có hại hoặc vi phạm quy tắc sẽ bị gỡ bỏ. Hãy chia sẻ với tình yêu thương! 💚
+            - generic [ref=f1e82]:
+              - generic [ref=f1e83]:
+                - generic [ref=f1e84]: 🐱
+                - generic [ref=f1e85]:
+                  - generic [ref=f1e86]: Chia sẻ với cộng đồng
+                  - generic [ref=f1e87]: Câu chuyện của bạn có thể truyền cảm hứng cho ai đó
+                - generic [ref=f1e88] [cursor=pointer]:
+                  - generic [ref=f1e89]: 👤
+                  - generic [ref=f1e90]: Ẩn danh
+              - textbox "Hôm nay bạn muốn chia sẻ điều gì? Một câu chuyện, một cảm xúc, một bài học, hay đơn giản là 'Tôi vẫn ổn'... 🌿" [ref=f1e91]
+              - generic [ref=f1e92]: 0/2000
+              - generic [ref=f1e93]:
+                - generic [ref=f1e94]:
+                  - generic [ref=f1e95]: "Chủ đề:"
+                  - generic [ref=f1e96] [cursor=pointer]: "#biếtơn"
+                  - generic [ref=f1e97] [cursor=pointer]: "#câuchuyện"
+                  - generic [ref=f1e98] [cursor=pointer]: "#milestone"
+                  - generic [ref=f1e99] [cursor=pointer]: "#hỏiđáp"
+                  - generic [ref=f1e100] [cursor=pointer]: "#mẹohay"
+                - generic [ref=f1e101]:
+                  - generic [ref=f1e102]: Đăng với tên Bạn
+                  - button "📤 Đăng bài" [ref=f1e103] [cursor=pointer]
+            - generic [ref=f1e104]:
+              - button "🌿 Tất cả" [ref=f1e105] [cursor=pointer]
+              - button "🙏 Biết ơn" [ref=f1e106] [cursor=pointer]
+              - button "📖 Câu chuyện" [ref=f1e107] [cursor=pointer]
+              - button "🏆 Cột mốc" [ref=f1e108] [cursor=pointer]
+              - button "❓ Hỏi đáp" [ref=f1e109] [cursor=pointer]
+              - button "💡 Mẹo hay" [ref=f1e110] [cursor=pointer]
+            - generic [ref=f1e112]:
+              - generic [ref=f1e113]: 💬
+              - generic [ref=f1e114]: Cộng đồng chưa có bài viết nào
+              - generic [ref=f1e115]: Hãy là người đầu tiên chia sẻ cảm xúc, câu chuyện hoặc mẹo hay với cộng đồng!
+              - button "✍️ Viết bài ngay" [ref=f1e116] [cursor=pointer]
+          - generic [ref=f1e117]:
+            - generic [ref=f1e118]:
+              - generic [ref=f1e119]: 🏆 Bảng xếp hạng
+              - generic [ref=f1e120]:
+                - generic [ref=f1e121] [cursor=pointer]: ⭐ XP
+                - generic [ref=f1e122] [cursor=pointer]: 🔥 Streak
+                - generic [ref=f1e123] [cursor=pointer]: ✅ Tasks
+              - generic [ref=f1e124]: Chưa có dữ liệu xếp hạng.
+              - generic [ref=f1e126] [cursor=pointer]: 👁 Ẩn khỏi bảng xếp hạng
+            - generic [ref=f1e127]:
+              - generic [ref=f1e128]: 🎯 Thử thách đang diễn ra
+              - generic [ref=f1e129]: Chưa có thử thách nào.
+            - generic [ref=f1e130]:
+              - generic [ref=f1e131]: 🌟 Mentor cộng đồng
+              - generic [ref=f1e132]: Những thành viên Level 5+ sẵn sàng đồng hành cùng bạn
+              - generic [ref=f1e133]: Chưa có mentor cộng đồng khả dụng.
+              - generic [ref=f1e135]: Đạt Level 5 để trở thành Mentor 🌟
+            - generic [ref=f1e136]:
+              - generic [ref=f1e137]: 📜 Quy tắc cộng đồng
+              - generic [ref=f1e138]:
+                - generic [ref=f1e139]:
+                  - generic [ref=f1e140]: 💚
+                  - generic [ref=f1e141]: Chia sẻ với tình yêu thương, không phán xét
+                - generic [ref=f1e142]:
+                  - generic [ref=f1e143]: 🔒
+                  - generic [ref=f1e144]: Tôn trọng sự riêng tư của người khác
+                - generic [ref=f1e145]:
+                  - generic [ref=f1e146]: 🚫
+                  - generic [ref=f1e147]: Không spam, quảng cáo, nội dung tiêu cực
+                - generic [ref=f1e148]:
+                  - generic [ref=f1e149]: 🆘
+                  - generic [ref=f1e150]: Nếu ai đó cần giúp đỡ khẩn cấp, hãy báo cáo ngay
+    - button "🔔" [ref=f1e151] [cursor=pointer]
+    - button "💬" [ref=f1e152] [cursor=pointer]
+  - link "Chính sách quyền riêng tư PeaceFlow / PeaceFlow Privacy Policy" [ref=f1e153] [cursor=pointer]:
+    - /url: /privacy-policy.html

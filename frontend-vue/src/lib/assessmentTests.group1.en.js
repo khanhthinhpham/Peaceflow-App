@@ -173,7 +173,7 @@ const GROUP1_TESTS_EN = {
             { emoji: '🚨', label: 'Very severe', score: 4 }
         ],
         scoring: {
-            depression: { indices: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16], multiplier: 1, levels: [{ max: 7, 'label': 'No depression', 'class': 'level-0' }, { max: 13, 'label': 'Mild depression', 'class': 'level-1' }, { max: 18, 'label': 'Moderate depression', 'class': 'level-2' }, { max: 22, 'label': 'Severe depression', 'class': 'level-3' }, { max: 999, 'label': 'Very severe depression', 'class': 'level-4' }] }
+            depression: { indices: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16], multiplier: 1, levels: [{ max: 7, 'label': 'No signs of depression', 'class': 'level-0' }, { max: 13, 'label': 'Signs of mild depression', 'class': 'level-1' }, { max: 18, 'label': 'Signs of moderate depression', 'class': 'level-2' }, { max: 22, 'label': 'Signs of severe depression', 'class': 'level-3' }, { max: 999, 'label': 'Signs of very severe depression', 'class': 'level-4' }] }
         },
         prevScores: null
     },
@@ -217,7 +217,7 @@ const GROUP1_TESTS_EN = {
             { emoji: '😢', label: 'Always', score: 2 }
         ],
         scoring: {
-            depression: { indices: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26], multiplier: 1, levels: [{ max: 12, 'label': 'No depression', 'class': 'level-0' }, { max: 19, 'label': 'Depressive symptoms present', 'class': 'level-1' }, { max: 999, 'label': 'Depression', 'class': 'level-2' }] }
+            depression: { indices: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26], multiplier: 1, levels: [{ max: 12, 'label': 'No signs of depression', 'class': 'level-0' }, { max: 19, 'label': 'Signs of mild depression', 'class': 'level-1' }, { max: 999, 'label': 'Signs of significant depression', 'class': 'level-2' }] }
         },
         prevScores: null
     },
@@ -263,7 +263,7 @@ const GROUP1_TESTS_EN = {
             { emoji: '❌', label: 'No', score: 0 }
         ],
         scoring: {
-            depression: { indices: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29], multiplier: 1, levels: [{ max: 9, 'label': 'No depression', 'class': 'level-0' }, { max: 19, 'label': 'Mild depression', 'class': 'level-1' }, { max: 999, 'label': 'Severe depression', 'class': 'level-2' }] }
+            depression: { indices: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29], multiplier: 1, levels: [{ max: 9, 'label': 'No signs of depression', 'class': 'level-0' }, { max: 19, 'label': 'Signs of mild depression', 'class': 'level-1' }, { max: 999, 'label': 'Signs of significant depression', 'class': 'level-2' }] }
         },
         prevScores: null
     },
@@ -371,7 +371,7 @@ const GROUP1_TESTS_EN = {
             { emoji: '😢', label: 'Often', score: 3 }
         ],
         scoring: {
-            depression: { indices: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9], multiplier: 1, levels: [{ max: 9, 'label': 'No depression', 'class': 'level-0' }, { max: 12, 'label': 'At risk of depression', 'class': 'level-1' }, { max: 999, 'label': 'Depression', 'class': 'level-2' }] }
+            depression: { indices: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9], multiplier: 1, levels: [{ max: 9, 'label': 'No signs of depression', 'class': 'level-0' }, { max: 12, 'label': 'At risk of depression', 'class': 'level-1' }, { max: 999, 'label': 'Signs of significant depression', 'class': 'level-2' }] }
         },
         prevScores: null
     }

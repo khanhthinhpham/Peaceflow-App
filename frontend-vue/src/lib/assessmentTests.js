@@ -276,10 +276,10 @@ export const TESTS = {
         // mốc nào với bảng gốc).
         scoring: {
             depression: { indices: Array.from({ length: 21 }, (_, i) => i), multiplier: 1, levels: [
-                { max: 13, label: 'Không có trầm cảm', class: 'level-0' },
-                { max: 19, label: 'Trầm cảm nhẹ', class: 'level-1' },
-                { max: 29, label: 'Trầm cảm vừa', class: 'level-2' },
-                { max: 999, label: 'Trầm cảm nặng', class: 'level-3' }
+                { max: 13, label: 'Không có dấu hiệu trầm cảm', class: 'level-0' },
+                { max: 19, label: 'Dấu hiệu trầm cảm nhẹ', class: 'level-1' },
+                { max: 29, label: 'Dấu hiệu trầm cảm vừa', class: 'level-2' },
+                { max: 999, label: 'Dấu hiệu trầm cảm nặng', class: 'level-3' }
             ] }
         }
     },
@@ -643,7 +643,7 @@ export const TESTS = {
             { emoji: '🚨', label: 'Luôn luôn', score: 5 }
         ],
         scoring: {
-            total: { indices: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19], multiplier: 1, levels: [{ max: 30, 'label': 'Sử dụng internet bình thường', 'class': 'level-0' }, { max: 49, 'label': 'Phụ thuộc nhẹ vào internet', 'class': 'level-1' }, { max: 79, 'label': 'Phụ thuộc vừa vào internet', 'class': 'level-2' }, { max: 999, 'label': 'Phụ thuộc nghiêm trọng vào internet', 'class': 'level-3' }] }
+            total: { indices: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19], multiplier: 1, levels: [{ max: 30, 'label': 'Sử dụng internet bình thường', 'class': 'level-0' }, { max: 49, 'label': 'Phụ thuộc nhẹ vào internet', 'class': 'level-1' }, { max: 79, 'label': 'Phụ thuộc vừa vào internet', 'class': 'level-2' }, { max: 999, 'label': 'Dấu hiệu phụ thuộc internet ở mức cao', 'class': 'level-3' }] }
         },
         prevScores: null
     },
@@ -704,7 +704,7 @@ export const TESTS = {
             { emoji: '🔴', label: 'Hàng ngày hoặc gần như hàng ngày', score: 4 }
         ],
         scoring: {
-            total: { indices: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9], multiplier: 1, levels: [{ max: 7, 'label': 'Uống rượu bia hợp lý, nguy cơ thấp', 'class': 'level-0' }, { max: 15, 'label': 'Uống rượu bia ở mức nguy cơ', 'class': 'level-1' }, { max: 19, 'label': 'Uống rượu bia ở mức có hại', 'class': 'level-2' }, { max: 999, 'label': 'Nghiện hoặc lệ thuộc rượu bia', 'class': 'level-3' }] }
+            total: { indices: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9], multiplier: 1, levels: [{ max: 7, 'label': 'Uống rượu bia hợp lý, nguy cơ thấp', 'class': 'level-0' }, { max: 15, 'label': 'Uống rượu bia ở mức nguy cơ', 'class': 'level-1' }, { max: 19, 'label': 'Uống rượu bia ở mức có hại', 'class': 'level-2' }, { max: 999, 'label': 'Dấu hiệu nguy cơ lệ thuộc rượu bia cao', 'class': 'level-3' }] }
         },
         prevScores: null
     }
