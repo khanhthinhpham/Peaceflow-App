@@ -13,16 +13,15 @@
       "journalCta": "📝 Viết nhật ký"
     },
     "checkinPrompt": {
-      "morningTitle": "Chào buổi sáng! Hôm nay bạn cảm thấy thế nào? ☀️",
-      "afternoonTitle": "Chào buổi chiều! Hôm nay bạn cảm thấy thế nào? 🌤️",
-      "eveningTitle": "Chào buổi tối! Hôm nay bạn cảm thấy thế nào? 🌙",
+      "morningTitle": "Chào buổi sáng! Hôm nay bạn cảm thấy thế nào?",
+      "afternoonTitle": "Chào buổi chiều! Hôm nay bạn cảm thấy thế nào?",
+      "eveningTitle": "Chào buổi tối! Hôm nay bạn cảm thấy thế nào?",
       "title": "Chào buổi sáng! Hôm nay bạn cảm thấy thế nào? ☀️",
       "sub": "Chỉ mất 30 giây — check-in để PeaceFlow gợi ý nhiệm vụ phù hợp nhất cho bạn nhé!",
       "tapHint": "Chạm vào đây nhé!",
       "startBtn": "Bắt đầu →"
     },
     "emergencyBanner": {
-      "title": "🆘 Ưu tiên an toàn cho bạn lúc này",
       "desc": "PeaceFlow phát hiện mức cần hỗ trợ cao từ dữ liệu gần đây. Bạn có thể mở khu hỗ trợ khẩn cấp hoặc liên hệ người tin tưởng.",
       "openBtn": "Mở hỗ trợ khẩn cấp",
       "reasonPrefix": "Lý do:",
@@ -31,7 +30,8 @@
         "assessment_severe": "bài test \"{assessmentName}\" gần nhất của bạn ở mức \"{severity}\".",
         "frequent_emergency_button": "bạn đã dùng nút hỗ trợ khẩn cấp nhiều lần trong 7 ngày qua.",
         "mood_composite": "tâm trạng, lo âu và căng thẳng của bạn đang ở mức cao trong các lần check-in gần đây."
-      }
+      },
+      "badge": "Hỗ trợ ưu tiên"
     },
     "stats": {
       "moodLabel": "Tâm trạng hôm nay",
@@ -45,7 +45,8 @@
       "tasksTrendNone": "Chưa có nhiệm vụ hoàn thành trong tuần",
       "anxietyLabel": "Mức lo âu (2 tuần)",
       "anxietyTrendHas": "Trung bình 14 ngày gần nhất",
-      "anxietyTrendNone": "Chưa đủ dữ liệu"
+      "anxietyTrendNone": "Chưa đủ dữ liệu",
+      "streakUnit": "ngày"
     },
     "chart": {
       "title": "📈 Biểu đồ tâm trạng",
@@ -53,7 +54,9 @@
       "tab30d": "30 ngày",
       "tab3m": "3 tháng",
       "noData": "Chưa có dữ liệu",
-      "noDataToDraw": "Chưa có đủ dữ liệu mood check-in để vẽ biểu đồ."
+      "noDataToDraw": "Chưa có đủ dữ liệu mood check-in để vẽ biểu đồ.",
+      "eyebrow": "Tiến trình tâm lý",
+      "heading": "Xu hướng tâm trạng & Sức khỏe"
     },
     "insight": {
       "analyzing": "PeaceCat AI đang phân tích...",
@@ -63,25 +66,36 @@
       "waitingData": "Đang chờ dữ liệu",
       "loadingAdvice": "Đang tải gợi ý cá nhân hóa cho bạn...",
       "noAnalysis": "Chưa có phân tích.",
-      "btnAnalyzing": "⏳ Đang phân tích...",
-      "btnUpdate": "🔄 Cập nhật lời khuyên",
-      "btnGet": "✨ Nhận lời khuyên từ AI",
+      "btnAnalyzing": "Đang phân tích...",
+      "btnUpdate": "Cập nhật lời khuyên",
+      "btnGet": "Nhận lời khuyên từ AI",
       "noteNotEnough": "Chưa đủ dữ liệu để đưa ra lời khuyên. Hãy check-in tâm trạng hoặc hoàn thành một nhiệm vụ trước nhé.",
       "noteUnchanged": "Dữ liệu của bạn chưa thay đổi đáng kể so với lần trước nên lời khuyên được giữ nguyên.",
       "noteUpdated": "Đã cập nhật theo dữ liệu mới nhất của bạn.",
-      "noteFailed": "Không tạo được lời khuyên lúc này, bạn thử lại sau ít phút nhé."
+      "noteFailed": "Không tạo được lời khuyên lúc này, bạn thử lại sau ít phút nhé.",
+      "assistant": "Trợ lý PeaceCat",
+      "basis": "Cơ sở phân tích:",
+      "suggestedMeta": "{n} phút · +{xp} XP",
+      "doNow": "Thực hiện ngay"
     },
     "wellness": {
       "title": "Sức khỏe tổng thể",
       "viewDetail": "Xem chi tiết →",
-      "notEnough": "Chưa có đủ dữ liệu để tổng hợp các chỉ số."
+      "notEnough": "Chưa có đủ dữ liệu để tổng hợp các chỉ số.",
+      "eyebrow": "Đánh giá đa diện",
+      "viewDetailPlain": "Xem chi tiết"
     },
     "tasks": {
-      "title": "Nhiệm vụ hôm nay",
+      "title": "Nhiệm vụ gợi ý hôm nay",
       "viewAll": "Xem tất cả →",
       "minutesUnit": "phút",
       "defaultDifficulty": "Dễ",
-      "empty": "Chưa có nhiệm vụ được đề xuất. Hãy hoàn thành mood check-in để hệ thống gợi ý phù hợp hơn."
+      "empty": "Chưa có nhiệm vụ được đề xuất. Hãy hoàn thành mood check-in để hệ thống gợi ý phù hợp hơn.",
+      "start": "Thực hiện",
+      "badgePriority": "Ưu tiên",
+      "badgeEasy": "Nhẹ nhàng",
+      "badgeMedium": "Vừa sức",
+      "badgeHard": "Thử thách"
     },
     "garden": {
       "title": "Khu vườn tâm hồn",
@@ -100,7 +114,8 @@
         "fair": "Cần chú ý",
         "needs-care": "Cần chăm sóc",
         "empty": "Chưa có dữ liệu"
-      }
+      },
+      "eyebrow": "Sinh thái nội tâm"
     },
     "risk": {
       "critical": "Rủi ro rất cao",
@@ -116,10 +131,14 @@
       "l5": "Bậc Thầy Bình Yên",
       "defaultTitle": "Hành trình đang tiếp tục",
       "maxLevel": "Bạn đang ở cấp cao nhất hiện tại",
-      "nextLevel": "Còn {xp} XP → Level {level}"
+      "nextLevel": "Còn {xp} XP → Level {level}",
+      "levelTitle": "Level {level}: {title}",
+      "xpEarned": "{xp} XP đã tích lũy"
     },
     "streak": {
-      "label": "ngày streak liên tục"
+      "label": "ngày streak liên tục",
+      "ribbonTitle": "Chuỗi thói quen",
+      "daysInRow": "{n} ngày liên tục"
     },
     "challenge": {
       "title": "Mục tiêu tuần",
@@ -128,7 +147,7 @@
       "tasksMeta": "nhiệm vụ"
     },
     "expert": {
-      "title": "🩺 Phiên tư vấn sắp tới",
+      "title": "Phiên tư vấn sắp tới",
       "statusPending": "Chờ xác nhận",
       "statusConfirmed": "Đã xác nhận",
       "typeChat": "Chat text",
@@ -146,6 +165,11 @@
       "title": "Ủng hộ PeaceFlow",
       "desc": "Mỗi đóng góp giúp PeaceFlow tiếp tục miễn phí cho mọi người.",
       "btn": "Ủng hộ ngay"
-    }
+    },
+    "hero": {
+      "hello": "Xin chào, {name}!",
+      "footnote": "Chỉ mất 30 giây — check-in giúp PeaceFlow đề xuất hoạt động phù hợp nhất với cảm xúc của bạn."
+    },
+    "quote": "“Mỗi bước nhỏ đều đưa bạn đến sự bình an nội tại.”"
   }
 }

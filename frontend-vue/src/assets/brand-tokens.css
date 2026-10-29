@@ -1,0 +1,63 @@
+/*
+ * PeaceFlow design tokens — ĐỒNG BỘ với bảng màu toàn app (định nghĩa trong assets/style.css:
+ * mint/peach/coral/kraft/cream/text-*). Mỗi token màu ở đây trỏ (var()) thẳng tới một biến đã
+ * có sẵn trong style.css thay vì một mã màu riêng, để Dashboard luôn cùng tông với Sidebar,
+ * Tasks, Journal... — đổi màu gốc trong style.css thì Dashboard tự đổi theo, không lệch tông.
+ * Component chỉ dùng các biến --color-* này, không mã cứng mã màu và không dùng thẳng
+ * --mint/--peach/... (để nơi gọi không cần biết tên biến gốc, chỉ cần biết vai trò).
+ */
+:root {
+  /* Brand — mint là accent chính của toàn app (logo, nav đang chọn, nút chính) */
+  --color-brand: var(--mint-dark);       /* #7BBF95 — nút chính, tiêu đề quan trọng, mục đang chọn */
+  --color-brand-soft: var(--mint-light); /* #C5E8D2 — nền nhẹ cho mục được chọn (giống .nav-item.active) */
+  --color-sage: var(--mint);             /* #A8D5BA — bề mặt nhẹ, trạng thái tích cực vừa phải */
+  --color-olive: var(--kraft-light);     /* #E8CBA7 — nền phụ, đường phân vùng (màu border chung của app) */
+  --color-terracotta: var(--peach-dark); /* #E8A876 — điểm nhấn ấm (XP, giải thưởng), dùng tiết chế */
+  --color-terracotta-soft: var(--peach-light); /* #FFE0C4 */
+
+  /* Surfaces */
+  --color-canvas: var(--cream);          /* #FFF8F0 — nền trang, giống background toàn app */
+  --color-surface: var(--warm-white);    /* #FFFDF7 — bề mặt thẻ, giống .paper-card */
+  --color-surface-muted: var(--kraft-light); /* #E8CBA7 — bề mặt lùi, track, ô phụ */
+
+  /* Text */
+  --color-text: var(--text-primary);     /* #4A3728 */
+  --color-text-muted: var(--text-secondary); /* #7A6555 */
+  --color-text-subtle: var(--text-light);    /* #A89585 — chỉ cho chữ phụ cỡ lớn/placeholder */
+  --color-border: var(--kraft-light);
+  --color-on-brand: #fff;                /* chữ trắng trên nền mint-dark, giống .btn-primary:hover và .streak-day.done */
+
+  /* Semantic — coral/gold đã có sẵn vai trò lỗi/cảnh báo trong app */
+  --color-danger: var(--coral-dark);     /* #E05555 */
+  --color-danger-soft: var(--coral-light); /* #FFB3B3 */
+  --color-success: var(--mint-dark);
+  --color-caution: var(--gold-dark);     /* #E6B800 */
+  --color-caution-soft: var(--gold-light); /* #FFF3B0 */
+  --color-focus: var(--mint-dark);
+
+  /* Typography — quy định dùng font:
+     --font-heading (Nunito): tiêu đề trang/khu vực/thẻ, số liệu nổi bật (KPI). Đậm 700–800.
+     --font-body (Inter): nội dung, nút, form, menu, nhãn, dữ liệu biểu đồ, ngày giờ.
+     --font-display (Playfair Display): CHỈ cho một số câu điểm nhấn giàu cảm xúc
+       (lời chào, câu trích dẫn) — không dùng cho tiêu đề hay nội dung. */
+  --font-heading: 'Nunito', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-body: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-display: 'Playfair Display', Georgia, serif;
+
+  /* Shape */
+  --radius-control: 8px;
+  --radius-card: 16px;
+  --radius-panel: 24px;
+
+  /* Spacing (bổ sung bậc lớn; --space-1..8 đã có trong style.css cùng giá trị) */
+  --space-12: 48px;
+  --space-16: 64px;
+
+  /* Elevation — nhẹ, khuếch tán, không đổ bóng mọi thẻ */
+  --shadow-soft: 0 1px 2px rgba(55, 58, 52, 0.04), 0 8px 24px rgba(55, 58, 52, 0.04);
+
+  /* Motion */
+  --duration-fast: 150ms;
+  --duration-normal: 220ms;
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+}

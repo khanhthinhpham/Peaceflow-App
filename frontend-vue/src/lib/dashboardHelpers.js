@@ -42,11 +42,12 @@ export function getTaskEmoji(category) {
 }
 
 export function getGardenTone(status) {
-  if (status === 'excellent') return '#7BBF95';
-  if (status === 'good') return '#A8D5BA';
-  if (status === 'fair') return '#C5E8D2';
-  if (status === 'needs-care') return '#FFCBA4';
-  return '#E8CBA7';
+  // Không dùng màu "báo động" cho trạng thái cần chăm sóc: cây chỉ trầm và dịu đi, không bị phạt.
+  if (status === 'excellent') return 'var(--color-brand)';
+  if (status === 'good') return 'var(--color-success)';
+  if (status === 'fair') return 'var(--color-sage)';
+  if (status === 'needs-care') return 'var(--color-olive)';
+  return 'var(--color-surface-muted)';
 }
 
 // `t` truyền vào từ nơi gọi (DashboardView.vue có sẵn qua useI18n()) — hàm này thuần dữ
@@ -102,12 +103,12 @@ export function renderChartSvg(chartData, noDataText = 'Chưa có đủ dữ li�
     `;
   }
 
-  const width = 500;
-  const height = 140;
-  const left = 30;
-  const right = 470;
-  const bottom = 130;
-  const top = 18;
+  const width = 700;
+  const height = 220;
+  const left = 40;
+  const right = 680;
+  const bottom = 180;
+  const top = 20;
   const step = points.length > 1 ? (right - left) / (points.length - 1) : 0;
 
   const plotted = points.map((point, index) => {
@@ -130,46 +131,45 @@ export function renderChartSvg(chartData, noDataText = 'Chưa có đủ dữ li�
 
   return `
     <svg class="chart-svg" viewBox="0 0 ${width} ${height}" preserveAspectRatio="none">
-      <line x1="0" y1="28" x2="${width}" y2="28" stroke="#E8CBA7" stroke-width="1" stroke-dasharray="4,4" />
-      <line x1="0" y1="70" x2="${width}" y2="70" stroke="#E8CBA7" stroke-width="1" stroke-dasharray="4,4" />
-      <line x1="0" y1="112" x2="${width}" y2="112" stroke="#E8CBA7" stroke-width="1" stroke-dasharray="4,4" />
-      <text x="4" y="26" font-size="10" fill="#A89585" font-family="Nunito">10</text>
-      <text x="4" y="68" font-size="10" fill="#A89585" font-family="Nunito">5</text>
-      <text x="4" y="110" font-size="10" fill="#A89585" font-family="Nunito">1</text>
+      <line x1="${left - 15}" y1="${top}" x2="${right + 5}" y2="${top}" style="stroke:var(--color-border)" stroke-width="1.2" stroke-dasharray="3 3" />
+      <line x1="${left - 15}" y1="${(top + bottom) / 2}" x2="${right + 5}" y2="${(top + bottom) / 2}" style="stroke:var(--color-border)" stroke-width="1.2" stroke-dasharray="3 3" />
+      <line x1="${left - 15}" y1="${bottom}" x2="${right + 5}" y2="${bottom}" style="stroke:var(--color-border)" stroke-width="1.2" stroke-dasharray="3 3" />
+      <text x="0" y="${top + 4}" font-size="13" style="fill:var(--color-text-muted);font-family:var(--font-body)" font-weight="500">10</text>
+      <text x="0" y="${(top + bottom) / 2 + 4}" font-size="13" style="fill:var(--color-text-muted);font-family:var(--font-body)" font-weight="500">5</text>
+      <text x="0" y="${bottom + 4}" font-size="13" style="fill:var(--color-text-muted);font-family:var(--font-body)" font-weight="500">1</text>
       <defs>
         <linearGradient id="moodGradDynamic" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="#A8D5BA" stop-opacity="0.4" />
-          <stop offset="100%" stop-color="#A8D5BA" stop-opacity="0.05" />
+          <stop offset="0%" style="stop-color:var(--color-sage)" stop-opacity="0.45" />
+          <stop offset="100%" style="stop-color:var(--color-sage)" stop-opacity="0" />
         </linearGradient>
       </defs>
       <polygon points="${areaPoints}" fill="url(#moodGradDynamic)" />
-      <polyline points="${linePoints}" fill="none" stroke="#7BBF95" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+      <polyline points="${linePoints}" fill="none" style="stroke:var(--color-brand)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
       ${plotted.map((point) => {
         if (point.value === null) return '';
         const isLast = lastPoint && lastPoint.date === point.date;
-        return `<circle cx="${point.x}" cy="${point.y}" r="${isLast ? 6 : 5}" fill="${isLast ? '#FFCBA4' : '#7BBF95'}" stroke="${isLast ? '#E8A876' : 'white'}" stroke-width="2" />`;
+        if (isLast) {
+          return `<circle cx="${point.x}" cy="${point.y}" r="6" style="fill:var(--color-terracotta)" /><circle cx="${point.x}" cy="${point.y}" r="2.5" style="fill:var(--color-surface)" />`;
+        }
+        return `<circle cx="${point.x}" cy="${point.y}" r="4" style="fill:var(--color-brand)" />`;
       }).join('')}
       ${lastPoint ? `
-        <rect x="${Math.max(0, lastPoint.x - 26)}" y="${Math.max(0, lastPoint.y - 22)}" width="52" height="18" rx="6" fill="#4A3728" opacity="0.85" />
-        <text x="${lastPoint.x}" y="${Math.max(12, lastPoint.y - 10)}" font-size="10" fill="white" font-family="Nunito" font-weight="700" text-anchor="middle">${lastPoint.value}/10</text>
+        <rect x="${Math.min(width - 66, Math.max(0, lastPoint.x - 33))}" y="${Math.max(0, lastPoint.y - 38)}" width="66" height="28" rx="8" style="fill:var(--color-text)" />
+        <text x="${Math.min(width - 33, Math.max(33, lastPoint.x))}" y="${Math.max(18, lastPoint.y - 20)}" font-size="13" style="fill:var(--color-surface);font-family:var(--font-body)" font-weight="600" text-anchor="middle">${lastPoint.value} / 10</text>
       ` : ''}
     </svg>
   `;
 }
 
 export function buildRadarSvg(metrics) {
-  const centerX = 80;
-  const centerY = 80;
-  const radius = 58;
+  const radius = 100;
   const axisCount = metrics.length;
-  const gridLevels = [1, 0.75, 0.5];
+  const gridLevels = [1, 2 / 3, 1 / 3];
+  const hasValue = (metric) => metric.value !== null && metric.value !== undefined;
 
   const polarPoint = (index, scale) => {
     const angle = (-Math.PI / 2) + ((Math.PI * 2 * index) / axisCount);
-    return {
-      x: centerX + (Math.cos(angle) * radius * scale),
-      y: centerY + (Math.sin(angle) * radius * scale)
-    };
+    return { x: Math.cos(angle) * radius * scale, y: Math.sin(angle) * radius * scale };
   };
 
   const grid = gridLevels.map((level, levelIndex) => {
@@ -177,39 +177,49 @@ export function buildRadarSvg(metrics) {
       const point = polarPoint(index, level);
       return `${point.x},${point.y}`;
     }).join(' ');
-    return `<polygon points="${points}" fill="none" stroke="#E8CBA7" stroke-width="${levelIndex === 0 ? 1.5 : 1}" />`;
+    return `<polygon points="${points}" fill="none" style="stroke:var(${levelIndex === 0 ? '--color-olive' : '--color-surface-muted'})" stroke-width="${levelIndex === 0 ? 1.2 : 1}" />`;
   }).join('');
 
   const axes = metrics.map((_, index) => {
     const point = polarPoint(index, 1);
-    return `<line x1="${centerX}" y1="${centerY}" x2="${point.x}" y2="${point.y}" stroke="#E8CBA7" stroke-width="1" />`;
+    return `<line x1="0" y1="0" x2="${point.x}" y2="${point.y}" style="stroke:var(--color-surface-muted)" stroke-width="1.2" />`;
   }).join('');
 
+  const valuePoint = (metric, index) => {
+    const normalized = hasValue(metric) ? Math.max(0.1, Number(metric.value) / 10) : 0.15;
+    return polarPoint(index, normalized);
+  };
+
   const polygonPoints = metrics.map((metric, index) => {
-    const normalized = metric.value === null || metric.value === undefined ? 0.2 : Math.max(0.1, Number(metric.value) / 10);
-    const point = polarPoint(index, normalized);
+    const point = valuePoint(metric, index);
     return `${point.x},${point.y}`;
   }).join(' ');
 
   const dots = metrics.map((metric, index) => {
-    const normalized = metric.value === null || metric.value === undefined ? 0.2 : Math.max(0.1, Number(metric.value) / 10);
-    const point = polarPoint(index, normalized);
-    return `<circle cx="${point.x}" cy="${point.y}" r="4" fill="${metric.color}" />`;
+    const point = valuePoint(metric, index);
+    return `<circle cx="${point.x}" cy="${point.y}" r="${hasValue(metric) ? 4 : 3.5}" style="fill:var(${hasValue(metric) ? '--color-brand' : '--color-text-subtle'})" />`;
   }).join('');
 
   const labels = metrics.map((metric, index) => {
-    const point = polarPoint(index, 1.18);
+    const point = polarPoint(index, 1);
     let anchor = 'middle';
-    if (point.x < centerX - 8) anchor = 'end';
-    if (point.x > centerX + 8) anchor = 'start';
-    return `<text x="${point.x}" y="${point.y}" text-anchor="${anchor}" font-size="9" fill="#7A6555" font-family="Nunito" font-weight="700">${escapeHtml(metric.label)}</text>`;
+    let x = point.x;
+    let y = point.y;
+    if (point.x < -8) { anchor = 'end'; x -= 10; }
+    else if (point.x > 8) { anchor = 'start'; x += 10; }
+    if (Math.abs(point.x) <= 8) y += point.y < 0 ? -10 : 18;
+    else y += 4;
+    const fill = hasValue(metric) ? '--color-text' : '--color-text-muted';
+    const weight = hasValue(metric) ? 600 : 500;
+    const text = `${metric.label} (${hasValue(metric) ? metric.value : '--'})`;
+    return `<text x="${x}" y="${y}" text-anchor="${anchor}" font-size="13" style="fill:var(${fill});font-family:var(--font-body)" font-weight="${weight}">${escapeHtml(text)}</text>`;
   }).join('');
 
   return `
-    <svg width="160" height="160" viewBox="0 0 160 160">
+    <svg class="radar-svg" viewBox="-125 -125 250 250" overflow="visible">
       ${grid}
       ${axes}
-      <polygon points="${polygonPoints}" fill="rgba(168,213,186,0.35)" stroke="#7BBF95" stroke-width="2.5" />
+      <polygon points="${polygonPoints}" style="fill:var(--color-sage);stroke:var(--color-brand)" fill-opacity="0.35" stroke-width="2" />
       ${dots}
       ${labels}
     </svg>

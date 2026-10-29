@@ -33,6 +33,8 @@ function serializeInsight(insight, locale) {
         changed: insight.changed ?? null,
         exercises: (insight.exercises || []).map((t) => ({
             id: t.id,
+            code: t.code,
+            has_cover: Boolean(t.has_cover),
             title: (locale === 'en' && t.title_en) || t.title,
             category: t.category,
             difficulty: t.difficulty,

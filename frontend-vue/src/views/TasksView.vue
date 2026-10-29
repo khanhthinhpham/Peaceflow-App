@@ -193,7 +193,8 @@
 import { ref, reactive, computed, onMounted, onBeforeUnmount } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
-import { apiClient, API_BASE_URL } from '../lib/apiClient';
+import { apiClient } from '../lib/apiClient';
+import { taskThumbSrc } from '../lib/taskImages';
 import { useAuthStore } from '../stores/auth';
 import { isGuestEmergencyModeActive } from '../lib/guestEmergency';
 import { buildGuestEmergencyTasksFallback } from '../lib/taskFallbackData';
@@ -238,11 +239,6 @@ const emergencyOpen = ref(false);
 const loading = ref(true);
 const loadError = ref('');
 
-// Nhiem vu co san dung anh tinh trong public/task-images-thumb/<code>.png; nhiem vu admin
-// tu tao qua UI (khong co file tinh tuong ung) dung anh luu trong DB qua GET /tasks/:id/cover.
-function taskThumbSrc(task) {
-  return task.has_cover ? `${API_BASE_URL}/tasks/${task.id}/cover` : `/task-images-thumb/${task.code}.png`;
-}
 
 function getTaskIcon(task) {
   return task?.metadata?.icon || task?.icon || '🌱';

@@ -61,7 +61,8 @@ async function getCatalog() {
     const [tasksRes, expertsRes] = await Promise.all([
         db.query(
             `select id, code, title, category, difficulty, duration_minutes, xp_reward, description,
-                    metadata->>'icon' as icon, title_en, description_en
+                    metadata->>'icon' as icon, title_en, description_en,
+                    (cover_image is not null) as has_cover
              from tasks where active = true order by code`
         ),
         db.query(
@@ -1181,7 +1182,8 @@ async function resolveTask(catalog, rawCode, fallbackText) {
     if (!vector) return null;
     const { rows } = await db.query(
         `select id, code, title, category, difficulty, duration_minutes, xp_reward, description,
-                metadata->>'icon' as icon, title_en, description_en, embedding <=> $1::vector as distance
+                metadata->>'icon' as icon, title_en, description_en,
+                (cover_image is not null) as has_cover, embedding <=> $1::vector as distance
          from tasks
          where active = true and embedding is not null
          order by distance asc

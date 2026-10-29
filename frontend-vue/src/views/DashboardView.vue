@@ -1,301 +1,334 @@
 <template>
-  <main class="main-content">
-    <div class="page-header">
-      <div>
-        <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
-          <div class="page-title">{{ t('dashboard.greeting', { name: displayName }) }}</div>
-          <span v-if="isExpert" class="header-tag" style="background:var(--mint); color:var(--text-primary); border:1px solid var(--mint-dark);">🩺 {{ t('sidebar.tagExpert') }}</span>
-          <span v-if="isAdmin" class="header-tag" style="background:var(--coral); color:#fff; border:1px solid var(--coral-dark);">🛡️ {{ t('sidebar.tagAdmin') }}</span>
-        </div>
-        <div class="page-subtitle handwritten" style="font-size:1rem;color:var(--mint-dark);">"{{ t('dashboard.subtitle') }}"</div>
-      </div>
-    </div>
+  <main class="main-content dash">
+    <div class="dash-inner">
+      <div class="dash-grid">
+        <!-- ======================= CỘT TRÁI ======================= -->
+        <div class="col-left">
+          <!-- 1. Check-in -->
+          <section class="card checkin-card">
+            <div class="ci-body">
+              <div class="ci-titles">
+                <div class="ci-hello-row">
+                  <p class="ci-hello">{{ t('dashboard.hero.hello', { name: displayName }) }}</p>
+                  <span v-if="isExpert" class="role-tag">{{ t('sidebar.tagExpert') }}</span>
+                  <span v-if="isAdmin" class="role-tag">{{ t('sidebar.tagAdmin') }}</span>
+                </div>
+                <h1 class="ci-title">{{ checkinPromptTitle }}</h1>
+              </div>
 
-    <div v-if="isNewUser" style="background:linear-gradient(135deg,var(--mint-light),var(--peach-light));border:2px solid var(--mint);border-radius:16px;padding:24px;margin-bottom:20px;text-align:center;">
-      <div style="font-size:2rem;margin-bottom:8px;">🌱</div>
-      <div style="font-size:1.1rem;font-weight:800;color:var(--text-primary);margin-bottom:6px;">{{ t('dashboard.newUser.title') }}</div>
-      <div style="font-size:0.88rem;color:var(--text-secondary);margin-bottom:20px;line-height:1.6;">
-        {{ t('dashboard.newUser.descLine1') }}<br>
-        {{ t('dashboard.newUser.descLine2') }}
-      </div>
-      <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
-        <router-link to="/mood-checkin" style="display:inline-block;padding:10px 22px;background:var(--mint-dark);color:white;border-radius:50px;font-weight:700;font-size:0.88rem;text-decoration:none;">{{ t('dashboard.checkinNowBtn') }}</router-link>
-        <router-link to="/tasks" style="display:inline-block;padding:10px 22px;border:2px solid var(--kraft-light);border-radius:50px;font-weight:700;font-size:0.88rem;text-decoration:none;color:var(--text-secondary);">{{ t('dashboard.newUser.tasksCta') }}</router-link>
-        <router-link to="/journal" style="display:inline-block;padding:10px 22px;border:2px solid var(--kraft-light);border-radius:50px;font-weight:700;font-size:0.88rem;text-decoration:none;color:var(--text-secondary);">{{ t('dashboard.newUser.journalCta') }}</router-link>
-      </div>
-    </div>
+              <div class="mood-picker">
+                <router-link
+                  v-for="(mood, idx) in moodButtons"
+                  :key="mood.id"
+                  to="/mood-checkin"
+                  class="mood-btn"
+                  :class="{ 'is-active': idx === CHECKIN_CENTER_INDEX }"
+                >
+                  <span class="mood-icon-wrap">
+                    <span class="mood-icon" aria-hidden="true" :style="{ animationDelay: (idx * 1) + 's' }">{{ mood.emoji }}</span>
+                    <span v-if="idx === CHECKIN_CENTER_INDEX" class="mood-check" aria-hidden="true"><span class="material-symbols-outlined">check</span></span>
+                  </span>
+                  <span class="mood-label">{{ mood.label }}</span>
+                </router-link>
+              </div>
 
-    <router-link to="/mood-checkin" class="paper-card checkin-prompt">
-      <div class="cp-title"><span class="cp-mascot" aria-hidden="true">🐱</span>{{ checkinPromptTitle }}</div>
-      <div class="cp-mood-row">
-        <span
-          v-for="(mood, idx) in CHECKIN_PREVIEW_MOODS"
-          :key="mood.id"
-          class="cp-mood-emoji"
-          :class="{ center: idx === CHECKIN_CENTER_INDEX }"
-          :style="{ animationDelay: (idx * 1) + 's' }"
-        >{{ mood.emoji }}</span>
-      </div>
-      <div class="cp-sub">{{ t('dashboard.checkinPrompt.sub') }} {{ t('dashboard.checkinPrompt.tapHint') }}</div>
-    </router-link>
+              <p class="ci-foot">{{ t('dashboard.hero.footnote') }}</p>
 
-    <div v-if="showEmergencyBanner" class="paper-card" style="margin:14px 0 20px;padding:16px 18px;border-color:var(--coral);background:rgba(255,139,139,0.08);">
-      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
-        <div>
-          <div style="font-size:0.95rem;font-weight:800;color:#c05050;">{{ t('dashboard.emergencyBanner.title') }}</div>
-          <div style="font-size:0.82rem;color:var(--text-secondary);margin-top:4px;">{{ t('dashboard.emergencyBanner.desc') }}</div>
-          <div v-if="emergencyReasonText" style="font-size:0.76rem;color:#c05050;margin-top:6px;font-weight:600;">{{ t('dashboard.emergencyBanner.reasonPrefix') }} {{ emergencyReasonText }}</div>
-        </div>
-        <router-link to="/emergency" class="btn-primary" style="white-space:nowrap;">{{ t('dashboard.emergencyBanner.openBtn') }}</router-link>
-      </div>
-    </div>
+              <div v-if="isNewUser" class="new-user-links">
+                <router-link to="/tasks" class="btn pf-btn-secondary">{{ t('dashboard.newUser.tasksCta') }}</router-link>
+                <router-link to="/journal" class="btn pf-btn-secondary">{{ t('dashboard.newUser.journalCta') }}</router-link>
+              </div>
+            </div>
+          </section>
 
-    <!-- STAT CARDS -->
-    <div class="grid-4">
-      <div class="paper-card stat-card">
-        <div class="sc-icon mint">💭</div>
-        <div class="sc-value">{{ stats.mood }}</div>
-        <div class="sc-label">{{ t('dashboard.stats.moodLabel') }}</div>
-        <div class="sc-change" :style="{ color: stats.moodColor }">{{ stats.moodTrend }}</div>
-      </div>
-      <div class="paper-card stat-card">
-        <div class="sc-icon peach">🔥</div>
-        <div class="sc-value">{{ stats.streak }}</div>
-        <div class="sc-label">{{ t('dashboard.stats.streakLabel') }}</div>
-        <div class="sc-change" :style="{ color: stats.streakColor }">{{ stats.streakTrend }}</div>
-      </div>
-      <div class="paper-card stat-card">
-        <div class="sc-icon sky">✅</div>
-        <div class="sc-value">{{ stats.tasks }}</div>
-        <div class="sc-label">{{ t('dashboard.stats.tasksLabel') }}</div>
-        <div class="sc-change" :style="{ color: stats.tasksColor }">{{ stats.tasksTrend }}</div>
-      </div>
-      <div class="paper-card stat-card">
-        <div class="sc-icon lavender">📉</div>
-        <div class="sc-value">{{ stats.anxiety }}</div>
-        <div class="sc-label">{{ t('dashboard.stats.anxietyLabel') }}</div>
-        <div class="sc-change" :style="{ color: stats.anxietyColor }">{{ stats.anxietyTrend }}</div>
-      </div>
-    </div>
-
-    <div class="grid-main">
-      <!-- Left column -->
-      <div>
-        <div class="paper-card chart-card" style="margin-bottom:18px;">
-          <div class="chart-header">
-            <div class="chart-title">{{ t('dashboard.chart.title') }}</div>
-            <div class="chart-tabs">
-              <button
-                v-for="tab in CHART_TABS"
-                :key="tab.period"
-                class="chart-tab"
-                :class="{ active: chartPeriod === tab.period }"
-                @click="switchChart(tab.period)"
-              >{{ t(tab.labelKey) }}</button>
+          <!-- 2. Bốn chỉ số -->
+          <div class="kpi-grid">
+            <div class="card kpi">
+              <span class="kpi-label">{{ t('dashboard.stats.moodLabel') }}</span>
+              <div class="kpi-value"><b>{{ stats.mood }}</b><small>/10</small></div>
+              <p class="kpi-foot">{{ stats.moodTrend }}</p>
+            </div>
+            <div class="card kpi">
+              <span class="kpi-label">{{ t('dashboard.stats.streakLabel') }}</span>
+              <div class="kpi-value"><b>{{ stats.streak }}</b><small>{{ t('dashboard.stats.streakUnit') }}</small></div>
+              <p class="kpi-foot">{{ stats.streakTrend }}</p>
+            </div>
+            <div class="card kpi">
+              <span class="kpi-label">{{ t('dashboard.stats.tasksLabel') }}</span>
+              <div class="kpi-value"><b>{{ stats.tasks }}</b><small v-if="weeklyGoal">/{{ weeklyGoal }}</small></div>
+              <p class="kpi-foot">{{ stats.tasksTrend }}</p>
+            </div>
+            <div class="card kpi">
+              <span class="kpi-label">{{ t('dashboard.stats.anxietyLabel') }}</span>
+              <div class="kpi-value"><b :class="{ 'is-empty': stats.anxiety === '--' }">{{ stats.anxiety }}</b></div>
+              <p class="kpi-foot">{{ stats.anxietyTrend }}</p>
             </div>
           </div>
-          <div class="mood-chart-area" v-html="chartSvgHtml"></div>
-          <div class="chart-labels">
-            <span v-if="!chartLabels.length">{{ t('dashboard.chart.noData') }}</span>
-            <span v-for="(label, idx) in chartLabels" :key="idx">{{ label }}</span>
-          </div>
-        </div>
 
-        <div class="paper-card insight-card" style="margin-bottom:18px;">
-          <div class="insight-header">
-            <div class="insight-icon">🤖</div>
-            <div class="insight-title">{{ insightTitle }}</div>
-            <span class="badge-pill badge-mint" style="margin-left:auto;">{{ insightBadge }}</span>
-          </div>
-          <div class="insight-text" :style="insightMode === 'loading' ? { opacity: 0.55, fontStyle: 'italic' } : {}" v-html="insightBodyHtml"></div>
-          <div v-if="insightTags.length" class="insight-tags">
-            <span v-for="(tag, idx) in insightTags" :key="idx" class="badge-pill" :class="tag.cls">{{ tag.text }}</span>
-          </div>
-
-          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:14px;">
-            <button class="btn-primary" :disabled="insightMode === 'loading'" @click="requestAiInsight">
-              {{ insightMode === 'loading' ? t('dashboard.insight.btnAnalyzing') : (aiRecommendation ? t('dashboard.insight.btnUpdate') : t('dashboard.insight.btnGet')) }}
-            </button>
-            <span v-if="insightNote" style="font-size:0.78rem;color:var(--text-secondary);">{{ insightNote }}</span>
-          </div>
-        </div>
-
-        <div class="paper-card radar-card" style="margin-bottom:18px;">
-          <template v-if="radarMetrics.length">
-            <div class="section-title">
-              <span class="st-icon">🕸️</span> {{ t('dashboard.wellness.title') }}
-              <a href="#" class="st-link" @click.prevent>{{ t('dashboard.wellness.viewDetail') }}</a>
+          <!-- 3. Trợ lý PeaceCat -->
+          <section class="stack-16">
+            <div class="ai-head">
+              <div class="ai-head-left">
+                <span class="ai-caption">{{ t('dashboard.insight.assistant') }}</span>
+                <span class="ai-title pf-section-title">{{ insightTitle }}</span>
+              </div>
+              <button class="btn pf-btn-tertiary" :disabled="insightMode === 'loading'" @click="requestAiInsight">
+                <span class="material-symbols-outlined" :class="{ spinning: insightMode === 'loading' }" aria-hidden="true">refresh</span>
+                <span>{{ insightMode === 'loading' ? t('dashboard.insight.btnAnalyzing') : (aiRecommendation ? t('dashboard.insight.btnUpdate') : t('dashboard.insight.btnGet')) }}</span>
+              </button>
             </div>
-            <div class="radar-wrap">
-              <div class="radar-svg-wrap" v-html="radarSvgHtml"></div>
-              <div class="radar-legend">
-                <div v-for="metric in radarMetrics" :key="metric.key" class="rl-item">
-                  <div class="rl-dot" :style="{ background: metric.color }"></div>
-                  <span class="rl-label">{{ metric.label }}</span>
-                  <span class="rl-val">{{ metric.value ?? '--' }}</span>
+            <div class="card card-pad">
+              <div class="ai-quote">
+                <div class="ai-text" :class="{ loading: insightMode === 'loading' }" v-html="insightBodyHtml"></div>
+                <p v-if="insightTags.length" class="ai-basis">
+                  {{ t('dashboard.insight.basis') }} {{ insightTags.map((tag) => tag.text).join(' & ') }}
+                </p>
+              </div>
+              <p v-if="insightNote" class="ai-note">{{ insightNote }}</p>
+
+              <!-- Nhiệm vụ hôm nay: một chỗ duy nhất (gộp bài AI gợi ý + nhiệm vụ đề xuất), thẻ có ảnh, 2 thẻ/hàng -->
+              <div class="task-section">
+                <div class="task-section-head">
+                  <h3 class="side-title pf-section-title">{{ t('dashboard.tasks.title') }}</h3>
+                  <router-link to="/tasks" class="link-sm">{{ t('dashboard.tasks.viewAll') }}</router-link>
+                </div>
+                <div v-if="suggestionList.length" class="task-grid">
+                  <router-link
+                    v-for="item in suggestionList"
+                    :key="item.id || item.title"
+                    class="td-card"
+                    :to="item.id ? { path: '/task-detail', query: { id: item.id } } : '/tasks'"
+                  >
+                    <div class="task-thumb">
+                      <img
+                        v-if="taskCardSrc(item) && !brokenThumbs.has(item.id)"
+                        :src="taskCardSrc(item)"
+                        :alt="item.title"
+                        loading="lazy"
+                        @error="brokenThumbs.add(item.id)"
+                      >
+                      <span v-if="taskBadge(item).cls === 'tb-priority'" class="task-badge">{{ taskBadge(item).text }}</span>
+                    </div>
+                    <div class="td-card-body">
+                      <h4 class="task-name">{{ item.title }}</h4>
+                      <p v-if="item.reason" class="task-reason">{{ item.reason }}</p>
+                      <div class="td-card-foot">
+                        <span class="task-time">{{ item.duration_minutes || 0 }} {{ t('dashboard.tasks.minutesUnit') }} · {{ taskBadge(item).text }}</span>
+                        <span class="task-xp">+{{ item.xp_reward || 0 }} XP</span>
+                      </div>
+                    </div>
+                  </router-link>
+                </div>
+                <p v-else class="empty-text">{{ t('dashboard.tasks.empty') }}</p>
+              </div>
+            </div>
+          </section>
+
+          <!-- 4. Xu hướng tâm trạng -->
+          <section class="stack-16">
+            <div class="sec-head">
+              <div>
+                <span class="eyebrow">{{ t('dashboard.chart.eyebrow') }}</span>
+                <h3 class="sec-title pf-section-title">{{ t('dashboard.chart.heading') }}</h3>
+              </div>
+              <div class="seg">
+                <button
+                  v-for="tab in CHART_TABS"
+                  :key="tab.period"
+                  class="seg-btn"
+                  :class="{ 'is-active': chartPeriod === tab.period }"
+                  @click="switchChart(tab.period)"
+                >{{ t(tab.labelKey) }}</button>
+              </div>
+            </div>
+            <div class="card card-pad">
+              <div class="trend-wrap">
+                <div class="mood-chart-area" v-html="chartSvgHtml"></div>
+                <div class="chart-labels" :style="{ gridTemplateColumns: `repeat(${Math.max(chartLabels.length, 1)}, minmax(0, 1fr))` }">
+                  <span v-if="!chartLabels.length">{{ t('dashboard.chart.noData') }}</span>
+                  <span
+                    v-for="(label, idx) in chartLabels"
+                    :key="idx"
+                    :class="{ 'is-current': idx === chartLabels.length - 1 }"
+                  >{{ label }}</span>
                 </div>
               </div>
             </div>
-          </template>
-          <template v-else>
-            <div class="section-title"><span class="st-icon">🕸️</span> {{ t('dashboard.wellness.title') }}</div>
-            <div style="padding:12px 0;color:var(--text-secondary);">{{ t('dashboard.wellness.notEnough') }}</div>
-          </template>
+          </section>
+
+          <!-- 5. Radar sức khỏe tổng thể -->
+          <section class="stack-16">
+            <div class="sec-head">
+              <div>
+                <span class="eyebrow">{{ t('dashboard.wellness.eyebrow') }}</span>
+                <h3 class="sec-title pf-section-title">{{ t('dashboard.wellness.title') }}</h3>
+              </div>
+              <a v-if="radarMetrics.length" href="#" class="link-arrow" @click.prevent>
+                <span>{{ t('dashboard.wellness.viewDetailPlain') }}</span>
+              </a>
+            </div>
+            <div class="card card-pad">
+              <div v-if="radarMetrics.length" class="radar-grid">
+                <div class="radar-svg-wrap" v-html="radarSvgHtml"></div>
+                <div class="radar-badges">
+                  <div v-for="metric in radarMetrics" :key="metric.key" class="radar-badge">
+                    <span class="rb-label">{{ metric.label }}</span>
+                    <span class="rb-value" :class="{ 'is-empty': metric.value === null || metric.value === undefined }">
+                      {{ metric.value === null || metric.value === undefined ? '--' : `${metric.value} / 10` }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <p v-else class="empty-text">{{ t('dashboard.wellness.notEnough') }}</p>
+            </div>
+          </section>
         </div>
 
-        <div class="paper-card" style="overflow:hidden;">
-          <div style="padding:16px 18px;border-bottom:2px solid var(--kraft-light);display:flex;align-items:center;justify-content:space-between;">
-            <div class="section-title" style="margin-bottom:0;"><span class="st-icon">🎯</span> {{ t('dashboard.tasks.title') }}</div>
-            <router-link to="/tasks" class="st-link" style="font-size:0.75rem;color:var(--mint-dark);font-weight:600;text-decoration:none;">{{ t('dashboard.tasks.viewAll') }}</router-link>
+        <!-- ======================= CỘT PHẢI ======================= -->
+        <div class="col-right-stack">
+          <!-- Hỗ trợ ưu tiên: card đỏ riêng, tách khỏi panel bên dưới -->
+          <div v-if="showEmergencyBanner" class="card safety-card">
+            <span class="sb-badge">{{ t('dashboard.emergencyBanner.badge') }}</span>
+            <p class="sb-desc">
+              {{ t('dashboard.emergencyBanner.desc') }}
+              <span v-if="emergencyReasonText" class="sb-reason">{{ t('dashboard.emergencyBanner.reasonPrefix') }} {{ emergencyReasonText }}</span>
+            </p>
+            <router-link to="/emergency" class="btn pf-btn-danger pf-btn-block">{{ t('dashboard.emergencyBanner.openBtn') }}</router-link>
           </div>
-          <template v-if="recommendedTasks.length">
-            <template v-for="(task, idx) in recommendedTasks" :key="task.id">
-              <div class="task-card paper-card" style="border:none;border-radius:0;box-shadow:none;cursor:pointer;" @click="router.push({ path: '/task-detail', query: { id: task.id } })">
-                <div class="task-icon-box" :class="String(task.difficulty || 'easy').toLowerCase()">{{ getTaskEmoji(task.category) }}</div>
-                <div class="task-info">
-                  <div class="task-name">{{ task.title }}</div>
-                  <div class="task-meta"><span>⏱ {{ task.duration_minutes || 0 }} {{ t('dashboard.tasks.minutesUnit') }}</span><span>🔴 {{ task.difficulty || t('dashboard.tasks.defaultDifficulty') }}</span></div>
-                </div>
-                <span class="task-xp">+{{ task.xp_reward || 0 }} XP</span>
+
+          <aside class="col-right">
+          <!-- Level + chuỗi thói quen -->
+          <div class="side-sec stack-16">
+            <div class="level-row">
+              <div>
+                <div class="level-title">{{ t('dashboard.levels.levelTitle', { level: xpInfo.currentLevel, title: xpInfo.title }) }}</div>
+                <span class="level-sub">{{ t('dashboard.levels.xpEarned', { xp: xpInfo.xp }) }}</span>
               </div>
-              <div v-if="idx < recommendedTasks.length - 1" class="task-divider"></div>
+            </div>
+
+            <div class="xp-block">
+              <div class="xp-track"><div class="xp-meter" :style="{ width: xpInfo.percent + '%' }"></div></div>
+              <div class="xp-labels">
+                <span>{{ xpInfo.minXP }} XP</span>
+                <span>{{ xpInfo.maxXPLabel }} XP</span>
+              </div>
+            </div>
+
+            <div class="ribbon-block">
+              <div class="ribbon-head">
+                <span class="ribbon-title">{{ t('dashboard.streak.ribbonTitle') }}</span>
+                <span class="ribbon-count">{{ t('dashboard.streak.daysInRow', { n: stats.streak }) }}</span>
+              </div>
+              <div class="ribbon">
+                <div v-for="(day, idx) in streakRibbon" :key="idx" class="rb-day">
+                  <span class="rb-day-label" :class="{ 'is-today': day.state.startsWith('today') }">{{ day.label }}</span>
+                  <div class="rb-day-dot" :class="`st-${day.state}`">
+                    <span v-if="day.state === 'done' || day.state === 'today-done'" class="material-symbols-outlined">check</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Khu vườn tâm hồn -->
+          <div class="side-sec stack-14 garden-sec">
+            <div class="side-head">
+              <div>
+                <span class="eyebrow">{{ t('dashboard.garden.eyebrow') }}</span>
+                <h3 class="side-title">{{ t('dashboard.garden.title') }}</h3>
+              </div>
+              <span v-if="gardenMetrics.length" class="risk-badge" :class="`risk-${riskBadgeClass}`">{{ riskLabel }}</span>
+            </div>
+            <template v-if="gardenMetrics.length">
+              <div class="garden-scene">
+                <div class="garden-sky">
+                  <div class="g-sun"></div>
+                  <div class="g-cloud g-cloud-1"></div>
+                  <div class="g-cloud g-cloud-2"></div>
+                </div>
+                <div v-html="gardenTreesHtml"></div>
+              </div>
+              <div class="garden-grid">
+                <div v-for="metric in gardenMetrics" :key="metric.key" class="garden-chip">
+                  <span class="dot" :class="gardenDotClass(metric.status)"></span>
+                  <span>{{ metric.label }}: <strong>{{ metric.status_text }}</strong></span>
+                </div>
+              </div>
             </template>
-          </template>
-          <div v-else style="padding:20px;text-align:center;color:var(--text-secondary);">
-            {{ t('dashboard.tasks.empty') }}
+            <p v-else class="empty-text">{{ t('dashboard.garden.notEnough') }}</p>
           </div>
+
+          <!-- Mục tiêu tuần, phiên tư vấn, ủng hộ -->
+          <div class="side-sec stack-16 side-muted">
+            <div class="stack-8">
+              <div class="side-head">
+                <span class="side-title-sm">{{ challenge?.title || t('dashboard.challenge.title') }}</span>
+                <span v-if="challenge" class="side-meta">{{ t('dashboard.challenge.daysLeft', { n: challenge.days_left }) }}</span>
+              </div>
+              <div class="mini-card row-between">
+                <template v-if="challenge">
+                  <div class="grow">
+                    <span class="mini-strong">{{ challenge.completed }}/{{ challenge.goal }} {{ t('dashboard.challenge.tasksMeta') }}</span>
+                    <span class="mini-sub">{{ challenge.description }}</span>
+                    <div class="challenge-track"><div class="challenge-fill" :style="{ width: challenge.progress_percent + '%' }"></div></div>
+                  </div>
+                </template>
+                <span v-else class="mini-sub">{{ t('dashboard.challenge.empty') }}</span>
+                
+              </div>
+            </div>
+
+            <div class="stack-8 divided">
+              <div class="side-head">
+                <span class="side-title-sm">{{ t('dashboard.expert.title') }}</span>
+                <span v-if="expertSession" class="status-pill" :style="{ color: expertStatus.color, background: expertStatus.bg }">{{ expertStatus.label }}</span>
+              </div>
+              <div class="mini-card stack-8">
+                <template v-if="expertSession">
+                  <span class="mini-strong">{{ expertSession.expert_name }}</span>
+                  <span class="mini-sub">{{ expertTypeLabel }} · {{ expertTimeLabel }}</span>
+                  <router-link to="/experts" class="btn pf-btn-secondary pf-btn-block">{{ t('dashboard.expert.viewBtn') }}</router-link>
+                </template>
+                <template v-else>
+                  <span class="mini-mid">{{ t('dashboard.expert.noSchedule') }}</span>
+                  <p class="mini-sub">{{ noExpertHelperText }}</p>
+                  <router-link to="/experts" class="btn pf-btn-secondary pf-btn-block">{{ t('dashboard.expert.viewExpertsBtn') }}</router-link>
+                </template>
+              </div>
+            </div>
+
+            <div class="stack-10 divided">
+              <div class="donate-head">
+                <span class="side-title-sm">{{ t('dashboard.donate.title') }}</span>
+              </div>
+              <p class="mini-sub">{{ t('dashboard.donate.desc') }}</p>
+              <button type="button" class="btn pf-btn-secondary pf-btn-block" @click="donate.openModal()">{{ t('dashboard.donate.btn') }}</button>
+            </div>
+          </div>
+          </aside>
         </div>
       </div>
 
-      <!-- Right column -->
-      <div>
-        <div class="paper-card garden-card" style="margin-bottom:18px;">
-          <template v-if="gardenMetrics.length">
-            <div class="section-title">
-              <span class="st-icon">🌳</span> {{ t('dashboard.garden.title') }}
-              <span class="badge-pill" :class="riskBadgeClass" style="margin-left:auto;">{{ riskLabel }}</span>
-            </div>
-            <div class="garden-scene">
-              <div class="garden-sky">
-                <div class="g-sun"></div>
-                <div class="g-cloud g-cloud-1"></div>
-                <div class="g-cloud g-cloud-2"></div>
-                <div class="g-rainbow" :class="{ show: riskLevel === 'low' || riskLevel === 'moderate' }"></div>
-                <div class="g-butterfly g-butterfly-1">🦋</div>
-                <div class="g-butterfly g-butterfly-2">🦋</div>
-              </div>
-              <div v-html="gardenTreesHtml"></div>
-              <div class="g-mascot">{{ riskLevel === 'critical' ? '🫶' : '🐱' }}</div>
-            </div>
-            <div class="garden-legend">
-              <div v-for="metric in gardenMetrics" :key="metric.key" class="gl-item">
-                <div class="gl-dot" :style="{ background: metric.color }"></div>
-                {{ metric.label }} — {{ metric.status_text }} {{ metric.emoji }}
-              </div>
-            </div>
-          </template>
-          <template v-else>
-            <div class="section-title"><span class="st-icon">🌳</span> {{ t('dashboard.garden.title') }}</div>
-            <div style="padding:12px 0;color:var(--text-secondary);">{{ t('dashboard.garden.notEnough') }}</div>
-          </template>
-        </div>
-
-        <div class="paper-card xp-card" style="margin-bottom:18px;">
-          <div class="xp-header">
-            <div class="xp-level-circle">{{ xpInfo.currentLevel }}</div>
-            <div class="xp-level-info">
-              <div class="xl-name">{{ xpInfo.title }}</div>
-              <div class="xl-range">{{ xpInfo.minXP }} – {{ xpInfo.maxXPLabel }} XP</div>
-            </div>
-          </div>
-          <div class="xp-total">{{ xpInfo.xp }} XP</div>
-          <div class="xp-bar-wrap">
-            <div class="xp-bar-fill" :style="{ width: xpInfo.percent + '%' }"></div>
-          </div>
-          <div class="xp-bar-labels">
-            <span>{{ xpInfo.minXP }} XP</span>
-            <span>{{ xpInfo.nextLabel }}</span>
-            <span>{{ xpInfo.maxXPLabel }} XP</span>
-          </div>
-        </div>
-
-        <div class="paper-card streak-card" style="margin-bottom:18px;">
-          <div class="streak-fire">🔥</div>
-          <div class="streak-number">{{ stats.streak }}</div>
-          <div class="streak-label">{{ t('dashboard.streak.label') }}</div>
-          <div class="streak-days">
-            <div v-for="(day, idx) in streakDays" :key="idx" class="streak-day" :class="day.className">{{ day.label }}</div>
-          </div>
-        </div>
-
-        <div class="paper-card challenge-card" style="margin-bottom:18px;">
-          <template v-if="challenge">
-            <div class="challenge-header">
-              <span style="font-size:1.3rem;">🏆</span>
-              <div class="challenge-title">{{ challenge.title }}</div>
-              <span class="badge-pill badge-peach" style="margin-left:auto;">{{ t('dashboard.challenge.daysLeft', { n: challenge.days_left }) }}</span>
-            </div>
-            <div class="challenge-desc">{{ challenge.description }}</div>
-            <div class="challenge-progress-bar">
-              <div class="challenge-progress-fill" :style="{ width: challenge.progress_percent + '%' }"></div>
-            </div>
-            <div class="challenge-meta">
-              <span>{{ challenge.completed }}/{{ challenge.goal }} {{ t('dashboard.challenge.tasksMeta') }}</span>
-              <span>{{ challenge.reward_label }}</span>
-            </div>
-          </template>
-          <template v-else>
-            <div class="section-title"><span class="st-icon">🏆</span> {{ t('dashboard.challenge.title') }}</div>
-            <div style="padding:12px 0;color:var(--text-secondary);">{{ t('dashboard.challenge.empty') }}</div>
-          </template>
-        </div>
-
-        <div class="paper-card" style="margin-bottom:0;overflow:hidden;">
-          <div style="padding:14px 18px 8px;font-size:0.85rem;font-weight:700;border-bottom:1px solid var(--kraft-light);display:flex;align-items:center;justify-content:space-between;gap:8px;">
-            <span>{{ t('dashboard.expert.title') }}</span>
-            <span v-if="expertSession" style="padding:3px 9px;border-radius:999px;font-size:0.66rem;font-weight:800;" :style="{ color: expertStatus.color, background: expertStatus.bg }">{{ expertStatus.label }}</span>
-          </div>
-          <template v-if="expertSession">
-            <div class="expert-mini-card">
-              <div class="expert-avatar">👩‍⚕️</div>
-              <div class="expert-info">
-                <div class="expert-name">{{ expertSession.expert_name }}</div>
-                <div class="expert-type">{{ expertTypeLabel }}</div>
-                <div class="expert-time">{{ expertTimeLabel }}</div>
-              </div>
-              <router-link class="btn-outline" style="font-size:0.72rem;padding:6px 12px;" to="/experts">{{ t('dashboard.expert.viewBtn') }}</router-link>
-            </div>
-          </template>
-          <div v-else style="padding:18px;">
-            <div style="font-size:0.9rem;font-weight:800;margin-bottom:6px;">{{ t('dashboard.expert.noSchedule') }}</div>
-            <div style="font-size:0.8rem;color:var(--text-secondary);margin-bottom:14px;">{{ noExpertHelperText }}</div>
-            <router-link to="/experts" class="btn-outline" style="font-size:0.78rem;">{{ t('dashboard.expert.viewExpertsBtn') }}</router-link>
-          </div>
-        </div>
-
-        <div class="paper-card" style="margin-top:18px;text-align:center;padding:18px;">
-          <div style="font-size:1.6rem;">❤️</div>
-          <div style="font-weight:800;margin-top:2px;">{{ t('dashboard.donate.title') }}</div>
-          <p style="font-size:0.82rem;color:var(--text-secondary);margin:6px 0 12px;line-height:1.5;">{{ t('dashboard.donate.desc') }}</p>
-          <button type="button" class="btn-primary" style="width:100%;" @click="donate.openModal()">{{ t('dashboard.donate.btn') }}</button>
-        </div>
+      <div class="dash-quote">
+        <p>{{ t('dashboard.quote') }}</p>
       </div>
     </div>
   </main>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
+import { ref, reactive, computed, onMounted, onBeforeUnmount } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 import { apiClient } from '../lib/apiClient';
 import { useAuthStore } from '../stores/auth';
 import { useDonateStore } from '../stores/donate';
 import {
-  escapeHtml, getLevelInfo, getLevelProgress, getTaskEmoji, getRiskLabel, getRiskBadgeClass,
+  escapeHtml, getLevelInfo, getLevelProgress, getRiskLabel, getRiskBadgeClass,
   buildStreakDays, renderChartSvg, buildRadarSvg, buildGardenTreesHtml
 } from '../lib/dashboardHelpers';
 import { MOOD_OPTIONS } from '../lib/moodCheckinOptions';
+import { taskCardSrc } from '../lib/taskImages';
 
 // 5 mức cảm xúc đại diện (trong 7 mức thật của trang check-in) để hiện preview dạng hàng
 // emoji trên dashboard — mức ở giữa (index 2) phóng to làm điểm nhấn, bấm vào hàng này đi
@@ -411,19 +444,10 @@ const insightTags = computed(() => {
 const insightBodyHtml = computed(() => {
   if (insightMode.value === 'loading') return t('dashboard.insight.loadingAdvice');
   if (insightMode.value === 'ai') {
-    // aiRecommendation/ex.title/ex.reason là nội dung PeaceCat AI SINH RA (tiếng Việt) —
-    // ngoài phạm vi đợt dịch tĩnh này, xem ai.service.js.
-    let exercisesHtml = '';
-    if (aiExercises.value.length) {
-      const items = aiExercises.value.map((ex) => {
-        const nameHtml = ex.id
-          ? `<a data-task-id="${ex.id}" style="color:var(--mint-dark);font-weight:700;text-decoration:none;cursor:pointer;">${escapeHtml(ex.title)}</a>`
-          : `<strong>${escapeHtml(ex.title)}</strong>`;
-        return `<li style="margin-bottom:12px;">${nameHtml}${ex.reason ? `<div style="margin-top:4px;font-size:0.85rem;color:var(--text-secondary);line-height:1.5;">${escapeHtml(ex.reason)}</div>` : ''}</li>`;
-      }).join('');
-      exercisesHtml = `<ol style="padding-left:1.25rem;margin:8px 0 0;">${items}</ol>`;
-    }
-    return `${escapeHtml(aiRecommendation.value)}${exercisesHtml}`;
+    // aiRecommendation là nội dung PeaceCat AI SINH RA (tiếng Việt) — ngoài phạm vi đợt dịch
+    // tĩnh này, xem ai.service.js. Danh sách bài tập không nằm ở đây mà hiện một lần duy nhất
+    // trong suggestionList (kèm nút thực hiện) để không lặp lại.
+    return escapeHtml(aiRecommendation.value);
   }
   return escapeHtml(data.value?.insight?.body || t('dashboard.insight.noAnalysis')).replace(/\n/g, '<br>');
 });
@@ -481,8 +505,8 @@ const challenge = computed(() => data.value?.challenge || null);
 const expertSession = computed(() => data.value?.expert_session || null);
 const expertStatus = computed(() => {
   const statusMap = {
-    pending: { label: t('dashboard.expert.statusPending'), color: '#bf6f00', bg: 'rgba(245,180,80,.18)' },
-    confirmed: { label: t('dashboard.expert.statusConfirmed'), color: '#2f8f5b', bg: 'rgba(47,143,91,.14)' }
+    pending: { label: t('dashboard.expert.statusPending'), color: 'var(--color-caution)', bg: 'var(--color-caution-soft)' },
+    confirmed: { label: t('dashboard.expert.statusConfirmed'), color: 'var(--color-brand)', bg: 'var(--color-brand-soft)' }
   };
   return statusMap[expertSession.value?.status] || statusMap.confirmed;
 });
@@ -512,6 +536,51 @@ const noExpertHelperText = computed(() => (
 ));
 
 const recommendedTasks = computed(() => aiTasks.value || data.value?.tasks || []);
+
+// --- Chỉ phục vụ hiển thị (bố cục mới) ---
+const moodButtons = computed(() => CHECKIN_PREVIEW_MOODS.map((mood) => ({
+  ...mood,
+  label: t(mood.labelKey)
+})));
+// Thẻ "Bài tập gợi ý" trong card PeaceCat: lấy nhiệm vụ đầu tiên đang được đề xuất.
+// Danh sách nhiệm vụ duy nhất của Dashboard: bài AI chọn (kèm lý do) nếu có, nếu không thì các
+// nhiệm vụ hệ thống đề xuất. Tối đa 4 thẻ (2 hàng × 2) để không dài trang.
+const suggestionList = computed(() => {
+  const list = insightMode.value === 'ai' && aiExercises.value.length ? aiExercises.value : recommendedTasks.value;
+  return list.slice(0, 4);
+});
+// Ảnh nhiệm vụ lỗi (thiếu file) thì ẩn ảnh, giữ khung màu nền.
+const brokenThumbs = reactive(new Set());
+// Mẫu số của KPI "Nhiệm vụ tuần" lấy từ mục tiêu tuần thật (nếu có), không tự đặt cứng.
+const weeklyGoal = computed(() => challenge.value?.goal ?? null);
+
+function taskBadge(task) {
+  if (String(task.category || '').toLowerCase() === 'emergency') return { text: t('dashboard.tasks.badgePriority'), cls: 'tb-priority' };
+  const level = String(task.difficulty || 'easy').toLowerCase();
+  if (level === 'hard') return { text: t('dashboard.tasks.badgeHard'), cls: 'tb-hard' };
+  if (level === 'medium') return { text: t('dashboard.tasks.badgeMedium'), cls: 'tb-medium' };
+  return { text: t('dashboard.tasks.badgeEasy'), cls: 'tb-easy' };
+}
+
+// buildStreakDays chỉ đánh dấu ngày đã làm/hôm nay; tách thêm ngày đã qua (bỏ lỡ) và ngày
+// sắp tới để vẽ đúng 3 trạng thái của dải chuỗi thói quen.
+const streakRibbon = computed(() => {
+  const todayIndex = new Date().getDay();
+  return streakDays.value.map((day, index) => {
+    const isToday = day.className.includes('today');
+    const isDone = day.className.includes('done');
+    let state = index < todayIndex ? 'missed' : 'upcoming';
+    if (isDone) state = 'done';
+    if (isToday) state = isDone ? 'today-done' : 'today';
+    return { ...day, state };
+  });
+});
+
+function gardenDotClass(status) {
+  if (status === 'excellent' || status === 'good') return 'dot-primary';
+  if (status === 'fair' || status === 'needs-care') return 'dot-amber';
+  return 'dot-muted';
+}
 
 function switchChart(period) {
   chartPeriod.value = period;
@@ -676,165 +745,126 @@ export default { name: 'DashboardView' };
 </script>
 
 <style scoped>
-.main-content { margin-left: 0; padding: 28px; min-height: 100vh; }
-.page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; flex-wrap: wrap; gap: 12px; }
-.page-title { font-size: 1.5rem; font-weight: 800; }
-.page-subtitle { font-size: 0.85rem; color: var(--text-secondary); }
-.header-actions { display: flex; align-items: center; gap: 10px; }
-.header-tag { font-size: 0.75rem; font-weight: 800; padding: 3px 10px; border-radius: 8px; white-space: nowrap; }
-
-.badge-pill { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 50px; font-size: 0.72rem; font-weight: 700; }
-.badge-mint { background: var(--mint-light); color: var(--mint-dark); border: 1.5px solid var(--mint); }
-.badge-peach { background: var(--peach-light); color: var(--peach-dark); border: 1.5px solid var(--peach); }
-.badge-coral { background: var(--coral-light); color: #c05050; border: 1.5px solid var(--coral); }
-.badge-lavender { background: var(--lavender-light); color: #8a6aaa; border: 1.5px solid var(--lavender); }
-
-.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-bottom: 20px; }
-.grid-main { display: grid; grid-template-columns: 1fr 340px; gap: 20px; margin-bottom: 20px; }
-.grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 20px; }
-
-.stat-card { padding: 20px; display: flex; flex-direction: column; gap: 6px; }
-.stat-card .sc-icon { width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; margin-bottom: 4px; border: 2px solid; }
-.stat-card .sc-value { font-size: 1.6rem; font-weight: 800; }
-.stat-card .sc-label { font-size: 0.78rem; color: var(--text-secondary); font-weight: 600; }
-.stat-card .sc-change { font-size: 0.72rem; font-weight: 700; display: flex; align-items: center; gap: 3px; }
-.sc-icon.mint { background: var(--mint-light); border-color: var(--mint); }
-.sc-icon.peach { background: var(--peach-light); border-color: var(--peach); }
-.sc-icon.sky { background: var(--sky-light); border-color: var(--sky); }
-.sc-icon.lavender { background: var(--lavender-light); border-color: var(--lavender); }
-
-.chart-card { padding: 22px; }
-.chart-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
-.chart-title { font-size: 1rem; font-weight: 700; }
-.chart-tabs { display: flex; gap: 4px; }
-.chart-tab { padding: 5px 12px; border-radius: 50px; font-size: 0.75rem; font-weight: 700; cursor: pointer; border: 1.5px solid var(--kraft-light); background: transparent; color: var(--text-secondary); transition: var(--transition); }
-.chart-tab.active { background: var(--mint-light); border-color: var(--mint-dark); color: var(--text-primary); }
-.mood-chart-area { height: 140px; position: relative; margin-bottom: 8px; }
-.mood-chart-area :deep(.chart-svg) { width: 100%; height: 100%; }
-.chart-labels { display: flex; justify-content: space-between; font-size: 0.68rem; color: var(--text-light); padding: 0 4px; }
-
-.garden-card { padding: 22px; }
-.garden-scene { height: 200px; background: linear-gradient(180deg, var(--sky-light) 0%, var(--sky-light) 55%, var(--mint-light) 55%, var(--mint) 100%); border-radius: var(--radius-sm); position: relative; overflow: hidden; margin-bottom: 16px; border: 2px solid var(--mint); }
-.garden-sky { position: absolute; top: 0; left: 0; right: 0; height: 55%; }
-.g-sun { position: absolute; top: 14px; right: 20px; width: 44px; height: 44px; background: var(--peach); border-radius: 50%; box-shadow: 0 0 20px rgba(255, 203, 164, 0.6); animation: g-float 5s ease-in-out infinite; }
-.g-cloud { position: absolute; background: white; border-radius: 50px; opacity: 0.9; }
-.g-cloud-1 { top: 16px; left: 20px; width: 60px; height: 22px; animation: g-float 7s ease-in-out infinite; }
-.g-cloud-2 { top: 28px; left: 90px; width: 40px; height: 16px; animation: g-float 9s ease-in-out infinite; animation-delay: -3s; }
-.g-rainbow { position: absolute; top: 30px; left: 50%; transform: translateX(-50%); width: 100px; height: 50px; border-radius: 50px 50px 0 0; border: 6px solid transparent; border-top: 6px solid rgba(255, 200, 100, 0.4); opacity: 0; transition: opacity 1s; }
-.g-rainbow.show { opacity: 1; }
-.garden-scene :deep(.garden-tree) { position: absolute; bottom: 0; display: flex; flex-direction: column; align-items: center; }
-.garden-scene :deep(.gt-trunk) { background: var(--kraft); border-radius: 3px; }
-.garden-scene :deep(.gt-top) { border-left: solid transparent; border-right: solid transparent; border-bottom: solid; }
-.garden-scene :deep(.gt-flower) { position: absolute; font-size: 0.8rem; animation: g-float 3s ease-in-out infinite; }
-.g-butterfly { position: absolute; font-size: 1rem; animation: g-butterfly 8s ease-in-out infinite; }
-.g-butterfly-1 { top: 60px; left: 40%; animation-delay: -2s; }
-.g-butterfly-2 { top: 80px; right: 30%; animation-delay: -5s; }
-.g-mascot { position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); font-size: 1.8rem; animation: g-bounce 3s ease-in-out infinite; }
-@keyframes g-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
-@keyframes g-bounce { 0%, 100% { transform: translateX(-50%) translateY(0); } 50% { transform: translateX(-50%) translateY(-5px); } }
-@keyframes g-butterfly { 0% { transform: translate(0, 0); } 25% { transform: translate(20px, -15px); } 50% { transform: translate(40px, 0); } 75% { transform: translate(20px, 15px); } 100% { transform: translate(0, 0); } }
-.garden-legend { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
-.gl-item { display: flex; align-items: center; gap: 8px; font-size: 0.78rem; color: var(--text-secondary); }
-.gl-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
-
-.task-card { padding: 16px 18px; display: flex; align-items: center; gap: 14px; cursor: pointer; }
-.task-card:hover { background: var(--cream); }
-.task-icon-box { width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; flex-shrink: 0; border: 2px solid; }
-.task-icon-box.emergency { background: #ffe5e5; border-color: var(--coral); }
-.task-icon-box.easy { background: var(--mint-light); border-color: var(--mint); }
-.task-icon-box.medium { background: #fff3d4; border-color: #f0c040; }
-.task-icon-box.hard { background: #ffe8d4; border-color: #e09050; }
-.task-info { flex: 1; }
-.task-name { font-size: 0.9rem; font-weight: 700; margin-bottom: 2px; }
-.task-meta { font-size: 0.72rem; color: var(--text-light); display: flex; gap: 10px; }
-.task-xp { font-size: 0.78rem; font-weight: 700; color: var(--peach-dark); background: var(--peach-light); padding: 3px 8px; border-radius: 50px; border: 1.5px solid var(--peach); white-space: nowrap; }
-.task-divider { height: 1px; background: var(--kraft-light); margin: 0 18px; }
-
-.xp-card { padding: 22px; }
-.xp-header { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
-.xp-level-circle { width: 48px; height: 48px; border-radius: 50%; background: var(--mint-light); border: 3px solid var(--mint-dark); display: flex; align-items: center; justify-content: center; font-size: 1.2rem; font-weight: 800; color: var(--mint-dark); box-shadow: 3px 3px 0px var(--mint-dark); flex-shrink: 0; }
-.xp-level-info { min-width: 0; }
-.xp-level-info .xl-name { font-size: 0.88rem; font-weight: 700; }
-.xp-level-info .xl-range { font-size: 0.72rem; color: var(--text-light); }
-.xp-total { font-size: 1.4rem; font-weight: 800; color: var(--mint-dark); text-align: right; margin-bottom: 6px; }
-.xp-bar-wrap { background: var(--kraft-light); border-radius: 50px; height: 14px; overflow: hidden; margin-bottom: 6px; border: 1.5px solid var(--kraft); }
-.xp-bar-fill { height: 100%; background: linear-gradient(90deg, var(--mint-dark), var(--mint)); border-radius: 50px; transition: width 1s cubic-bezier(0.25, 0.46, 0.45, 0.94); position: relative; }
-.xp-bar-fill::after { content: ''; position: absolute; top: 2px; left: 8px; right: 8px; height: 4px; background: rgba(255, 255, 255, 0.4); border-radius: 50px; }
-.xp-bar-labels { display: flex; justify-content: space-between; font-size: 0.68rem; color: var(--text-light); }
-
-.streak-card { padding: 20px; text-align: center; }
-.streak-fire { font-size: 2.5rem; animation: g-float 2s ease-in-out infinite; }
-.streak-number { font-size: 2.2rem; font-weight: 800; color: var(--peach-dark); line-height: 1; }
-.streak-label { font-size: 0.78rem; color: var(--text-secondary); font-weight: 600; margin-bottom: 10px; }
-.streak-days { display: flex; gap: 5px; justify-content: center; flex-wrap: wrap; }
-.streak-day { width: 26px; height: 26px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 0.65rem; font-weight: 700; border: 1.5px solid; }
-.streak-day.done { background: var(--mint); border-color: var(--mint-dark); color: white; }
-.streak-day.today { background: var(--peach); border-color: var(--peach-dark); color: white; }
-.streak-day.empty { background: var(--cream); border-color: var(--kraft-light); color: var(--text-light); }
-
-.insight-card { padding: 20px; background: linear-gradient(135deg, var(--mint-light), var(--sky-light)); border-color: var(--mint); margin-left:-16px; margin-right:-16px; border-radius: 0; border: 0;}
-.insight-header { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
-.insight-icon { width: 36px; height: 36px; background: var(--mint); border-radius: 10px; border: 2px solid var(--mint-dark); display: flex; align-items: center; justify-content: center; font-size: 1rem; box-shadow: 2px 2px 0px var(--mint-dark); }
-.insight-title { font-size: 0.88rem; font-weight: 700; }
-.insight-text { font-size: 0.82rem; color: var(--text-secondary); line-height: 1.6; margin-bottom: 10px; }
-.insight-tags { display: flex; gap: 6px; flex-wrap: wrap; }
-
-.radar-card { padding: 22px; }
-.radar-wrap { display: flex; align-items: center; gap: 20px; }
-.radar-svg-wrap { flex-shrink: 0; }
-.radar-legend { display: flex; flex-direction: column; gap: 8px; }
-.rl-item { display: flex; align-items: center; gap: 8px; font-size: 0.75rem; }
-.rl-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
-.rl-label { color: var(--text-secondary); font-weight: 600; }
-.rl-val { font-weight: 800; margin-left: auto; }
-
-.expert-mini-card { padding: 16px 18px; display: flex; align-items: center; gap: 12px; }
-.expert-avatar { width: 44px; height: 44px; border-radius: 50%; background: var(--lavender-light); border: 2px solid var(--lavender); display: flex; align-items: center; justify-content: center; font-size: 1.3rem; flex-shrink: 0; }
-.expert-info { flex: 1; }
-.expert-name { font-size: 0.88rem; font-weight: 700; }
-.expert-time { font-size: 0.72rem; color: var(--text-light); }
-.expert-type { font-size: 0.72rem; font-weight: 700; color: var(--lavender); }
-
-.challenge-card { padding: 20px; background: linear-gradient(135deg, var(--peach-light), var(--lavender-light)); border-color: var(--peach); }
-.challenge-header { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
-.challenge-title { font-size: 0.92rem; font-weight: 700; }
-.challenge-desc { font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 10px; }
-.challenge-progress-bar { height: 10px; background: rgba(255, 255, 255, 0.5); border-radius: 50px; overflow: hidden; margin-bottom: 6px; border: 1.5px solid rgba(255, 255, 255, 0.7); }
-.challenge-progress-fill { height: 100%; background: linear-gradient(90deg, var(--peach-dark), var(--coral)); border-radius: 50px; }
-.challenge-meta { display: flex; justify-content: space-between; font-size: 0.72rem; color: var(--text-secondary); }
-
-.section-title { font-size: 1rem; font-weight: 800; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
-.section-title .st-icon { font-size: 1.1rem; }
-.section-title .st-link { font-size: 0.75rem; color: var(--mint-dark); font-weight: 600; margin-left: auto; text-decoration: none; }
-.section-title .st-link:hover { text-decoration: underline; }
-
-.checkin-prompt {
-  display: block;
-  text-align: center;
-  padding: 20px 22px 16px;
-  background: linear-gradient(135deg, var(--peach-light), var(--lavender-light), var(--mint-light));
-  border-color: var(--peach);
-  margin-bottom: 20px;
-  text-decoration: none;
-  transition: var(--transition);
+/* Dashboard theo bộ nhận diện PeaceFlow — mọi màu/chữ/bo góc lấy từ assets/brand-tokens.css.
+   Font: Nunito cho tiêu đề và số liệu nổi bật, Inter cho nội dung; Playfair chỉ cho câu nhấn
+   (lời chào, câu trích dẫn cuối trang).
+   Nguyên tắc: khoảng trống tạo phân cấp trước, viền mảnh khi cần, bóng đổ rất nhẹ,
+   không gradient trang trí, không viết hoa toàn bộ, ít pill/icon. */
+.dash {
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--color-text);
+  background: var(--color-canvas);
+  -webkit-font-smoothing: antialiased;
+  position: relative;
+  isolation: isolate;
 }
-.checkin-prompt:hover { transform: translateY(-2px); box-shadow: var(--shadow-paper-hover); }
-.cp-title { font-size: 0.95rem; font-weight: 700; color: var(--text-primary); margin-bottom: 14px; padding: 0 16px; }
-.cp-mascot {
-  display: inline-block;
-  margin-right: 8px;
-  font-size: 2rem;
-  line-height: 1;
-  vertical-align: middle;
-  animation: cp-mascot-sway 4s ease-in-out infinite;
+/* Ảnh rừng hòa vào nền ivory: ảnh nét (không làm mờ) nhưng chỉ hiện nhẹ và trộn kiểu
+   multiply, nên tổng thể vẫn giữ tông ivory của bộ nhận diện thay vì bị ảnh thay màu.
+   Lớp position:fixed → đứng yên khi cuộn (background-attachment:fixed không chạy trên iOS). */
+.dash::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background: url('/images/dashboard-leaf-light.jpg') center / cover no-repeat;
+  opacity: 0.5;
+  mix-blend-mode: multiply;
+  /* Góc trên trái là màu nền ivory trọn vẹn, ảnh hiện dần theo đường chéo và rõ nhất ở góc dưới phải. */
+  -webkit-mask-image: linear-gradient(to bottom right, transparent 0%, rgba(0, 0, 0, 0.55) 70%, #000 100%);
+  mask-image: linear-gradient(to bottom right, transparent 0%, rgba(0, 0, 0, 0.395) 70%, #000000 100%);
+  pointer-events: none;
 }
-@keyframes cp-mascot-sway {
-  0%, 100% { transform: translateY(0) rotate(0deg); }
-  25% { transform: translateY(-2px) rotate(-4deg); }
-  75% { transform: translateY(-2px) rotate(4deg); }
+.main-content { margin-left: 0; padding: 20px 20px 32px; min-height: 100vh; }
+.dash-inner { width: 100%; display: flex; flex-direction: column; gap: 24px; }
+
+/* ---------- Nền tảng ---------- */
+.material-symbols-outlined { font-size: 18px; line-height: 1; vertical-align: middle; font-variation-settings: 'wght' 300; }
+.stack-8 > * + * { margin-top: 8px; } .stack-10 > * + * { margin-top: 10px; } .stack-14 > * + * { margin-top: 14px; }
+.stack-16 > * + * { margin-top: 16px; } .stack-20 > * + * { margin-top: 20px; }
+.empty-text { font-size: 14px; color: var(--color-text-muted); margin: 0; line-height: 1.6; }
+.dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; display: inline-block; }
+.dot-primary { background: var(--color-brand); } .dot-amber { background: var(--color-terracotta); } .dot-muted { background: var(--color-olive); }
+
+.card { background: var(--color-surface); border-radius: var(--radius-card); }
+.card-pad { padding: 28px; }
+.eyebrow { display: block; font-size: 13px; font-weight: 500; color: var(--color-text-muted); }
+.sec-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.sec-title { font-family: var(--font-heading); font-size: 22px; font-weight: 800; line-height: 1.25; color: var(--color-text); margin: 2px 0 0; }
+
+/* ---------- Buttons: primary / secondary / tertiary / danger ---------- */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  min-height: 36px; padding: 8px 16px;
+  border: none; border-radius: var(--radius-control);
+  font-family: inherit; font-size: 14px; font-weight: 600; line-height: 1;
+  text-decoration: none; white-space: nowrap; cursor: pointer;
+  transition: background-color var(--duration-fast) var(--ease-standard), color var(--duration-fast) var(--ease-standard);
 }
-.cp-mood-row { display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 8px; }
-.cp-mood-emoji {
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.pf-btn-primary { background: var(--color-brand); color: var(--color-on-brand); }
+.pf-btn-primary:hover { filter: brightness(0.92); }
+.pf-btn-secondary { background: var(--color-surface-muted); color: var(--color-text); }
+.pf-btn-secondary:hover { background: var(--color-brand-soft); color: var(--color-brand); }
+.pf-btn-tertiary { min-height: 0; padding: 4px 0; background: none; color: var(--color-text-muted); font-weight: 500; }
+.pf-btn-tertiary:hover { color: var(--color-brand); }
+.pf-btn-tertiary .material-symbols-outlined { font-size: 17px; }
+.spinning { animation: pf-spin 1s linear infinite; }
+@keyframes pf-spin { to { transform: rotate(360deg); } }
+.pf-btn-danger { background: var(--color-danger); color: #fff; }
+.pf-btn-danger:hover { filter: brightness(0.92); }
+.pf-btn-sm { min-height: 30px; padding: 6px 12px; font-size: 13px; }
+.pf-btn-block { width: 100%; }
+.link-arrow, .link-sm { display: inline-flex; align-items: center; gap: 4px; font-size: 14px; font-weight: 600; color: var(--color-brand); text-decoration: none; }
+.link-arrow:hover, .link-sm:hover { text-decoration: underline; text-underline-offset: 3px; }
+
+/* Focus rõ ràng cho bàn phím */
+.dash :is(a, button):focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; border-radius: var(--radius-control); }
+
+/* ---------- Băng hỗ trợ ưu tiên (an toàn — dùng màu danger, không dùng terracotta) ---------- */
+.sb-badge { font-size: 12px; font-weight: 600; color: var(--color-danger); }
+.sb-desc { font-size: 14px; color: var(--color-text); line-height: 1.5; margin: 0; }
+.sb-reason { font-weight: 600; color: var(--color-danger); }
+
+/* ---------- Bố cục 8/4 ---------- */
+.dash-grid { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 24px; align-items: start; }
+.col-left { display: flex; flex-direction: column; gap: 24px; min-width: 0; }
+
+/* ---------- 1. Check-in ---------- */
+.checkin-card {
+  padding: 36px 28px 28px;
+  border-radius: var(--radius-panel);
+  /* Gradient rất nhẹ, chỉ đủ phảng phất sắc màu (mint/peach/lavender của app) theo đường
+     chéo — độ sáng tổng thể phải giữ bằng các card trắng ấm khác, không được tối/đậm hơn.
+     Dòng đầu là bản dự phòng (màu đã pha sẵn gần trắng) cho trình duyệt WebView cũ chưa
+     hỗ trợ color-mix; dòng sau dùng color-mix cho trình duyệt hiện đại. */
+  background: linear-gradient(135deg, #f6faf2 0%, var(--color-surface) 50%, #fff9ef 78%, #faf6f5 100%);
+  background: linear-gradient(135deg,
+    color-mix(in srgb, var(--mint-light) 15%, var(--color-surface)) 0%,
+    var(--color-surface) 50%,
+    color-mix(in srgb, var(--peach-light) 15%, var(--color-surface)) 78%,
+    color-mix(in srgb, var(--lavender-light) 12%, var(--color-surface)) 100%);
+}
+.ci-body { display: flex; flex-direction: column; gap: 24px; }
+.ci-titles { text-align: center; }
+.ci-hello-row { display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap; }
+.ci-hello { font-family: var(--font-display); font-style: italic; font-size: 20px; color: var(--color-text-muted); margin: 0; }
+.role-tag { font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: var(--radius-control); background: var(--color-surface-muted); color: var(--color-text-muted); }
+.ci-title { font-family: var(--font-heading); font-size: 34px; font-weight: 800; line-height: 1.25; letter-spacing: -0.01em; color: var(--color-text); margin: 6px 0 0; }
+
+.mood-picker { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; max-width: 560px; width: 100%; margin: 0 auto; }
+.mood-btn {
+  position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
+  padding: 16px 8px 14px; border-radius: var(--radius-card);
+  background: var(--color-canvas);
+  text-decoration: none; text-align: center;
+  transition: background-color var(--duration-normal) var(--ease-standard), transform var(--duration-normal) var(--ease-standard);
+}
+.mood-btn:hover { background: var(--color-surface-muted); transform: translateY(-2px); }
+/* Bê nguyên CSS icon của code cũ (.cp-mood-emoji) sang .mood-icon của layout mới — không chỉnh
+   giá trị, chỉ đổi selector cho khớp cấu trúc .mood-btn hiện tại. */
+.mood-icon {
   font-size: 1.4rem;
   width: 42px;
   height: 42px;
@@ -844,12 +874,9 @@ export default { name: 'DashboardView' };
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.5);
   transition: background 0.3s ease, box-shadow 0.3s ease;
-  /* scale/rotate/translate tách riêng (không dùng chung "transform") để animation tự động
-     (đổi scale/rotate) không đè mất vị trí nổi lên cố định của emoji giữa (.center dùng
-     translate riêng) — 2 hiệu ứng chạy song song không xung đột. */
-  animation: cp-emoji-pop 5s ease-in-out infinite;
+  animation: mood-icon-pop 5s ease-in-out infinite;
 }
-.cp-mood-emoji.center {
+.mood-btn.is-active .mood-icon {
   font-size: 2rem;
   width: 58px;
   height: 58px;
@@ -857,35 +884,196 @@ export default { name: 'DashboardView' };
   box-shadow: 0 4px 12px rgba(74, 55, 40, 0.18), 0 0 0 3px var(--warm-white);
   translate: 0 -6px;
 }
-.cp-mood-emoji:hover {
+.mood-btn:hover .mood-icon {
   animation-play-state: paused;
   scale: 1.3;
   translate: 0 -8px;
   background: var(--warm-white);
   box-shadow: 0 4px 12px rgba(74, 55, 40, 0.18);
 }
-@keyframes cp-emoji-pop {
+@keyframes mood-icon-pop {
   0%, 100% { scale: 1; rotate: 0deg; }
   5% { scale: 1.3; rotate: -10deg; }
   10% { scale: 1.3; rotate: 10deg; }
   15% { scale: 1.1; rotate: -5deg; }
   20% { scale: 1; rotate: 0deg; }
 }
-.cp-sub { font-size: 0.78rem; color: var(--text-secondary); padding: 0 16px; }
+.mood-label { font-size: 13px; font-weight: 500; color: var(--color-text-muted); }
+/* Trạng thái chọn nhận biết được không chỉ nhờ màu: dấu tích cạnh icon + chữ đậm (không còn nền
+   thẻ màu xanh để tránh ồn, chỉ icon + chữ nổi bật). */
+.mood-btn.is-active .mood-label { color: var(--color-brand); font-weight: 700; }
+.mood-icon-wrap { position: relative; display: inline-flex; }
+.mood-check { position: absolute; top: -6px; right: -6px; width: 22px; height: 22px; border-radius: 50%; background: var(--color-brand); color: var(--color-on-brand); display: flex; align-items: center; justify-content: center; }
+.mood-check .material-symbols-outlined { font-size: 16px; font-variation-settings: 'wght' 500; }
+.ci-foot { font-size: 13px; color: var(--color-text-muted); text-align: center; margin: 0; }
+.new-user-links { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; }
 
+/* ---------- 2. Bốn chỉ số ---------- */
+.kpi-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+.kpi { padding: 20px; display: flex; flex-direction: column; gap: 6px; }
+.kpi-label { font-size: 13px; font-weight: 500; color: var(--color-text-muted); }
+.kpi-value { display: flex; align-items: baseline; gap: 4px; }
+.kpi-value b { font-family: var(--font-heading); font-size: 34px; font-weight: 800; line-height: 1.1; color: var(--color-text); }
+.kpi-value b.is-empty { color: var(--color-text-subtle); }
+.kpi-value small { font-size: 14px; font-weight: 500; color: var(--color-text-muted); }
+.kpi-foot { font-size: 13px; color: var(--color-text-muted); margin: 0; line-height: 1.4; }
+
+/* ---------- 3. Trợ lý PeaceCat ---------- */
+.ai-row { display: flex; align-items: flex-start; gap: 20px; }
+.ai-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 14px; }
+.ai-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.ai-head-left { display: flex; flex-direction: column; gap: 2px; }
+.ai-caption { font-size: 13px; font-weight: 500; color: var(--color-text-muted); }
+.ai-title { font-family: var(--font-heading); font-size: 18px; font-weight: 800; color: var(--color-text); }
+.ai-quote { padding: 0; }
+.ai-text { font-size: 15px; line-height: 1.7; color: var(--color-text); }
+.ai-text.loading { opacity: 0.55; font-style: italic; }
+.ai-text :deep(a) { color: var(--color-brand) !important; }
+.ai-basis { font-size: 13px; color: var(--color-text-muted); margin: 8px 0 0; }
+.ai-note { font-size: 13px; color: var(--color-text-muted); margin: 0; }
+
+/* ---------- Nhiệm vụ hôm nay: thẻ có ảnh, 2 thẻ/hàng ---------- */
+.task-section { padding-top: 8px; }
+.task-section-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 8px; margin-bottom: 14px; }
+.task-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.td-card { display: flex; flex-direction: column; border-radius: var(--radius-card); background: var(--color-canvas); overflow: hidden; text-decoration: none; color: inherit; transition: transform var(--duration-normal) var(--ease-standard), background-color var(--duration-normal) var(--ease-standard); }
+.td-card:hover { transform: translateY(-2px); background: var(--color-surface-muted); }
+.task-thumb { position: relative; aspect-ratio: 16 / 9; background: var(--color-olive); }
+.task-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.task-badge { position: absolute; top: 10px; left: 10px; font-size: 12px; font-weight: 600; color: #fff; background: var(--color-danger); padding: 2px 8px; border-radius: var(--radius-control); }
+.td-card-body { display: flex; flex-direction: column; gap: 6px; padding: 14px 16px 16px; flex: 1; }
+.task-name { font-size: 15px; font-weight: 600; line-height: 1.4; color: var(--color-text); margin: 0; }
+.task-reason { font-size: 13.5px; line-height: 1.55; color: var(--color-text-muted); margin: 0; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.td-card-foot { margin-top: auto; padding-top: 6px; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.task-time { font-size: 13px; color: var(--color-text-muted); }
+.task-xp { font-size: 13px; font-weight: 600; color: var(--color-terracotta); white-space: nowrap; }
+
+/* ---------- 4. Biểu đồ ---------- */
+.seg { display: inline-flex; align-items: center; padding: 3px; border-radius: var(--radius-control); background: var(--color-surface-muted); }
+.seg-btn { padding: 6px 14px; border-radius: 6px; border: none; background: transparent; font-family: inherit; font-size: 13px; font-weight: 500; color: var(--color-text-muted); cursor: pointer; transition: background-color var(--duration-fast) var(--ease-standard), color var(--duration-fast) var(--ease-standard); }
+.seg-btn:hover { color: var(--color-text); }
+.seg-btn.is-active { background: var(--color-surface); color: var(--color-brand); font-weight: 600; box-shadow: 0 1px 2px rgba(55, 58, 52, 0.08); }
+.mood-chart-area { height: 216px; }
+.mood-chart-area :deep(.chart-svg) { width: 100%; height: 100%; overflow: visible; }
+.chart-labels { display: grid; gap: 4px; padding-top: 12px; margin-top: 4px; text-align: center; }
+.chart-labels span { font-size: 12.5px; font-weight: 500; color: var(--color-text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.chart-labels span.is-current { font-weight: 700; color: var(--color-brand); }
+
+/* ---------- 5. Radar ---------- */
+.radar-grid { display: grid; grid-template-columns: 7fr 5fr; gap: 24px; align-items: center; }
+.radar-svg-wrap { display: flex; justify-content: center; padding: 8px 0; }
+.radar-svg-wrap :deep(.radar-svg) { width: 256px; height: 256px; overflow: visible; }
+.radar-badges { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px 16px; }
+.radar-badge { display: flex; flex-direction: column; gap: 2px; padding: 10px 12px; border-radius: var(--radius-control); background: var(--color-canvas); }
+.rb-label { font-size: 13px; color: var(--color-text-muted); }
+.rb-value { font-size: 18px; font-weight: 600; color: var(--color-text); }
+.rb-value.is-empty { color: var(--color-text-subtle); }
+
+/* ---------- Cột phải: một panel liền chia vạch ---------- */
+.col-right-stack { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.col-right { display: flex; flex-direction: column; border-radius: var(--radius-panel); background: var(--color-surface); overflow: hidden; }
+/* Hỗ trợ ưu tiên: thẻ đỏ đứng riêng, không chung nền với panel bên dưới */
+.safety-card { padding: 18px 20px; background: var(--color-danger-soft); display: flex; flex-direction: column; gap: 8px; }
+.side-sec { padding: 24px; }
+.side-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 8px; }
+.side-title { font-family: var(--font-heading); font-size: 18px; font-weight: 800; color: var(--color-text); margin: 0; }
+.side-title-sm { font-size: 15px; font-weight: 600; color: var(--color-text); }
+.side-meta { font-size: 13px; color: var(--color-text-muted); }
+
+.level-row { display: flex; flex-direction: column; gap: 2px; }
+.level-title { font-family: var(--font-heading); font-size: 18px; font-weight: 800; color: var(--color-text); }
+.level-sub { font-size: 13px; color: var(--color-text-muted); }
+.xp-block > * + * { margin-top: 8px; }
+.xp-track { width: 100%; height: 6px; border-radius: 999px; background: var(--color-surface-muted); overflow: hidden; }
+.xp-meter { height: 100%; border-radius: 999px; background: var(--color-brand); transition: width 600ms var(--ease-standard); }
+.xp-labels { display: flex; align-items: center; justify-content: space-between; gap: 6px; font-size: 12.5px; color: var(--color-text-muted); }
+.xp-next { color: var(--color-text); font-weight: 600; }
+.ribbon-block { padding-top: 4px; }
+.ribbon-head { display: flex; align-items: center; justify-content: space-between; padding-bottom: 10px; }
+.ribbon-title { font-size: 15px; font-weight: 600; color: var(--color-text); }
+.ribbon-count { font-size: 13px; color: var(--color-text-muted); }
+.ribbon { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; text-align: center; }
+.rb-day { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.rb-day-label { font-size: 12px; color: var(--color-text-muted); }
+.rb-day-label.is-today { color: var(--color-text); font-weight: 700; }
+.rb-day-dot { width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+.rb-day-dot .material-symbols-outlined { font-size: 16px; font-variation-settings: 'wght' 500; }
+.rb-day-dot.st-missed { background: var(--color-surface-muted); }
+.rb-day-dot.st-upcoming { background: var(--color-canvas); }
+.rb-day-dot.st-done { background: var(--color-sage); color: var(--color-text); }
+.rb-day-dot.st-today { background: var(--color-brand-soft); box-shadow: inset 0 0 0 2px var(--color-brand); }
+.rb-day-dot.st-today-done { background: var(--color-brand); color: var(--color-on-brand); }
+
+
+.risk-badge { font-size: 12px; font-weight: 600; padding: 3px 10px; border-radius: var(--radius-control); white-space: nowrap; }
+.risk-badge-coral { background: var(--color-danger-soft); color: var(--color-danger); }
+.risk-badge-peach { background: var(--color-terracotta-soft); color: var(--color-terracotta); }
+.risk-badge-mint { background: var(--color-brand-soft); color: var(--color-brand); }
+.garden-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 12px; }
+.garden-chip { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--color-text-muted); }
+.garden-chip strong { color: var(--color-text); font-weight: 600; }
+
+/* Cảnh vườn minh họa tạm (sẽ thay bằng Soul Garden 3D): tông dịu, không hiệu ứng game hóa. */
+.garden-scene { position: relative; height: 144px; border-radius: var(--radius-card); overflow: hidden; background: linear-gradient(180deg, #ece8df 0%, #ece8df 55%, #c9d1bd 55%, #a8b49a 100%); }
+.garden-sky { position: absolute; top: 0; left: 0; right: 0; height: 55%; }
+.g-sun { position: absolute; top: 14px; right: 20px; width: 30px; height: 30px; background: #e7c9a5; border-radius: 50%; }
+.g-cloud { position: absolute; background: var(--color-surface); border-radius: 50px; opacity: 0.85; }
+.g-cloud-1 { top: 16px; left: 20px; width: 56px; height: 18px; animation: g-drift 12s var(--ease-standard) infinite alternate; }
+.g-cloud-2 { top: 30px; left: 92px; width: 38px; height: 12px; animation: g-drift 16s var(--ease-standard) infinite alternate-reverse; }
+.garden-scene :deep(.garden-tree) { position: absolute; bottom: 0; display: flex; flex-direction: column; align-items: center; }
+.garden-scene :deep(.gt-trunk) { background: #7a6a55; border-radius: 3px; }
+.garden-scene :deep(.gt-top) { border-left: solid transparent; border-right: solid transparent; border-bottom: solid; }
+.garden-scene :deep(.gt-flower) { display: none; }
+@keyframes g-drift { from { transform: translateX(0); } to { transform: translateX(14px); } }
+
+.side-muted { background: var(--color-canvas); }
+.divided { padding-top: 16px; }
+.mini-card { padding: 0; }
+.row-between { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.grow { flex: 1; min-width: 0; }
+.mini-strong { display: block; font-size: 15px; font-weight: 600; color: var(--color-text); }
+.mini-mid { display: block; font-size: 14px; font-weight: 600; color: var(--color-text); }
+.mini-sub { display: block; font-size: 13px; color: var(--color-text-muted); line-height: 1.6; margin: 0; }
+.challenge-track { height: 6px; margin-top: 8px; border-radius: 999px; background: var(--color-surface-muted); overflow: hidden; }
+.challenge-fill { height: 100%; border-radius: 999px; background: var(--color-terracotta); }
+.status-pill { padding: 2px 8px; border-radius: var(--radius-control); font-size: 12px; font-weight: 600; }
+.donate-head { display: flex; align-items: center; gap: 8px; }
+
+/* ---------- Trích dẫn cuối trang ---------- */
+.dash-quote { padding: 24px 0 8px; text-align: center; }
+.dash-quote p { font-family: var(--font-display); font-style: italic; font-size: 22px; color: var(--color-text-muted); max-width: 560px; margin: 0 auto; }
+
+/* ---------- Responsive ---------- */
 @media (max-width: 1100px) {
-  .grid-main { grid-template-columns: 1fr; }
-  .grid-3 { grid-template-columns: repeat(2, 1fr); }
+  .dash-grid { grid-template-columns: 1fr; }
 }
 @media (max-width: 900px), (hover: none) and (pointer: coarse) {
-  .main-content { margin-left: 0; padding: 16px 16px 20px; }
-  .grid-4 { grid-template-columns: repeat(2, 1fr); }
-  .checkin-prompt { padding-left: 0; padding-right: 0; margin-left: -16px; margin-right: -16px; border-radius: 0;border:none; }
+  .main-content { padding: 16px 16px 24px; }
+  .card-pad { padding: 22px; }
+  .checkin-card { padding: 28px 18px 22px; }
+  .ci-title { font-size: 26px; }
+  .ci-hello { font-size: 18px; }
+  .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  .radar-grid { grid-template-columns: 1fr; }
 }
 @media (max-width: 600px) {
-  .grid-3 { grid-template-columns: 1fr; }
-  .grid-4 { grid-template-columns: repeat(2, 1fr); }
-  .radar-wrap { flex-direction: column; }
-  .cp-actions { display: none; }
+  .mood-picker { gap: 8px; }
+  .mood-icon { font-size: 28px; }
+  .mood-label { font-size: 12px; }
+  .ai-row { flex-direction: column; gap: 14px; }
+  .task-grid { grid-template-columns: 1fr; }
+  .kpi-value b { font-size: 30px; }
+  .dash-quote p { font-size: 19px; }
+}
+
+/* Các tiêu đề section vừa đưa ra ngoài card (PeaceCat, Nhiệm vụ hôm nay, Xu hướng tâm trạng,
+   Sức khỏe tổng thể) dùng chung 1 size để đồng bộ, thay vì mỗi nơi 1 size như trước. Đặt sau
+   .ai-title/.side-title/.sec-title để thắng được font-size riêng của từng class đó. */
+.pf-section-title { font-size: 26px; }
+
+/* Tôn trọng người dùng giảm chuyển động */
+@media (prefers-reduced-motion: reduce) {
+  .dash *, .dash *::before, .dash *::after { animation: none !important; transition: none !important; }
+  .mood-btn:hover { transform: none; }
 }
 </style>
