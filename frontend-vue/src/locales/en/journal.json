@@ -6,18 +6,18 @@
     },
     "breadcrumbDashboard": "Overview",
     "breadcrumbJournal": "Emotional journal",
-    "title": "📝 Emotional Journal",
+    "title": "Emotional Journal",
     "subtitle": "A private space — AES-256 encrypted — only you can read it",
-    "historyBtn": "📚 Browse",
-    "newBtn": "✏️ New entry",
-    "tabEditor": "✏️ Write",
-    "tabHistory": "📚 Library",
+    "historyBtn": "Browse",
+    "newBtn": "New entry",
+    "tabEditor": "Write",
+    "tabHistory": "Library",
     "untitled": "Untitled entry",
     "editor": {
       "todayMoodLabel": "Today's mood:",
       "private": "Private",
       "public": "Public",
-      "promptLabel": "💡 Prompt:",
+      "promptLabel": "Prompt:",
       "refreshPromptTitle": "Another prompt",
       "bold": "Bold",
       "italic": "Italic",
@@ -31,11 +31,11 @@
       "fontBigger": "Bigger text",
       "fontSmaller": "Smaller text",
       "titlePlaceholder": "Entry title... (optional)",
-      "contentPlaceholder": "Start writing... This is entirely your space. There's no right or wrong. Let your feelings flow naturally through the words... 🌿",
+      "contentPlaceholder": "Start writing... This is entirely your space. There's no right or wrong. Let your feelings flow naturally through the words...",
       "wordCountLabel": "{n} words · {m} characters",
       "tagsLabel": "Tags:",
-      "clearBtn": "🗑️ Clear",
-      "saveBtn": "💾 Save entry (+15 XP)"
+      "clearBtn": "Clear",
+      "saveBtn": "Save entry (+15 XP)"
     },
     "ai": {
       "analyzingTitle": "PeaceCat is analyzing your emotions...",
@@ -43,9 +43,9 @@
       "positive": "Positive",
       "stress": "Stress",
       "clarity": "Clarity",
-      "keywordsLabel": "🏷️ Detected emotional keywords:",
+      "keywordsLabel": "Detected emotional keywords:",
       "listening": "listening",
-      "suggestionTitle": "💡 PeaceCat suggests these exercises:",
+      "suggestionTitle": "PeaceCat suggests these exercises:",
       "insightPositive": "This entry leans lighter and shows several positive signals. You seem to be processing your emotions with more clarity.",
       "insightNegative": "This content shows you're carrying a lot of pressure or heavy emotion. Writing it out right now is genuinely valuable for reducing cognitive load.",
       "insightNeutral": "This entry is in a neutral state. Keep writing more deeply about what's not quite settled yet, or what's holding you up.",
@@ -55,19 +55,19 @@
     },
     "history": {
       "noEntries": "No entries match the current filter.",
-      "searchPlaceholder": "🔍 Search your journal...",
+      "searchPlaceholder": "Search your journal...",
       "wordsUnit": "words"
     },
     "filters": {
-      "all": "📚 All",
-      "happy": "😊 Happy",
-      "calm": "😌 Comfortable",
-      "sad": "😢 Sad",
-      "anxious": "😟 Anxious",
-      "grateful": "🙏 Grateful"
+      "all": "All",
+      "happy": "Happy",
+      "calm": "Comfortable",
+      "sad": "Sad",
+      "anxious": "Anxious",
+      "grateful": "Grateful"
     },
     "modal": {
-      "aiAnalysisTitle": "🐱 PeaceCat's analysis"
+      "aiAnalysisTitle": "PeaceCat's analysis"
     },
     "sentiment": {
       "positive": "Positive",
@@ -92,15 +92,15 @@
     },
     "sidebar": {
       "calendarLegend": "● Has an entry",
-      "statsTitle": "📊 Journal stats",
+      "statsTitle": "Journal stats",
       "statEntries": "Entries",
       "statStreak": "Writing streak",
       "statTotalWords": "Total words",
       "statPositive": "Positive",
-      "moodTrendTitle": "📈 7-day mood",
+      "moodTrendTitle": "7-day mood",
       "noMoodData": "Not enough 7-day mood data yet.",
-      "promptsTitle": "💡 Today's writing prompts",
-      "tipText": "Journaling regularly reduces anxiety by 25% and improves emotional processing. Just 10 minutes a day! 💚",
+      "promptsTitle": "Today's writing prompts",
+      "tipText": "Journaling regularly reduces anxiety by 25% and improves emotional processing. Just 10 minutes a day!",
       "securityTitle": "Fully secure:",
       "securityText": "Your journal is AES-256 encrypted. Even the PeaceFlow team can't read it. You can delete everything at any time."
     },

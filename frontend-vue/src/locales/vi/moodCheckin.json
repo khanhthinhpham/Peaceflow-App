@@ -1,7 +1,5 @@
 {
   "moodCheckin": {
-    "title": "💭 Khảo Sát Tâm Trạng",
-    "subtitle": "Chọn phương thức phù hợp — PeaceCat luôn lắng nghe bạn 🐱",
     "backDashboard": "← Dashboard",
     "shareWithExperts": {
       "title": "🩺 Chia sẻ check-in với chuyên gia",
@@ -24,7 +22,22 @@
       "mascotGreeting": "Chào {name}! Hôm nay bạn cảm thấy thế nào? Nhấn vào biểu cảm phù hợp nhất với bạn lúc này nhé 😊",
       "title": "Tâm trạng của bạn hôm nay?",
       "sub": "Chọn biểu cảm gần nhất với cảm giác hiện tại",
-      "continueBtn": "Tiếp tục →"
+      "continueBtn": "Tiếp tục →",
+      "emotion": {
+        "hello": "Chào {name},",
+        "title": "Hôm nay bạn cảm thấy thế nào?",
+        "sub": "Kéo thanh trượt tới mức gần nhất với cảm giác của bạn lúc này. Không có câu trả lời đúng hay sai.",
+        "ariaLabel": "Mức cảm xúc của bạn",
+        "low": "Rất tệ",
+        "high": "Rất tốt",
+        "zones": {
+          "veryBad": "Buồn và kiệt sức",
+          "notGood": "Hơi mệt mỏi",
+          "neutral": "Bình thường",
+          "good": "Khá ổn",
+          "veryGood": "Rất tích cực"
+        }
+      }
     },
     "moods": {
       "veryHappy": "Rất vui",
@@ -43,14 +56,21 @@
       "sliderLow": "😌 Nhẹ nhàng",
       "sliderHigh": "😰 Rất mạnh",
       "backBtn": "← Quay lại",
-      "continueBtn": "Tiếp tục →"
+      "continueBtn": "Tiếp tục →",
+      "pickHint": "Kéo thanh trượt để chọn mức độ"
     },
     "step3": {
       "mascotText": "Cảm ơn bạn đã chia sẻ! Điều gì có thể đang ảnh hưởng đến tâm trạng của bạn? (Tùy chọn)",
       "title": "Nguyên nhân có thể là gì?",
       "sub": "Chọn một hoặc nhiều — hoặc bỏ qua nếu không rõ",
       "backBtn": "← Quay lại",
-      "continueBtn": "Tiếp tục →"
+      "continueBtn": "Tiếp tục →",
+      "garden": {
+        "title": "Điều gì đang nuôi dưỡng hoặc làm bạn mệt mỏi?",
+        "sub": "Chọn những điều có liên quan đến bạn hôm nay. Không cần chọn hết.",
+        "caption": "Khu vườn phản ánh những khía cạnh bạn đã chia sẻ",
+        "listTitle": "Những điều trong ngày hôm nay"
+      }
     },
     "stepBody": {
       "mascotText": "Gần xong rồi! Cơ thể bạn đang cảm thấy thế nào? (Tùy chọn)",
@@ -59,7 +79,53 @@
       "backBtn": "← Quay lại",
       "saving": "Đang lưu...",
       "saveBtn": "Lưu & Xem kết quả ✓",
-      "notesPrefix": "Cơ thể"
+      "notesPrefix": "Cơ thể",
+      "signals": {
+        "kicker": "Lắng nghe cơ thể",
+        "sub": "Đôi khi cơ thể cũng cho ta biết điều gì đang diễn ra bên trong. Bước này không bắt buộc.",
+        "tapHint": "Chạm vào một vùng trên cơ thể",
+        "figureLabel": "Hình cơ thể, chọn một vùng để xem các biểu hiện",
+        "listTitle": "Bạn nhận thấy điều gì?",
+        "onBody": "Trên cơ thể",
+        "whole": "Toàn thân & tinh thần",
+        "selectedTitle": "Bạn đã ghi nhận",
+        "none": "Chưa chọn biểu hiện nào. Có thể bỏ qua nếu không rõ.",
+        "remove": "Bỏ {label}",
+        "zones": {
+          "head": {
+            "name": "Đầu",
+            "hint": "Đau đầu, chóng mặt"
+          },
+          "chest": {
+            "name": "Ngực & hơi thở",
+            "hint": "Tim đập nhanh, khó thở, nghẹn"
+          },
+          "belly": {
+            "name": "Bụng & ăn uống",
+            "hint": "Khó tiêu, khó chịu vùng bụng"
+          },
+          "limbs": {
+            "name": "Cơ & tay chân",
+            "hint": "Căng cơ, đau lưng, tê tay chân"
+          },
+          "sleep": {
+            "name": "Giấc ngủ",
+            "hint": "Khó ngủ, ngủ không sâu"
+          },
+          "energy": {
+            "name": "Năng lượng & sức khỏe",
+            "hint": "Dễ ốm, sốt, ớn lạnh"
+          },
+          "mind": {
+            "name": "Tâm trí",
+            "hint": "Bồn chồn, khó tập trung"
+          }
+        },
+        "pickZone": "Chọn một vùng trên hình hoặc trong danh sách bên cạnh để xem các biểu hiện.",
+        "energy": "Năng lượng",
+        "done": "Xong",
+        "energyAria": "Năng lượng cơ thể còn {pct}%"
+      }
     },
     "bodyGroups": {
       "insomnia": "😴 Mất ngủ",

@@ -3,11 +3,10 @@
     <!-- Emergency Overlay -->
     <div class="emergency-overlay" :class="{ show: emergencyOpen }">
       <div class="emergency-popup">
-        <div class="ep-icon">❤️</div>
         <div class="ep-title">{{ t('experts.emergency.title') }}</div>
         <p class="ep-text">{{ t('experts.emergency.text') }}</p>
         <div class="ep-hotline">
-          <div class="eph-num">📞 0931773637</div>
+          <div class="eph-num">0931773637</div>
           <div class="eph-label">{{ t('experts.emergency.hotlineLabel') }}</div>
         </div>
         <div class="ep-actions">
@@ -55,7 +54,6 @@
                   :class="{ selected: bookingData.sessionType === opt.key }"
                   @click="bookingData.sessionType = opt.key"
                 >
-                  <div class="stc-icon">{{ opt.icon }}</div>
                   <div class="stc-name">{{ t(opt.labelKey) }}</div>
                 </div>
               </div>
@@ -70,7 +68,6 @@
                   :class="{ selected: bookingData.durationTier === opt.key }"
                   @click="selectDurationTier(opt)"
                 >
-                  <div class="stc-icon">{{ opt.icon }}</div>
                   <div class="stc-name">{{ t(opt.labelKey) }}</div>
                   <div class="stc-price">{{ opt.priceLabel }}</div>
                   <div class="stc-duration">{{ t(opt.durationLabelKey) }}</div>
@@ -169,14 +166,14 @@
                 type="tel"
                 v-model="bookingData.contactPhone"
                 :placeholder="t('experts.booking.phonePlaceholder')"
-                style="width:100%;box-sizing:border-box;border:1.5px solid var(--kraft-light);border-radius:12px;padding:9px 12px;font:inherit;font-size:0.85rem;"
+                style="width:100%;box-sizing:border-box;border:1px solid transparent;border-radius:var(--radius-control);background:var(--color-canvas);padding:9px 12px;font:inherit;font-size:0.85rem;"
               >
               <div style="font-size:0.72rem;color:var(--text-light);margin-top:4px;">{{ t('experts.booking.phoneAccuracyNote') }}</div>
               <input
                 type="text"
                 v-model="bookingData.contactSocial"
                 :placeholder="t('experts.booking.socialPlaceholder')"
-                style="width:100%;box-sizing:border-box;margin-top:8px;border:1.5px solid var(--kraft-light);border-radius:12px;padding:9px 12px;font:inherit;font-size:0.85rem;"
+                style="width:100%;box-sizing:border-box;margin-top:8px;border:1px solid transparent;border-radius:var(--radius-control);background:var(--color-canvas);padding:9px 12px;font:inherit;font-size:0.85rem;"
               >
             </div>
             <div class="bm-section">
@@ -269,7 +266,6 @@
             </template>
             <template v-else>
               <div style="text-align:center;padding:20px 0;">
-                <div style="font-size:3rem;margin-bottom:12px;">🎉</div>
                 <div style="font-size:1.1rem;font-weight:800;margin-bottom:6px;">{{ paymentPaidTitle }}</div>
                 <div style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:16px;line-height:1.5;">{{ paymentPaidText }}</div>
                 <button class="btn-primary" @click="closeBookingModal">{{ t('experts.booking.payment.closeBtn') }}</button>
@@ -279,12 +275,11 @@
 
           <!-- Success -->
           <div v-if="bookingPhase === 'success'" style="text-align:center;padding:20px 0;">
-            <div style="font-size:3rem;margin-bottom:12px;animation:bounce-s 1s ease-in-out infinite;">🎉</div>
             <div style="font-size:1.1rem;font-weight:800;margin-bottom:6px;">{{ t('experts.booking.success.title') }}</div>
             <div style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:16px;">{{ t('experts.booking.success.desc') }}</div>
             <div style="padding:14px;background:var(--mint-light);border:1.5px solid var(--mint);border-radius:var(--radius-sm);margin-bottom:14px;font-size:0.82rem;color:var(--text-secondary);">
-              📅 <strong>{{ formatDateTime(bookingData.startsAt) }}</strong><br>
-              💬 <span>{{ t(SESSION_CONFIG[bookingData.sessionType]?.labelKey) }}</span> {{ t('experts.booking.success.withExpert') }} <strong>{{ currentExpert.name }}</strong>
+              <strong>{{ formatDateTime(bookingData.startsAt) }}</strong><br>
+              <span>{{ t(SESSION_CONFIG[bookingData.sessionType]?.labelKey) }}</span> {{ t('experts.booking.success.withExpert') }} <strong>{{ currentExpert.name }}</strong>
             </div>
             <button class="btn-primary" @click="closeBookingModal">{{ t('experts.booking.success.closeBtn') }}</button>
           </div>
@@ -332,7 +327,7 @@
         </div>
         <div class="pm-body">
           <div class="pm-stats-grid">
-            <div class="stat-card"><div class="sc-num">{{ currentExpert.rating }}⭐</div><div class="sc-label">{{ t('experts.profile.ratingLabel') }}</div></div>
+            <div class="stat-card"><div class="sc-num">{{ currentExpert.rating }}</div><div class="sc-label">{{ t('experts.profile.ratingLabel') }}</div></div>
             <div class="stat-card"><div class="sc-num">{{ currentExpert.sessions }}</div><div class="sc-label">{{ t('experts.profile.sessionsLabel') }}</div></div>
             <div class="stat-card"><div class="sc-num">{{ currentExpert.experience }}</div><div class="sc-label">{{ t('experts.profile.experienceLabel') }}</div></div>
           </div>
@@ -367,30 +362,20 @@
     </div>
 
     <main class="main-content" style="margin-left: 0;" >
-      <div class="breadcrumb">
-        <router-link to="/dashboard">{{ t('experts.breadcrumbDashboard') }}</router-link><span>›</span>
-        <span>{{ t('experts.breadcrumbCurrent') }}</span>
-      </div>
-
+      <!-- Hàng đầu: gợi ý AI bên trái, số dư ví + khẩn cấp bên phải. -->
       <div class="page-header">
-        <div>
-          <div class="page-title">{{ t('experts.pageTitle') }}</div>
-          <div class="page-subtitle">{{ subtitleText }}</div>
+        <div class="paper-card ai-match-banner">
+          <div class="amb-text">
+            <div class="at-title">{{ aiMatch?.title || t('experts.aiMatch.defaultTitle') }}</div>
+            <div class="at-sub">{{ aiMatch?.subtitle || t('experts.aiMatch.defaultSubtitle') }}</div>
+          </div>
+          <div class="amb-action">
+            <button class="btn-primary btn-icon" :title="t('experts.aiMatch.viewSuggestions')" :aria-label="t('experts.aiMatch.viewSuggestions')" @click="filterExperts('matched')"><NavIcon name="arrowRight" /></button>
+          </div>
         </div>
-        <div style="display:flex;align-items:center;gap:10px;">
-          <span v-if="walletBalance > 0" style="font-size:0.85rem;font-weight:800;color:var(--mint-dark);background:var(--mint-light);padding:8px 14px;border-radius:999px;border:1.5px solid var(--mint);">{{ t('experts.walletLabel', { amount: formatCurrency(walletBalance) }) }}</span>
-          <button class="btn-primary" @click="emergencyOpen = true">{{ t('experts.emergencyBtn') }}</button>
-        </div>
-      </div>
-
-      <div class="paper-card ai-match-banner">
-        <div class="amb-mascot">🐱</div>
-        <div class="amb-text">
-          <div class="at-title">🤖 {{ aiMatch?.title || t('experts.aiMatch.defaultTitle') }}</div>
-          <div class="at-sub">{{ aiMatch?.subtitle || t('experts.aiMatch.defaultSubtitle') }}</div>
-        </div>
-        <div class="amb-action">
-          <button class="btn-primary" @click="filterExperts('matched')">{{ t('experts.aiMatch.viewSuggestions') }}</button>
+        <div class="experts-header-actions">
+          <span v-if="walletBalance > 0" class="experts-wallet" :title="t('experts.walletLabel', { amount: formatCurrency(walletBalance) })"><NavIcon name="wallet" />{{ formatCurrency(walletBalance) }}</span>
+          <button class="btn-icon btn-icon-danger btn-sos" :title="t('experts.emergencyBtn')" :aria-label="t('experts.emergencyBtn')" @click="emergencyOpen = true">SOS</button>
         </div>
       </div>
 
@@ -416,32 +401,67 @@
           <div style="max-height:360px;overflow-y:auto;">
             <div v-if="!visibleBookings.length" style="padding:16px 2px;color:var(--text-secondary);font-size:0.88rem;">{{ t('experts.myBookings.empty') }}</div>
             <div v-for="b in visibleBookings" :key="b.id" class="mb-item">
-              <div class="mb-avatar">{{ b.expert_avatar || '👩‍⚕️' }}</div>
+              <div class="mb-avatar">
+                <img v-if="avatarUrls[b.expert_id]" :src="avatarUrls[b.expert_id]" alt="">
+                <template v-else>{{ b.expert_avatar || '👩‍⚕️' }}</template>
+              </div>
               <div class="mb-info">
                 <div class="mb-name">{{ b.expert_name || t('experts.myBookings.defaultExpertName') }}</div>
                 <div class="mb-meta">{{ SESSION_CONFIG[b.session_type] ? t(SESSION_CONFIG[b.session_type].labelKey) : b.session_type }} · {{ formatDateTime(b.starts_at) }} · {{ t('experts.myBookings.minutesUnit', { n: b.duration_minutes }) }}</div>
               </div>
               <span class="mb-badge" :style="{ color: bookingStatusBadge(b).color, background: bookingStatusBadge(b).bg }">{{ t(bookingStatusBadge(b).labelKey) }}</span>
+              <button
+                v-if="bookingActions(b).length"
+                type="button" class="mb-more-btn"
+                :aria-label="t('experts.myBookings.moreActions')" :title="t('experts.myBookings.moreActions')"
+                @click="actionSheetBooking = b"
+              ><NavIcon name="more" /></button>
               <div class="mb-actions">
                 <div v-if="b.status === 'completed'" class="mb-action-row">
-                  <router-link class="btn-outline" style="padding:6px 12px;font-size:0.8rem;" :to="{ name: 'messages', query: { expert: b.expert_id } }">{{ t('messages.chatBtn') }}</router-link>
+                  <router-link class="btn-outline mb-icon-btn" :title="plainText(t('messages.chatBtn'))" :aria-label="plainText(t('messages.chatBtn'))" :to="{ name: 'messages', query: { expert: b.expert_id } }"><NavIcon name="messages" /></router-link>
                   <div v-if="b.review_rating" style="color:#f5a623;font-weight:800;white-space:nowrap;">{{ '★'.repeat(b.review_rating) }}</div>
                   <button v-else class="btn-primary" style="padding:6px 14px;font-size:0.82rem;" @click="openReviewModal(b.id, b.expert_name)">{{ t('experts.myBookings.reviewBtn') }}</button>
                 </div>
                 <div v-else-if="b.status === 'pending_payment'" class="mb-action-row">
                   <button class="btn-primary" style="padding:6px 12px;font-size:0.8rem;" @click="reopenPayment(b.id, b.expert_id)">{{ t('experts.myBookings.payBtn') }}</button>
-                  <button class="btn-outline" style="padding:6px 12px;font-size:0.8rem;" @click="cancelMyBooking(b.id)">{{ t('experts.myBookings.cancelBtn') }}</button>
+                  <button class="btn-outline mb-icon-btn mb-icon-danger" :title="t('experts.myBookings.cancelBtn')" :aria-label="t('experts.myBookings.cancelBtn')" @click="cancelMyBooking(b.id)"><NavIcon name="close" /></button>
                 </div>
                 <div v-else-if="['pending', 'awaiting_expert', 'confirmed'].includes(b.status)" class="mb-action-row">
-                  <button v-if="b.status === 'confirmed' && b.zoom_join_url" type="button" class="btn-primary" style="padding:6px 12px;font-size:0.8rem;" @click="openZoomRoom(b.id)">{{ t('experts.myBookings.zoomBtn') }}</button>
-                  <router-link v-if="b.status === 'confirmed'" class="btn-outline" style="padding:6px 12px;font-size:0.8rem;" :to="{ name: 'messages', query: { expert: b.expert_id } }">{{ t('messages.chatBtn') }}</router-link>
-                  <button class="btn-outline" style="padding:6px 12px;font-size:0.8rem;" @click="cancelMyBooking(b.id)">{{ t('experts.myBookings.cancelBtn') }}</button>
+                  <button v-if="b.status === 'confirmed' && b.zoom_join_url" type="button" class="btn-primary mb-icon-btn" :title="t('experts.myBookings.zoomBtn')" :aria-label="t('experts.myBookings.zoomBtn')" @click="openZoomRoom(b.id)"><NavIcon name="video" /></button>
+                  <router-link v-if="b.status === 'confirmed'" class="btn-outline mb-icon-btn" :title="plainText(t('messages.chatBtn'))" :aria-label="plainText(t('messages.chatBtn'))" :to="{ name: 'messages', query: { expert: b.expert_id } }"><NavIcon name="messages" /></router-link>
+                  <button class="btn-outline mb-icon-btn mb-icon-danger" :title="t('experts.myBookings.cancelBtn')" :aria-label="t('experts.myBookings.cancelBtn')" @click="cancelMyBooking(b.id)"><NavIcon name="close" /></button>
                 </div>
               </div>
             </div>
           </div>
         </div>
       </section>
+
+      <!-- Mobile: thao tác của một lịch hẹn mở trong popup trượt từ đáy lên. -->
+      <Teleport to="body">
+        <Transition name="mb-sheet">
+          <div v-if="actionSheetBooking" class="mb-sheet-overlay" @click.self="actionSheetBooking = null">
+            <div class="mb-sheet" role="dialog" aria-modal="true" :aria-label="actionSheetBooking.expert_name || t('experts.myBookings.defaultExpertName')">
+              <div class="mb-sheet-grip" aria-hidden="true"></div>
+              <div class="mb-sheet-head">
+                <div class="mb-avatar">
+                  <img v-if="avatarUrls[actionSheetBooking.expert_id]" :src="avatarUrls[actionSheetBooking.expert_id]" alt="">
+                  <template v-else>{{ actionSheetBooking.expert_avatar || '👩‍⚕️' }}</template>
+                </div>
+                <div class="mb-info">
+                  <div class="mb-name">{{ actionSheetBooking.expert_name || t('experts.myBookings.defaultExpertName') }}</div>
+                  <div class="mb-meta">{{ formatDateTime(actionSheetBooking.starts_at) }} · {{ t('experts.myBookings.minutesUnit', { n: actionSheetBooking.duration_minutes }) }}</div>
+                </div>
+              </div>
+              <button
+                v-for="act in bookingActions(actionSheetBooking)" :key="act.key"
+                type="button" class="mb-sheet-action" :class="{ 'is-primary': act.primary, 'is-danger': act.danger }"
+                @click="runBookingAction(act)"
+              ><NavIcon :name="act.icon" />{{ act.label }}</button>
+            </div>
+          </div>
+        </Transition>
+      </Teleport>
 
       <ShareRecordModal
         v-if="shareRecordExpert"
@@ -452,7 +472,7 @@
 
       <div class="stats-bar">
         <div class="paper-card stat-card"><div class="sc-num">{{ summary?.active_experts || 0 }}</div><div class="sc-label">{{ t('experts.stats.activeExperts') }}</div></div>
-        <div class="paper-card stat-card"><div class="sc-num">{{ summary?.avg_rating || 0 }}⭐</div><div class="sc-label">{{ t('experts.stats.avgRating') }}</div></div>
+        <div class="paper-card stat-card"><div class="sc-num">{{ summary?.avg_rating || 0 }}</div><div class="sc-label">{{ t('experts.stats.avgRating') }}</div></div>
         <div class="paper-card stat-card"><div class="sc-num">{{ Number(summary?.total_sessions || 0).toLocaleString(intlLocale) }}</div><div class="sc-label">{{ t('experts.stats.completedSessions') }}</div></div>
         <div class="paper-card stat-card"><div class="sc-num">{{ summary?.satisfaction_rate || 0 }}%</div><div class="sc-label">{{ t('experts.stats.satisfaction') }}</div></div>
       </div>
@@ -463,25 +483,25 @@
         <p class="sss-sub">{{ t('experts.sessionStructure.subtitle') }}</p>
         <div class="sss-steps">
           <div class="sss-step sss-step-mint">
-            <div class="sss-step-badge"><span class="sss-step-icon">🤝</span><span class="sss-step-num">1</span></div>
+            <div class="sss-step-badge"><NavIcon name="messages" class="sss-step-icon" /><span class="sss-step-num">1</span></div>
             <div class="sss-step-title">{{ t('experts.sessionStructure.step1Title') }}</div>
             <div class="sss-step-en">{{ t('experts.sessionStructure.step1En') }}</div>
             <p class="sss-step-desc">{{ t('experts.sessionStructure.step1Desc') }}</p>
           </div>
           <div class="sss-step sss-step-sky">
-            <div class="sss-step-badge"><span class="sss-step-icon">🔍</span><span class="sss-step-num">2</span></div>
+            <div class="sss-step-badge"><NavIcon name="search" class="sss-step-icon" /><span class="sss-step-num">2</span></div>
             <div class="sss-step-title">{{ t('experts.sessionStructure.step2Title') }}</div>
             <div class="sss-step-en">{{ t('experts.sessionStructure.step2En') }}</div>
             <p class="sss-step-desc">{{ t('experts.sessionStructure.step2Desc') }}</p>
           </div>
           <div class="sss-step sss-step-lavender">
-            <div class="sss-step-badge"><span class="sss-step-icon">📋</span><span class="sss-step-num">3</span></div>
+            <div class="sss-step-badge"><NavIcon name="tests" class="sss-step-icon" /><span class="sss-step-num">3</span></div>
             <div class="sss-step-title">{{ t('experts.sessionStructure.step3Title') }}</div>
             <div class="sss-step-en">{{ t('experts.sessionStructure.step3En') }}</div>
             <p class="sss-step-desc">{{ t('experts.sessionStructure.step3Desc') }}</p>
           </div>
           <div class="sss-step sss-step-peach">
-            <div class="sss-step-badge"><span class="sss-step-icon">🧭</span><span class="sss-step-num">4</span></div>
+            <div class="sss-step-badge"><NavIcon name="compass" class="sss-step-icon" /><span class="sss-step-num">4</span></div>
             <div class="sss-step-title">{{ t('experts.sessionStructure.step4Title') }}</div>
             <div class="sss-step-en">{{ t('experts.sessionStructure.step4En') }}</div>
             <p class="sss-step-desc">{{ t('experts.sessionStructure.step4Desc') }}</p>
@@ -504,7 +524,7 @@
               @click.stop="showFilterMenu = !showFilterMenu"
               :aria-expanded="showFilterMenu"
               :aria-label="t('experts.filterMenuLabel')"
-            >⚙️</button>
+            ><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 5h18l-7 8v6l-4-2v-4z" /></svg></button>
             <input type="text" class="search-input" :placeholder="t('experts.searchPlaceholder')" :value="search" @input="search = $event.target.value">
             <div v-if="showFilterMenu" class="filter-dropdown" @click.stop>
               <button
@@ -547,7 +567,7 @@
                 <div class="ec-name">{{ expert.name }}</div>
                 <div class="ec-degree">{{ expert.degree }}</div>
                 <div v-if="expert.rating" class="ec-rating">
-                  <span class="ec-stars">{{ '⭐'.repeat(Math.max(1, Math.round(expert.rating || 0))) }}</span>
+                  <span class="ec-stars">{{ '★'.repeat(Math.max(1, Math.round(expert.rating || 0))) }}</span>
                   <span class="ec-rating-num">{{ expert.rating }}</span>
                   <span class="ec-sessions">{{ t('experts.expertCard.sessionsUnit', { n: expert.sessions }) }}</span>
                 </div>
@@ -568,26 +588,26 @@
             </div>
             <p class="ec-bio">{{ expert.bio }}</p>
             <div class="ec-meta">
-              <div class="ec-meta-item">● {{ expert.location }}</div>
-              <div class="ec-meta-item">▣ {{ t('experts.expertCard.yearsExp', { n: expert.experience }) }}</div>
+              <div class="ec-meta-item">{{ expert.location }}</div>
+              <div class="ec-meta-item">{{ t('experts.expertCard.yearsExp', { n: expert.experience }) }}</div>
             </div>
             <div class="ec-price-row">
               <div>
                 <div class="ec-price">{{ t('experts.expertCard.newClientLabel', { price: getSessionPriceLabel(expert).newClient }) }}</div>
                 <div class="ec-price-label">{{ t('experts.expertCard.returningClientLabel', { price: getSessionPriceLabel(expert).returningClient }) }}</div>
               </div>
-              <div class="ec-next">⏰ {{ expert.nextSlot || t('experts.expertCard.noSlot') }}</div>
+              <div class="ec-next">{{ expert.nextSlot || t('experts.expertCard.noSlot') }}</div>
             </div>
             <div class="ec-actions">
               <button class="ec-btn-book" @click.stop="openBookingModal(expert.id)">{{ t('experts.expertCard.bookBtn') }}</button>
-              <button class="ec-btn-msg" @click.stop="openProfileModal(expert.id)">{{ t('experts.expertCard.viewProfileBtn') }}</button>
-              <button class="ec-btn-msg" @click.stop="openShareRecordModal(expert)">{{ t('experts.expertCard.shareRecordBtn') }}</button>
+              <button class="ec-btn-msg ec-btn-icon" :title="t('experts.expertCard.viewProfileBtn')" :aria-label="t('experts.expertCard.viewProfileBtn')" @click.stop="openProfileModal(expert.id)"><NavIcon name="profile" /></button>
+              <button class="ec-btn-msg ec-btn-icon" :title="t('experts.expertCard.shareRecordBtn')" :aria-label="t('experts.expertCard.shareRecordBtn')" @click.stop="openShareRecordModal(expert)"><NavIcon name="send" /></button>
             </div>
           </div>
         </div>
       </div>
 
-      <div style="padding:14px 16px;background:rgba(255,203,164,0.15);border:1.5px solid var(--peach);border-radius:var(--radius-sm);font-size:0.75rem;color:var(--text-secondary);line-height:1.6;margin-bottom:20px;" v-html="t('experts.disclaimer')"></div>
+      <div class="experts-disclaimer" v-html="t('experts.disclaimer')"></div>
     </main>
   </div>
 </template>
@@ -595,12 +615,43 @@
 <script setup>
 import { ref, reactive, computed, onMounted, onBeforeUnmount } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import { apiClient } from '../lib/apiClient';
 import { useAuthStore } from '../stores/auth';
 import ShareRecordModal from '../components/ShareRecordModal.vue';
+import NavIcon from '../components/NavIcon.vue';
+// Chuỗi i18n dùng chung (vd. messages.chatBtn) có emoji đứng đầu — bỏ đi khi hiển thị, thay bằng icon nét đơn sắc.
+const plainText = (str) => String(str).replace(/^[^\p{L}\p{N}]+/u, '');
 
 const route = useRoute();
+const router = useRouter();
+
+// Thao tác của một lịch hẹn theo trạng thái — cùng logic với các nút icon ở desktop, dùng cho
+// popup trên mobile.
+const actionSheetBooking = ref(null);
+function bookingActions(b) {
+  if (!b) return [];
+  const chat = { key: 'chat', icon: 'messages', label: plainText(t('messages.chatBtn')), run: () => router.push({ name: 'messages', query: { expert: b.expert_id } }) };
+  const cancel = { key: 'cancel', icon: 'close', label: t('experts.myBookings.cancelBtn'), danger: true, run: () => cancelMyBooking(b.id) };
+  if (b.status === 'completed') {
+    return b.review_rating ? [chat] : [{ key: 'review', icon: 'star', label: t('experts.myBookings.reviewBtn'), primary: true, run: () => openReviewModal(b.id, b.expert_name) }, chat];
+  }
+  if (b.status === 'pending_payment') {
+    return [{ key: 'pay', icon: 'card', label: t('experts.myBookings.payBtn'), primary: true, run: () => reopenPayment(b.id, b.expert_id) }, cancel];
+  }
+  if (['pending', 'awaiting_expert', 'confirmed'].includes(b.status)) {
+    const list = [];
+    if (b.status === 'confirmed' && b.zoom_join_url) list.push({ key: 'zoom', icon: 'video', label: t('experts.myBookings.zoomBtn'), primary: true, run: () => openZoomRoom(b.id) });
+    if (b.status === 'confirmed') list.push(chat);
+    list.push(cancel);
+    return list;
+  }
+  return [];
+}
+function runBookingAction(act) {
+  actionSheetBooking.value = null;
+  act.run();
+}
 const authStore = useAuthStore();
 const { t, tm, locale } = useI18n();
 const intlLocale = computed(() => (locale.value === 'en' ? 'en-US' : 'vi-VN'));
@@ -749,12 +800,6 @@ async function preloadAvatars(list) {
   }));
 }
 
-const subtitleText = computed(() => {
-  const base = t('experts.subtitle.base', { n: summary.value?.active_experts || 0 });
-  return upcomingBooking.value
-    ? t('experts.subtitle.withUpcoming', { base, name: upcomingBooking.value.expert_name, time: formatDateTime(upcomingBooking.value.starts_at) })
-    : t('experts.subtitle.withoutUpcoming', { base });
-});
 
 const filteredExperts = computed(() => {
   const query = search.value.trim().toLowerCase();
@@ -1201,6 +1246,19 @@ async function loadMyBookings() {
   }
   myBookings.items = bookings;
   myBookings.tab = bookings.some(isUpcomingBooking) ? 'upcoming' : 'all';
+  preloadBookingAvatars(bookings);
+}
+// Ảnh đại diện chuyên gia trong "Lịch hẹn của tôi": dùng chung cache với thẻ chuyên gia; chuyên
+// gia chưa có ảnh (API lỗi/404) thì giữ emoji mặc định.
+function preloadBookingAvatars(bookings) {
+  const ids = [...new Set(bookings.map((b) => b.expert_id).filter(Boolean))];
+  ids.forEach(async (id) => {
+    if (avatarUrls[id]) return;
+    // Đã biết chuyên gia này chưa có ảnh (từ danh sách) thì khỏi gọi API.
+    const known = experts.value.find((e) => e.id === id);
+    if (known && !known.has_avatar_photo) return;
+    try { avatarUrls[id] = await getAvatarObjectUrl(id); } catch (_err) { /* giữ emoji mặc định */ }
+  });
 }
 
 // ============================================================
@@ -1293,3 +1351,232 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped src="../assets/experts.css"></style>
+<style scoped>
+/* Đồng bộ với trang tổng quan (DashboardView.vue): nền ivory + ảnh lá, thẻ trắng bo mềm không
+   viền/bóng giấy, chữ Inter + tiêu đề --font-heading, nút/bộ lọc phẳng, đường kẻ mảnh liền nét
+   thay nét gạch kraft. Đặt SAU experts.css để thắng thứ tự nguồn (experts.css còn được
+   ShareRecordModal.vue import riêng — không sửa file gốc). */
+.experts-page {
+  font-family: var(--font-body); font-size: 15px; line-height: 1.55; color: var(--color-text);
+  background: var(--color-canvas); -webkit-font-smoothing: antialiased; position: relative; isolation: isolate; min-height: 100vh;
+}
+.experts-page::before {
+  content: ''; position: fixed; inset: 0; z-index: -1;
+  background: url('/images/dashboard-leaf-light.jpg') center / cover no-repeat;
+  opacity: 0.5; mix-blend-mode: multiply;
+  -webkit-mask-image: linear-gradient(to bottom right, transparent 0%, rgba(0, 0, 0, 0.55) 70%, #000 100%);
+  mask-image: linear-gradient(to bottom right, transparent 0%, rgba(0, 0, 0, 0.395) 70%, #000000 100%);
+  pointer-events: none;
+}
+.main-content { padding: 20px 20px 32px; }
+.experts-page :is(input, textarea, select, button) { font-family: inherit; }
+.experts-page :is(a, button):focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+
+.breadcrumb, .breadcrumb a { color: var(--color-text-subtle); font-size: 13px; }
+.breadcrumb a:hover { color: var(--color-brand); }
+.page-title { font-family: var(--font-heading); font-size: 26px; font-weight: 800; line-height: 1.25; letter-spacing: -0.01em; color: var(--color-text); }
+.page-subtitle { font-size: 14px; color: var(--color-text-muted); margin-top: 2px; }
+/* Hàng đầu chỉ còn số dư ví + nút khẩn cấp, dồn bên phải (chừa chỗ chuông/SOS nổi góc phải). */
+.page-header { flex-wrap: nowrap; align-items: center; gap: 16px; margin-bottom: 18px; }
+.page-header > .ai-match-banner { flex: 1 1 auto; min-width: 0; margin: 0; }
+.experts-header-actions { display: flex; align-items: center; gap: 10px; margin-right: 120px; flex-shrink: 0; }
+@media (max-width: 900px), (hover: none) and (pointer: coarse) {
+  .page-header { flex-wrap: wrap; }
+  .page-header > .ai-match-banner { flex-basis: 100%; }
+  /* Mobile: ví nổi lên hàng trên cùng (cạnh nút ☰, ngang chuông/SOS của MobileTopbar — cũng
+     nổi trên nội dung nhưng dưới sidebar z-index 200), bỏ nút SOS vì thanh trên cùng đã có SOS. */
+  .experts-header-actions { position: fixed; z-index: 150; top: calc(env(safe-area-inset-top, 0px) + 4px); left: 52px; margin: 0; }
+  .experts-wallet { height: 36px; padding: 0 12px; font-size: 13.5px; box-shadow: var(--shadow-soft); }
+  .experts-header-actions .btn-sos { display: none; }
+  .experts-header-actions:not(:has(.experts-wallet)) { display: none; }
+}
+
+/* Nút phẳng như .pf-btn-* của Dashboard. */
+.btn-primary, .btn-outline, .ec-btn-book, .ec-btn-msg {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  min-height: 36px; border: none; border-radius: var(--radius-control); box-shadow: none; transform: none;
+  font-family: inherit; font-weight: 600; text-decoration: none; cursor: pointer;
+  transition: background-color var(--duration-fast) var(--ease-standard), filter var(--duration-fast) var(--ease-standard), color var(--duration-fast) var(--ease-standard);
+}
+.btn-primary, .btn-outline { padding: 8px 16px; font-size: 14px; }
+.btn-primary, .ec-btn-book { background: var(--color-brand); color: var(--color-on-brand); }
+.btn-primary:hover, .ec-btn-book:hover { background: var(--color-brand); color: var(--color-on-brand); filter: brightness(0.92); box-shadow: none; transform: none; }
+.btn-outline, .ec-btn-msg { background: var(--color-surface-muted); color: var(--color-text); }
+.btn-outline:hover, .ec-btn-msg:hover { background: var(--color-brand-soft); color: var(--color-brand); }
+.btn-primary:disabled, .btn-outline:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* Nhãn: nền nhạt, không viền. */
+.badge-pill { border: none !important; font-size: 12px; }
+.badge-mint { background: var(--color-brand-soft); color: var(--color-brand); }
+.badge-peach { background: var(--color-terracotta-soft); color: var(--color-terracotta); }
+
+/* Thẻ: nền trắng, bo --radius-card, không viền/bóng giấy. */
+.paper-card, .expert-card, .sss-step {
+  background: var(--color-surface); border: none; border-radius: var(--radius-card); box-shadow: none;
+}
+.ai-match-banner { background: var(--color-surface); border: none; }
+.amb-text .at-title { font-family: var(--font-heading); font-size: 16px; font-weight: 800; color: var(--color-text); }
+.amb-text .at-sub { font-size: 14px; color: var(--color-text-muted); }
+.mb-item { border-bottom-color: var(--color-surface-muted); }
+.mb-name { font-weight: 600; color: var(--color-text); }
+.mb-meta { color: var(--color-text-muted); }
+.stat-card .sc-num { font-family: var(--font-heading); color: var(--color-brand); }
+.stat-card .sc-label { color: var(--color-text-muted); }
+
+/* Cấu trúc buổi tư vấn. */
+.sss-title { font-family: var(--font-heading); font-weight: 800; color: var(--color-text); }
+.sss-intro, .sss-sub, .sss-step-desc { color: var(--color-text-muted); }
+.sss-step { background: var(--color-canvas); }
+.sss-step:hover { box-shadow: none; }
+.sss-step-badge { box-shadow: none; }
+.sss-step-num { border-color: var(--color-surface); }
+.sss-step-title { font-family: var(--font-heading); color: var(--color-text); }
+
+/* Bộ lọc, tìm kiếm, sắp xếp. */
+.filter-btn { border: none; border-radius: 999px; background: var(--color-surface); color: var(--color-text-muted); font-family: inherit; font-weight: 600; box-shadow: none; }
+.filter-btn:hover { background: var(--color-surface-muted); color: var(--color-text); }
+.filter-btn.active { background: var(--color-brand-soft); color: var(--color-brand); border: none; box-shadow: none; }
+.search-input, .sort-select { border: 1px solid transparent; border-radius: var(--radius-control); background: var(--color-surface); color: var(--color-text); font-family: inherit; font-size: 14px; min-height: 40px; }
+.search-input:focus, .sort-select:focus { outline: none; border-color: var(--color-brand); }
+.filter-toggle-btn { border: none; border-radius: var(--radius-control); background: var(--color-surface); }
+.filter-toggle-btn.active { background: var(--color-brand-soft); border: none; }
+.filter-dropdown { border: none; border-radius: var(--radius-card); background: var(--color-surface); box-shadow: var(--shadow-soft); }
+.filter-dropdown-item { font-family: inherit; border-radius: var(--radius-control); }
+.filter-dropdown-item.active { background: var(--color-brand-soft); color: var(--color-brand); }
+
+/* Thẻ chuyên gia: giữ dải trạng thái trên đầu + chấm trạng thái, bỏ viền/bóng giấy. */
+.expert-card { transition: transform var(--duration-normal) var(--ease-standard), background-color var(--duration-normal) var(--ease-standard); }
+.expert-card:hover { box-shadow: none; transform: translateY(-2px); background: color-mix(in srgb, var(--color-brand-soft) 30%, var(--color-surface)); }
+.ec-top-banner.available { background: var(--color-brand); }
+.ec-top-banner.busy { background: var(--color-terracotta); }
+.ec-top-banner.offline { background: var(--color-surface-muted); }
+.ec-avatar { border: none; background: var(--color-brand-soft); }
+.ec-name { font-family: var(--font-heading); font-weight: 800; color: var(--color-text); }
+.ec-degree, .ec-bio, .ec-meta-item { color: var(--color-text-muted); }
+.ec-sessions, .ec-price-label { color: var(--color-text-subtle); }
+.ec-specialty { border: none; background: var(--color-brand-soft); color: var(--color-brand); }
+.ec-specialty-more { background: var(--color-surface-muted); color: var(--color-text-muted); }
+.ec-price-row { border: none; border-radius: var(--radius-control); background: var(--color-canvas); }
+.ec-price { color: var(--color-text); }
+.ec-btn-book, .ec-btn-msg { padding: 7px 12px; font-size: 13px; }
+.ec-match-badge { border: none; background: var(--color-terracotta-soft); color: var(--color-terracotta); }
+.ec-menu-btn { box-shadow: none; background: var(--color-surface-muted); }
+
+/* Cửa sổ đặt lịch / hồ sơ / đánh giá. */
+.booking-modal, .profile-modal { border: none; border-radius: var(--radius-panel); background: var(--color-surface); box-shadow: var(--shadow-soft); font-family: var(--font-body); color: var(--color-text); }
+.bm-header, .bm-actions { border-color: var(--color-surface-muted); border-style: solid; border-width: 0; }
+.bm-header { border-bottom-width: 1px; }
+.bm-actions { border-top-width: 1px; }
+.bm-close, .pm-close { border: none; background: var(--color-surface-muted); }
+.bm-close:hover, .pm-close:hover { background: var(--color-brand-soft); }
+.bm-avatar, .pm-avatar { border: none; box-shadow: none; background: var(--color-brand-soft); }
+.bm-name, .pm-name { font-family: var(--font-heading); font-weight: 800; color: var(--color-text); }
+.bm-degree, .pm-degree { color: var(--color-text-muted); }
+.bm-section-title, .pm-section-title { font-family: var(--font-heading); color: var(--color-text); }
+.pm-section-title { border-bottom: 1px solid var(--color-surface-muted); }
+.pm-hero { background: linear-gradient(135deg, var(--color-brand-soft), var(--color-surface)); }
+.pm-cred-item { border-bottom: 1px solid var(--color-surface-muted); }
+.pm-approach-item, .pm-review, .pm-stat { border: none; background: var(--color-canvas); border-radius: var(--radius-control); }
+.bm-step { border: none; background: var(--color-surface-muted); color: var(--color-text-muted); }
+.bm-step.active { background: var(--color-brand-soft); color: var(--color-brand); }
+.bm-step.done { background: var(--color-brand); color: var(--color-on-brand); }
+.bm-client-type-banner { border: none !important; border-radius: var(--radius-control); }
+.session-type-card { border: 1.5px solid transparent; border-radius: var(--radius-card); background: var(--color-canvas); box-shadow: none; }
+.session-type-card:hover { border-color: transparent; background: var(--color-brand-soft); }
+.session-type-card.selected { border-color: var(--color-brand); background: var(--color-brand-soft); box-shadow: none; }
+.cal-day { border-radius: var(--radius-control); }
+.cal-day:hover { background: var(--color-brand-soft); border-color: transparent; }
+.cal-day.today { border-color: var(--color-brand); }
+.cal-day.selected { background: var(--color-brand); border-color: var(--color-brand); color: var(--color-on-brand); }
+.time-slot { border: 1.5px solid transparent; border-radius: var(--radius-control); background: var(--color-canvas); }
+.time-slot:hover { border-color: transparent; background: var(--color-brand-soft); }
+.time-slot.selected { background: var(--color-brand); border-color: var(--color-brand); color: var(--color-on-brand); }
+.problem-textarea { border: 1px solid transparent; border-radius: var(--radius-control); background: var(--color-canvas); font-family: inherit; color: var(--color-text); }
+.problem-textarea:focus { outline: none; border-color: var(--color-brand); }
+.booking-summary { border: none; border-radius: var(--radius-card); background: var(--color-brand-soft); }
+.bs-row { border-bottom: 1px solid color-mix(in srgb, var(--color-brand) 20%, transparent); }
+.booking-process-guide { border: none; border-radius: var(--radius-card); background: var(--color-canvas); }
+
+/* Popup khẩn cấp giống bản ở trang check-in. */
+.emergency-popup { border: none; border-radius: var(--radius-panel); box-shadow: var(--shadow-soft); }
+.ep-hotline { border: none; border-radius: var(--radius-card); background: var(--color-danger-soft); }
+.ep-btn { border: none; border-radius: var(--radius-control); box-shadow: none; font-family: inherit; }
+.ep-btn-red { background: var(--color-danger); color: #fff; }
+.ep-btn-green { background: var(--color-brand-soft); color: var(--color-brand); }
+.ep-btn-ghost { background: var(--color-surface-muted); color: var(--color-text-muted); }
+
+/* Lưu ý cuối trang (đang viết inline) — bỏ viền, nền cam đất nhạt. */
+.ec-stars { color: #E8A93C; letter-spacing: 1px; }
+/* Icon nét đơn sắc trong vòng tròn từng bước, cùng tông màu với số thứ tự của bước. */
+.sss-step-badge .sss-step-icon { width: 32px; height: 32px; stroke-width: 1.6; }
+.sss-step-mint .sss-step-icon { color: var(--mint-dark); }
+.sss-step-sky .sss-step-icon { color: var(--sky-dark); }
+.sss-step-lavender .sss-step-icon { color: var(--lavender-dark); }
+.sss-step-peach .sss-step-icon { color: var(--peach-dark); }
+@media (max-width: 600px) { .sss-step-badge .sss-step-icon { width: 24px; height: 24px; } }
+/* Nút chỉ có icon nét đơn sắc (chữ chuyển vào title/aria-label). */
+.btn-icon { width: 40px; min-width: 40px; height: 40px; padding: 0; }
+.btn-icon-danger { display: inline-flex; align-items: center; justify-content: center; border: none; border-radius: var(--radius-control); background: var(--color-danger); color: #fff; cursor: pointer; transition: filter var(--duration-fast) var(--ease-standard); }
+.btn-icon-danger:hover { filter: brightness(0.92); }
+.btn-icon .nav-icon, .ec-btn-icon .nav-icon { width: 20px; height: 20px; }
+.experts-wallet { display: inline-flex; align-items: center; gap: 6px; height: 40px; padding: 0 14px; border-radius: var(--radius-control); background: var(--color-brand-soft); color: var(--color-brand); font-size: 14px; font-weight: 700; white-space: nowrap; }
+.experts-wallet .nav-icon { width: 18px; height: 18px; }
+.ec-btn-icon { flex: 0 0 auto; width: 40px; padding: 0; }
+.btn-sos { font-size: 12.5px; font-weight: 800; letter-spacing: 0.04em; }
+/* Lịch hẹn: nút ⋮ chỉ dùng ở mobile. */
+.mb-more-btn { display: none; align-items: center; justify-content: center; width: 40px; height: 40px; border: none; background: none; color: var(--color-text-muted); cursor: pointer; border-radius: var(--radius-control); flex-shrink: 0; }
+.mb-more-btn .nav-icon { width: 24px; height: 24px; stroke-width: 2.6; }
+/* Popup thao tác lịch hẹn (mobile). */
+.mb-sheet-overlay { position: fixed; inset: 0; z-index: 1200; display: flex; align-items: flex-end; justify-content: center; background: rgba(74, 55, 40, 0.38); }
+.mb-sheet {
+  width: 100%; max-width: 520px; display: flex; flex-direction: column; gap: 4px;
+  padding: 10px 16px calc(16px + env(safe-area-inset-bottom)); border-radius: var(--radius-panel) var(--radius-panel) 0 0;
+  background: var(--color-surface); box-shadow: var(--shadow-soft); font-family: var(--font-body); color: var(--color-text);
+}
+.mb-sheet-grip { width: 40px; height: 4px; margin: 0 auto 10px; border-radius: 999px; background: var(--color-surface-muted); }
+.mb-sheet-head { display: flex; align-items: center; gap: 12px; padding: 0 4px 12px; margin-bottom: 4px; border-bottom: 1px solid var(--color-surface-muted); }
+.mb-sheet-action {
+  display: flex; align-items: center; gap: 14px; width: 100%; min-height: 50px; padding: 0 12px;
+  border: none; border-radius: var(--radius-control); background: none; font-family: inherit; font-size: 15px; font-weight: 600;
+  color: var(--color-text); text-align: left; cursor: pointer;
+}
+.mb-sheet-action .nav-icon { width: 22px; height: 22px; color: var(--color-text-muted); }
+.mb-sheet-action:active, .mb-sheet-action:hover { background: var(--color-canvas); }
+.mb-sheet-action.is-primary, .mb-sheet-action.is-primary .nav-icon { color: var(--color-brand); }
+.mb-sheet-action.is-danger, .mb-sheet-action.is-danger .nav-icon { color: var(--color-danger); }
+.mb-sheet-enter-active, .mb-sheet-leave-active { transition: opacity 220ms var(--ease-standard); }
+.mb-sheet-enter-active .mb-sheet, .mb-sheet-leave-active .mb-sheet { transition: transform 260ms var(--ease-standard); }
+.mb-sheet-enter-from, .mb-sheet-leave-to { opacity: 0; }
+.mb-sheet-enter-from .mb-sheet, .mb-sheet-leave-to .mb-sheet { transform: translateY(100%); }
+@media (max-width: 900px), (hover: none) and (pointer: coarse) {
+  /* Mobile: avatar | tên + giờ + trạng thái | nút ⋮ — các nút thao tác dời vào popup. */
+  .mb-item { display: grid; grid-template-columns: 44px minmax(0, 1fr) auto; grid-template-areas: "av info more" "av badge more"; column-gap: 12px; row-gap: 4px; align-items: center; padding: 12px 0; }
+  .mb-item > .mb-avatar { grid-area: av; align-self: start; width: 44px; height: 44px; }
+  .mb-item > .mb-info { grid-area: info; }
+  .mb-item > .mb-badge { grid-area: badge; justify-self: start; }
+  .mb-item > .mb-more-btn { grid-area: more; display: inline-flex; }
+  .mb-item > .mb-actions { display: none; }
+  .mb-item .mb-meta { font-size: 12.5px; line-height: 1.4; }
+}
+/* Ảnh đại diện chuyên gia trong danh sách lịch hẹn. */
+.mb-avatar { width: 40px; height: 40px; border-radius: 50%; overflow: hidden; display: flex; align-items: center; justify-content: center; background: var(--color-brand-soft); font-size: 1.3rem; }
+.mb-avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
+/* Nút thao tác lịch hẹn chỉ có icon (chữ chuyển vào title/aria-label). */
+.mb-icon-btn { width: 36px; min-width: 36px; height: 36px; min-height: 36px; padding: 0; }
+.mb-icon-btn .nav-icon { width: 18px; height: 18px; }
+.mb-icon-danger:hover { background: var(--color-danger-soft); color: var(--color-danger); }
+/* Chỉ để icon, bỏ khung nền: nền trong suốt, hover chỉ đổi màu icon. */
+.mb-icon-btn, .mb-icon-btn:hover, .ec-btn-icon, .ec-btn-icon:hover { background: transparent; box-shadow: none; filter: none; }
+.mb-icon-btn, .ec-btn-icon { color: var(--color-text-muted); }
+.mb-icon-btn .nav-icon, .ec-btn-icon .nav-icon { width: 26px; height: 26px; }
+.mb-icon-btn, .ec-btn-icon { width: 42px; min-width: 42px; height: 42px; min-height: 42px; }
+.mb-icon-btn.btn-primary { color: var(--color-brand); }
+.mb-icon-btn:hover, .ec-btn-icon:hover { color: var(--color-brand); }
+.mb-icon-danger:hover { color: var(--color-danger); }
+/* Nút phễu chỉ hiện trên mobile (experts.css ẩn sẵn ở desktop) — ở đây chỉ chỉnh căn icon + màu. */
+.filter-toggle-btn { align-items: center; justify-content: center; color: var(--color-text-muted); }
+/* Desktop dùng hàng nút lọc; menu thả xuống chỉ dành cho mobile (≤600px) nên ẩn hẳn ở màn lớn. */
+@media (min-width: 601px) { .filter-dropdown { display: none; } }
+.filter-toggle-btn.active { color: var(--color-brand); }
+.experts-disclaimer { padding: 14px 16px; border-radius: var(--radius-card); background: var(--color-terracotta-soft); font-size: 13px; color: var(--color-text-muted); line-height: 1.6; margin-bottom: 20px; }
+</style>

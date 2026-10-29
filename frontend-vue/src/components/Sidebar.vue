@@ -11,7 +11,7 @@
         class="sidebar-close-btn"
         :aria-label="t('sidebar.collapseSidebar')"
         @click="$emit('toggle-sidebar')"
-      >✕</button>
+      ><NavIcon name="close" /></button>
     </div>
 
     <nav class="sidebar-nav">
@@ -24,28 +24,26 @@
             class="nav-item"
             :class="{ active: activeKey === item.key }"
           >
-            <span class="ni">{{ item.icon }}</span> {{ t(item.labelKey) }}
+            <NavIcon :name="item.key" class="ni" /> {{ t(item.labelKey) }}
           </router-link>
           <a v-else href="#" class="nav-item" @click.prevent="goToLegacyPage(item.legacy)">
-            <span class="ni">{{ item.icon }}</span> {{ t(item.labelKey) }}
+            <NavIcon :name="item.key" class="ni" /> {{ t(item.labelKey) }}
           </a>
         </template>
         <template v-if="section.key === 'connect'">
           <router-link
             v-if="expertRole"
             :to="isExpert ? { name: 'expert-dashboard' } : '/expert-apply'"
-            class="nav-item"
-            style="color:var(--mint-dark); font-weight:700;"
+            class="nav-item nav-item-accent"
           >
-            <span class="ni">🧑‍⚕️</span> {{ isExpert ? t('sidebar.expertManage') : t('sidebar.expertProfile') }}
+            <NavIcon name="expert" class="ni" /> {{ isExpert ? t('sidebar.expertManage') : t('sidebar.expertProfile') }}
           </router-link>
           <router-link
             v-if="isAdmin"
             to="/admin/dashboard"
-            class="nav-item"
-            style="color:var(--coral); font-weight:700;"
+            class="nav-item nav-item-danger"
           >
-            <span class="ni">🛡️</span> {{ t('sidebar.adminPanel') }}
+            <NavIcon name="admin" class="ni" /> {{ t('sidebar.adminPanel') }}
           </router-link>
         </template>
       </template>
@@ -53,19 +51,17 @@
       <a
         v-if="auth.isAuthenticated"
         href="#"
-        class="nav-item"
-        style="color:var(--coral); margin-top: 10px; border-top: 1px dashed var(--kraft-light); padding-top: 15px;"
+        class="nav-item nav-item-danger nav-item-sep"
         @click.prevent="handleLogout"
       >
-        <span class="ni">🚪</span> {{ t('sidebar.logout') }}
+        <NavIcon name="logout" class="ni" /> {{ t('sidebar.logout') }}
       </a>
       <router-link
         v-else
         to="/login"
-        class="nav-item"
-        style="color:var(--coral); margin-top: 10px; border-top: 1px dashed var(--kraft-light); padding-top: 15px;"
+        class="nav-item nav-item-danger nav-item-sep"
       >
-        <span class="ni">🔐</span> {{ t('sidebar.login') }}
+        <NavIcon name="login" class="ni" /> {{ t('sidebar.login') }}
       </router-link>
     </nav>
 
@@ -78,11 +74,11 @@
             <span v-if="isExpert" class="tag-expert">{{ t('sidebar.tagExpert') }}</span>
             <span v-if="isAdmin" class="tag-admin">{{ t('sidebar.tagAdmin') }}</span>
           </div>
-          <div class="user-level">⭐ {{ xp ?? '--' }} XP · Level {{ level ?? '--' }}</div>
+          <div class="user-level">{{ xp ?? '--' }} XP · Level {{ level ?? '--' }}</div>
         </div>
       </div>
       <router-link to="/emergency" class="emergency-btn">
-        🆘 {{ t('sidebar.emergencySupport') }}
+        <NavIcon name="lifebuoy" /> {{ t('sidebar.emergencySupport') }}
       </router-link>
     </div>
   </aside>
@@ -95,6 +91,7 @@ import { useRoute, useRouter } from 'vue-router';
 import { useAuthStore } from '../stores/auth';
 import { goToLegacyPage } from '../lib/legacyApp';
 import { apiClient } from '../lib/apiClient';
+import NavIcon from './NavIcon.vue';
 
 defineProps({ sidebarOpen: { type: Boolean, default: false }, collapsed: { type: Boolean, default: false } });
 defineEmits(['navigate', 'toggle-sidebar']);
@@ -303,6 +300,46 @@ async function handleLogout() {
   color: var(--coral); font-size: 0.78rem; font-weight: 700; cursor: pointer; margin-top: 8px;
   transition: var(--transition); text-decoration: none;
 }
+/* ---- Đồng bộ với trang tổng quan (DashboardView.vue): nền trắng phẳng, đường kẻ mảnh liền
+   nét thay nét gạch kraft, chữ Inter, mục menu bo --radius-control, mục đang chọn nền xanh nhạt
+   chữ xanh thương hiệu (không viền), icon nét đơn sắc. ---- */
+.sidebar { background: var(--color-surface); border-right: 1px solid var(--color-surface-muted); box-shadow: none; font-family: var(--font-body); -webkit-font-smoothing: antialiased; }
+.sidebar-header { border-bottom: 1px solid var(--color-surface-muted); margin-bottom: 8px; }
+/* Nhóm đầu tiên ("Chính") sát lên dưới logo, bỏ khoảng trống thừa. */
+.sidebar-nav > .nav-section-label:first-child { margin-top: 0 !important; padding-top: 4px; }
+.sidebar-close-btn { border: none; border-radius: var(--radius-control); background: var(--color-surface-muted); color: var(--color-text); }
+.sidebar-close-btn .nav-icon { width: 18px; height: 18px; }
+.logo-icon { border: none; box-shadow: none; border-radius: var(--radius-control); background: var(--color-brand-soft); }
+.logo-text { font-family: var(--font-heading); color: var(--color-text); }
+.logo-text span { color: var(--color-brand); }
+.nav-section-label { font-size: 11.5px; font-weight: 700; letter-spacing: 0.06em; color: var(--color-text-subtle); }
+.nav-item {
+  border: none; border-radius: var(--radius-control); color: var(--color-text-muted); font-size: 14px; font-weight: 500;
+  transition: background-color var(--duration-fast) var(--ease-standard), color var(--duration-fast) var(--ease-standard);
+}
+.nav-item .ni { width: 20px; height: 20px; color: var(--color-text-subtle); transition: color var(--duration-fast) var(--ease-standard); }
+.nav-item:hover { background: var(--color-canvas); color: var(--color-text); }
+.nav-item:hover .ni { color: var(--color-text-muted); }
+.nav-item.active { background: var(--color-brand-soft); color: var(--color-brand); border: none; font-weight: 600; }
+.nav-item.active .ni { color: var(--color-brand); }
+.nav-item:focus-visible { outline: 2px solid var(--color-focus); outline-offset: -2px; }
+.nav-item-accent, .nav-item-accent .ni { color: var(--color-brand); font-weight: 600; }
+.nav-item-danger, .nav-item-danger .ni { color: var(--color-danger); }
+.nav-item-danger:hover { background: var(--color-danger-soft); color: var(--color-danger); }
+.nav-item-sep { margin-top: 10px; border-top: 1px solid var(--color-surface-muted); border-radius: 0; padding-top: 15px; }
+.sidebar-bottom { border-top: 1px solid var(--color-surface-muted); }
+.user-card-mini { background: var(--color-canvas); border: none; border-radius: var(--radius-card); }
+.user-avatar-mini { border: none; background: var(--color-brand-soft); }
+.user-info-mini .user-name { font-size: 14px; font-weight: 600; color: var(--color-text); }
+.user-info-mini .user-level { font-size: 12px; color: var(--color-text-subtle); }
+.tag-expert { border: none; background: var(--color-brand-soft); color: var(--color-brand); border-radius: 999px; padding: 1px 7px; }
+.tag-admin { border: none; background: var(--color-danger-soft); color: var(--color-danger); border-radius: 999px; padding: 1px 7px; }
+.emergency-btn {
+  border: none; border-radius: var(--radius-control); background: var(--color-danger-soft); color: var(--color-danger);
+  font-size: 14px; font-weight: 600; transition: filter var(--duration-fast) var(--ease-standard);
+}
+.emergency-btn:hover { filter: brightness(0.96); }
+
 @media (max-width: 900px), (hover: none) and (pointer: coarse) {
   /* Thu gọn sidebar (--sidebar-width:0px) chỉ là tính năng desktop và được nhớ qua
      localStorage — nếu user từng thu gọn ở desktop rồi mở app trên mobile, biến này vẫn

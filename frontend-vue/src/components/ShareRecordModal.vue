@@ -47,15 +47,15 @@
 
             <div class="sr-pick-tabs">
               <button type="button" class="sr-pick-tab" :class="{ active: pickTab === 'journal' }" @click="pickTab = 'journal'">
-                📔 {{ t('experts.shareRecord.journalTab', { n: summary.journalEntries.length }) }}
+                {{ t('experts.shareRecord.journalTab', { n: summary.journalEntries.length }) }}
                 <span v-if="selectedJournal.length" class="sr-pick-tab-badge">{{ selectedJournal.length }}</span>
               </button>
               <button type="button" class="sr-pick-tab" :class="{ active: pickTab === 'mood' }" @click="pickTab = 'mood'">
-                🌤️ {{ t('experts.shareRecord.moodTab', { n: summary.moodCheckins.length }) }}
+                {{ t('experts.shareRecord.moodTab', { n: summary.moodCheckins.length }) }}
                 <span v-if="selectedMood.length" class="sr-pick-tab-badge">{{ selectedMood.length }}</span>
               </button>
               <button type="button" class="sr-pick-tab" :class="{ active: pickTab === 'assessment' }" @click="pickTab = 'assessment'">
-                🩺 {{ t('experts.shareRecord.assessmentTab', { n: summary.assessmentResults.length }) }}
+                {{ t('experts.shareRecord.assessmentTab', { n: summary.assessmentResults.length }) }}
                 <span v-if="selectedAssessment.length" class="sr-pick-tab-badge">{{ selectedAssessment.length }}</span>
               </button>
             </div>

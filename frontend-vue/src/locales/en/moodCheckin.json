@@ -1,7 +1,5 @@
 {
   "moodCheckin": {
-    "title": "💭 Mood Check-in",
-    "subtitle": "Pick the method that fits — PeaceCat is always listening 🐱",
     "backDashboard": "← Dashboard",
     "shareWithExperts": {
       "title": "🩺 Share check-ins with my expert",
@@ -24,7 +22,22 @@
       "mascotGreeting": "Hi {name}! How are you feeling today? Tap the expression that best fits you right now 😊",
       "title": "How's your mood today?",
       "sub": "Pick the expression closest to how you feel right now",
-      "continueBtn": "Continue →"
+      "continueBtn": "Continue →",
+      "emotion": {
+        "hello": "Hi {name},",
+        "title": "How are you feeling today?",
+        "sub": "Drag the slider to the point closest to how you feel right now. There is no right or wrong answer.",
+        "ariaLabel": "Your emotion level",
+        "low": "Very bad",
+        "high": "Very good",
+        "zones": {
+          "veryBad": "Sad and drained",
+          "notGood": "A bit worn out",
+          "neutral": "Okay",
+          "good": "Pretty good",
+          "veryGood": "Really positive"
+        }
+      }
     },
     "moods": {
       "veryHappy": "Very happy",
@@ -43,14 +56,21 @@
       "sliderLow": "😌 Mild",
       "sliderHigh": "😰 Very intense",
       "backBtn": "← Back",
-      "continueBtn": "Continue →"
+      "continueBtn": "Continue →",
+      "pickHint": "Drag the slider to choose the intensity"
     },
     "step3": {
       "mascotText": "Thanks for sharing! What might be affecting your mood? (Optional)",
       "title": "What might be the cause?",
       "sub": "Pick one or more — or skip if you're not sure",
       "backBtn": "← Back",
-      "continueBtn": "Continue →"
+      "continueBtn": "Continue →",
+      "garden": {
+        "title": "What is nourishing you or wearing you down?",
+        "sub": "Pick the things that feel relevant today. No need to choose them all.",
+        "caption": "Your garden reflects the parts of life you have shared",
+        "listTitle": "Things in your day today"
+      }
     },
     "stepBody": {
       "mascotText": "Almost done! How is your body feeling? (Optional)",
@@ -59,7 +79,53 @@
       "backBtn": "← Back",
       "saving": "Saving...",
       "saveBtn": "Save & see result ✓",
-      "notesPrefix": "Body"
+      "notesPrefix": "Body",
+      "signals": {
+        "kicker": "Listen to your body",
+        "sub": "Sometimes your body tells you what is going on inside. This step is optional.",
+        "tapHint": "Tap an area of the body",
+        "figureLabel": "Body figure, choose an area to see its signals",
+        "listTitle": "What do you notice?",
+        "onBody": "On the body",
+        "whole": "Whole body & mind",
+        "selectedTitle": "You noticed",
+        "none": "Nothing selected yet. Feel free to skip if unsure.",
+        "remove": "Remove {label}",
+        "zones": {
+          "head": {
+            "name": "Head",
+            "hint": "Headache, dizziness"
+          },
+          "chest": {
+            "name": "Chest & breathing",
+            "hint": "Racing heart, short of breath"
+          },
+          "belly": {
+            "name": "Stomach & appetite",
+            "hint": "Indigestion, stomach discomfort"
+          },
+          "limbs": {
+            "name": "Muscles & limbs",
+            "hint": "Tension, back pain, numbness"
+          },
+          "sleep": {
+            "name": "Sleep",
+            "hint": "Trouble sleeping, light sleep"
+          },
+          "energy": {
+            "name": "Energy & health",
+            "hint": "Getting sick, fever, chills"
+          },
+          "mind": {
+            "name": "Mind",
+            "hint": "Restless, hard to focus"
+          }
+        },
+        "pickZone": "Pick an area on the figure or in the list to see its signals.",
+        "energy": "Energy",
+        "done": "Done",
+        "energyAria": "Body energy at {pct}%"
+      }
     },
     "bodyGroups": {
       "insomnia": "😴 Insomnia",

@@ -17,6 +17,7 @@
       "pageSubtitle": "Các thang đo lâm sàng được sử dụng rộng rãi — giúp bạn hiểu sâu hơn về bản thân",
       "back": "← Quay lại",
       "chatAi": "💬 Chat AI",
+      "disclaimerShort": "<strong>Lưu ý:</strong> Đây là công cụ <strong>sàng lọc tham khảo</strong>, không phải chẩn đoán y khoa. Điểm cao, hãy hỏi ý kiến chuyên gia.",
       "disclaimer": "<strong>Lưu ý quan trọng:</strong> Các bài kiểm tra này là công cụ <strong>sàng lọc tham khảo</strong>, không phải chẩn đoán y khoa. Kết quả chỉ mang tính định hướng. Nếu điểm số ở mức cao, hãy tham khảo ý kiến chuyên gia tâm lý lâm sàng. Ứng dụng này <strong>không thay thế</strong> dịch vụ y tế chuyên nghiệp.",
       "respondentTitle": "📝 Thông tin người làm test",
       "respondentSub": "Điền tên của <strong>người sẽ làm bài</strong> (khách hàng, học sinh, người thân...) — không phải tên tài khoản đang đăng nhập. Thông tin này dùng chung cho mọi bài test bên dưới, chỉ cần điền một lần.<br>⚠️ Nếu <strong>2 người khác nhau trùng cả tên lẫn tuổi</strong>, hãy thêm ký hiệu phân biệt vào tên (VD: \"Nguyễn Văn A - lớp 5A\") để tránh bị gộp nhầm khi chuyên gia xuất báo cáo. Khác tuổi thì hệ thống đã tự tách riêng.<br>ℹ️ \"Tháng lẻ\" chỉ cần điền khi làm bài <strong>Raven CPM</strong> cho trẻ 4-11 tuổi — dùng để tính điểm chuẩn (IQ) đúng theo mốc tuổi tháng. Các bài khác không cần.<br>📅 Có thể điền <strong>Ngày sinh</strong> để hệ thống tự tính Tuổi/Tháng lẻ, hoặc bỏ qua và điền trực tiếp Tuổi/Tháng lẻ — chọn 1 trong 2 cách đều được.",

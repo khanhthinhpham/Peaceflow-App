@@ -2,11 +2,10 @@
   <div class="tasks-page">
     <div class="emergency-overlay" :class="{ show: emergencyOpen }">
       <div class="emergency-popup">
-        <div class="ep-icon">❤️</div>
         <div class="ep-title">{{ t('tasksPage.emergency.title') }}</div>
         <p class="ep-text">{{ t('tasksPage.emergency.text') }}</p>
         <div class="ep-hotline">
-          <div class="eph-num">📞 0931773637</div>
+          <div class="eph-num">0931773637</div>
           <div class="eph-label">{{ t('tasksPage.emergency.hotlineLabel') }}</div>
         </div>
         <div class="ep-actions">
@@ -18,15 +17,34 @@
     </div>
 
     <main class="main-content" style="margin-left: 0;" >
+      <!-- Hàng đầu: thẻ cấp độ/XP bên trái, nút check-in + khẩn cấp bên phải. -->
       <div class="page-header">
-        <div>
-          <div class="page-title">{{ t('tasksPage.title') }}</div>
-          <div class="page-subtitle">{{ subtitleText }}</div>
+        <!-- XP Bar -->
+        <div class="paper-card xp-topbar">
+          <template v-if="guestEmergencyMode">
+            <div class="xp-level-badge">!</div>
+            <div class="xp-info">
+              <div class="xi-name">{{ t('tasksPage.xpTopbar.guestTitle') }}</div>
+              <div class="xi-range">{{ t('tasksPage.xpTopbar.guestDesc') }}</div>
+            </div>
+          </template>
+          <template v-else>
+            <div class="xp-level-badge">{{ xpInfo.level }}</div>
+            <div class="xp-info">
+              <div class="xi-name">{{ xpInfo.title }}</div>
+              <div class="xi-range">{{ t('tasksPage.xpTopbar.levelRange', { level: xpInfo.level, min: xpInfo.minXP, max: xpInfo.maxXPLabel }) }}</div>
+            </div>
+            <div class="xp-bar-wrap">
+              <div class="xp-bar-bg">
+                <div class="xp-bar-fill" :style="{ width: xpInfo.percent + '%' }"></div>
+              </div>
+              <div class="xp-bar-label"><span>{{ xpInfo.minXP }} XP</span><span>{{ xpInfo.nextLabel }}</span><span>{{ xpInfo.maxXPLabel }} XP</span></div>
+            </div>
+            <div class="xp-total">{{ xpInfo.xp }} XP</div>
+          </template>
         </div>
-        <div style="display:flex;gap:8px;margin-right:120px;">
-          <router-link v-if="!guestEmergencyMode" to="/mood-checkin" class="btn-outline">{{ t('tasksPage.checkinBtn') }}</router-link>
-          <router-link v-else to="/login" class="btn-outline">{{ t('tasksPage.checkinBtn') }}</router-link>
-          <button class="btn-primary" @click="emergencyOpen = true">{{ t('tasksPage.emergencyBtn') }}</button>
+        <div class="tasks-header-actions">
+          <button class="btn-primary btn-emergency" @click="emergencyOpen = true">{{ t('tasksPage.emergencyBtn') }}</button>
         </div>
       </div>
 
@@ -40,35 +58,11 @@
         </div>
       </div>
 
-      <!-- XP Bar -->
-      <div class="paper-card xp-topbar">
-        <template v-if="guestEmergencyMode">
-          <div class="xp-level-badge">!</div>
-          <div class="xp-info">
-            <div class="xi-name">{{ t('tasksPage.xpTopbar.guestTitle') }}</div>
-            <div class="xi-range">{{ t('tasksPage.xpTopbar.guestDesc') }}</div>
-          </div>
-        </template>
-        <template v-else>
-          <div class="xp-level-badge">{{ xpInfo.level }}</div>
-          <div class="xp-info">
-            <div class="xi-name">{{ xpInfo.title }}</div>
-            <div class="xi-range">{{ t('tasksPage.xpTopbar.levelRange', { level: xpInfo.level, min: xpInfo.minXP, max: xpInfo.maxXPLabel }) }}</div>
-          </div>
-          <div class="xp-bar-wrap">
-            <div class="xp-bar-bg">
-              <div class="xp-bar-fill" :style="{ width: xpInfo.percent + '%' }"></div>
-            </div>
-            <div class="xp-bar-label"><span>{{ xpInfo.minXP }} XP</span><span>{{ xpInfo.nextLabel }}</span><span>{{ xpInfo.maxXPLabel }} XP</span></div>
-          </div>
-          <div class="xp-total">{{ xpInfo.xp }} XP</div>
-        </template>
-      </div>
-
+      <!-- Gợi ý AI + thử thách tuần nằm chung một hàng -->
+      <div class="tasks-top-row">
       <!-- AI Suggestion -->
       <div class="paper-card ai-suggestion">
         <template v-if="guestEmergencyMode">
-          <div class="ai-mascot">🆘</div>
           <div class="ai-text">
             <div class="at-title">{{ t('tasksPage.aiSuggestion.guestTitle') }}</div>
             <div class="at-sub">{{ t('tasksPage.aiSuggestion.guestDesc') }}</div>
@@ -78,7 +72,6 @@
           </div>
         </template>
         <template v-else>
-          <div class="ai-mascot">🐱</div>
           <div class="ai-text">
             <div class="at-title">{{ t('tasksPage.aiSuggestion.title') }}</div>
             <div class="at-sub">{{ suggestionBannerText }}</div>
@@ -93,14 +86,12 @@
       <div class="paper-card weekly-challenge">
         <template v-if="guestEmergencyMode">
           <div class="wc-header">
-            <span style="font-size:1.3rem;">💛</span>
             <div class="wc-title">{{ t('tasksPage.challenge.guestTitle') }}</div>
           </div>
           <div class="wc-desc">{{ t('tasksPage.challenge.guestDesc') }}</div>
         </template>
         <template v-else>
           <div class="wc-header">
-            <span style="font-size:1.3rem;">🏆</span>
             <div class="wc-title">{{ challenge?.title || t('tasksPage.challenge.defaultTitle') }}</div>
             <span class="badge-pill badge-peach" style="margin-left:auto;">{{ t('tasksPage.challenge.daysLeft', { n: challenge?.days_left ?? 0 }) }}</span>
           </div>
@@ -110,6 +101,8 @@
           </div>
           <div class="wc-meta"><span>{{ challenge?.completed ?? 0 }}/{{ challenge?.goal ?? 7 }} {{ t('tasksPage.challenge.tasksMeta') }}</span><span>{{ challenge?.reward_label || t('tasksPage.challenge.defaultReward') }}</span></div>
         </template>
+      </div>
+
       </div>
 
       <!-- Filter Bar -->
@@ -144,7 +137,6 @@
       <div v-else id="taskSections">
         <div v-for="section in groupedSections" :key="section.id" class="task-section">
           <div class="section-header">
-            <div class="sh-icon" :class="section.iconClass">⭐</div>
             <div class="sh-title">{{ t(section.titleKey) }}</div>
             <div class="sh-count">{{ t('tasksPage.sections.count', { n: section.tasks.length }) }}</div>
             <div class="sh-desc">{{ t(section.descKey) }}</div>
@@ -165,7 +157,7 @@
                 <div class="tc-info">
                   <div class="tc-name">{{ task.title || t('tasksPage.card.defaultTitle') }}</div>
                   <div class="tc-meta">
-                    <div class="tc-meta-item">⏱ {{ getTaskDurationLabel(task) }}</div>
+                    <div class="tc-meta-item">{{ getTaskDurationLabel(task) }}</div>
                     <div v-if="recommendedIds.has(task.id)" class="tc-meta-item" style="color:var(--peach-dark);">{{ t('tasksPage.card.suggestedToday') }}</div>
                     <div v-if="task.in_progress && !task.completed" class="tc-meta-item" style="color:var(--blue);">{{ t('tasksPage.card.inProgress') }}</div>
                     <div v-if="task.completed" class="tc-meta-item" style="color:var(--mint-dark);">{{ t('tasksPage.card.completedCount', { n: task.completion_count || 1 }) }}</div>
@@ -297,11 +289,6 @@ const filteredTasks = computed(() => {
 const groupedSections = computed(() => SECTION_CONFIG
   .map((section) => ({ ...section, tasks: filteredTasks.value.filter((t) => getTaskSectionId(t) === section.id) }))
   .filter((section) => section.tasks.length));
-
-const subtitleText = computed(() => {
-  if (guestEmergencyMode.value) return t('tasksPage.subtitleGuest');
-  return t('tasksPage.subtitleUser', { n: allTasks.value.length });
-});
 
 // Đây là bản đồ trạng thái tĩnh (key cố định 'critical'/'high'/...), không phải nội dung
 // AI sinh tự do — dịch được, giống getRiskLabel bên dashboardHelpers.js.
@@ -462,3 +449,103 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped src="../assets/tasks.css"></style>
+<style scoped>
+/* Đồng bộ với trang tổng quan (DashboardView.vue): nền ivory + ảnh lá, khối phẳng bo mềm, chữ
+   Inter/tiêu đề --font-heading, nút phẳng. CHỈ áp cho phần khung trang (header, thanh XP, gợi ý,
+   thử thách tuần, bộ lọc, tiêu đề nhóm, popup) — thẻ nhiệm vụ (.task-card, .tc-*, .paper-card
+   của thẻ) cùng hover/animation của chúng giữ nguyên như tasks.css. Không đặt font ở gốc trang
+   để thẻ nhiệm vụ vẫn kế thừa font cũ. */
+.tasks-page { background: var(--color-canvas); position: relative; isolation: isolate; min-height: 100vh; }
+.tasks-page::before {
+  content: ''; position: fixed; inset: 0; z-index: -1;
+  background: url('/images/dashboard-leaf-light.jpg') center / cover no-repeat;
+  opacity: 0.5; mix-blend-mode: multiply;
+  -webkit-mask-image: linear-gradient(to bottom right, transparent 0%, rgba(0, 0, 0, 0.55) 70%, #000 100%);
+  mask-image: linear-gradient(to bottom right, transparent 0%, rgba(0, 0, 0, 0.395) 70%, #000000 100%);
+  pointer-events: none;
+}
+.main-content { padding: 20px 20px 32px; }
+
+.page-header, .guest-emergency-note, .xp-topbar, .ai-suggestion, .weekly-challenge, .filter-bar, .section-header, .emergency-popup {
+  font-family: var(--font-body); color: var(--color-text); -webkit-font-smoothing: antialiased;
+}
+.page-title { font-family: var(--font-heading); font-size: 26px; font-weight: 800; line-height: 1.25; letter-spacing: -0.01em; color: var(--color-text); }
+.page-subtitle { font-size: 14px; color: var(--color-text-muted); margin-top: 2px; }
+
+/* Nút ở khung trang: phẳng như .pf-btn-* của Dashboard (nút "Bắt đầu" trên thẻ là .tc-start-btn, không đổi). */
+.page-header .btn-primary, .page-header .btn-outline,
+.guest-emergency-note .btn-primary, .ai-actions .btn-primary {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  min-height: 36px; padding: 8px 16px; border: none; border-radius: var(--radius-control); box-shadow: none; transform: none;
+  font-family: var(--font-body); font-size: 14px; font-weight: 600; text-decoration: none; cursor: pointer;
+  transition: background-color var(--duration-fast) var(--ease-standard), filter var(--duration-fast) var(--ease-standard), color var(--duration-fast) var(--ease-standard);
+}
+.page-header .btn-primary, .guest-emergency-note .btn-primary, .ai-actions .btn-primary { background: var(--color-brand); color: var(--color-on-brand); }
+.page-header .btn-primary:hover, .guest-emergency-note .btn-primary:hover, .ai-actions .btn-primary:hover { background: var(--color-brand); color: var(--color-on-brand); filter: brightness(0.92); box-shadow: none; transform: none; }
+/* Nút khẩn cấp dùng màu danger như .pf-btn-danger của Dashboard (an toàn, không dùng xanh thương hiệu). */
+.page-header .btn-emergency, .page-header .btn-emergency:hover { background: var(--color-danger); color: #fff; }
+.page-header .btn-outline { background: var(--color-surface-muted); color: var(--color-text); }
+.page-header .btn-outline:hover { background: var(--color-brand-soft); color: var(--color-brand); }
+.tasks-page :is(.page-header, .ai-actions, .filter-bar) :is(a, button):focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+
+/* Khối trên đầu: thẻ trắng bo mềm, không viền/bóng giấy. */
+.xp-topbar, .ai-suggestion, .weekly-challenge, .guest-emergency-note {
+  background: var(--color-surface); border: none; border-radius: var(--radius-card); box-shadow: none;
+}
+.xp-topbar { padding: 16px 22px; }
+.page-header { flex-wrap: nowrap; gap: 16px; align-items: center; }
+.page-header > .xp-topbar { flex: 1 1 auto; min-width: 0; margin: 0; }
+.tasks-header-actions { display: flex; gap: 8px; margin-right: 120px; flex-shrink: 0; }
+@media (max-width: 900px), (hover: none) and (pointer: coarse) {
+  .page-header { flex-wrap: wrap; }
+  .page-header > .xp-topbar { flex-basis: 100%; }
+  /* Mobile đã có nút SOS cố định trên thanh trên cùng — bỏ nút Khẩn cấp trùng ở đây. */
+  .tasks-header-actions { display: none; }
+  /* tasks.css ẩn nút "Xem gợi ý" trên mobile — hiện lại, nằm dưới đoạn gợi ý, rộng hết thẻ. */
+  .ai-suggestion { flex-wrap: wrap; }
+  .ai-suggestion > .ai-text { flex: 1 1 100%; }
+  .ai-actions { display: flex; flex: 1 1 100%; margin-left: 0; }
+  .ai-actions .btn-primary { width: 100%; }
+}
+.tasks-top-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin-bottom: 20px; }
+.tasks-top-row > .ai-suggestion, .tasks-top-row > .weekly-challenge { margin-bottom: 0; }
+@media (max-width: 900px) {
+  .tasks-top-row { grid-template-columns: 1fr; }
+}
+.xp-level-badge { border: none; box-shadow: none; background: var(--color-brand-soft); color: var(--color-brand); font-family: var(--font-heading); }
+.xp-info .xi-name, .ai-text .at-title, .wc-title { font-family: var(--font-heading); font-size: 16px; font-weight: 800; color: var(--color-text); }
+.xp-info .xi-range, .ai-text .at-sub, .wc-desc, .xp-bar-label, .wc-meta { color: var(--color-text-muted); }
+.ai-text .at-sub, .wc-desc { font-size: 14px; }
+.xp-bar-bg, .wc-progress-bar { border: none; background: var(--color-surface-muted); }
+.xp-bar-fill { background: var(--color-brand); }
+.wc-progress-fill { background: var(--color-terracotta); }
+.xp-total { font-family: var(--font-heading); color: var(--color-brand); }
+.weekly-challenge .badge-pill { border: none; background: var(--color-terracotta-soft); color: var(--color-terracotta); font-size: 12px; }
+
+/* Bộ lọc + ô tìm kiếm. */
+.filter-dropdown-btn {
+  border: none; border-radius: var(--radius-control); background: var(--color-surface);
+  font-family: var(--font-body); font-size: 14px; font-weight: 600; color: var(--color-text); min-height: 36px;
+}
+.filter-dropdown-btn:hover { background: var(--color-brand-soft); color: var(--color-brand); border: none; }
+.filter-dropdown-menu { border: none; border-radius: var(--radius-card); background: var(--color-surface); box-shadow: var(--shadow-soft); }
+.fdm-item { font-family: var(--font-body); font-size: 14px; border-radius: var(--radius-control); color: var(--color-text); }
+.fdm-item:hover { background: var(--color-canvas); }
+.fdm-item.active { background: var(--color-brand-soft); color: var(--color-brand); }
+.search-input {
+  border: 1px solid transparent; border-radius: var(--radius-control); background: var(--color-surface);
+  font-family: var(--font-body); font-size: 14px; color: var(--color-text); min-height: 36px;
+}
+.search-input:focus { border-color: var(--color-brand); }
+
+/* Tiêu đề nhóm nhiệm vụ. */
+.section-header { border-bottom: 1px solid var(--color-surface-muted); }
+.sh-icon { border: none; border-radius: var(--radius-control); }
+.sh-title { font-family: var(--font-heading); font-size: 19px; font-weight: 800; color: var(--color-text); }
+.sh-count { color: var(--color-text-subtle); font-size: 12px; }
+.sh-desc { color: var(--color-text-muted); font-size: 13px; }
+
+/* Popup khẩn cấp giống bản ở trang check-in. */
+.emergency-popup { border: none; border-radius: var(--radius-panel); box-shadow: var(--shadow-soft); }
+.ep-btn { border: none; border-radius: var(--radius-control); box-shadow: none; font-family: var(--font-body); }
+</style>

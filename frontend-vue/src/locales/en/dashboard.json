@@ -61,7 +61,6 @@
     "insight": {
       "analyzing": "PeaceCat AI is analyzing...",
       "adviceFrom": "Advice from PeaceCat AI",
-      "adviceFromAt": "Advice from PeaceCat AI · {label}",
       "defaultTitle": "Insight from your data",
       "waitingData": "Waiting for data",
       "loadingAdvice": "Loading a personalized suggestion for you...",

@@ -200,10 +200,8 @@
           <!-- Level + chuỗi thói quen -->
           <div class="side-sec stack-16">
             <div class="level-row">
-              <div>
-                <div class="level-title">{{ t('dashboard.levels.levelTitle', { level: xpInfo.currentLevel, title: xpInfo.title }) }}</div>
-                <span class="level-sub">{{ t('dashboard.levels.xpEarned', { xp: xpInfo.xp }) }}</span>
-              </div>
+              <div class="level-title">{{ t('dashboard.levels.levelTitle', { level: xpInfo.currentLevel, title: xpInfo.title }) }}</div>
+              <span class="level-sub">{{ t('dashboard.levels.xpEarned', { xp: xpInfo.xp }) }}</span>
             </div>
 
             <div class="xp-block">
@@ -354,7 +352,6 @@ const loading = ref(false);
 const aiTasks = ref(null);
 const insightMode = ref('server'); // 'server' | 'loading' | 'ai'
 const insightNote = ref('');
-const insightGeneratedAt = ref(null);
 const aiRecommendation = ref('');
 const aiExercises = ref([]);
 const currentTime = ref(Date.now());
@@ -415,20 +412,7 @@ const chartLabels = computed(() => (data.value?.mood_chart?.[chartPeriod.value]?
 
 const insightTitle = computed(() => {
   if (insightMode.value === 'loading') return t('dashboard.insight.analyzing');
-  if (insightMode.value === 'ai') {
-    // Ghi rõ lời khuyên được sinh lúc nào, vì giờ nó chỉ đổi khi người dùng bấm nút
-    // (và dữ liệu của họ đã thay đổi) — không còn tự làm mới mỗi ngày.
-    const at = insightGeneratedAt.value;
-    if (!at) return t('dashboard.insight.adviceFrom');
-    try {
-      const label = new Intl.DateTimeFormat(intlLocale.value, {
-        day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Bangkok'
-      }).format(new Date(at));
-      return t('dashboard.insight.adviceFromAt', { label });
-    } catch (_e) {
-      return t('dashboard.insight.adviceFrom');
-    }
-  }
+  if (insightMode.value === 'ai') return t('dashboard.insight.adviceFrom');
   // data.value?.insight?.title là NHẬN XÉT DO BACKEND/AI SINH RA (tiếng Việt) — chưa nằm
   // trong phạm vi đợt dịch tĩnh này, chỉ dịch phần fallback khi backend chưa có insight.
   return data.value?.insight?.title || t('dashboard.insight.defaultTitle');
@@ -616,7 +600,6 @@ function applyInsight(res) {
   aiRecommendation.value = recommendation;
   aiExercises.value = exercises;
   insightMode.value = 'ai';
-  insightGeneratedAt.value = res?.generated_at || null;
   if (exercises.length) aiTasks.value = exercises;
   cacheInsightForTasksPage(recommendation, exercises);
   return true;
@@ -829,7 +812,7 @@ export default { name: 'DashboardView' };
 
 /* ---------- Bố cục 8/4 ---------- */
 .dash-grid { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 24px; align-items: start; }
-.col-left { display: flex; flex-direction: column; gap: 24px; min-width: 0; }
+.col-left { display: flex; flex-direction: column; gap: 52px; min-width: 0; }
 
 /* ---------- 1. Check-in ---------- */
 .checkin-card {
@@ -935,6 +918,7 @@ export default { name: 'DashboardView' };
 /* ---------- Nhiệm vụ hôm nay: thẻ có ảnh, 2 thẻ/hàng ---------- */
 .task-section { padding-top: 8px; }
 .task-section-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 8px; margin-bottom: 14px; }
+.task-section-head .pf-section-title { font-size: 18px; }
 .task-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
 .td-card { display: flex; flex-direction: column; border-radius: var(--radius-card); background: var(--color-canvas); overflow: hidden; text-decoration: none; color: inherit; transition: transform var(--duration-normal) var(--ease-standard), background-color var(--duration-normal) var(--ease-standard); }
 .td-card:hover { transform: translateY(-2px); background: var(--color-surface-muted); }
@@ -962,7 +946,9 @@ export default { name: 'DashboardView' };
 /* ---------- 5. Radar ---------- */
 .radar-grid { display: grid; grid-template-columns: 7fr 5fr; gap: 24px; align-items: center; }
 .radar-svg-wrap { display: flex; justify-content: center; padding: 8px 0; }
-.radar-svg-wrap :deep(.radar-svg) { width: 256px; height: 256px; overflow: visible; }
+/* viewBox rộng hai bên để nhãn trục (tên + điểm) nằm trong khung, co theo bề ngang thẻ — không tràn trên mobile. */
+.radar-svg-wrap { min-width: 0; }
+.radar-svg-wrap :deep(.radar-svg) { display: block; width: 100%; max-width: 440px; height: auto; overflow: hidden; }
 .radar-badges { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px 16px; }
 .radar-badge { display: flex; flex-direction: column; gap: 2px; padding: 10px 12px; border-radius: var(--radius-control); background: var(--color-canvas); }
 .rb-label { font-size: 13px; color: var(--color-text-muted); }
@@ -980,7 +966,7 @@ export default { name: 'DashboardView' };
 .side-title-sm { font-size: 15px; font-weight: 600; color: var(--color-text); }
 .side-meta { font-size: 13px; color: var(--color-text-muted); }
 
-.level-row { display: flex; flex-direction: column; gap: 2px; }
+.level-row { display: flex; flex-direction: row; align-items: baseline; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
 .level-title { font-family: var(--font-heading); font-size: 18px; font-weight: 800; color: var(--color-text); }
 .level-sub { font-size: 13px; color: var(--color-text-muted); }
 .xp-block > * + * { margin-top: 8px; }

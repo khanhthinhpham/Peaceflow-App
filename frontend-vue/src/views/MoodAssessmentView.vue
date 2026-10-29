@@ -21,14 +21,15 @@
     <main class="main-content" style="margin-left: 0;" >
       <!-- ===== TEST SELECTOR VIEW ===== -->
       <div v-show="view === 'selector'">
+        <!-- Hàng trên cùng: lưu ý (rút gọn) bên trái, công tắc chia sẻ bên phải. -->
         <div class="page-header">
-          <div>
-            <div class="page-title">{{ t('moodAssessment.selector.pageTitle') }}</div>
-            <div class="page-subtitle">{{ t('moodAssessment.selector.pageSubtitle') }}</div>
+          <div class="disclaimer-banner">
+            <TestIcon name="alert" class="db-icon" />
+            <div v-html="t('moodAssessment.selector.disclaimerShort')"></div>
           </div>
           <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-right:120px;">
-            <label class="badge-pill" :title="t('moodAssessment.shareWithExperts.desc')" style="cursor:pointer;gap:6px;border:1.5px solid var(--kraft-light);background:var(--warm-white);">
-              <span style="font-size:0.72rem;font-weight:700;">{{ t('moodAssessment.shareWithExperts.title') }}</span>
+            <label class="badge-pill" :title="t('moodAssessment.shareWithExperts.desc')" style="cursor:pointer;gap:6px;background:var(--color-surface-muted);color:var(--color-text);">
+              <span style="font-size:0.72rem;font-weight:700;">{{ plainText(t('moodAssessment.shareWithExperts.title')) }}</span>
               <label class="toggle-switch" style="transform:scale(0.72);margin:-4px -6px;">
                 <input type="checkbox" v-model="shareAssessmentsWithExperts" :disabled="shareAssessmentsSaving" @change="toggleShareAssessmentsWithExperts">
                 <span class="toggle-slider"></span>
@@ -37,14 +38,10 @@
           </div>
         </div>
 
-        <div class="disclaimer-banner">
-          <span class="db-icon">⚠️</span>
-          <div v-html="t('moodAssessment.selector.disclaimer')"></div>
-        </div>
 
         <div class="respondent-card">
           <h3 class="rc-title-toggle" @click="showRespondentHint = !showRespondentHint">
-            {{ t('moodAssessment.selector.respondentTitle') }}
+            {{ plainText(t('moodAssessment.selector.respondentTitle')) }}
             <span class="rc-toggle-arrow" :class="{ open: showRespondentHint }">▾</span>
           </h3>
           <p v-show="showRespondentHint" class="rc-sub" v-html="t('moodAssessment.selector.respondentSub')"></p>
@@ -74,12 +71,15 @@
 
         <div class="catalog-toolbar">
           <div class="catalog-controls">
-            <input
-              type="search"
-              class="catalog-search"
-              v-model="testSearchQuery"
-              :placeholder="t('moodAssessment.selector.searchPlaceholder')"
-            >
+            <label class="catalog-search-wrap">
+              <TestIcon name="search" class="catalog-search-icon" />
+              <input
+                type="search"
+                class="catalog-search"
+                v-model="testSearchQuery"
+                :placeholder="plainText(t('moodAssessment.selector.searchPlaceholder'))"
+              >
+            </label>
             <details class="catalog-filter-dropdown">
               <summary class="btn-outline">
                 {{ t('moodAssessment.selector.filterCategories') }}
@@ -114,11 +114,11 @@
               class="tsc-share-btn"
               :title="t('share.testInviteBtn')"
               @click.stop="shareCardKey = shareCardKey === card.key ? null : card.key"
-            >🔗</button>
+            ><TestIcon name="link" /></button>
             <div v-if="shareCardKey === card.key" class="tsc-share-popover" @click.stop>
               <ShareButtons :url="`${frontendTestUrl(card.key)}`" :text="card.meta.name" />
             </div>
-            <div class="tsc-icon" :style="card.meta.iconStyle">{{ card.meta.icon }}</div>
+            <div class="tsc-icon"><TestIcon :name="card.key" /></div>
             <div class="tsc-name">{{ card.meta.name }}</div>
             <div class="tsc-fullname">{{ card.meta.fullname }}</div>
             <div class="tsc-desc">{{ card.meta.desc }}</div>
@@ -140,7 +140,7 @@
             class="test-select-card sdq"
             @click="router.push('/raven-test')"
           >
-            <div class="tsc-icon" style="background:var(--sky-light);border-color:var(--lavender);">🧩</div>
+            <div class="tsc-icon"><TestIcon name="raven" /></div>
             <div class="tsc-name">{{ t('moodAssessment.selector.ravenName') }}</div>
             <div class="tsc-fullname">{{ t('moodAssessment.selector.ravenFullname') }}</div>
             <div class="tsc-desc">{{ t('moodAssessment.selector.ravenDesc') }}</div>
@@ -157,7 +157,7 @@
             class="test-select-card sdq"
             @click="router.push('/sang-loc-dau-nam')"
           >
-            <div class="tsc-icon" style="background:var(--sky-light);border-color:var(--sky);">🏫</div>
+            <div class="tsc-icon"><TestIcon name="screening" /></div>
             <div class="tsc-name">Phiếu khảo sát/sàng lọc tâm lý đầu năm học</div>
             <div class="tsc-fullname">Phiếu khảo sát/sàng lọc đầu năm (dành cho trường học)</div>
             <div class="tsc-desc">Tìm hiểu nhu cầu hỗ trợ tâm lý – xã hội của học sinh, giúp nhà trường xây dựng kế hoạch tư vấn phù hợp.</div>
@@ -181,7 +181,7 @@
 
         <!-- History -->
         <div class="history-section">
-          <div class="history-title">{{ t('moodAssessment.selector.historyTitle') }}</div>
+          <div class="history-title">{{ plainText(t('moodAssessment.selector.historyTitle')) }}</div>
           <div class="history-grid">
             <div v-if="!history.length" class="paper-card" style="padding:18px;color:var(--text-secondary);line-height:1.6;">
               {{ t('moodAssessment.selector.noHistory') }}
@@ -250,7 +250,7 @@
       <!-- ===== SPECIALIST-ADMINISTERED ASSESSMENT ===== -->
       <section v-if="view === 'guided' && guidedAssessment" class="paper-card" style="max-width:760px;margin:0 auto;padding:28px;">
         <button class="btn-outline" @click="backToSelector">{{ t('moodAssessment.selector.guided.backBtn') }}</button>
-        <div :style="guidedAssessment.iconStyle" style="width:52px;height:52px;border:2px solid;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:1.7rem;margin:20px 0 14px;">{{ guidedAssessment.icon }}</div>
+        <div class="th-icon" style="margin:20px 0 14px;"><TestIcon :name="guidedAssessment.key || ''" /></div>
         <h1 style="font-size:1.35rem;margin:0 0 8px;">{{ guidedAssessment.name }}</h1>
         <p style="margin:0 0 16px;color:var(--text-secondary);font-weight:600;">{{ guidedAssessment.fullname }}</p>
         <p style="line-height:1.65;">{{ guidedAssessment.desc }}</p>
@@ -278,7 +278,7 @@
         <!-- Test Header -->
         <div class="paper-card test-header-card" v-if="currentTest">
           <div class="th-top">
-            <div class="th-icon" :style="{ background: currentTest.iconBg, borderColor: currentTest.iconBorder }">{{ currentTest.icon }}</div>
+            <div class="th-icon"><TestIcon :name="currentTestId || ''" /></div>
             <div class="th-info">
               <div class="th-name">{{ currentTest.name }}</div>
               <div class="th-fullname">{{ currentTest.fullname }}</div>
@@ -315,7 +315,7 @@
                 type="time"
                 class="psqi-input"
                 v-model="textAnswerDraft"
-                style="font-size:1.1rem;padding:10px 14px;border:2px solid var(--kraft-light);border-radius:var(--radius-sm);"
+                style="font-size:1.1rem;padding:10px 14px;border:none;border-radius:var(--radius-control);background:var(--color-canvas);"
               >
               <template v-else>
                 <input
@@ -326,7 +326,7 @@
                   :max="currentQuestion.inputMax"
                   :step="currentQuestion.inputStep || 1"
                   min="0"
-                  style="font-size:1.1rem;padding:10px 14px;border:2px solid var(--kraft-light);border-radius:var(--radius-sm);width:120px;text-align:center;"
+                  style="font-size:1.1rem;padding:10px 14px;border:none;border-radius:var(--radius-control);background:var(--color-canvas);width:120px;text-align:center;"
                 >
                 <span v-if="currentQuestion.inputSuffix" style="color:var(--text-secondary);font-weight:700;">{{ currentQuestion.inputSuffix }}</span>
               </template>
@@ -500,6 +500,9 @@ import { useI18n } from 'vue-i18n';
 import { apiClient, SHARE_BASE_URL } from '../lib/apiClient';
 import { useAuthStore } from '../stores/auth';
 import ShareButtons from '../components/ShareButtons.vue';
+import TestIcon from '../components/TestIcon.vue';
+// Chuỗi i18n có emoji đứng đầu (📝, 🔍, 📅) — bỏ đi khi hiển thị; ô tìm kiếm dùng icon nét đơn sắc.
+const plainText = (str) => String(str).replace(/^[^\p{L}\p{N}]+/u, '');
 import { TESTS as TESTS_VI } from '../lib/assessmentTests';
 import { TESTS as TESTS_EN } from '../lib/assessmentTests.en';
 import { ASSESSMENT_META as ASSESSMENT_META_VI, ASSESSMENT_CATEGORIES as ASSESSMENT_CATEGORIES_VI } from '../lib/assessmentMeta';
@@ -1412,3 +1415,148 @@ onMounted(() => {
 </script>
 
 <style scoped src="../assets/assessment.css"></style>
+<style scoped>
+/* Đồng bộ với trang tổng quan (DashboardView.vue): nền ivory + ảnh lá, thẻ trắng bo mềm không
+   viền/bóng giấy, chữ Inter, tiêu đề --font-heading, nút phẳng. Đặt SAU assessment.css để
+   thắng thứ tự nguồn; assessment.css còn dùng chung cho ScreeningFormView/SupportRegistrationView
+   nên không sửa thẳng file đó. */
+.assessment-page {
+  font-family: var(--font-body); font-size: 15px; line-height: 1.55; color: var(--color-text);
+  background: var(--color-canvas); -webkit-font-smoothing: antialiased; position: relative; isolation: isolate; min-height: 100vh;
+}
+.assessment-page::before {
+  content: ''; position: fixed; inset: 0; z-index: -1;
+  background: url('/images/dashboard-leaf-light.jpg') center / cover no-repeat;
+  opacity: 0.5; mix-blend-mode: multiply;
+  -webkit-mask-image: linear-gradient(to bottom right, transparent 0%, rgba(0, 0, 0, 0.55) 70%, #000 100%);
+  mask-image: linear-gradient(to bottom right, transparent 0%, rgba(0, 0, 0, 0.395) 70%, #000000 100%);
+  pointer-events: none;
+}
+.main-content { padding: 20px 20px 32px; }
+.assessment-page :is(input, textarea, select, button) { font-family: inherit; }
+
+.page-header { margin-bottom: 16px; justify-content: space-between; flex-wrap: nowrap; gap: 16px; }
+.page-header > .disclaimer-banner { flex: 1 1 auto; min-width: 0; margin: 0; padding: 10px 16px; align-items: center; }
+.page-header > div:last-child { flex-shrink: 0; }
+.disclaimer-banner .db-icon { width: 20px; height: 20px; color: var(--color-terracotta); flex-shrink: 0; }
+@media (max-width: 700px) {
+  .page-header { flex-wrap: wrap; }
+}
+.page-title { font-family: var(--font-heading); font-size: 26px; font-weight: 800; line-height: 1.25; letter-spacing: -0.01em; color: var(--color-text); }
+.page-subtitle { font-size: 14px; color: var(--color-text-muted); margin-top: 2px; }
+
+/* Thẻ: nền trắng, bo --radius-card, không viền/bóng giấy. */
+.paper-card, .test-select-card, .respondent-card, .history-card, .review-modal {
+  background: var(--color-surface); border: none; border-radius: var(--radius-card); box-shadow: none;
+}
+.test-select-card { padding: 22px; transition: transform var(--duration-normal) var(--ease-standard), background-color var(--duration-normal) var(--ease-standard); }
+.test-select-card::before { display: none; }
+.test-select-card:hover, .history-card:hover { box-shadow: none; transform: translateY(-2px); background: color-mix(in srgb, var(--color-brand-soft) 35%, var(--color-surface)); }
+/* Icon bài test đơn sắc: không khung nền, nét xanh thương hiệu cho mọi bài. */
+.tsc-icon, .th-icon { border: none !important; border-radius: 0; background: none !important; color: var(--color-brand); width: auto; height: auto; justify-content: flex-start; }
+.tsc-icon :deep(.test-icon) { width: 40px; height: 40px; stroke-width: 1.6; }
+/* Đầu thẻ nằm ngang: icon bên trái, tên + tên đầy đủ xếp bên phải. */
+.test-select-card { display: grid; grid-template-columns: auto minmax(0, 1fr); column-gap: 14px; align-content: start; }
+.test-select-card > * { grid-column: 1 / -1; }
+.test-select-card > .tsc-icon { grid-column: 1; grid-row: 1 / span 2; align-self: center; margin: 0 0 12px; }
+.test-select-card > .tsc-name { grid-column: 2; grid-row: 1; align-self: end; margin: 0; padding-right: 28px; }
+.test-select-card > .tsc-fullname { grid-column: 2; grid-row: 2; align-self: start; margin: 0 0 12px; }
+/* Mobile (lưới 2 cột hẹp): xếp dọc, căn giữa — icon, tên viết tắt, tên đầy đủ; nút chia sẻ ở góc phải. */
+@media (max-width: 600px) {
+  .test-select-card { display: flex; flex-direction: column; align-items: center; gap: 0; padding: 16px 12px 14px; text-align: center; }
+  .test-select-card > * { align-self: center; }
+  .test-select-card > .tsc-icon, .test-select-card > .tsc-name, .test-select-card > .tsc-fullname { align-self: center; }
+  .test-select-card > .tsc-icon { margin: 4px 0 10px; justify-content: center; }
+  .tsc-icon :deep(.test-icon) { width: 30px; height: 30px; }
+  .test-select-card > .tsc-name { padding-right: 0; margin: 0 0 2px; font-size: 15px; line-height: 1.3; }
+  .test-select-card > .tsc-fullname { margin: 0; font-size: 12px; line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+  .tsc-share-btn { top: 10px; right: 10px; width: 30px; height: 30px; }
+}
+.th-icon :deep(.test-icon) { width: 44px; height: 44px; stroke-width: 1.6; }
+.tsc-share-btn { color: var(--color-text-muted); }
+.catalog-search-wrap { position: relative; flex: 1 1 auto; display: flex; min-width: 0; }
+.catalog-search-wrap .catalog-search { flex: 1; width: 100%; padding-left: 40px; }
+.catalog-search-wrap .catalog-search-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); width: 18px; height: 18px; color: var(--color-text-subtle); pointer-events: none; }
+.tsc-share-btn :deep(.test-icon) { width: 15px; height: 15px; }
+.tsc-share-btn:hover { background: var(--color-brand-soft); color: var(--color-brand); }
+.tsc-name { font-family: var(--font-heading); font-size: 17px; font-weight: 800; color: var(--color-text); }
+.tsc-fullname, .tsc-last, .hc-test, .hc-date { color: var(--color-text-subtle); font-size: 12px; }
+.tsc-desc { font-size: 13.5px; color: var(--color-text-muted); }
+.tsc-share-btn { border: none; background: var(--color-surface-muted); }
+.tsc-share-popover { border: none; background: var(--color-surface); border-radius: var(--radius-card); box-shadow: var(--shadow-soft); }
+
+/* Nút phẳng như .pf-btn-* của Dashboard. */
+.btn-primary, .btn-outline {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  min-height: 36px; padding: 8px 16px; border: none; border-radius: var(--radius-control); box-shadow: none;
+  font-family: inherit; font-size: 14px; font-weight: 600; text-decoration: none; cursor: pointer; transform: none;
+  transition: background-color var(--duration-fast) var(--ease-standard), filter var(--duration-fast) var(--ease-standard), color var(--duration-fast) var(--ease-standard);
+}
+.btn-primary { background: var(--color-brand); color: var(--color-on-brand); }
+.btn-primary:hover { background: var(--color-brand); color: var(--color-on-brand); filter: brightness(0.92); box-shadow: none; transform: none; }
+.btn-outline { background: var(--color-surface-muted); color: var(--color-text); }
+.btn-outline:hover { background: var(--color-brand-soft); color: var(--color-brand); }
+.btn-primary:disabled, .btn-outline:disabled { opacity: 0.5; cursor: not-allowed; }
+.assessment-page :is(a, button, summary):focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+
+/* Nhãn: nền nhạt, không viền. */
+.badge-pill { border: none !important; font-size: 12px; }
+.badge-mint { background: var(--color-brand-soft); color: var(--color-brand); }
+.badge-peach { background: var(--color-terracotta-soft); color: var(--color-terracotta); }
+
+.disclaimer-banner { margin: 0 130px 12px 0; border: none; border-radius: var(--radius-card); background: var(--color-terracotta-soft); color: var(--color-text); font-size: 13.5px; }
+
+.respondent-card { padding: 20px 24px; }
+.respondent-card h3 { font-family: var(--font-heading); font-size: 17px; font-weight: 800; }
+.rp-field label { font-size: 13px; font-weight: 600; color: var(--color-text-muted); }
+.rp-field input, .rp-field textarea, .catalog-search {
+  border: 1px solid transparent; border-radius: var(--radius-control); background: var(--color-canvas);
+  color: var(--color-text); font-size: 14px; transition: border-color var(--duration-fast) var(--ease-standard), background-color var(--duration-fast) var(--ease-standard);
+}
+.rp-field input:focus, .rp-field textarea:focus, .catalog-search:focus { outline: none; border-color: var(--color-brand); background: var(--color-surface); box-shadow: none; }
+.catalog-search { background: var(--color-surface); }
+.catalog-filter-menu { border: none; border-radius: var(--radius-card); box-shadow: var(--shadow-soft); }
+.catalog-filter-option:hover { background: var(--color-canvas); }
+.catalog-filter-all { border-bottom-color: var(--color-surface-muted); }
+.catalog-filter-count { background: var(--color-brand); }
+
+.history-title, .ri-title, .rc-title { font-family: var(--font-heading); font-size: 19px; font-weight: 800; color: var(--color-text); }
+.history-card { padding: 16px 18px; transition: transform var(--duration-normal) var(--ease-standard), background-color var(--duration-normal) var(--ease-standard); }
+/* Mobile: lịch sử xếp 2 thẻ một hàng, thẻ gọn lại cho vừa cột hẹp. */
+@media (max-width: 600px) {
+  .history-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .history-card { padding: 12px; min-width: 0; }
+  .hc-test { font-size: 13px; }
+  .hc-date { font-size: 11.5px; }
+  .hc-scores { gap: 4px; flex-wrap: wrap; }
+  .hc-score-item { font-size: 11px; padding: 2px 6px; }
+}
+
+/* Làm bài: thẻ đầu + câu hỏi phẳng, lựa chọn dạng ô mềm. */
+.test-header-card, .result-header { background: linear-gradient(135deg, var(--color-brand-soft), var(--color-surface)); }
+.th-info .th-name, .rh-title { font-family: var(--font-heading); font-weight: 800; }
+.th-progress-bar { border: none; background: var(--color-surface); }
+.th-progress-fill { background: var(--color-brand); }
+.q-text { font-family: var(--font-heading); }
+.likert-option {
+  border: 1.5px solid transparent; border-radius: var(--radius-card); background: var(--color-canvas); box-shadow: none;
+  transition: background-color var(--duration-fast) var(--ease-standard), border-color var(--duration-fast) var(--ease-standard);
+}
+@media (hover: hover) and (pointer: fine) {
+  .likert-option:hover { border-color: transparent; background: var(--color-brand-soft); box-shadow: none; transform: none; }
+}
+.likert-option.selected { border-color: var(--color-brand); background: var(--color-brand-soft); box-shadow: none; transform: none; }
+.likert-option.selected .lo-label { color: var(--color-brand); }
+.lo-label { font-size: 12.5px; color: var(--color-text-muted); }
+
+/* Kết quả */
+.result-share-row { border-top: 1px solid var(--color-surface-muted); }
+.rs-card { border: none; border-radius: var(--radius-card); }
+.expert-recommend { border: none; border-radius: var(--radius-card); background: var(--color-surface); }
+.result-disclaimer { border: none !important; border-radius: var(--radius-card) !important; background: var(--color-terracotta-soft) !important; color: var(--color-text-muted) !important; }
+.review-close { border: none; background: var(--color-surface-muted); }
+
+/* Popup khẩn cấp giống bản ở trang check-in. */
+.emergency-popup { border: none; border-radius: var(--radius-panel); box-shadow: var(--shadow-soft); }
+.ep-btn { border: none; border-radius: var(--radius-control); box-shadow: none; }
+</style>

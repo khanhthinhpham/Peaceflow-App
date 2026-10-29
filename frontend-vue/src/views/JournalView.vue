@@ -1,6 +1,6 @@
 <template>
   <div class="journal-page">
-    <div class="xp-toast" :class="{ show: toastVisible }">⭐ <span>{{ toastText }}</span></div>
+    <div class="xp-toast" :class="{ show: toastVisible }"><span>{{ toastText }}</span></div>
 
     <!-- Entry Detail Modal -->
     <div class="modal-overlay" :class="{ show: activeEntry }" @click="closeEntryModal($event)">
@@ -23,22 +23,6 @@
     </div>
 
     <main class="main-content" style="margin-left: 0;" >
-      <div class="breadcrumb">
-        <router-link to="/dashboard">🏡 {{ t('journal.breadcrumbDashboard') }}</router-link><span>›</span>
-        <span>📝 {{ t('journal.breadcrumbJournal') }}</span>
-      </div>
-
-      <div class="page-header">
-        <div>
-          <div class="page-title">{{ t('journal.title') }}</div>
-          <div class="page-subtitle">{{ t('journal.subtitle') }}</div>
-        </div>
-        <div style="display:flex;gap:8px;">
-          <button class="btn-outline" @click="showHistory">{{ t('journal.historyBtn') }}</button>
-          <button class="btn-primary" @click="showEditor">{{ t('journal.newBtn') }}</button>
-        </div>
-      </div>
-
       <div class="view-tabs">
         <div class="view-tab" :class="{ active: view === 'editor' }" @click="showEditor">{{ t('journal.tabEditor') }}</div>
         <div class="view-tab" :class="{ active: view === 'history' }" @click="showHistory">{{ t('journal.tabHistory') }}</div>
@@ -67,7 +51,6 @@
                 </div>
                 <div class="etb-right">
                   <div class="privacy-toggle" @click="togglePrivacy">
-                    <span class="privacy-icon">{{ isPrivate ? '🔒' : '🔓' }}</span>
                     <span>{{ isPrivate ? t('journal.editor.private') : t('journal.editor.public') }}</span>
                   </div>
                 </div>
@@ -131,7 +114,6 @@
             <!-- AI Analysis Card -->
             <div class="paper-card ai-analysis-card" :class="{ show: analysis }">
               <div class="aac-header">
-                <span class="aac-mascot">🐱</span>
                 <div>
                   <div class="aac-title">{{ t('journal.ai.analyzingTitle') }}</div>
                   <div style="font-size:0.72rem;color:var(--text-secondary);">{{ t('journal.ai.analyzingSub') }}</div>
@@ -246,7 +228,7 @@
             <div class="sc-title">{{ t('journal.sidebar.statsTitle') }}</div>
             <div class="stats-grid">
               <div class="stat-item"><div class="si-num">{{ stats.totalEntries }}</div><div class="si-label">{{ t('journal.sidebar.statEntries') }}</div></div>
-              <div class="stat-item"><div class="si-num">{{ stats.streak }} 🔥</div><div class="si-label">{{ t('journal.sidebar.statStreak') }}</div></div>
+              <div class="stat-item"><div class="si-num">{{ stats.streak }}</div><div class="si-label">{{ t('journal.sidebar.statStreak') }}</div></div>
               <div class="stat-item"><div class="si-num">{{ stats.totalWords.toLocaleString(intlLocale) }}</div><div class="si-label">{{ t('journal.sidebar.statTotalWords') }}</div></div>
               <div class="stat-item"><div class="si-num">{{ stats.positiveRate }}%</div><div class="si-label">{{ t('journal.sidebar.statPositive') }}</div></div>
             </div>
@@ -278,14 +260,13 @@
 
           <div class="paper-card" style="padding:14px;margin-bottom:14px;">
             <div style="display:flex;gap:8px;align-items:flex-start;">
-              <span style="font-size:1.2rem;">🐱</span>
               <div style="font-size:0.78rem;color:var(--text-secondary);line-height:1.5;">{{ t('journal.sidebar.tipText') }}</div>
             </div>
           </div>
 
           <div class="paper-card" style="padding:14px;">
             <div style="font-size:0.72rem;color:var(--text-secondary);line-height:1.6;">
-              🔒 <strong>{{ t('journal.sidebar.securityTitle') }}</strong> {{ t('journal.sidebar.securityText') }}
+              <strong>{{ t('journal.sidebar.securityTitle') }}</strong> {{ t('journal.sidebar.securityText') }}
             </div>
           </div>
         </div>
@@ -439,7 +420,7 @@ function getEntryPresentation(entry) {
   };
 }
 
-const editorDateLabel = computed(() => `📅 ${new Date().toLocaleDateString(intlLocale.value, { weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric' })}`);
+const editorDateLabel = computed(() => `${new Date().toLocaleDateString(intlLocale.value, { weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric' })}`);
 const wordCount = computed(() => countWords(content.value));
 
 function selectMood(mood) {
@@ -818,3 +799,128 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped src="../assets/journal.css"></style>
+<style scoped>
+/* Đồng bộ với trang tổng quan (DashboardView.vue): nền ivory + ảnh lá, thẻ trắng bo mềm không
+   viền/bóng giấy, chữ Inter + tiêu đề --font-heading, nút/tab phẳng, đường kẻ mảnh liền nét
+   thay cho nét gạch kraft. Đặt SAU journal.css để thắng thứ tự nguồn. */
+.journal-page {
+  font-family: var(--font-body); font-size: 15px; line-height: 1.55; color: var(--color-text);
+  background: var(--color-canvas); -webkit-font-smoothing: antialiased; position: relative; isolation: isolate; min-height: 100vh;
+}
+.journal-page::before {
+  content: ''; position: fixed; inset: 0; z-index: -1;
+  background: url('/images/dashboard-leaf-light.jpg') center / cover no-repeat;
+  opacity: 0.5; mix-blend-mode: multiply;
+  -webkit-mask-image: linear-gradient(to bottom right, transparent 0%, rgba(0, 0, 0, 0.55) 70%, #000 100%);
+  mask-image: linear-gradient(to bottom right, transparent 0%, rgba(0, 0, 0, 0.395) 70%, #000000 100%);
+  pointer-events: none;
+}
+.main-content { padding: 20px 20px 32px; }
+.journal-page :is(input, textarea, button) { font-family: inherit; }
+
+.breadcrumb, .breadcrumb a { color: var(--color-text-subtle); font-size: 13px; }
+.breadcrumb a:hover { color: var(--color-brand); }
+.breadcrumb span { color: var(--color-text-muted); }
+.page-title { font-family: var(--font-heading); font-size: 26px; font-weight: 800; line-height: 1.25; letter-spacing: -0.01em; color: var(--color-text); }
+.page-subtitle { font-size: 14px; color: var(--color-text-muted); margin-top: 2px; }
+
+/* Nút phẳng như .pf-btn-* của Dashboard. */
+.btn-primary, .btn-outline {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  min-height: 36px; padding: 8px 16px; border: none; border-radius: var(--radius-control); box-shadow: none; transform: none;
+  font-family: inherit; font-size: 14px; font-weight: 600; text-decoration: none; cursor: pointer;
+  transition: background-color var(--duration-fast) var(--ease-standard), filter var(--duration-fast) var(--ease-standard), color var(--duration-fast) var(--ease-standard);
+}
+.btn-primary { background: var(--color-brand); color: var(--color-on-brand); }
+.btn-primary:hover { background: var(--color-brand); color: var(--color-on-brand); filter: brightness(0.92); box-shadow: none; transform: none; }
+.btn-outline { background: var(--color-surface-muted); color: var(--color-text); }
+.btn-outline:hover { background: var(--color-brand-soft); color: var(--color-brand); }
+.journal-page :is(a, button):focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+
+/* Tab Viết / Lịch sử: thanh nền nhạt, tab đang chọn là ô trắng. */
+.view-tabs { border: none; border-radius: var(--radius-control); background: var(--color-surface-muted); padding: 4px; }
+.view-tab { font-family: inherit; font-size: 14px; font-weight: 600; color: var(--color-text-muted); border-radius: calc(var(--radius-control) - 2px); }
+.view-tab.active { background: var(--color-surface); color: var(--color-brand); }
+
+/* Thẻ: nền trắng, bo --radius-card, không viền/bóng giấy. */
+.paper-card, .editor-card, .mood-trend-card, .entry-modal {
+  background: var(--color-surface); border: none; border-radius: var(--radius-card); box-shadow: none;
+}
+.editor-card { overflow: hidden; }
+/* Thẻ xu hướng tâm trạng bản gốc tràn lề -16px hai bên — đưa về thẳng hàng với các thẻ khác. */
+.mood-trend-card { margin-left: 0; margin-right: 0; padding: 16px 18px; }
+.mtc-bar { border-radius: 6px 6px 2px 2px; }
+.sc-title, .mt-title, .pc-title, .aac-title, .mc-month { font-family: var(--font-heading); font-size: 16px; font-weight: 800; color: var(--color-text); }
+
+/* Trình soạn: bỏ nền gradient + nét gạch, dùng đường kẻ mảnh. */
+.editor-top-bar { background: var(--color-surface); border-bottom: 1px solid var(--color-surface-muted); }
+.etb-date { font-family: var(--font-heading); color: var(--color-text); }
+.mood-btn { border: 1.5px solid transparent; background: var(--color-canvas); }
+.mood-btn.selected { border-color: var(--color-brand); background: var(--color-brand-soft); }
+.privacy-toggle { color: var(--color-text-muted); }
+.prompt-bar { background: var(--color-canvas); border-bottom: 1px solid var(--color-surface-muted); }
+.pb-label { color: var(--color-terracotta); }
+.pb-prompt { font-family: inherit; font-style: italic; color: var(--color-text-muted); }
+.pb-refresh { border: none; background: var(--color-surface-muted); }
+.pb-refresh:hover { background: var(--color-brand-soft); }
+.editor-toolbar { border-bottom: 1px solid var(--color-surface-muted); }
+.tb-btn { border-color: transparent; border-radius: var(--radius-control); color: var(--color-text-muted); }
+.tb-btn:hover { background: var(--color-brand-soft); border-color: transparent; color: var(--color-brand); }
+.tb-sep { background: var(--color-surface-muted); }
+.journal-title-input { font-family: var(--font-heading); font-weight: 800; color: var(--color-text); }
+.journal-textarea { font-family: inherit; color: var(--color-text); line-height: 1.7; }
+.journal-title-input::placeholder, .journal-textarea::placeholder { color: var(--color-text-subtle); }
+.editor-bottom { border-top: 1px solid var(--color-surface-muted); }
+.eb-wordcount { color: var(--color-text-subtle); }
+.tag-chip { border: none; border-radius: 999px; background: var(--color-canvas); color: var(--color-text); }
+.tag-chip:hover { background: var(--color-surface-muted); border: none; }
+.tag-chip.selected { background: var(--color-brand-soft); color: var(--color-brand); border: none; }
+
+/* Phân tích AI. */
+.ai-analysis-card { background: var(--color-surface); }
+.sb-label { color: var(--color-text-muted); }
+.keyword-tag { border: none !important; }
+.aac-insight { background: var(--color-canvas); border-radius: var(--radius-control); color: var(--color-text-muted); }
+.aac-suggestion { background: var(--color-canvas); border: none; border-radius: var(--radius-control); }
+.as-title { color: var(--color-text); }
+
+/* Lịch sử: bộ lọc, tìm kiếm, thẻ bài viết (giữ vạch màu cảm xúc bên trái). */
+.hf-btn { border: none; border-radius: 999px; background: var(--color-surface); font-family: inherit; color: var(--color-text-muted); }
+.hf-btn:hover { background: var(--color-surface-muted); border: none; }
+.hf-btn.active { background: var(--color-brand-soft); color: var(--color-brand); border: none; }
+.search-input { border: 1px solid transparent; border-radius: var(--radius-control); background: var(--color-surface); font-family: inherit; color: var(--color-text); }
+.search-input:focus { border-color: var(--color-brand); }
+.entry-card { border: none; border-left: 4px solid var(--color-surface-muted); }
+.entry-card:hover { box-shadow: none; background: color-mix(in srgb, var(--color-brand-soft) 35%, var(--color-surface)); }
+.ec-title { font-family: var(--font-heading); }
+.ec-date, .ec-wordcount { color: var(--color-text-subtle); }
+.ec-preview { font-family: inherit; color: var(--color-text-muted); }
+.ec-tag { border: none; background: var(--color-canvas); color: var(--color-text-muted); }
+.ec-share-btn { border: none; background: var(--color-surface-muted); }
+.ec-share-btn.is-shared { background: var(--color-brand-soft); }
+
+/* Cột phải: lịch, thống kê, xu hướng, gợi ý viết. */
+.mc-nav { color: var(--color-text-muted); }
+.mc-day-h { color: var(--color-text-subtle); }
+.mc-day { border-radius: var(--radius-control); }
+.mc-day:hover:not(.empty):not(.disabled) { background: var(--color-brand-soft); }
+.mc-day.today { background: var(--color-brand-soft); border: none; color: var(--color-brand); font-weight: 700; }
+.mc-day.has-entry::after { background: var(--color-brand); }
+.stat-item { background: var(--color-canvas); border: none; border-radius: var(--radius-control); }
+.si-num { font-family: var(--font-heading); color: var(--color-brand); }
+.si-label, .md-label { color: var(--color-text-muted); }
+.prompt-item { background: var(--color-canvas); border: none; border-radius: var(--radius-control); font-family: inherit; color: var(--color-text); }
+.prompt-item:hover { background: var(--color-brand-soft); color: var(--color-brand); border: none; }
+
+/* Modal xem bài + thông báo XP. */
+.entry-modal { border-radius: var(--radius-panel); }
+.em-header { border-bottom: 1px solid var(--color-surface-muted); }
+.em-close { border: none; background: var(--color-surface-muted); }
+.em-close:hover { background: var(--color-brand-soft); }
+.em-title { font-family: var(--font-heading); font-weight: 800; }
+.em-meta { color: var(--color-text-subtle); }
+.em-content { font-family: inherit; color: var(--color-text); line-height: 1.7; }
+.em-ai-section { background: var(--color-canvas); border: none; border-radius: var(--radius-card); }
+.em-ai-text { color: var(--color-text-muted); }
+.xp-toast { border: none; border-radius: var(--radius-control); background: var(--color-surface); box-shadow: var(--shadow-soft); font-family: var(--font-body); }
+</style>

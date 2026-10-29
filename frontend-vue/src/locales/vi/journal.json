@@ -6,18 +6,18 @@
     },
     "breadcrumbDashboard": "Tổng quan",
     "breadcrumbJournal": "Nhật ký cảm xúc",
-    "title": "📝 Nhật Ký Cảm Xúc",
+    "title": "Nhật Ký Cảm Xúc",
     "subtitle": "Không gian riêng tư — mã hóa AES-256 — chỉ bạn mới có thể đọc",
-    "historyBtn": "📚 Xem lại",
-    "newBtn": "✏️ Viết mới",
-    "tabEditor": "✏️ Viết nhật ký",
-    "tabHistory": "📚 Thư viện",
+    "historyBtn": "Xem lại",
+    "newBtn": "Viết mới",
+    "tabEditor": "Viết nhật ký",
+    "tabHistory": "Thư viện",
     "untitled": "Nhật ký không tiêu đề",
     "editor": {
       "todayMoodLabel": "Cảm xúc hôm nay:",
       "private": "Riêng tư",
       "public": "Công khai",
-      "promptLabel": "💡 Gợi ý:",
+      "promptLabel": "Gợi ý:",
       "refreshPromptTitle": "Gợi ý khác",
       "bold": "Đậm",
       "italic": "Nghiêng",
@@ -31,11 +31,11 @@
       "fontBigger": "Chữ lớn hơn",
       "fontSmaller": "Chữ nhỏ hơn",
       "titlePlaceholder": "Tiêu đề bài viết... (tùy chọn)",
-      "contentPlaceholder": "Bắt đầu viết... Đây là không gian hoàn toàn của bạn. Không có gì là đúng hay sai. Hãy để cảm xúc chảy tự nhiên qua những con chữ... 🌿",
+      "contentPlaceholder": "Bắt đầu viết... Đây là không gian hoàn toàn của bạn. Không có gì là đúng hay sai. Hãy để cảm xúc chảy tự nhiên qua những con chữ...",
       "wordCountLabel": "{n} từ · {m} ký tự",
       "tagsLabel": "Tags:",
-      "clearBtn": "🗑️ Xóa",
-      "saveBtn": "💾 Lưu nhật ký (+15 XP)"
+      "clearBtn": "Xóa",
+      "saveBtn": "Lưu nhật ký (+15 XP)"
     },
     "ai": {
       "analyzingTitle": "PeaceCat đang phân tích cảm xúc của bạn...",
@@ -43,9 +43,9 @@
       "positive": "Tích cực",
       "stress": "Căng thẳng",
       "clarity": "Rõ ràng",
-      "keywordsLabel": "🏷️ Từ khóa cảm xúc phát hiện:",
+      "keywordsLabel": "Từ khóa cảm xúc phát hiện:",
       "listening": "đang lắng nghe",
-      "suggestionTitle": "💡 PeaceCat gợi ý bài tập phù hợp:",
+      "suggestionTitle": "PeaceCat gợi ý bài tập phù hợp:",
       "insightPositive": "Bài viết đang nghiêng về phía nhẹ hơn và có nhiều tín hiệu tích cực. Bạn có vẻ đang xử lý cảm xúc theo hướng rõ ràng hơn.",
       "insightNegative": "Nội dung cho thấy bạn đang mang nhiều áp lực hoặc cảm xúc nặng. Việc viết ra lúc này rất có giá trị để giảm tải nhận thức.",
       "insightNeutral": "Bài viết đang ở trạng thái trung tính. Hãy tiếp tục viết sâu hơn về điều khiến bạn chưa thật sự yên tâm hoặc điều đang nâng đỡ bạn.",
@@ -55,19 +55,19 @@
     },
     "history": {
       "noEntries": "Chưa có bài nhật ký phù hợp với bộ lọc hiện tại.",
-      "searchPlaceholder": "🔍 Tìm kiếm trong nhật ký...",
+      "searchPlaceholder": "Tìm kiếm trong nhật ký...",
       "wordsUnit": "từ"
     },
     "filters": {
-      "all": "📚 Tất cả",
-      "happy": "😊 Vui vẻ",
-      "calm": "😌 Thoải mái",
-      "sad": "😢 Buồn",
-      "anxious": "😟 Lo lắng",
-      "grateful": "🙏 Biết ơn"
+      "all": "Tất cả",
+      "happy": "Vui vẻ",
+      "calm": "Thoải mái",
+      "sad": "Buồn",
+      "anxious": "Lo lắng",
+      "grateful": "Biết ơn"
     },
     "modal": {
-      "aiAnalysisTitle": "🐱 Phân tích của PeaceCat"
+      "aiAnalysisTitle": "Phân tích của PeaceCat"
     },
     "sentiment": {
       "positive": "Tích cực",
@@ -92,15 +92,15 @@
     },
     "sidebar": {
       "calendarLegend": "● Có bài viết",
-      "statsTitle": "📊 Thống kê nhật ký",
+      "statsTitle": "Thống kê nhật ký",
       "statEntries": "Bài viết",
       "statStreak": "Streak viết",
       "statTotalWords": "Tổng từ",
       "statPositive": "Tích cực",
-      "moodTrendTitle": "📈 Tâm trạng 7 ngày",
+      "moodTrendTitle": "Tâm trạng 7 ngày",
       "noMoodData": "Chưa có đủ dữ liệu mood 7 ngày.",
-      "promptsTitle": "💡 Gợi ý viết hôm nay",
-      "tipText": "Viết nhật ký đều đặn giúp giảm lo âu 25% và tăng khả năng xử lý cảm xúc. Chỉ cần 10 phút mỗi ngày! 💚",
+      "promptsTitle": "Gợi ý viết hôm nay",
+      "tipText": "Viết nhật ký đều đặn giúp giảm lo âu 25% và tăng khả năng xử lý cảm xúc. Chỉ cần 10 phút mỗi ngày!",
       "securityTitle": "Bảo mật tuyệt đối:",
       "securityText": "Nhật ký của bạn được mã hóa AES-256. Ngay cả đội ngũ PeaceFlow cũng không thể đọc. Bạn có thể xóa toàn bộ bất kỳ lúc nào."
     },

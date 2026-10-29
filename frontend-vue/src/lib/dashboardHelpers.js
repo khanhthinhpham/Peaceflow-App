@@ -216,7 +216,7 @@ export function buildRadarSvg(metrics) {
   }).join('');
 
   return `
-    <svg class="radar-svg" viewBox="-125 -125 250 250" overflow="visible">
+    <svg class="radar-svg" viewBox="-230 -135 460 270">
       ${grid}
       ${axes}
       <polygon points="${polygonPoints}" style="fill:var(--color-sage);stroke:var(--color-brand)" fill-opacity="0.35" stroke-width="2" />

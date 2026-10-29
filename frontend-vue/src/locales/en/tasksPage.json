@@ -1,10 +1,10 @@
 {
   "tasksPage": {
-    "title": "🎮 Exercises",
+    "title": "Exercises",
     "subtitleGuest": "Only emergency exercises are shown for guests who aren't signed in.",
     "subtitleUser": "You have {n} exercises available from suggestions and the exercise library.",
-    "checkinBtn": "💭 Mood check-in",
-    "emergencyBtn": "🆘 Emergency",
+    "checkinBtn": "Mood check-in",
+    "emergencyBtn": "Emergency",
     "guestNote": {
       "title": "You're in emergency support mode",
       "text": "PeaceFlow currently only opens emergency exercises to help you stabilize first. Sign in to see the full exercise library, journal, and personalized suggestions.",
@@ -18,7 +18,7 @@
     "aiSuggestion": {
       "guestTitle": "Start with a short exercise",
       "guestDesc": "If you're feeling overwhelmed, pick a breathing or emergency meditation exercise below. Sign in when you need more — it opens PeaceFlow's full exercise library.",
-      "title": "🤖 PeaceCat's suggestion for today",
+      "title": "PeaceCat's suggestion for today",
       "viewBtn": "View suggestion →",
       "aiText": "PeaceCat (AI) suggests {n} exercises based on your recent mood: {names}.",
       "moodRecent": "Latest mood {score}/10",
@@ -42,13 +42,13 @@
       "tasksMeta": "exercises"
     },
     "filters": {
-      "all": "🌿 All",
-      "emergency": "🔴 Emergency",
-      "easy": "🟢 Easy",
-      "medium": "🟡 Medium",
-      "hard": "🟠 Advanced",
-      "completed": "✅ Completed",
-      "searchPlaceholder": "🔍 Search exercises..."
+      "all": "All",
+      "emergency": "Emergency",
+      "easy": "Easy",
+      "medium": "Medium",
+      "hard": "Advanced",
+      "completed": "Completed",
+      "searchPlaceholder": "Search exercises..."
     },
     "list": {
       "loading": "Loading exercises from the system...",
@@ -56,13 +56,13 @@
       "loadError": "Couldn't load exercises from the API. Please sign in again or check the backend."
     },
     "sections": {
-      "emergencyTitle": "🔴 Emergency",
+      "emergencyTitle": "Emergency",
       "emergencyDesc": "Do these first when your emotions feel overwhelming.",
-      "easyTitle": "🟢 Easy",
+      "easyTitle": "Easy",
       "easyDesc": "Short exercises to keep a daily self-care rhythm.",
-      "mediumTitle": "🟡 Medium",
+      "mediumTitle": "Medium",
       "mediumDesc": "Needs a bit more focus time or a quiet space.",
-      "hardTitle": "🟠 Advanced",
+      "hardTitle": "Advanced",
       "hardDesc": "Longer exercises, best when you have the energy to go deeper.",
       "count": "{n} exercises"
     },
@@ -71,9 +71,9 @@
       "defaultDuration": "Flexible",
       "oneMinute": "1 min",
       "minutes": "{n} min",
-      "suggestedToday": "⭐ Suggested today",
-      "inProgress": "⏳ In progress",
-      "completedCount": "✓ Completed {n} times",
+      "suggestedToday": "Suggested today",
+      "inProgress": "In progress",
+      "completedCount": "Completed {n} times",
       "defaultDescription": "This exercise doesn't have a detailed description yet.",
       "reviewBtn": "Review",
       "continueBtn": "Continue",
@@ -83,8 +83,8 @@
       "title": "You're not alone",
       "text": "If things feel really hard right now, let someone help you.",
       "hotlineLabel": "Mental health support hotline — Free, 24/7",
-      "callBtn": "📞 Call hotline now",
-      "connectExpertBtn": "💬 Connect with an expert",
+      "callBtn": "Call hotline now",
+      "connectExpertBtn": "Connect with an expert",
       "closeBtn": "I'm okay, close this"
     }
   }

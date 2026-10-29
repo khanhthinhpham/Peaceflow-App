@@ -61,7 +61,6 @@
     "insight": {
       "analyzing": "PeaceCat AI đang phân tích...",
       "adviceFrom": "Lời khuyên từ PeaceCat AI",
-      "adviceFromAt": "Lời khuyên từ PeaceCat AI · {label}",
       "defaultTitle": "Insight từ dữ liệu của bạn",
       "waitingData": "Đang chờ dữ liệu",
       "loadingAdvice": "Đang tải gợi ý cá nhân hóa cho bạn...",
@@ -133,7 +132,7 @@
       "maxLevel": "Bạn đang ở cấp cao nhất hiện tại",
       "nextLevel": "Còn {xp} XP → Level {level}",
       "levelTitle": "Level {level}: {title}",
-      "xpEarned": "{xp} XP đã tích lũy"
+      "xpEarned": "{xp} XP"
     },
     "streak": {
       "label": "ngày streak liên tục",
