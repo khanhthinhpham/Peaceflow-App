@@ -2,7 +2,7 @@
   "moodCheckin": {
     "backDashboard": "← Dashboard",
     "shareWithExperts": {
-      "title": "🩺 Share check-ins with my expert",
+      "title": "Share check-ins with my expert",
       "desc": "Experts you've booked can see your mood progress."
     },
     "todayDone": "✅ Today's check-in: Done",

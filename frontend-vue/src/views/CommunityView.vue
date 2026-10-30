@@ -1198,6 +1198,7 @@ onBeforeUnmount(() => {
 .cb-reward-note { margin: 0; font-size: 13px; color: var(--color-text-muted); }
 @media (max-width: 700px) {
   .cb-head { flex-direction: column; gap: 14px; }
+  .cb-head-text .cb-title { white-space: nowrap; font-size: clamp(13px, 4vw, 16px); }
   .cb-actions { width: 100%; }
   .cb-actions > * { flex: 1; justify-content: center; }
 }

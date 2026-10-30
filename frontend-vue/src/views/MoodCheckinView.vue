@@ -1,9 +1,9 @@
 <template> 
   <main class="main-content mc-page" style="margin-left: 0;" >
     <div class="page-header">
-      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-right:120px;">
-        <label class="badge-pill" :title="t('moodCheckin.shareWithExperts.desc')" style="cursor:pointer;gap:6px;background:var(--color-surface-muted);color:var(--color-text);">
-          <span style="font-size:0.72rem;font-weight:700;">{{ t('moodCheckin.shareWithExperts.title') }}</span>
+      <div class="mc-share-row" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+        <label class="badge-pill" :title="t('moodCheckin.shareWithExperts.desc')" style="cursor:pointer;gap:6px;background:var(--color-surface-muted);color:var(--color-text);white-space:nowrap;flex-shrink:0;">
+          <span style="font-size:0.72rem;font-weight:700;white-space:nowrap;">{{ t('moodCheckin.shareWithExperts.title') }}</span>
           <label class="toggle-switch" style="transform:scale(0.72);margin:-4px -6px;">
             <input type="checkbox" v-model="shareMoodWithExperts" :disabled="shareMoodSaving" @change="toggleShareMoodWithExperts">
             <span class="toggle-slider"></span>
@@ -966,7 +966,8 @@ onMounted(async () => {
   mask-image: linear-gradient(to bottom right, transparent 0%, rgba(0, 0, 0, 0.395) 70%, #000000 100%);
   pointer-events: none;
 }
-.page-header { display: flex; align-items: center; justify-content: flex-end; margin-bottom: 12px; flex-wrap: wrap; gap: 12px; }
+.page-header { display: flex; align-items: center; justify-content: center; margin-bottom: 12px; flex-wrap: wrap; gap: 12px; }
+.mc-share-row { width: 100%; max-width: 680px; }
 .badge-pill { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; }
 .badge-mint { background: var(--color-brand-soft); color: var(--color-brand); }
 .badge-peach { background: var(--color-terracotta-soft); color: var(--color-terracotta); }

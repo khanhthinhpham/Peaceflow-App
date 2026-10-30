@@ -27,7 +27,7 @@
             <TestIcon name="alert" class="db-icon" />
             <div v-html="t('moodAssessment.selector.disclaimerShort')"></div>
           </div>
-          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-right:120px;">
+          <div class="ma-share-row" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-right:120px;">
             <label class="badge-pill" :title="t('moodAssessment.shareWithExperts.desc')" style="cursor:pointer;gap:6px;background:var(--color-surface-muted);color:var(--color-text);">
               <span style="font-size:0.72rem;font-weight:700;">{{ plainText(t('moodAssessment.shareWithExperts.title')) }}</span>
               <label class="toggle-switch" style="transform:scale(0.72);margin:-4px -6px;">
@@ -1441,6 +1441,9 @@ onMounted(() => {
 .disclaimer-banner .db-icon { width: 20px; height: 20px; color: var(--color-terracotta); flex-shrink: 0; }
 @media (max-width: 700px) {
   .page-header { flex-wrap: wrap; }
+  /* Mobile dùng MobileTopbar riêng cho chuông/chat, không có nút nổi ở góc phải trang như
+     desktop nữa -> bỏ khoảng chừa 120px kẻo đẩy công tắc "Chia sẻ" lọt thỏm sau khi xuống dòng. */
+  .ma-share-row { margin-right: 0; }
 }
 .page-title { font-family: var(--font-heading); font-size: 26px; font-weight: 800; line-height: 1.25; letter-spacing: -0.01em; color: var(--color-text); }
 .page-subtitle { font-size: 14px; color: var(--color-text-muted); margin-top: 2px; }

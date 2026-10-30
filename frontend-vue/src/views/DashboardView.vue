@@ -1048,6 +1048,17 @@ export default { name: 'DashboardView' };
   .mood-label { font-size: 12px; }
   .ai-row { flex-direction: column; gap: 14px; }
   .task-grid { grid-template-columns: 1fr; }
+  /* Mobile: mỗi nhiệm vụ gợi ý là một thanh ngang gọn — ảnh vuông nhỏ bên trái, tên + thời lượng/XP
+     bên phải, ẩn đoạn lý do dài (vào chi tiết mới cần đọc). */
+  .task-grid { gap: 10px; }
+  .td-card { flex-direction: row; align-items: center; gap: 12px; padding: 8px; }
+  .td-card:hover { transform: none; }
+  .task-thumb { flex: 0 0 72px; width: 72px; height: 72px; aspect-ratio: auto; border-radius: var(--radius-control); overflow: hidden; }
+  .task-badge { top: 4px; left: 4px; font-size: 10px; padding: 1px 5px; }
+  .td-card-body { padding: 0 4px 0 0; gap: 4px; min-width: 0; }
+  .task-name { font-size: 14.5px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .task-reason { display: none; }
+  .td-card-foot { padding-top: 0; }
   .kpi-value b { font-size: 30px; }
   .dash-quote p { font-size: 19px; }
 }
