@@ -41,9 +41,14 @@
           <div class="auth-divider">{{ t('onboarding.auth.dividerOr') }}</div>
 
           <div class="auth-form">
-            <input v-model="authEmail" type="email" class="form-input" :placeholder="t('onboarding.auth.emailPlaceholder')">
+            <input
+              v-model="authEmail" type="email" class="form-input" :class="{ 'is-invalid': authError === 'email' }"
+              :placeholder="t('onboarding.auth.emailPlaceholder')" autocomplete="email"
+              :aria-invalid="authError === 'email' ? 'true' : 'false'"
+            >
             <PasswordField v-model="authPassword" :placeholder="t('onboarding.auth.passwordPlaceholder')" />
-            <button class="btn-next" style="width:100%;justify-content:center;" @click="nextStep">
+            <p v-if="authError" class="field-error" role="alert">{{ authError === 'email' ? t('signup.errors.invalidEmail') : t('signup.errors.passwordTooShort') }}</p>
+            <button class="btn-next" style="width:100%;justify-content:center;" @click="submitEmailAuth">
               {{ t('onboarding.auth.createAccount') }}
             </button>
           </div>
@@ -92,6 +97,7 @@ import { useI18n } from 'vue-i18n';
 import { useAuthStore } from '../stores/auth';
 import { apiClient } from '../lib/apiClient';
 import PasswordField from '../components/PasswordField.vue';
+import { isValidEmail } from '../lib/validation';
 
 const router = useRouter();
 const auth = useAuthStore();
@@ -186,6 +192,15 @@ async function goToStep(index) {
 }
 function nextStep() { goToStep(step.value + 1); } function previousStep() { goToStep(step.value - 1); }
 function selectAuth() { nextStep(); }
+// Trước đây nút "Tạo tài khoản" gọi thẳng nextStep — email sai định dạng/mật khẩu trống vẫn sang
+// bước sau. Giờ kiểm tra trước, sai thì báo ngay dưới ô và đứng lại.
+const authError = ref(''); // '' | 'email' | 'password'
+function submitEmailAuth() {
+  if (!isValidEmail(authEmail.value)) { authError.value = 'email'; return; }
+  if ((authPassword.value || '').length < 8) { authError.value = 'password'; return; }
+  authError.value = '';
+  nextStep();
+}
 async function complete(destination) {
   try {
     await apiClient.put('/profile', { onboarding_answers: { completed: true } });
@@ -200,6 +215,8 @@ onMounted(async () => { if (!await auth.waitForAuth()) { router.replace('/login'
 
 <style scoped src="../assets/onboarding.css"></style>
 <style scoped>
+.form-input.is-invalid { border-color: var(--color-danger, #d9534f); }
+.field-error { margin: 0; font-size: 13px; color: var(--color-danger, #d9534f); }
 .welcome-stats { display:flex; justify-content:center; gap:16px; flex-wrap:wrap; margin-bottom:16px; } .welcome-stats div { text-align:center; } .welcome-stats strong { display:block; font-size:1.4rem; color:var(--mint-dark); } .welcome-stats span { font-size:.75rem; color:var(--text-light); font-weight:600; }
 .option-chip, .avatar-option, .reason-option, .flip-card { font:inherit; color:inherit; text-align:inherit; } .option-chip, .avatar-option, .reason-option { cursor:pointer; } .flip-card { border:0; padding:0; background:transparent; width:100%; } .flip-card-front, .flip-card-back { width:100%; }
 .onboarding-warning { padding:12px 16px; background:var(--coral-light); border:1.5px solid var(--coral); border-radius:var(--border-radius-sm); font-size:.8rem; color:var(--text-secondary); margin-bottom:20px; }.complete-actions { flex-direction:column; gap:12px; }.dashboard-link { font-size:.85rem; color:var(--text-light); text-decoration:underline; background:none; border:0; cursor:pointer; }

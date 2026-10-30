@@ -19,6 +19,17 @@
     </div>
 
     <main class="main-content" style="margin-left: 0;" >
+      <div class="comm-header">
+        <div>
+          <div class="comm-stats-line">
+            <span><strong>{{ formatCompactNumber(summary?.members) }}</strong> {{ t('community.stats.members') }}</span>
+            <span><strong>{{ formatCompactNumber(summary?.posts) }}</strong> {{ t('community.stats.posts') }}</span>
+            <span><strong>{{ formatCompactNumber(summary?.reactions) }}</strong> {{ t('community.stats.reactions') }}</span>
+            <span><strong>{{ formatPercent(summary?.positive_rate ?? 100) }}</strong> {{ t('community.stats.positive') }}</span>
+          </div>
+        </div>
+      </div>
+
       <!-- Thử thách tuần: trái = nhãn + tên + mô tả, phải = nút hành động; dưới = tiến độ kèm số liệu. -->
       <div v-if="challenge" class="paper-card challenge-banner">
         <div class="cb-head">
@@ -46,17 +57,6 @@
           <div v-if="challengeRewarded" class="cb-stat cb-stat-rewarded">{{ t('community.challengeBanner.rewardedLabel') }}</div>
         </div>
         <div v-if="joinedChallenge && !challengeRewarded" class="cb-reward-note">{{ challenge.reward_note }}</div>
-      </div>
-
-      <div class="comm-header">
-        <div>
-          <div class="comm-stats-line">
-            <span><strong>{{ formatCompactNumber(summary?.members) }}</strong> {{ t('community.stats.members') }}</span>
-            <span><strong>{{ formatCompactNumber(summary?.posts) }}</strong> {{ t('community.stats.posts') }}</span>
-            <span><strong>{{ formatCompactNumber(summary?.reactions) }}</strong> {{ t('community.stats.reactions') }}</span>
-            <span><strong>{{ formatPercent(summary?.positive_rate ?? 100) }}</strong> {{ t('community.stats.positive') }}</span>
-          </div>
-        </div>
       </div>
 
       <div class="community-layout">
@@ -1201,9 +1201,6 @@ onBeforeUnmount(() => {
   .cb-actions { width: 100%; }
   .cb-actions > * { flex: 1; justify-content: center; }
 }
-/* Thử thách tuần nằm trên cùng; dòng số liệu cộng đồng ngay bên dưới. */
-.challenge-banner { margin-bottom: 14px; }
-.comm-header { margin-bottom: 18px; }
 /* Số liệu thử thách luôn một hàng: không xuống dòng, chật thì vuốt ngang (ẩn thanh cuộn). */
 .cb-stats { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
 .cb-stats::-webkit-scrollbar { display: none; }
@@ -1212,9 +1209,16 @@ onBeforeUnmount(() => {
   .cb-stats { gap: 6px; }
   .cb-stat { padding: 4px 10px; font-size: 12px; }
 }
-/* Dòng số liệu cộng đồng: lưới 2×2 (thành viên · bài chia sẻ / reaction · tích cực). */
-.comm-header { justify-content: center; }
-.comm-header > div { width: 100%; }
-.comm-stats-line { display: grid; grid-template-columns: repeat(2, max-content); justify-content: center; gap: 6px 36px; margin-top: 0; font-size: 15px; }
-.comm-stats-line strong { font-size: 17px; }
+/* Desktop: số liệu cộng đồng một hàng ở đầu trang (chừa chỗ chuông/chat nổi góc phải), rồi tới thử thách.
+   Mobile: thử thách lên trên cùng, số liệu thành lưới 2×2 căn giữa, chữ to hơn. */
+.comm-header { margin-bottom: 16px; margin-right: 120px; }
+.comm-stats-line { margin-top: 0; font-size: 14px; }
+@media (max-width: 900px), (hover: none) and (pointer: coarse) {
+  .main-content { display: flex; flex-direction: column; }
+  .main-content > .challenge-banner { order: -1; margin-bottom: 14px; }
+  .comm-header { justify-content: center; margin: 0 0 18px; }
+  .comm-header > div { width: 100%; }
+  .comm-stats-line { display: grid; grid-template-columns: repeat(2, max-content); justify-content: center; gap: 6px 36px; font-size: 15px; }
+  .comm-stats-line strong { font-size: 17px; }
+}
 </style>

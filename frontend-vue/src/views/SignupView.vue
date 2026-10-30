@@ -48,7 +48,13 @@
 
         <div class="form-group">
           <label class="form-label" for="email">{{ t('signup.emailLabel') }}</label>
-          <input v-model="email" type="email" id="email" class="form-input" :placeholder="t('signup.emailPlaceholder')" required autocomplete="email">
+          <input
+            v-model="email" type="email" id="email" class="form-input" :class="{ 'is-invalid': emailError }"
+            :placeholder="t('signup.emailPlaceholder')" required autocomplete="email"
+            :aria-invalid="emailError ? 'true' : 'false'" aria-describedby="email-error"
+            @blur="emailTouched = true"
+          >
+          <p v-if="emailError" id="email-error" class="field-error">{{ t('signup.errors.invalidEmail') }}</p>
         </div>
 
         <div class="form-group">
@@ -86,7 +92,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '../stores/auth';
@@ -95,6 +101,7 @@ import { goToLegacyPage } from '../lib/legacyApp';
 import { isNativeApp } from '../lib/native';
 import { getCurrentLocale } from '../locales';
 import PasswordField from '../components/PasswordField.vue';
+import { isValidEmail } from '../lib/validation';
 
 const GOOGLE_CLIENT_ID = '287402483358-uiec013q9obn1m8j82ejhkdmuoi3ku6v.apps.googleusercontent.com';
 const nativeGoogleLoading = ref(false);
@@ -105,6 +112,9 @@ const router = useRouter();
 
 const name = ref('');
 const email = ref('');
+// Báo lỗi email ngay dưới ô khi rời ô (hoặc khi bấm Đăng ký), không đợi tới thông báo chung.
+const emailTouched = ref(false);
+const emailError = computed(() => emailTouched.value && !isValidEmail(email.value));
 const password = ref('');
 const confirmPassword = ref('');
 const agreeTerms = ref(false);
@@ -212,8 +222,10 @@ async function handleSubmit() {
     showMessage(t('signup.errors.nameTooShort'), 'error');
     return;
   }
-  if (!emailValue || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailValue)) {
+  if (!isValidEmail(emailValue)) {
+    emailTouched.value = true;
     showMessage(t('signup.errors.invalidEmail'), 'error');
+    document.getElementById('email')?.focus();
     return;
   }
   if (!password.value || password.value.length < 8) {
@@ -301,6 +313,8 @@ onMounted(() => {
 </script>
 
 <style scoped>
+.form-input.is-invalid { border-color: var(--color-danger, #d9534f); }
+.field-error { margin: 6px 2px 0; font-size: 13px; color: var(--color-danger, #d9534f); }
 .btn-google-native {
   width: 100%;
   display: flex;
