@@ -302,13 +302,23 @@ router.delete('/expert-portal/avatar', requireAuth, async (req, res) => {
   }
 });
 
+// Các cột mapExpert cần cho trang Chuyên gia. KHÔNG dùng select * vì sẽ kéo cả avatar_photo
+// (bytea — ảnh gốc lưu trong DB) và embedding vector(768) của chuyên gia qua mạng về backend:
+// đo trên Supabase, danh sách 12 chuyên gia mất ~32 giây / 3,3 MB với select *, còn ~0,7 giây /
+// 21 KB khi chỉ lấy các cột dưới. Ảnh thật tải riêng qua GET /experts/:id/avatar.
+const EXPERT_PUBLIC_COLUMNS = `id, code, avatar_emoji, (avatar_photo is not null) as has_avatar_photo,
+  full_name, degree, status, rating, sessions_count, satisfaction_rate, base_price,
+  location, experience_years, specialties, specialties_en, tags, bio, bio_en,
+  next_slot_label, credentials, approaches`;
+
 router.get('/experts', requireAuth, async (req, res) => {
   try {
     const userId = req.user.sub;
 
     const [expertsRes, latestMoodRes, latestAssessmentRes, upcomingBookingRes, returningExpertsRes] = await Promise.all([
+      // Không select * — xem EXPERT_PUBLIC_COLUMNS.
       db.query(
-        `select *
+        `select ${EXPERT_PUBLIC_COLUMNS}
          from experts
          where active = true
          order by
@@ -394,7 +404,7 @@ router.get('/experts', requireAuth, async (req, res) => {
 router.get('/experts/:id', requireAuth, async (req, res) => {
   try {
     const result = await db.query(
-      `select *
+      `select ${EXPERT_PUBLIC_COLUMNS}
        from experts
        where id = $1
          and active = true
@@ -3287,7 +3297,7 @@ function mapExpert(row, matchingTags, isReturningClient = false, locale = 'vi') 
     id: row.id,
     code: row.code,
     avatar: row.avatar_emoji || '👩‍⚕️',
-    has_avatar_photo: !!row.avatar_photo,
+    has_avatar_photo: row.has_avatar_photo ?? !!row.avatar_photo,
     name: row.full_name,
     degree: row.degree,
     status: row.status,

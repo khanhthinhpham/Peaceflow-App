@@ -1427,7 +1427,7 @@ onMounted(() => {
 .assessment-page::before {
   content: ''; position: fixed; inset: 0; z-index: -1;
   background: url('/images/dashboard-leaf-light.jpg') center / cover no-repeat;
-  opacity: 0.5; mix-blend-mode: multiply;
+  opacity: 0.9; mix-blend-mode: multiply;
   -webkit-mask-image: linear-gradient(to bottom right, transparent 0%, rgba(0, 0, 0, 0.55) 70%, #000 100%);
   mask-image: linear-gradient(to bottom right, transparent 0%, rgba(0, 0, 0, 0.395) 70%, #000000 100%);
   pointer-events: none;

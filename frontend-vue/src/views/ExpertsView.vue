@@ -547,7 +547,12 @@
       </div>
 
       <div class="expert-grid">
-        <div v-if="!filteredExperts.length" class="paper-card" style="padding:24px;text-align:center;color:var(--text-secondary);grid-column:1 / -1;">
+        <div v-if="expertsLoading" class="paper-card experts-state">{{ t('experts.shareRecord.loading') }}</div>
+        <div v-else-if="expertsLoadError" class="paper-card experts-state">
+          {{ t('experts.shareRecord.loadError') }}
+          <button type="button" class="btn-outline" @click="init">{{ t('experts.retryBtn') }}</button>
+        </div>
+        <div v-else-if="!filteredExperts.length" class="paper-card" style="padding:24px;text-align:center;color:var(--text-secondary);grid-column:1 / -1;">
           {{ t('experts.noExpertsMatch') }}
         </div>
         <div v-for="expert in filteredExperts" :key="expert.id" class="paper-card expert-card" @click="handleExpertCardClick(expert.id)">
@@ -1305,7 +1310,13 @@ async function loadWallet() {
   }
 }
 
+// Trạng thái tải danh sách: trước đây lúc đang tải/lỗi chỉ hiện "chưa có chuyên gia phù hợp",
+// không phân biệt được API chậm, lỗi hay thật sự không có ai.
+const expertsLoading = ref(true);
+const expertsLoadError = ref(false);
 async function init() {
+  expertsLoading.value = true;
+  expertsLoadError.value = false;
   try {
     const payload = await apiClient.get('/experts');
     experts.value = payload.experts || [];
@@ -1325,6 +1336,9 @@ async function init() {
     }
   } catch (error) {
     console.error('Experts init failed:', error);
+    expertsLoadError.value = true;
+  } finally {
+    expertsLoading.value = false;
   }
 }
 
@@ -1363,7 +1377,7 @@ onBeforeUnmount(() => {
 .experts-page::before {
   content: ''; position: fixed; inset: 0; z-index: -1;
   background: url('/images/dashboard-leaf-light.jpg') center / cover no-repeat;
-  opacity: 0.5; mix-blend-mode: multiply;
+  opacity: 0.9; mix-blend-mode: multiply;
   -webkit-mask-image: linear-gradient(to bottom right, transparent 0%, rgba(0, 0, 0, 0.55) 70%, #000 100%);
   mask-image: linear-gradient(to bottom right, transparent 0%, rgba(0, 0, 0, 0.395) 70%, #000000 100%);
   pointer-events: none;
@@ -1522,6 +1536,7 @@ onBeforeUnmount(() => {
 .experts-wallet { display: inline-flex; align-items: center; gap: 6px; height: 40px; padding: 0 14px; border-radius: var(--radius-control); background: var(--color-brand-soft); color: var(--color-brand); font-size: 14px; font-weight: 700; white-space: nowrap; }
 .experts-wallet .nav-icon { width: 18px; height: 18px; }
 .ec-btn-icon { flex: 0 0 auto; width: 40px; padding: 0; }
+.experts-state { grid-column: 1 / -1; padding: 24px; display: flex; flex-direction: column; align-items: center; gap: 12px; text-align: center; color: var(--color-text-muted); }
 .btn-sos { font-size: 12.5px; font-weight: 800; letter-spacing: 0.04em; }
 /* Lịch hẹn: nút ⋮ chỉ dùng ở mobile. */
 .mb-more-btn { display: none; align-items: center; justify-content: center; width: 40px; height: 40px; border: none; background: none; color: var(--color-text-muted); cursor: pointer; border-radius: var(--radius-control); flex-shrink: 0; }

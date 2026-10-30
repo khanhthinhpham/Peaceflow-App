@@ -85,6 +85,13 @@
   </div>
 </template>
 
+<script>
+// Cache blob URL tệp đính kèm theo attachment_id, dùng chung mọi ChatThread trong phiên (trang
+// Tin nhắn + cửa sổ chat nổi) — tệp không đổi sau khi gửi nên không cần tải lại.
+const sharedAttachmentUrls = new Map();
+const pendingAttachmentLoads = new Map();
+</script>
+
 <script setup>
 import { ref, reactive, watch, nextTick, onMounted, onBeforeUnmount } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -300,17 +307,37 @@ function submit() {
 // ảnh bìa bài viết (AdminArticlesView.vue).
 const attachmentUrls = reactive({});
 const attachmentErrors = reactive({});
-async function resolveAttachmentUrls(list) {
-  for (const msg of list) {
-    if (!msg.attachment_id || attachmentUrls[msg.id] || attachmentErrors[msg.id]) continue;
-    try {
-      const blob = await apiClient.getBlob(`/chat/attachments/${msg.attachment_id}`);
-      attachmentUrls[msg.id] = URL.createObjectURL(blob);
-    } catch (e) {
-      console.error('[chat attachment] tải thất bại cho message', msg.id, e);
-      attachmentErrors[msg.id] = true;
+// Trước đây tải lần lượt từng tệp (tệp sau chờ tệp trước) và tải lại mỗi lần mở hội thoại. Giờ:
+// tải song song tối đa 4 tệp, ưu tiên tin mới nhất (đang hiện ở cuối khung), và giữ blob URL
+// theo attachment_id trong cả phiên (sharedAttachmentUrls ở cấp module) để mở lại là hiện ngay.
+const ATTACHMENT_CONCURRENCY = 4;
+async function loadAttachment(msg) {
+  const cachedUrl = sharedAttachmentUrls.get(msg.attachment_id);
+  if (cachedUrl) { attachmentUrls[msg.id] = cachedUrl; return; }
+  try {
+    let pending = pendingAttachmentLoads.get(msg.attachment_id);
+    if (!pending) {
+      pending = apiClient.getBlob(`/chat/attachments/${msg.attachment_id}`).then((blob) => URL.createObjectURL(blob));
+      pendingAttachmentLoads.set(msg.attachment_id, pending);
     }
+    const url = await pending;
+    sharedAttachmentUrls.set(msg.attachment_id, url);
+    attachmentUrls[msg.id] = url;
+  } catch (e) {
+    console.error('[chat attachment] tải thất bại cho message', msg.id, e);
+    attachmentErrors[msg.id] = true;
+  } finally {
+    pendingAttachmentLoads.delete(msg.attachment_id);
   }
+}
+async function resolveAttachmentUrls(list) {
+  const queue = list
+    .filter((msg) => msg.attachment_id && !attachmentUrls[msg.id] && !attachmentErrors[msg.id])
+    .reverse();
+  const worker = async () => {
+    while (queue.length) await loadAttachment(queue.shift());
+  };
+  await Promise.all(Array.from({ length: Math.min(ATTACHMENT_CONCURRENCY, queue.length) }, worker));
 }
 
 watch(() => props.messages.length, () => {
@@ -320,7 +347,8 @@ watch(() => props.messages.length, () => {
 resolveAttachmentUrls(props.messages);
 
 onBeforeUnmount(() => {
-  Object.values(attachmentUrls).forEach((url) => URL.revokeObjectURL(url));
+  // Không revoke blob URL của tệp đính kèm: chúng được giữ lại trong sharedAttachmentUrls để
+  // dùng lại khi mở lại hội thoại trong cùng phiên.
   if (pendingFilePreview.value) URL.revokeObjectURL(pendingFilePreview.value);
   micStream?.getTracks().forEach((track) => track.stop());
   cancelHold();
@@ -687,4 +715,42 @@ defineExpose({ scrollToBottom });
   background: var(--mint-dark);
   color: #fff;
 }
+
+/* ---- Đồng bộ với trang tổng quan: bong bóng phẳng không viền (của mình: xanh thương hiệu nhạt,
+   của người kia: nền ngà), ô nhập bo mềm, nút gửi màu thương hiệu, đường kẻ mảnh liền nét. ---- */
+.chat-thread { font-family: var(--font-body); color: var(--color-text); }
+.ct-empty { font-size: 14px; color: var(--color-text-subtle); }
+.ct-bubble, .ct-message-content.has-reply, .ct-attach-loading, .ct-attach-file, .ct-attach-audio {
+  border: none; border-radius: 16px; background: var(--color-canvas); color: var(--color-text);
+}
+.ct-bubble { font-size: 14.5px; line-height: 1.5; padding: 10px 14px; }
+.ct-message-content.has-reply .ct-bubble { border-radius: 0; background: transparent; }
+.ct-msg.mine .ct-bubble, .ct-msg.mine .ct-message-content.has-reply, .ct-msg.mine .ct-attach-audio {
+  background: var(--color-brand-soft); border: none;
+}
+.ct-msg.mine .ct-message-content.has-reply .ct-bubble { background: transparent; }
+.ct-msg:not(.mine) .ct-bubble { border-bottom-left-radius: 6px; }
+.ct-msg.mine .ct-bubble { border-bottom-right-radius: 6px; }
+.ct-attach-img { border: none; border-radius: 14px; }
+.ct-attach-error { border: none; border-radius: 14px; background: var(--color-danger-soft); color: var(--color-danger); }
+.ct-time { font-size: 11px; color: var(--color-text-subtle); }
+.ct-reply-btn { background: var(--color-surface); color: var(--color-text-muted); box-shadow: var(--shadow-soft); }
+.ct-reply-btn:hover { color: var(--color-brand); }
+.ct-pending-file, .ct-replying { border-top: 1px solid var(--color-surface-muted); background: var(--color-canvas); color: var(--color-text-muted); }
+.ct-pending-thumb { border: none; border-radius: var(--radius-control); }
+.ct-pending-cancel, .ct-mic-error { color: var(--color-danger); }
+.ct-mic-error { background: var(--color-danger-soft); }
+.ct-input-row { border-top: 1px solid var(--color-surface-muted); background: var(--color-surface); padding: 12px 14px; gap: 8px; }
+.ct-icon-btn { width: 38px; height: 38px; border-radius: var(--radius-control); color: var(--color-text-muted); }
+.ct-icon-btn:hover { color: var(--color-brand); background: var(--color-canvas); }
+.ct-icon-btn.recording { color: var(--color-danger); }
+.ct-input {
+  min-height: 40px; padding: 9px 14px; border: 1px solid transparent; border-radius: var(--radius-control);
+  background: var(--color-canvas); font-family: inherit; font-size: 14.5px; color: var(--color-text);
+  transition: border-color var(--duration-fast) var(--ease-standard);
+}
+.ct-input:focus { border-color: var(--color-brand); background: var(--color-surface); }
+.ct-send-btn { width: 40px; height: 40px; border-radius: var(--radius-control); background: var(--color-brand); color: var(--color-on-brand); }
+.ct-send-btn:not(:disabled):hover { background: var(--color-brand); color: var(--color-on-brand); filter: brightness(0.92); }
+.ct-icon-btn:focus-visible, .ct-send-btn:focus-visible, .ct-reply-btn:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
 </style>

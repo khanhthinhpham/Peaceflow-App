@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import multer from 'multer';
+import sharp from 'sharp';
 import { requireAuth } from '../../common/middleware/auth.middleware.js';
 import { resolveSafeContentType } from '../../common/utils/safeFileServe.js';
 import { db } from '../../config/db.js';
@@ -13,6 +14,43 @@ const attachmentUpload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 5 * 1024 * 1024 }
 });
+
+// Ảnh chụp từ điện thoại thường 1–5MB; DB (Supabase) ở xa nên đọc lại 1MB mất hàng chục giây.
+// Nén ảnh ngay lúc gửi: xoay đúng EXIF, thu về tối đa 1600px, mã hoá WebP q80 (giữ được nền
+// trong suốt của PNG) — thường còn ~100–250KB. GIF (có thể động) và ảnh nén không nhỏ hơn thì
+// giữ nguyên bản gốc.
+const COMPRESSIBLE_IMAGE_MIMES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/bmp']);
+async function compressChatImage(file) {
+  if (!file || !COMPRESSIBLE_IMAGE_MIMES.has(file.mimetype)) return file;
+  try {
+    const buffer = await sharp(file.buffer, { failOn: 'none' })
+      .rotate()
+      .resize({ width: 1600, height: 1600, fit: 'inside', withoutEnlargement: true })
+      .webp({ quality: 80 })
+      .toBuffer();
+    if (buffer.length >= file.buffer.length) return file;
+    const baseName = (file.originalname || 'image').replace(/\.[^.]+$/, '');
+    return { ...file, buffer, mimetype: 'image/webp', originalname: `${baseName}.webp`, size: buffer.length };
+  } catch (_error) {
+    return file; // không đọc được ảnh -> giữ nguyên, để luồng kiểm tra mime khi tải về xử lý
+  }
+}
+
+// Tệp đính kèm không bao giờ sửa sau khi gửi -> giữ bản đã đọc từ DB trong RAM (tối đa ~64MB,
+// bỏ bớt bản cũ nhất khi đầy) để lần mở lại hội thoại không phải kéo lại từ DB ở xa.
+const ATTACHMENT_CACHE_MAX_BYTES = 64 * 1024 * 1024;
+const attachmentCache = new Map(); // id -> { data, mime, inline, filename, conversationId }
+let attachmentCacheBytes = 0;
+function rememberAttachment(id, entry) {
+  if (entry.data.length > ATTACHMENT_CACHE_MAX_BYTES / 4) return;
+  attachmentCache.set(id, entry);
+  attachmentCacheBytes += entry.data.length;
+  while (attachmentCacheBytes > ATTACHMENT_CACHE_MAX_BYTES && attachmentCache.size) {
+    const [oldId, old] = attachmentCache.entries().next().value;
+    attachmentCache.delete(oldId);
+    attachmentCacheBytes -= old.data.length;
+  }
+}
 
 function attachmentPreviewLabel(mime) {
   if (!mime) return '📎 Tệp đính kèm';
@@ -250,7 +288,7 @@ router.post('/chat/conversations/:id/messages', requireAuth, attachmentUpload.si
     if (!access) return res.status(403).json({ success: false, message: 'Không có quyền gửi tin nhắn trong hội thoại này.' });
 
     const content = (req.body.content || '').trim();
-    const file = req.file;
+    let file = req.file;
     if (!content && !file) return res.status(400).json({ success: false, message: 'Nội dung tin nhắn trống.' });
     if (content.length > 4000) return res.status(400).json({ success: false, message: 'Tin nhắn quá dài.' });
 
@@ -265,6 +303,7 @@ router.post('/chat/conversations/:id/messages', requireAuth, attachmentUpload.si
     }
 
     let attachmentId = null;
+    file = await compressChatImage(file);
     if (file) {
       const attachRes = await db.query(
         `insert into chat_attachments (data) values ($1) returning id`,
@@ -329,6 +368,15 @@ router.post('/chat/conversations/:id/messages', requireAuth, attachmentUpload.si
 // chat là riêng tư giữa 2 người.
 router.get('/chat/attachments/:id', requireAuth, async (req, res) => {
   try {
+    const cached = attachmentCache.get(req.params.id);
+    if (cached) {
+      const access = await resolveParticipant(req.user.sub, cached.conversationId);
+      if (!access) return res.status(403).end();
+      res.set('Content-Type', cached.mime);
+      res.set('Content-Disposition', cached.inline ? 'inline' : `attachment; filename="${encodeURIComponent(cached.filename || 'file')}"`);
+      res.set('Cache-Control', 'private, max-age=86400');
+      return res.send(cached.data);
+    }
     const r = await db.query(
       `select ca.data, cm.attachment_mime, cm.attachment_filename, cm.conversation_id
        from chat_attachments ca
@@ -343,6 +391,7 @@ router.get('/chat/attachments/:id', requireAuth, async (req, res) => {
     if (!access) return res.status(403).end();
 
     const { mime, inline } = await resolveSafeContentType(row.data, row.attachment_mime);
+    rememberAttachment(req.params.id, { data: row.data, mime, inline, filename: row.attachment_filename, conversationId: row.conversation_id });
     res.set('Content-Type', mime);
     res.set('Content-Disposition', inline ? 'inline' : `attachment; filename="${encodeURIComponent(row.attachment_filename || 'file')}"`);
     res.set('Cache-Control', 'private, max-age=86400');

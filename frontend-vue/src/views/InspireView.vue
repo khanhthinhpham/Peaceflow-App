@@ -1,13 +1,7 @@
 <template>
-  <main class="main-content" style="margin-left:0;padding:28px;">
-    <div class="breadcrumb" style="display:flex;align-items:center;gap:8px;margin-bottom:20px;font-size:0.8rem;color:var(--text-light);">
-      <router-link to="/dashboard" style="color:var(--text-light);text-decoration:none;">{{ t('inspire.breadcrumbDashboard') }}</router-link>
-      <span>›</span>
-      <span style="color:var(--text-secondary);font-weight:600;">{{ t('inspire.breadcrumbCurrent') }}</span>
-    </div>
-
-    <h1 style="font-size:1.5rem;font-weight:800;margin-bottom:6px;">{{ t('inspire.pageTitle') }}</h1>
-    <p style="font-size:0.88rem;color:var(--text-secondary);margin-bottom:20px;">{{ t('inspire.pageDesc') }}</p>
+  <main class="main-content ins-page" style="margin-left:0;">
+    <h1 class="ins-page-title" style="margin-bottom:6px;">{{ t('inspire.pageTitle') }}</h1>
+    <p class="ins-page-desc" style="margin-bottom:20px;">{{ t('inspire.pageDesc') }}</p>
 
     <!-- Thanh tab danh mục kiểu báo chí (gạch chân dưới tab đang chọn) -->
     <nav class="ins-tabbar">
@@ -470,4 +464,77 @@ onBeforeUnmount(() => {
     grid-template-columns: 1fr;
   }
 }
+
+/* ---- Đồng bộ với trang tổng quan (DashboardView.vue): nền ivory + ảnh lá, khối nội dung là thẻ
+   trắng bo mềm không viền/bóng giấy, chữ Inter + tiêu đề --font-heading, nhãn/nút phẳng, đường
+   kẻ mảnh liền nét. Thẻ bài viết (ArticleCard) chỉ có gốc nhận scope của trang này nên phần
+   bên trong chỉnh qua :deep(). ---- */
+.ins-page {
+  font-family: var(--font-body); font-size: 15px; line-height: 1.55; color: var(--color-text);
+  background: var(--color-canvas); -webkit-font-smoothing: antialiased; position: relative; isolation: isolate; min-height: 100vh;
+  padding: 20px 20px 32px !important;
+}
+.ins-page::before {
+  content: ''; position: fixed; inset: 0; z-index: -1;
+  background: url('/images/dashboard-leaf-light.jpg') center / cover no-repeat;
+  opacity: 0.9; mix-blend-mode: multiply;
+  -webkit-mask-image: linear-gradient(to bottom right, transparent 0%, rgba(0, 0, 0, 0.55) 70%, #000 100%);
+  mask-image: linear-gradient(to bottom right, transparent 0%, rgba(0, 0, 0, 0.395) 70%, #000000 100%);
+  pointer-events: none;
+}
+.ins-page :is(a, button):focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+.ins-page-title { font-family: var(--font-heading); font-size: 26px !important; font-weight: 800; letter-spacing: -0.01em; color: var(--color-text); }
+.ins-page-desc { font-size: 14px !important; color: var(--color-text-muted) !important; }
+.ins-page .breadcrumb, .ins-page .breadcrumb a { color: var(--color-text-subtle) !important; font-size: 13px !important; }
+
+/* Tab danh mục: gạch chân xanh thương hiệu, đường kẻ mảnh. */
+.ins-tabbar { border-bottom: 1px solid var(--color-surface-muted); }
+.ins-tab { font-size: 14px; font-weight: 600; color: var(--color-text-muted); }
+.ins-tab:hover { color: var(--color-brand); }
+.ins-tab.active { color: var(--color-brand); border-bottom-color: var(--color-brand); }
+.ins-category-filter-btn { border: none; border-radius: var(--radius-control); background: var(--color-surface); color: var(--color-text); font-size: 14px; font-weight: 600; }
+.ins-category-filter-btn:hover { background: var(--color-brand-soft); color: var(--color-brand); border: none; }
+.ins-category-filter-menu { border: none; border-radius: var(--radius-card); background: var(--color-surface); box-shadow: var(--shadow-soft); }
+.icfm-item { font-size: 14px; color: var(--color-text); border-radius: var(--radius-control); }
+.icfm-item:hover { background: var(--color-canvas); }
+.icfm-item.active { background: var(--color-brand-soft); color: var(--color-brand); }
+
+/* Khối nội dung chính: thẻ trắng bo mềm. */
+.ins-hero-main-col, .ins-main-col { background: var(--color-surface); border-radius: var(--radius-card); padding: 16px; }
+/* Cột tiêu đề cạnh bài nổi bật: không nền thẻ; rê chuột vào bài nào thì cả dòng sáng lên. */
+.ins-headline-col { background: transparent; padding: 0; }
+.ins-sidebar-box { border: none; border-radius: var(--radius-card); background: var(--color-surface); }
+.ins-sidebar-title, .ins-section-header { font-family: var(--font-heading); }
+.ins-sidebar-title { font-size: 17px; color: var(--color-text); }
+.ins-section-header { font-size: 17px; color: var(--color-brand); }
+.ins-see-all { color: var(--color-brand); font-size: 13px; font-weight: 600; }
+.ins-tag-pills { border-top: 1px solid var(--color-surface-muted); border-bottom: 1px solid var(--color-surface-muted); }
+.ins-tag-pill { border: none; border-radius: 999px; background: var(--color-brand-soft); color: var(--color-brand); font-size: 13px; font-weight: 600; }
+.ins-tag-pill:hover { background: var(--color-brand); color: var(--color-on-brand); }
+.ins-view-full-btn { border: none; border-radius: var(--radius-control); background: var(--color-surface-muted); color: var(--color-text); font-size: 14px; font-weight: 600; }
+.ins-view-full-btn:hover { background: var(--color-brand-soft); color: var(--color-brand); border: none; }
+
+/* Thẻ bài viết. */
+.ins-page :deep(.ins-card) { border: none; box-shadow: none; background: var(--color-surface); border-radius: var(--radius-card); }
+.ins-page :deep(.ins-card:hover) { box-shadow: none; }
+.ins-page :deep(.ins-card-row), .ins-page :deep(.ins-card-headline), .ins-page :deep(.ins-card-sidebar-row) { background: transparent; border-radius: 0; }
+.ins-page :deep(.ins-card-row) { border-top: none; border-bottom: 1px solid var(--color-surface-muted); padding: 12px 0; }
+.ins-page :deep(.ins-card-row:hover) { background: transparent; }
+.ins-page :deep(.ins-card-row:hover .ins-title), .ins-page :deep(.ins-card-sidebar-row:hover .ins-title), .ins-page :deep(.ins-card-grid:hover .ins-title), .ins-page :deep(.ins-card-featured-side:hover .ins-title) { color: var(--color-brand); }
+.ins-page :deep(.ins-card-headline .ins-body) { border-bottom: 1px solid var(--color-surface-muted); }
+.ins-page :deep(.ins-card-headline:last-child .ins-body) { border-bottom: none; }
+.ins-page :deep(.ins-card-sidebar-row) { border-bottom-color: var(--color-surface-muted); }
+.ins-page :deep(.ins-cover) { border-radius: var(--radius-control); overflow: hidden; }
+.ins-page :deep(.ins-tag) { border: none; border-radius: 999px; background: var(--color-brand-soft); color: var(--color-brand); font-size: 12px; font-weight: 600; }
+.ins-page :deep(.ins-title) { font-family: var(--font-heading); font-weight: 800; color: var(--color-text); transition: color var(--duration-fast) var(--ease-standard); }
+.ins-page :deep(.ins-meta) { font-size: 12.5px; color: var(--color-text-subtle); }
+.ins-page :deep(.ins-excerpt) { color: var(--color-text-muted); }
+@media (max-width: 900px), (hover: none) and (pointer: coarse) {
+  .ins-page { padding: 16px 16px 24px !important; }
+}
+.ins-page :deep(.ins-card-headline) { border-radius: var(--radius-control); transition: background-color var(--duration-fast) var(--ease-standard); }
+.ins-page :deep(.ins-card-headline .ins-body) { padding: 12px 14px; }
+.ins-page :deep(.ins-card-headline:hover) { background: var(--color-surface); transform: none; }
+.ins-page :deep(.ins-card-headline:hover .ins-body) { border-bottom-color: transparent; }
+.ins-page :deep(.ins-card-headline:hover .ins-title) { color: var(--color-brand); }
 </style>

@@ -388,4 +388,47 @@ onBeforeUnmount(() => {
     display: flex;
   }
 }
+
+/* ---- Đồng bộ với trang tổng quan (DashboardView.vue): nền ivory + ảnh lá, cột hội thoại là thẻ
+   trắng bo mềm, chữ Inter + tiêu đề --font-heading, đường kẻ mảnh liền nét thay viền kraft. ---- */
+.messages-page {
+  font-family: var(--font-body); color: var(--color-text); -webkit-font-smoothing: antialiased;
+  background: var(--color-canvas); position: relative; isolation: isolate;
+}
+.messages-page::before {
+  content: ''; position: fixed; inset: 0; z-index: -1;
+  background: url('/images/dashboard-leaf-light.jpg') center / cover no-repeat;
+  opacity: 0.9; mix-blend-mode: multiply;
+  -webkit-mask-image: linear-gradient(to bottom right, transparent 0%, rgba(0, 0, 0, 0.55) 70%, #000 100%);
+  mask-image: linear-gradient(to bottom right, transparent 0%, rgba(0, 0, 0, 0.395) 70%, #000000 100%);
+  pointer-events: none;
+}
+.messages-layout { gap: 16px; padding: 16px; box-sizing: border-box; }
+.conv-list, .thread-pane { background: var(--color-surface); border: none; border-radius: var(--radius-card); overflow: hidden; }
+.conv-list { overflow-y: auto; padding-bottom: 8px; }
+.conv-list-header { padding: 20px 18px 12px; }
+.conv-list-title { font-family: var(--font-heading); font-size: 22px; font-weight: 800; color: var(--color-text); }
+.messages-back, .thread-back { color: var(--color-text-muted); border-radius: var(--radius-control); }
+.messages-back:hover, .thread-back:hover { background: var(--color-canvas); color: var(--color-brand); }
+.conv-empty { font-size: 14px; color: var(--color-text-muted); }
+.conv-item {
+  margin: 2px 8px; width: calc(100% - 16px); padding: 10px 12px; border-bottom: none; border-radius: var(--radius-control);
+  font-family: inherit; transition: background-color var(--duration-fast) var(--ease-standard);
+}
+.conv-item:hover { background: var(--color-canvas); }
+.conv-item.active { background: var(--color-brand-soft); }
+.conv-avatar { width: 42px; height: 42px; border: none; background: var(--color-brand-soft); font-size: 1.15rem; }
+.conv-name { font-size: 14px; font-weight: 600; color: var(--color-text); }
+.conv-item.active .conv-name { color: var(--color-brand); }
+.conv-preview { font-size: 12.5px; color: var(--color-text-subtle); }
+.conv-badge { background: var(--color-terracotta); font-size: 11px; padding: 2px 7px; }
+.thread-header { border-bottom: 1px solid var(--color-surface-muted); padding: 12px 16px; }
+.thread-header-name { font-family: var(--font-heading); font-size: 17px; color: var(--color-text); }
+.thread-placeholder { font-size: 14px; color: var(--color-text-subtle); }
+.conv-item:focus-visible, .messages-back:focus-visible, .thread-back:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+@media (max-width: 900px), (hover: none) and (pointer: coarse) {
+  /* Mobile: một cột chiếm trọn màn hình, không bo khung/khoảng cách. */
+  .messages-layout { gap: 0; padding: 0; }
+  .conv-list, .thread-pane { border-radius: 0; }
+}
 </style>

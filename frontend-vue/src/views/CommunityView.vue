@@ -19,15 +19,37 @@
     </div>
 
     <main class="main-content" style="margin-left: 0;" >
-      <div class="breadcrumb">
-        <router-link to="/dashboard">{{ t('community.breadcrumbDashboard') }}</router-link><span>›</span>
-        <span>{{ t('community.breadcrumbCurrent') }}</span>
+      <!-- Thử thách tuần: trái = nhãn + tên + mô tả, phải = nút hành động; dưới = tiến độ kèm số liệu. -->
+      <div v-if="challenge" class="paper-card challenge-banner">
+        <div class="cb-head">
+          <div class="cb-head-text">
+            <div class="cb-badge">{{ t('community.challengeBanner.badge') }}</div>
+            <div class="cb-title">{{ challenge.title }}</div>
+            <div class="cb-desc">{{ challenge.description }}</div>
+          </div>
+          <div class="cb-actions">
+            <router-link v-for="cta in challengeCtaLinks" :key="cta.to" :to="cta.to" class="cb-cta-btn">{{ cta.label }}</router-link>
+            <button class="cb-join-btn" :disabled="joinedChallenge" @click="joinChallenge">{{ joinedChallenge ? t('community.challengeBanner.joined') : t('community.challengeBanner.joinNow') }}</button>
+          </div>
+        </div>
+        <div class="cb-progress-wrap">
+          <div class="cb-progress-label">
+            <span><strong>{{ formatCompactNumber(challenge.current_value) }}</strong> / {{ formatCompactNumber(challenge.goal) }} {{ challenge.unit_label }}</span>
+            <span class="cb-progress-pct">{{ t('community.challengeBanner.progressPercent', { pct: challenge.progress_percent }) }}</span>
+          </div>
+          <div class="cb-progress-bar"><div class="cb-progress-fill" :style="{ width: Math.min(100, Number(challenge.progress_percent || 0)) + '%' }"></div></div>
+        </div>
+        <div class="cb-stats">
+          <div class="cb-stat"><strong>{{ formatCompactNumber(challenge.participants) }}</strong> {{ t('community.challengeBanner.participants') }}</div>
+          <div class="cb-stat">{{ t('community.challengeBanner.daysActiveLabel') }} <strong>{{ formatCompactNumber(challenge.days_active) }}</strong> {{ t('community.challengeBanner.daysActiveUnit') }}</div>
+          <div class="cb-stat cb-stat-reward">{{ t('community.challengeBanner.rewardLabel') }} <strong>+{{ challenge.reward_xp ?? 0 }} XP</strong></div>
+          <div v-if="challengeRewarded" class="cb-stat cb-stat-rewarded">{{ t('community.challengeBanner.rewardedLabel') }}</div>
+        </div>
+        <div v-if="joinedChallenge && !challengeRewarded" class="cb-reward-note">{{ challenge.reward_note }}</div>
       </div>
 
       <div class="comm-header">
         <div>
-          <h1 class="comm-title">{{ t('community.pageTitle') }}</h1>
-          <p class="comm-subtitle">{{ t('community.pageSubtitle') }}</p>
           <div class="comm-stats-line">
             <span><strong>{{ formatCompactNumber(summary?.members) }}</strong> {{ t('community.stats.members') }}</span>
             <span><strong>{{ formatCompactNumber(summary?.posts) }}</strong> {{ t('community.stats.posts') }}</span>
@@ -35,32 +57,6 @@
             <span><strong>{{ formatPercent(summary?.positive_rate ?? 100) }}</strong> {{ t('community.stats.positive') }}</span>
           </div>
         </div>
-      </div>
-
-      <div v-if="challenge" class="paper-card challenge-banner">
-        <div class="cb-top">
-          <div><div class="cb-badge">{{ t('community.challengeBanner.badge') }}</div></div>
-          <button class="cb-join-btn" :disabled="joinedChallenge" :style="{ opacity: joinedChallenge ? 0.8 : 1 }" @click="joinChallenge">{{ joinedChallenge ? t('community.challengeBanner.joined') : t('community.challengeBanner.joinNow') }}</button>
-        </div>
-        <div class="cb-title">{{ challenge.title }}</div>
-        <div class="cb-desc">{{ challenge.description }}</div>
-        <div class="cb-progress-wrap">
-          <div class="cb-progress-label">
-            <span>{{ formatCompactNumber(challenge.current_value) }} / {{ formatCompactNumber(challenge.goal) }} {{ challenge.unit_label }}</span>
-            <span>{{ t('community.challengeBanner.progressPercent', { pct: challenge.progress_percent }) }}</span>
-          </div>
-          <div class="cb-progress-bar"><div class="cb-progress-fill" :style="{ width: Math.min(100, Number(challenge.progress_percent || 0)) + '%' }"></div></div>
-        </div>
-        <div class="cb-cta-row">
-          <router-link v-for="cta in challengeCtaLinks" :key="cta.to" :to="cta.to" class="cb-cta-btn">{{ cta.label }}</router-link>
-        </div>
-        <div class="cb-stats">
-          <div class="cb-stat"><strong>{{ formatCompactNumber(challenge.participants) }}</strong> {{ t('community.challengeBanner.participants') }}</div>
-          <div class="cb-stat">{{ t('community.challengeBanner.daysActiveLabel') }} <strong>{{ formatCompactNumber(challenge.days_active) }}</strong> {{ t('community.challengeBanner.daysActiveUnit') }}</div>
-          <div class="cb-stat">{{ t('community.challengeBanner.rewardLabel') }} <strong>+{{ challenge.reward_xp ?? 0 }} XP</strong></div>
-          <div v-if="challengeRewarded" class="cb-stat cb-stat-rewarded">{{ t('community.challengeBanner.rewardedLabel') }}</div>
-        </div>
-        <div v-if="joinedChallenge && !challengeRewarded" class="cb-reward-note">{{ challenge.reward_note }}</div>
       </div>
 
       <div class="community-layout">
@@ -1020,3 +1016,205 @@ onBeforeUnmount(() => {
      không khớp được selector và coi như không có style. Đã kiểm tra không có tên class nào ở
      đây trùng với file khác nên bỏ scoped an toàn. -->
 <style src="../assets/community.css"></style>
+<style scoped>
+/* Đồng bộ với trang tổng quan (DashboardView.vue): nền ivory + ảnh lá, mỗi bài viết/khối bên
+   phải là thẻ trắng bo mềm không viền/bóng giấy, chữ Inter + tiêu đề --font-heading, nút/nhãn
+   phẳng, đường kẻ mảnh liền nét. community.css là CSS global (không scoped) — khối scoped này
+   có thêm attribute nên thắng mà không cần sửa file gốc. */
+.community-page {
+  font-family: var(--font-body); font-size: 15px; line-height: 1.55; color: var(--color-text);
+  background: var(--color-canvas); -webkit-font-smoothing: antialiased; position: relative; isolation: isolate; min-height: 100vh;
+}
+.community-page::before {
+  content: ''; position: fixed; inset: 0; z-index: -1;
+  background: url('/images/dashboard-leaf-light.jpg') center / cover no-repeat;
+  opacity: 0.9; mix-blend-mode: multiply;
+  -webkit-mask-image: linear-gradient(to bottom right, transparent 0%, rgba(0, 0, 0, 0.55) 70%, #000 100%);
+  mask-image: linear-gradient(to bottom right, transparent 0%, rgba(0, 0, 0, 0.395) 70%, #000000 100%);
+  pointer-events: none;
+}
+.main-content { padding: 20px 20px 32px; }
+.community-page :is(input, textarea, button) { font-family: inherit; }
+.community-page :is(a, button):focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+
+.breadcrumb, .breadcrumb a { color: var(--color-text-subtle); font-size: 13px; }
+.breadcrumb a:hover { color: var(--color-brand); }
+.comm-title { font-family: var(--font-heading); font-size: 26px; font-weight: 800; line-height: 1.25; letter-spacing: -0.01em; color: var(--color-text); }
+.comm-subtitle { font-size: 14px; color: var(--color-text-muted); }
+.comm-stats-line { color: var(--color-text-muted); font-size: 13.5px; }
+.comm-stats-line strong { color: var(--color-text); }
+.mod-note { font-size: 13px; color: var(--color-text-subtle); }
+
+/* Nút phẳng như .pf-btn-* của Dashboard. */
+.btn-primary, .btn-outline, .btn-ghost, .cb-join-btn, .comment-send {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  border: none; border-radius: var(--radius-control); box-shadow: none; transform: none;
+  font-family: inherit; font-weight: 600; cursor: pointer; text-decoration: none;
+  transition: background-color var(--duration-fast) var(--ease-standard), filter var(--duration-fast) var(--ease-standard), color var(--duration-fast) var(--ease-standard);
+}
+.btn-primary, .cb-join-btn, .comment-send { background: var(--color-brand); color: var(--color-on-brand); }
+.btn-primary:hover, .cb-join-btn:hover, .comment-send:hover { background: var(--color-brand); color: var(--color-on-brand); filter: brightness(0.92); box-shadow: none; transform: none; }
+.btn-outline, .btn-ghost { background: var(--color-surface-muted); color: var(--color-text); }
+.btn-outline:hover, .btn-ghost:hover { background: var(--color-brand-soft); color: var(--color-brand); border: none; }
+.cb-join-btn:disabled { background: var(--color-brand-soft); color: var(--color-brand); filter: none; }
+
+/* Thẻ: nền trắng, bo --radius-card, không viền/bóng giấy. */
+.paper-card, .post-card, .comm-aside, .report-modal {
+  background: var(--color-surface); border: none; border-radius: var(--radius-card); box-shadow: none;
+}
+
+/* Thử thách cộng đồng. */
+.challenge-banner { background: linear-gradient(135deg, var(--color-brand-soft), var(--color-surface)); }
+.cb-badge { border: none; background: var(--color-terracotta-soft); color: var(--color-terracotta); }
+.cb-title { font-family: var(--font-heading); font-weight: 800; color: var(--color-text); }
+.cb-desc, .cb-stat, .cb-progress-label { color: var(--color-text-muted); }
+.cb-stat strong { color: var(--color-text); }
+.cb-progress-bar { border: none; background: var(--color-surface); }
+.cb-progress-fill { background: var(--color-brand); }
+.cb-cta-btn { border: none; border-radius: var(--radius-control); background: var(--color-surface); color: var(--color-brand); font-weight: 600; }
+.cb-cta-btn:hover { background: var(--color-brand); color: var(--color-on-brand); }
+
+/* Khung viết bài. */
+.pc-avatar { border: none; background: var(--color-brand-soft); }
+.pc-anon-toggle { border: none; border-radius: 999px; background: var(--color-surface-muted); color: var(--color-text-muted); }
+.pc-anon-toggle:hover { background: var(--color-brand-soft); color: var(--color-brand); border: none; }
+.pc-anon-toggle.active { background: var(--color-brand-soft); color: var(--color-brand); }
+.pc-textarea {
+  border: 1px solid transparent; border-radius: var(--radius-control); background: var(--color-canvas);
+  font-family: inherit; font-size: 15px; color: var(--color-text);
+}
+.pc-textarea:focus { border-color: var(--color-brand); background: var(--color-surface); }
+.pc-tag { border: none; border-radius: 999px; background: var(--color-canvas); color: var(--color-text-muted); }
+.pc-tag:hover { background: var(--color-surface-muted); border: none; }
+.pc-tag.active, .pc-tag.selected { background: var(--color-brand-soft); color: var(--color-brand); border: none; }
+.pc-anon-note { color: var(--color-text-subtle); }
+
+/* Bộ lọc bảng tin. */
+.ff-btn { border: none; border-radius: 999px; background: var(--color-surface); color: var(--color-text-muted); font-family: inherit; font-weight: 600; }
+.ff-btn:hover { background: var(--color-surface-muted); color: var(--color-text); border: none; }
+.ff-btn.active { background: var(--color-brand-soft); color: var(--color-brand); border: none; }
+
+/* Bài viết: mỗi bài là một thẻ trắng riêng. */
+.post-feed { gap: 12px; }
+.post-card { padding: 18px 20px 14px; border-top: none; }
+.pa-avatar { border: none; }
+.pa-avatar.user { background: var(--color-brand-soft); }
+.pa-avatar.anon { background: var(--color-surface-muted); }
+.pa-name { font-weight: 600; color: var(--color-text); }
+.pa-meta { color: var(--color-text-subtle); }
+.pa-level { border: none; background: var(--color-terracotta-soft); color: var(--color-terracotta); }
+.post-menu { color: var(--color-text-muted); }
+.post-menu:hover { background: var(--color-canvas); }
+.post-menu-dropdown { border: none; border-radius: var(--radius-card); background: var(--color-surface); box-shadow: var(--shadow-soft); }
+.post-menu-dropdown button { font-family: inherit; }
+.post-menu-dropdown button:hover { background: var(--color-canvas); }
+.post-menu-dropdown button:last-child:hover { background: var(--color-danger-soft); color: var(--color-danger); }
+.post-tag { border: none !important; }
+.post-content { font-family: inherit; font-size: 15px; line-height: 1.65; color: var(--color-text); }
+.post-edit-input { border: 1px solid var(--color-brand); border-radius: var(--radius-control); background: var(--color-canvas); font-family: inherit; }
+.read-more { color: var(--color-brand); }
+.react-btn { font-family: inherit; color: var(--color-text-muted); border-radius: var(--radius-control); }
+.react-btn:hover { background: var(--color-canvas); }
+.react-picker { border: none; box-shadow: var(--shadow-soft); background: var(--color-surface); }
+.react-option.active { background: var(--color-brand-soft); }
+.summary-item { border-color: var(--color-surface); background: var(--color-canvas); }
+
+/* Bình luận. */
+.comments-section { border-top: 1px solid var(--color-surface-muted); }
+.ci-avatar { border: none; background: var(--color-brand-soft); }
+.ci-bubble { border: none; border-radius: 4px 14px 14px 14px; background: var(--color-canvas); }
+.ci-text { font-family: inherit; font-size: 14px; color: var(--color-text); }
+.ci-action-btn { font-family: inherit; }
+.ci-reaction-btn { border: none; border-radius: 999px; background: var(--color-canvas); }
+.ci-reaction-btn:hover { background: var(--color-brand-soft); border: none; }
+.ci-reaction-btn.reacted { background: var(--color-brand-soft); border: none; }
+.comment-input, .comment-edit-input {
+  border: 1px solid transparent; border-radius: var(--radius-control); background: var(--color-canvas);
+  font-family: inherit; font-size: 14px; color: var(--color-text);
+}
+.comment-input:focus, .comment-edit-input:focus { border-color: var(--color-brand); background: var(--color-surface); }
+
+/* Cột phải: một thẻ trắng, các mục cách nhau bằng đường kẻ mảnh. */
+.comm-aside { padding: 20px; border-top: none; }
+.aside-section { border-bottom-color: var(--color-surface-muted); }
+.lc-title, .mc-title { font-family: var(--font-heading); font-weight: 800; color: var(--color-text); }
+.lb-tabs { border: none; border-radius: var(--radius-control); background: var(--color-surface-muted); padding: 3px; }
+.lb-tab { border-radius: calc(var(--radius-control) - 2px); font-family: inherit; color: var(--color-text-muted); }
+.lb-tab.active { background: var(--color-surface); color: var(--color-brand); }
+.lb-item:hover, .challenge-item.ci-clickable:hover { background: var(--color-canvas); }
+.lb-item.me { background: var(--color-brand-soft); }
+.lb-avatar { border: none; }
+.ci-xp { border: none; background: var(--color-terracotta-soft); color: var(--color-terracotta); }
+.ci-progress { background: var(--color-surface-muted); }
+.ci-fill { background: var(--color-brand); }
+.mentor-item:hover { background: var(--color-canvas); }
+.mi-avatar { border: none; background: var(--color-brand-soft); }
+.mi-btn { border: none; border-radius: var(--radius-control); background: var(--color-brand-soft); color: var(--color-brand); font-family: inherit; font-weight: 600; }
+.mi-btn:hover { background: var(--color-brand); color: var(--color-on-brand); }
+
+/* Báo cáo, popup khẩn cấp, thông báo. */
+.report-modal { border-radius: var(--radius-panel); box-shadow: var(--shadow-soft); }
+.rm-title { font-family: var(--font-heading); font-weight: 800; }
+.report-option { border: 1px solid transparent; border-radius: var(--radius-control); background: var(--color-canvas); }
+.report-option:hover { background: var(--color-danger-soft); border-color: transparent; }
+.emergency-popup { border: none; border-radius: var(--radius-panel); box-shadow: var(--shadow-soft); }
+.ep-hotline { border: none; border-radius: var(--radius-card); background: var(--color-danger-soft); }
+.ep-btn { border: none; border-radius: var(--radius-control); box-shadow: none; font-family: inherit; }
+.toast { border: none; border-radius: var(--radius-control); background: var(--color-surface); box-shadow: var(--shadow-soft); font-family: var(--font-body); }
+/* Bình luận do component CommunityComment (render function, không mang scope id của file này)
+   vẽ ra — phải dùng :deep() từ khung bình luận thì style scoped mới áp tới. */
+.comments-section :deep(.ci-avatar) { border: none; background: var(--color-brand-soft); }
+.comments-section :deep(.ci-bubble) { border: none; border-radius: 4px 14px 14px 14px; background: var(--color-canvas); }
+.comments-section :deep(.ci-name) { font-weight: 600; color: var(--color-text); }
+.comments-section :deep(.ci-text) { font-family: inherit; font-size: 14px; color: var(--color-text); }
+.comments-section :deep(.ci-action-btn) { font-family: inherit; color: var(--color-text-muted); }
+.comments-section :deep(.ci-action-btn:hover) { color: var(--color-brand); }
+.comments-section :deep(.ci-action-btn.danger:hover) { color: var(--color-danger); }
+.comments-section :deep(.ci-reaction-btn) { border: none; border-radius: 999px; background: var(--color-canvas); }
+.comments-section :deep(.ci-reaction-btn:hover), .comments-section :deep(.ci-reaction-btn.reacted) { background: var(--color-brand-soft); border: none; }
+.comments-section :deep(:is(.comment-input, .comment-edit-input)) { border: 1px solid transparent; border-radius: var(--radius-control); background: var(--color-canvas); font-family: inherit; font-size: 14px; color: var(--color-text); }
+.comments-section :deep(:is(.comment-input, .comment-edit-input):focus) { border-color: var(--color-brand); background: var(--color-surface); }
+.comments-section :deep(.comment-send) { border: none; border-radius: var(--radius-control); background: var(--color-brand); color: var(--color-on-brand); font-family: inherit; font-weight: 600; box-shadow: none; }
+.comments-section :deep(.comment-send:hover) { background: var(--color-brand); color: var(--color-on-brand); filter: brightness(0.92); }
+.comments-section :deep(.btn-ghost) { border: none; border-radius: var(--radius-control); background: var(--color-surface-muted); color: var(--color-text); font-family: inherit; }
+/* Thử thách tuần — bố cục: đầu (chữ trái, nút phải) · tiến độ · số liệu. */
+.challenge-banner { padding: 22px 24px; display: flex; flex-direction: column; gap: 16px; }
+.cb-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; }
+.cb-head-text { min-width: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
+.cb-head-text .cb-badge { margin: 0 0 2px; }
+.cb-head-text .cb-title { margin: 0; font-size: 19px; line-height: 1.3; }
+.cb-head-text .cb-desc { margin: 0; font-size: 14px; }
+.cb-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.cb-actions .cb-cta-btn, .cb-actions .cb-join-btn { min-height: 38px; padding: 8px 16px; font-size: 14px; white-space: nowrap; }
+.cb-progress-wrap { margin: 0; }
+.cb-progress-label { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px; font-size: 13px; }
+.cb-progress-label strong { color: var(--color-text); font-size: 15px; }
+.cb-progress-pct { font-weight: 700; color: var(--color-brand); }
+.cb-progress-bar { height: 8px; }
+.cb-stats { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; }
+.cb-stat { padding: 4px 12px; border-radius: 999px; background: var(--color-surface); font-size: 13px; }
+.cb-stat-reward { background: var(--color-terracotta-soft); color: var(--color-terracotta); }
+.cb-stat-reward strong { color: var(--color-terracotta); }
+.cb-reward-note { margin: 0; font-size: 13px; color: var(--color-text-muted); }
+@media (max-width: 700px) {
+  .cb-head { flex-direction: column; gap: 14px; }
+  .cb-actions { width: 100%; }
+  .cb-actions > * { flex: 1; justify-content: center; }
+}
+/* Thử thách tuần nằm trên cùng; dòng số liệu cộng đồng ngay bên dưới. */
+.challenge-banner { margin-bottom: 14px; }
+.comm-header { margin-bottom: 18px; }
+/* Số liệu thử thách luôn một hàng: không xuống dòng, chật thì vuốt ngang (ẩn thanh cuộn). */
+.cb-stats { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
+.cb-stats::-webkit-scrollbar { display: none; }
+.cb-stat { flex-shrink: 0; white-space: nowrap; }
+@media (max-width: 600px) {
+  .cb-stats { gap: 6px; }
+  .cb-stat { padding: 4px 10px; font-size: 12px; }
+}
+/* Dòng số liệu cộng đồng: lưới 2×2 (thành viên · bài chia sẻ / reaction · tích cực). */
+.comm-header { justify-content: center; }
+.comm-header > div { width: 100%; }
+.comm-stats-line { display: grid; grid-template-columns: repeat(2, max-content); justify-content: center; gap: 6px 36px; margin-top: 0; font-size: 15px; }
+.comm-stats-line strong { font-size: 17px; }
+</style>

@@ -752,7 +752,7 @@ export default { name: 'DashboardView' };
   inset: 0;
   z-index: -1;
   background: url('/images/dashboard-leaf-light.jpg') center / cover no-repeat;
-  opacity: 0.5;
+  opacity: 0.9;
   mix-blend-mode: multiply;
   /* Góc trên trái là màu nền ivory trọn vẹn, ảnh hiện dần theo đường chéo và rõ nhất ở góc dưới phải. */
   -webkit-mask-image: linear-gradient(to bottom right, transparent 0%, rgba(0, 0, 0, 0.55) 70%, #000 100%);
