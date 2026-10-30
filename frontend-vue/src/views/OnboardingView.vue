@@ -19,58 +19,8 @@
         </div>
       </section>
 
-      <section v-show="step === 1" class="step-screen active">
-        <div class="paper-card auth-card">
-          <p style="font-size:1.8rem;margin-bottom:8px;">👋</p>
-          <h2 class="step-title">{{ t('onboarding.auth.title') }}</h2>
-          <p class="step-subtitle">{{ t('onboarding.auth.subtitle') }}</p>
-
-          <div class="auth-options">
-            <button class="auth-btn" @click="selectAuth('google')">
-              <span class="auth-icon">🔵</span>
-              <span class="auth-label">{{ t('onboarding.auth.google') }}</span>
-              <span class="auth-arrow">›</span>
-            </button>
-            <button class="auth-btn" @click="selectAuth('apple')">
-              <span class="auth-icon">🍎</span>
-              <span class="auth-label">{{ t('onboarding.auth.apple') }}</span>
-              <span class="auth-arrow">›</span>
-            </button>
-          </div>
-
-          <div class="auth-divider">{{ t('onboarding.auth.dividerOr') }}</div>
-
-          <div class="auth-form">
-            <input
-              v-model="authEmail" type="email" class="form-input" :class="{ 'is-invalid': authError === 'email' }"
-              :placeholder="t('onboarding.auth.emailPlaceholder')" autocomplete="email"
-              :aria-invalid="authError === 'email' ? 'true' : 'false'"
-            >
-            <PasswordField v-model="authPassword" :placeholder="t('onboarding.auth.passwordPlaceholder')" />
-            <p v-if="authError" class="field-error" role="alert">{{ authError === 'email' ? t('signup.errors.invalidEmail') : t('signup.errors.passwordTooShort') }}</p>
-            <button class="btn-next" style="width:100%;justify-content:center;" @click="submitEmailAuth">
-              {{ t('onboarding.auth.createAccount') }}
-            </button>
-          </div>
-
-          <div class="note-box sky">
-            <span>🕵️</span>
-            <span v-html="t('onboarding.auth.tryAnonNote')"></span>
-          </div>
-          <button class="btn-skip" style="display:block;text-align:center;margin-top:6px;width:100%;" @click="nextStep">
-            {{ t('onboarding.auth.tryAnonBtn') }}
-          </button>
-          <div class="note-box mint">
-            <span>🔐</span>
-            <span v-html="t('onboarding.auth.encryptedNote')"></span>
-          </div>
-
-          <div class="step-nav" style="margin-top:18px;">
-            <button class="btn-back" @click="previousStep">{{ t('onboarding.auth.back') }}</button>
-          </div>
-        </div>
-      </section>
-
+      <!-- Bước 1 (tạo tài khoản) đã bỏ: người dùng phải đăng nhập mới vào được Onboarding nên
+           bước này thừa; giữ chỉ số bước 0/2/3/4/5 để không đổi thanh tiến trình. -->
       <section v-show="step === 2" class="step-screen active">
         <div class="paper-card profile-card"><p style="font-size:1.8rem;margin-bottom:8px;">😊</p><h2 class="step-title">{{ t('onboarding.profileStep.title') }}</h2><p class="step-subtitle">{{ t('onboarding.profileStep.subtitle') }}</p>
           <div class="q-block"><div class="q-label"><span class="qi">🐱</span>{{ t('onboarding.profileStep.nameLabel') }}</div><input v-model="name" class="form-input" :placeholder="t('onboarding.profileStep.namePlaceholder')"></div>
@@ -96,15 +46,12 @@ import { useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { useAuthStore } from '../stores/auth';
 import { apiClient } from '../lib/apiClient';
-import PasswordField from '../components/PasswordField.vue';
-import { isValidEmail } from '../lib/validation';
 
 const router = useRouter();
 const auth = useAuthStore();
 const { t, tm } = useI18n();
 const step = ref(0);
 const name = ref(''); const age = ref(''); const avatar = ref(''); const reason = ref('');
-const authEmail = ref(''); const authPassword = ref('');
 const readCards = ref(new Set()); const connectedDevices = ref(new Set());
 const quotes = computed(() => tm('onboarding.quotes'));
 const quoteIndex = ref(Math.floor(Math.random() * 5));
@@ -190,17 +137,9 @@ async function goToStep(index) {
   if (index === 5) setTimeout(spawnConfetti, 300);
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
-function nextStep() { goToStep(step.value + 1); } function previousStep() { goToStep(step.value - 1); }
-function selectAuth() { nextStep(); }
-// Trước đây nút "Tạo tài khoản" gọi thẳng nextStep — email sai định dạng/mật khẩu trống vẫn sang
-// bước sau. Giờ kiểm tra trước, sai thì báo ngay dưới ô và đứng lại.
-const authError = ref(''); // '' | 'email' | 'password'
-function submitEmailAuth() {
-  if (!isValidEmail(authEmail.value)) { authError.value = 'email'; return; }
-  if ((authPassword.value || '').length < 8) { authError.value = 'password'; return; }
-  authError.value = '';
-  nextStep();
-}
+// Bỏ qua chỉ số 1 (bước tạo tài khoản đã gỡ) theo cả hai chiều tiến/lùi.
+function nextStep() { goToStep(step.value + 1 === 1 ? 2 : step.value + 1); }
+function previousStep() { goToStep(step.value - 1 === 1 ? 0 : step.value - 1); }
 async function complete(destination) {
   try {
     await apiClient.put('/profile', { onboarding_answers: { completed: true } });
@@ -215,8 +154,6 @@ onMounted(async () => { if (!await auth.waitForAuth()) { router.replace('/login'
 
 <style scoped src="../assets/onboarding.css"></style>
 <style scoped>
-.form-input.is-invalid { border-color: var(--color-danger, #d9534f); }
-.field-error { margin: 0; font-size: 13px; color: var(--color-danger, #d9534f); }
 .welcome-stats { display:flex; justify-content:center; gap:16px; flex-wrap:wrap; margin-bottom:16px; } .welcome-stats div { text-align:center; } .welcome-stats strong { display:block; font-size:1.4rem; color:var(--mint-dark); } .welcome-stats span { font-size:.75rem; color:var(--text-light); font-weight:600; }
 .option-chip, .avatar-option, .reason-option, .flip-card { font:inherit; color:inherit; text-align:inherit; } .option-chip, .avatar-option, .reason-option { cursor:pointer; } .flip-card { border:0; padding:0; background:transparent; width:100%; } .flip-card-front, .flip-card-back { width:100%; }
 .onboarding-warning { padding:12px 16px; background:var(--coral-light); border:1.5px solid var(--coral); border-radius:var(--border-radius-sm); font-size:.8rem; color:var(--text-secondary); margin-bottom:20px; }.complete-actions { flex-direction:column; gap:12px; }.dashboard-link { font-size:.85rem; color:var(--text-light); text-decoration:underline; background:none; border:0; cursor:pointer; }
