@@ -20,14 +20,6 @@
     </div>
 
     <main class="main-content" style="margin-left: 0;"  v-if="task">
-      <div class="breadcrumb">
-        <router-link to="/dashboard">{{ t('taskDetail.breadcrumbDashboard') }}</router-link>
-        <span>›</span>
-        <router-link :to="tasksLink">{{ t('taskDetail.breadcrumbTasks') }}</router-link>
-        <span>›</span>
-        <span>{{ task.title }}</span>
-      </div>
-
       <div class="detail-layout">
         <!-- LEFT COLUMN -->
         <div class="detail-left">
@@ -49,7 +41,7 @@
                     v-for="tag in tags.slice(0, 3)"
                     :key="tag"
                     class="badge-pill"
-                    style="background:var(--sky-light);color:#4a90aa;border:1.5px solid var(--sky);"
+                    style="background:var(--color-surface-muted);color:var(--color-text-muted);"
                   >{{ tag }}</span>
                 </div>
                 <div class="th-desc">{{ taskDescription }}</div>
@@ -57,17 +49,17 @@
               </div>
             </div>
             <div class="th-actions">
-              <button class="btn-primary btn-large" @click="startTask">{{ t('taskDetail.hero.startBtn') }}</button>
-              <button class="btn-outline">{{ t('taskDetail.hero.saveFavorite') }}</button>
-              <button class="btn-outline" @click="shareTask">{{ t('taskDetail.hero.shareBtn') }}</button>
-              <button class="btn-outline" style="color:var(--coral);border-color:var(--coral);" @click="emergencyOpen = true">{{ t('taskDetail.hero.emergencyBtn') }}</button>
+              <button class="btn-primary btn-large th-icon-btn" :title="plainText(t('taskDetail.hero.startBtn'))" :aria-label="plainText(t('taskDetail.hero.startBtn'))" @click="startTask"><NavIcon name="play" /></button>
+              <button class="btn-outline th-icon-btn" :title="plainText(t('taskDetail.hero.saveFavorite'))" :aria-label="plainText(t('taskDetail.hero.saveFavorite'))"><NavIcon name="heart" /></button>
+              <button class="btn-outline th-icon-btn" :title="plainText(t('taskDetail.hero.shareBtn'))" :aria-label="plainText(t('taskDetail.hero.shareBtn'))" @click="shareTask"><NavIcon name="share" /></button>
+              <button class="btn-outline btn-danger-soft th-icon-btn th-sos-btn" :title="plainText(t('taskDetail.hero.emergencyBtn'))" :aria-label="plainText(t('taskDetail.hero.emergencyBtn'))" @click="emergencyOpen = true">SOS</button>
             </div>
           </div>
 
           <!-- Phase Indicator -->
           <div class="phase-indicator">
             <div class="phase-item" :class="phaseClass(1)" @click="switchPhase(1)">
-              <div class="phase-num">📖</div>
+              <div class="phase-num"><NavIcon name="journal" class="phase-num-icon" /></div>
               <div>{{ t('taskDetail.phases.prepare') }}</div>
             </div>
             <div class="phase-item" :class="phaseClass(2)" @click="switchPhase(2)">
@@ -107,14 +99,14 @@
                 </template>
                 <div v-else style="font-size:0.82rem;color:var(--text-secondary);">{{ t('taskDetail.phase1.noChecklist') }}</div>
               </div>
-              <div v-if="safetyNotes.length" style="margin-top: 20px; padding: 14px; background: rgba(255, 139, 139, 0.1); border: 1.5px solid var(--coral); border-radius: var(--radius-sm);">
-                <div class="steps-title" style="color: var(--coral); margin-bottom: 8px;">{{ t('taskDetail.phase1.safetyTitle') }}</div>
+              <div v-if="safetyNotes.length" class="td-note td-note-safety">
+                <div class="steps-title" style="margin-bottom: 8px;">{{ t('taskDetail.phase1.safetyTitle') }}</div>
                 <ul style="padding-left: 20px; font-size: 0.85rem; color: var(--text-secondary); line-height: 1.6;">
                   <li v-for="(item, idx) in safetyNotes" :key="idx">{{ item }}</li>
                 </ul>
               </div>
-              <div v-if="objective" style="margin-top: 20px; padding: 14px; background: var(--mint-light); border: 1.5px solid var(--mint); border-radius: var(--radius-sm);">
-                <div class="steps-title" style="color: var(--mint-dark); margin-bottom: 8px;">{{ t('taskDetail.phase1.objectiveTitle') }}</div>
+              <div v-if="objective" class="td-note td-note-goal">
+                <div class="steps-title" style="margin-bottom: 8px;">{{ t('taskDetail.phase1.objectiveTitle') }}</div>
                 <div style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.6;">{{ objective }}</div>
               </div>
               <div style="margin-top:16px;text-align:center;">
@@ -249,7 +241,10 @@
               class="related-task"
               @click.prevent="goToTask(candidate)"
             >
-              <div class="rt-icon">{{ getTaskIcon(candidate) }}</div>
+              <div class="rt-icon">
+                <img v-if="taskThumbSrc(candidate) && !brokenRelatedImages.has(candidate.id)" :src="taskThumbSrc(candidate)" :alt="candidate.title" loading="lazy" @error="brokenRelatedImages.add(candidate.id)">
+                <template v-else>{{ getTaskIcon(candidate) }}</template>
+              </div>
               <div>
                 <div class="rt-name">{{ candidate.title }}</div>
                 <div class="rt-meta">{{ getDifficultyLabel(candidate) }} · +{{ candidate.xp_reward || 0 }} XP</div>
@@ -271,6 +266,10 @@ import { useAuthStore } from '../stores/auth';
 import { goToLegacyPage } from '../lib/legacyApp';
 import { isGuestEmergencyModeActive } from '../lib/guestEmergency';
 import { buildGuestEmergencyTasksFallback } from '../lib/taskFallbackData';
+import { taskThumbSrc } from '../lib/taskImages';
+import NavIcon from '../components/NavIcon.vue';
+// Nhãn i18n có emoji đứng đầu (▶ 🤍 📤 🆘) — bỏ đi khi dùng làm title/aria-label của nút icon.
+const plainText = (str) => String(str).replace(/^[^\p{L}\p{N}]+/u, '');
 
 const { t, tm } = useI18n();
 
@@ -287,6 +286,8 @@ const auth = useAuthStore();
 const allTasks = ref([]);
 const task = ref(null);
 const brokenTaskImage = ref(false);
+// Nhiệm vụ liên quan hiện ảnh thumb thật của nhiệm vụ; ảnh lỗi thì quay về icon cũ.
+const brokenRelatedImages = reactive(new Set());
 // Nhiem vu co san dung anh tinh public/task-images/<code>.png; nhiem vu admin tu tao qua UI
 // dung anh luu trong DB qua GET /tasks/:id/cover.
 const taskBannerSrc = computed(() => (task.value?.has_cover
@@ -675,3 +676,131 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped src="../assets/task-detail.css"></style>
+<style scoped>
+/* Đồng bộ với trang tổng quan (DashboardView.vue): nền ivory + ảnh lá, thẻ trắng bo mềm không
+   viền/bóng giấy, chữ Inter + tiêu đề --font-heading, nút/nhãn phẳng, đường kẻ mảnh liền nét.
+   Đặt SAU task-detail.css để thắng thứ tự nguồn, không sửa file gốc. */
+.task-detail-page {
+  font-family: var(--font-body); font-size: 15px; line-height: 1.55; color: var(--color-text);
+  background: var(--color-canvas); -webkit-font-smoothing: antialiased; position: relative; isolation: isolate; min-height: 100vh;
+}
+.task-detail-page::before {
+  content: ''; position: fixed; inset: 0; z-index: -1;
+  background: url('/images/dashboard-leaf-light.jpg') center / cover no-repeat;
+  opacity: 0.9; mix-blend-mode: multiply;
+  -webkit-mask-image: linear-gradient(to bottom right, transparent 0%, rgba(0, 0, 0, 0.55) 70%, #000 100%);
+  mask-image: linear-gradient(to bottom right, transparent 0%, rgba(0, 0, 0, 0.395) 70%, #000000 100%);
+  pointer-events: none;
+}
+.main-content { padding: 20px 20px 32px; }
+.task-detail-page :is(input, textarea, button) { font-family: inherit; }
+.task-detail-page :is(a, button):focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+.breadcrumb, .breadcrumb a { color: var(--color-text-subtle); font-size: 13px; }
+.breadcrumb a:hover { color: var(--color-brand); }
+
+/* Nút phẳng như .pf-btn-* của Dashboard. */
+.btn-primary, .btn-outline {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  min-height: 38px; padding: 8px 18px; border: none; border-radius: var(--radius-control); box-shadow: none; transform: none;
+  font-family: inherit; font-size: 14px; font-weight: 600; text-decoration: none; cursor: pointer;
+  transition: background-color var(--duration-fast) var(--ease-standard), filter var(--duration-fast) var(--ease-standard), color var(--duration-fast) var(--ease-standard);
+}
+.btn-primary { background: var(--color-brand); color: var(--color-on-brand); }
+.btn-primary:hover { background: var(--color-brand); color: var(--color-on-brand); filter: brightness(0.92); box-shadow: none; transform: none; }
+.btn-outline { background: var(--color-surface-muted); color: var(--color-text); }
+.btn-outline:hover { background: var(--color-brand-soft); color: var(--color-brand); }
+.btn-large { min-height: 44px; padding: 10px 22px; font-size: 15px; border-radius: var(--radius-control); }
+.btn-danger-soft { background: var(--color-danger-soft); color: var(--color-danger); }
+.btn-danger-soft:hover { background: var(--color-danger); color: #fff; }
+
+/* Nhãn: nền nhạt, không viền. */
+.badge-pill { border: none !important; font-size: 12px; }
+.badge-mint { background: var(--color-brand-soft); color: var(--color-brand); }
+.badge-peach { background: var(--color-terracotta-soft); color: var(--color-terracotta); }
+
+/* Thẻ: nền trắng, bo --radius-card, không viền/bóng giấy. */
+.paper-card { background: var(--color-surface); border: none; border-radius: var(--radius-card); box-shadow: none; }
+.paper-card:hover { box-shadow: none; }
+
+/* Thẻ đầu nhiệm vụ: giữ dải màu theo độ khó ở mép trên. */
+.th-banner { border-radius: var(--radius-control); overflow: hidden; }
+.th-icon { border: none; border-radius: var(--radius-control); }
+.th-title { font-family: var(--font-heading); font-weight: 800; color: var(--color-text); }
+.th-desc { color: var(--color-text-muted); }
+.th-quote { font-family: var(--font-display); font-style: italic; background: var(--color-canvas); border-left: 3px solid var(--color-brand); border-radius: 0 var(--radius-control) var(--radius-control) 0; color: var(--color-text-muted); }
+
+/* Thanh 3 giai đoạn: thanh nền nhạt, giai đoạn đang chọn là ô trắng. */
+.phase-indicator { gap: 4px; padding: 4px; border-radius: var(--radius-control); background: var(--color-surface-muted); }
+.phase-item, .phase-item:first-child, .phase-item:last-child { border: none; border-radius: calc(var(--radius-control) - 2px); background: transparent; color: var(--color-text-muted); font-weight: 600; }
+.phase-item.active { background: var(--color-surface); color: var(--color-brand); }
+.phase-item.done { background: var(--color-brand-soft); color: var(--color-brand); }
+
+/* Các bước. */
+.steps-title, .timer-title, .ic-title, .fp-title { font-family: var(--font-heading); font-weight: 800; color: var(--color-text); }
+.step-item { border: 1.5px solid transparent; border-radius: var(--radius-control); background: var(--color-canvas); }
+.step-item:hover { background: var(--color-brand-soft); border-color: transparent; }
+.step-item.done { background: var(--color-brand-soft); border-color: var(--color-brand); }
+.step-num { border: none; background: var(--color-surface); color: var(--color-brand); }
+.step-item.done .step-num { background: var(--color-brand); color: var(--color-on-brand); }
+.td-note { margin-top: 20px; padding: 14px 16px; border-radius: var(--radius-card); }
+.td-note-safety { background: var(--color-danger-soft); }
+.td-note-safety .steps-title { color: var(--color-danger); }
+.td-note-goal { background: var(--color-brand-soft); }
+.td-note-goal .steps-title { color: var(--color-brand); }
+
+/* Hẹn giờ / hít thở. */
+.breath-circle { border: none; box-shadow: none; background: radial-gradient(circle, var(--color-surface), var(--color-brand-soft)); }
+.breath-circle.inhale { background: radial-gradient(circle, var(--color-brand-soft), color-mix(in srgb, var(--color-brand) 45%, var(--color-surface))); box-shadow: none; }
+.round-dot { border: none; background: var(--color-surface-muted); }
+.round-dot.done, .round-dot.active { background: var(--color-brand); box-shadow: none; }
+.timer-num { font-family: var(--font-heading); }
+
+/* Hoàn thành. */
+.xp-animation { border: none; background: var(--color-terracotta-soft); }
+.fp-emoji-btn { border: 1.5px solid transparent; background: var(--color-canvas); }
+.fp-emoji-btn.selected { border-color: var(--color-brand); background: var(--color-brand-soft); box-shadow: none; }
+.fp-note-area { border: 1px solid transparent; border-radius: var(--radius-control); background: var(--color-canvas); font-family: inherit; color: var(--color-text); }
+.fp-note-area:focus { outline: none; border-color: var(--color-brand); background: var(--color-surface); }
+
+/* Cột phải. */
+.mascot-tip { border: none; border-radius: var(--radius-card); background: var(--color-terracotta-soft); }
+.mt-text { color: var(--color-text); }
+.ic-stat-row, .benefit-item { border-bottom: 1px solid var(--color-surface-muted); }
+.ic-stat-label { color: var(--color-text-muted); }
+.ic-stat-val { color: var(--color-text); }
+.community-stat { border: none; border-radius: var(--radius-card); background: var(--color-brand-soft); }
+.cs-num { font-family: var(--font-heading); color: var(--color-brand); }
+.cs-bar { background: var(--color-surface); }
+.cs-bar-fill { background: var(--color-brand); }
+.related-task { border: none; border-radius: var(--radius-control); background: var(--color-canvas); transition: background-color var(--duration-fast) var(--ease-standard); }
+.related-task:hover { background: var(--color-brand-soft); border: none; }
+.rt-icon { border: none; border-radius: var(--radius-control); background: var(--color-surface); }
+.rt-name { color: var(--color-text); font-weight: 600; }
+.rt-meta { color: var(--color-text-subtle); }
+
+/* Popup khẩn cấp giống bản ở trang check-in. */
+.emergency-popup { border: none; border-radius: var(--radius-panel); box-shadow: var(--shadow-soft); }
+.ep-hotline { border: none; border-radius: var(--radius-card); background: var(--color-danger-soft); }
+.ep-btn { border: none; border-radius: var(--radius-control); box-shadow: none; font-family: inherit; }
+.ep-btn-red { background: var(--color-danger); color: #fff; }
+.ep-btn-green { background: var(--color-brand-soft); color: var(--color-brand); }
+.ep-btn-ghost { background: var(--color-surface-muted); color: var(--color-text-muted); }
+@media (max-width: 900px), (hover: none) and (pointer: coarse) {
+  .main-content { padding: 16px 16px 24px; }
+}
+/* Desktop: chuông + nút chat nổi cố định ở góc phải trên (top 30px, cao 45px) — đẩy cột phải
+   xuống để thẻ đầu tiên không bị che (trước đây có breadcrumb chiếm chỗ này). */
+@media (min-width: 901px) and (hover: hover) {
+  .detail-right { padding-top: 64px; }
+}
+.rt-icon { width: 44px; height: 44px; flex-shrink: 0; overflow: hidden; display: flex; align-items: center; justify-content: center; }
+.rt-icon img { width: 100%; height: 100%; object-fit: cover; display: block; }
+/* Nút hành động ở thẻ đầu: chỉ icon nét đơn sắc (chữ chuyển vào title/aria-label). */
+.th-icon-btn { width: 48px; min-width: 48px; height: 48px; min-height: 48px; padding: 0; }
+.th-icon-btn .nav-icon { width: 22px; height: 22px; }
+.th-icon-btn.btn-primary .nav-icon { fill: currentColor; stroke-width: 1.6; }
+.th-sos-btn { font-size: 13px; font-weight: 800; letter-spacing: 0.04em; }
+/* Icon giai đoạn "Chuẩn bị": nét đơn sắc cùng màu chữ, đồng bộ với ký hiệu ▶ ✓ của 2 giai đoạn sau. */
+.phase-num { display: flex; align-items: center; justify-content: center; height: 20px; }
+.phase-num .phase-num-icon { width: 17px; height: 17px; stroke-width: 2; }
+</style>

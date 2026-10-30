@@ -23,10 +23,10 @@
     },
     "phase1": {
       "prepareTitle": "🎒 Chuẩn bị",
-      "instructionsTitle": "📋 Hướng dẫn từng bước",
+      "instructionsTitle": "Hướng dẫn từng bước",
       "noChecklist": "Nhiệm vụ này chưa có checklist chi tiết.",
-      "safetyTitle": "⚠️ Lưu ý an toàn",
-      "objectiveTitle": "🎯 Mục tiêu",
+      "safetyTitle": "Lưu ý an toàn",
+      "objectiveTitle": "Mục tiêu",
       "startBtn": "▶ Bắt đầu ngay"
     },
     "phase2": {
@@ -46,7 +46,7 @@
       "dashboardBtn": "🏡 Dashboard"
     },
     "info": {
-      "title": "📊 Thông tin nhiệm vụ",
+      "title": "Thông tin nhiệm vụ",
       "codeLabel": "Mã nhiệm vụ",
       "levelLabel": "Cấp độ",
       "timeLabel": "Thời gian",
@@ -60,7 +60,7 @@
       "notStarted": "Chưa bắt đầu"
     },
     "yourStatus": {
-      "title": "🧭 Trạng thái của bạn",
+      "title": "Trạng thái của bạn",
       "timesCompletedLabel": "lần bạn đã hoàn thành nhiệm vụ này",
       "recommendedYes": "Có trong gợi ý hôm nay",
       "recommendedNo": "Không nằm trong nhóm ưu tiên hôm nay",
@@ -72,7 +72,7 @@
       "noData": "Chưa có ghi chú lợi ích khoa học riêng cho nhiệm vụ này."
     },
     "related": {
-      "title": "🔗 Nhiệm vụ cùng cấp độ",
+      "title": "Nhiệm vụ cùng cấp độ",
       "noData": "Chưa có nhiệm vụ liên quan trong cùng nhóm."
     },
     "difficulty": {

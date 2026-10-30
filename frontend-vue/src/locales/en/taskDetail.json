@@ -23,10 +23,10 @@
     },
     "phase1": {
       "prepareTitle": "🎒 Preparation",
-      "instructionsTitle": "📋 Step-by-step instructions",
+      "instructionsTitle": "Step-by-step instructions",
       "noChecklist": "This task doesn't have a detailed checklist yet.",
-      "safetyTitle": "⚠️ Safety note",
-      "objectiveTitle": "🎯 Objective",
+      "safetyTitle": "Safety note",
+      "objectiveTitle": "Objective",
       "startBtn": "▶ Start now"
     },
     "phase2": {
@@ -46,7 +46,7 @@
       "dashboardBtn": "🏡 Dashboard"
     },
     "info": {
-      "title": "📊 Task information",
+      "title": "Task information",
       "codeLabel": "Task code",
       "levelLabel": "Level",
       "timeLabel": "Time",
@@ -60,7 +60,7 @@
       "notStarted": "Not started"
     },
     "yourStatus": {
-      "title": "🧭 Your status",
+      "title": "Your status",
       "timesCompletedLabel": "times you've completed this task",
       "recommendedYes": "Included in today's suggestions",
       "recommendedNo": "Not in today's priority group",
@@ -72,7 +72,7 @@
       "noData": "No specific science-backed benefit notes for this task yet."
     },
     "related": {
-      "title": "🔗 Tasks at the same level",
+      "title": "Tasks at the same level",
       "noData": "No related tasks in the same group yet."
     },
     "difficulty": {
