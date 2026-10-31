@@ -356,10 +356,6 @@
       <div class="result-panel" :class="{ active: view === 'result' }" v-if="result">
         <div class="result-toolbar" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px;">
           <button class="btn-outline" @click="backToSelector">{{ t('moodAssessment.result.backBtn') }}</button>
-          <div style="display:flex;gap:8px;">
-            <button class="btn-outline" @click="retakeTest">{{ t('moodAssessment.result.retakeBtn') }}</button>
-            <button class="btn-primary" @click="printResult">{{ t('moodAssessment.result.exportPdfBtn') }}</button>
-          </div>
         </div>
 
         <div class="paper-card result-header">
@@ -367,7 +363,7 @@
             <img :src="resultImageUrl" :alt="result.testName" class="rh-banner-img" @error="brokenResultImage = true">
           </div>
           <div class="rh-top">
-            <div v-if="!resultImageUrl || brokenResultImage" class="rh-mascot">{{ result.icon }}</div>
+            <div v-if="!resultImageUrl || brokenResultImage" class="rh-mascot"><TestIcon :name="currentTestId || ''" /></div>
             <div>
               <div class="rh-title">{{ t('moodAssessment.result.title', { testName: result.testName }) }}</div>
               <div class="rh-subtitle">{{ resultSubtitle }}</div>
@@ -376,7 +372,6 @@
 
           <div class="result-scores-grid" :class="`rsg-${Math.min(3, result.cards.length)}`">
             <div v-for="card in result.cards" :key="card.key" class="rs-card" :class="card.levelClass">
-              <div class="rs-icon">{{ card.icon }}</div>
               <div class="rs-label">{{ card.displayLabel }}</div>
               <div><span class="rs-score">{{ card.score }}</span><span class="rs-max">/ {{ result.maxScore }}</span></div>
               <div class="rs-level-badge" style="background:rgba(255,255,255,0.4); border:1px solid currentColor;">{{ card.levelLabel }}</div>
@@ -401,14 +396,20 @@
               :label="t('share.testInviteLabel')"
             />
           </div>
+          <div class="result-disclaimer" style="padding:12px 16px;background:rgba(255,203,164,0.15);border:1.5px solid var(--peach);border-radius:var(--border-radius-sm);font-size:0.75rem;color:var(--text-secondary);margin:16px 0 0;line-height:1.6;" v-html="t('moodAssessment.result.disclaimer')"></div>
         </div>
 
         <div class="paper-card result-interpretation">
-          <div class="ri-title">{{ t('moodAssessment.result.interpretationTitle') }}</div>
+          <div class="ri-head">
+            <div class="ri-title">{{ t('moodAssessment.result.interpretationTitle') }}</div>
+            <div class="ri-actions">
+              <button class="btn-outline ri-icon-btn" :title="t('moodAssessment.result.retakeBtn')" :aria-label="t('moodAssessment.result.retakeBtn')" @click="retakeTest"><NavIcon name="refresh" /></button>
+              <button class="btn-primary ri-icon-btn" :title="t('moodAssessment.result.exportPdfBtn')" :aria-label="t('moodAssessment.result.exportPdfBtn')" @click="printResult"><NavIcon name="download" /></button>
+            </div>
+          </div>
           <div>
             <ul style="padding:0; margin:0; list-style:none;">
               <li v-for="item in result.interpretation" :key="item.key" class="ri-item" :class="item.tone">
-                <span class="ri-icon">{{ item.icon }}</span>
                 <div><strong>{{ item.displayLabel }}:</strong> <span v-html="t('moodAssessment.result.interpretationText', { score: item.score, level: item.levelLabel })"></span> {{ item.note }}</div>
               </li>
             </ul>
@@ -417,7 +418,6 @@
 
         <div class="paper-card result-ai-summary" v-if="aiSummaryLoading || aiSummaryText">
           <div class="ai-summary-header">
-            <span class="ai-summary-icon">🤖</span>
             <span class="ri-title" style="margin-bottom:0;">{{ t('moodAssessment.result.aiTitle') }}</span>
             <span class="badge-pill badge-mint" style="margin-left:auto;">AI</span>
           </div>
@@ -456,7 +456,7 @@
 
         <div class="expert-recommend" v-show="result.isWarning">
           <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
-            <span style="font-size:1.4rem;">🩺</span>
+            <NavIcon name="experts" class="er-icon" />
             <div>
               <div style="font-size:0.9rem;font-weight:700;">{{ t('moodAssessment.result.expertRecommendTitle') }}</div>
               <div style="font-size:0.78rem;color:var(--text-secondary);">{{ t('moodAssessment.result.expertRecommendDesc') }}</div>
@@ -468,7 +468,7 @@
                hợp thì fallback về nút chung dẫn sang trang Chuyên gia. -->
           <div v-if="recommendedExperts.length" style="display:flex;flex-direction:column;gap:10px;margin-bottom:10px;">
             <div v-for="expert in recommendedExperts" :key="expert.id" class="paper-card" style="display:flex;align-items:center;gap:10px;padding:10px;">
-              <div style="width:44px;height:44px;border-radius:50%;background:var(--warm-white);display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0;">{{ expert.avatar }}</div>
+              <div style="width:44px;height:44px;border-radius:50%;background:var(--warm-white);display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0;overflow:hidden;"><img v-if="expertAvatarUrls[expert.id]" :src="expertAvatarUrls[expert.id]" :alt="expert.name" style="width:100%;height:100%;object-fit:cover;display:block;"><template v-else>{{ expert.avatar }}</template></div>
               <div style="flex:1;min-width:0;">
                 <div style="font-weight:700;font-size:0.85rem;">{{ expert.name }}</div>
                 <div style="font-size:0.72rem;color:var(--text-secondary);">{{ expert.degree }}</div>
@@ -479,8 +479,6 @@
           </div>
           <router-link v-else to="/experts" class="btn-primary" style="width:100%;justify-content:center;">{{ t('moodAssessment.result.bookNowBtn') }}</router-link>
         </div>
-
-        <div class="result-disclaimer" style="padding:12px 16px;background:rgba(255,203,164,0.15);border:1.5px solid var(--peach);border-radius:var(--border-radius-sm);font-size:0.75rem;color:var(--text-secondary);margin-bottom:16px;line-height:1.6;" v-html="t('moodAssessment.result.disclaimer')"></div>
 
         <div class="result-actions">
           <router-link to="/tasks" class="btn-primary">{{ t('moodAssessment.result.startTasksBtn') }}</router-link>
@@ -501,6 +499,7 @@ import { apiClient, SHARE_BASE_URL } from '../lib/apiClient';
 import { useAuthStore } from '../stores/auth';
 import ShareButtons from '../components/ShareButtons.vue';
 import TestIcon from '../components/TestIcon.vue';
+import NavIcon from '../components/NavIcon.vue';
 // Chuỗi i18n có emoji đứng đầu (📝, 🔍, 📅) — bỏ đi khi hiển thị; ô tìm kiếm dùng icon nét đơn sắc.
 const plainText = (str) => String(str).replace(/^[^\p{L}\p{N}]+/u, '');
 import { TESTS as TESTS_VI } from '../lib/assessmentTests';
@@ -609,12 +608,15 @@ function closeSharePopoverOnOutsideClick(event) {
 }
 onMounted(() => document.addEventListener('click', closeSharePopoverOnOutsideClick));
 onBeforeUnmount(() => document.removeEventListener('click', closeSharePopoverOnOutsideClick));
+onBeforeUnmount(() => Object.values(expertAvatarUrls).forEach((url) => URL.revokeObjectURL(url)));
 const currentQIndex = ref(0);
 const answers = ref([]);
 const textAnswerDraft = ref('');
 const result = ref(null);
 const resultSaveNote = ref('');
 const recommendedExperts = ref([]);
+// Ảnh thật của chuyên gia gợi ý (blob từ GET /experts/:id/avatar); chưa có ảnh thì giữ emoji.
+const expertAvatarUrls = reactive({});
 // ID bản ghi kết quả vừa lưu — chỉ có khi lưu thành công (xem onAssessmentFinished), dùng
 // để dựng link chia sẻ ĐÚNG KẾT QUẢ này (khác hẳn link mời làm thử chung chung).
 const savedResultId = ref(null);
@@ -1316,6 +1318,14 @@ async function loadRecommendedExperts() {
       .filter((expert) => expert.matched)
       .sort((a, b) => (b.rating || 0) - (a.rating || 0))
       .slice(0, 2);
+    recommendedExperts.value
+      .filter((expert) => expert.has_avatar_photo && !expertAvatarUrls[expert.id])
+      .forEach(async (expert) => {
+        try {
+          const blob = await apiClient.getBlob(`/experts/${expert.id}/avatar`);
+          expertAvatarUrls[expert.id] = URL.createObjectURL(blob);
+        } catch (_err) { /* giữ emoji mặc định */ }
+      });
   } catch (error) {
     console.error('Load recommended experts failed:', error);
     recommendedExperts.value = [];
@@ -1555,6 +1565,16 @@ onMounted(() => {
 /* Kết quả */
 .result-share-row { border-top: 1px solid var(--color-surface-muted); }
 .rs-card { border: none; border-radius: var(--radius-card); }
+/* Trang kết quả: icon đơn sắc thay emoji. */
+.ri-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+.ri-head .ri-title { margin-bottom: 0; }
+.ri-actions { display: flex; gap: 8px; flex-shrink: 0; }
+.ri-icon-btn { width: 40px; min-width: 40px; height: 40px; min-height: 40px; padding: 0; justify-content: center; }
+.ri-icon-btn .nav-icon { width: 20px; height: 20px; }
+@media print { .ri-actions { display: none; } }
+.rh-mascot { animation: none; color: var(--color-brand); display: flex; }
+.rh-mascot :deep(.test-icon) { width: 44px; height: 44px; stroke-width: 1.6; }
+.er-icon { width: 26px; height: 26px; color: var(--color-brand); flex-shrink: 0; }
 .expert-recommend { border: none; border-radius: var(--radius-card); background: var(--color-surface); }
 .result-disclaimer { border: none !important; border-radius: var(--radius-card) !important; background: var(--color-terracotta-soft) !important; color: var(--color-text-muted) !important; }
 .review-close { border: none; background: var(--color-surface-muted); }
