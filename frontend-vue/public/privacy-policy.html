@@ -54,7 +54,7 @@
     <div class="meta">
       Văn bản này là bản trình bày điện tử, có nội dung thống nhất với "Chính sách bảo mật dữ liệu cá nhân &amp; sức khỏe tinh thần" đã được Công ty TNHH Minh Vision ký, đóng dấu — xem bản gốc PDF tại
       <a href="/docs/chinh-sach-bao-mat.pdf" target="_blank" rel="noopener">/docs/chinh-sach-bao-mat.pdf</a>.
-      Cập nhật lần cuối: 22/09/2026.
+      Cập nhật lần cuối: 04/11/2026 — bổ sung Mục 3 (xử lý dữ liệu tự động bằng AI) theo Nghị định 356/2025/NĐ-CP.
     </div>
 
     <h2>1. Chính sách bảo mật dữ liệu cá nhân &amp; sức khỏe tinh thần</h2>
@@ -82,7 +82,7 @@
     <h3>Biện pháp bảo mật kỹ thuật</h3>
     <p>Toàn bộ dữ liệu được truyền tải qua giao thức mã hóa SSL/TLS. Nhật ký cảm xúc và hồ sơ tham vấn sức khỏe tinh thần được mã hóa theo chuẩn AES-256.</p>
     <h3>Quyền của người dùng</h3>
-    <p>Người dùng có quyền đăng nhập vào mục "Quản lý tài khoản" để xem, trích xuất, hoặc chỉnh sửa thông tin. Để yêu cầu xóa toàn bộ dữ liệu (quyền được lãng quên), vui lòng gửi email về <a href="mailto:peaceflow.vn@gmail.com">peaceflow.vn@gmail.com</a>.</p>
+    <p>Người dùng có quyền đăng nhập vào mục "Quản lý tài khoản" để xem, trích xuất, hoặc chỉnh sửa thông tin; tự <strong>ẩn danh hồ sơ</strong> hoặc <strong>yêu cầu xóa tài khoản</strong> ngay trong mục Cài đặt (chi tiết tại <a href="#xu-ly-ai">Mục 3.5</a>). Để yêu cầu xóa toàn bộ dữ liệu (quyền được lãng quên), vui lòng gửi email về <a href="mailto:peaceflow.vn@gmail.com">peaceflow.vn@gmail.com</a>.</p>
 
     <h2>2. Dữ liệu người dùng Google (Google User Data)</h2>
     <div class="lang-block">
@@ -115,7 +115,49 @@
       </ul>
     </div>
 
-    <h2>3. Phạm vi áp dụng</h2>
+    <h2 id="xu-ly-ai">3. Xử lý dữ liệu tự động bằng trí tuệ nhân tạo (AI)</h2>
+    <p>Căn cứ Điều 10 Nghị định 356/2025/NĐ-CP, PeaceFlow thông báo rõ với người dùng: một số tính năng của PeaceFlow (gồm trợ lý <strong>PeaceCat AI</strong> và <strong>chỉ số căng thẳng — Engine Stress</strong>) <strong>xử lý dữ liệu cá nhân một cách tự động</strong> để phân tích cảm xúc và phân loại mức độ căng thẳng của người dùng. Mục này giải thích hệ thống dùng dữ liệu nào, gửi cho ai, hoạt động theo nguyên tắc nào và bạn có những quyền gì.</p>
+
+    <h3>3.1. Các tính năng có xử lý tự động</h3>
+    <ul>
+      <li><strong>Trò chuyện với PeaceCat AI:</strong> tin nhắn bạn gửi, vài lượt trò chuyện gần nhất và số liệu tổng hợp 14 ngày gần nhất (điểm trung bình tâm trạng, lo âu, căng thẳng, năng lượng; xu hướng kết quả bài test; thói quen làm nhiệm vụ; mục tiêu bạn tự khai) được dùng để soạn câu trả lời, gợi ý nhiệm vụ hoặc chuyên gia, và ước lượng mức lo âu, căng thẳng, tâm trạng trong cuộc trò chuyện.</li>
+      <li><strong>Nhận xét AI cho kết quả bài test và bài sàng lọc:</strong> tên bài, điểm số, mức độ, và — với bài sàng lọc học đường — câu trả lời cùng ghi chú bạn tự viết, được dùng để tạo đoạn diễn giải dễ hiểu.</li>
+      <li><strong>Lời nhắn mỗi ngày, nhận xét tuần, gợi ý nhiệm vụ:</strong> dựa trên số liệu tổng hợp về tâm trạng và thói quen sử dụng.</li>
+      <li><strong>Chỉ số căng thẳng (Engine Stress):</strong> tính tự động theo công thức cố định (không dùng mô hình ngôn ngữ) — xem Mục 3.3.</li>
+      <li><strong>Phát hiện dấu hiệu khủng hoảng:</strong> hệ thống tự động dò các từ khóa nguy hiểm trong tin nhắn với PeaceCat, ghi chú bài sàng lọc và tin nhắn gửi chuyên gia, để kịp thời hiển thị thông tin hỗ trợ khẩn cấp. Tính năng này không thể tắt vì lý do an toàn.</li>
+      <li><strong>Gợi ý chuyên gia phù hợp:</strong> dựa trên điểm tâm trạng gần nhất, yếu tố gây căng thẳng và mức độ kết quả bài test để xếp bạn vào nhóm vấn đề (lo âu, căng thẳng, giấc ngủ, trầm cảm…) và đề xuất chuyên gia có chuyên môn tương ứng.</li>
+    </ul>
+
+    <h3>3.2. Bên tham gia xử lý dữ liệu</h3>
+    <ul>
+      <li>Các nội dung cần sinh văn bản (PeaceCat, nhận xét bài test, lời nhắn, nhận xét tuần) được gửi tới mô hình <strong>Google Gemini</strong> qua giao diện lập trình (API) của Google để xử lý và trả kết quả về.</li>
+      <li>PeaceFlow <strong>không gửi</strong> họ tên, email, số điện thoại hay ảnh đại diện của bạn tới mô hình AI; chỉ gửi nội dung và số liệu cần thiết cho từng yêu cầu.</li>
+      <li>Chỉ số căng thẳng, phát hiện từ khóa khủng hoảng và gợi ý chuyên gia được tính trên máy chủ của PeaceFlow.</li>
+      <li>Dữ liệu không được bán và không được dùng cho mục đích quảng cáo.</li>
+    </ul>
+
+    <h3>3.3. Nguyên tắc hoạt động của thuật toán</h3>
+    <ul>
+      <li><strong>PeaceCat AI</strong> là mô hình ngôn ngữ lớn: nó dự đoán câu trả lời phù hợp dựa trên nội dung bạn nhập và số liệu tổng hợp ở Mục 3.1, theo hướng dẫn an toàn do PeaceFlow thiết lập (không chẩn đoán, không kê đơn, ưu tiên khuyến nghị gặp chuyên gia khi có dấu hiệu nghiêm trọng). Các điểm lo âu, căng thẳng, tâm trạng do PeaceCat đưa ra là <strong>ước lượng</strong> từ cuộc trò chuyện, có thể không chính xác.</li>
+      <li><strong>Chỉ số căng thẳng (0–100)</strong> là trung bình có trọng số của: mức lo âu, căng thẳng, tâm trạng và giấc ngủ từ các lần check-in; mức độ né tránh nhiệm vụ; cảm xúc trong nhật ký; các lần kích hoạt hỗ trợ khẩn cấp; mức độ kết quả bài test gần nhất và kết quả sàng lọc (nếu có). Chỉ số được xếp thành 4 mức: <strong>Thấp</strong> (0–24), <strong>Vừa</strong> (25–49), <strong>Cao</strong> (50–74), <strong>Nguy cấp</strong> (75–100). Kết quả sàng lọc mức Đỏ hoặc dấu hiệu khủng hoảng sẽ đưa chỉ số về mức Nguy cấp để ưu tiên hỗ trợ.</li>
+      <li>Chỉ số và mức phân loại được dùng để: hiển thị báo cáo cho chính bạn, chọn nhiệm vụ phù hợp, gợi ý chuyên gia và hiển thị thông tin hỗ trợ khẩn cấp khi cần.</li>
+    </ul>
+
+    <h3>3.4. Giới hạn của kết quả tự động</h3>
+    <p>Mọi kết quả do AI hoặc thuật toán tạo ra <strong>chỉ mang tính tham khảo, không phải chẩn đoán y khoa</strong> và không thay thế ý kiến của bác sĩ hay chuyên gia tâm lý. PeaceFlow không dùng kết quả tự động để đưa ra quyết định gây ảnh hưởng pháp lý đến bạn. Bạn có quyền yêu cầu chuyên gia hoặc nhân sự của PeaceFlow xem xét lại kết quả bằng cách liên hệ <a href="mailto:peaceflow.vn@gmail.com">peaceflow.vn@gmail.com</a>.</p>
+
+    <h3>3.5. Quyền của bạn đối với dữ liệu và hồ sơ nhận dạng</h3>
+    <ul>
+      <li><strong>Chỉnh sửa:</strong> sửa tên hiển thị, số điện thoại, ảnh đại diện và thông tin cá nhân tại trang Hồ sơ.</li>
+      <li><strong>Ẩn danh hồ sơ:</strong> tại <em>Cài đặt → Vùng nguy hiểm</em>, bấm "Ẩn danh hồ sơ" để xóa họ tên, email, số điện thoại và ảnh đại diện khỏi tài khoản, thay bằng mã ngẫu nhiên. Dữ liệu sử dụng (nhật ký, kết quả bài test…) được giữ lại nhưng không còn gắn với danh tính của bạn. Sau khi ẩn danh, bạn sẽ không đăng nhập lại được tài khoản này.</li>
+      <li><strong>Xóa tài khoản:</strong> tại <em>Cài đặt</em>, bấm "Yêu cầu xóa tài khoản"; hoặc gửi yêu cầu xóa toàn bộ dữ liệu qua <a href="mailto:peaceflow.vn@gmail.com">peaceflow.vn@gmail.com</a>.</li>
+      <li><strong>Trích xuất dữ liệu:</strong> tải dữ liệu của bạn dưới dạng JSON tại mục Cài đặt.</li>
+    </ul>
+
+    <h3>3.6. Đánh giá tuân thủ định kỳ</h3>
+    <p>PeaceFlow thực hiện <strong>đánh giá tuân thủ bảo vệ dữ liệu cá nhân định kỳ 01 (một) năm/lần</strong> đối với các hệ thống xử lý dữ liệu tự động nêu trên, và cập nhật chính sách này khi có thay đổi về cách xử lý dữ liệu.</p>
+
+    <h2>4. Phạm vi áp dụng</h2>
     <p>Chính sách này áp dụng cho toàn bộ người dùng truy cập, đăng ký tài khoản, sử dụng bài đánh giá, nhật ký cảm xúc, đặt lịch hoặc tham gia tham vấn trên nền tảng PeaceFlow.vn — bao gồm cả người dùng đăng nhập bằng tài khoản Google.</p>
 
     <footer>

@@ -186,9 +186,11 @@
     "danger": {
       "title": "Danger zone",
       "subtitle": "Sensitive actions. Only run these when you really need to.",
-      "note": "Deleting your account cannot be undone. Your account data is marked deleted on our system immediately.",
+      "note": "Anonymize profile: removes your name, email, phone number and avatar and replaces them with a random code; your usage data is kept but no longer linked to you. Delete account: the account is locked immediately. Both actions cannot be undone and you will not be able to sign in again.",
       "resetCache": "🔄 Clear local cache",
-      "deleteAccountBtn": "🗑️ Request account deletion"
+      "deleteAccountBtn": "🗑️ Request account deletion",
+      "anonymizeBtn": "Anonymize profile",
+      "anonymizeDesc": "Remove identifying information, keep data anonymously"
     },
     "toast": {
       "savedAll": "All settings saved.",
@@ -205,7 +207,10 @@
       "deleteAccountConfirm": "Are you sure you want to delete your account? All your data (mood entries, journal, test results, booking history...) will be permanently deleted and cannot be recovered.",
       "deleteAccountDone": "Your account has been deleted. See you again sometime.",
       "deleteAccountFailed": "Could not delete your account, please try again.",
-      "loadFailed": "Couldn't load settings from the server."
+      "loadFailed": "Couldn't load settings from the server.",
+      "anonymizeConfirm": "Anonymize your profile? Your name, email, phone number and avatar will be permanently removed and replaced with a random code. Journals, test results and other data are kept but no longer linked to your identity. You will be signed out and will NOT be able to sign in to this account again.",
+      "anonymizeDone": "Your profile has been anonymized.",
+      "anonymizeFailed": "Could not anonymize your profile, please try again."
     },
     "defaults": {
       "notAvailable": "Not available",

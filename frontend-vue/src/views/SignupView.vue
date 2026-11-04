@@ -74,10 +74,11 @@
             {{ t('signup.agreeTermsPrefix') }}
             <a href="#" @click.prevent="goToLegacyPage('terms.html')">{{ t('signup.termsLink') }}</a>
             {{ t('signup.and') }}
-            <a href="#" @click.prevent="goToLegacyPage('privacy.html')">{{ t('signup.privacyLink') }}</a>
+            <a href="/privacy-policy.html" target="_blank" rel="noopener">{{ t('signup.privacyLink') }}</a>
             {{ t('signup.ofPeaceflow') }}
           </span>
         </label>
+        <AiNotice consent class="signup-ai-notice" />
 
         <button type="submit" class="btn-secondary-auth" :disabled="submitting">
           {{ submitting ? t('signup.submitting') : t('signup.submit') }}
@@ -101,6 +102,7 @@ import { goToLegacyPage } from '../lib/legacyApp';
 import { isNativeApp } from '../lib/native';
 import { getCurrentLocale } from '../locales';
 import PasswordField from '../components/PasswordField.vue';
+import AiNotice from '../components/AiNotice.vue';
 import { isValidEmail } from '../lib/validation';
 
 const GOOGLE_CLIENT_ID = '287402483358-uiec013q9obn1m8j82ejhkdmuoi3ku6v.apps.googleusercontent.com';
@@ -313,6 +315,7 @@ onMounted(() => {
 </script>
 
 <style scoped>
+.signup-ai-notice { margin: -4px 0 16px; }
 .form-input.is-invalid { border-color: var(--color-danger, #d9534f); }
 .field-error { margin: 6px 2px 0; font-size: 13px; color: var(--color-danger, #d9534f); }
 .btn-google-native {

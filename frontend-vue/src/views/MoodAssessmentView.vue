@@ -427,6 +427,7 @@
             <div class="ai-summary-task-title">{{ t('moodAssessment.result.aiJudgmentTitle') }}</div>
             <div class="ai-summary-text">{{ aiInterpretation }}</div>
           </template>
+          <AiNotice v-if="!aiSummaryLoading" class="ai-summary-notice" />
         </div>
 
         <div class="paper-card result-comparison">
@@ -500,6 +501,7 @@ import { useAuthStore } from '../stores/auth';
 import ShareButtons from '../components/ShareButtons.vue';
 import TestIcon from '../components/TestIcon.vue';
 import NavIcon from '../components/NavIcon.vue';
+import AiNotice from '../components/AiNotice.vue';
 // Chuỗi i18n có emoji đứng đầu (📝, 🔍, 📅) — bỏ đi khi hiển thị; ô tìm kiếm dùng icon nét đơn sắc.
 const plainText = (str) => String(str).replace(/^[^\p{L}\p{N}]+/u, '');
 import { TESTS as TESTS_VI } from '../lib/assessmentTests';
@@ -1566,6 +1568,7 @@ onMounted(() => {
 .result-share-row { border-top: 1px solid var(--color-surface-muted); }
 .rs-card { border: none; border-radius: var(--radius-card); }
 /* Trang kết quả: icon đơn sắc thay emoji. */
+.ai-summary-notice { margin-top: 12px; }
 .ri-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
 .ri-head .ri-title { margin-bottom: 0; }
 .ri-actions { display: flex; gap: 8px; flex-shrink: 0; }

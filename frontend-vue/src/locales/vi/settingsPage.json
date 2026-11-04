@@ -186,9 +186,11 @@
     "danger": {
       "title": "Vùng nguy hiểm",
       "subtitle": "Các thao tác nhạy cảm. Chỉ chạy khi bạn thực sự cần.",
-      "note": "Xóa tài khoản là thao tác không thể hoàn tác. Dữ liệu tài khoản sẽ được đánh dấu đã xóa trên hệ thống ngay lập tức.",
+      "note": "Ẩn danh hồ sơ: xóa họ tên, email, số điện thoại, ảnh đại diện khỏi tài khoản và thay bằng mã ngẫu nhiên; dữ liệu sử dụng được giữ nhưng không còn gắn với bạn. Xóa tài khoản: tài khoản bị khóa ngay. Cả hai thao tác đều không thể hoàn tác và bạn sẽ không đăng nhập lại được.",
       "resetCache": "🔄 Xóa cache local",
-      "deleteAccountBtn": "🗑️ Yêu cầu xóa tài khoản"
+      "deleteAccountBtn": "🗑️ Yêu cầu xóa tài khoản",
+      "anonymizeBtn": "Ẩn danh hồ sơ",
+      "anonymizeDesc": "Xóa thông tin nhận dạng, giữ dữ liệu ở dạng ẩn danh"
     },
     "toast": {
       "savedAll": "Đã lưu toàn bộ cài đặt.",
@@ -205,7 +207,10 @@
       "deleteAccountConfirm": "Bạn có chắc muốn xóa tài khoản? Toàn bộ dữ liệu (tâm trạng, nhật ký, kết quả bài test, lịch sử đặt lịch...) sẽ bị xóa vĩnh viễn và không thể khôi phục.",
       "deleteAccountDone": "Đã xóa tài khoản. Hẹn gặp lại bạn.",
       "deleteAccountFailed": "Không xóa được tài khoản, vui lòng thử lại.",
-      "loadFailed": "Không tải được cài đặt từ máy chủ."
+      "loadFailed": "Không tải được cài đặt từ máy chủ.",
+      "anonymizeConfirm": "Ẩn danh hồ sơ? Họ tên, email, số điện thoại và ảnh đại diện sẽ bị xóa vĩnh viễn và thay bằng mã ngẫu nhiên. Nhật ký, kết quả bài test và dữ liệu khác được giữ lại nhưng không còn gắn với danh tính của bạn. Bạn sẽ bị đăng xuất và KHÔNG thể đăng nhập lại tài khoản này.",
+      "anonymizeDone": "Đã ẩn danh hồ sơ của bạn.",
+      "anonymizeFailed": "Không ẩn danh được hồ sơ, vui lòng thử lại."
     },
     "defaults": {
       "notAvailable": "Chưa có",

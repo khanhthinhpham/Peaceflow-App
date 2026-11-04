@@ -505,6 +505,7 @@
             </div>
             <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:14px;flex-wrap:wrap;">
               <button class="btn-outline" @click="resetData">{{ t('settingsPage.danger.resetCache') }}</button>
+              <button class="btn-outline" :title="t('settingsPage.danger.anonymizeDesc')" @click="anonymizeAccount">{{ t('settingsPage.danger.anonymizeBtn') }}</button>
               <button class="btn-danger" @click="deleteAccount">{{ t('settingsPage.danger.deleteAccountBtn') }}</button>
             </div>
           </div>
@@ -1030,6 +1031,22 @@ async function deleteAccount() {
     router.push('/login');
   } catch (error) {
     showToast(error.message || t('settingsPage.toast.deleteAccountFailed'), 'error');
+  }
+}
+
+// Ẩn danh hồ sơ: server xóa thông tin nhận dạng và khóa đăng nhập, rồi đăng xuất tại đây.
+async function anonymizeAccount() {
+  EventLogger.log('settings', 'account:anonymize:request');
+  if (!window.confirm(t('settingsPage.toast.anonymizeConfirm'))) return;
+
+  EventLogger.log('settings', 'account:anonymize:confirmed');
+  try {
+    await apiClient.post('/me/anonymize', {});
+    await apiClient.logout().catch(() => {});
+    showToast(t('settingsPage.toast.anonymizeDone'));
+    router.push('/login');
+  } catch (error) {
+    showToast(error.message || t('settingsPage.toast.anonymizeFailed'), 'error');
   }
 }
 

@@ -94,6 +94,7 @@
       <!-- Left: Messages -->
       <div class="chat-main">
         <div class="chat-messages" ref="chatMessagesEl">
+          <AiNotice class="chat-ai-notice" />
           <div v-for="(item, idx) in conversation" :key="idx" class="msg" :class="item.role === 'user' ? 'msg-user' : 'msg-bot'">
             <div v-if="item.role !== 'user'" class="msg-avatar">🐱</div>
             <div class="msg-content">
@@ -253,6 +254,7 @@
 
 <script setup>
 import { ref, reactive, computed, nextTick, onMounted } from 'vue';
+import AiNotice from '../components/AiNotice.vue';
 import { useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { apiClient } from '../lib/apiClient';
@@ -760,3 +762,7 @@ onMounted(async () => {
 </script>
 
 <style scoped src="../assets/mood-chat.css"></style>
+
+<style scoped>
+.chat-ai-notice { align-self: center; max-width: 560px; text-align: center; margin: 0 auto 12px; padding: 0 12px; }
+</style>

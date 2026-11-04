@@ -131,4 +131,53 @@ router.delete('/me', requireAuth, async (req, res) => {
   }
 });
 
+// POST /api/v1/me/anonymize — ẩn danh hồ sơ nhận dạng (Điều 10 Nghị định 356/2025/NĐ-CP).
+// Xóa họ tên, email, số điện thoại, ảnh, ngày sinh, nơi ở và thay bằng mã ngẫu nhiên; dữ liệu
+// sử dụng (tâm trạng, nhật ký, bài test...) giữ nguyên nhưng không còn gắn với danh tính.
+// Mật khẩu bị thay bằng chuỗi ngẫu nhiên và mọi phiên bị thu hồi -> không đăng nhập lại được.
+router.post('/me/anonymize', requireAuth, async (req, res) => {
+  const userId = req.user.sub;
+  const client = await db.connect();
+  try {
+    // Chuyên gia cần giữ danh tính cho lịch hẹn/thu nhập — xử lý qua bộ phận hỗ trợ.
+    const expert = await client.query('select 1 from experts where user_id = $1 limit 1', [userId]);
+    if (expert.rowCount) {
+      return res.status(409).json({ success: false, message: 'Tài khoản chuyên gia không thể tự ẩn danh. Vui lòng liên hệ peaceflow.vn@gmail.com.' });
+    }
+
+    await client.query('begin');
+    await client.query(
+      `update users
+          set email = 'anon-' || replace(gen_random_uuid()::text, '-', '') || '@anonymized.invalid',
+              full_name = 'Người dùng ẩn danh',
+              display_name = 'Ẩn danh ' || upper(substr(replace(gen_random_uuid()::text, '-', ''), 1, 6)),
+              phone = null, avatar_url = null, date_of_birth = null, city = null,
+              gender = 'prefer_not_to_say',
+              password_hash = 'anonymized:' || gen_random_uuid()::text,
+              email_verified = false,
+              status = 'inactive',
+              updated_at = now()
+        where id = $1`,
+      [userId]
+    );
+    await client.query(
+      'update user_profiles set occupation = null, relationship_status = null, updated_at = now() where user_id = $1',
+      [userId]
+    );
+    await client.query('update refresh_tokens set revoked_at = now() where user_id = $1 and revoked_at is null', [userId]);
+    await client.query('delete from push_subscriptions where user_id = $1', [userId]);
+    await client.query('delete from email_verification_tokens where user_id = $1', [userId]);
+    await client.query('delete from password_reset_tokens where user_id = $1', [userId]);
+    await client.query('commit');
+
+    return res.json({ success: true, data: { message: 'Hồ sơ đã được ẩn danh.' } });
+  } catch (error) {
+    await client.query('rollback').catch(() => {});
+    console.error('Anonymize account error:', error.message, error.stack);
+    return res.status(500).json({ success: false, message: 'Could not anonymize account' });
+  } finally {
+    client.release();
+  }
+});
+
 export default router;

@@ -61,5 +61,10 @@
     "close": "Close",
     "loading": "Loading...",
     "confirm": "Confirm"
+  },
+  "aiNotice": {
+    "text": "AI-generated content, for reference only — not a diagnosis.",
+    "consent": "PeaceFlow uses AI (Google Gemini) and automated algorithms to analyse your emotions, estimate your stress level and suggest tasks and experts. Results are for reference only, not a diagnosis.",
+    "link": "How PeaceFlow processes data with AI"
   }
 }

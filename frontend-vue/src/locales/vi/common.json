@@ -61,5 +61,10 @@
     "close": "Đóng",
     "loading": "Đang tải...",
     "confirm": "Xác nhận"
+  },
+  "aiNotice": {
+    "text": "Nội dung do AI tạo tự động, chỉ mang tính tham khảo, không phải chẩn đoán.",
+    "consent": "PeaceFlow dùng AI (Google Gemini) và thuật toán tự động để phân tích cảm xúc, ước lượng mức căng thẳng và gợi ý nhiệm vụ, chuyên gia cho bạn. Kết quả chỉ mang tính tham khảo, không phải chẩn đoán.",
+    "link": "Cách PeaceFlow xử lý dữ liệu bằng AI"
   }
 }
