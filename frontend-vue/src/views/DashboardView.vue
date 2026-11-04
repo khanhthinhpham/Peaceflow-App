@@ -1,7 +1,7 @@
 <template>
   <main class="main-content dash">
     <div class="dash-inner">
-      <div class="dash-grid">
+      <div class="dash-grid" :class="{ 'right-collapsed': rightCollapsed }">
         <!-- ======================= CỘT TRÁI ======================= -->
         <div class="col-left">
           <!-- 1. Check-in -->
@@ -25,7 +25,7 @@
                   :class="{ 'is-active': idx === CHECKIN_CENTER_INDEX }"
                 >
                   <span class="mood-icon-wrap">
-                    <span class="mood-icon" aria-hidden="true" :style="{ animationDelay: (idx * 1) + 's' }">{{ mood.emoji }}</span>
+                    <span class="mood-icon material-symbols-outlined" aria-hidden="true" :style="{ animationDelay: (idx * 1) + 's' }">{{ MOOD_SYMBOLS[mood.id] }}</span>
                     <span v-if="idx === CHECKIN_CENTER_INDEX" class="mood-check" aria-hidden="true"><span class="material-symbols-outlined">check</span></span>
                   </span>
                   <span class="mood-label">{{ mood.label }}</span>
@@ -46,22 +46,18 @@
             <div class="card kpi">
               <span class="kpi-label">{{ t('dashboard.stats.moodLabel') }}</span>
               <div class="kpi-value"><b>{{ stats.mood }}</b><small>/10</small></div>
-              <p class="kpi-foot">{{ stats.moodTrend }}</p>
             </div>
             <div class="card kpi">
               <span class="kpi-label">{{ t('dashboard.stats.streakLabel') }}</span>
               <div class="kpi-value"><b>{{ stats.streak }}</b><small>{{ t('dashboard.stats.streakUnit') }}</small></div>
-              <p class="kpi-foot">{{ stats.streakTrend }}</p>
             </div>
             <div class="card kpi">
               <span class="kpi-label">{{ t('dashboard.stats.tasksLabel') }}</span>
               <div class="kpi-value"><b>{{ stats.tasks }}</b><small v-if="weeklyGoal">/{{ weeklyGoal }}</small></div>
-              <p class="kpi-foot">{{ stats.tasksTrend }}</p>
             </div>
             <div class="card kpi">
               <span class="kpi-label">{{ t('dashboard.stats.anxietyLabel') }}</span>
               <div class="kpi-value"><b :class="{ 'is-empty': stats.anxiety === '--' }">{{ stats.anxiety }}</b></div>
-              <p class="kpi-foot">{{ stats.anxietyTrend }}</p>
             </div>
           </div>
 
@@ -185,9 +181,102 @@
         </div>
 
         <!-- ======================= CỘT PHẢI ======================= -->
+        <button
+          v-if="showEmergencyBanner && !rail.docked"
+          type="button"
+          class="safety-fab"
+          :title="t('dashboard.emergencyBanner.badge')"
+          :aria-label="t('dashboard.emergencyBanner.badge')"
+          @click="safetyPopupOpen = true"
+        ><span class="safety-fab-sos">SOS</span><span class="rail-label">{{ t('dashboard.emergencyBanner.badge') }}</span></button>
+        <Teleport to="body">
+          <div v-if="safetyPopupOpen" class="safety-overlay" @click.self="safetyPopupOpen = false">
+            <div class="safety-dialog" role="dialog" aria-modal="true" :aria-label="t('dashboard.emergencyBanner.badge')">
+              <button type="button" class="safety-close" :aria-label="t('common.common.close')" @click="safetyPopupOpen = false"><NavIcon name="close" /></button>
+              <span class="sb-badge">{{ t('dashboard.emergencyBanner.badge') }}</span>
+              <p class="sb-desc">
+                {{ t('dashboard.emergencyBanner.desc') }}
+                <span v-if="emergencyReasonText" class="sb-reason">{{ t('dashboard.emergencyBanner.reasonPrefix') }} {{ emergencyReasonText }}</span>
+              </p>
+              <router-link to="/emergency" class="btn pf-btn-danger pf-btn-block" @click="safetyPopupOpen = false">{{ t('dashboard.emergencyBanner.openBtn') }}</router-link>
+            </div>
+          </div>
+        </Teleport>
+        <!-- Khu vườn tâm hồn mở toàn màn hình: kéo để xoay, cuộn để phóng to -->
+        <Teleport to="body">
+          <Transition name="garden-full">
+            <div v-if="gardenExpanded" class="garden-full" role="dialog" aria-modal="true" :aria-label="t('dashboard.garden.title')">
+              <MoodGarden3D interactive :health="gardenViewHealth" :hour="gardenPreviewHour" :label="gardenStatusText" />
+              <div class="garden-full-head">
+                <div>
+                  <h2 class="garden-full-title">{{ t('dashboard.garden.title') }}</h2>
+                  <span v-if="gardenMetrics.length" class="rp-pill"><span class="rp-pill-sun"></span>{{ gardenStatusText }}</span>
+                </div>
+                <div class="garden-full-actions">
+                  <button
+                    type="button"
+                    class="garden-full-close"
+                    :class="{ 'is-on': gardenSoundOn }"
+                    :aria-pressed="gardenSoundOn"
+                    :aria-label="gardenSoundOn ? t('dashboard.rightPanel.soundOff') : t('dashboard.rightPanel.soundOn')"
+                    :title="gardenSoundOn ? t('dashboard.rightPanel.soundOff') : t('dashboard.rightPanel.soundOn')"
+                    @click="gardenSoundOn = !gardenSoundOn"
+                  ><NavIcon :name="gardenSoundOn ? 'volume' : 'volumeOff'" /></button>
+                  <button type="button" class="garden-full-close" :aria-label="t('common.common.close')" @click="gardenExpanded = false"><NavIcon name="close" /></button>
+                </div>
+              </div>
+              <div v-if="gardenMetrics.length" class="garden-full-metrics">
+                <div v-for="metric in gardenMetrics" :key="metric.key" class="rp-metric">
+                  <NavIcon :name="GARDEN_ICONS[metric.key] || 'mood'" class="rp-metric-icon" />
+                  <span class="rp-metric-label">{{ metric.label }}</span>
+                  <strong class="rp-metric-value">{{ metric.status_text }}</strong>
+                </div>
+              </div>
+              <div class="garden-preview" role="radiogroup" :aria-label="t('dashboard.rightPanel.gardenPreview')">
+                <span class="garden-preview-label">{{ t('dashboard.rightPanel.gardenPreview') }}</span>
+                <button
+                  v-for="opt in GARDEN_PREVIEW_LEVELS"
+                  :key="opt.key"
+                  type="button"
+                  role="radio"
+                  :aria-checked="gardenPreview === opt.value"
+                  class="garden-preview-btn"
+                  :class="{ 'is-active': gardenPreview === opt.value }"
+                  @click="gardenPreview = opt.value"
+                >{{ t(opt.label) }}</button>
+              </div>
+              <div class="garden-preview garden-preview-time" role="radiogroup" :aria-label="t('dashboard.rightPanel.previewTime')">
+                <span class="garden-preview-label">{{ t('dashboard.rightPanel.previewTime') }}</span>
+                <button
+                  v-for="opt in GARDEN_PREVIEW_HOURS"
+                  :key="opt.key"
+                  type="button"
+                  role="radio"
+                  :aria-checked="gardenPreviewHour === opt.value"
+                  class="garden-preview-btn"
+                  :class="{ 'is-active': gardenPreviewHour === opt.value }"
+                  @click="gardenPreviewHour = opt.value"
+                >{{ t(opt.label) }}</button>
+              </div>
+              <p class="garden-full-hint">{{ t('dashboard.rightPanel.gardenHint') }}</p>
+              <p class="garden-full-credit">{{ t('dashboard.rightPanel.gardenCreditPrefix') }} Quaternius (CC0) · <a href="https://poly.pizza/m/YUAFe6TOOa" target="_blank" rel="noopener">Low Poly Tree House</a> – Dawid2K · <a href="https://poly.pizza/m/2jffIS8PMjZ" target="_blank" rel="noopener">Vines</a> – Poly by Google · <a href="https://poly.pizza/m/2q-hEEe3Njb" target="_blank" rel="noopener">Ranking plant</a> – Jakob Hippe · <a href="https://poly.pizza/m/2zt43AlwVoI" target="_blank" rel="noopener">grass mix</a> – Steve B · <a href="https://poly.pizza/m/6Tpj_vcWP3f" target="_blank" rel="noopener">Flying seagull</a>, <a href="https://poly.pizza/m/dpl7B31PqWX" target="_blank" rel="noopener">Parrot</a> – Poly by Google · <a href="https://poly.pizza/m/eLVv17bTyB-" target="_blank" rel="noopener">Pastel Plume Flowers</a> – Danni Bittman · <a href="https://poly.pizza/m/dYQFgjU5Eqx" target="_blank" rel="noopener">Desert marigold</a>, <a href="https://poly.pizza/m/eydI4__jXpi" target="_blank" rel="noopener">Flower</a>, <a href="https://poly.pizza/m/birD7XV2A44" target="_blank" rel="noopener">Water lilies</a> – Poly by Google · <a href="https://poly.pizza/m/2zT-C10njmX" target="_blank" rel="noopener">tulip 3</a> – Hugo Gibson · <a href="https://poly.pizza/m/7s3W1Ukbilm" target="_blank" rel="noopener">Nenuphar</a> – Nicolas Comtois (<a href="https://creativecommons.org/licenses/by/3.0/" target="_blank" rel="noopener">CC-BY 3.0</a>)</p>
+            </div>
+          </Transition>
+        </Teleport>
+        <!-- Panel phải đang thu gọn: thẻ mép phải để mở lại, nằm trên cùng (chuông, tin nhắn, SOS dịch xuống). -->
+        <button
+          v-if="rightCollapsed"
+          type="button"
+          class="rail-expand"
+          :title="t('dashboard.rightPanel.expand')"
+          :aria-label="t('dashboard.rightPanel.expand')"
+          @click="setRightCollapsed(false)"
+        ><NavIcon name="arrowRight" /><span class="rail-label">{{ t('dashboard.rightPanel.expand') }}</span></button>
         <div class="col-right-stack">
           <!-- Hỗ trợ ưu tiên: card đỏ riêng, tách khỏi panel bên dưới -->
-          <div v-if="showEmergencyBanner" class="card safety-card">
+          <!-- Desktop: card thu vào nút SOS nổi cạnh chuông, bấm mới mở popup. Mobile giữ card như cũ
+               (nút chuông/tin nhắn nổi bị ẩn trên mobile). -->
+          <div v-if="showEmergencyBanner" class="card safety-card safety-card-inline">
             <span class="sb-badge">{{ t('dashboard.emergencyBanner.badge') }}</span>
             <p class="sb-desc">
               {{ t('dashboard.emergencyBanner.desc') }}
@@ -196,113 +285,109 @@
             <router-link to="/emergency" class="btn pf-btn-danger pf-btn-block">{{ t('dashboard.emergencyBanner.openBtn') }}</router-link>
           </div>
 
-          <aside class="col-right">
-          <!-- Level + chuỗi thói quen -->
-          <div class="side-sec stack-16">
-            <div class="level-row">
-              <div class="level-title">{{ t('dashboard.levels.levelTitle', { level: xpInfo.currentLevel, title: xpInfo.title }) }}</div>
-              <span class="level-sub">{{ t('dashboard.levels.xpEarned', { xp: xpInfo.xp }) }}</span>
-            </div>
 
-            <div class="xp-block">
-              <div class="xp-track"><div class="xp-meter" :style="{ width: xpInfo.percent + '%' }"></div></div>
-              <div class="xp-labels">
-                <span>{{ xpInfo.minXP }} XP</span>
-                <span>{{ xpInfo.maxXPLabel }} XP</span>
-              </div>
-            </div>
-
-            <div class="ribbon-block">
-              <div class="ribbon-head">
-                <span class="ribbon-title">{{ t('dashboard.streak.ribbonTitle') }}</span>
-                <span class="ribbon-count">{{ t('dashboard.streak.daysInRow', { n: stats.streak }) }}</span>
-              </div>
-              <div class="ribbon">
-                <div v-for="(day, idx) in streakRibbon" :key="idx" class="rb-day">
-                  <span class="rb-day-label" :class="{ 'is-today': day.state.startsWith('today') }">{{ day.label }}</span>
-                  <div class="rb-day-dot" :class="`st-${day.state}`">
-                    <span v-if="day.state === 'done' || day.state === 'today-done'" class="material-symbols-outlined">check</span>
-                  </div>
-                </div>
-              </div>
+          <aside class="col-right rp">
+          <!-- Desktop 2 cột: hàng đầu panel — thu gọn, SOS, chuông, tin nhắn (căn phải). -->
+          <div class="rp-head">
+            <div class="rp-actions">
+              <button type="button" class="rp-collapse" :title="t('dashboard.rightPanel.collapse')" :aria-label="t('dashboard.rightPanel.collapse')" @click="setRightCollapsed(true)"><NavIcon name="arrowRight" /></button>
+              <button v-if="showEmergencyBanner" type="button" class="rp-btn rp-sos" :title="t('dashboard.emergencyBanner.badge')" :aria-label="t('dashboard.emergencyBanner.badge')" @click="safetyPopupOpen = true">SOS</button>
+              <button type="button" class="rp-btn" :class="{ 'is-open': notif.panelOpen }" data-notif-bell :title="t('notifPanel.title')" :aria-label="t('notifPanel.title')" @click="notif.togglePanel()">
+                <NavIcon name="bell" />
+                <span v-if="notif.unread > 0" class="rp-badge">{{ Math.min(notif.unread, 9) }}</span>
+              </button>
+              <button type="button" class="rp-btn" :class="{ 'is-open': chat.dropdownOpen }" data-chat-widget-btn :title="t('nav.messages')" :aria-label="t('nav.messages')" @click="chat.toggleDropdown()">
+                <NavIcon name="messages" />
+                <span v-if="chat.totalUnread > 0" class="rp-badge">{{ Math.min(chat.totalUnread, 9) }}</span>
+              </button>
             </div>
           </div>
+
+          <!-- Cấp độ: chữ bên trái, cảnh vườn phía sau bên phải -->
+          <section class="rp-hero">
+            <div class="rp-hero-art"></div>
+            <div class="rp-hero-body">
+              <div class="rp-level">{{ t('dashboard.rightPanel.levelLabel', { n: String(xpInfo.currentLevel).padStart(2, '0') }) }} <NavIcon name="leaf" class="rp-level-leaf" /></div>
+              <h2 class="rp-hero-title">{{ xpInfo.title }}</h2>
+              <p class="rp-hero-sub">{{ t('dashboard.rightPanel.heroSub') }}</p>
+              <div class="rp-xp-track"><div class="rp-xp-fill" :style="{ width: xpInfo.percent + '%' }"></div></div>
+              <p class="rp-xp-text"><strong>{{ xpInfo.xp }} / {{ xpInfo.maxXPLabel }}</strong> {{ t('dashboard.rightPanel.growthPoints') }}</p>
+            </div>
+          </section>
+
+          <!-- Chuỗi thói quen -->
+          <section class="rp-card">
+            <div class="rp-card-head">
+              <h3 class="rp-card-title">{{ t('dashboard.streak.ribbonTitle') }}</h3>
+              <router-link to="/achievements" class="rp-card-link">
+                <NavIcon name="flame" class="rp-flame" />{{ t('dashboard.streak.daysInRow', { n: stats.streak }) }}<NavIcon name="chevronRight" />
+              </router-link>
+            </div>
+            <div class="rp-days">
+              <div v-for="(day, idx) in streakRibbon" :key="idx" class="rp-day" :class="`st-${day.state}`">
+                <span class="rp-day-label">{{ day.label }}</span>
+                <span class="rp-day-dot"><NavIcon v-if="day.state === 'done' || day.state === 'today-done'" name="check" /></span>
+              </div>
+            </div>
+          </section>
 
           <!-- Khu vườn tâm hồn -->
-          <div class="side-sec stack-14 garden-sec">
-            <div class="side-head">
-              <div>
-                <span class="eyebrow">{{ t('dashboard.garden.eyebrow') }}</span>
-                <h3 class="side-title">{{ t('dashboard.garden.title') }}</h3>
-              </div>
-              <span v-if="gardenMetrics.length" class="risk-badge" :class="`risk-${riskBadgeClass}`">{{ riskLabel }}</span>
+          <section class="rp-card rp-garden">
+            <button type="button" class="rp-garden-art" :title="t('dashboard.rightPanel.gardenExpand')" :aria-label="t('dashboard.rightPanel.gardenExpand')" @click="gardenExpanded = true">
+              <MoodGarden3D v-if="!gardenExpanded" :health="gardenViewHealth" :hour="gardenPreviewHour" :label="`${t('dashboard.garden.title')}: ${gardenStatusText}`" />
+              <span class="rp-garden-zoom"><NavIcon name="expand" /></span>
+            </button>
+            <div class="rp-garden-top">
+              <h3 class="rp-card-title">{{ t('dashboard.garden.title') }}</h3>
+              <router-link v-if="gardenMetrics.length" to="/report" class="rp-pill">
+                <span class="rp-pill-sun"></span>{{ gardenStatusText }}<NavIcon name="chevronRight" />
+              </router-link>
             </div>
-            <template v-if="gardenMetrics.length">
-              <div class="garden-scene">
-                <div class="garden-sky">
-                  <div class="g-sun"></div>
-                  <div class="g-cloud g-cloud-1"></div>
-                  <div class="g-cloud g-cloud-2"></div>
-                </div>
-                <div v-html="gardenTreesHtml"></div>
-              </div>
-              <div class="garden-grid">
-                <div v-for="metric in gardenMetrics" :key="metric.key" class="garden-chip">
-                  <span class="dot" :class="gardenDotClass(metric.status)"></span>
-                  <span>{{ metric.label }}: <strong>{{ metric.status_text }}</strong></span>
+            <div class="rp-overview">
+              <div class="rp-overview-title">{{ t('dashboard.rightPanel.gardenOverview') }}</div>
+              <div v-if="gardenMetrics.length" class="rp-overview-grid">
+                <div v-for="metric in gardenMetrics" :key="metric.key" class="rp-metric" :class="`tone-${gardenDotClass(metric.status)}`">
+                  <NavIcon :name="GARDEN_ICONS[metric.key] || 'mood'" class="rp-metric-icon" :class="`ic-${GARDEN_ICONS[metric.key] || 'mood'}`" />
+                  <span class="rp-metric-label">{{ metric.label }}</span>
+                  <strong class="rp-metric-value">{{ metric.status_text }}</strong>
                 </div>
               </div>
-            </template>
-            <p v-else class="empty-text">{{ t('dashboard.garden.notEnough') }}</p>
-          </div>
-
-          <!-- Mục tiêu tuần, phiên tư vấn, ủng hộ -->
-          <div class="side-sec stack-16 side-muted">
-            <div class="stack-8">
-              <div class="side-head">
-                <span class="side-title-sm">{{ challenge?.title || t('dashboard.challenge.title') }}</span>
-                <span v-if="challenge" class="side-meta">{{ t('dashboard.challenge.daysLeft', { n: challenge.days_left }) }}</span>
-              </div>
-              <div class="mini-card row-between">
-                <template v-if="challenge">
-                  <div class="grow">
-                    <span class="mini-strong">{{ challenge.completed }}/{{ challenge.goal }} {{ t('dashboard.challenge.tasksMeta') }}</span>
-                    <span class="mini-sub">{{ challenge.description }}</span>
-                    <div class="challenge-track"><div class="challenge-fill" :style="{ width: challenge.progress_percent + '%' }"></div></div>
-                  </div>
-                </template>
-                <span v-else class="mini-sub">{{ t('dashboard.challenge.empty') }}</span>
-                
-              </div>
+              <p v-else class="rp-muted">{{ t('dashboard.garden.notEnough') }}</p>
             </div>
+          </section>
 
-            <div class="stack-8 divided">
-              <div class="side-head">
-                <span class="side-title-sm">{{ t('dashboard.expert.title') }}</span>
-                <span v-if="expertSession" class="status-pill" :style="{ color: expertStatus.color, background: expertStatus.bg }">{{ expertStatus.label }}</span>
-              </div>
-              <div class="mini-card stack-8">
-                <template v-if="expertSession">
-                  <span class="mini-strong">{{ expertSession.expert_name }}</span>
-                  <span class="mini-sub">{{ expertTypeLabel }} · {{ expertTimeLabel }}</span>
-                  <router-link to="/experts" class="btn pf-btn-secondary pf-btn-block">{{ t('dashboard.expert.viewBtn') }}</router-link>
-                </template>
-                <template v-else>
-                  <span class="mini-mid">{{ t('dashboard.expert.noSchedule') }}</span>
-                  <p class="mini-sub">{{ noExpertHelperText }}</p>
-                  <router-link to="/experts" class="btn pf-btn-secondary pf-btn-block">{{ t('dashboard.expert.viewExpertsBtn') }}</router-link>
-                </template>
-              </div>
+          <!-- Phiên tư vấn sắp tới -->
+          <section class="rp-card rp-expert">
+            <svg class="rp-expert-art" viewBox="26 10 100 100" aria-hidden="true">
+              <path d="M44 62 h44 v18 a22 22 0 0 1 -44 0 z" fill="#F4EBDD" stroke="#B89B7A" stroke-width="2" />
+              <path d="M88 66 a9 9 0 0 1 0 16" stroke="#B89B7A" stroke-width="2" fill="none" />
+              <ellipse cx="66" cy="104" rx="30" ry="5" fill="#E9DFCF" />
+              <path d="M58 54 q-4 -8 0 -16 q4 -8 0 -16 M70 54 q-4 -8 0 -16 q4 -8 0 -16" stroke="#C9B9A4" stroke-width="2" fill="none" stroke-linecap="round" />
+              <circle cx="100" cy="98" r="3" fill="#FFFFFF" /><circle cx="106" cy="104" r="2.5" fill="#F4C6C6" />
+            </svg>
+            <div class="rp-expert-body">
+              <div class="rp-expert-eyebrow">{{ t('dashboard.expert.title') }}</div>
+              <template v-if="expertSession">
+                <h3 class="rp-expert-title">{{ expertSession.expert_name }}</h3>
+                <p class="rp-muted">{{ expertTypeLabel }} · {{ expertTimeLabel }}</p>
+              </template>
+              <template v-else>
+                <h3 class="rp-expert-title">{{ t('dashboard.expert.noSchedule') }}</h3>
+                <p class="rp-muted">{{ noExpertHelperText }}</p>
+              </template>
             </div>
+            <router-link to="/experts" class="rp-btn-primary">{{ expertSession ? t('dashboard.expert.viewBtn') : t('dashboard.rightPanel.exploreExperts') }} <NavIcon name="arrowRight" /></router-link>
+          </section>
 
-            <div class="stack-10 divided">
-              <div class="donate-head">
-                <span class="side-title-sm">{{ t('dashboard.donate.title') }}</span>
-              </div>
-              <p class="mini-sub">{{ t('dashboard.donate.desc') }}</p>
-              <button type="button" class="btn pf-btn-secondary pf-btn-block" @click="donate.openModal()">{{ t('dashboard.donate.btn') }}</button>
+          <!-- Ủng hộ PeaceFlow -->
+          <section class="rp-card rp-donate">
+            <span class="rp-donate-icon"><NavIcon name="heart" /></span>
+            <div class="rp-donate-body">
+              <h3 class="rp-card-title">{{ t('dashboard.donate.title') }}</h3>
+              <p class="rp-muted">{{ t('dashboard.donate.desc') }}</p>
             </div>
-          </div>
+            <button type="button" class="rp-btn-outline" @click="donate.openModal()">{{ t('dashboard.rightPanel.donateBtn') }} <NavIcon name="heart" /></button>
+          </section>
           </aside>
         </div>
       </div>
@@ -315,7 +400,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted, onBeforeUnmount } from 'vue';
+import { ref, reactive, computed, onMounted, onBeforeUnmount, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 import { apiClient } from '../lib/apiClient';
@@ -327,6 +412,12 @@ import {
 } from '../lib/dashboardHelpers';
 import { MOOD_OPTIONS } from '../lib/moodCheckinOptions';
 import { taskCardSrc } from '../lib/taskImages';
+import NavIcon from '../components/NavIcon.vue';
+import MoodGarden3D from '../components/MoodGarden3D.vue';
+import { createNatureSound } from '../lib/natureSound';
+import { useNotificationsStore } from '../stores/notifications';
+import { useChatWidgetStore } from '../stores/chatWidget';
+import { useRightRailStore } from '../stores/rightRail';
 
 // 5 mức cảm xúc đại diện (trong 7 mức thật của trang check-in) để hiện preview dạng hàng
 // emoji trên dashboard — mức ở giữa (index 2) phóng to làm điểm nhấn, bấm vào hàng này đi
@@ -334,6 +425,14 @@ import { taskCardSrc } from '../lib/taskImages';
 const CHECKIN_PREVIEW_MOODS = ['comfortable', 'normal', 'veryHappy', 'slightlyStressed', 'angry']
   .map((id) => MOOD_OPTIONS.find((m) => m.id === id));
 const CHECKIN_CENTER_INDEX = 2;
+// Icon đơn sắc (Material Symbols, đã khai báo sẵn trong icon_names ở index.html) thay emoji màu.
+const MOOD_SYMBOLS = {
+  comfortable: 'sentiment_calm',
+  normal: 'sentiment_neutral',
+  veryHappy: 'sentiment_very_satisfied',
+  slightlyStressed: 'sentiment_stressed',
+  angry: 'sentiment_frustrated'
+};
 
 const CHART_TABS = [
   { period: '7d', labelKey: 'dashboard.chart.tab7d' },
@@ -372,6 +471,89 @@ const checkinPromptTitle = computed(() => {
 
 const progress = computed(() => data.value?.progress || null);
 const summary = computed(() => data.value?.summary || null);
+const safetyPopupOpen = ref(false);
+
+// Panel phải thu gọn được (desktop 2 cột). Đang mở thì chuông / tin nhắn / SOS nằm trên đầu panel;
+// thu gọn (hoặc màn hẹp) thì trở lại dạng thẻ bám mép phải màn hình.
+const notif = useNotificationsStore();
+const chat = useChatWidgetStore();
+const rail = useRightRailStore();
+const RIGHT_COLLAPSED_KEY = 'pf.dashboard.rightCollapsed';
+function readRightCollapsed() {
+  try { return localStorage.getItem(RIGHT_COLLAPSED_KEY) === '1'; } catch (_err) { return false; }
+}
+const rightCollapsed = ref(readRightCollapsed());
+const gardenExpanded = ref(false);
+// Âm thanh thiên nhiên khi xem khu vườn toàn màn hình — mặc định TẮT, nhớ lựa chọn của người dùng
+const readSoundPref = () => { try { return localStorage.getItem('pf.garden.sound') === '1'; } catch { return false; } };
+const gardenSoundOn = ref(readSoundPref());
+let natureSound = null;
+const gardenHourNow = () => { const d = new Date(); return gardenPreviewHour.value ?? d.getHours() + d.getMinutes() / 60; };
+function syncNatureSound() {
+  const want = gardenExpanded.value && gardenSoundOn.value;
+  if (want) {
+    natureSound = natureSound || createNatureSound();
+    natureSound.setMood(gardenViewHealth.value); natureSound.setHour(gardenHourNow());
+    natureSound.start();
+  } else natureSound?.stop();
+}
+watch([gardenExpanded, gardenSoundOn], () => {
+  try { localStorage.setItem('pf.garden.sound', gardenSoundOn.value ? '1' : '0'); } catch { /* bỏ qua */ }
+  syncNatureSound();
+});
+// Xem thử các mức khu vườn (null = theo dữ liệu thật của người dùng)
+const gardenPreview = ref(null);
+// xem thử buổi trong ngày (null = giờ thật)
+const gardenPreviewHour = ref(null);
+const GARDEN_PREVIEW_HOURS = [
+  { key: 'real', value: null, label: 'dashboard.rightPanel.previewReal' },
+  { key: 'morning', value: 6.8, label: 'dashboard.rightPanel.timeMorning' },
+  { key: 'noon', value: 12.5, label: 'dashboard.rightPanel.timeNoon' },
+  { key: 'evening', value: 18, label: 'dashboard.rightPanel.timeEvening' },
+  { key: 'night', value: 22, label: 'dashboard.rightPanel.timeNight' }
+];
+const GARDEN_PREVIEW_LEVELS = [
+  { key: 'real', value: null, label: 'dashboard.rightPanel.previewReal' },
+  { key: 'thriving', value: 0.95, label: 'dashboard.rightPanel.previewThriving' },
+  { key: 'stable', value: 0.7, label: 'dashboard.rightPanel.previewStable' },
+  { key: 'attention', value: 0.42, label: 'dashboard.rightPanel.previewAttention' },
+  { key: 'care', value: 0.12, label: 'dashboard.rightPanel.previewCare' }
+];
+function onGardenKey(e) { if (e.key === 'Escape') gardenExpanded.value = false; }
+watch(gardenExpanded, (open) => {
+  document.body.style.overflow = open ? 'hidden' : '';
+  if (open) window.addEventListener('keydown', onGardenKey);
+  else window.removeEventListener('keydown', onGardenKey);
+});
+onBeforeUnmount(() => { window.removeEventListener('keydown', onGardenKey); document.body.style.overflow = ''; });
+const wideLayout = ref(false);
+let wideQuery = null;
+function syncRailDock() {
+  rail.docked = wideLayout.value && !rightCollapsed.value;
+  document.documentElement.style.setProperty('--rail-shift', wideLayout.value && rightCollapsed.value ? '38px' : '0px');
+}
+function onWideChange(event) {
+  wideLayout.value = event.matches;
+  syncRailDock();
+}
+function setRightCollapsed(value) {
+  rightCollapsed.value = value;
+  try { localStorage.setItem(RIGHT_COLLAPSED_KEY, value ? '1' : '0'); } catch (_err) { /* bỏ qua */ }
+  notif.closePanel?.();
+  chat.closeDropdown?.();
+  syncRailDock();
+}
+onMounted(() => {
+  wideQuery = window.matchMedia('(min-width: 1101px)');
+  wideLayout.value = wideQuery.matches;
+  wideQuery.addEventListener('change', onWideChange);
+  syncRailDock();
+});
+onBeforeUnmount(() => {
+  wideQuery?.removeEventListener('change', onWideChange);
+  rail.docked = false;
+  document.documentElement.style.removeProperty('--rail-shift');
+});
 const showEmergencyBanner = computed(() => Boolean(summary.value?.show_emergency_banner));
 const emergencyReasonText = computed(() => {
   const reason = summary.value?.emergency_reason;
@@ -516,7 +698,7 @@ const expertTimeLabel = computed(() => {
 const noExpertHelperText = computed(() => (
   ['high', 'critical'].includes(summary.value?.risk_level)
     ? t('dashboard.expert.helperHighRisk')
-    : t('dashboard.expert.helperDefault')
+    : t('dashboard.rightPanel.expertHint')
 ));
 
 const recommendedTasks = computed(() => aiTasks.value || data.value?.tasks || []);
@@ -559,6 +741,48 @@ const streakRibbon = computed(() => {
     return { ...day, state };
   });
 });
+
+// Icon đơn sắc cho 4 chỉ số khu vườn (key do backend gửi: emotion, sleep, calm, consistency).
+const GARDEN_ICONS = { emotion: 'mood', calm: 'lotus', sleep: 'moon', consistency: 'bolt', energy: 'bolt', clarity: 'lotus' };
+const gardenStatusText = computed(() => {
+  const good = gardenMetrics.value.filter((m) => m.status === 'excellent' || m.status === 'good').length;
+  if (good >= 3) return t('dashboard.rightPanel.gardenThriving');
+  if (good >= 2) return t('dashboard.rightPanel.gardenGrowing');
+  return t('dashboard.rightPanel.gardenNeedsCare');
+});
+const gardenViewHealth = computed(() => (gardenPreview.value ?? gardenVitality.value));
+/* Sức sống của vườn (0..1) — theo XU HƯỚNG tâm trạng 7 ngày, nhẹ nhàng với người dùng:
+   - đi qua từng ngày (cũ → mới): có check-in thì tiến dần tới điểm hôm đó; LÊN NHANH (60%), XUỐNG CHẬM (35%,
+     tối đa −0.15/ngày) → một ngày buồn không làm cả vườn úa ngay
+   - ngày không check-in: trôi nhẹ về mức trung bình 0.55 (không bị trừ)
+   - pha 30% các chỉ số hiện tại (giấc ngủ, bình tĩnh, nhịp độ)
+   - không bao giờ dưới 0.15: vườn luôn còn sức sống, chỉ "đang chờ được chăm" */
+const gardenVitality = computed(() => {
+  const pts = data.value?.mood_chart?.['7d']?.points || [];
+  let v = 0.55;
+  for (const p of pts) {
+    if (p.value === null || p.value === undefined) { v += (0.55 - v) * 0.15; continue; }
+    const delta = Math.min(1, Math.max(0, Number(p.value) / 10)) - v;
+    v += delta > 0 ? delta * 0.6 : Math.max(delta * 0.35, -0.15);
+  }
+  const blended = gardenMetrics.value.length ? v * 0.7 + gardenHealth.value * 0.3 : v;
+  return Math.min(1, Math.max(0.15, blended));
+});
+// Độ khoẻ khu vườn 0..1 = trung bình các chỉ số (thang 0–10 từ backend); chưa có dữ liệu thì để mức giữa.
+const GARDEN_STATUS_SCORE = { excellent: 0.95, good: 0.7, fair: 0.45, 'needs-care': 0.2 };
+const gardenHealth = computed(() => {
+  const scores = gardenMetrics.value
+    .map((m) => (typeof m.value === 'number' ? m.value / 10 : GARDEN_STATUS_SCORE[m.status]))
+    .filter((v) => typeof v === 'number' && !Number.isNaN(v));
+  if (!scores.length) return 0.55;
+  return Math.min(1, Math.max(0, scores.reduce((a, b) => a + b, 0) / scores.length));
+});
+// âm thanh thiên nhiên theo sức sống & buổi (đặt sau khi gardenViewHealth, gardenVitality, gardenHealth đã khai báo)
+watch(() => [gardenViewHealth.value, gardenPreviewHour.value], () => {
+  if (!natureSound) return;
+  natureSound.setMood(gardenViewHealth.value); natureSound.setHour(gardenHourNow());
+});
+onBeforeUnmount(() => natureSound?.stop());
 
 function gardenDotClass(status) {
   if (status === 'excellent' || status === 'good') return 'dot-primary';
@@ -829,50 +1053,48 @@ export default { name: 'DashboardView' };
     color-mix(in srgb, var(--peach-light) 15%, var(--color-surface)) 78%,
     color-mix(in srgb, var(--lavender-light) 12%, var(--color-surface)) 100%);
 }
-.ci-body { display: flex; flex-direction: column; gap: 24px; }
+/* Khối co theo độ rộng tiêu đề để hàng cảm xúc dài đúng bằng dòng chữ phía trên. */
+.ci-body { display: flex; flex-direction: column; gap: 24px; width: fit-content; max-width: 100%; margin: 0 auto; }
 .ci-titles { text-align: center; }
 .ci-hello-row { display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap; }
 .ci-hello { font-family: var(--font-display); font-style: italic; font-size: 20px; color: var(--color-text-muted); margin: 0; }
 .role-tag { font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: var(--radius-control); background: var(--color-surface-muted); color: var(--color-text-muted); }
 .ci-title { font-family: var(--font-heading); font-size: 34px; font-weight: 800; line-height: 1.25; letter-spacing: -0.01em; color: var(--color-text); margin: 6px 0 0; }
 
-.mood-picker { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; max-width: 560px; width: 100%; margin: 0 auto; }
+.mood-picker { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; width: 100%; margin: 0 auto; }
 .mood-btn {
-  position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
-  padding: 16px 8px 14px; border-radius: var(--radius-card);
-  background: var(--color-canvas);
+  position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
+  padding: 20px 8px 16px; border-radius: var(--radius-card);
+  background: transparent;
   text-decoration: none; text-align: center;
   transition: background-color var(--duration-normal) var(--ease-standard), transform var(--duration-normal) var(--ease-standard);
 }
-.mood-btn:hover { background: var(--color-surface-muted); transform: translateY(-2px); }
+.mood-btn:hover { transform: translateY(-2px); }
 /* Bê nguyên CSS icon của code cũ (.cp-mood-emoji) sang .mood-icon của layout mới — không chỉnh
    giá trị, chỉ đổi selector cho khớp cấu trúc .mood-btn hiện tại. */
-.mood-icon {
-  font-size: 1.4rem;
-  width: 42px;
-  height: 42px;
+.mood-icon.material-symbols-outlined {
+  font-size: 72px;
+  width: 80px;
+  height: 80px;
+  color: var(--color-text-muted);
+  font-variation-settings: 'wght' 300;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.5);
-  transition: background 0.3s ease, box-shadow 0.3s ease;
   animation: mood-icon-pop 5s ease-in-out infinite;
 }
-.mood-btn.is-active .mood-icon {
-  font-size: 2rem;
-  width: 58px;
-  height: 58px;
-  background: var(--warm-white);
-  box-shadow: 0 4px 12px rgba(74, 55, 40, 0.18), 0 0 0 3px var(--warm-white);
+.mood-btn.is-active .mood-icon.material-symbols-outlined {
+  font-size: 96px;
+  width: 104px;
+  height: 104px;
+  color: var(--color-brand);
   translate: 0 -6px;
 }
 .mood-btn:hover .mood-icon {
+  color: var(--color-brand);
   animation-play-state: paused;
   scale: 1.3;
   translate: 0 -8px;
-  background: var(--warm-white);
-  box-shadow: 0 4px 12px rgba(74, 55, 40, 0.18);
 }
 @keyframes mood-icon-pop {
   0%, 100% { scale: 1; rotate: 0deg; }
@@ -881,7 +1103,7 @@ export default { name: 'DashboardView' };
   15% { scale: 1.1; rotate: -5deg; }
   20% { scale: 1; rotate: 0deg; }
 }
-.mood-label { font-size: 13px; font-weight: 500; color: var(--color-text-muted); }
+.mood-label { font-size: 14px; font-weight: 500; color: var(--color-text-muted); }
 /* Trạng thái chọn nhận biết được không chỉ nhờ màu: dấu tích cạnh icon + chữ đậm (không còn nền
    thẻ màu xanh để tránh ồn, chỉ icon + chữ nổi bật). */
 .mood-btn.is-active .mood-label { color: var(--color-brand); font-weight: 700; }
@@ -899,7 +1121,6 @@ export default { name: 'DashboardView' };
 .kpi-value b { font-family: var(--font-heading); font-size: 34px; font-weight: 800; line-height: 1.1; color: var(--color-text); }
 .kpi-value b.is-empty { color: var(--color-text-subtle); }
 .kpi-value small { font-size: 14px; font-weight: 500; color: var(--color-text-muted); }
-.kpi-foot { font-size: 13px; color: var(--color-text-muted); margin: 0; line-height: 1.4; }
 
 /* ---------- 3. Trợ lý PeaceCat ---------- */
 .ai-row { display: flex; align-items: flex-start; gap: 20px; }
@@ -957,9 +1178,201 @@ export default { name: 'DashboardView' };
 
 /* ---------- Cột phải: một panel liền chia vạch ---------- */
 .col-right-stack { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+/* Desktop 2 cột: cột phải là panel dính sát mép trên, dưới, phải màn hình (bù padding 20/20/32 của
+   .main-content), đứng yên khi cuộn trang; nội dung dài hơn màn hình thì tự cuộn bên trong. */
+@media (min-width: 1101px) {
+  .col-right-stack { position: sticky; top: 0; height: 100vh; margin: -20px -20px -32px 0; overflow-y: auto; scrollbar-width: none; border-radius: 0; }
+  .col-right-stack > .col-right { flex: 1 0 auto; border-radius: 0; }
+  .col-right-stack::-webkit-scrollbar { display: none; }
+  /* Đóng / mở: cột phải co về 0 và trượt sang phải + mờ dần; cột trái giãn theo. */
+  .dash-grid { transition: grid-template-columns 0.35s ease, column-gap 0.35s ease; }
+  .col-right-stack { transition: opacity 0.25s ease, transform 0.35s ease, visibility 0s linear 0s; }
+  .dash-grid.right-collapsed { grid-template-columns: minmax(0, 1fr) minmax(0, 0fr); column-gap: 0; }
+  .dash-grid.right-collapsed .col-right-stack {
+    opacity: 0; transform: translateX(48px); visibility: hidden; pointer-events: none;
+    transition: opacity 0.25s ease, transform 0.35s ease, visibility 0s linear 0.35s;
+  }
+  .rp-head { animation: rp-head-in 0.35s ease both; }
+  @keyframes rp-head-in { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
+}
+
+/* ---------- Panel phải (theo mẫu "khu vườn"): nền trời nhạt, thẻ kem bo lớn, tiêu đề serif ---------- */
+.rp { --rp-accent: #6F8F5E; background: linear-gradient(180deg, #EEF1EA 0%, #F7F1E6 38%, #FBF6EE 100%); gap: 14px; padding-bottom: 16px; }
+.rp-hero { position: relative; min-height: 210px; padding: 6px 20px 8px; }
+.rp-hero-art { position: absolute; inset: -60px 0 0 30%; pointer-events: none; background: url("/images/garden-hero.jpg") center / cover no-repeat;
+  -webkit-mask-image: linear-gradient(90deg, transparent 0%, transparent 32%, rgba(0, 0, 0, 0.35) 55%, #000 85%), linear-gradient(180deg, #000 65%, transparent 100%); -webkit-mask-composite: source-in;
+  mask-image: linear-gradient(90deg, transparent 0%, transparent 32%, rgba(0, 0, 0, 0.35) 55%, #000 85%), linear-gradient(180deg, #000 65%, transparent 100%); mask-composite: intersect; }
+.rp-hero-body { position: relative; max-width: 62%; }
+.rp-level { display: flex; align-items: center; gap: 6px; font-family: var(--font-body); font-size: 13px; font-weight: 500; color: var(--color-text-muted); }
+.rp-level-leaf { width: 13px; height: 13px; color: var(--rp-accent); }
+.rp-hero-title { font-family: var(--font-display); font-style: italic; font-size: 25px; font-weight: 400; line-height: 1.3; color: #46362A; margin: 10px 0 12px; }
+.rp-hero-sub { font-family: var(--font-body); font-size: 13px; line-height: 1.6; color: var(--color-text-muted); margin: 0 0 18px; }
+.rp-xp-track { height: 10px; border-radius: 999px; background: rgba(255, 255, 255, 0.8); box-shadow: inset 0 0 0 1px rgba(74, 55, 40, 0.06); overflow: hidden; }
+.rp-xp-fill { height: 100%; border-radius: inherit; background: linear-gradient(90deg, #7FA866, #9CC57D); }
+.rp-xp-text { margin: 12px 0 0; font-size: 14px; color: var(--color-text-muted); }
+.rp-xp-text strong { color: var(--color-text); font-weight: 700; }
+
+.rp-card { margin: 0 16px; padding: 16px 18px; border-radius: 22px; background: rgba(255, 253, 247, 0.92); box-shadow: 0 6px 20px rgba(80, 70, 50, 0.07); }
+.rp-card-head { display: flex; align-items: center; gap: 10px; }
+.rp-card-icon { display: flex; color: var(--rp-accent); }
+.rp-card-icon .nav-icon { width: 24px; height: 24px; }
+.rp-card-title { flex: 1; min-width: 0; margin: 0; font-family: var(--font-heading); font-size: 18px; font-weight: 700; color: var(--color-text); }
+.rp-card-link { display: inline-flex; align-items: center; gap: 4px; font-size: 13px; color: var(--color-text-muted); text-decoration: none; white-space: nowrap; }
+.rp-card-link .nav-icon { width: 16px; height: 16px; }
+.rp-card-link .rp-flame { color: var(--rp-accent); }
+.rp-card-link:hover { color: var(--rp-accent); }
+
+.rp-days { position: relative; display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); margin-top: 14px; }
+.rp-days::before { content: ''; position: absolute; left: 7%; right: 7%; bottom: 15px; height: 1px; background: rgba(74, 55, 40, 0.12); }
+.rp-day { position: relative; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.rp-day-label { font-size: 12px; color: var(--color-text-muted); }
+.rp-day-dot { width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: #F0EBE1; color: var(--rp-accent); }
+.rp-day-dot .nav-icon { width: 16px; height: 16px; stroke-width: 2.4; }
+.rp-day.st-done .rp-day-dot { background: #DCE8D2; }
+.rp-day.st-today .rp-day-dot, .rp-day.st-today-done .rp-day-dot { width: 36px; height: 36px; margin-top: -3px; background: var(--rp-accent); color: #fff; box-shadow: 0 4px 10px rgba(79, 122, 90, 0.3); }
+.rp-day.st-today .rp-day-label, .rp-day.st-today-done .rp-day-label { color: var(--color-text); font-weight: 700; }
+
+/* Cảnh vườn hiện trọn vẹn theo đúng tỉ lệ ảnh (400:220), tràn sát mép trên/trái/phải; tiêu đề + pill nổi trên cảnh.
+   Card dài ra, tổng quan nằm hẳn bên dưới cảnh, không che. */
+.rp-garden { position: relative; overflow: hidden; padding: 0; }
+.rp-garden-art { position: relative; display: block; width: 100%; aspect-ratio: 400 / 250; padding: 0; border: none; background: none; cursor: zoom-in; font: inherit; }
+.rp-garden-top { pointer-events: none; }
+.rp-garden-top .rp-pill { pointer-events: auto; }
+.rp-garden-zoom { position: absolute; right: 10px; bottom: 10px; width: 30px; height: 30px; border-radius: 50%; background: rgba(255, 255, 255, 0.85); color: var(--color-text-muted); display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.15s ease; }
+.rp-garden-zoom .nav-icon { width: 16px; height: 16px; }
+.rp-garden-art:hover .rp-garden-zoom, .rp-garden-art:focus-visible .rp-garden-zoom { opacity: 1; }
+.rp-garden-art:focus-visible { outline: 2px solid var(--rp-accent); outline-offset: -2px; }
+
+/* Khu vườn toàn màn hình */
+.garden-full { position: fixed; inset: 0; z-index: 1100; font-family: var(--font-body); }
+.garden-full-head { position: absolute; top: 0; left: 0; right: 0; display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; padding: 24px 28px; pointer-events: none; }
+.garden-full-head > * { pointer-events: auto; }
+.garden-full-title { margin: 0 0 8px; font-family: var(--font-heading); font-size: 26px; font-weight: 700; color: var(--color-text); }
+.garden-full-close { width: 40px; height: 40px; border: none; border-radius: 50%; background: rgba(255, 255, 255, 0.85); color: var(--color-text); display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: var(--shadow-soft); }
+.garden-full-close:hover { background: #fff; }
+.garden-full-actions { display: flex; gap: 10px; }
+.garden-full-close.is-on { background: #6F8F5E; color: #fff; }
+.garden-full-close .nav-icon { width: 20px; height: 20px; }
+.garden-full-metrics { --rp-accent: #6F8F5E; position: absolute; left: 50%; bottom: 44px; transform: translateX(-50%); width: min(560px, calc(100% - 32px)); display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); padding: 14px 8px; border-radius: 18px; background: rgba(255, 253, 247, 0.9); box-shadow: 0 8px 28px rgba(80, 70, 50, 0.12); }
+.garden-full-metrics .rp-metric + .rp-metric { border-left: 1px solid rgba(74, 55, 40, 0.1); }
+.garden-full .rp-pill { --rp-accent: #6F8F5E; }
+.garden-preview { position: absolute; top: 24px; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 4px; padding: 4px; border-radius: 999px; background: rgba(255, 253, 247, 0.9); box-shadow: 0 6px 20px rgba(80, 70, 50, 0.1); max-width: calc(100% - 32px); overflow-x: auto; scrollbar-width: none; }
+.garden-preview-time { top: 70px; }
+@media (max-width: 900px) { .garden-preview-time { top: auto; bottom: 196px; } }
+.garden-preview-label { padding: 0 8px 0 10px; font-size: 12px; color: var(--color-text-muted); white-space: nowrap; }
+.garden-preview-btn { border: none; background: none; padding: 6px 12px; border-radius: 999px; font-family: inherit; font-size: 13px; font-weight: 500; color: var(--color-text-muted); cursor: pointer; white-space: nowrap; }
+.garden-preview-btn:hover { color: var(--color-text); }
+.garden-preview-btn.is-active { background: #6F8F5E; color: #fff; }
+@media (max-width: 900px) { .garden-preview { top: auto; bottom: 150px; } }
+.garden-full-credit { position: absolute; right: 16px; bottom: 12px; margin: 0; font-size: 11px; color: var(--color-text-subtle, var(--color-text-muted)); }
+.garden-full-credit a { color: inherit; }
+@media (max-width: 900px) { .garden-full-credit { left: 16px; right: 16px; bottom: 32px; text-align: center; } }
+.garden-full-hint { position: absolute; left: 0; right: 0; bottom: 14px; margin: 0; text-align: center; font-size: 12px; color: var(--color-text-muted); pointer-events: none; }
+.garden-full-enter-active, .garden-full-leave-active { transition: opacity 0.3s ease, transform 0.3s ease; }
+.garden-full-enter-from, .garden-full-leave-to { opacity: 0; transform: scale(0.97); }
+.rp-garden-top { position: absolute; top: 0; left: 0; right: 0; z-index: 1; display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; padding: 16px 18px 0; }
+.rp-pill { display: inline-flex; align-items: center; gap: 6px; padding: 4px 8px 4px 6px; border-radius: 999px; background: rgba(255, 255, 255, 0.85); font-size: 12px; color: var(--color-text-muted); text-decoration: none; white-space: nowrap; }
+.rp-pill .nav-icon { width: 14px; height: 14px; }
+.rp-pill-sun { width: 10px; height: 10px; border-radius: 50%; background: var(--rp-accent); }
+.rp-overview { padding: 14px 12px 14px; }
+.rp-overview-title { display: flex; align-items: center; gap: 6px; font-family: var(--font-body); font-size: 14px; color: var(--color-text); margin-bottom: 8px; }
+.rp-overview-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.rp-metric { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 0 4px; text-align: center; }
+.rp-metric + .rp-metric { border-left: 1px solid rgba(74, 55, 40, 0.1); }
+.rp-metric-icon { width: 24px; height: 24px; color: var(--rp-accent); overflow: visible; }
+/* các icon vẽ to nhỏ khác nhau trong khung 24×24 → phóng bù để nhìn cùng cỡ (giữ nét bằng nhau) */
+.rp-metric-icon.ic-lotus { transform: scale(1.3); stroke-width: 1.4; }
+.rp-metric-icon.ic-moon { transform: scale(1.1); stroke-width: 1.65; }
+.rp-metric-label { font-size: 12px; color: var(--color-text-muted); }
+.rp-metric-value { font-size: 13px; font-weight: 700; color: var(--color-text); line-height: 1.3; }
+
+.rp-expert { display: grid; grid-template-columns: 76px minmax(0, 1fr); align-items: center; column-gap: 12px; row-gap: 12px; }
+.rp-expert-art { width: 76px; height: 76px; }
+.rp-expert-eyebrow { display: flex; align-items: center; gap: 6px; font-family: var(--font-body); font-size: 14px; color: var(--color-text-muted); }
+.rp-expert-eyebrow .nav-icon { width: 16px; height: 16px; color: var(--rp-accent); }
+.rp-expert-title { margin: 4px 0 2px; font-family: var(--font-heading); font-size: 18px; font-weight: 700; color: var(--color-text); }
+.rp-muted { margin: 0; font-size: 13px; line-height: 1.5; color: var(--color-text-muted); }
+.rp-btn-primary { grid-column: 1 / -1; display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 10px 18px; border-radius: 999px; background: #6F8F5E; color: #fff; font-size: 14px; font-weight: 600; text-decoration: none; transition: filter var(--duration-fast) var(--ease-standard); }
+.rp-btn-primary .nav-icon { width: 16px; height: 16px; }
+.rp-btn-primary:hover { filter: brightness(0.94); }
+
+.rp-donate { display: grid; grid-template-columns: 44px minmax(0, 1fr); align-items: center; column-gap: 12px; row-gap: 12px; }
+.rp-donate-icon { width: 44px; height: 44px; border-radius: 50%; background: #E4ECDD; color: var(--rp-accent); display: flex; align-items: center; justify-content: center; }
+.rp-donate-icon .nav-icon { width: 22px; height: 22px; }
+.rp-donate .rp-card-title { font-size: 17px; }
+.rp-btn-outline { grid-column: 1 / -1; display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 9px 18px; border-radius: 999px; border: 1px solid rgba(74, 55, 40, 0.25); background: transparent; color: var(--color-text); font-family: inherit; font-size: 14px; font-weight: 600; cursor: pointer; }
+.rp-btn-outline .nav-icon { width: 16px; height: 16px; }
+.rp-btn-outline:hover { background: rgba(255, 255, 255, 0.7); }
+/* Hàng nút đầu panel: nút tròn trắng như mẫu */
+.rp .rp-btn { width: 44px; height: 44px; background: rgba(255, 255, 255, 0.85); box-shadow: 0 2px 8px rgba(80, 70, 50, 0.08); }
+.rp .rp-sos { background: #E0574F; color: #fff; font-size: 13px; }
+/* Hàng nút đầu panel phải — chỉ có ở desktop 2 cột. */
+.rp-head { display: none; }
+@media (min-width: 1101px) {
+  .rp-head { position: relative; z-index: 2; display: flex; align-items: center; justify-content: flex-end; gap: 12px; padding: 16px 16px 0 20px; }
+  /* Hàng nút chỉ chiếm bên phải — kéo khối cấp độ lên cạnh nó cho bớt trống phía trên. */
+  .rp-hero { margin-top: -40px; }
+}
+.rp-actions { display: flex; align-items: center; gap: 8px; }
+.rp-collapse, .rp-btn {
+  position: relative; width: 40px; height: 40px; border-radius: 50%; border: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--color-canvas); color: var(--color-text-muted);
+  transition: color var(--duration-fast) var(--ease-standard), background-color var(--duration-fast) var(--ease-standard);
+}
+.rp-collapse { background: transparent; }
+.rp-collapse:hover, .rp-btn:hover, .rp-btn.is-open { color: var(--rp-accent); background: #E4ECDD; }
+.rp-collapse .nav-icon, .rp-btn .nav-icon { width: 20px; height: 20px; }
+.rp-sos { background: var(--color-danger); color: #fff; font-family: var(--font-heading); font-size: 11px; font-weight: 800; }
+.rp-sos:hover { background: var(--color-danger); color: #fff; filter: brightness(0.94); }
+.rp-badge { position: absolute; top: -2px; right: -2px; min-width: 16px; height: 16px; padding: 0 4px; border-radius: 999px; background: var(--color-danger); color: #fff; font-size: 10px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+/* Thẻ mép phải để mở lại panel khi đã thu gọn (cùng kiểu thẻ chuông / tin nhắn). */
+.rail-expand { display: none; }
+@media (min-width: 1101px) {
+  .rail-expand {
+    position: fixed; top: 24px; right: 0; z-index: 250;
+    height: 34px; padding: 0 9px; border: none; border-radius: 10px 0 0 10px; cursor: pointer;
+    background: var(--color-surface); color: var(--color-text-muted); box-shadow: var(--shadow-soft);
+    animation: rail-tab-in 0.3s ease both;
+    display: flex; align-items: center; gap: 0;
+    transition: color 0.2s ease, background-color 0.2s ease, gap 0.2s ease;
+  }
+  .rail-expand .nav-icon { width: 16px; height: 16px; transform: rotate(180deg); }
+  .rail-expand .rail-label { max-width: 0; overflow: hidden; white-space: nowrap; opacity: 0; font-size: 12px; font-weight: 600; transition: max-width 0.25s ease, opacity 0.2s ease; }
+  .rail-expand:hover, .rail-expand:focus-visible { color: var(--color-brand); background: var(--color-brand-soft); gap: 8px; }
+  .rail-expand:hover .rail-label, .rail-expand:focus-visible .rail-label { max-width: 160px; opacity: 1; }
+}
 .col-right { display: flex; flex-direction: column; border-radius: var(--radius-panel); background: var(--color-surface); overflow: hidden; }
 /* Hỗ trợ ưu tiên: thẻ đỏ đứng riêng, không chung nền với panel bên dưới */
 .safety-card { padding: 18px 20px; background: var(--color-danger-soft); display: flex; flex-direction: column; gap: 8px; }
+/* Thanh phải: thẻ SOS nằm dưới thẻ chuông (top 24px) và tin nhắn (top 62px). */
+.safety-fab {
+  position: fixed; top: calc(100px + var(--rail-shift, 0px)); right: 0; z-index: 250;
+  height: 34px; padding: 0 7px; border: none; border-radius: 10px 0 0 10px; cursor: pointer;
+  background: var(--color-danger); color: #fff;
+  box-shadow: var(--shadow-soft);
+  display: flex; align-items: center; gap: 0;
+  transition: gap 0.2s ease, filter 0.2s ease;
+  animation: rail-tab-in 0.3s ease both;
+}
+@keyframes rail-tab-in { from { transform: translateX(100%); } to { transform: translateX(0); } }
+.safety-fab-sos { font-family: var(--font-heading); font-size: 10px; font-weight: 800; letter-spacing: 0; width: 20px; flex-shrink: 0; text-align: center; }
+.safety-fab .rail-label { max-width: 0; overflow: hidden; white-space: nowrap; opacity: 0; font-size: 12px; font-weight: 600; transition: max-width 0.25s ease, opacity 0.2s ease; }
+.safety-fab:hover, .safety-fab:focus-visible { gap: 8px; filter: brightness(0.96); }
+.safety-fab:hover .rail-label, .safety-fab:focus-visible .rail-label { max-width: 160px; opacity: 1; }
+.safety-overlay { position: fixed; inset: 0; z-index: 1000; background: rgba(40, 30, 22, 0.35); display: flex; align-items: center; justify-content: center; padding: 16px; }
+.safety-dialog { position: relative; width: 100%; max-width: 420px; padding: 22px 22px 20px; border-radius: var(--radius-card); background: var(--color-surface); box-shadow: 0 12px 40px rgba(40, 30, 22, 0.2); display: flex; flex-direction: column; gap: 10px; font-family: var(--font-body); }
+.safety-close { position: absolute; top: 12px; right: 12px; width: 32px; height: 32px; border: none; border-radius: 50%; background: transparent; color: var(--color-text-muted); cursor: pointer; display: flex; align-items: center; justify-content: center; }
+.safety-close:hover { background: var(--color-canvas); }
+/* Popup: chữ cùng một tông màu, đỏ chỉ còn ở nút hành động. */
+.safety-dialog .sb-badge { font-family: var(--font-heading); font-size: 16px; font-weight: 800; color: var(--color-text); }
+.safety-dialog .sb-reason { color: var(--color-text); }
+@media (min-width: 901px) and (hover: hover) {
+  .safety-card-inline { display: none; }
+}
+@media (max-width: 900px), (hover: none) and (pointer: coarse) {
+  .safety-fab { display: none; }
+}
 .side-sec { padding: 24px; }
 .side-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 8px; }
 .side-title { font-family: var(--font-heading); font-size: 18px; font-weight: 800; color: var(--color-text); margin: 0; }
@@ -1044,7 +1457,8 @@ export default { name: 'DashboardView' };
 }
 @media (max-width: 600px) {
   .mood-picker { gap: 8px; }
-  .mood-icon { font-size: 28px; }
+  .mood-icon.material-symbols-outlined { font-size: 48px; width: 52px; height: 52px; }
+  .mood-btn.is-active .mood-icon.material-symbols-outlined { font-size: 60px; width: 64px; height: 64px; }
   .mood-label { font-size: 12px; }
   .ai-row { flex-direction: column; gap: 14px; }
   .task-grid { grid-template-columns: 1fr; }

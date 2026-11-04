@@ -79,8 +79,11 @@ export function buildStreakDays(streak, locale = 'vi') {
   const today = new Date().getDay();
   const activeIndexes = new Set();
 
-  for (let offset = 0; offset < Math.min(streak, 7); offset += 1) {
-    activeIndexes.add((today - offset + 7) % 7);
+  // Dải hiển thị TUẦN HIỆN TẠI (CN → T7). Chỉ tích các ngày từ đầu tuần tới hôm nay nằm trong
+  // chuỗi; trước đây lùi vòng (today - offset + 7) % 7 nên chuỗi 7 ngày tích luôn cả các ngày
+  // CHƯA TỚI của tuần này (thực ra là T5–T7 tuần trước).
+  for (let offset = 0; offset < Math.min(streak, today + 1); offset += 1) {
+    activeIndexes.add(today - offset);
   }
 
   return labels.map((label, index) => {

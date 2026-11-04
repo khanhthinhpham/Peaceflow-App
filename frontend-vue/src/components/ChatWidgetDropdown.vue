@@ -1,10 +1,11 @@
 <template>
-  <div v-if="chat.dropdownOpen" ref="panelEl" class="chat-widget-dropdown">
+  <div v-if="chat.dropdownOpen" ref="panelEl" class="chat-widget-dropdown" :class="{ 'is-docked': rail.docked }">
     <div class="cwd-header">
       <span>{{ t('messages.title') }}</span>
-      <button class="cwd-close" @click="chat.closeDropdown()" aria-label="Đóng">✕</button>
+      <button class="cwd-close" @click="chat.closeDropdown()" :aria-label="t('common.close')"><NavIcon name="close" /></button>
     </div>
     <div class="cwd-search-wrap">
+      <NavIcon name="search" class="cwd-search-icon" />
       <input v-model="search" type="text" class="cwd-search" :placeholder="t('messages.searchPlaceholder')">
     </div>
     <div v-if="chat.loading && !chat.conversations.length" class="cwd-empty">...</div>
@@ -36,9 +37,12 @@ import { ref, reactive, computed, watch, onMounted, onBeforeUnmount } from 'vue'
 import { useI18n } from 'vue-i18n';
 import { apiClient } from '../lib/apiClient';
 import { useChatWidgetStore } from '../stores/chatWidget';
+import NavIcon from './NavIcon.vue';
+import { useRightRailStore } from '../stores/rightRail';
 
 const { t } = useI18n();
 const chat = useChatWidgetStore();
+const rail = useRightRailStore();
 const panelEl = ref(null);
 const search = ref('');
 
@@ -79,76 +83,96 @@ onBeforeUnmount(() => document.removeEventListener('click', handleOutsideClick))
 <style scoped>
 .chat-widget-dropdown {
   position: fixed;
-  top: 82px;
-  right: 16px;
-  z-index: 250;
+  top: calc(62px + var(--rail-shift, 0px));
+  right: 34px;
+  z-index: 260;
   width: 320px;
   max-height: 420px;
   overflow-y: auto;
-  background: var(--warm-white);
-  border: 2px solid var(--kraft-light);
-  border-radius: 16px;
-  box-shadow: 4px 4px 0px rgba(74, 55, 40, 0.12);
+  border: none;
+  border-radius: 12px 0 12px 12px;
+  background: var(--color-surface, #FFFDF7);
+  box-shadow: -6px 8px 24px rgba(55, 58, 52, 0.10);
 }
+/* Đồng bộ với khung Thông báo (NotificationPanel): không gạch chia, token dashboard. */
+.chat-widget-dropdown { font-family: var(--font-body, inherit); padding-bottom: 6px; }
 .cwd-header {
-  padding: 12px 16px;
-  border-bottom: 1px solid var(--kraft-light);
+  padding: 14px 12px 6px 18px;
+  font-family: var(--font-heading, inherit);
   font-weight: 800;
-  font-size: 0.88rem;
+  font-size: 16px;
+  color: var(--color-text, var(--text-primary));
   display: flex;
   align-items: center;
   justify-content: space-between;
 }
 .cwd-close {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   background: none;
   border: none;
+  border-radius: 50%;
   cursor: pointer;
-  font-size: 1rem;
-  color: var(--text-secondary);
+  color: var(--color-text-muted, var(--text-secondary));
 }
+.cwd-close:hover { background: var(--color-canvas, var(--cream)); color: var(--color-text, var(--text-primary)); }
+.cwd-close .nav-icon { width: 18px; height: 18px; }
 .cwd-empty {
   padding: 24px;
   text-align: center;
-  color: var(--text-secondary);
-  font-size: 0.82rem;
+  color: var(--color-text-muted, var(--text-secondary));
+  font-size: 13px;
 }
 .cwd-search-wrap {
-  padding: 8px 12px;
-  /* border-bottom: 1px solid var(--kraft-light); */
+  position: relative;
+  padding: 6px 12px 8px;
+}
+.cwd-search-icon {
+  position: absolute;
+  left: 24px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 16px;
+  height: 16px;
+  color: var(--color-text-subtle, var(--text-light));
+  pointer-events: none;
 }
 .cwd-search {
   width: 100%;
-  padding: 7px 12px;
-  border: 1.5px solid var(--kraft-light);
-  border-radius: 50px;
-  background: var(--cream, #fff8f0);
-  font-family: 'Nunito', sans-serif;
-  font-size: 0.8rem;
+  padding: 9px 12px 9px 36px;
+  border: none;
+  border-radius: var(--radius-control, 10px);
+  background: var(--color-canvas, var(--cream));
+  color: var(--color-text, var(--text-primary));
+  font-family: var(--font-body, inherit);
+  font-size: 13px;
   outline: none;
 }
-.cwd-search:focus {
-  border-color: var(--mint);
-}
+.cwd-search:focus { box-shadow: 0 0 0 2px var(--color-brand-soft, var(--mint-light)); }
 .cwd-item {
   display: flex;
   align-items: center;
   gap: 10px;
-  width: 100%;
-  padding: 10px 14px;
+  width: calc(100% - 16px);
+  margin: 0 8px;
+  padding: 10px;
   border: none;
+  border-radius: var(--radius-control, 10px);
   background: none;
   cursor: pointer;
   text-align: left;
+  font-family: inherit;
 }
-.cwd-item:hover {
-  background: var(--mint-light);
-}
+.cwd-item:hover { background: var(--color-canvas, var(--cream)); }
 .cwd-avatar {
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  background: var(--lavender-light);
-  border: 1.5px solid var(--kraft-light);
+  background: var(--color-brand-soft, var(--mint-light));
+  color: var(--color-brand, var(--mint-dark));
   display: flex;
   align-items: center;
   justify-content: center;
@@ -166,33 +190,39 @@ onBeforeUnmount(() => document.removeEventListener('click', handleOutsideClick))
   min-width: 0;
 }
 .cwd-name {
-  font-size: 0.85rem;
-  font-weight: 700;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text, var(--text-primary));
 }
 .cwd-preview {
-  font-size: 0.72rem;
-  color: var(--text-light);
+  font-size: 13px;
+  color: var(--color-text-muted, var(--text-light));
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 .cwd-badge {
-  background: var(--coral);
+  background: var(--color-danger, var(--coral));
   color: #fff;
-  font-size: 0.65rem;
-  font-weight: 800;
+  font-size: 11px;
+  font-weight: 700;
   padding: 1px 7px;
   border-radius: 999px;
   flex-shrink: 0;
 }
 .cwd-footer {
   display: block;
-  padding: 10px;
+  padding: 8px 10px 4px;
   text-align: center;
-  font-size: 0.78rem;
-  color: var(--mint-dark);
-  font-weight: 700;
+  font-size: 13px;
+  color: var(--color-brand, var(--mint-dark));
+  font-weight: 600;
   text-decoration: none;
+}
+.cwd-footer:hover { text-decoration: underline; text-underline-offset: 2px; }
+/* Gắn vào panel phải của trang Tổng quan: mở ngay dưới hàng nút, bo đủ 4 góc. */
+@media (min-width: 1101px) {
+  .chat-widget-dropdown.is-docked { top: 64px; right: 16px; border-radius: 12px; }
 }
 @media (max-width: 900px), (hover: none) and (pointer: coarse) {
   .chat-widget-dropdown {

@@ -1,0 +1,53 @@
+Garden animals (fox, deer, shiba, sheep)
+Source: "Animated Animal Pack" by Quaternius — https://poly.pizza/u/Quaternius
+License: CC0 1.0 (public domain, no attribution required)
+Processed: kept Walk / Idle / Eating clips, quantized + meshopt-compressed with glTF-Transform.
+
+Garden flora (flora_*.glb: flowers, grass, small plant, bush with flowers, lilypad)
+Source: "Stylized Nature" models by Quaternius — https://poly.pizza/u/Quaternius
+License: CC0 1.0 (public domain, no attribution required)
+Processed: textures resized to 256px WebP, meshopt-compressed with glTF-Transform.
+
+Garden trees & bushes (tree_*.glb: Tree, Trees pack, Maple Trees pack, Bush, Flower Bushes)
+Source: Quaternius — https://poly.pizza/u/Quaternius
+License: CC0 1.0 (public domain, no attribution required)
+Processed: textures resized to 256–512px WebP, meshopt-compressed (Trees pack simplified 40%) with glTF-Transform.
+
+Tree house (treehouse.glb)
+"Low Poly Tree House" by Dawid2K — https://poly.pizza/m/YUAFe6TOOa
+License: CC-BY 3.0 (https://creativecommons.org/licenses/by/3.0/) — attribution REQUIRED (shown in the fullscreen garden view).
+Processed: meshopt-compressed with glTF-Transform (geometry unchanged).
+
+Stones (stone_*.glb: Rock Medium ×2, Rock Large, Rock — Quaternius; Rock Flat, Rock Formation, Rock — Kenney; Rocks/pebbles — Kay Lousberg)
+Source: https://poly.pizza/u/Quaternius , https://poly.pizza (Kay Lousberg)
+License: CC0 1.0 (public domain, no attribution required)
+Processed: textures resized to 256px WebP, meshopt-compressed with glTF-Transform.
+
+Vines (vine_*.glb) — License: CC-BY 3.0 (https://creativecommons.org/licenses/by/3.0/) — attribution REQUIRED (shown in the fullscreen garden view)
+- "Vines" by Poly by Google — https://poly.pizza/m/2jffIS8PMjZ
+- "Ranking plant" by Jakob Hippe — https://poly.pizza/m/2q-hEEe3Njb
+Processed: meshopt-compressed (textures 256px WebP) with glTF-Transform.
+
+Mountains (mountains.glb) — "Mountains" by Quaternius — https://poly.pizza/m/w9VBrh7Nz0
+License: CC0 1.0 (public domain, no attribution required). Processed: meshopt-compressed with glTF-Transform.
+
+Ground grass (grass_mix.glb) — "grass mix" by Steve B — https://poly.pizza/m/2zt43AlwVoI
+License: CC-BY 3.0 (https://creativecommons.org/licenses/by/3.0/) — attribution REQUIRED (shown in the fullscreen garden view)
+Processed: meshopt-compressed with glTF-Transform.
+
+Birds (bird_5.glb "Flying seagull", bird_2.glb "Parrot") — Poly by Google — https://poly.pizza/m/6Tpj_vcWP3f , https://poly.pizza/m/dpl7B31PqWX
+License: CC-BY 3.0 (https://creativecommons.org/licenses/by/3.0/) — attribution REQUIRED (shown in the fullscreen garden view)
+Processed: meshopt-compressed (textures 256px WebP); wing flapping added at runtime via vertex shader.
+
+More flowers (flora2_*.glb)
+- "Flowers" (tiny flower clumps) — Quaternius — https://poly.pizza/m/NBUxHir6FJ — CC0 1.0
+- "Pastel Plume Flowers" — Danni Bittman — https://poly.pizza/m/eLVv17bTyB- — CC-BY 3.0
+- "Desert marigold" — Poly by Google — https://poly.pizza/m/dYQFgjU5Eqx — CC-BY 3.0
+- "Flower" (white daisy) — Poly by Google — https://poly.pizza/m/eydI4__jXpi — CC-BY 3.0
+- "tulip 3" — Hugo Gibson — https://poly.pizza/m/2zT-C10njmX — CC-BY 3.0
+- "Water lilies" — Poly by Google — https://poly.pizza/m/birD7XV2A44 — CC-BY 3.0
+- "Nenuphar" — Nicolas Comtois — https://poly.pizza/m/7s3W1Ukbilm — CC-BY 3.0
+CC-BY items: attribution REQUIRED (shown in the fullscreen garden view). Processed: meshopt-compressed (textures 256px WebP).
+
+Fish (koi.glb "Koi", goldfish.glb "Goldfish") — Quaternius — https://poly.pizza/m/qyGtRmhgzl , https://poly.pizza/m/qS6CgsWFAh
+License: CC0 1.0. Processed: kept Swimming_Normal / Swimming_Fast clips, meshopt-compressed with glTF-Transform.

@@ -169,6 +169,36 @@
       "hello": "Xin chào, {name}!",
       "footnote": "Chỉ mất 30 giây — check-in giúp PeaceFlow đề xuất hoạt động phù hợp nhất với cảm xúc của bạn."
     },
-    "quote": "“Mỗi bước nhỏ đều đưa bạn đến sự bình an nội tại.”"
+    "quote": "“Mỗi bước nhỏ đều đưa bạn đến sự bình an nội tại.”",
+    "rightPanel": {
+      "collapse": "Thu gọn bảng bên phải",
+      "expand": "Mở bảng bên phải",
+      "levelLabel": "Cấp độ {n}",
+      "heroSub": "Bạn đang từng bước chăm sóc khu vườn của mình.",
+      "growthPoints": "điểm trưởng thành",
+      "gardenOverview": "Tổng quan cảm xúc",
+      "gardenThriving": "Đang phát triển rực rỡ",
+      "gardenGrowing": "Đang lớn dần",
+      "gardenNeedsCare": "Cần được chăm sóc",
+      "exploreExperts": "Khám phá chuyên gia",
+      "expertHint": "Bạn có thể quay lại bất cứ lúc nào khi cần nhé!",
+      "donateBtn": "Ủng hộ dự án",
+      "gardenExpand": "Phóng to khu vườn",
+      "gardenHint": "Chạm vào con vật để chơi cùng, chạm vào hoa để tưới · kéo để xoay · cuộn hoặc chụm để phóng to · Esc để đóng",
+      "gardenCreditPrefix": "Mô hình 3D:",
+      "gardenPreview": "Xem thử",
+      "previewReal": "Thực tế",
+      "previewThriving": "Rất tốt",
+      "previewStable": "Ổn định",
+      "previewAttention": "Cần chú ý",
+      "previewCare": "Cần chăm sóc",
+      "previewTime": "Buổi",
+      "timeMorning": "Sáng",
+      "timeNoon": "Trưa",
+      "timeEvening": "Chiều",
+      "timeNight": "Tối",
+      "soundOn": "Bật âm thanh thiên nhiên",
+      "soundOff": "Tắt âm thanh thiên nhiên"
+    }
   }
 }

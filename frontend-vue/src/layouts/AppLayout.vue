@@ -124,7 +124,8 @@ auth.waitForAuth().then(() => {
 }
 .shell-host {
   margin-left: var(--sidebar-width, 240px);
-  width: calc(100vw - var(--sidebar-width, 240px));
+  /* 100% (không phải 100vw) để không tính bề rộng thanh cuộn — nội dung không lấn dưới thanh cuộn. */
+  width: calc(100% - var(--sidebar-width, 240px));
   min-height: 100vh;
   position: relative;
   transition: margin-left 0.3s ease, width 0.3s ease;

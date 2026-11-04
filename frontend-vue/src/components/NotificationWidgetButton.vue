@@ -1,43 +1,73 @@
 <template>
-  <button type="button" class="notif-widget-btn" data-notif-bell @click="notif.togglePanel()">
-    🔔
+  <button v-if="!rail.docked" type="button" class="notif-widget-btn" :class="{ 'is-open': notif.panelOpen }" :aria-label="t('notifPanel.title')" data-notif-bell @click="notif.togglePanel()">
+    <NavIcon name="bell" />
+    <span class="rail-label">{{ t('notifPanel.title') }}</span>
     <span v-if="notif.unread > 0" class="notif-widget-badge">{{ Math.min(notif.unread, 9) }}</span>
   </button>
 </template>
 
 <script setup>
+import { useI18n } from 'vue-i18n';
+import NavIcon from './NavIcon.vue';
+import { useRightRailStore } from '../stores/rightRail';
 import { useNotificationsStore } from '../stores/notifications';
 
+const { t } = useI18n();
+const rail = useRightRailStore();
 const notif = useNotificationsStore();
 </script>
 
 <style scoped>
 .notif-widget-btn {
   position: fixed;
-  top: 30px;
-  right: 68px;
+  top: calc(24px + var(--rail-shift, 0px));
+  right: 0;
   z-index: 250;
-  /* Match the 45px rendered height of the Check-in / Emergency pill actions. */
-  width: 45px;
-  height: 45px;
-  border-radius: 50%;
-  border: 2px solid var(--kraft-light, #e8cba7);
-  background: var(--warm-white);
-  box-shadow: 2px 2px 0px rgba(74, 55, 40, 0.12);
-  font-size: 1.2rem;
+  height: 34px;
+  padding: 0 9px;
+  border: none;
+  border-radius: 10px 0 0 10px;
+  background: var(--color-surface, #FFFDF7);
+  box-shadow: var(--shadow-soft, 0 2px 8px rgba(74, 55, 40, 0.08));
+  color: var(--color-text-muted, #6b5a4b);
   cursor: pointer;
   display: flex;
   align-items: center;
-  justify-content: center;
+  gap: 0;
+  font-family: var(--font-body, inherit);
+  transition: color 0.2s ease, background-color 0.2s ease, gap 0.2s ease;
 }
-.notif-widget-btn:hover {
-  background: var(--mint-light);
-  border-color: var(--mint);
+.notif-widget-btn { animation: rail-tab-in 0.3s ease both; }
+@keyframes rail-tab-in { from { transform: translateX(100%); } to { transform: translateX(0); } }
+.notif-widget-btn:hover,
+.notif-widget-btn:focus-visible {
+  color: var(--color-brand, #4f7a5a);
+  background: var(--color-brand-soft, #eef4ef);
+  gap: 8px;
 }
+.notif-widget-btn.is-open {
+  color: var(--color-brand, #4f7a5a);
+  background: var(--color-surface, #FFFDF7);
+  box-shadow: none;
+}
+.notif-widget-btn.is-open:hover { gap: 0; }
+.notif-widget-btn.is-open:hover .rail-label { max-width: 0; opacity: 0; }
+.notif-widget-btn .nav-icon { width: 16px; height: 16px; }
+.rail-label {
+  max-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  opacity: 0;
+  font-size: 12px;
+  font-weight: 600;
+  transition: max-width 0.25s ease, opacity 0.2s ease;
+}
+.notif-widget-btn:hover .rail-label,
+.notif-widget-btn:focus-visible .rail-label { max-width: 160px; opacity: 1; }
 .notif-widget-badge {
   position: absolute;
-  top: -4px;
-  right: -4px;
+  top: -5px;
+  left: -5px;
   background: var(--coral);
   color: #fff;
   font-size: 0.6rem;

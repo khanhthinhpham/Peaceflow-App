@@ -169,6 +169,36 @@
       "hello": "Hi, {name}!",
       "footnote": "It only takes 30 seconds — checking in helps PeaceFlow suggest the activities that fit how you feel."
     },
-    "quote": "“Every small step brings you closer to inner peace.”"
+    "quote": "“Every small step brings you closer to inner peace.”",
+    "rightPanel": {
+      "collapse": "Collapse right panel",
+      "expand": "Open right panel",
+      "levelLabel": "Level {n}",
+      "heroSub": "You are tending your garden, one step at a time.",
+      "growthPoints": "growth points",
+      "gardenOverview": "Emotional overview",
+      "gardenThriving": "Thriving",
+      "gardenGrowing": "Growing steadily",
+      "gardenNeedsCare": "Needs some care",
+      "exploreExperts": "Explore experts",
+      "expertHint": "Come back anytime you need it.",
+      "donateBtn": "Support the project",
+      "gardenExpand": "Expand garden",
+      "gardenHint": "Tap an animal to play, tap a flower to water it · drag to rotate · scroll or pinch to zoom · Esc to close",
+      "gardenCreditPrefix": "3D models:",
+      "gardenPreview": "Preview",
+      "previewReal": "Actual",
+      "previewThriving": "Thriving",
+      "previewStable": "Stable",
+      "previewAttention": "Needs attention",
+      "previewCare": "Needs care",
+      "previewTime": "Time",
+      "timeMorning": "Morning",
+      "timeNoon": "Noon",
+      "timeEvening": "Evening",
+      "timeNight": "Night",
+      "soundOn": "Turn on nature sounds",
+      "soundOff": "Turn off nature sounds"
+    }
   }
 }
