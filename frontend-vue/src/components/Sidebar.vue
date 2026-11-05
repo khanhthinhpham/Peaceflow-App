@@ -78,7 +78,7 @@
         </div>
       </div>
       <router-link to="/emergency" class="emergency-btn">
-        <NavIcon name="lifebuoy" /> {{ t('sidebar.emergencySupport') }}
+        <span class="sos-badge" aria-hidden="true">SOS</span> {{ t('sidebar.emergencySupport') }}
       </router-link>
     </div>
   </aside>
@@ -339,6 +339,37 @@ async function handleLogout() {
   font-size: 14px; font-weight: 600; transition: filter var(--duration-fast) var(--ease-standard);
 }
 .emergency-btn:hover { filter: brightness(0.96); }
+
+/* ---- Đồng bộ với giao diện "khu vườn" mới của Dashboard: nền kem chuyển nhẹ như panel phải,
+   xanh rêu #6F8F5E cho mục đang chọn, thẻ bo tròn bóng mềm, logo chữ serif. Chỉ đổi trong
+   Sidebar (không đụng token chung để các trang khác giữ nguyên). ---- */
+.sidebar {
+  --sb-accent: #6F8F5E; --sb-accent-ink: #4F6B42; --sb-accent-soft: rgba(111, 143, 94, 0.14); --sb-line: rgba(74, 55, 40, 0.08);
+  background: #FFFBF5; /* kem sáng, cùng tông nền Dashboard (--color-canvas #FFF8F0) — không chuyển màu tối */
+  border-right: 1px solid var(--sb-line);
+}
+.sidebar-header, .sidebar-bottom { border-color: var(--sb-line); }
+.logo-icon { background: var(--sb-accent-soft); border-radius: 12px; }
+.logo-text { font-family: var(--font-display); font-style: italic; font-weight: 600; font-size: 1.35rem; letter-spacing: 0.01em; color: #5E4A3A; }
+.logo-text span { color: var(--sb-accent); }
+.nav-section-label { color: #A08E7C; }
+.nav-item { color: #6E5D4E; border-radius: 12px; }
+.nav-item .ni { color: #A39382; }
+.nav-item:hover { background: rgba(111, 143, 94, 0.07); color: #46362A; }
+.nav-item:hover .ni { color: var(--sb-accent); }
+.nav-item.active { background: #FFFFFF; color: var(--sb-accent-ink); font-weight: 700; box-shadow: 0 4px 14px rgba(80, 70, 50, 0.08), inset 3px 0 0 var(--sb-accent); }
+.nav-item.active .ni { color: var(--sb-accent); }
+.nav-item:focus-visible { outline-color: var(--sb-accent); }
+.nav-item-accent, .nav-item-accent .ni { color: var(--sb-accent-ink); }
+.nav-item-sep { border-top-color: var(--sb-line); }
+.sidebar-close-btn { background: #FFFFFF; box-shadow: 0 2px 8px rgba(80, 70, 50, 0.08); }
+.user-card-mini { background: #FFFFFF; border-radius: 18px; box-shadow: 0 6px 20px rgba(80, 70, 50, 0.07); }
+.user-avatar-mini { background: var(--sb-accent-soft); }
+.user-info-mini .user-name { color: #46362A; }
+.user-info-mini .user-level { color: #A08E7C; }
+.tag-expert { background: var(--sb-accent-soft); color: var(--sb-accent-ink); }
+.emergency-btn { border-radius: 14px; background: #FBE6DF; color: #B4532A; }
+.sos-badge { flex: none; display: inline-flex; align-items: center; justify-content: center; min-width: 36px; height: 22px; padding: 0 6px; border-radius: 999px; background: #D9573A; color: #fff; font-size: 11px; font-weight: 800; letter-spacing: 0.06em; }
 
 @media (max-width: 900px), (hover: none) and (pointer: coarse) {
   /* Thu gọn sidebar (--sidebar-width:0px) chỉ là tính năng desktop và được nhớ qua
