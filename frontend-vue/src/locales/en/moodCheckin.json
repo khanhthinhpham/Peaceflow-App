@@ -212,6 +212,9 @@
       "pickMoodFirst": "Please pick a mood first!",
       "pleaseLogin": "Please sign in to save your mood data.",
       "saveFailed": "Couldn't save your mood to the server. Please try again."
+    },
+    "embedded": {
+      "backToGarden": "Back to the garden to watch your memory flower bloom"
     }
   }
 }

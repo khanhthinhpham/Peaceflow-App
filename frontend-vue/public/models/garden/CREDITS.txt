@@ -51,3 +51,10 @@ CC-BY items: attribution REQUIRED (shown in the fullscreen garden view). Process
 
 Fish (koi.glb "Koi", goldfish.glb "Goldfish") — Quaternius — https://poly.pizza/m/qyGtRmhgzl , https://poly.pizza/m/qS6CgsWFAh
 License: CC0 1.0. Processed: kept Swimming_Normal / Swimming_Fast clips, meshopt-compressed with glTF-Transform.
+
+Visitors (visitor_bunny.glb "Bunny", visitor_frog.glb "Frog", visitor_hedgehog.glb "Hedgehog") — Quaternius — https://poly.pizza/m/irZjWFARyl , https://poly.pizza/m/9Z2V8fpazF , https://poly.pizza/m/Uu0PXwt2nU
+License: CC0 1.0. Processed: kept Idle/Walk/Jump/Wave/Yes (bunny), Frog_Idle/Frog_Jump (frog), Idle (hedgehog); meshopt-compressed.
+
+Decor (decor_bench.glb "Bench", decor_fence.glb "Fence", decor_bridge.glb "Small Bridge") — Quaternius — https://poly.pizza/m/jLxjFxFRpw , https://poly.pizza/m/U7g0Wxpt63 , https://poly.pizza/m/j4KsIuJYnq
+decor_lantern_post.glb "Post Lantern" — Kay Lousberg — https://poly.pizza/m/ZSQ65S4lEu
+License: CC0 1.0. Processed: meshopt-compressed (textures 256px WebP); colours adjusted in code to match the island.

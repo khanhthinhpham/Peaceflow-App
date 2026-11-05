@@ -212,6 +212,9 @@
       "pickMoodFirst": "Bạn vui lòng chọn một tâm trạng trước nhé!",
       "pleaseLogin": "Vui lòng đăng nhập để lưu dữ liệu tâm trạng.",
       "saveFailed": "Không lưu được tâm trạng lên server. Vui lòng thử lại."
+    },
+    "embedded": {
+      "backToGarden": "Quay lại vườn để xem hoa ký ức nở"
     }
   }
 }

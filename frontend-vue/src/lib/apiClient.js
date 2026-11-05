@@ -324,8 +324,11 @@ export const apiClient = {
 
   _invalidateRelated(endpoint) {
     const base = '/' + endpoint.split('/').filter(Boolean)[0];
+    // ghi tâm trạng làm đổi cả báo cáo / tiến độ / gợi ý / khu vườn → xoá luôn để mọi màn đọc lại bản mới
+    const related = { '/moods': ['/reports', '/progress', '/tasks', '/garden'] }[base] || [];
+    const hit = (key, b) => key === b || key.startsWith(b + '/') || key.startsWith(b + '?');
     for (const key of _swrCache.keys()) {
-      if (key === base || key.startsWith(base + '/') || key === '/dashboard') {
+      if (hit(key, base) || key === '/dashboard' || related.some((b) => hit(key, b))) {
         _swrCache.delete(key);
       }
     }

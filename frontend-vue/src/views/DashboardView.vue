@@ -205,8 +205,8 @@
         <!-- Khu vườn tâm hồn mở toàn màn hình: kéo để xoay, cuộn để phóng to -->
         <Teleport to="body">
           <Transition name="garden-full">
-            <div v-if="gardenExpanded" class="garden-full" role="dialog" aria-modal="true" :aria-label="t('dashboard.garden.title')">
-              <MoodGarden3D interactive :health="gardenViewHealth" :hour="gardenPreviewHour" :label="gardenStatusText" :breathing="!!gardenBreath && !gardenBreath.done" @garden-event="onGardenEvent" />
+            <div v-if="gardenExpanded" class="garden-full" :class="{ 'is-revealing': gardenRevealing }" role="dialog" aria-modal="true" :aria-label="t('dashboard.garden.title')">
+              <MoodGarden3D ref="gardenSceneRef" interactive :health="gardenViewHealth" :hour="gardenPreviewHour" :label="gardenStatusText" :layout="gardenLayout" :memories="gardenRevealReady && !gardenCheckinOpen ? gardenMemories : gardenSeenMemories" :lanterns="gardenLanterns" :breathing="!!gardenBreath && !gardenBreath.done" @garden-event="onGardenEvent" />
               <!-- Cùng con vật hít thở: hít 4s · giữ 2s · thở ra 6s × 3 nhịp, dừng lúc nào cũng được -->
               <div v-if="gardenBreath" class="garden-breath" role="status" aria-live="polite">
                 <p class="garden-breath-title">{{ gardenBreath.done ? t('dashboard.garden.breathDone') : t('dashboard.garden.breathTitle', { animal: t(`dashboard.garden.animals.${gardenBreath.animal}`) }) }}</p>
@@ -214,13 +214,84 @@
                 <p v-if="!gardenBreath.done" class="garden-breath-round">{{ t('dashboard.garden.breathRound', { n: gardenBreath.round, total: BREATH_ROUNDS }) }}</p>
                 <button v-if="!gardenBreath.done" type="button" class="garden-breath-stop" @click="stopGardenBreath">{{ t('dashboard.garden.breathStop') }}</button>
               </div>
+              <div v-else-if="gardenCard" class="garden-card" :class="`is-${gardenCard.kind}`" role="status" aria-live="polite">
+                <span v-if="gardenCard.color" class="garden-card-dot" :style="{ background: gardenCard.color }"></span>
+                <div class="garden-card-body">
+                  <p class="garden-card-title">{{ gardenCard.title }}</p>
+                  <p v-if="gardenCard.text" class="garden-card-text">{{ gardenCard.text }}</p>
+                </div>
+                <button type="button" class="garden-card-close" :aria-label="t('common.common.close')" @click="gardenCard = null"><NavIcon name="close" /></button>
+              </div>
+              <p v-else-if="gardenEditing" class="garden-call-hint" :class="{ 'is-notice': gardenEditNotice }" role="status" aria-live="polite">{{ gardenEditNotice || gardenEditHint }}</p>
               <p v-else-if="gardenSelected" class="garden-call-hint" role="status">{{ t('dashboard.garden.callHint', { animal: t(`dashboard.garden.animals.${gardenSelected}`) }) }}</p>
+              <!-- Check-in ngay trong vườn: đúng các bước & dữ liệu như trang Check-in; đóng lại là hoa ký ức nở -->
+              <div v-if="gardenCheckinOpen" class="garden-checkin-sheet" role="dialog" :aria-label="t('dashboard.garden.checkin.open')">
+                <div class="garden-checkin-sheet-head">
+                  <p v-if="gardenTodayMemory && !gardenCheckinSaved" class="garden-checkin-today">
+                    <span class="garden-checkin-dot is-small" :style="{ background: MEMORY_COLORS[gardenTodayMemory.emotion] || '#E9DDBF' }"></span>
+                    {{ t('dashboard.garden.checkin.today', { emotion: emotionLabel(gardenTodayMemory.emotion) }) }}
+                  </p>
+                  <span v-else></span>
+                  <button type="button" class="garden-card-close" :aria-label="t('common.common.close')" @click="closeGardenCheckin"><NavIcon name="close" /></button>
+                </div>
+                <div class="garden-checkin-sheet-body">
+                  <MoodCheckinView embedded @saved="onGardenCheckinSaved" @close="closeGardenCheckin" />
+                </div>
+              </div>
+              <div v-if="lanternOpen" class="garden-lantern-compose" role="dialog" :aria-label="t('dashboard.garden.lantern.title')">
+                <p class="garden-lantern-title">{{ t('dashboard.garden.lantern.title') }}</p>
+                <textarea
+                  ref="lanternInput"
+                  v-model="lanternText"
+                  maxlength="140"
+                  rows="3"
+                  :placeholder="t('dashboard.garden.lantern.placeholder')"
+                  @keydown.enter.exact.prevent="sendLantern"
+                ></textarea>
+                <p v-if="lanternError" class="garden-lantern-error">{{ lanternError }}</p>
+                <div class="garden-lantern-actions">
+                  <span class="garden-lantern-count">{{ lanternText.length }}/140</span>
+                  <button type="button" class="garden-lantern-cancel" @click="lanternOpen = false">{{ t('dashboard.garden.lantern.cancel') }}</button>
+                  <button type="button" class="garden-lantern-send" :disabled="!lanternText.trim() || lanternSending" @click="sendLantern">
+                    <NavIcon name="lantern" />{{ lanternSending ? t('dashboard.garden.lantern.sending') : t('dashboard.garden.lantern.send') }}
+                  </button>
+                </div>
+              </div>
               <div class="garden-full-head">
                 <div>
                   <h2 class="garden-full-title">{{ t('dashboard.garden.title') }}</h2>
                   <span v-if="gardenMetrics.length" class="rp-pill"><span class="rp-pill-sun"></span>{{ gardenStatusText }}</span>
                 </div>
                 <div class="garden-full-actions">
+                  <button v-if="gardenEditing" type="button" class="garden-edit-done" @click="exitGardenEditor">
+                    <NavIcon name="check" />{{ t('dashboard.garden.editor.done') }}
+                  </button>
+                  <button
+                    v-if="!gardenEditing"
+                    type="button"
+                    class="garden-full-close"
+                    :class="{ 'is-on': gardenCheckinOpen }"
+                    :aria-label="t('dashboard.garden.checkin.open')"
+                    :title="t('dashboard.garden.checkin.open')"
+                    @click="openGardenCheckin"
+                  ><NavIcon name="mood" /></button>
+                  <button
+                    v-if="!gardenEditing"
+                    type="button"
+                    class="garden-full-close"
+                    :class="{ 'is-on': lanternOpen }"
+                    :aria-label="t('dashboard.garden.lantern.open')"
+                    :title="t('dashboard.garden.lantern.open')"
+                    @click="openLantern"
+                  ><NavIcon name="lantern" /></button>
+                  <button
+                    v-if="!gardenEditing"
+                    type="button"
+                    class="garden-full-close"
+                    :aria-label="t('dashboard.garden.editor.open')"
+                    :title="t('dashboard.garden.editor.open')"
+                    @click="enterGardenEditor"
+                  ><NavIcon name="edit" /></button>
                   <button
                     type="button"
                     class="garden-full-close"
@@ -243,14 +314,113 @@
                   <button type="button" class="garden-full-close" :aria-label="t('common.common.close')" @click="gardenExpanded = false"><NavIcon name="close" /></button>
                 </div>
               </div>
-              <div v-if="gardenMetrics.length" class="garden-full-metrics">
+              <!-- Trang trí đảo: kho đồ + công cụ chỉnh món đang chọn -->
+              <template v-if="gardenEditing">
+                <div v-if="gardenGhost.active && !gardenEditSel" class="garden-edit-tools" role="toolbar" :aria-label="t('dashboard.garden.editor.placing')">
+                  <button type="button" :title="t('dashboard.garden.editor.rotateLeft')" @click="gardenSceneRef?.editor.ghostRotate(-1)"><NavIcon name="rotateLeft" />{{ t('dashboard.garden.editor.rotateLeft') }}</button>
+                  <button type="button" :title="t('dashboard.garden.editor.rotateRight')" @click="gardenSceneRef?.editor.ghostRotate(1)"><NavIcon name="rotate" />{{ t('dashboard.garden.editor.rotateRight') }}</button>
+                  <button type="button" :title="t('dashboard.garden.editor.flip')" @click="gardenSceneRef?.editor.ghostFlip()"><NavIcon name="flip" />{{ t('dashboard.garden.editor.flip') }}</button>
+                  <button type="button" :disabled="gardenGhost.scale <= 0.41" @click="gardenSceneRef?.editor.ghostScale(-1)"><NavIcon name="minus" />{{ t('dashboard.garden.editor.smaller') }}</button>
+                  <button type="button" :disabled="gardenGhost.scale >= 2.49" @click="gardenSceneRef?.editor.ghostScale(1)"><NavIcon name="plus" />{{ t('dashboard.garden.editor.bigger') }}</button>
+                  <button v-if="gardenTouch && gardenGhost.pending" type="button" class="is-place" :disabled="!gardenGhost.ok" @click="gardenSceneRef?.editor.placeGhost()"><NavIcon name="check" />{{ t('dashboard.garden.editor.placeHere') }}</button>
+                </div>
+                <div v-else-if="gardenEditSel?.path" class="garden-edit-tools" role="toolbar" :aria-label="t('dashboard.garden.editor.selected')">
+                  <span class="garden-edit-tools-label">{{ t('dashboard.garden.editor.pathSelected') }}</span>
+                  <button type="button" class="is-danger" @click="gardenSceneRef?.editor.remove()"><NavIcon name="trash" />{{ t('dashboard.garden.editor.remove') }}</button>
+                </div>
+                <div v-else-if="gardenEditSel" class="garden-edit-tools" role="toolbar" :aria-label="t('dashboard.garden.editor.selected')">
+                  <button v-if="gardenEditSel.canTrim" type="button" class="is-trim" @click="gardenSceneRef?.editor.trim()"><NavIcon name="scissors" />{{ t('dashboard.garden.editor.trim') }}</button>
+                  <button v-if="gardenEditSel.canDup" type="button" @click="gardenSceneRef?.editor.duplicate()"><NavIcon name="copy" />{{ t('dashboard.garden.editor.duplicate') }}</button>
+                  <button type="button" @click="gardenSceneRef?.editor.flip()"><NavIcon name="flip" />{{ t('dashboard.garden.editor.flip') }}</button>
+                  <button type="button" @click="gardenSceneRef?.editor.rotate()"><NavIcon name="rotate" />{{ t('dashboard.garden.editor.rotate') }}</button>
+                  <button type="button" :disabled="gardenEditSel.scale <= 0.41" @click="gardenSceneRef?.editor.scale(-1)"><NavIcon name="minus" />{{ t('dashboard.garden.editor.smaller') }}</button>
+                  <button type="button" :disabled="gardenEditSel.scale >= 2.49" @click="gardenSceneRef?.editor.scale(1)"><NavIcon name="plus" />{{ t('dashboard.garden.editor.bigger') }}</button>
+                  <button type="button" class="is-danger" @click="gardenSceneRef?.editor.remove()"><NavIcon name="trash" />{{ t('dashboard.garden.editor.remove') }}</button>
+                </div>
+                <div class="garden-editor">
+                  <div class="garden-editor-top">
+                    <div class="garden-editor-tabs" role="tablist">
+                      <button
+                        v-for="grp in GARDEN_EDIT_GROUPS"
+                        :key="grp"
+                        type="button"
+                        role="tab"
+                        :aria-selected="gardenEditGroup === grp"
+                        :class="{ 'is-active': gardenEditGroup === grp }"
+                        @click="setGardenEditGroup(grp)"
+                      >{{ t(`dashboard.garden.editor.groups.${grp}`) }}</button>
+                    </div>
+                    <div class="garden-editor-actions">
+                      <button type="button" class="garden-editor-trim" :class="{ 'is-on': gardenEraseOn }" :aria-pressed="gardenEraseOn" :title="t('dashboard.garden.editor.eraseTool')" @click="toggleGardenErase"><NavIcon name="trash" /><span>{{ t('dashboard.garden.editor.eraseTool') }}</span></button>
+                      <button type="button" class="garden-editor-trim" :class="{ 'is-on': gardenTrimOn }" :aria-pressed="gardenTrimOn" :title="t('dashboard.garden.editor.trimTool')" @click="toggleGardenTrim"><NavIcon name="scissors" /><span>{{ t('dashboard.garden.editor.trimTool') }}</span></button>
+                      <button type="button" :disabled="!gardenEditState.canUndo" :title="t('dashboard.garden.editor.undo')" @click="gardenSceneRef?.editor.undo()"><NavIcon name="undo" /><span>{{ t('dashboard.garden.editor.undo') }}</span></button>
+                      <button type="button" :title="t('dashboard.garden.editor.clearAll')" @click="clearGardenAll"><NavIcon name="close" /><span>{{ t('dashboard.garden.editor.clearAll') }}</span></button>
+                      <button type="button" :disabled="!gardenEditState.edited" :title="t('dashboard.garden.editor.reset')" @click="resetGardenLayout"><NavIcon name="refresh" /><span>{{ t('dashboard.garden.editor.reset') }}</span></button>
+                    </div>
+                  </div>
+                  <div v-if="gardenEditGroup === 'path'" class="garden-editor-items">
+                    <button
+                      v-for="pk in GARDEN_PATH_KINDS"
+                      :key="pk.key"
+                      type="button"
+                      class="garden-editor-item"
+                      :class="{ 'is-active': gardenEditTool === `path:${pk.key}` }"
+                      :aria-pressed="gardenEditTool === `path:${pk.key}`"
+                      @click="pickGardenTool(`path:${pk.key}`)"
+                    >
+                      <span class="garden-editor-thumb garden-path-swatch" :class="`is-${pk.key}`" :style="{ '--path-color': pk.color }"></span>
+                      <span class="garden-editor-name">{{ t(`dashboard.garden.editor.path_${pk.key}`) }}</span>
+                    </button>
+                    <button v-if="gardenEditState.pathOpen" type="button" class="garden-editor-pathdone" @click="gardenSceneRef?.editor.endPath()"><NavIcon name="check" />{{ t('dashboard.garden.editor.endPath') }}</button>
+                  </div>
+                  <div v-else class="garden-editor-items">
+                    <button
+                      v-if="GARDEN_BRUSH_GROUPS.includes(gardenEditGroup)"
+                      type="button"
+                      class="garden-editor-item garden-editor-brushbtn"
+                      :class="{ 'is-active': gardenBrushOn }"
+                      :aria-pressed="gardenBrushOn"
+                      :title="t('dashboard.garden.editor.brushHelp')"
+                      @click="toggleGardenBrush"
+                    >
+                      <span class="garden-editor-thumb garden-editor-tool"><NavIcon name="brush" /></span>
+                      <span class="garden-editor-name">{{ gardenBrushOn ? t('dashboard.garden.editor.brushOn') : t('dashboard.garden.editor.brushOff') }}</span>
+                    </button>
+                    <div v-if="isAdmin && ['grow', 'tree', 'bush'].includes(gardenEditGroup)" class="garden-editor-boost">
+                      <span>{{ t('dashboard.garden.editor.boostLabel', { n: gardenGrowBoost }) }}</span>
+                      <div>
+                        <button type="button" @click="gardenSceneRef?.editor.boostGrowth(1)">+1</button>
+                        <button type="button" @click="gardenSceneRef?.editor.boostGrowth(5)">+5</button>
+                        <button type="button" :disabled="!gardenGrowBoost" @click="gardenSceneRef?.editor.boostGrowth(0)">{{ t('dashboard.garden.editor.boostReset') }}</button>
+                      </div>
+                    </div>
+                    <button
+                      v-for="item in gardenEditItems"
+                      :key="item.key"
+                      type="button"
+                      class="garden-editor-item"
+                      :class="{ 'is-active': gardenEditTool === item.key }"
+                      :aria-pressed="gardenEditTool === item.key"
+                      @click="pickGardenTool(item.key)"
+                    >
+                      <span class="garden-editor-thumb">
+                        <img v-if="gardenThumbs[item.key]" :src="gardenThumbs[item.key]" alt="" />
+                        <span v-else class="garden-editor-thumb-wait"></span>
+                      </span>
+                      <span class="garden-editor-name">{{ t(`dashboard.garden.editor.items.${item.key}`) }}</span>
+                    </button>
+                  </div>
+                  <p class="garden-editor-save" :class="`is-${gardenSaveState}`">{{ gardenSaveState === 'idle' ? '' : t(`dashboard.garden.editor.save_${gardenSaveState}`) }}</p>
+                </div>
+              </template>
+              <div v-if="gardenMetrics.length && !gardenEditing" class="garden-full-metrics">
                 <div v-for="metric in gardenMetrics" :key="metric.key" class="rp-metric">
                   <NavIcon :name="GARDEN_ICONS[metric.key] || 'mood'" class="rp-metric-icon" :class="`ic-${GARDEN_ICONS[metric.key] || 'mood'}`" />
                   <span class="rp-metric-label">{{ metric.label }}</span>
                   <strong class="rp-metric-value">{{ metric.status_text }}</strong>
                 </div>
               </div>
-              <div v-if="isAdmin" class="garden-preview" role="radiogroup" :aria-label="t('dashboard.rightPanel.gardenPreview')">
+              <div v-if="isAdmin && !gardenEditing" class="garden-preview" role="radiogroup" :aria-label="t('dashboard.rightPanel.gardenPreview')">
                 <span class="garden-preview-label">{{ t('dashboard.rightPanel.gardenPreview') }}</span>
                 <button
                   v-for="opt in GARDEN_PREVIEW_LEVELS"
@@ -263,7 +433,7 @@
                   @click="gardenPreview = opt.value"
                 >{{ t(opt.label) }}</button>
               </div>
-              <div v-if="isAdmin" class="garden-preview garden-preview-time" role="radiogroup" :aria-label="t('dashboard.rightPanel.previewTime')">
+              <div v-if="isAdmin && !gardenEditing" class="garden-preview garden-preview-time" role="radiogroup" :aria-label="t('dashboard.rightPanel.previewTime')">
                 <span class="garden-preview-label">{{ t('dashboard.rightPanel.previewTime') }}</span>
                 <button
                   v-for="opt in GARDEN_PREVIEW_HOURS"
@@ -276,7 +446,7 @@
                   @click="gardenPreviewHour = opt.value"
                 >{{ t(opt.label) }}</button>
               </div>
-              <p class="garden-full-hint">{{ t('dashboard.rightPanel.gardenHint') }}</p>
+              <p v-if="!gardenEditing" class="garden-full-hint">{{ t('dashboard.rightPanel.gardenHint') }}</p>
               <p v-if="gardenCreditOpen" id="garden-credit" class="garden-full-credit">{{ t('dashboard.rightPanel.gardenCreditPrefix') }} Quaternius (CC0) · <a href="https://poly.pizza/m/YUAFe6TOOa" target="_blank" rel="noopener">Low Poly Tree House</a> – Dawid2K · <a href="https://poly.pizza/m/2jffIS8PMjZ" target="_blank" rel="noopener">Vines</a> – Poly by Google · <a href="https://poly.pizza/m/2q-hEEe3Njb" target="_blank" rel="noopener">Ranking plant</a> – Jakob Hippe · <a href="https://poly.pizza/m/2zt43AlwVoI" target="_blank" rel="noopener">grass mix</a> – Steve B · <a href="https://poly.pizza/m/6Tpj_vcWP3f" target="_blank" rel="noopener">Flying seagull</a>, <a href="https://poly.pizza/m/dpl7B31PqWX" target="_blank" rel="noopener">Parrot</a> – Poly by Google · <a href="https://poly.pizza/m/eLVv17bTyB-" target="_blank" rel="noopener">Pastel Plume Flowers</a> – Danni Bittman · <a href="https://poly.pizza/m/dYQFgjU5Eqx" target="_blank" rel="noopener">Desert marigold</a>, <a href="https://poly.pizza/m/eydI4__jXpi" target="_blank" rel="noopener">Flower</a>, <a href="https://poly.pizza/m/birD7XV2A44" target="_blank" rel="noopener">Water lilies</a> – Poly by Google · <a href="https://poly.pizza/m/2zT-C10njmX" target="_blank" rel="noopener">tulip 3</a> – Hugo Gibson · <a href="https://poly.pizza/m/7s3W1Ukbilm" target="_blank" rel="noopener">Nenuphar</a> – Nicolas Comtois (<a href="https://creativecommons.org/licenses/by/3.0/" target="_blank" rel="noopener">CC-BY 3.0</a>)</p>
             </div>
           </Transition>
@@ -352,7 +522,7 @@
           <!-- Khu vườn tâm hồn -->
           <section class="rp-card rp-garden">
             <button type="button" class="rp-garden-art" :title="t('dashboard.rightPanel.gardenExpand')" :aria-label="t('dashboard.rightPanel.gardenExpand')" @click="gardenExpanded = true">
-              <MoodGarden3D v-if="!gardenExpanded" :health="gardenViewHealth" :hour="gardenPreviewHour" :label="`${t('dashboard.garden.title')}: ${gardenStatusText}`" />
+              <MoodGarden3D v-if="!gardenExpanded" :health="gardenViewHealth" :hour="gardenPreviewHour" :layout="gardenLayout" :memories="gardenSeenMemories" :lanterns="gardenLanterns" :label="`${t('dashboard.garden.title')}: ${gardenStatusText}`" />
               <span class="rp-garden-zoom"><NavIcon name="expand" /></span>
             </button>
             <div class="rp-garden-top">
@@ -432,6 +602,9 @@ import { MOOD_OPTIONS } from '../lib/moodCheckinOptions';
 import { taskCardSrc } from '../lib/taskImages';
 import NavIcon from '../components/NavIcon.vue';
 import MoodGarden3D from '../components/MoodGarden3D.vue';
+import { defineAsyncComponent } from 'vue';
+// trang Check-in đầy đủ, nhúng trong Khu vườn tâm hồn (tải khi mở)
+const MoodCheckinView = defineAsyncComponent(() => import('./MoodCheckinView.vue'));
 import { createNatureSound } from '../lib/natureSound';
 import { useNotificationsStore } from '../stores/notifications';
 import { useChatWidgetStore } from '../stores/chatWidget';
@@ -527,6 +700,15 @@ function tickGardenBreath() {
 }
 function stopGardenBreath() { clearInterval(breathTimer); breathTimer = null; gardenBreath.value = null; }
 function onGardenEvent(e) {
+  if (e.type === 'editor-boost') { gardenGrowBoost.value = e.days; return; }
+  if (e.type === 'ghost') { Object.assign(gardenGhost, { active: e.active, pending: e.pending, ok: e.ok, scale: e.scale }); return; }
+  if (['layout-change', 'editor-select', 'editor-state', 'editor-notice'].includes(e.type)) { onGardenEditEvent(e); return; }
+  if (['memory', 'lantern', 'wish', 'visitor'].includes(e.type)) { onGardenStoryEvent(e); return; }
+  if (e.type === 'reveal') { gardenRevealing.value = e.on; if (e.on) { gardenCard.value = null; gardenCheckinOpen.value = false; } return; }
+  if (e.type === 'memory-bloom') {
+    showGardenCard({ kind: 'memory', color: MEMORY_COLORS[e.emotion] || '#E9DDBF', title: formatGardenDate(e.day), text: t('dashboard.garden.memory.felt', { emotion: emotionLabel(e.emotion) }) }, 3200);
+    return;
+  }
   if (e.type === 'voice') { if (gardenSoundOn.value) natureSound?.voice(e.kind); }
   else if (e.type === 'select') gardenSelected.value = e.animal;
   else if (e.type === 'deselect') gardenSelected.value = null;
@@ -536,8 +718,227 @@ function onGardenEvent(e) {
     breathStart = performance.now(); clearInterval(breathTimer); breathTimer = setInterval(tickGardenBreath, 150);
   }
 }
+/* Trang trí đảo: người dùng tự dời / cất đồ có sẵn và thêm đồ từ kho (cây, bụi, hoa, cỏ, đá, con vật).
+   Lưu lên server theo tài khoản (chỉ phần khác so với đảo mặc định, vài KB). */
+const GARDEN_EDIT_GROUPS = ['tree', 'bush', 'flower', 'grass', 'stone', 'decor', 'path', 'grow', 'animal'];
+const GARDEN_BRUSH_GROUPS = ['tree', 'bush', 'flower', 'grass', 'stone']; // nhóm dùng được cọ trồng
+const GARDEN_PATH_KINDS = [{ key: 'stone', color: '#DCCFB6' }, { key: 'gravel', color: '#C9BBA0' }];
+const gardenBrushOn = ref(false);
+const gardenGhost = reactive({ active: false, pending: false, ok: false, scale: 1 }); // bóng mờ ướm vị trí
+const gardenTouch = typeof window !== 'undefined' && !!window.matchMedia?.('(pointer: coarse)').matches;
+const gardenTrimOn = ref(false); // chế độ kéo tỉa: chạm cây nào tỉa cây đó
+const gardenEraseOn = ref(false); // cục tẩy: chạm món nào xoá món đó
+function toggleGardenErase() {
+  gardenEraseOn.value = !gardenEraseOn.value;
+  if (gardenEraseOn.value) { gardenTrimOn.value = false; gardenEditTool.value = null; }
+  gardenSceneRef.value?.editor.setEraseMode(gardenEraseOn.value);
+}
+function clearGardenAll() {
+  if (!window.confirm(t('dashboard.garden.editor.clearAllConfirm'))) return;
+  gardenSceneRef.value?.editor.clearAll();
+}
+function toggleGardenTrim() {
+  gardenTrimOn.value = !gardenTrimOn.value;
+  if (gardenTrimOn.value) { gardenEraseOn.value = false; gardenEditTool.value = null; }
+  gardenSceneRef.value?.editor.setTrimMode(gardenTrimOn.value);
+}
+const gardenGrowBoost = ref(0); // admin: số ngày đang tua nhanh (xem thử)
+function toggleGardenBrush() { gardenBrushOn.value = !gardenBrushOn.value; gardenSceneRef.value?.editor.setBrush(gardenBrushOn.value); }
+const gardenSceneRef = ref(null);
+const gardenLayout = ref(null);
+const gardenEditing = ref(false);
+const gardenEditGroup = ref('tree');
+const gardenEditTool = ref(null);
+const gardenEditSel = ref(null);
+const gardenEditState = reactive({ canUndo: false, edited: false, pathOpen: false });
+const gardenEditNotice = ref('');
+const gardenThumbs = reactive({});
+const gardenSaveState = ref('idle'); // idle | saving | saved | error
+const gardenCatalog = ref([]);
+let gardenSaveTimer = null; let gardenNoticeTimer = null;
+const gardenEditItems = computed(() => gardenCatalog.value.filter((c) => c.group === gardenEditGroup.value));
+const gardenEditHint = computed(() => {
+  if (gardenEraseOn.value) return t('dashboard.garden.editor.hintErase');
+  if (gardenTrimOn.value) return t('dashboard.garden.editor.hintTrim');
+  if (gardenEditTool.value?.startsWith('path:')) return t(gardenEditState.pathOpen ? 'dashboard.garden.editor.hintPathMore' : 'dashboard.garden.editor.hintPath');
+  if (gardenEditTool.value && gardenBrushOn.value && GARDEN_BRUSH_GROUPS.includes(gardenEditGroup.value)) return t('dashboard.garden.editor.hintBrush', { item: t(`dashboard.garden.editor.items.${gardenEditTool.value}`) });
+  if (gardenEditTool.value) return t(gardenTouch ? 'dashboard.garden.editor.hintToolTouch' : 'dashboard.garden.editor.hintTool', { item: t(`dashboard.garden.editor.items.${gardenEditTool.value}`) });
+  if (gardenEditSel.value?.grow?.aging) return t(`dashboard.garden.editor.age_${gardenEditSel.value.grow.stage}`, { n: gardenEditSel.value.grow.n });
+  if (gardenEditSel.value?.grow) return t(`dashboard.garden.editor.grow_${gardenEditSel.value.grow.stage}`, { n: gardenEditSel.value.grow.n });
+  if (gardenEditSel.value) return t('dashboard.garden.editor.hintSelected');
+  return t('dashboard.garden.editor.hintIdle');
+});
+function loadGardenThumbs() {
+  if (gardenEditGroup.value === 'path') return;
+  gardenEditItems.value.forEach((item) => {
+    if (gardenThumbs[item.key]) return;
+    gardenSceneRef.value?.editor.thumb(item.key)?.then?.((url) => { if (url) gardenThumbs[item.key] = url; });
+  });
+}
+function setGardenEditGroup(grp) { gardenEditGroup.value = grp; pickGardenTool(null); loadGardenThumbs(); }
+function pickGardenTool(key) {
+  if (key) { gardenTrimOn.value = false; gardenEraseOn.value = false; }
+  gardenEditTool.value = key && gardenEditTool.value !== key ? key : null; // bấm lại món đang chọn → bỏ chọn
+  gardenSceneRef.value?.editor.setTool(gardenEditTool.value);
+}
+function enterGardenEditor() {
+  stopGardenBreath(); gardenSelected.value = null; gardenCreditOpen.value = false;
+  gardenEditing.value = true; lanternOpen.value = false; gardenCheckinOpen.value = false; gardenCard.value = null;
+  gardenSceneRef.value?.editor.enter();
+  gardenCatalog.value = gardenSceneRef.value?.editor.catalog() || [];
+  loadGardenThumbs();
+}
+function exitGardenEditor() {
+  gardenGrowBoost.value = 0; gardenTrimOn.value = false; gardenEraseOn.value = false; gardenGhost.active = false;
+  gardenEditing.value = false; gardenEditTool.value = null; gardenEditSel.value = null;
+  gardenSceneRef.value?.editor.exit();
+  if (gardenSaveTimer) { clearTimeout(gardenSaveTimer); saveGardenLayout(); } // lưu ngay phần còn chờ
+}
+function resetGardenLayout() {
+  if (!window.confirm(t('dashboard.garden.editor.resetConfirm'))) return;
+  gardenSceneRef.value?.editor.reset();
+}
+async function saveGardenLayout() {
+  gardenSaveTimer = null;
+  gardenSaveState.value = 'saving';
+  try {
+    await apiClient.put('/garden/layout', { layout: gardenLayout.value });
+    gardenSaveState.value = 'saved';
+  } catch (_e) {
+    gardenSaveState.value = 'error';
+  }
+}
+async function loadGardenLayout() {
+  try {
+    const data = await apiClient.get('/garden/layout', { noCache: true });
+    if (data?.layout) gardenLayout.value = data.layout;
+    if (!gardenLayout.value?.gs) { // lần đầu: mốc bắt đầu tính cây mọc rậm theo ngày check-in
+      const d = new Date(); const gs = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      gardenLayout.value = { v: 1, removed: [], moved: {}, added: [], paths: [], trims: {}, ...(gardenLayout.value || {}), gs };
+      void saveGardenLayout();
+    }
+  } catch (_e) { /* chưa có / lỗi mạng → đảo mặc định */ }
+}
+function onGardenEditEvent(e) {
+  if (e.type === 'layout-change') {
+    gardenLayout.value = e.layout;
+    gardenSaveState.value = 'saving';
+    clearTimeout(gardenSaveTimer); gardenSaveTimer = setTimeout(saveGardenLayout, 900); // gộp nhiều thao tác liền nhau thành 1 lần lưu
+  } else if (e.type === 'editor-select') {
+    gardenEditSel.value = e.id ? e : null;
+  } else if (e.type === 'editor-state') {
+    gardenEditState.canUndo = e.canUndo; gardenEditState.edited = e.edited; gardenEditState.pathOpen = !!e.pathOpen;
+  } else if (e.type === 'editor-notice') {
+    gardenEditNotice.value = t(`dashboard.garden.editor.notice_${e.code}`, { max: e.max });
+    clearTimeout(gardenNoticeTimer); gardenNoticeTimer = setTimeout(() => { gardenEditNotice.value = ''; }, 2600);
+  }
+}
+/* Vườn ký ức (hoa theo check-in tâm trạng) · Đèn lồng biết ơn · Sao băng · Khách ghé thăm */
+const gardenMemories = ref([]);
+// Hoa ký ức "đã thấy": hoa mới (check-in ở trang khác) chưa hiện ở thẻ nhỏ — chỉ nở khi mở vườn lên
+const memSeenKey = () => `pf.garden.memSeen.${auth.user?.id || 'me'}`;
+const readMemSeen = () => { try { return JSON.parse(localStorage.getItem(memSeenKey())) || null; } catch { return null; } };
+const gardenMemSeen = ref(readMemSeen());
+const gardenRevealReady = ref(false); const gardenRevealing = ref(false);
+let gardenRevealTimer = null;
+const gardenSeenMemories = computed(() => {
+  const seen = gardenMemSeen.value;
+  if (!seen) return gardenMemories.value;
+  return gardenMemories.value
+    .filter((m) => m.day <= seen.day)
+    .map((m) => (m.day === seen.day ? { ...m, emotion: seen.emotion, score: seen.score } : m));
+});
+function markMemoriesSeen() {
+  const last = gardenMemories.value[gardenMemories.value.length - 1];
+  if (!last) return;
+  gardenMemSeen.value = { day: last.day, emotion: last.emotion, score: last.score };
+  try { localStorage.setItem(memSeenKey(), JSON.stringify(gardenMemSeen.value)); } catch { /* bỏ qua */ }
+}
+const todayKey = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
+const gardenTodayMemory = computed(() => {
+  const last = gardenMemories.value[gardenMemories.value.length - 1];
+  return last && last.day === todayKey() ? last : null;
+});
+const gardenLanterns = ref([]);
+const gardenCard = ref(null); // { kind, title, text, color }
+let gardenCardTimer = null;
+const lanternOpen = ref(false); const lanternText = ref(''); const lanternSending = ref(false); const lanternError = ref('');
+const lanternInput = ref(null);
+const MEMORY_COLORS = { 'Rất vui': '#FFD54A', 'Thoải mái': '#86D49B', 'Bình thường': '#E9DDBF', 'Hơi căng': '#F7B98B', 'Rất căng thẳng': '#EE9C9C', 'Buồn bã': '#B7A6EE', 'Tức giận': '#E9806A' };
+function showGardenCard(card, ms = 6000) {
+  gardenCard.value = card;
+  clearTimeout(gardenCardTimer); gardenCardTimer = setTimeout(() => { gardenCard.value = null; }, ms);
+}
+const formatGardenDate = (d) => {
+  const dt = typeof d === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(d) ? new Date(`${d}T12:00:00`) : new Date(d);
+  return Number.isNaN(dt.getTime()) ? '' : dt.toLocaleDateString(intlLocale.value, { day: 'numeric', month: 'long', year: 'numeric' });
+};
+function emotionLabel(vi) {
+  const opt = MOOD_OPTIONS.find((o) => o.viLabel === vi);
+  return opt ? t(opt.labelKey) : (vi || t('dashboard.garden.memory.unknown'));
+}
+async function loadGardenMemories() {
+  try {
+    const d = await apiClient.get('/garden/memories', { noCache: true }); gardenMemories.value = d?.memories || [];
+    if (!gardenMemSeen.value) markMemoriesSeen(); // lần đầu: coi như đã thấy hết (không cho cả vườn nở lại)
+    else if (gardenExpanded.value && gardenRevealReady.value && !gardenCheckinOpen.value) markMemoriesSeen(); // đang mở vườn: hoa mới nở ngay trước mắt
+  } catch (_e) { /* giữ nguyên */ }
+}
+async function loadGardenLanterns() {
+  try { const d = await apiClient.get('/garden/lanterns', { noCache: true }); gardenLanterns.value = d?.lanterns || []; } catch (_e) { /* giữ nguyên */ }
+}
+// Check-in ngay trong vườn: nhúng nguyên trang Check-in (đủ các bước, cùng API) — lưu xong, đóng lại là hoa ký ức nở
+const gardenCheckinOpen = ref(false); const gardenCheckinSaved = ref(false);
+function openGardenCheckin() {
+  gardenCheckinOpen.value = !gardenCheckinOpen.value; gardenCheckinSaved.value = false;
+  if (gardenCheckinOpen.value) { lanternOpen.value = false; gardenCard.value = null; }
+}
+function onGardenCheckinSaved() {
+  gardenCheckinSaved.value = true; gardenPreview.value = null; // đang xem thử mức vườn (admin) → về thực tế để thấy thay đổi
+  if (gardenSoundOn.value) natureSound?.voice('chime');
+}
+function closeGardenCheckin() {
+  gardenCheckinOpen.value = false;
+  if (gardenCheckinSaved.value) { gardenCheckinSaved.value = false; void loadGardenMemories().then(() => markMemoriesSeen()); } // hoa mới nở ngay
+}
+function openLantern() {
+  lanternOpen.value = !lanternOpen.value; lanternError.value = '';
+  if (lanternOpen.value) gardenCheckinOpen.value = false;
+  if (lanternOpen.value) setTimeout(() => lanternInput.value?.focus(), 50);
+}
+async function sendLantern() {
+  const text = lanternText.value.trim();
+  if (!text || lanternSending.value) return;
+  lanternSending.value = true; lanternError.value = '';
+  try {
+    const d = await apiClient.post('/garden/lanterns', { text });
+    if (d?.lantern) gardenLanterns.value = [...gardenLanterns.value, d.lantern].slice(-12);
+    lanternText.value = ''; lanternOpen.value = false;
+    if (gardenSoundOn.value) natureSound?.voice('lantern');
+    showGardenCard({ kind: 'lantern', title: t('dashboard.garden.lantern.sent'), text }, 4000);
+  } catch (_e) {
+    lanternError.value = t('dashboard.garden.lantern.error');
+  } finally {
+    lanternSending.value = false;
+  }
+}
+function onGardenStoryEvent(e) {
+  if (e.type === 'memory') {
+    showGardenCard({ kind: 'memory', color: MEMORY_COLORS[e.emotion] || '#E9DDBF', title: formatGardenDate(e.day), text: t('dashboard.garden.memory.felt', { emotion: emotionLabel(e.emotion) }) });
+  } else if (e.type === 'lantern') {
+    showGardenCard({ kind: 'lantern', color: '#FFB46B', title: t('dashboard.garden.lantern.cardTitle', { date: formatGardenDate(e.date) }), text: e.text }, 8000);
+  } else if (e.type === 'wish') {
+    showGardenCard({ kind: 'wish', title: t('dashboard.garden.wish.title'), text: t(`dashboard.garden.wish.w${e.n}`) }, 7000);
+  } else if (e.type === 'visitor') {
+    if (!gardenEditing.value && !gardenBreath.value) showGardenCard({ kind: 'visitor', title: t('dashboard.garden.visitor', { animal: t(`dashboard.garden.animals.${e.animal}`) }) }, 3500);
+  }
+}
 const gardenCreditOpen = ref(false); // nguồn mô hình 3D: ẩn, bấm nút "i" mới hiện
-watch(gardenExpanded, (v) => { if (!v) { gardenCreditOpen.value = false; gardenSelected.value = null; stopGardenBreath(); } });
+watch(gardenExpanded, (v) => {
+  clearTimeout(gardenRevealTimer); gardenRevealReady.value = false; gardenRevealing.value = false;
+  if (v) gardenRevealTimer = setTimeout(() => { gardenRevealReady.value = true; markMemoriesSeen(); }, 1100); // mở vườn xong mới cho hoa mới nở
+});
+watch(gardenExpanded, (v) => { if (!v) { lanternOpen.value = false; gardenCheckinOpen.value = false; gardenCard.value = null; if (gardenEditing.value) exitGardenEditor(); gardenCreditOpen.value = false; gardenSelected.value = null; stopGardenBreath(); } });
 let natureSound = null;
 const gardenHourNow = () => { const d = new Date(); return gardenPreviewHour.value ?? d.getHours() + d.getMinutes() / 60; };
 function syncNatureSound() {
@@ -571,8 +972,19 @@ const GARDEN_PREVIEW_LEVELS = [
   { key: 'care', value: 0.12, label: 'dashboard.rightPanel.previewCare' }
 ];
 function onGardenKey(e) {
+  if (gardenEditing.value && gardenGhost.active && !/^(INPUT|TEXTAREA)$/.test(e.target?.tagName || '')) {
+    const ed = gardenSceneRef.value?.editor;
+    if (e.key === 'r' || e.key === 'R') { ed?.ghostRotate(e.shiftKey ? -1 : 1); e.preventDefault(); return; }
+    if (e.key === 'f' || e.key === 'F') { ed?.ghostFlip(); e.preventDefault(); return; }
+    if (e.key === '+' || e.key === '=') { ed?.ghostScale(1); e.preventDefault(); return; }
+    if (e.key === '-' || e.key === '_') { ed?.ghostScale(-1); e.preventDefault(); return; }
+    if (e.key === 'Enter') { ed?.placeGhost(); e.preventDefault(); return; }
+  }
   if (e.key !== 'Escape') return;
-  if (gardenBreath.value) stopGardenBreath(); else gardenExpanded.value = false; // Esc: dừng bài thở trước, lần nữa mới đóng
+  if (gardenCheckinOpen.value) gardenCheckinOpen.value = false;
+  else if (lanternOpen.value) lanternOpen.value = false;
+  else if (gardenEditing.value) exitGardenEditor();
+  else if (gardenBreath.value) stopGardenBreath(); else gardenExpanded.value = false; // Esc: dừng bài thở trước, lần nữa mới đóng
 }
 watch(gardenExpanded, (open) => {
   document.body.style.overflow = open ? 'hidden' : '';
@@ -836,7 +1248,7 @@ watch(() => [gardenViewHealth.value, gardenPreviewHour.value], () => {
   if (!natureSound) return;
   natureSound.setMood(gardenViewHealth.value); natureSound.setHour(gardenHourNow());
 });
-onBeforeUnmount(() => { natureSound?.stop(); clearInterval(breathTimer); });
+onBeforeUnmount(() => { natureSound?.stop(); clearInterval(breathTimer); if (gardenSaveTimer) { clearTimeout(gardenSaveTimer); saveGardenLayout(); } });
 
 function gardenDotClass(status) {
   if (status === 'excellent' || status === 'good') return 'dot-primary';
@@ -962,9 +1374,11 @@ function handleVisibility() {
 
 function handleMutation() {
   refresh(true).catch(() => {});
+  void loadGardenMemories(); // vừa check-in → bông hoa ký ức mới mọc
 }
 
 onMounted(async () => {
+  void loadGardenLayout(); void loadGardenMemories(); void loadGardenLanterns();
   greetingTimer = window.setInterval(() => {
     currentTime.value = Date.now();
   }, 60 * 1000);
@@ -1350,6 +1764,102 @@ export default { name: 'DashboardView' };
 @media (prefers-reduced-motion: reduce) { .garden-breath-circle, .garden-breath-circle.is-in, .garden-breath-circle.is-out { transition: none; } }
 .garden-call-hint { position: absolute; left: 50%; top: 120px; transform: translateX(-50%); z-index: 2; margin: 0; padding: 8px 16px; border-radius: 999px; background: rgba(255, 253, 247, 0.92); box-shadow: 0 6px 20px rgba(80, 70, 50, 0.12); font-size: 13px; color: var(--color-text); white-space: nowrap; max-width: calc(100% - 32px); overflow: hidden; text-overflow: ellipsis; pointer-events: none; }
 @media (max-width: 900px) { .garden-call-hint { top: calc(78px + env(safe-area-inset-top, 0px)); font-size: 12px; white-space: normal; text-align: center; } .garden-breath { min-width: 0; width: calc(100% - 48px); max-width: 300px; } }
+/* Trang trí đảo */
+.garden-edit-done { display: inline-flex; align-items: center; gap: 6px; height: 44px; padding: 0 18px; border: none; border-radius: 999px; background: #6F8F5E; color: #fff; font-family: inherit; font-size: 14px; font-weight: 700; cursor: pointer; box-shadow: var(--shadow-soft); }
+.garden-edit-done .nav-icon { width: 18px; height: 18px; }
+.garden-edit-done:hover { filter: brightness(0.95); }
+.garden-call-hint.is-notice { background: #FFF1E6; color: #8A4B24; }
+.garden-editor { --rp-accent: #6F8F5E; position: absolute; z-index: 2; left: 50%; bottom: calc(14px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); width: min(820px, calc(100% - 24px)); padding: 10px 10px 6px; border-radius: 22px; background: rgba(255, 253, 247, 0.95); box-shadow: 0 10px 32px rgba(80, 70, 50, 0.16); }
+.garden-editor-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.garden-editor-tabs { display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; min-width: 0; }
+.garden-editor-tabs::-webkit-scrollbar { display: none; }
+.garden-editor-tabs button { flex: none; min-height: 36px; padding: 6px 14px; border: none; border-radius: 999px; background: transparent; font-family: inherit; font-size: 13px; font-weight: 600; color: var(--color-text-muted); cursor: pointer; }
+.garden-editor-tabs button:hover { color: var(--color-text); }
+.garden-editor-tabs button.is-active { background: #6F8F5E; color: #fff; }
+.garden-editor-actions { display: flex; gap: 4px; flex: none; }
+.garden-editor-actions button { display: inline-flex; align-items: center; gap: 5px; min-height: 36px; padding: 6px 10px; border: none; border-radius: 999px; background: transparent; font-family: inherit; font-size: 13px; color: var(--color-text); cursor: pointer; }
+.garden-editor-actions button:hover:not(:disabled) { background: rgba(111, 143, 94, 0.12); }
+.garden-editor-actions button:disabled { opacity: 0.4; cursor: default; }
+.garden-editor-actions .nav-icon { width: 16px; height: 16px; }
+.garden-editor-items { display: flex; gap: 8px; margin-top: 8px; padding-bottom: 4px; overflow-x: auto; scrollbar-width: thin; }
+.garden-editor-item { flex: none; width: 84px; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 6px 4px; border: 2px solid transparent; border-radius: 16px; background: rgba(111, 143, 94, 0.07); font-family: inherit; cursor: pointer; transition: border-color var(--duration-fast) var(--ease-standard), background var(--duration-fast) var(--ease-standard); }
+.garden-editor-item:hover { background: rgba(111, 143, 94, 0.14); }
+.garden-editor-item:active { transform: scale(0.97); }
+.garden-editor-item.is-active { border-color: #6F8F5E; background: rgba(111, 143, 94, 0.18); }
+.garden-editor-thumb { width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; }
+.garden-editor-thumb img { width: 100%; height: 100%; object-fit: contain; }
+.garden-editor-thumb-wait { width: 28px; height: 28px; border-radius: 50%; background: rgba(111, 143, 94, 0.18); animation: garden-thumb-pulse 1.2s ease-in-out infinite; }
+@keyframes garden-thumb-pulse { 50% { opacity: 0.4; } }
+.garden-editor-name { font-size: 11.5px; line-height: 1.25; color: var(--color-text); text-align: center; }
+.garden-editor-save { margin: 2px 6px 0; font-size: 11px; color: var(--color-text-muted); text-align: right; min-height: 14px; }
+.garden-editor-save.is-error { color: #B4532A; }
+.garden-editor-tool { border-radius: 14px; background: rgba(111, 143, 94, 0.14); color: #4F6B42; }
+.garden-editor-tool .nav-icon { width: 28px; height: 28px; }
+.garden-editor-brushbtn.is-active .garden-editor-tool { background: #6F8F5E; color: #fff; }
+.garden-path-swatch { border-radius: 14px; background: #A9C98A; position: relative; overflow: hidden; }
+.garden-path-swatch.is-stone::after { content: ''; position: absolute; inset: 0; background: radial-gradient(circle at 25% 70%, var(--path-color) 0 7px, transparent 8px), radial-gradient(circle at 50% 50%, var(--path-color) 0 7px, transparent 8px), radial-gradient(circle at 75% 30%, var(--path-color) 0 7px, transparent 8px); }
+.garden-path-swatch.is-gravel::after { content: ''; position: absolute; left: -10%; right: -10%; top: 36%; height: 28%; transform: rotate(-30deg); background: radial-gradient(circle, var(--path-color) 0 1.6px, transparent 2px) 0 0 / 6px 6px; }
+.garden-editor-pathdone { flex: none; align-self: center; display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 6px 16px; border: none; border-radius: 999px; background: #6F8F5E; color: #fff; font-family: inherit; font-size: 13px; font-weight: 700; cursor: pointer; }
+.garden-editor-pathdone .nav-icon { width: 16px; height: 16px; }
+.garden-editor-trim.is-on { background: #6F8F5E !important; color: #fff !important; }
+.garden-editor-boost { flex: none; order: 99; display: flex; flex-direction: column; justify-content: center; gap: 6px; padding: 4px 8px 4px 14px; margin-left: 4px; border-left: 1px dashed rgba(74, 55, 40, 0.2); font-size: 12px; color: var(--color-text-muted); }
+.garden-editor-boost > div { display: flex; gap: 4px; }
+.garden-editor-boost button { min-height: 32px; padding: 4px 12px; border: 1px solid rgba(74, 55, 40, 0.18); border-radius: 999px; background: transparent; font-family: inherit; font-size: 12px; font-weight: 600; color: var(--color-text); cursor: pointer; }
+.garden-editor-boost button:hover:not(:disabled) { border-color: #6F8F5E; }
+.garden-editor-boost button:disabled { opacity: 0.4; cursor: default; }
+.garden-edit-tools-label { align-self: center; padding: 0 8px 0 10px; font-size: 13px; color: var(--color-text-muted); white-space: nowrap; }
+.garden-edit-tools button.is-place { background: #6F8F5E; color: #fff; }
+.garden-edit-tools button.is-place:hover:not(:disabled) { background: #62804F; }
+.garden-edit-tools button.is-trim { color: #4F6B42; }
+.garden-edit-tools { position: absolute; z-index: 2; left: 50%; bottom: calc(196px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); display: flex; gap: 4px; padding: 5px; border-radius: 999px; background: rgba(255, 253, 247, 0.95); box-shadow: 0 8px 24px rgba(80, 70, 50, 0.14); max-width: calc(100% - 24px); overflow-x: auto; scrollbar-width: none; }
+.garden-edit-tools button { flex: none; display: inline-flex; align-items: center; gap: 5px; min-height: 40px; padding: 6px 14px; border: none; border-radius: 999px; background: transparent; font-family: inherit; font-size: 13px; font-weight: 600; color: var(--color-text); cursor: pointer; }
+.garden-edit-tools button:hover:not(:disabled) { background: rgba(111, 143, 94, 0.12); }
+.garden-edit-tools button:disabled { opacity: 0.4; cursor: default; }
+.garden-edit-tools button.is-danger { color: #B4532A; }
+.garden-edit-tools .nav-icon { width: 16px; height: 16px; }
+@media (prefers-reduced-motion: reduce) { .garden-editor-thumb-wait { animation: none; } }
+@media (max-width: 900px) {
+  .garden-editor-actions button { padding: 6px 8px; font-size: 12px; }
+  .garden-editor-item { width: 74px; }
+  .garden-editor-thumb { width: 52px; height: 52px; }
+  .garden-edit-tools { bottom: calc(184px + env(safe-area-inset-bottom, 0px)); }
+  .garden-edit-tools button { padding: 6px 10px; font-size: 12px; }
+  .garden-edit-done { padding: 0 14px; }
+}
+/* Thẻ hoa ký ức / đèn lồng / lời chúc / khách ghé */
+.garden-card { position: absolute; z-index: 3; left: 50%; top: 120px; transform: translateX(-50%); display: flex; align-items: flex-start; gap: 12px; width: min(420px, calc(100% - 32px)); padding: 14px 12px 14px 16px; border-radius: 18px; background: rgba(255, 253, 247, 0.96); box-shadow: 0 10px 30px rgba(80, 70, 50, 0.16); animation: garden-card-in 0.35s ease both; }
+@keyframes garden-card-in { from { opacity: 0; transform: translate(-50%, -8px); } to { opacity: 1; transform: translate(-50%, 0); } }
+.garden-card-dot { flex: none; width: 14px; height: 14px; margin-top: 4px; border-radius: 50%; box-shadow: 0 0 0 4px rgba(0, 0, 0, 0.04); }
+.garden-card-body { flex: 1; min-width: 0; }
+.garden-card-title { margin: 0; font-size: 14px; font-weight: 700; color: var(--color-text); }
+.garden-card-text { margin: 4px 0 0; font-size: 14px; line-height: 1.5; color: var(--color-text-muted); overflow-wrap: anywhere; }
+.garden-card.is-wish .garden-card-text, .garden-card.is-lantern .garden-card-text { font-family: var(--font-display); font-style: italic; font-size: 16px; color: var(--color-text); }
+.garden-card-close { flex: none; width: 32px; height: 32px; margin: -4px -2px 0 0; border: none; border-radius: 50%; background: transparent; color: var(--color-text-muted); display: flex; align-items: center; justify-content: center; cursor: pointer; }
+.garden-card-close:hover { background: rgba(74, 55, 40, 0.06); }
+.garden-card-close .nav-icon { width: 16px; height: 16px; }
+/* Viết câu biết ơn để thả đèn lồng */
+.garden-checkin-sheet { position: absolute; z-index: 5; left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(980px, calc(100% - 24px)); max-height: calc(100% - 24px); display: flex; flex-direction: column; border-radius: 24px; background: var(--color-canvas, #FBF7F0); box-shadow: 0 18px 50px rgba(60, 50, 35, 0.25); overflow: hidden; }
+.garden-checkin-sheet-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 12px 0 16px; }
+.garden-checkin-sheet-body { flex: 1; min-height: 0; overflow-y: auto; padding: 0 8px 8px; overscroll-behavior: contain; }
+.garden-checkin-dot { display: inline-block; border-radius: 50%; }
+.garden-checkin-today { display: flex; align-items: center; gap: 8px; margin: 0; padding: 8px 12px; border-radius: 12px; background: rgba(111, 143, 94, 0.1); font-size: 13px; color: var(--color-text); }
+.garden-checkin-dot.is-small { width: 12px; height: 12px; flex: none; }
+@media (max-width: 900px) { .garden-checkin-sheet { top: auto; bottom: 0; transform: translateX(-50%); width: 100%; max-height: 92%; border-radius: 24px 24px 0 0; padding-bottom: env(safe-area-inset-bottom, 0px); } }
+.garden-lantern-compose { position: absolute; z-index: 4; left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(400px, calc(100% - 32px)); padding: 18px; border-radius: 22px; background: rgba(255, 253, 247, 0.97); box-shadow: 0 14px 40px rgba(80, 70, 50, 0.2); }
+.garden-lantern-title { margin: 0 0 10px; font-family: var(--font-heading); font-size: 17px; font-weight: 700; color: var(--color-text); }
+.garden-lantern-compose textarea { width: 100%; box-sizing: border-box; resize: none; padding: 10px 12px; border: 1px solid rgba(74, 55, 40, 0.18); border-radius: 14px; background: #fff; font-family: inherit; font-size: 15px; line-height: 1.5; color: var(--color-text); }
+.garden-lantern-compose textarea:focus { outline: none; border-color: #6F8F5E; box-shadow: 0 0 0 3px rgba(111, 143, 94, 0.18); }
+.garden-lantern-error { margin: 6px 0 0; font-size: 13px; color: #B4532A; }
+.garden-lantern-actions { display: flex; align-items: center; gap: 8px; margin-top: 10px; }
+.garden-lantern-count { flex: 1; font-size: 12px; color: var(--color-text-muted); }
+.garden-lantern-cancel { min-height: 40px; padding: 8px 16px; border: none; border-radius: 999px; background: transparent; font-family: inherit; font-size: 14px; color: var(--color-text); cursor: pointer; }
+.garden-lantern-cancel:hover { background: rgba(74, 55, 40, 0.06); }
+.garden-lantern-send { display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 8px 18px; border: none; border-radius: 999px; background: #E59A4F; color: #fff; font-family: inherit; font-size: 14px; font-weight: 700; cursor: pointer; }
+.garden-lantern-send:hover:not(:disabled) { filter: brightness(0.95); }
+.garden-lantern-send:disabled { opacity: 0.5; cursor: default; }
+.garden-lantern-send .nav-icon { width: 16px; height: 16px; }
+@media (max-width: 900px) { .garden-card { top: calc(78px + env(safe-area-inset-top, 0px)); } }
+@media (prefers-reduced-motion: reduce) { .garden-card { animation: none; } }
 .garden-full-enter-active, .garden-full-leave-active { transition: opacity 0.3s ease, transform 0.3s ease; }
 .garden-full-enter-from, .garden-full-leave-to { opacity: 0; transform: scale(0.97); }
 .rp-garden-top { position: absolute; top: 0; left: 0; right: 0; z-index: 1; display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; padding: 16px 18px 0; }

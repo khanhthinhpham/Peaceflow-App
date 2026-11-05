@@ -1,5 +1,5 @@
 <template> 
-  <main class="main-content mc-page" style="margin-left: 0;" >
+  <main class="main-content mc-page" :class="{ 'is-embedded': embedded }" style="margin-left: 0;" >
     <div class="page-header">
       <div class="mc-share-row" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
         <label class="badge-pill" :title="t('moodCheckin.shareWithExperts.desc')" style="cursor:pointer;gap:6px;background:var(--color-surface-muted);color:var(--color-text);white-space:nowrap;flex-shrink:0;">
@@ -379,6 +379,8 @@
 
         <!-- Step 5: Result — gọn trong một màn hình, không còn thanh các bước -->
         <div class="checkin-step rs" :class="{ active: step === 5 }">
+          <!-- mở trong Khu vườn tâm hồn: quay lại vườn để xem bông hoa ký ức nở -->
+          <button v-if="embedded" type="button" class="mc-garden-back" @click="emit('close')">{{ t('moodCheckin.embedded.backToGarden') }}</button>
           <div class="rs-head">
             <EmotionFigure v-if="step === 5" class="rs-figure" :value="emotionValue" :intensity="(checkinData.score - 1) / 9" :scene="emotionZone.key" />
             <div class="rs-title">{{ resultTitle }}</div>
@@ -478,6 +480,10 @@ function isToday(value) {
 
 const auth = useAuthStore();
 const router = useRouter();
+// embedded: mở ngay trong Khu vườn tâm hồn (DashboardView) — cùng các bước, cùng API; lưu xong báo 'saved', bấm quay lại vườn báo 'close'
+const props = defineProps({ embedded: { type: Boolean, default: false } });
+const emit = defineEmits(['saved', 'close']);
+const embedded = computed(() => props.embedded);
 const displayName = computed(() => auth.user?.display_name || auth.user?.full_name || t('dashboard.defaultUserLabel'));
 
 const step = ref(1);
@@ -884,6 +890,7 @@ async function submitCheckin() {
     await syncTodayCheckinBadge();
 
     resultPhase.value = 'saved';
+    if (props.embedded) emit('saved', { emotion: selectedMoodOption.value?.viLabel || null });
     todayDone.value = true;
     // Lưu nguyên văn tiếng Việt (viLabel) — khớp đúng định dạng backend trả về ở lần đọc
     // sau, để todayLabelDisplay ánh xạ ngược đúng ngôn ngữ đang hiển thị.
@@ -1054,6 +1061,14 @@ onMounted(async () => {
 }
 </style>
 <style scoped src="../assets/moodCheckinWidget.css"></style>
+<style scoped>
+/* Chế độ nhúng trong Khu vườn tâm hồn: bỏ nền trang & chiều cao toàn màn, giữ nguyên các bước */
+.mc-page.is-embedded { margin-left: 0; min-height: 0; padding: 4px 4px 12px; background: transparent; }
+.mc-page.is-embedded::before, .mc-page.is-embedded::after { display: none; }
+.mc-garden-back { display: block; width: 100%; min-height: 44px; margin: 0 0 14px; border: none; border-radius: 999px; background: #6F8F5E; color: #fff; font-family: inherit; font-size: 15px; font-weight: 700; cursor: pointer; }
+.mc-garden-back:hover { filter: brightness(0.95); }
+.mc-garden-back:active { transform: scale(0.98); }
+</style>
 <style scoped>
 /* Override riêng cho trang /mood-checkin theo style Dashboard. Đặt SAU block src
    moodCheckinWidget.css (dùng chung với widget demo ở IndexView.vue) để thắng về thứ tự

@@ -20,6 +20,7 @@ import zoomRoutes from '../modules/zoom/zoom.routes.js';
 import screeningRoutes from '../modules/screening/screening.routes.js';
 import supportRegistrationRoutes from '../modules/screening/support-registration.routes.js';
 import chatRoutes from '../modules/chat/chat.routes.js';
+import gardenRoutes from '../modules/garden/garden.routes.js';
 
 const router = Router();
 
@@ -44,5 +45,6 @@ router.use('/', zoomRoutes);
 router.use('/', screeningRoutes);
 router.use('/', supportRegistrationRoutes);
 router.use('/', chatRoutes);
+router.use('/', gardenRoutes);
 
 export default router;

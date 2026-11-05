@@ -131,6 +131,12 @@ export function createNatureSound() {
         case 'water': hiss(0, 0.6, 0.04, 'highpass', 2600); break; // tưới róc rách
         case 'seeds': for (let i = 0; i < 9; i += 1) hiss(i * 0.04 + Math.random() * 0.03, 0.03, 0.05, 'bandpass', 3200, 2); break; // lạo xạo rắc hạt
         case 'purr': note({ type: 'sawtooth', f0: 52, f1: 48, dur: 1.4, peak: 0.06, lp: 260, vib: 4, vibF: 22 }); break; // rừ rừ êm
+        case 'visitor_bunny': [0, 0.12].forEach((at) => note({ f0: 1500, f1: 1900, at, dur: 0.07, peak: 0.06 })); break; // chít chít
+        case 'visitor_frog': [0, 0.18].forEach((at) => note({ type: 'square', f0: 190, f1: 150, at, dur: 0.12, peak: 0.05, lp: 900, vib: 30, vibF: 40 })); break; // ộp ộp
+        case 'visitor_hedgehog': for (let i = 0; i < 3; i += 1) hiss(i * 0.09, 0.05, 0.04, 'bandpass', 2600, 3); break; // khịt khịt
+        case 'lantern': [[523, 0], [784, 0.15]].forEach(([f, at]) => note({ f0: f, at, dur: 1.8, peak: 0.05 })); break; // chuông ấm
+        case 'star': [1568, 2093, 2637, 3136].forEach((f, i) => note({ f0: f, at: i * 0.06, dur: 0.9, peak: 0.035 })); break; // lấp lánh
+        case 'trim': [0, 0.13].forEach((at) => hiss(at, 0.045, 0.06, 'highpass', 3500)); break; // xoẹt xoẹt kéo cắt
         case 'chime': [[880, 0], [1320, 0.12], [1760, 0.24]].forEach(([f, at]) => note({ f0: f, at, dur: 1.5, peak: 0.045 })); break; // chuông gió
         default: break;
       }

@@ -20,10 +20,18 @@ const props = defineProps({
   // giờ trong ngày để xem thử (0–24); null = theo giờ thật của máy
   hour: { type: Number, default: null },
   // đang mở bài "cùng thở" với một con vật (DashboardView điều khiển); false → con vật thôi thở, nhảy mừng
-  breathing: { type: Boolean, default: false }
+  breathing: { type: Boolean, default: false },
+  // đảo người dùng tự trang trí: { v, removed, moved, added } (null = đảo mặc định)
+  layout: { type: Object, default: null },
+  // Vườn ký ức: [{ day, emotion, score }] cũ → mới · Đèn lồng biết ơn: [{ id, text, created_at }]
+  memories: { type: Array, default: () => [] },
+  lanterns: { type: Array, default: () => [] }
 });
 // garden-event: { type: 'voice', kind } | 'select' | 'deselect' | 'breathe-start' — để phát âm thanh & hiện lớp hướng dẫn
 const emit = defineEmits(['garden-event']);
+// điều khiển chế độ trang trí đảo (DashboardView gọi qua ref): enter/exit/setTool/rotate/scale/remove/undo/reset/thumb…
+let editorApi = null;
+defineExpose({ editor: Object.fromEntries(['enter', 'exit', 'setTool', 'setBrush', 'boostGrowth', 'setTrimMode', 'setEraseMode', 'clearAll', 'ghostRotate', 'ghostFlip', 'ghostScale', 'placeGhost', 'flip', 'endPath', 'duplicate', 'trim', 'rotate', 'scale', 'remove', 'undo', 'reset', 'catalog', 'thumb'].map((k) => [k, (...a) => editorApi?.[k]?.(...a)])) });
 
 /* Sáng / chiều / tối theo giờ thật: night 0..1 (đêm), golden 0..1 (nắng vàng bình minh / hoàng hôn) */
 function timeOfDay(hr) {
@@ -59,6 +67,10 @@ let endBreath = () => {};
 watch(() => props.health, (v) => setTarget(clamp01(v)));
 watch(hourNow, (hr) => setHour(hr, props.hour == null));
 watch(() => props.breathing, (v) => { if (!v) endBreath(); });
+watch(() => props.layout, (l) => editorApi?.applyLayout(l));
+let gardenApi = null;
+watch(() => props.memories, (m) => gardenApi?.setMemories(m));
+watch(() => props.lanterns, (l) => gardenApi?.setLanterns(l));
 
 let mergeVertices = null;
 onMounted(async () => {
@@ -84,7 +96,7 @@ onMounted(async () => {
   }
   if (!host.value) return;
   try {
-    stop = createScene(THREE, host.value, clamp01(props.health), (fn) => { setTarget = fn; }, OrbitControls, gltf, { hour: hourNow.value, real: props.hour == null, expose: (fn) => { setHour = fn; }, onEvent: (e) => emit('garden-event', e), exposeBreath: (fn) => { endBreath = fn; } });
+    stop = createScene(THREE, host.value, clamp01(props.health), (fn) => { setTarget = fn; }, OrbitControls, gltf, { hour: hourNow.value, real: props.hour == null, expose: (fn) => { setHour = fn; }, onEvent: (e) => emit('garden-event', e), exposeBreath: (fn) => { endBreath = fn; }, layout: props.layout, exposeEditor: (api) => { editorApi = api; }, memories: props.memories, lanterns: props.lanterns, exposeGarden: (api) => { gardenApi = api; } });
     hourTimer = setInterval(() => { realHour.value = nowHour(); }, 60000); // cập nhật giờ mỗi phút
   } catch (err) {
     console.warn('[MoodGarden3D] WebGL không khả dụng, dùng bản 2D', err);
@@ -215,6 +227,8 @@ function createScene(THREE, el, initialHealth, exposeSetTarget, OrbitControls, g
 
   /* ---------- đảo chính ---------- */
   const island = new THREE.Group();
+  // mã ổn định cho từng đồ vật có sẵn (theo thứ tự gọi loadModel lúc dựng cảnh) → lưu được việc dời / cất đồ
+  let loadCalls = 0; let regSuppressed = false;
   scene.add(island);
   const TOP = 0.35;
 
@@ -722,12 +736,14 @@ function createScene(THREE, el, initialHealth, exposeSetTarget, OrbitControls, g
   const shadowMat = new THREE.MeshBasicMaterial({ map: shadowTex, color: '#2E4A22', transparent: true, depthWrite: false, opacity: 0.55, polygonOffset: true, polygonOffsetFactor: -2 });
   const shadowGeo = new THREE.PlaneGeometry(1, 1); shadowGeo.rotateX(-Math.PI / 2);
   // r: bán kính thật (đơn vị cảnh); parent mặc định là đảo (đã phóng ×1.5 → bù tỉ lệ)
+  const shadowAt = new Map(); const skey = (x, z) => `${x.toFixed(3)}|${z.toFixed(3)}`;
   function contactShadow(x, z, r, parent = null) {
     const m = new THREE.Mesh(shadowGeo, shadowMat);
     m.renderOrder = 1;
     if (parent) { m.position.set(0, 0.015, 0); m.scale.set(r * 2, 1, r * 2); parent.add(m); return m; }
     m.position.set(x, groundY(x, z) + 0.008, z); m.scale.set((r * 2) / 1.5, 1, (r * 2) / 1.5);
     addToIslandRaw(m);
+    shadowAt.set(skey(x, z), m);
     return m;
   }
 
@@ -1128,8 +1144,12 @@ function createScene(THREE, el, initialHealth, exposeSetTarget, OrbitControls, g
   // gió: hoa/bụi cây đung đưa quanh gốc (plants), cỏ uốn ngọn bằng shader (windU = thời gian)
   const plants = []; const windU = { value: 0 };
   const TREE_WILT = C('#C9B48A');
+  // đồ trang trí (ghế, rào, cầu, đèn): chỉnh màu về cùng tông gỗ ấm của đảo; không ngả màu theo tâm trạng
+  const DECOR_COLORS = { decor_bench: '#9A6A43', decor_fence: '#A0714A', decor_bridge: '#B08154' };
+  const decorGlow = [];
   function loadModel(file, cb) {
     if (!gltf) return;
+    const callIdx = loadCalls++; let seq = 0;
     const ld = new gltf.GLTFLoader();
     ld.setMeshoptDecoder(gltf.MeshoptDecoder);
     ld.load(`/models/garden/${file}.glb`, (res) => {
@@ -1139,7 +1159,16 @@ function createScene(THREE, el, initialHealth, exposeSetTarget, OrbitControls, g
         if (!o.isMesh) return;
         o.castShadow = true; o.receiveShadow = true;
         const m = o.material;
-        if (m && !m.userData.tinted) {
+        if (m && !m.userData.tinted && file.startsWith('decor_')) {
+          m.userData.tinted = true;
+          m.metalness = 0; m.roughness = Math.max(m.roughness, 0.7);
+          if (DECOR_COLORS[file]) m.color.set(DECOR_COLORS[file]);
+          if (file === 'decor_lantern_post' && m.map) {
+            // đèn lồng: phần sắt đen nâng lên nâu sẫm cho dịu; kính đèn tự sáng khi trời tối
+            m.emissiveMap = m.map; m.emissive.set('#FFC77A'); m.emissiveIntensity = 0.05; decorGlow.push(m);
+            m.onBeforeCompile = (sh) => { sh.fragmentShader = sh.fragmentShader.replace('#include <map_fragment>', '#include <map_fragment>\n  diffuseColor.rgb = max(diffuseColor.rgb, vec3(0.13, 0.095, 0.07));'); };
+          }
+        } else if (m && !m.userData.tinted) {
           m.userData.tinted = true;
           if (m.map) m.alphaTest = Math.max(m.alphaTest || 0, 0.4);
           m.metalness = 0; m.roughness = Math.max(m.roughness, 0.75);
@@ -1166,8 +1195,12 @@ function createScene(THREE, el, initialHealth, exposeSetTarget, OrbitControls, g
           parent.add(g);
           if (sway) contactShadow(x, z, targetH * 0.24);
           if (sway) trees.push({ g, canopy, phase: rand() * 6 });
-          else if (/^(flora|tree|bush)/.test(file) && !/lilies|nenuphar/.test(file)) {
+          else if (/^(flora|tree|bush)/.test(file) && !/lilies|nenuphar/.test(file) && !parent.userData.thumb) {
             plants.push({ canopy, phase: x * 1.7 + z * 1.1 + rand() * 0.8, amp: (targetH < 0.45 ? 0.07 : 0.035) * (0.8 + rand() * 0.4) });
+          }
+          // cây / bụi / hoa có sẵn trên đảo lớn: cho phép người dùng dời chỗ hoặc cất đi
+          if (parent === island && !regSuppressed && /^(tree_|flora_|flora2_|decor_)/.test(file) && !/lilies|nenuphar/.test(file)) {
+            registerDefault(`${file}#${callIdx}:${seq++}`, g, { r: Math.min(0.3, Math.max(0.05, targetH * 0.16)), file, part: name || null, aging: /^tree_|^flora_bush_flowers$/.test(file) });
           }
           return g;
         };
@@ -1306,12 +1339,14 @@ function createScene(THREE, el, initialHealth, exposeSetTarget, OrbitControls, g
           tinted.push({ mat: m, a: base.clone().multiply(WILT), b: base });
         }
       });
+      let seq = 0;
       const make = (x, y, z, sc = 1) => {
         const inner = proto.clone();
         inner.scale.setScalar(k * sc); inner.position.y = -box.min.y * k * sc;
         const g = new THREE.Group(); g.add(inner);
         g.position.set(x, y, z); g.rotation.y = rand() * Math.PI * 2;
         island.add(g);
+        if (name !== 'lilypad') registerDefault(`fl:${name}:${seq++}`, g, { r: 0.06, file: `flora_${name}`, part: null, aging: name === 'bush_flowers' });
         return g;
       };
       cb(make);
@@ -1559,10 +1594,12 @@ function createScene(THREE, el, initialHealth, exposeSetTarget, OrbitControls, g
     c.tx = c.spot[0]; c.tz = c.spot[1]; c.route = [];
     return false;
   }
-  if (gltf) {
+  // tạo một con vật (mặc định hoặc người dùng thả thêm từ kho đồ); onReady(c) khi tải xong
+  function spawnCritter(cfg, id, onReady) {
+    if (!gltf) return;
     const loader = new gltf.GLTFLoader();
     loader.setMeshoptDecoder(gltf.MeshoptDecoder);
-    CRITTERS.forEach((cfg) => {
+    {
       loader.load(`/models/garden/${cfg.file}.glb`, (res) => {
         if (disposed) return;
         const model = res.scene;
@@ -1576,6 +1613,10 @@ function createScene(THREE, el, initialHealth, exposeSetTarget, OrbitControls, g
         const mixer = new THREE.AnimationMixer(model);
         const acts = {};
         res.animations.forEach((clip) => { acts[clip.name] = mixer.clipAction(clip); });
+        // khách ghé thăm (thỏ, ếch, nhím) đặt tên hoạt ảnh khác → quy về tên chung
+        if (!acts.Idle && acts.Frog_Idle) acts.Idle = acts.Frog_Idle;
+        if (!acts.Walk && acts.Frog_Jump) acts.Walk = acts.Frog_Jump;
+        if (!acts.Jump_ToIdle && (acts.Jump || acts.Frog_Jump)) acts.Jump_ToIdle = acts.Wave || acts.Jump || acts.Frog_Jump;
         const c = { ...cfg, g, mixer, acts, cur: null, state: 'eat', timer: 1 + rand() * 4, baseScale: k };
         g.position.set(cfg.spot[0], groundY(cfg.spot[0], cfg.spot[1]), cfg.spot[1]);
         g.rotation.y = cfg.face ?? rand() * Math.PI * 2;
@@ -1583,6 +1624,8 @@ function createScene(THREE, el, initialHealth, exposeSetTarget, OrbitControls, g
         contactShadow(0, 0, cfg.length * 0.42, g);
         critters.push(c);
         play(c, 'Eating');
+        c.id = id;
+        if (onReady) onReady(c); else registerDefault(id, g, { critter: c, r: cfg.length * 0.4, cat: `animal_${cfg.file}` });
         if (controls && c.roam && (bond[c.file] || 0) >= 3) { // đã quen: thấy bạn mở vườn là chạy lại gần, ngồi chờ
           const f = frontSpot(0.35);
           if (f && routeTo(c, f[0], f[1])) { c.state = 'walk'; c.timer = 16; c.arrive = 'call'; play(c, 'Walk'); }
@@ -1590,11 +1633,13 @@ function createScene(THREE, el, initialHealth, exposeSetTarget, OrbitControls, g
         applyHealth(h);
         wake();
       });
-    });
+    }
   }
+  CRITTERS.forEach((cfg) => spawnCritter(cfg, `animal:${cfg.file}`));
   function play(c, name) {
     const next = c.acts[name] || c.acts.Idle || Object.values(c.acts)[0];
     if (!next || next === c.cur) return;
+    next.setLoop(THREE.LoopRepeat, Infinity); next.clampWhenFinished = false;
     next.reset().fadeIn(0.35).play();
     if (c.cur) c.cur.fadeOut(0.35);
     c.cur = next;
@@ -2350,7 +2395,7 @@ function createScene(THREE, el, initialHealth, exposeSetTarget, OrbitControls, g
       ...fishes.map((f) => ({ o: f.g, kind: 'fish', ref: f })),
       ...birds.map((b) => ({ o: b.g, kind: 'bird', ref: b })), ...butterflies.map((b) => ({ o: b.g, kind: 'butterfly', ref: b })),
       ...flowers.map((f) => ({ o: f.g, kind: 'flower', ref: f }))
-    ].filter((r) => r.o.visible);
+    ].filter((r) => r.o.visible && r.o.parent);
     const hits = raycaster.intersectObjects(roots.map((r) => r.o), true);
     for (const hit of hits) {
       let o = hit.object;
@@ -2456,10 +2501,11 @@ function createScene(THREE, el, initialHealth, exposeSetTarget, OrbitControls, g
     sp.visible = false; sp.renderOrder = 4; scene.add(sp);
     return { sp, life: 0, v: new THREE.Vector3(), gy: 0 };
   });
-  function spawnSeeds(world, n, floorY) {
+  function spawnSeeds(world, n, floorY, color = '#C9944F') {
     let k = 0;
     for (const d of seeds) {
       if (d.life > 0 || k >= n) continue;
+      d.sp.material.color.set(color);
       d.sp.position.copy(world).add(_hp.set((rand() - 0.5) * 0.1, 0.45 + rand() * 0.2, (rand() - 0.5) * 0.1));
       d.v.set((rand() - 0.5) * 0.55, 0.3 + rand() * 0.3, (rand() - 0.5) * 0.55);
       d.gy = floorY; d.life = 4 + rand() * 1.5; d.sp.visible = true; k += 1;
@@ -2583,10 +2629,968 @@ function createScene(THREE, el, initialHealth, exposeSetTarget, OrbitControls, g
     }
     return null;
   }
+
+  /* ---------- Trang trí đảo: người dùng tự dời / cất đồ có sẵn và thêm đồ từ kho ----------
+     layout chỉ ghi phần khác so với đảo mặc định: removed (id cất đi), moved (id → [x, z, xoay, cỡ]),
+     added ([{ i, k, p }] đồ thêm từ kho). Cây / hoa tự thêm vẫn tươi – héo theo tâm trạng như đồ có sẵn. */
+  const T = TREE_SCALE;
+  const CATALOG = {
+    tree_normal_1: { g: 'tree', file: 'tree_pack_trees', part: 'NormalTree_1', h: 1.35 * T },
+    tree_normal_2: { g: 'tree', file: 'tree_pack_trees', part: 'NormalTree_2', h: 1.5 * T },
+    tree_normal_3: { g: 'tree', file: 'tree_pack_trees', part: 'NormalTree_3', h: 1.05 * T },
+    tree_normal_4: { g: 'tree', file: 'tree_pack_trees', part: 'NormalTree_4', h: 0.95 * T },
+    tree_normal_5: { g: 'tree', file: 'tree_pack_trees', part: 'NormalTree_5', h: 0.8 * T },
+    tree_maple_1: { g: 'tree', file: 'tree_pack_maple', part: 'MapleTree_1', h: 1.2 * T },
+    tree_maple_2: { g: 'tree', file: 'tree_pack_maple', part: 'MapleTree_2', h: 1.4 * T },
+    tree_maple_3: { g: 'tree', file: 'tree_pack_maple', part: 'MapleTree_3', h: 1.1 * T },
+    tree_maple_4: { g: 'tree', file: 'tree_pack_maple', part: 'MapleTree_4', h: 0.75 * T },
+    tree_maple_5: { g: 'tree', file: 'tree_pack_maple', part: 'MapleTree_5', h: 1.0 * T },
+    tree_tall: { g: 'tree', file: 'tree_tree_tall', h: 1.6 * T },
+    bush_green: { g: 'bush', file: 'tree_pack_flower_bushes', part: 'Plant_2', h: 0.36 },
+    bush_bloom: { g: 'bush', file: 'tree_pack_flower_bushes', part: 'Plant_Flowers', h: 0.36 },
+    bush_petals: { g: 'bush', file: 'tree_pack_flower_bushes', part: 'Petals_1', h: 0.26 },
+    bush_red: { g: 'bush', file: 'tree_bush_red', h: 0.36 },
+    bush_flowers: { g: 'bush', file: 'flora_bush_flowers', h: 0.38 },
+    flower_pink: { g: 'flower', file: 'flora_flower_single_pink', h: 0.3 },
+    flower_pink_group: { g: 'flower', file: 'flora_flower_group_pink', h: 0.34 },
+    flower_yellow: { g: 'flower', file: 'flora_flower_single_yellow', h: 0.3 },
+    flower_yellow_group: { g: 'flower', file: 'flora_flower_group_yellow', h: 0.34 },
+    flower_purple: { g: 'flower', file: 'flora_plant_purple', h: 0.18 },
+    flower_purple_big: { g: 'flower', file: 'flora_plant_big_purple', h: 0.22 },
+    flower_pastel: { g: 'flower', file: 'flora2_pastel_plume', h: 0.3 },
+    flower_marigold: { g: 'flower', file: 'flora2_marigold', h: 0.28 },
+    flower_tulip: { g: 'flower', file: 'flora2_tulip3', h: 0.3 },
+    flower_daisy: { g: 'flower', file: 'flora2_daisy_white', h: 0.3 },
+    flower_tiny_1: { g: 'flower', file: 'flora2_tiny_flowers', part: 'Flower_5_Clump', h: 0.17 },
+    flower_tiny_2: { g: 'flower', file: 'flora2_tiny_flowers', part: 'Flower_3_Clump', h: 0.17 },
+    flower_tiny_3: { g: 'flower', file: 'flora2_tiny_flowers', part: 'Flower_1_Clump', h: 0.17 },
+    grass: { g: 'grass', file: 'flora_grass', h: 0.2 },
+    grass_tall: { g: 'grass', file: 'flora_grass_tall', h: 0.32 },
+    grass_small: { g: 'grass', file: 'flora_grass_small', h: 0.15 },
+    sprout: { g: 'grass', file: 'flora_small_plant', h: 0.09 },
+    rock_moss: { g: 'stone', file: 'stone_rock_moss', h: 0.3 },
+    rock_moss2: { g: 'stone', file: 'stone_rock_moss2', h: 0.28 },
+    rock_flat: { g: 'stone', file: 'stone_rock_flat', h: 0.1 },
+    rock_beige: { g: 'stone', file: 'stone_rock_beige', h: 0.28 },
+    rock_red: { g: 'stone', file: 'stone_rock_red', h: 0.3 },
+    rock_large_red: { g: 'stone', file: 'stone_rock_large_red', h: 0.5 },
+    rock_formation: { g: 'stone', file: 'stone_rock_formation', h: 0.6 },
+    pebbles: { g: 'stone', file: 'stone_pebbles', h: 0.03 },
+    decor_bench: { g: 'decor', file: 'decor_bench', h: 0.22 },
+    decor_fence: { g: 'decor', file: 'decor_fence', h: 0.16 },
+    decor_lantern: { g: 'decor', file: 'decor_lantern_post', h: 0.55 },
+    decor_bridge: { g: 'decor', file: 'decor_bridge', h: 0.51, span: 0.42, overWater: true },
+    grow_tree: { g: 'grow', file: 'tree_pack_trees', part: 'NormalTree_1', h: 1.35 * T, grow: true },
+    grow_maple: { g: 'grow', file: 'tree_pack_maple', part: 'MapleTree_5', h: 1.0 * T, grow: true },
+    grow_bush: { g: 'grow', file: 'tree_pack_flower_bushes', part: 'Plant_Flowers', h: 0.4, grow: true },
+    grow_flowers: { g: 'grow', file: 'flora_bush_flowers', h: 0.4, grow: true },
+    animal_fox: { g: 'animal', file: 'fox' },
+    animal_shiba: { g: 'animal', file: 'shiba' },
+    animal_deer: { g: 'animal', file: 'deer' },
+    animal_sheep: { g: 'animal', file: 'sheep' }
+  };
+  const MAX_ADDED = 150; const MAX_ANIMALS = 6; const MAX_PATHS = 30; const MAX_PATH_PTS = 80;
+  const r4 = (v) => Math.round(v * 1e4) / 1e4;
+  const wrapA = (a) => Math.atan2(Math.sin(a), Math.cos(a));
+  const normLayout = (l) => ({
+    v: 1,
+    removed: Array.isArray(l?.removed) ? [...l.removed] : [],
+    moved: Object.fromEntries(Object.entries(l?.moved || {}).map(([k, v]) => [k, [...v]])),
+    added: Array.isArray(l?.added) ? l.added.filter((a) => CATALOG[a?.k] && Array.isArray(a.p))
+      .map((a) => ({ i: a.i, k: a.k, p: [...a.p], ...(a.d ? { d: a.d } : {}), ...(Number.isInteger(a.tr) ? { tr: a.tr } : {}), ...(a.f ? { f: 1 } : {}) })) : [],
+    flips: Object.fromEntries(Object.entries(l?.flips || {}).filter(([, v]) => v === true)),
+    ...(typeof l?.gs === 'string' ? { gs: l.gs } : {}),
+    trims: Object.fromEntries(Object.entries(l?.trims || {}).filter(([, v]) => Number.isInteger(v))),
+    cuts: Object.fromEntries(Object.entries(l?.cuts || {}).filter(([, v]) => typeof v === 'number' && v >= 0.5 && v <= 1)),
+    paths: Array.isArray(l?.paths) ? l.paths.filter((q) => (q?.k === 'stone' || q?.k === 'gravel') && Array.isArray(q.pts))
+      .map((q) => ({ i: q.i, k: q.k, pts: q.pts.map((pt) => [...pt]) })) : []
+  });
+  let layout = normLayout(timeOpts.layout);
+  const items = new Map(); const spawning = new Set(); let pendingSelect = null;
+  function registerDefault(id, g, extra = {}) {
+    const it = { id, g, def: true, x0: g.position.x, y0: g.position.y, z0: g.position.z, ry0: g.rotation.y, s0: g.scale.x, r: 0.08, attached: true, shadowKey: skey(g.position.x, g.position.z), ...extra };
+    if (!it.cat && it.file) it.cat = Object.keys(CATALOG).find((k) => CATALOG[k].file === it.file && (CATALOG[k].part || null) === (it.part || null) && !CATALOG[k].grow) || null;
+    it.pose = [it.x0, it.z0, it.ry0, 1];
+    g.userData.itemId = id; items.set(id, it);
+    queueMicrotask(() => applyItem(it)); // sau khi bóng tiếp đất (tạo ngay sau đó) đã có
+  }
+  const itemShadow = (it) => (it.shadowKey ? shadowAt.get(it.shadowKey) : null);
+  function setAttached(it, on) {
+    if (it.attached === on) return;
+    it.attached = on;
+    if (it.critter) { it.critter.removed = !on; it.g.visible = on && h > it.critter.threshold; if (!on && selected === it.critter) select(null); }
+    else if (on) addToIslandRaw(it.g);
+    else it.g.parent?.remove(it.g);
+    const sh = itemShadow(it); if (sh) sh.visible = on;
+    if (!on && editor.sel === it) selectItem(null);
+  }
+  // cầu: đặt theo độ cao 2 đầu cầu (trục dài của mô hình là trục x)
+  const spanY = (x, z, r, span) => Math.max(H(x + Math.cos(r) * span, z - Math.sin(r) * span), H(x - Math.cos(r) * span, z + Math.sin(r) * span)) - 0.036;
+  // Luống cây lớn dần: mỗi ngày check-in (kể từ ngày trồng) cây lớn thêm; ~7 ngày là trưởng thành.
+  // Không cắt tỉa thì vẫn mọc tiếp thành um tùm (to, nghiêng ngả) tới giới hạn; cắt tỉa → về dáng gọn rồi lớn chậm lại. Không bao giờ héo.
+  let growBoost = 0; const previewTr = new Map(); // cắt tỉa lúc đang tua nhanh: chỉ xem thử, không lưu
+  const todayStr = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
+  function growthOf(e) {
+    const n = memData.filter((m) => m.day >= (e?.d || todayStr())).length + growBoost; // growBoost: admin tua nhanh để xem thử (không lưu)
+    let sz; const tr = previewTr.has(e?.i) ? previewTr.get(e.i) : e?.tr;
+    if (Number.isInteger(tr)) sz = Math.min(1.7, 1 + Math.max(0, n - tr) * 0.06);
+    else sz = n < 7 ? 0.3 + n * 0.1 : Math.min(1.7, 1 + (n - 7) * 0.06);
+    const stage = !Number.isInteger(tr) && n < 7 ? 'young' : sz >= 1.3 ? 'overgrown' : 'grown';
+    return { n, s: sz, stage };
+  }
+  // Cây & bụi trên đảo (có sẵn hoặc thêm từ kho) mọc rậm dần theo ngày check-in kể từ ngày bật tính năng (gs):
+  // mỗi ngày to thêm ~3%, tối đa 1.4 lần, vống & nghiêng dần; cắt tỉa → về dáng gọn ban đầu.
+  function ageOf(it) {
+    const n = memData.filter((m) => m.day >= (layout.gs || todayStr())).length + growBoost;
+    const base = previewTr.has(it.id) ? previewTr.get(it.id) : (layout.trims[it.id] ?? 0);
+    const sz = Math.min(1.4, 1 + Math.max(0, n - base) * 0.03);
+    return { n: Math.max(0, n - base), s: sz, stage: sz >= 1.2 ? 'overgrown' : 'grown' };
+  }
+  function setPose(it, p) {
+    const [x, z, r, sc] = p; it.pose = [x, z, r, sc];
+    const atHome = it.def && Math.abs(x - it.x0) < 1e-4 && Math.abs(z - it.z0) < 1e-4;
+    it.g.position.set(x, atHome ? it.y0 : it.span ? spanY(x, z, r, it.span * sc) : (it.critter ? groundY(x, z) : footY(x, z, Math.min(0.15, it.r))), z);
+    it.g.rotation.y = r; it.g.scale.setScalar(it.s0 * sc);
+    if (it.grow || it.aging) { // kích thước theo độ lớn; um tùm thì cao vống & nghiêng ngả
+      const gr = it.grow ? growthOf(layout.added.find((a) => a.i === it.id)) : ageOf(it); it.growth = gr;
+      const k = gr.s; const wild = Math.max(0, k - (it.grow ? 1.15 : 1.08));
+      it.g.scale.set(it.s0 * sc * k, it.s0 * sc * k * (1 + wild * 0.25), it.s0 * sc * k);
+      it.g.rotation.x = wild * 0.22 * Math.sin(it.pose[0] * 9); it.g.rotation.z = wild * 0.22 * Math.cos(it.pose[1] * 7);
+    }
+    if (it.flower) it.flower.s0 = it.s0 * sc;
+    if (it.critter) { const c = it.critter; c.spot = [x, z]; c.tx = x; c.tz = z; c.route = []; if (c.state === 'walk') rest(c); }
+    const cut = layout.cuts[it.id]; if (cut) it.g.scale.multiplyScalar(cut); // đã cắt tỉa cho gọn
+    if (it.def ? layout.flips[it.id] : layout.added.find((a) => a.i === it.id)?.f) it.g.scale.x *= -1; // lật ngang
+    const sh = itemShadow(it); if (sh) sh.position.set(x, groundY(x, z) + 0.008, z);
+  }
+  function applyItem(it) {
+    if (it.def) {
+      setAttached(it, !layout.removed.includes(it.id));
+      const mv = layout.moved[it.id];
+      if (mv) setPose(it, mv);
+      else if (it.aging || it.pose[0] !== it.x0 || it.pose[1] !== it.z0 || it.pose[2] !== it.ry0 || it.pose[3] !== 1) setPose(it, [it.x0, it.z0, it.ry0, 1]);
+    } else {
+      const e = layout.added.find((a) => a.i === it.id);
+      if (!e) destroyItem(it); else setPose(it, e.p);
+    }
+  }
+  function applyLayout(l) {
+    layout = normLayout(l);
+    if (editor.pathCur !== null && !layout.paths.some((q) => q.i === editor.pathCur)) editor.pathCur = null;
+    if (editor.selPath >= layout.paths.length) editor.selPath = -1;
+    rebuildPaths();
+    items.forEach(applyItem);
+    layout.added.forEach((e) => { if (!items.has(e.i)) spawnAdded(e); });
+    wake();
+  }
+  // tải mô hình theo món trong kho (mỗi file tải 1 lần, mỗi phần cache 1 "máy tạo")
+  const partCache = new Map(); const makerCache = new Map();
+  const getPart = (file) => { if (!partCache.has(file)) partCache.set(file, new Promise((res) => loadModel(file, res))); return partCache.get(file); };
+  function getMaker(spec) {
+    const key = `${spec.file}/${spec.part || ''}`;
+    if (!makerCache.has(key)) makerCache.set(key, getPart(spec.file).then((part) => part(spec.part)));
+    return makerCache.get(key);
+  }
+  const CRITTER_BY_FILE = Object.fromEntries(CRITTERS.map((c) => [c.file, c]));
+  function spawnAdded(e) {
+    const spec = CATALOG[e.k];
+    if (!spec || spawning.has(e.i)) return;
+    spawning.add(e.i);
+    const done = (g, extra) => {
+      spawning.delete(e.i);
+      const still = layout.added.find((a) => a.i === e.i);
+      const it = { id: e.i, g, def: false, cat: e.k, s0: g.scale.x, r: 0.08, attached: true, pose: [...e.p], ...extra };
+      g.userData.itemId = e.i; items.set(e.i, it);
+      if (!still) { destroyItem(it); return; }
+      setPose(it, still.p);
+      if (pendingSelect === e.i) { pendingSelect = null; selectItem(it); }
+      wake();
+    };
+    if (spec.g === 'animal') {
+      const base = CRITTER_BY_FILE[spec.file];
+      spawnCritter({ ...base, spot: [e.p[0], e.p[1]], threshold: 0, face: undefined }, e.i, (c) => done(c.g, { critter: c, r: base.length * 0.4 }));
+      return;
+    }
+    getMaker(spec).then((make) => {
+      if (disposed) return;
+      regSuppressed = true; const g = make(e.p[0], 0, e.p[1], spec.h, false, island); regSuppressed = false;
+      contactShadow(0, 0, spec.h * (spec.g === 'tree' ? 0.2 : 0.32), g);
+      let flower = null;
+      if (spec.g === 'flower') { flower = { g, s0: g.scale.x, threshold: -1, tilt: rand() * Math.PI * 2 }; flowers.push(flower); }
+      done(g, { flower, r: Math.min(0.3, Math.max(0.05, spec.h * 0.16)), span: spec.span || 0, grow: !!spec.grow, aging: !spec.grow && (spec.g === 'tree' || spec.g === 'bush') });
+    });
+  }
+  function destroyItem(it) {
+    items.delete(it.id);
+    if (editor.sel === it) selectItem(null);
+    if (it.critter) { const k = critters.indexOf(it.critter); if (k >= 0) critters.splice(k, 1); if (selected === it.critter) select(null); }
+    if (it.flower) { const k = flowers.indexOf(it.flower); if (k >= 0) flowers.splice(k, 1); }
+    const pk = plants.findIndex((pl) => pl.canopy.parent === it.g); if (pk >= 0) plants.splice(pk, 1);
+    it.g.parent?.remove(it.g);
+  }
+
+  const editor = { on: false, tool: null, sel: null, drag: null, hist: [], brush: false, pathCur: null, selPath: -1, trim: false, erase: false };
+  const editRing = new THREE.Mesh(new THREE.RingGeometry(0.8, 1, 40), new THREE.MeshBasicMaterial({ color: '#FFE08A', transparent: true, opacity: 0.9, depthWrite: false, side: THREE.DoubleSide, toneMapped: false }));
+  editRing.rotation.x = -Math.PI / 2; editRing.visible = false; editRing.renderOrder = 3; addToIslandRaw(editRing);
+  const placeable = (x, z, animal, spec) => (spec?.overWater ? inPoly(OUT_IN, x, z) && pondDist(x, z) > 1.05 && !inMountain(x, z, 0.1) && segDist(SPILL, x, z) > 0.2
+    : animal ? walkable(x, z)
+    : inPoly(OUT_IN, x, z) && pondDist(x, z) > 1.08 && riverDist(x, z) > 0.16 && segDist(SPILL, x, z) > 0.16 && !inMountain(x, z, 0.05) && slopeAt(x, z) < 1.4);
+  const emitSel = () => {
+    const it = editor.sel;
+    if (editor.selPath >= 0) fire('editor-select', { id: `path:${editor.selPath}`, path: true });
+    else fire('editor-select', it ? { id: it.id, def: it.def, cat: it.cat || null, animal: !!it.critter, scale: it.pose[3], canDup: !!it.cat,
+      canTrim: trimmable(it),
+      grow: it.grow || it.aging ? { n: it.growth?.n || 0, stage: it.growth?.stage || 'young', aging: !!it.aging } : null } : null);
+    fire('editor-state', { canUndo: editor.hist.length > 0, added: layout.added.length, pathOpen: editor.pathCur !== null,
+      edited: layout.removed.length + Object.keys(layout.moved).length + layout.added.length + layout.paths.length > 0 });
+  };
+  // cây / bụi / hoa / cỏ (có sẵn hay tự thêm) đều cắt tỉa được — trừ con vật, đá, đồ trang trí, cầu
+  const PLANT_GROUPS = ['tree', 'bush', 'flower', 'grass', 'grow'];
+  const trimmable = (it) => !!it && !it.critter && !it.span && (it.aging || it.grow || PLANT_GROUPS.includes(CATALOG[it.cat]?.g) || /^(tree_|flora)/.test(it.file || ''));
+  function trimItem(it) {
+    if (!trimmable(it)) { fire('editor-notice', { code: 'notPlant' }); return; }
+    const gr = it.grow ? growthOf(layout.added.find((a) => a.i === it.id)) : it.aging ? ageOf(it) : null;
+    const bushy = gr && gr.s > 1.02; // đang rậm → tỉa về dáng gọn
+    const cut0 = layout.cuts[it.id] || 1;
+    if (!bushy && cut0 <= 0.61) { fire('editor-notice', { code: 'trimMin' }); return; }
+    it.g.getWorldPosition(_hp); _hp.y += 0.3; spawnSeeds(_hp, 12, _hp.y - 0.3, '#7FB26A'); fire('voice', { kind: 'trim' }); // lá vụn rơi
+    if (bushy && growBoost) { previewTr.set(it.id, it.aging ? gr.n + (layout.trims[it.id] ?? 0) : gr.n); setPose(it, it.pose); emitSel(); wake(); return; } // admin đang tua nhanh: chỉ xem thử
+    change((l) => {
+      if (bushy && it.aging) l.trims[it.id] = gr.n + (layout.trims[it.id] ?? 0) - growBoost;
+      else if (bushy) { const e = l.added.find((a) => a.i === it.id); if (e) e.tr = gr.n; }
+      else l.cuts[it.id] = r4(Math.max(0.6, cut0 * 0.88)); // đang gọn → tỉa bớt cho thanh thoát hơn
+    });
+  }
+  function eraseItem(it) {
+    if (editor.sel === it) selectItem(null);
+    it.g.getWorldPosition(_hp); spawnSeeds(_hp, 6, _hp.y, '#CBB79A'); fire('voice', { kind: 'seeds' });
+    change((l) => { if (it.def) { if (!l.removed.includes(it.id)) l.removed.push(it.id); delete l.moved[it.id]; } else l.added = l.added.filter((a) => a.i !== it.id); });
+  }
+  function erasePath(qi) {
+    const id = layout.paths[qi]?.i; if (!id) return;
+    editor.selPath = -1; change((l) => { l.paths = l.paths.filter((q) => q.i !== id); });
+  }
+  function selectItem(it) { editor.sel = it; editor.selPath = -1; emitSel(); }
+  function change(fn) {
+    editor.hist.push(JSON.stringify(layout)); if (editor.hist.length > 40) editor.hist.shift();
+    const next = normLayout(layout); fn(next); applyLayout(next);
+    fire('layout-change', { layout: normLayout(layout) }); emitSel();
+  }
+  function commitPose(it, p) {
+    const q = [r4(p[0]), r4(p[1]), r4(wrapA(p[2])), r4(p[3])];
+    change((l) => { if (it.def) l.moved[it.id] = q; else { const e = l.added.find((a) => a.i === it.id); if (e) e.p = q; } });
+  }
+  function addAt(key, x, z, opts = {}) {
+    const spec = CATALOG[key]; if (!spec) return;
+    if (layout.added.length >= MAX_ADDED) { fire('editor-notice', { code: 'limit', max: MAX_ADDED }); return; }
+    if (spec.g === 'animal' && layout.added.filter((a) => CATALOG[a.k]?.g === 'animal').length >= MAX_ANIMALS) { fire('editor-notice', { code: 'animalLimit', max: MAX_ANIMALS }); return; }
+    const id = `u${Date.now().toString(36)}${Math.floor(rand() * 1296).toString(36)}`;
+    pendingSelect = id;
+    const e = { i: id, k: key, p: [r4(x), r4(z), r4(wrapA(opts.r ?? rand() * Math.PI * 2)), r4(opts.s ?? 1)] };
+    if (opts.f) e.f = 1;
+    if (spec.grow) e.d = todayStr();
+    change((l) => l.added.push(e));
+  }
+  function pickItem(ev) {
+    const rect = renderer.domElement.getBoundingClientRect();
+    ndc.set(((ev.clientX - rect.left) / rect.width) * 2 - 1, -((ev.clientY - rect.top) / rect.height) * 2 + 1);
+    raycaster.setFromCamera(ndc, camera);
+    const objs = []; items.forEach((it) => { if (it.attached && it.g.visible && it.g.parent) objs.push(it.g); });
+    for (const ht of raycaster.intersectObjects(objs, true)) {
+      let o = ht.object; while (o && !o.userData.itemId) o = o.parent;
+      if (o) return items.get(o.userData.itemId) || null;
+    }
+    return null;
+  }
+  /* Lối đi: chạm lần lượt các điểm trên bãi cỏ → đá lát hoặc sỏi nối theo. Vẽ bằng InstancedMesh (2 lượt vẽ). */
+  const stoneGeo = (() => { const g = new THREE.CylinderGeometry(0.055, 0.062, 0.024, 7); g.translate(0, 0.006, 0); return g; })();
+  const pebbleGeo = new THREE.IcosahedronGeometry(0.013, 0);
+  const pathStones = new THREE.InstancedMesh(stoneGeo, new THREE.MeshStandardMaterial({ color: '#FFFFFF', roughness: 0.85 }), 1600);
+  const pathPebbles = new THREE.InstancedMesh(pebbleGeo, new THREE.MeshStandardMaterial({ color: '#FFFFFF', roughness: 0.9, flatShading: true }), 6000);
+  [pathStones, pathPebbles].forEach((m) => { m.count = 0; m.receiveShadow = true; m.frustumCulled = false; addToIslandRaw(m); });
+  const STONE_TONES = ['#DCCFB6', '#D1C3A8', '#E4D9C4']; const PEBBLE_TONES = ['#D6C9AF', '#C2B396', '#E2D8C4', '#B9A88A'];
+  let stoneOwner = []; let pebbleOwner = []; const _pm = new THREE.Object3D(); const _pc = new THREE.Color();
+  function rebuildPaths() {
+    let ns = 0; let np = 0; stoneOwner = []; pebbleOwner = [];
+    layout.paths.forEach((q, qi) => {
+      const pts = q.pts; if (!pts.length) return;
+      const segs = pts.length === 1 ? [[pts[0], pts[0]]] : pts.slice(1).map((b, k) => [pts[k], b]);
+      let carry = 0;
+      segs.forEach(([a, b], si) => {
+        const L = Math.hypot(b[0] - a[0], b[1] - a[1]); const tx = L ? (b[0] - a[0]) / L : 1; const tz = L ? (b[1] - a[1]) / L : 0;
+        if (q.k === 'stone') {
+          for (let d = carry; d <= L + 1e-6; d += 0.13) {
+            if (ns >= pathStones.instanceMatrix.count) break;
+            const h1 = hash(qi * 31 + si, d * 97, 41); const side = (Math.floor(d / 0.13) % 2 ? 1 : -1) * 0.022;
+            const x = a[0] + tx * d - tz * side; const z = a[1] + tz * d + tx * side;
+            _pm.position.set(x, groundY(x, z) + 0.004, z); _pm.rotation.set((h1 - 0.5) * 0.08, h1 * 6.28, (hash(d, qi, 7) - 0.5) * 0.08);
+            _pm.scale.set(0.85 + h1 * 0.35, 1, 0.75 + hash(d, si, 3) * 0.3); _pm.updateMatrix();
+            pathStones.setMatrixAt(ns, _pm.matrix); pathStones.setColorAt(ns, _pc.set(STONE_TONES[Math.floor(h1 * 3) % 3])); stoneOwner[ns] = qi; ns += 1;
+          }
+          carry = Math.max(0, (carry - L) % 0.13);
+        } else {
+          const count = Math.max(4, Math.round(L * 90));
+          for (let k = 0; k < count; k += 1) {
+            if (np >= pathPebbles.instanceMatrix.count) break;
+            const h1 = hash(qi * 13 + si, k, 51); const h2 = hash(k, si * 7, qi + 3); const d = (k + h2 * 0.8) / count * L;
+            const off = (h1 - 0.5) * 0.12;
+            const x = a[0] + tx * d - tz * off; const z = a[1] + tz * d + tx * off;
+            _pm.position.set(x, groundY(x, z) + 0.004, z); _pm.rotation.set(h1 * 3, h2 * 6, 0);
+            const sc = 0.7 + h2 * 0.7; _pm.scale.set(sc, sc * 0.55, sc); _pm.updateMatrix();
+            pathPebbles.setMatrixAt(np, _pm.matrix); pathPebbles.setColorAt(np, _pc.set(PEBBLE_TONES[Math.floor(h2 * 4) % 4])); pebbleOwner[np] = qi; np += 1;
+          }
+        }
+      });
+    });
+    pathStones.count = ns; pathPebbles.count = np;
+    [pathStones, pathPebbles].forEach((m) => { m.instanceMatrix.needsUpdate = true; if (m.instanceColor) m.instanceColor.needsUpdate = true; });
+  }
+  function pickPath(ev) {
+    if (!layout.paths.length) return -1;
+    const rect = renderer.domElement.getBoundingClientRect();
+    ndc.set(((ev.clientX - rect.left) / rect.width) * 2 - 1, -((ev.clientY - rect.top) / rect.height) * 2 + 1);
+    raycaster.setFromCamera(ndc, camera);
+    const hit = raycaster.intersectObjects([pathStones, pathPebbles], false)[0];
+    if (!hit || hit.instanceId === undefined) return -1;
+    return (hit.object === pathStones ? stoneOwner : pebbleOwner)[hit.instanceId] ?? -1;
+  }
+  function addPathPoint(kind, x, z) {
+    const cur = editor.pathCur !== null ? layout.paths.findIndex((q) => q.i === editor.pathCur) : -1;
+    if (cur < 0) {
+      if (layout.paths.length >= MAX_PATHS) { fire('editor-notice', { code: 'pathLimit', max: MAX_PATHS }); return; }
+      const id = `p${Date.now().toString(36)}`; editor.pathCur = id;
+      change((l) => l.paths.push({ i: id, k: kind, pts: [[r4(x), r4(z)]] }));
+      return;
+    }
+    const q = layout.paths[cur]; const last = q.pts[q.pts.length - 1];
+    if (Math.hypot(last[0] - x, last[1] - z) < 0.06) return;
+    if (q.pts.length >= MAX_PATH_PTS) { fire('editor-notice', { code: 'pathLong' }); return; }
+    change((l) => { const qq = l.paths.find((r) => r.i === q.i); if (qq) qq.pts.push([r4(x), r4(z)]); });
+  }
+  // cọ trồng: giữ & quét, đồ được trồng rải theo đường quét (gộp thành 1 lần hoàn tác)
+  let brushStroke = null;
+  function brushPlace(x, z) {
+    const st = brushStroke; const spec = CATALOG[st.key];
+    if (layout.added.length >= MAX_ADDED) { if (!st.warned) { st.warned = true; fire('editor-notice', { code: 'limit', max: MAX_ADDED }); } return; }
+    const jx = x + (rand() - 0.5) * 0.06; const jz = z + (rand() - 0.5) * 0.06;
+    if (!placeable(jx, jz, false, spec)) return;
+    const e = { i: `u${Date.now().toString(36)}${Math.floor(rand() * 46656).toString(36)}`, k: st.key, p: [r4(jx), r4(jz), r4(wrapA(rand() * Math.PI * 2)), r4(0.8 + rand() * 0.4)] };
+    if (spec.grow) e.d = todayStr();
+    layout.added.push(e); spawnAdded(e); st.n += 1; st.last = [x, z];
+  }
+  const brushGap = (key) => ({ flower: 0.11, grass: 0.1, bush: 0.2, stone: 0.18 }[CATALOG[key]?.g] || 0.25);
+  /* Bóng mờ ướm vị trí: chọn một món trong kho → bản mờ của món đó chạy theo chuột / chỗ chạm; xoay, lật, đổi cỡ
+     trước rồi mới đặt. Không đặt được (hồ, suối, vách…) thì bóng ánh đỏ. */
+  const ghostState = { r: 0, s: 1, f: false, x: 0, z: 0, has: false, ok: false };
+  let ghost = null; let ghostToken = 0;
+  const isCatalogTool = () => !!editor.tool && !!CATALOG[editor.tool] && !(editor.brush && !['animal', 'decor', 'grow'].includes(CATALOG[editor.tool].g));
+  function clearGhost() {
+    if (ghost?.g) { ghost.g.parent?.remove(ghost.g); ghost.g.traverse((o) => { if (o.isMesh) o.material.dispose(); }); }
+    ghost = null; ghostState.has = false;
+  }
+  function makeGhost(key) {
+    clearGhost(); const token = ++ghostToken;
+    const spec = CATALOG[key]; if (!spec) return;
+    ghost = { key, spec, g: null };
+    ghostState.r = wrapA(rand() * Math.PI * 2); ghostState.s = 1; ghostState.f = false;
+    if (spec.g === 'animal') { emitGhost(); return; } // con vật: chỉ vòng sáng
+    getMaker(spec).then((make) => {
+      if (token !== ghostToken || disposed) return;
+      const tmp = new THREE.Group(); tmp.userData.thumb = true;
+      regSuppressed = true; const g = make(0, 0, 0, spec.h, false, tmp); regSuppressed = false;
+      g.traverse((o) => {
+        if (!o.isMesh) return;
+        o.material = o.material.clone(); o.material.transparent = true; o.material.opacity = 0.55; o.material.depthWrite = false;
+        o.castShadow = false; o.receiveShadow = false; o.renderOrder = 4;
+      });
+      island.add(g); g.visible = false; ghost.g = g; ghost.s0 = g.scale.x;
+      updateGhost(); wake();
+    });
+    emitGhost();
+  }
+  function updateGhost() {
+    if (!ghost) return;
+    const { x, z } = ghostState; const spec = ghost.spec;
+    ghostState.ok = ghostState.has && placeable(x, z, spec.g === 'animal', spec);
+    if (ghost.g) {
+      ghost.g.visible = ghostState.has;
+      if (ghostState.has) {
+        const y = spec.span ? spanY(x, z, ghostState.r, spec.span * ghostState.s) : footY(x, z, 0.08);
+        ghost.g.position.set(x, y, z); ghost.g.rotation.set(0, ghostState.r, 0);
+        ghost.g.scale.setScalar(ghost.s0 * ghostState.s); if (ghostState.f) ghost.g.scale.x *= -1;
+        ghost.g.traverse((o) => { if (o.isMesh && o.material.emissive) { o.material.emissive.set(ghostState.ok ? '#000000' : '#FF4A3D'); o.material.emissiveIntensity = ghostState.ok ? 0 : 0.6; } });
+      }
+    }
+  }
+  const emitGhost = () => fire('ghost', { active: !!ghost, pending: ghostState.has, ok: ghostState.ok, scale: ghostState.s });
+  function placeGhost() {
+    if (!ghost || !ghostState.has) return;
+    if (!ghostState.ok) { fire('editor-notice', { code: 'cantPlace' }); return; }
+    addAt(ghost.key, ghostState.x, ghostState.z, { r: ghostState.r, s: ghostState.s, f: ghostState.f });
+    pendingSelect = null; // giữ nguyên công cụ để đặt tiếp
+  }
+  let ed = null;
+  function edDown(e) {
+    if (editor.tool && editor.brush && CATALOG[editor.tool] && !['animal', 'decor', 'grow'].includes(CATALOG[editor.tool].g)) {
+      const g = pickGround(e);
+      if (g?.kind === 'ground') {
+        brushStroke = { key: editor.tool, last: null, n: 0, hist: JSON.stringify(layout) }; controls.enabled = false;
+        brushPlace(g.x, g.z); wake(); return;
+      }
+    }
+    ed = { x: e.clientX, y: e.clientY, t: performance.now(), it: pickItem(e), moved: false };
+    if (ed.it && ed.it === editor.sel && !editor.trim && !editor.erase) { editor.drag = ed.it; controls.enabled = false; } // kéo đồ đang chọn
+  }
+  function edMove(e) {
+    if (brushStroke) {
+      const g = pickGround(e, 0.03);
+      if (g?.kind === 'ground' && (!brushStroke.last || Math.hypot(g.x - brushStroke.last[0], g.z - brushStroke.last[1]) > brushGap(brushStroke.key))) brushPlace(g.x, g.z);
+      return;
+    }
+    if (!ed && ghost && e.pointerType !== 'touch') {
+      const g = pickGround(e, 0.05);
+      ghostState.has = g?.kind === 'ground'; if (g) { ghostState.x = g.x; ghostState.z = g.z; }
+      updateGhost(); wake();
+    }
+    if (!ed) { if (e.pointerType !== 'touch') renderer.domElement.style.cursor = editor.tool ? 'copy' : (pickItem(e) ? (editor.trim || editor.erase ? 'crosshair' : 'pointer') : ''); return; }
+    if (!ed.moved && Math.hypot(e.clientX - ed.x, e.clientY - ed.y) > 8) ed.moved = true;
+    const it = editor.drag;
+    if (it && ed.moved) {
+      const g = pickGround(e, 0.03);
+      if (g?.kind === 'ground' && placeable(g.x, g.z, !!it.critter, it.span ? { overWater: true } : null)) { setPose(it, [g.x, g.z, it.pose[2], it.pose[3]]); wake(); }
+    }
+  }
+  function endBrush() {
+    if (!brushStroke) return;
+    const st = brushStroke; brushStroke = null; controls.enabled = true;
+    if (!st.n) return;
+    editor.hist.push(st.hist); if (editor.hist.length > 40) editor.hist.shift();
+    fire('layout-change', { layout: normLayout(layout) }); emitSel();
+  }
+  function edUp(e) {
+    if (brushStroke) { endBrush(); return; }
+    const d = ed; ed = null; if (!d) return;
+    const it = editor.drag;
+    if (it) { editor.drag = null; controls.enabled = true; if (d.moved) { commitPose(it, it.pose); return; } }
+    if (d.moved || performance.now() - d.t > 600) return; // kéo xoay đảo
+    if (editor.trim) { if (d.it) trimItem(d.it); else fire('editor-notice', { code: 'notPlant' }); return; }
+    if (editor.erase) { // cục tẩy: chạm món nào xoá món đó (cả lối đi)
+      if (d.it) eraseItem(d.it); else { const pi = pickPath(e); if (pi >= 0) erasePath(pi); }
+      return;
+    }
+    if (editor.tool?.startsWith('path:')) {
+      const g = pickGround(e);
+      if (g?.kind === 'ground' && placeable(g.x, g.z, false)) addPathPoint(editor.tool.slice(5), g.x, g.z);
+      else fire('editor-notice', { code: 'cantPlace' });
+      return;
+    }
+    if (ghost && isCatalogTool()) {
+      const g = pickGround(e);
+      if (g?.kind !== 'ground') { fire('editor-notice', { code: 'cantPlace' }); return; }
+      ghostState.x = g.x; ghostState.z = g.z; ghostState.has = true; updateGhost();
+      if (e.pointerType === 'touch') { emitGhost(); wake(); return; } // điện thoại: ướm trước, bấm "Đặt ở đây"
+      placeGhost(); wake(); return;
+    }
+    if (editor.tool) {
+      const g = pickGround(e);
+      const animal = CATALOG[editor.tool]?.g === 'animal';
+      if (g?.kind === 'ground' && placeable(g.x, g.z, animal, CATALOG[editor.tool])) addAt(editor.tool, g.x, g.z);
+      else fire('editor-notice', { code: 'cantPlace' });
+      return;
+    }
+    if (!d.it) { const pi = pickPath(e); if (pi >= 0) { editor.sel = null; editor.selPath = pi; emitSel(); return; } }
+    selectItem(d.it);
+  }
+  function edCancel() { endBrush(); if (editor.drag) { const it = editor.drag; editor.drag = null; controls.enabled = true; applyItem(it); } ed = null; }
+
+  // ảnh thu nhỏ cho kho đồ: vẽ mô hình bằng một renderer nhỏ riêng (tạo khi mở kho, giữ đến khi đóng vườn)
+  let thumbR = null; let thumbScene = null; let thumbCam = null; const thumbCache = new Map();
+  function renderThumb(obj) {
+    if (!thumbR) {
+      thumbR = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
+      thumbR.setPixelRatio(1); thumbR.setSize(112, 112, false); thumbR.toneMapping = renderer.toneMapping;
+      thumbScene = new THREE.Scene();
+      thumbScene.add(new THREE.HemisphereLight('#FFFFFF', '#8AA77A', 1.7));
+      const dl = new THREE.DirectionalLight('#FFF4E0', 2.4); dl.position.set(2, 4, 3); thumbScene.add(dl);
+      thumbCam = new THREE.PerspectiveCamera(28, 1, 0.01, 100);
+    }
+    const holder = new THREE.Group(); holder.add(obj); thumbScene.add(holder); holder.updateMatrixWorld(true);
+    const box = new THREE.Box3().setFromObject(holder); const size = box.getSize(new THREE.Vector3()); const c = box.getCenter(new THREE.Vector3());
+    const d = Math.max(size.x, size.y, size.z) * 2.3 || 1;
+    thumbCam.position.set(c.x + d * 0.55, c.y + d * 0.42, c.z + d * 0.72); thumbCam.near = d / 60; thumbCam.far = d * 10;
+    thumbCam.updateProjectionMatrix(); thumbCam.lookAt(c);
+    thumbR.render(thumbScene, thumbCam);
+    const url = thumbR.domElement.toDataURL('image/png');
+    thumbScene.remove(holder);
+    return url;
+  }
+  function catalogThumb(key) {
+    if (thumbCache.has(key)) return thumbCache.get(key);
+    const spec = CATALOG[key]; if (!spec || !gltf) return Promise.resolve(null);
+    let pr;
+    if (spec.g === 'animal') {
+      pr = new Promise((res) => {
+        const ld = new gltf.GLTFLoader(); ld.setMeshoptDecoder(gltf.MeshoptDecoder);
+        ld.load(`/models/garden/${spec.file}.glb`, (r) => {
+          const idle = r.animations.find((a) => a.name === 'Idle');
+          if (idle) { const mx = new THREE.AnimationMixer(r.scene); mx.clipAction(idle).play(); mx.update(0.05); }
+          r.scene.rotation.y = 0.5; res(renderThumb(r.scene));
+        }, undefined, () => res(null));
+      });
+    } else {
+      pr = getMaker(spec).then((make) => {
+        const tmp = new THREE.Group(); tmp.userData.thumb = true;
+        regSuppressed = true; const g = make(0, 0, 0, 1, false, tmp); regSuppressed = false;
+        g.rotation.y = 0.6;
+        return renderThumb(g);
+      });
+    }
+    thumbCache.set(key, pr);
+    return pr;
+  }
+  timeOpts.exposeEditor?.({
+    applyLayout,
+    catalog: () => Object.entries(CATALOG).map(([key, v]) => ({ key, group: v.g })),
+    thumb: catalogThumb,
+    enter() { editor.on = true; if (selected) select(null); if (pet) endPet(); editor.hist = []; emitSel(); wake(); },
+    exit() { clearGhost(); emitGhost(); editor.trim = false; editor.erase = false; if (growBoost) { growBoost = 0; previewTr.clear(); items.forEach((it) => { if ((it.grow || it.aging) && it.attached) setPose(it, it.pose); }); } endBrush(); editor.pathCur = null; editor.on = false; editor.tool = null; editor.drag = null; selectItem(null); renderer.domElement.style.cursor = ''; wake(); },
+    ghostRotate(dir) { ghostState.r = wrapA(ghostState.r + (dir * Math.PI) / 8); updateGhost(); emitGhost(); wake(); },
+    ghostFlip() { ghostState.f = !ghostState.f; updateGhost(); emitGhost(); wake(); },
+    ghostScale(dir) { ghostState.s = Math.min(2.5, Math.max(0.4, ghostState.s * (dir > 0 ? 1.15 : 1 / 1.15))); updateGhost(); emitGhost(); wake(); },
+    placeGhost() { placeGhost(); wake(); },
+    flip() {
+      const it = editor.sel; if (!it) return;
+      change((l) => {
+        if (it.def) { if (l.flips[it.id]) delete l.flips[it.id]; else l.flips[it.id] = true; } else { const e = l.added.find((a) => a.i === it.id); if (e) { if (e.f) delete e.f; else e.f = 1; } }
+      });
+    },
+    setTool(key) {
+      if (key) { editor.trim = false; editor.erase = false; }
+      editor.tool = key && (CATALOG[key] || /^path:(stone|gravel)$/.test(key)) ? key : null;
+      if (!editor.tool?.startsWith('path:')) editor.pathCur = null;
+      if (editor.tool) selectItem(null); else emitSel();
+      if (isCatalogTool()) makeGhost(editor.tool); else { clearGhost(); emitGhost(); }
+    },
+    setBrush(on) { editor.brush = !!on; if (isCatalogTool()) { if (!ghost || ghost.key !== editor.tool) makeGhost(editor.tool); } else { clearGhost(); emitGhost(); } },
+    boostGrowth(days) { // admin xem thử: cộng thêm số ngày check-in giả cho luống cây (0 = về thật)
+      growBoost = days ? growBoost + days : 0; if (!growBoost) previewTr.clear();
+      items.forEach((it) => { if ((it.grow || it.aging) && it.attached) setPose(it, it.pose); });
+      emitSel(); fire('editor-boost', { days: growBoost }); wake();
+    },
+    endPath() { editor.pathCur = null; emitSel(); },
+    duplicate() {
+      const it = editor.sel; if (!it?.cat) return;
+      const spec = CATALOG[it.cat]; const animal = spec.g === 'animal';
+      for (let k = 0; k < 16; k += 1) {
+        const a = it.pose[2] + (k * Math.PI) / 4; const dd = (spec.h || 0.3) * 0.35 + 0.18 + Math.floor(k / 8) * 0.15;
+        const x = it.pose[0] + Math.cos(a) * dd; const z = it.pose[1] + Math.sin(a) * dd;
+        if (placeable(x, z, animal, spec)) { addAt(it.cat, x, z, { r: it.pose[2], s: it.pose[3] }); return; }
+      }
+      fire('editor-notice', { code: 'cantPlace' });
+    },
+    setTrimMode(on) { editor.trim = !!on; if (on) { clearGhost(); emitGhost(); editor.erase = false; editor.tool = null; editor.pathCur = null; selectItem(null); } },
+    setEraseMode(on) { editor.erase = !!on; if (on) { clearGhost(); emitGhost(); editor.trim = false; editor.tool = null; editor.pathCur = null; selectItem(null); } },
+    // dọn trống đảo: cất hết đồ có sẵn (kể cả con vật), bỏ đồ tự thêm & lối đi — chỉ còn địa hình, hồ, suối, núi, thảm cỏ
+    clearAll() {
+      selectItem(null); editor.pathCur = null;
+      const ids = []; items.forEach((it) => { if (it.def) ids.push(it.id); });
+      change((l) => { l.removed = [...new Set([...l.removed, ...ids])]; l.moved = {}; l.added = []; l.paths = []; });
+    },
+    trim() { trimItem(editor.sel); },
+    trimOld() {
+      const it = editor.sel; if (!it?.grow && !it?.aging) return;
+      const gr = it.grow ? growthOf(layout.added.find((a) => a.i === it.id)) : ageOf(it); if (gr.s <= 1.02) return;
+      it.g.getWorldPosition(_hp); _hp.y += 0.3; spawnSeeds(_hp, 12, _hp.y - 0.3, '#7FB26A'); fire('voice', { kind: 'trim' }); // lá vụn rơi
+      const nTotal = it.aging ? gr.n + (layout.trims[it.id] ?? 0) : gr.n; // cây cũ: mốc = tổng số ngày tính từ gs
+      if (growBoost) { previewTr.set(it.id, nTotal); setPose(it, it.pose); emitSel(); wake(); return; } // đang xem thử
+      if (it.aging) change((l) => { l.trims[it.id] = nTotal - growBoost; });
+      else change((l) => { const e = l.added.find((a) => a.i === it.id); if (e) e.tr = gr.n; });
+    },
+    rotate() { const it = editor.sel; if (it) commitPose(it, [it.pose[0], it.pose[1], it.pose[2] + Math.PI / 4, it.pose[3]]); },
+    scale(dir) { const it = editor.sel; if (it) commitPose(it, [it.pose[0], it.pose[1], it.pose[2], Math.min(2.5, Math.max(0.4, it.pose[3] * (dir > 0 ? 1.2 : 1 / 1.2)))]); },
+    remove() {
+      const it = editor.sel; if (!it) { if (editor.selPath >= 0) this.removePath(); return; }
+      selectItem(null);
+      change((l) => { if (it.def) { if (!l.removed.includes(it.id)) l.removed.push(it.id); delete l.moved[it.id]; } else l.added = l.added.filter((a) => a.i !== it.id); });
+    },
+    removePath() {
+      const qi = editor.selPath; if (qi < 0) return;
+      editor.selPath = -1; const id = layout.paths[qi]?.i;
+      change((l) => { l.paths = l.paths.filter((q) => q.i !== id); });
+    },
+    undo() {
+      if (!editor.hist.length) return;
+      selectItem(null);
+      applyLayout(JSON.parse(editor.hist.pop()));
+      fire('layout-change', { layout: normLayout(layout) }); emitSel();
+    },
+    reset() { selectItem(null); editor.pathCur = null; change((l) => { l.removed = []; l.moved = {}; l.added = []; l.paths = []; l.trims = {}; l.cuts = {}; l.flips = {}; }); }
+  });
+  // đồ người dùng thêm đã lưu: tạo luôn khi dựng cảnh
+  layout.added.forEach((e) => spawnAdded(e));
+  rebuildPaths();
+
+  // Đồ trang trí đặt sẵn (CC0): cầu gỗ bắc qua suối, ghế gỗ bên bờ hồ nhìn ra mặt nước.
+  // Gọi loadModel sau cùng trong lúc dựng cảnh → mã của các đồ có sẵn trước đó không đổi (layout đã lưu vẫn đúng).
+  const fixDefaultPose = (g, extra = {}) => { const it = items.get(g.userData.itemId); if (it) { it.ry0 = g.rotation.y; it.y0 = g.position.y; it.pose = [it.x0, it.z0, it.ry0, 1]; Object.assign(it, extra); } };
+  loadModel('decor_bridge', (part) => {
+    let best = null;
+    for (let i = 6; i < RIVER_FINE.length - 6; i += 1) {
+      const [x, z] = RIVER_FINE[i]; const [x2, z2] = RIVER_FINE[i + 1];
+      if (pondDist(x, z) < 1.45 || segDist(SPILL, x, z) < 0.5) continue;
+      const tl = Math.hypot(x2 - x, z2 - z) || 1; const nx = -(z2 - z) / tl; const nz = (x2 - x) / tl; const S = 0.42;
+      const a = [x + nx * S, z + nz * S]; const b = [x - nx * S, z - nz * S];
+      if (!inPoly(OUT_IN, a[0], a[1]) || !inPoly(OUT_IN, b[0], b[1]) || riverDist(a[0], a[1]) < 0.24 || riverDist(b[0], b[1]) < 0.24) continue;
+      const ha = H(a[0], a[1]); const hb = H(b[0], b[1]);
+      const score = Math.abs(ha - hb) + (slopeAt(a[0], a[1]) + slopeAt(b[0], b[1])) * 0.04 + Math.abs(i / RIVER_FINE.length - 0.45) * 0.08;
+      if (!best || score < best.score) best = { x, z, nx, nz, score };
+    }
+    if (!best) return;
+    const r = Math.atan2(-best.nz, best.nx); // trục dài của cầu vuông góc với dòng suối
+    const g = part()(best.x, spanY(best.x, best.z, r, 0.42), best.z, 0.51, false);
+    g.rotation.y = r; fixDefaultPose(g, { span: 0.42 });
+  });
+  loadModel('decor_bench', (part) => {
+    let best = null;
+    for (let k = 0; k < 72; k += 1) {
+      const a = (k / 72) * Math.PI * 2;
+      for (const f of [1.22, 1.3, 1.38]) {
+        const x = POND_C[0] + Math.cos(a) * POND_R[0] * f; const z = POND_C[1] + Math.sin(a) * POND_R[1] * f;
+        if (!inPoly(OUT_IN, x, z) || riverDist(x, z) < 0.32 || segDist(SPILL, x, z) < 0.32 || inMountain(x, z, 0.1) || pondDist(x, z) < 1.15) continue;
+        const [lo, hi] = footRangeAt(x, z, 0.12); if (hi - lo > 0.045) continue;
+        const score = -((x - POND_C[0]) + (z - POND_C[1])) * 0.6 + (hi - lo) * 4 + f * 0.2; // ưu tiên phía người xem, chỗ bằng phẳng, sát bờ
+        if (!best || score < best.score) best = { x, z, y: lo - 0.004, score };
+      }
+    }
+    if (!best) return;
+    const g = part()(best.x, best.y, best.z, 0.22, false);
+    g.rotation.y = Math.atan2(POND_C[0] - best.x, POND_C[1] - best.z); // mặt ghế (+z) quay ra hồ
+    fixDefaultPose(g); contactShadow(best.x, best.z, 0.14);
+  });
+
+  /* ---------- Vườn ký ức: mỗi ngày check-in tâm trạng = một bông hoa nhỏ, màu theo cảm xúc ----------
+     Mọc theo đường xoắn ốc từ giữa bãi cỏ ra ngoài (cũ ở giữa → mới ở ngoài) như kể lại hành trình.
+     3 InstancedMesh (cánh, thân, nhuỵ) cho tối đa 60 bông → 3 lượt vẽ, rất nhẹ. */
+  const MEM_COLORS = { 'Rất vui': '#FFD54A', 'Thoải mái': '#86D49B', 'Bình thường': '#F6EEDC', 'Hơi căng': '#F7B98B', 'Rất căng thẳng': '#EE9C9C', 'Buồn bã': '#B7A6EE', 'Tức giận': '#E9806A' };
+  const memColor = (m) => C(MEM_COLORS[m.emotion] || (m.score >= 8 ? '#FFD54A' : m.score >= 6 ? '#86D49B' : m.score >= 4.5 ? '#F6EEDC' : m.score >= 3 ? '#F7B98B' : '#B7A6EE'));
+  function concatGeos(list) { // gộp vài hình nhỏ thành một
+    const parts = list.map((g) => (g.index ? g.toNonIndexed() : g));
+    const n = parts.reduce((a, g) => a + g.attributes.position.count, 0);
+    const pos = new Float32Array(n * 3); const nor = new Float32Array(n * 3); let o = 0;
+    parts.forEach((g) => { pos.set(g.attributes.position.array, o * 3); nor.set(g.attributes.normal.array, o * 3); o += g.attributes.position.count; });
+    const out = new THREE.BufferGeometry();
+    out.setAttribute('position', new THREE.BufferAttribute(pos, 3)); out.setAttribute('normal', new THREE.BufferAttribute(nor, 3));
+    return out;
+  }
+  // 4 kiểu hoa (chọn ngẫu nhiên theo ngày, cố định cho mỗi ngày); cánh tô màu cảm xúc
+  const petalRing = (n, build) => concatGeos(Array.from({ length: n }, (_, i) => { const g = build(); g.rotateY((i / n) * Math.PI * 2); return g; }));
+  const MEM_TYPES = [
+    // cúc 5 cánh tròn
+    petalRing(5, () => { const g = new THREE.SphereGeometry(0.034, 8, 6); g.scale(1, 0.32, 0.62); g.translate(0.036, 0, 0); g.rotateZ(0.35); g.translate(0, 0.15, 0); return g; }),
+    // cúc nhiều cánh mảnh
+    petalRing(11, () => { const g = new THREE.SphereGeometry(0.03, 6, 4); g.scale(1.45, 0.2, 0.3); g.translate(0.046, 0, 0); g.rotateZ(0.18); g.translate(0, 0.15, 0); return g; }),
+    // tulip: cánh khum ôm lấy nhuỵ
+    petalRing(4, () => { const g = new THREE.SphereGeometry(0.03, 8, 6); g.scale(0.6, 1.25, 0.62); g.translate(0.015, 0, 0); g.rotateZ(-0.22); g.translate(0, 0.175, 0); return g; }),
+    // cụm hoa nhỏ (3 bông tròn quanh ngọn)
+    concatGeos([[0.03, 0.165, 0], [-0.02, 0.185, 0.026], [-0.014, 0.15, -0.03], [0, 0.2, -0.004]].map(([x, y, z], k) => {
+      const g = petalRing(5, () => { const q = new THREE.SphereGeometry(0.013, 6, 4); q.scale(1, 0.4, 0.7); q.translate(0.013, 0, 0); q.rotateZ(0.4); return q; });
+      g.scale(k === 3 ? 0.8 : 1, 1, k === 3 ? 0.8 : 1); g.translate(x, y, z); return g;
+    }))
+  ];
+  const memStemGeo = concatGeos([
+    (() => { const g = new THREE.CylinderGeometry(0.005, 0.007, 0.15, 5); g.translate(0, 0.075, 0); return g; })(),
+    (() => { const g = new THREE.SphereGeometry(0.022, 6, 4); g.scale(1, 0.25, 0.5); g.rotateZ(0.4); g.translate(0.022, 0.06, 0); return g; })()
+  ]);
+  const memCenterGeo = (() => { const g = new THREE.SphereGeometry(0.018, 8, 6); g.scale(1, 0.6, 1); g.translate(0, 0.157, 0); return g; })();
+  const memPetalMat = new THREE.MeshStandardMaterial({ color: '#FFFFFF', roughness: 0.55 });
+  const memPetalMeshes = MEM_TYPES.map((geo) => new THREE.InstancedMesh(geo, memPetalMat, 60));
+  const memStem = new THREE.InstancedMesh(memStemGeo, new THREE.MeshStandardMaterial({ color: '#5DAE5F', roughness: 0.8 }), 60);
+  const memCenter = new THREE.InstancedMesh(memCenterGeo, new THREE.MeshStandardMaterial({ color: '#FFE9A6', roughness: 0.6, emissive: '#FFD27A', emissiveIntensity: 0.25 }), 60);
+  const memMeshes = [...memPetalMeshes, memStem, memCenter];
+  memMeshes.forEach((m) => { m.count = 0; m.castShadow = true; m.frustumCulled = false; addToIslandRaw(m); });
+  // chỗ có thể mọc: rải khắp bãi cỏ trên đảo (tránh hồ, suối, vách, núi, gốc cây)
+  let memCands = null;
+  const memCandidates = () => {
+    if (memCands) return memCands;
+    memCands = [];
+    for (let gz = -2.5; gz <= 2.5; gz += 0.13) {
+      for (let gx = -2.5; gx <= 2.5; gx += 0.13) {
+        const x = gx + (hash(gx * 7, gz * 3, 21) - 0.5) * 0.1; const z = gz + (hash(gx * 5, gz * 9, 23) - 0.5) * 0.1;
+        if (free(x, z) && TREE_SPOTS.every(([tx, tz]) => Math.hypot(x - tx, z - tz) > 0.3)) memCands.push([x, z]);
+      }
+    }
+    return memCands;
+  };
+  const dayNum = (day) => { let n = 0; for (let k = 0; k < day.length; k += 1) n = (n * 31 + day.charCodeAt(k)) % 1000003; return n; };
+  let memData = []; let memPos = []; let memType = []; let memSlot = [];
+  let memGrow = -1; let memGrowT = 0; const _mo = new THREE.Object3D(); const memHidden = new Set();
+  // mỗi ngày: chỗ mọc & kiểu hoa "ngẫu nhiên" nhưng cố định theo ngày (mở lại vẫn ở đúng chỗ cũ)
+  function layoutMemories() {
+    const cands = memCandidates(); const used = [];
+    memPos = []; memType = []; memSlot = []; const slots = MEM_TYPES.map(() => 0);
+    memData.forEach((m) => {
+      const n = dayNum(String(m.day || ''));
+      let k = Math.floor(hash(n, 3, 7) * cands.length); let spot = null;
+      for (let tries = 0; tries < cands.length && cands.length; tries += 1) {
+        const c = cands[(k + tries * 37) % cands.length];
+        if (used.every(([ux, uz]) => Math.hypot(ux - c[0], uz - c[1]) > 0.14)) { spot = c; break; }
+      }
+      spot = spot || cands[k % Math.max(1, cands.length)] || [0, 0];
+      used.push(spot); memPos.push(spot);
+      const ty = Math.floor(hash(n, 11, 5) * MEM_TYPES.length) % MEM_TYPES.length;
+      memType.push(ty); memSlot.push(slots[ty]); slots[ty] += 1;
+    });
+    memPetalMeshes.forEach((mm, ty) => { mm.count = slots[ty]; });
+    memStem.count = memData.length; memCenter.count = memData.length;
+  }
+  function placeMemories(growK = 1) {
+    memData.forEach((_m, i) => {
+      const [x, z] = memPos[i]; const k = memHidden.has(i) ? 0 : i === memGrow ? growK : 1;
+      const n = dayNum(String(memData[i].day || ''));
+      _mo.position.set(x, footY(x, z, 0.04), z);
+      _mo.rotation.set(0, hash(n, 5, 11) * Math.PI * 2, (hash(n, 7, 11) - 0.5) * 0.25);
+      _mo.scale.setScalar(Math.max(0.001, (0.95 + hash(n, 3, 11) * 0.35) * k)); _mo.updateMatrix();
+      memPetalMeshes[memType[i]].setMatrixAt(memSlot[i], _mo.matrix);
+      memStem.setMatrixAt(i, _mo.matrix); memCenter.setMatrixAt(i, _mo.matrix);
+    });
+    memMeshes.forEach((mm) => { mm.instanceMatrix.needsUpdate = true; });
+  }
+  function setMemories(list, quiet = false) {
+    const prev = memData.length; const prevLast = memData[prev - 1];
+    memData = (Array.isArray(list) ? list : []).slice(-60);
+    items.forEach((it) => { if ((it.grow || it.aging) && it.attached) setPose(it, it.pose); }); // cây lớn / rậm theo số ngày check-in
+    const last = memData[memData.length - 1];
+    const changedToday = prev > 0 && memData.length === prev && last && prevLast && last.day === prevLast.day && (last.emotion !== prevLast.emotion || last.score !== prevLast.score);
+    layoutMemories();
+    memData.forEach((m, i) => memPetalMeshes[memType[i]].setColorAt(memSlot[i], memColor(m)));
+    memPetalMeshes.forEach((mm) => { if (mm.instanceColor) mm.instanceColor.needsUpdate = true; });
+    // bông mới (ngày mới check-in / hôm nay đổi cảm xúc): ẩn trước rồi lần lượt nở — màn lớn có máy quay lướt tới xem
+    const fresh = [];
+    if (prev > 0) { for (let i = prev; i < memData.length; i += 1) fresh.push(i); if (changedToday) fresh.push(memData.length - 1); }
+    memHidden.clear(); memGrow = -1; memGrowT = 0;
+    if (quiet || !fresh.length || reduceMotion) { placeMemories(1); if (!quiet) wake(); return; }
+    fresh.forEach((i) => memHidden.add(i));
+    placeMemories(1);
+    startReveal(fresh, !!controls && !editor.on);
+    wake();
+  }
+  const reveal = { on: false, q: [], cam: false, phase: '', t: 0, dur: 1, then: '', cur: -1, from: [new THREE.Vector3(), new THREE.Vector3()], to: [new THREE.Vector3(), new THREE.Vector3()] };
+  const CAM_HOME = { p: camera.position.clone(), t: new THREE.Vector3(0, -0.55, 0) }; // góc nhìn mặc định
+  const _rt = new THREE.Vector3();
+  function startReveal(list, cam) {
+    reveal.q = list.slice(); reveal.cam = cam; reveal.on = true;
+    if (cam) { controls.enabled = false; if (selected) select(null); fire('reveal', { on: true }); }
+    nextReveal();
+  }
+  function beginFly(p, tg, dur, then) {
+    reveal.phase = 'fly'; reveal.t = 0; reveal.dur = dur; reveal.then = then;
+    reveal.from[0].copy(camera.position); reveal.from[1].copy(controls ? controls.target : CAM_HOME.t);
+    reveal.to[0].copy(p); reveal.to[1].copy(tg);
+  }
+  function beginGrow() { reveal.phase = 'grow'; memHidden.delete(reveal.cur); memGrow = reveal.cur; memGrowT = 0; }
+  function nextReveal() {
+    const i = reveal.q.shift();
+    if (i === undefined) { if (reveal.cam) beginFly(CAM_HOME.p, CAM_HOME.t, 1.9, 'home'); else reveal.on = false; return; }
+    reveal.cur = i;
+    if (!reveal.cam) { beginGrow(); return; }
+    const [x, z] = memPos[i];
+    const fw = island.localToWorld(new THREE.Vector3(x, footY(x, z) + 0.1, z));
+    const dir = camera.position.clone().sub(fw); dir.y = 0; dir.normalize(); // đến từ phía máy quay đang nhìn
+    const p = fw.clone().addScaledVector(dir, 1.9); p.y = fw.y + 1.05;
+    beginFly(p, fw, reveal.q.length || reveal.phase === '' ? 1.7 : 1.1, 'grow');
+  }
+  function stepReveal(dt) {
+    if (!reveal.on) return;
+    if (reveal.phase === 'fly') {
+      reveal.t += dt; const u = Math.min(1, reveal.t / reveal.dur); const e = u * u * u * (u * (u * 6 - 15) + 10);
+      camera.position.lerpVectors(reveal.from[0], reveal.to[0], e);
+      _rt.lerpVectors(reveal.from[1], reveal.to[1], e); camera.lookAt(_rt); controls?.target.copy(_rt);
+      if (u >= 1) {
+        if (reveal.then === 'grow') beginGrow();
+        else { reveal.on = false; reveal.phase = ''; controls.enabled = true; controls.update(); fire('reveal', { on: false }); }
+      }
+    } else if (reveal.phase === 'grow') {
+      if (memGrow < 0) { reveal.phase = 'hold'; reveal.t = 0; fire('memory-bloom', { ...memData[reveal.cur] }); }
+    } else if (reveal.phase === 'hold') {
+      reveal.t += dt; if (reveal.t > (reveal.cam ? 1.3 : 0.3)) nextReveal();
+    }
+  }
+  function pickMemory(ev) {
+    if (!memData.length) return null;
+    setNdc(ev); raycaster.setFromCamera(ndc, camera);
+    const hit = raycaster.intersectObjects(memMeshes, false)[0];
+    if (!hit || hit.instanceId === undefined) return null;
+    const ty = memPetalMeshes.indexOf(hit.object);
+    const idx = ty >= 0 ? memType.findIndex((t2, i) => t2 === ty && memSlot[i] === hit.instanceId) : hit.instanceId; // cánh: theo kiểu hoa · thân / nhuỵ: theo thứ tự
+    return memData[idx] ? { ...memData[idx], point: hit.point } : null;
+  }
+  function setNdc(ev) {
+    const rect = renderer.domElement.getBoundingClientRect();
+    ndc.set(((ev.clientX - rect.left) / rect.width) * 2 - 1, -((ev.clientY - rect.top) / rect.height) * 2 + 1);
+  }
+
+  /* ---------- Đèn lồng biết ơn: mỗi câu biết ơn là một chiếc đèn lồng giấy lơ lửng quanh đảo ---------- */
+  const lanterns = [];
+  const lanternBodyGeo = new THREE.CylinderGeometry(0.075, 0.062, 0.14, 12);
+  const lanternCapGeo = new THREE.CylinderGeometry(0.05, 0.05, 0.02, 10);
+  const lanternBodyMat = new THREE.MeshStandardMaterial({ color: '#FFB46B', emissive: '#FF9440', emissiveIntensity: 0.7, roughness: 0.7 });
+  const lanternCapMat = new THREE.MeshStandardMaterial({ color: '#6B4A35', roughness: 0.8 });
+  function makeLantern(l, rising) {
+    const g = new THREE.Group();
+    g.add(new THREE.Mesh(lanternBodyGeo, lanternBodyMat));
+    for (const y of [0.08, -0.08]) { const cap = new THREE.Mesh(lanternCapGeo, lanternCapMat); cap.position.y = y; g.add(cap); }
+    const glow = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex, color: '#FFC27A', transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, opacity: 0.5, toneMapped: false }));
+    glow.scale.set(0.75, 0.75, 1); g.add(glow);
+    g.scale.setScalar(2.2);
+    const k = lanterns.length + 1;
+    const rec = { id: l.id, g, glow, text: l.text, date: l.created_at, a: hash(k, 1, 13) * Math.PI * 2, r: 4.4 + hash(k, 2, 13) * 1.1, y: 2.2 + hash(k, 3, 13) * 1.3, sp: (0.025 + hash(k, 4, 13) * 0.03) * (k % 2 ? 1 : -1), phase: hash(k, 5, 13) * 6, rise: rising ? 0 : 1 };
+    g.userData.lantern = rec; scene.add(g); lanterns.push(rec);
+  }
+  function setLanterns(list, quiet = false) {
+    const arr = Array.isArray(list) ? list.slice(-12) : [];
+    const ids = new Set(arr.map((l) => l.id));
+    for (let i = lanterns.length - 1; i >= 0; i -= 1) {
+      if (!ids.has(lanterns[i].id)) { scene.remove(lanterns[i].g); lanterns[i].glow.material.dispose(); lanterns.splice(i, 1); }
+    }
+    const initial = !lanternsReady; lanternsReady = true;
+    arr.forEach((l) => { if (!lanterns.some((x) => x.id === l.id)) makeLantern(l, !initial); });
+    if (!quiet) wake();
+  }
+  let lanternsReady = false;
+  const _lp = new THREE.Vector3(); const LANTERN_START = new THREE.Vector3(0, 1.4, 0);
+  function stepLanterns(dt, t) {
+    const nt = tod.night;
+    lanternBodyMat.emissiveIntensity = 0.55 + 0.9 * nt;
+    for (const l of lanterns) {
+      l.a += l.sp * dt;
+      _lp.set(Math.cos(l.a) * l.r, l.y + Math.sin(t * 0.8 + l.phase) * 0.12, Math.sin(l.a) * l.r);
+      if (l.rise < 1) { // đèn mới thả: bay lên từ giữa đảo rồi nhập vòng
+        l.rise = Math.min(1, l.rise + dt / 4); const e = 1 - (1 - l.rise) ** 3;
+        l.g.position.copy(LANTERN_START).lerp(_lp, e);
+      } else l.g.position.copy(_lp);
+      l.g.rotation.y += dt * 0.3; l.g.rotation.z = Math.sin(t * 1.1 + l.phase) * 0.06;
+      l.glow.material.opacity = 0.35 + 0.45 * nt + Math.sin(t * 2.3 + l.phase) * 0.06;
+    }
+  }
+  function pickLantern(ev) {
+    if (!lanterns.length) return null;
+    setNdc(ev); raycaster.setFromCamera(ndc, camera);
+    const hit = raycaster.intersectObjects(lanterns.map((l) => l.g), true).find((h2) => !h2.object.isSprite);
+    let o = hit?.object; while (o && !o.userData.lantern) o = o.parent;
+    return o ? o.userData.lantern : null;
+  }
+
+  /* ---------- Sao băng ban đêm: thỉnh thoảng vụt qua, chạm vào thì nhận một lời chúc ---------- */
+  const STAR_TRAIL = 12;
+  const shooting = { on: false, wait: 5 + rand() * 6, life: 0, p: new THREE.Vector3(), v: new THREE.Vector3(), hist: [], caught: 0 };
+  const starSprites = Array.from({ length: STAR_TRAIL }, (_, i) => {
+    const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex, color: i === 0 ? '#FFFFFF' : '#CFE0FF', transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false, opacity: 0 }));
+    sp.visible = false; sp.renderOrder = 6; scene.add(sp);
+    return sp;
+  });
+  const _sf = new THREE.Vector3(); const _sr = new THREE.Vector3(); const _su = new THREE.Vector3();
+  function launchStar() {
+    camera.getWorldDirection(_sf); _sr.crossVectors(_sf, camera.up).normalize(); _su.crossVectors(_sr, _sf).normalize();
+    const side = rand() < 0.5 ? -1 : 1;
+    shooting.p.copy(camera.position).addScaledVector(_sf, 30).addScaledVector(_sr, -side * (4 + rand() * 8)).addScaledVector(_su, 5 + rand() * 4);
+    shooting.v.copy(_sr).multiplyScalar(side).addScaledVector(_su, -0.45).normalize().multiplyScalar(12 + rand() * 4);
+    shooting.on = true; shooting.life = 1.4; shooting.hist = []; shooting.caught = 0;
+  }
+  function stepShooting(dt) {
+    const allowed = controls && tod.night > 0.55 && !editor.on;
+    if (!shooting.on) {
+      starSprites.forEach((sp) => { sp.visible = false; });
+      if (allowed) { shooting.wait -= dt; if (shooting.wait <= 0) launchStar(); }
+      return;
+    }
+    shooting.life -= dt;
+    if (shooting.caught > 0) { shooting.caught -= dt; shooting.v.multiplyScalar(0.9); }
+    shooting.p.addScaledVector(shooting.v, dt);
+    shooting.hist.unshift(shooting.p.clone()); if (shooting.hist.length > STAR_TRAIL) shooting.hist.pop();
+    const fade = Math.min(1, shooting.life * 2.5);
+    starSprites.forEach((sp, i) => {
+      const q = shooting.hist[Math.min(i, shooting.hist.length - 1)];
+      sp.visible = !!q; if (!q) return;
+      sp.position.copy(q);
+      const k = 1 - i / STAR_TRAIL; const big = shooting.caught > 0 ? 1 + shooting.caught * 3 : 1;
+      sp.scale.setScalar((i === 0 ? 0.55 : 0.32 * k) * big); sp.material.opacity = fade * (i === 0 ? 1 : 0.7 * k);
+    });
+    if (shooting.life <= 0) { shooting.on = false; shooting.wait = 9 + rand() * 14; }
+  }
+  const _s1 = new THREE.Vector3(); const _s2 = new THREE.Vector3();
+  function hitStar(ev) {
+    if (!shooting.on || shooting.caught > 0 || !shooting.hist.length) return false;
+    const rect = renderer.domElement.getBoundingClientRect();
+    const toPx = (v) => [((v.x + 1) / 2) * rect.width + rect.left, ((1 - v.y) / 2) * rect.height + rect.top];
+    const [ax, ay] = toPx(_s1.copy(shooting.hist[0]).project(camera));
+    const [bx, by] = toPx(_s2.copy(shooting.hist[shooting.hist.length - 1]).project(camera));
+    const vx = bx - ax; const vy = by - ay; const L2 = vx * vx + vy * vy || 1;
+    const u = Math.max(0, Math.min(1, ((ev.clientX - ax) * vx + (ev.clientY - ay) * vy) / L2));
+    if (Math.hypot(ev.clientX - (ax + vx * u), ev.clientY - (ay + vy * u)) > 56) return false;
+    shooting.caught = 0.5; shooting.life = Math.min(shooting.life, 0.6);
+    spawnHearts(shooting.p, 3);
+    fire('wish', { n: Math.floor(rand() * 12) + 1 }); fire('voice', { kind: 'star' });
+    return true;
+  }
+
+  /* ---------- Vị khách ghé thăm: thỉnh thoảng thỏ, ếch hoặc nhím ghé chơi một lúc rồi đi ---------- */
+  const VISITORS = [
+    { file: 'visitor_bunny', length: 0.3, speed: 0.22 },
+    { file: 'visitor_frog', length: 0.2, speed: 0.16 },
+    { file: 'visitor_hedgehog', length: 0.19, speed: 0.1 }
+  ];
+  const visit = { wait: 20 + rand() * 25, c: null, loading: false, last: -1 };
+  function edgeSpot() {
+    for (let i = 0; i < 40; i += 1) {
+      const a = rand() * Math.PI * 2;
+      for (let r = 2.2; r > 0.9; r -= 0.1) { const x = Math.cos(a) * r; const z = Math.sin(a) * r; if (walkable(x, z)) return [x, z]; }
+    }
+    return null;
+  }
+  function stepVisitor(dt) {
+    if (visit.loading || editor.on || !gltf) return;
+    const c = visit.c;
+    if (!c) {
+      visit.wait -= dt;
+      if (visit.wait > 0 || h < 0.2) return;
+      const spot = edgeSpot(); if (!spot) { visit.wait = 20; return; }
+      let k = Math.floor(rand() * VISITORS.length); if (k === visit.last) k = (k + 1) % VISITORS.length; visit.last = k;
+      const cfg = VISITORS[k]; visit.loading = true;
+      spawnCritter({ ...cfg, threshold: 0, roam: true, spot }, `visitor:${cfg.file}`, (nc) => {
+        visit.loading = false; visit.c = nc;
+        nc.visitor = { age: 0, stay: 35 + rand() * 25, leaving: false, fade: 0, appear: 0 };
+        nc.g.children[0].scale.setScalar(0.001);
+        if (pickTarget(nc)) { nc.state = 'walk'; nc.timer = 14; play(nc, 'Walk'); }
+        fire('visitor', { animal: cfg.file });
+      });
+      return;
+    }
+    const v = c.visitor; v.age += dt;
+    if (v.appear < 1) { v.appear = Math.min(1, v.appear + dt * 1.4); c.g.children[0].scale.setScalar(c.baseScale * (1 - (1 - v.appear) ** 3)); }
+    if (!v.leaving && v.age > v.stay && !c.mode && !(c.onceT > 0)) {
+      v.leaving = true; v.leftAt = v.age;
+      const e = edgeSpot();
+      if (e && routeTo(c, e[0], e[1])) { c.state = 'walk'; c.timer = 20; c.arrive = 'leave'; c.run = false; play(c, 'Walk'); }
+    }
+    if (v.leaving && !c.mode && (c.state !== 'walk' || v.age - v.leftAt > 22)) { // tới mép đảo: nhỏ dần rồi biến mất
+      v.fade = Math.min(1, v.fade + dt * 1.3);
+      c.g.children[0].scale.setScalar(Math.max(0.001, c.baseScale * (1 - v.fade)));
+      if (v.fade >= 1) {
+        if (selected === c) select(null);
+        c.g.parent?.remove(c.g); const ix = critters.indexOf(c); if (ix >= 0) critters.splice(ix, 1);
+        visit.c = null; visit.wait = 45 + rand() * 60;
+      }
+    }
+  }
+  timeOpts.exposeGarden?.({ setMemories, setLanterns });
+  setMemories(timeOpts.memories, true); setLanterns(timeOpts.lanterns, true); // lúc dựng cảnh: vòng vẽ chưa có, chưa gọi wake
+
   let cleanupInteract = () => {};
   if (controls) {
     const dom = renderer.domElement; let down = null; let lastMove = 0; let holdTimer = 0;
     const onDown = (e) => {
+      if (reveal.on) return;
+      if (editor.on) { edDown(e); return; }
       down = { x: e.clientX, y: e.clientY, t: performance.now(), moved: false, pet: false };
       clearTimeout(holdTimer);
       const hit = pickAnimal(e);
@@ -2596,14 +3600,21 @@ function createScene(THREE, el, initialHealth, exposeSetTarget, OrbitControls, g
       }
     };
     const onUp = (e) => {
+      if (reveal.on) { down = null; return; }
+      if (editor.on) { edUp(e); return; }
       clearTimeout(holdTimer);
       if (!down) return;
       const d = down; down = null;
       if (d.pet) { endPet(); wake(); return; }
       const moved = Math.hypot(e.clientX - d.x, e.clientY - d.y); const held = performance.now() - d.t;
       if (moved > 8 || held > 450) return; // kéo xoay đảo → không tính là chạm
+      if (hitStar(e)) { wake(); return; }
+      const lan = pickLantern(e);
+      if (lan) { spawnHearts(lan.g.position, 3); fire('lantern', { text: lan.text, date: lan.date }); fire('voice', { kind: 'lantern' }); wake(); return; }
       const hit = pickAnimal(e);
       if (hit) { interact(hit); return; }
+      const mem = pickMemory(e);
+      if (mem) { spawnHearts(mem.point, 2); fire('memory', { day: mem.day, emotion: mem.emotion, score: mem.score }); fire('voice', { kind: 'chime' }); wake(); return; }
       const g = pickGround(e);
       if (!g) { if (selected) select(null); return; }
       if (g.kind === 'water') feedWater(g);
@@ -2612,13 +3623,14 @@ function createScene(THREE, el, initialHealth, exposeSetTarget, OrbitControls, g
       wake();
     };
     const onMove = (e) => {
+      if (editor.on) { edMove(e); return; }
       if (down && !down.moved && Math.hypot(e.clientX - down.x, e.clientY - down.y) > 8) { down.moved = true; if (!down.pet) clearTimeout(holdTimer); }
       const now = performance.now(); if (e.pointerType === 'touch' || now - lastMove < 90) return; lastMove = now;
-      const hit = pickAnimal(e);
+      const hit = pickAnimal(e) || pickLantern(e) || pickMemory(e);
       dom.style.cursor = hit ? 'pointer' : '';
       if (!down && !hit) { const g = pickGround(e, 0.05); if (g) { attract(toWorld(g.x, g.y, g.z)); wake(); } } // rê chuột: bướm, đom đóm bay theo
     };
-    const onCancel = () => { clearTimeout(holdTimer); if (down?.pet) endPet(); down = null; };
+    const onCancel = () => { clearTimeout(holdTimer); if (down?.pet) endPet(); down = null; if (editor.on) edCancel(); };
     dom.addEventListener('pointerdown', onDown); dom.addEventListener('pointerup', onUp); dom.addEventListener('pointermove', onMove);
     dom.addEventListener('pointercancel', onCancel); dom.addEventListener('pointerleave', onCancel);
     cleanupInteract = () => {
@@ -2698,10 +3710,11 @@ function createScene(THREE, el, initialHealth, exposeSetTarget, OrbitControls, g
     // đèn lồng sáng rõ lúc tối
     lanternMat.emissiveIntensity = (0.2 + 1.2 * v) * (1 + 1.6 * nt);
     lanternLight.intensity = 1.5 * v + 3 * nt;
+    decorGlow.forEach((m) => { m.emissiveIntensity = 0.05 + 1.2 * nt; });
     renderer.toneMappingExposure = (0.9 + 0.24 * v) * (1 - 0.18 * nt) * (0.9 + 0.1 * nt) * (1 - (1 - RD) * 0.5);
     // vườn càng khoẻ càng nhiều con vật ra chơi
     // giảm chuyển động: con vật không di chuyển được nên ẩn đi
-    critters.forEach((c) => { c.g.visible = v > c.threshold; });
+    critters.forEach((c) => { c.g.visible = !c.removed && v > c.threshold; });
     ducks.forEach((d, i) => { d.g.visible = !reduceMotion && (i === 0 || v > 0.2 + i * 0.15); }); // vịt mẹ luôn ở lại
     butterflies.forEach((b, i) => { b.g.visible = !reduceMotion && v > 0.4 + i * 0.12; });
     birds.forEach((b, i) => { b.g.visible = !reduceMotion && v > 0.4 + i * 0.08; });
@@ -2755,7 +3768,7 @@ function createScene(THREE, el, initialHealth, exposeSetTarget, OrbitControls, g
       }
       for (const s of satellites) { s.g.position.y = s.y + Math.sin(t * 0.7 + s.phase) * 0.18; s.g.rotation.y = t * s.spin + s.phase; }
 
-      for (const c of critters) if (c.g.visible) stepCritter(c, dt, t);
+      for (const c of critters) if (c.g.visible && !editor.on) stepCritter(c, dt, t); // đang trang trí: con vật đứng yên cho dễ kéo
       for (const f of fishes) stepFish(f, dt, t);
       ducks.forEach((d, i) => {
         if (!d.g.visible) return;
@@ -2863,6 +3876,22 @@ function createScene(THREE, el, initialHealth, exposeSetTarget, OrbitControls, g
       });
       for (const c of cloudClusters) { c.g.position.x = c.x + Math.sin(t * 0.08 + c.phase) * 0.35; }
       stepReactions(dt); stepSeeds(dt); stepRipples(dt); stepPet(dt);
+      stepLanterns(dt, t); stepShooting(dt); stepVisitor(dt);
+      if (memGrow >= 0) { // bông ký ức mới mọc lên
+        memGrowT += dt; const k = Math.min(1, memGrowT / 1.8);
+        placeMemories(1 + 2.7 * (k - 1) ** 3 + 1.7 * (k - 1) ** 2);
+        if (k >= 1) { const [x, z] = memPos[memGrow]; spawnHearts(island.localToWorld(new THREE.Vector3(x, footY(x, z) + 0.2, z)), 4); memGrow = -1; }
+      }
+      if (editor.on && ghost && ghostState.has && !editor.sel) {
+        const rr = (ghost.spec.g === 'animal' ? 0.32 : Math.max(0.12, (ghost.spec.h || 0.3) * 0.28)) * ghostState.s;
+        editRing.position.set(ghostState.x, footY(ghostState.x, ghostState.z, 0.05) + 0.02, ghostState.z); editRing.scale.set(rr, rr, rr);
+        editRing.material.color.set(ghostState.ok ? '#C8F0A0' : '#FF8A7A'); editRing.material.opacity = 0.75; editRing.visible = true;
+      } else if (editor.on && editor.sel?.g.parent) {
+        editRing.material.color.set('#FFE08A');
+        const it = editor.sel; const rr = (it.r * 1.5 + 0.06) * it.pose[3];
+        editRing.position.set(it.g.position.x, it.g.position.y + 0.02, it.g.position.z); editRing.scale.set(rr, rr, rr);
+        editRing.material.opacity = 0.6 + Math.sin(t * 5) * 0.3; editRing.visible = true;
+      } else editRing.visible = false;
       if (selected) {
         selT -= dt; selRing.material.opacity = 0.55 + Math.sin(t * 4) * 0.3;
         if (selT <= 0 || !selected.g.visible) select(null);
@@ -2920,7 +3949,8 @@ function createScene(THREE, el, initialHealth, exposeSetTarget, OrbitControls, g
       }
     }
 
-    controls?.update();
+    if (!reduceMotion) stepReveal(dt);
+    if (!reveal.on) controls?.update();
     renderer.render(scene, camera);
     // giảm chuyển động: chỉ vẽ tiếp khi đang chuyển trạng thái health
     if (reduceMotion && h === target) return;
@@ -2934,6 +3964,8 @@ function createScene(THREE, el, initialHealth, exposeSetTarget, OrbitControls, g
   return () => {
     disposed = true;
     if (raf) cancelAnimationFrame(raf);
+    if (thumbR) { thumbR.dispose(); thumbR.forceContextLoss?.(); }
+    lanterns.forEach((l) => scene.remove(l.g));
     ro.disconnect(); io.disconnect();
     document.removeEventListener('visibilitychange', onVis);
     scene.traverse((o) => {
