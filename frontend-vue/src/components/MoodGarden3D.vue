@@ -2,6 +2,8 @@
   <div ref="host" class="mg3d" :style="{ background: skyGradient }" role="img" :aria-label="label">
     <!-- Máy không có WebGL: dùng bản vẽ 2D -->
     <MoodGarden v-if="failed" :health="health" :label="label" />
+    <!-- lời nhắn bám theo một vật trong cảnh (đèn lồng đang bay): vị trí cập nhật mỗi khung hình -->
+    <div ref="bubbleEl" class="mg3d-bubble" :class="{ 'is-on': bubbleOn }"><slot name="bubble" /></div>
   </div>
 </template>
 
@@ -25,7 +27,9 @@ const props = defineProps({
   layout: { type: Object, default: null },
   // Vườn ký ức: [{ day, emotion, score }] cũ → mới · Đèn lồng biết ơn: [{ id, text, created_at }]
   memories: { type: Array, default: () => [] },
-  lanterns: { type: Array, default: () => [] }
+  lanterns: { type: Array, default: () => [] },
+  // id đèn lồng đang hiện lời nhắn bên cạnh (null = không)
+  bubbleFor: { type: [String, Number], default: null }
 });
 // garden-event: { type: 'voice', kind } | 'select' | 'deselect' | 'breathe-start' — để phát âm thanh & hiện lớp hướng dẫn
 const emit = defineEmits(['garden-event']);
@@ -71,6 +75,13 @@ watch(() => props.layout, (l) => editorApi?.applyLayout(l));
 let gardenApi = null;
 watch(() => props.memories, (m) => gardenApi?.setMemories(m));
 watch(() => props.lanterns, (l) => gardenApi?.setLanterns(l));
+watch(() => props.bubbleFor, (id) => gardenApi?.setAnchor(id));
+const bubbleEl = ref(null); const bubbleOn = ref(false);
+// cảnh gọi mỗi khung hình: đặt khung chữ ngay trên vật đang bám (toạ độ điểm ảnh trong khung vườn)
+function placeBubble(x, y, on) {
+  if (bubbleOn.value !== on) bubbleOn.value = on;
+  if (on && bubbleEl.value) bubbleEl.value.style.transform = `translate(${Math.round(x)}px, ${Math.round(y)}px) translate(-50%, calc(-100% - 14px))`;
+}
 
 let mergeVertices = null;
 onMounted(async () => {
@@ -96,7 +107,7 @@ onMounted(async () => {
   }
   if (!host.value) return;
   try {
-    stop = createScene(THREE, host.value, clamp01(props.health), (fn) => { setTarget = fn; }, OrbitControls, gltf, { hour: hourNow.value, real: props.hour == null, expose: (fn) => { setHour = fn; }, onEvent: (e) => emit('garden-event', e), exposeBreath: (fn) => { endBreath = fn; }, layout: props.layout, exposeEditor: (api) => { editorApi = api; }, memories: props.memories, lanterns: props.lanterns, exposeGarden: (api) => { gardenApi = api; } });
+    stop = createScene(THREE, host.value, clamp01(props.health), (fn) => { setTarget = fn; }, OrbitControls, gltf, { hour: hourNow.value, real: props.hour == null, expose: (fn) => { setHour = fn; }, onEvent: (e) => emit('garden-event', e), exposeBreath: (fn) => { endBreath = fn; }, layout: props.layout, exposeEditor: (api) => { editorApi = api; }, memories: props.memories, lanterns: props.lanterns, exposeGarden: (api) => { gardenApi = api; }, onAnchor: placeBubble, anchor: props.bubbleFor });
     hourTimer = setInterval(() => { realHour.value = nowHour(); }, 60000); // cập nhật giờ mỗi phút
   } catch (err) {
     console.warn('[MoodGarden3D] WebGL không khả dụng, dùng bản 2D', err);
@@ -3582,7 +3593,17 @@ function createScene(THREE, el, initialHealth, exposeSetTarget, OrbitControls, g
       }
     }
   }
-  timeOpts.exposeGarden?.({ setMemories, setLanterns });
+  let anchorId = timeOpts.anchor ?? null; const _ap = new THREE.Vector3();
+  function stepAnchor() {
+    if (anchorId == null) return;
+    const l = lanterns.find((x) => String(x.id) === String(anchorId));
+    if (!l) { timeOpts.onAnchor?.(0, 0, false); return; }
+    _ap.copy(l.g.position); _ap.y += 0.32; _ap.project(camera);
+    const on = _ap.z < 1 && Math.abs(_ap.x) < 1.15 && Math.abs(_ap.y) < 1.15;
+    const w = el.clientWidth; const hh = el.clientHeight;
+    timeOpts.onAnchor?.(((_ap.x + 1) / 2) * w, ((1 - _ap.y) / 2) * hh, on);
+  }
+  timeOpts.exposeGarden?.({ setMemories, setLanterns, setAnchor(id) { anchorId = id ?? null; if (anchorId == null) timeOpts.onAnchor?.(0, 0, false); wake(); } });
   setMemories(timeOpts.memories, true); setLanterns(timeOpts.lanterns, true); // lúc dựng cảnh: vòng vẽ chưa có, chưa gọi wake
 
   let cleanupInteract = () => {};
@@ -3610,7 +3631,7 @@ function createScene(THREE, el, initialHealth, exposeSetTarget, OrbitControls, g
       if (moved > 8 || held > 450) return; // kéo xoay đảo → không tính là chạm
       if (hitStar(e)) { wake(); return; }
       const lan = pickLantern(e);
-      if (lan) { spawnHearts(lan.g.position, 3); fire('lantern', { text: lan.text, date: lan.date }); fire('voice', { kind: 'lantern' }); wake(); return; }
+      if (lan) { spawnHearts(lan.g.position, 3); fire('lantern', { id: lan.id, text: lan.text, date: lan.date }); fire('voice', { kind: 'lantern' }); wake(); return; }
       const hit = pickAnimal(e);
       if (hit) { interact(hit); return; }
       const mem = pickMemory(e);
@@ -3950,6 +3971,7 @@ function createScene(THREE, el, initialHealth, exposeSetTarget, OrbitControls, g
     }
 
     if (!reduceMotion) stepReveal(dt);
+    stepAnchor();
     if (!reveal.on) controls?.update();
     renderer.render(scene, camera);
     // giảm chuyển động: chỉ vẽ tiếp khi đang chuyển trạng thái health
@@ -3984,5 +4006,8 @@ function createScene(THREE, el, initialHealth, exposeSetTarget, OrbitControls, g
 
 <style scoped>
 .mg3d { position: relative; width: 100%; height: 100%; overflow: hidden; }
+.mg3d-bubble { position: absolute; left: 0; top: 0; z-index: 2; opacity: 0; pointer-events: none; transition: opacity 0.25s ease; will-change: transform; }
+.mg3d-bubble.is-on { opacity: 1; }
+.mg3d-bubble.is-on > * { pointer-events: auto; }
 .mg3d :deep(.mg3d-canvas) { display: block; width: 100%; height: 100%; touch-action: none; }
 </style>
