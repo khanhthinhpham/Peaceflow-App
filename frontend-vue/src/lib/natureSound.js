@@ -100,6 +100,42 @@ export function createNatureSound() {
       try { m.gain.setTargetAtTime(0, c.currentTime, 0.25); } catch { /* bỏ qua */ }
       setTimeout(() => { c.close().catch(() => {}); }, 900); // tắt êm rồi đóng
     },
+    // tiếng riêng khi tương tác với con vật / khu vườn (chỉ kêu khi âm thanh đang bật)
+    voice(kind) {
+      if (!ctx || !running) return;
+      const t0 = ctx.currentTime;
+      const out = gainNode(1); out.connect(master);
+      // một nốt: dạng sóng, tần số đầu → cuối, độ dài, âm lượng; tuỳ chọn rung (vibrato) & lọc
+      const note = ({ type = 'sine', f0, f1 = f0, at = 0, dur, peak, vib = 0, vibF = 6, lp = 0, bp = 0, q = 1 }) => {
+        const o = ctx.createOscillator(); const g = ctx.createGain(); o.type = type;
+        const st = t0 + at;
+        o.frequency.setValueAtTime(f0, st); o.frequency.exponentialRampToValueAtTime(Math.max(20, f1), st + dur);
+        if (vib) { const l = ctx.createOscillator(); const lg = ctx.createGain(); l.frequency.value = vibF; lg.gain.value = vib; l.connect(lg); lg.connect(o.frequency); l.start(st); l.stop(st + dur + 0.05); }
+        g.gain.setValueAtTime(0, st); g.gain.linearRampToValueAtTime(peak, st + Math.min(0.03, dur / 4)); g.gain.exponentialRampToValueAtTime(0.0005, st + dur);
+        let node = o; if (lp) { const f = filt('lowpass', lp); node.connect(f); node = f; } if (bp) { const f = filt('bandpass', bp, q); node.connect(f); node = f; }
+        node.connect(g); g.connect(out); o.start(st); o.stop(st + dur + 0.05);
+      };
+      const hiss = (at, dur, peak, type, freq, q = 1) => { // tiếng xào xạc ngắn (nhiễu qua lọc)
+        const src = ctx.createBufferSource(); src.buffer = noise('white', Math.max(0.1, dur)); const f = filt(type, freq, q); const g = ctx.createGain(); const st = t0 + at;
+        g.gain.setValueAtTime(0, st); g.gain.linearRampToValueAtTime(peak, st + 0.01); g.gain.exponentialRampToValueAtTime(0.0005, st + dur);
+        src.connect(f); f.connect(g); g.connect(out); src.start(st); src.stop(st + dur + 0.02);
+      };
+      switch (kind) {
+        case 'duck': [0, 0.2].forEach((at) => note({ type: 'sawtooth', f0: 560, f1: 430, at, dur: 0.13, peak: 0.1, bp: 1150, q: 2.5 })); break; // quác quác
+        case 'shiba': [0, 0.24].forEach((at) => { note({ type: 'triangle', f0: 420, f1: 260, at, dur: 0.11, peak: 0.12, lp: 1600 }); hiss(at, 0.06, 0.05, 'bandpass', 900, 1.5); }); break; // gâu gâu nhỏ
+        case 'fox': [0, 0.22].forEach((at) => note({ f0: 950, f1: 1450, at, dur: 0.16, peak: 0.07 })); break; // ăng ẳng
+        case 'deer': note({ type: 'triangle', f0: 640, f1: 520, dur: 0.38, peak: 0.07, vib: 25, vibF: 16 }); break;
+        case 'sheep': note({ type: 'sawtooth', f0: 290, f1: 250, dur: 0.75, peak: 0.07, vib: 18, vibF: 7, lp: 1500 }); break; // beee
+        case 'bird': bird(); break;
+        case 'splash': note({ f0: 1100, f1: 190, dur: 0.14, peak: 0.13 }); hiss(0.02, 0.18, 0.04, 'highpass', 1800); break; // tõm
+        case 'water': hiss(0, 0.6, 0.04, 'highpass', 2600); break; // tưới róc rách
+        case 'seeds': for (let i = 0; i < 9; i += 1) hiss(i * 0.04 + Math.random() * 0.03, 0.03, 0.05, 'bandpass', 3200, 2); break; // lạo xạo rắc hạt
+        case 'purr': note({ type: 'sawtooth', f0: 52, f1: 48, dur: 1.4, peak: 0.06, lp: 260, vib: 4, vibF: 22 }); break; // rừ rừ êm
+        case 'chime': [[880, 0], [1320, 0.12], [1760, 0.24]].forEach(([f, at]) => note({ f0: f, at, dur: 1.5, peak: 0.045 })); break; // chuông gió
+        default: break;
+      }
+      setTimeout(() => { try { out.disconnect(); } catch { /* bỏ qua */ } }, 2500);
+    },
     setMood(v) { mood = Math.min(1, Math.max(0, Number(v) || 0)); applyLevels(); },
     setHour(hr) { night = hr < 4.5 || hr > 20.5 ? 1 : hr < 6 ? (6 - hr) / 1.5 : hr > 18.5 ? (hr - 18.5) / 2 : 0; }
   };

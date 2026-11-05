@@ -1,9 +1,8 @@
 import { Router } from 'express';
 import multer from 'multer';
-import sharp from 'sharp';
 import sanitizeHtml from 'sanitize-html';
 import { requireAuth } from '../../common/middleware/auth.middleware.js';
-import { resolveSafeContentType } from '../../common/utils/safeFileServe.js';
+import { compressUpload, sendDbImage } from '../../common/utils/dbImage.js';
 import { db } from '../../config/db.js';
 import { env } from '../../config/env.js';
 import { broadcastToUsers } from '../notifications/notification.routes.js';
@@ -91,7 +90,7 @@ function mapArticle(row, categoriesMap, { withContent = false } = {}) {
 router.get('/articles', async (req, res) => {
   try {
     const category = typeof req.query.category === 'string' ? req.query.category : null;
-    const limit = Math.max(parseInt(req.query.limit, 10) || 30, 1);
+    const limit = Math.min(Math.max(parseInt(req.query.limit, 10) || 30, 1), 50); // chặn ?limit quá lớn
     const offset = Math.max(parseInt(req.query.offset, 10) || 0, 0);
 
     const categoriesMap = await getCategoriesMap(req.locale);
@@ -183,31 +182,14 @@ router.get('/articles/:id/share', async (req, res) => {
 
 router.get('/articles/:id/cover', async (req, res) => {
   try {
-    const r = await db.query(`select cover_image, cover_image_mime from articles where id = $1`, [req.params.id]);
-    const row = r.rows[0];
-    if (!row?.cover_image) return res.status(404).end();
-
-    // AVIF chưa được hầu hết bot quét link MXH (Facebook/Messenger...) hỗ trợ cho og:image —
-    // ảnh bị rớt silent, kéo theo cả title/description cũng không hiện (xem article.routes.js
-    // /share). Admin lỡ upload file .avif thì tự chuyển sang JPEG ở đây, không cần sửa lại
-    // từng bài trong DB. Định dạng khác (jpeg/png/webp) giữ nguyên, không tốn CPU convert.
-    if (row.cover_image_mime === 'image/avif') {
-      try {
-        const jpegBuffer = await sharp(row.cover_image).jpeg({ quality: 85 }).toBuffer();
-        res.set('Content-Type', 'image/jpeg');
-        res.set('Cache-Control', 'public, max-age=86400');
-        return res.send(jpegBuffer);
-      } catch (convertError) {
-        console.error('Cover AVIF->JPEG convert error:', convertError.message);
-        // Convert lỗi thì vẫn trả ảnh gốc, còn hơn 500 trắng trang.
-      }
-    }
-
-    const { mime, inline } = await resolveSafeContentType(row.cover_image, row.cover_image_mime);
-    res.set('Content-Type', mime);
-    res.set('Content-Disposition', inline ? 'inline' : 'attachment; filename="cover"');
-    res.set('Cache-Control', 'public, max-age=86400');
-    return res.send(row.cover_image);
+    // ETag + s-maxage: CDN của Vercel giữ ảnh 1 giờ, trình duyệt có sẵn thì 304 — ảnh chỉ bị
+    // đọc khỏi DB khi thật sự đổi. AVIF cũ được đổi sang JPEG trong sendDbImage (bot MXH cần).
+    const sent = await sendDbImage(req, res, {
+      table: 'articles', column: 'cover_image', mimeColumn: 'cover_image_mime', id: req.params.id,
+      cacheControl: 'public, max-age=3600, s-maxage=3600, stale-while-revalidate=86400'
+    });
+    if (!sent) return res.status(404).end();
+    return undefined;
   } catch (error) {
     console.error('Get article cover error:', error);
     return res.status(500).end();
@@ -296,7 +278,7 @@ router.get('/admin/articles/:id', requireAuth, async (req, res) => {
   }
 });
 
-router.post('/admin/articles', requireAuth, coverUpload.single('cover'), async (req, res) => {
+router.post('/admin/articles', requireAuth, coverUpload.single('cover'), compressUpload('cover'), async (req, res) => {
   try {
     if (!req.user.is_admin) return res.status(403).json({ success: false, message: 'Admin only' });
 
@@ -347,7 +329,7 @@ router.post('/admin/articles', requireAuth, coverUpload.single('cover'), async (
   }
 });
 
-router.put('/admin/articles/:id', requireAuth, coverUpload.single('cover'), async (req, res) => {
+router.put('/admin/articles/:id', requireAuth, coverUpload.single('cover'), compressUpload('cover'), async (req, res) => {
   try {
     if (!req.user.is_admin) return res.status(403).json({ success: false, message: 'Admin only' });
 

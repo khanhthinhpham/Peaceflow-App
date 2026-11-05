@@ -161,6 +161,7 @@
 import { ref, computed, reactive, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { apiClient, API_BASE_URL } from '../../lib/apiClient';
+import { forgetExpertAvatar } from '../../lib/expertAvatars';
 import { useAdminBadgesStore } from '../../stores/adminBadges';
 import { icon } from '../../lib/adminIcons';
 import { cropAvatarFile } from '../../lib/avatarCropper';
@@ -294,7 +295,7 @@ function triggerAvatarInput(id) {
 
 async function loadAvatarThumb(id) {
   try {
-    const blob = await apiClient.getBlob(`/experts/${id}/avatar`);
+    const blob = await apiClient.getBlob(`/experts/${id}/avatar`, { cache: 'no-cache' }); // hỏi lại bằng ETag: đổi ảnh là thấy ngay
     avatarUrls[id] = URL.createObjectURL(blob);
   } catch (_e) { /* giữ nguyên emoji mặc định nếu tải lỗi */ }
 }
@@ -337,6 +338,7 @@ async function onAvatarFileChange(id, event) {
     const fd = new FormData();
     fd.append('image', cropped);
     await apiClient.postForm(`/admin/experts/${id}/avatar`, fd);
+    forgetExpertAvatar(id);
     loadExperts(expPage.value);
   } catch (e) {
     alert(e.message || 'Tải ảnh thất bại.');
@@ -349,6 +351,7 @@ async function removeAvatar(id) {
   if (!window.confirm('Xoá ảnh đại diện thật, quay về emoji mặc định?')) return;
   try {
     await apiClient.delete(`/admin/experts/${id}/avatar`);
+    forgetExpertAvatar(id);
     loadExperts(expPage.value);
   } catch (e) {
     alert(e.message || 'Xoá ảnh thất bại.');

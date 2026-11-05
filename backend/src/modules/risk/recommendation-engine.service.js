@@ -1,6 +1,6 @@
 import { db } from '../../config/db.js';
 import { RiskEngineService } from './risk-engine.service.js';
-import { getActiveTasks } from '../tasks/tasks.cache.js';
+import { getActiveTaskIndex, getTasksByIds } from '../tasks/tasks.cache.js';
 
 export class RecommendationEngineService {
   /**
@@ -88,6 +88,11 @@ export class RecommendationEngineService {
       const longTermTask = scoredTasks.find(t => t.duration_minutes >= 10) || scoredTasks[0];
       const backupTask = scoredTasks.find(t => !todayPriority.some(pt => pt.id === t.id)) || scoredTasks[4];
 
+      // Chấm điểm trên bản nhẹ → giờ mới lấy đủ cột (tiêu đề, mô tả, các bước…) cho đúng các nhiệm vụ được chọn
+      const picked = [emergencyTask, ...todayPriority, microTask, longTermTask, backupTask].filter(Boolean);
+      const fullById = new Map((await getTasksByIds(picked.map((t) => t.id))).map((t) => [t.id, t]));
+      const withDetails = (t) => (t ? { ...(fullById.get(t.id) || t), recommendation_score: t.recommendation_score } : t);
+
       // 4. Log recommendation — fire-and-forget, không block response
       this._logRecommendation(userId, latestRisk.id, {
         emergency_task: emergencyTask?.id,
@@ -98,11 +103,11 @@ export class RecommendationEngineService {
       }, { latest_mood: latestMood }).catch((e) => console.error('Recommendation log failed:', e.message));
 
       return {
-        emergency_task: emergencyTask,
-        today_priority_tasks: todayPriority,
-        micro_task: microTask,
-        long_term_task: longTermTask,
-        backup_task: backupTask,
+        emergency_task: withDetails(emergencyTask),
+        today_priority_tasks: todayPriority.map(withDetails),
+        micro_task: withDetails(microTask),
+        long_term_task: withDetails(longTermTask),
+        backup_task: withDetails(backupTask),
         risk_summary: latestRisk,
         show_emergency_banner: latestRisk.show_emergency_banner
       };
@@ -152,7 +157,7 @@ export class RecommendationEngineService {
   }
 
   static async _getActiveTasks() {
-    return getActiveTasks();
+    return getActiveTaskIndex();
   }
 
   static async _getTaskHistory(userId) {

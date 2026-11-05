@@ -2,6 +2,7 @@ import { Router } from 'express';
 import multer from 'multer';
 import { requireAuth } from '../../common/middleware/auth.middleware.js';
 import { resolveSafeContentType } from '../../common/utils/safeFileServe.js';
+import { compressUpload, sendDbImage } from '../../common/utils/dbImage.js';
 import { db } from '../../config/db.js';
 import { z } from 'zod';
 import { env } from '../../config/env.js';
@@ -260,7 +261,7 @@ router.put('/expert-portal/profile', requireAuth, async (req, res) => {
 });
 
 // Chuyên gia tự tải lên ảnh đại diện thật cho hồ sơ của chính mình.
-router.post('/expert-portal/avatar', requireAuth, avatarUpload.single('image'), async (req, res) => {
+router.post('/expert-portal/avatar', requireAuth, avatarUpload.single('image'), compressUpload('avatar'), async (req, res) => {
   try {
     if (req.user.role !== 'expert') {
       return res.status(403).json({ success: false, message: 'Expert access required' });
@@ -2214,7 +2215,7 @@ router.patch('/admin/experts/:id', requireAuth, async (req, res) => {
 });
 
 // Admin tải lên ảnh đại diện thật cho chuyên gia (thay cho avatar_emoji mặc định).
-router.post('/admin/experts/:id/avatar', requireAuth, avatarUpload.single('image'), async (req, res) => {
+router.post('/admin/experts/:id/avatar', requireAuth, avatarUpload.single('image'), compressUpload('avatar'), async (req, res) => {
   try {
     if (!req.user.is_admin) return res.status(403).json({ success: false, message: 'Admin only' });
     if (!req.file) return res.status(400).json({ success: false, message: 'Thiếu file ảnh' });
@@ -2253,16 +2254,13 @@ router.delete('/admin/experts/:id/avatar', requireAuth, async (req, res) => {
 // Ảnh đại diện thật của chuyên gia (yêu cầu đăng nhập, dùng trong danh sách chuyên gia).
 router.get('/experts/:id/avatar', requireAuth, async (req, res) => {
   try {
-    const r = await db.query(`select avatar_photo, avatar_photo_mime from experts where id = $1 limit 1`, [req.params.id]);
-    const row = r.rows[0];
-    if (!row || !row.avatar_photo) {
-      return res.status(404).json({ success: false, message: 'Chưa có ảnh đại diện' });
-    }
-    const { mime, inline } = await resolveSafeContentType(row.avatar_photo, row.avatar_photo_mime);
-    res.set('Content-Type', mime);
-    res.set('Content-Disposition', inline ? 'inline' : 'attachment; filename="avatar"');
-    res.set('Cache-Control', 'private, max-age=3600');
-    return res.send(row.avatar_photo);
+    // ETag: trình duyệt đã có đúng ảnh → 304, không kéo ảnh khỏi DB (giảm Egress Supabase)
+    const sent = await sendDbImage(req, res, {
+      table: 'experts', column: 'avatar_photo', mimeColumn: 'avatar_photo_mime', id: req.params.id,
+      cacheControl: 'private, max-age=3600'
+    });
+    if (!sent) return res.status(404).json({ success: false, message: 'Chưa có ảnh đại diện' });
+    return undefined;
   } catch (error) {
     console.error('Expert avatar fetch error:', error);
     return res.status(500).json({ success: false, message: 'Could not fetch avatar' });

@@ -155,6 +155,7 @@ import { useRouter } from 'vue-router';
 import { useAuthStore } from '../../stores/auth';
 import { useExpertPortalStore } from '../../stores/expertPortal';
 import { apiClient } from '../../lib/apiClient';
+import { forgetExpertAvatar } from '../../lib/expertAvatars';
 import { cropAvatarFile } from '../../lib/avatarCropper';
 import ExpertStatusBanner from '../../components/ExpertStatusBanner.vue';
 
@@ -248,7 +249,8 @@ async function renderAvatarPhotoPreview(expert) {
   avatarPhotoUrl.value = null;
   if (!expert?.has_avatar_photo) return;
   try {
-    const blob = await apiClient.getBlob(`/experts/${expert.id}/avatar`);
+    forgetExpertAvatar(expert.id); // vừa đổi / xoá ảnh thì các màn khác lấy bản mới
+    const blob = await apiClient.getBlob(`/experts/${expert.id}/avatar`, { cache: 'no-cache' });
     avatarPhotoUrl.value = URL.createObjectURL(blob);
   } catch (_e) {
     avatarPhotoUrl.value = null;

@@ -114,7 +114,21 @@
         "needs-care": "Needs care",
         "empty": "No data yet"
       },
-      "eyebrow": "Inner ecosystem"
+      "eyebrow": "Inner ecosystem",
+      "breathTitle": "Breathe with the {animal}",
+      "breath_in": "Breathe in",
+      "breath_hold": "Hold gently",
+      "breath_out": "Breathe out",
+      "breathRound": "Round {n}/{total}",
+      "breathStop": "Stop",
+      "breathDone": "Nicely done, feeling lighter",
+      "callHint": "Tap the grass to call the {animal} over · tap it again to cancel",
+      "animals": {
+        "fox": "fox",
+        "shiba": "pup",
+        "deer": "deer",
+        "sheep": "sheep"
+      }
     },
     "risk": {
       "critical": "Very high risk",
@@ -184,7 +198,8 @@
       "expertHint": "Come back anytime you need it.",
       "donateBtn": "Support the project",
       "gardenExpand": "Expand garden",
-      "gardenHint": "Tap an animal to play, tap a flower to water it · drag to rotate · scroll or pinch to zoom · Esc to close",
+      "gardenHint": "Tap an animal to call it · press and hold to pet (hold longer to breathe together) · tap the grass to scatter seeds, the pond to feed the fish, a flower to water it · drag to rotate · Esc to close",
+      "gardenCreditToggle": "3D model credits",
       "gardenCreditPrefix": "3D models:",
       "gardenPreview": "Preview",
       "previewReal": "Actual",

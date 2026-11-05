@@ -114,7 +114,21 @@
         "needs-care": "Cần chăm sóc",
         "empty": "Chưa có dữ liệu"
       },
-      "eyebrow": "Sinh thái nội tâm"
+      "eyebrow": "Sinh thái nội tâm",
+      "breathTitle": "Cùng {animal} hít thở",
+      "breath_in": "Hít vào",
+      "breath_hold": "Giữ nhẹ",
+      "breath_out": "Thở ra",
+      "breathRound": "Nhịp {n}/{total}",
+      "breathStop": "Dừng",
+      "breathDone": "Bạn làm tốt lắm, nhẹ nhõm hơn rồi nhé",
+      "callHint": "Chạm vào bãi cỏ để gọi {animal} tới · chạm lại {animal} để thôi",
+      "animals": {
+        "fox": "bạn cáo",
+        "shiba": "bạn cún",
+        "deer": "bạn nai",
+        "sheep": "bạn cừu"
+      }
     },
     "risk": {
       "critical": "Rủi ro rất cao",
@@ -184,7 +198,8 @@
       "expertHint": "Bạn có thể quay lại bất cứ lúc nào khi cần nhé!",
       "donateBtn": "Ủng hộ dự án",
       "gardenExpand": "Phóng to khu vườn",
-      "gardenHint": "Chạm vào con vật để chơi cùng, chạm vào hoa để tưới · kéo để xoay · cuộn hoặc chụm để phóng to · Esc để đóng",
+      "gardenHint": "Chạm con vật để gọi · giữ tay để vuốt ve (giữ lâu để cùng hít thở) · chạm bãi cỏ để rắc hạt, chạm hồ cho cá ăn, chạm hoa để tưới · kéo để xoay · Esc để đóng",
+      "gardenCreditToggle": "Nguồn mô hình 3D",
       "gardenCreditPrefix": "Mô hình 3D:",
       "gardenPreview": "Xem thử",
       "previewReal": "Thực tế",

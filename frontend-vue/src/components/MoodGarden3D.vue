@@ -18,8 +18,12 @@ const props = defineProps({
   // true: kéo chuột / ngón tay để xoay, cuộn / chụm để phóng to (dùng ở chế độ mở toàn màn hình)
   interactive: { type: Boolean, default: false },
   // giờ trong ngày để xem thử (0–24); null = theo giờ thật của máy
-  hour: { type: Number, default: null }
+  hour: { type: Number, default: null },
+  // đang mở bài "cùng thở" với một con vật (DashboardView điều khiển); false → con vật thôi thở, nhảy mừng
+  breathing: { type: Boolean, default: false }
 });
+// garden-event: { type: 'voice', kind } | 'select' | 'deselect' | 'breathe-start' — để phát âm thanh & hiện lớp hướng dẫn
+const emit = defineEmits(['garden-event']);
 
 /* Sáng / chiều / tối theo giờ thật: night 0..1 (đêm), golden 0..1 (nắng vàng bình minh / hoàng hôn) */
 function timeOfDay(hr) {
@@ -50,9 +54,11 @@ const skyGradient = computed(() => {
 let stop = () => {};
 let setTarget = () => {};
 let setHour = () => {};
+let endBreath = () => {};
 
 watch(() => props.health, (v) => setTarget(clamp01(v)));
-watch(hourNow, (hr) => setHour(hr));
+watch(hourNow, (hr) => setHour(hr, props.hour == null));
+watch(() => props.breathing, (v) => { if (!v) endBreath(); });
 
 let mergeVertices = null;
 onMounted(async () => {
@@ -78,7 +84,7 @@ onMounted(async () => {
   }
   if (!host.value) return;
   try {
-    stop = createScene(THREE, host.value, clamp01(props.health), (fn) => { setTarget = fn; }, OrbitControls, gltf, { hour: hourNow.value, expose: (fn) => { setHour = fn; } });
+    stop = createScene(THREE, host.value, clamp01(props.health), (fn) => { setTarget = fn; }, OrbitControls, gltf, { hour: hourNow.value, real: props.hour == null, expose: (fn) => { setHour = fn; }, onEvent: (e) => emit('garden-event', e), exposeBreath: (fn) => { endBreath = fn; } });
     hourTimer = setInterval(() => { realHour.value = nowHour(); }, 60000); // cập nhật giờ mỗi phút
   } catch (err) {
     console.warn('[MoodGarden3D] WebGL không khả dụng, dùng bản 2D', err);
@@ -101,6 +107,7 @@ function mulberry32(seed) {
 
 function createScene(THREE, el, initialHealth, exposeSetTarget, OrbitControls, gltf, timeOpts = {}) {
   let tod = timeOfDay(timeOpts.hour ?? nowHour());
+  let realMode = timeOpts.real !== false; // đang theo giờ thật (không phải admin xem thử) → ban ngày dịu hơn
   const rand = mulberry32(7);
   const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
 
@@ -1118,6 +1125,8 @@ function createScene(THREE, el, initialHealth, exposeSetTarget, OrbitControls, g
      Bộ "Trees" (cây xanh, cây chính), bộ "Maple Trees" (phong đỏ), cây thân cao, bụi lá đỏ, bộ "Flower Bushes".
      Mỗi cây nằm trong nhóm `canopy` để co giãn theo health và đung đưa trong gió. */
   const trees = [];
+  // gió: hoa/bụi cây đung đưa quanh gốc (plants), cỏ uốn ngọn bằng shader (windU = thời gian)
+  const plants = []; const windU = { value: 0 };
   const TREE_WILT = C('#C9B48A');
   function loadModel(file, cb) {
     if (!gltf) return;
@@ -1157,6 +1166,9 @@ function createScene(THREE, el, initialHealth, exposeSetTarget, OrbitControls, g
           parent.add(g);
           if (sway) contactShadow(x, z, targetH * 0.24);
           if (sway) trees.push({ g, canopy, phase: rand() * 6 });
+          else if (/^(flora|tree|bush)/.test(file) && !/lilies|nenuphar/.test(file)) {
+            plants.push({ canopy, phase: x * 1.7 + z * 1.1 + rand() * 0.8, amp: (targetH < 0.45 ? 0.07 : 0.035) * (0.8 + rand() * 0.4) });
+          }
           return g;
         };
       };
@@ -1415,6 +1427,20 @@ function createScene(THREE, el, initialHealth, exposeSetTarget, OrbitControls, g
         const fresh = C(TONES[pi % TONES.length]); pt.mat.color.copy(fresh);
         // ngọn cỏ đứng nghiêng nên nhận nắng ít hơn mặt đất → bù chút tự sáng cùng màu để không bị sẫm hơn nền
         pt.mat.emissive.copy(fresh); pt.mat.emissiveIntensity = 0.12;
+        // gió: ngọn cỏ nghiêng theo làn sóng gió lướt qua đảo (gốc đứng yên, ngọn lắc nhiều)
+        pt.mat.onBeforeCompile = (sh) => {
+          sh.uniforms.uWind = windU;
+          sh.vertexShader = 'uniform float uWind;\n' + sh.vertexShader.replace('#include <begin_vertex>', `#include <begin_vertex>
+            #ifdef USE_INSTANCING
+              vec2 wp = instanceMatrix[3].xz;
+            #else
+              vec2 wp = vec2(0.0);
+            #endif
+            float wv = sin(uWind * 1.7 + wp.x * 1.3 + wp.y * 0.9) * 0.6 + sin(uWind * 2.9 + wp.x * 2.1) * 0.25;
+            float gust = 0.65 + 0.35 * sin(uWind * 0.37 + wp.y * 0.4);
+            float bendW = transformed.y * transformed.y * 0.35 * gust;
+            transformed.x += wv * bendW; transformed.z += wv * bendW * 0.5;`);
+        };
         tinted.push({ mat: pt.mat, a: fresh.clone().multiply(TREE_WILT), b: fresh, emissiveToo: true });
         const im = new THREE.InstancedMesh(pt.geo, pt.mat, mats.length);
         mats.forEach((m, i) => im.setMatrixAt(i, m));
@@ -1458,6 +1484,12 @@ function createScene(THREE, el, initialHealth, exposeSetTarget, OrbitControls, g
   // Thú thật (mô hình CC0 "Animated Animal Pack" của Quaternius, poly.pizza) có sẵn chuyển động
   // Walk / Idle / Eating. Mỗi con tự chọn điểm đến ngẫu nhiên trên bãi cỏ, đi tới (vừa đi vừa rẽ mượt),
   // đến nơi thì đứng nghỉ hoặc cúi ăn cỏ một lúc rồi chọn chỗ khác — không đi theo đường cố định.
+  // con vật quen dần: vuốt ve / cho ăn / cùng thở → lần sau mở vườn tự chạy lại gần (lưu trên máy, không có điểm số)
+  const BOND_KEY = 'pf.garden.bond';
+  const bond = (() => { try { return JSON.parse(localStorage.getItem(BOND_KEY)) || {}; } catch { return {}; } })();
+  const addBond = (id, n = 1) => { bond[id] = Math.min(50, (bond[id] || 0) + n); try { localStorage.setItem(BOND_KEY, JSON.stringify(bond)); } catch { /* bỏ qua */ } };
+  const fire = (type, data = {}) => timeOpts.onEvent?.({ type, ...data });
+  const _hp = new THREE.Vector3();
   const critters = [];
   const CRITTERS = [
     { file: 'fox', length: 0.5, threshold: 0.3, spot: [-0.9, 1.6], speed: 0.22, roam: true },
@@ -1482,31 +1514,47 @@ function createScene(THREE, el, initialHealth, exposeSetTarget, OrbitControls, g
     const lv = k === 0 ? STEP1 : STEP2;
     return [[rx, wallZ(rx, lv - 0.45)], [rx, wallZ(rx, lv + 0.45)]];
   };
-  // chọn điểm đến ngẫu nhiên trên đảo; khác tầng thì đi vòng qua lối dốc gần nhất (mỗi vách một lần)
-  function pickTarget(c) {
+  // tìm đường tới (tx, tz); khác tầng thì đi vòng qua lối dốc gần nhất (mỗi vách một lần)
+  function routeTo(c, tx, tz) {
     const { x, z } = c.g.position;
-    for (let tries = 0; tries < 40; tries += 1) {
-      const a = rand() * Math.PI * 2; const r = 0.6 + rand() * 2.4;
-      const tx = x + Math.cos(a) * r; const tz = z + Math.sin(a) * r;
-      if (!walkable(tx, tz)) continue;
-      const route = []; let cx = x; let cz = z; let ok = true;
-      let L = levelAt(x, z); const Lt = levelAt(tx, tz);
-      while (L !== Lt && ok) {
-        const up = Lt > L; const k = up ? L : L - 1;
-        const rx = RAMPS[k].reduce((best, v) => (Math.abs(v - cx) < Math.abs(best - cx) ? v : best), RAMPS[k][0]);
-        const [bot, top] = rampEnds(k, rx);
-        const legs = up ? [bot, top] : [top, bot];
-        for (const [px, pz] of legs) {
-          if (!walkable(px, pz) || !pathClear(cx, cz, px, pz)) { ok = false; break; }
-          route.push([px, pz]); cx = px; cz = pz;
-        }
-        L += up ? 1 : -1;
+    if (!walkable(tx, tz)) return false;
+    const route = []; let cx = x; let cz = z;
+    let L = levelAt(x, z); const Lt = levelAt(tx, tz);
+    while (L !== Lt) {
+      const up = Lt > L; const k = up ? L : L - 1;
+      const rx = RAMPS[k].reduce((best, v) => (Math.abs(v - cx) < Math.abs(best - cx) ? v : best), RAMPS[k][0]);
+      const [bot, top] = rampEnds(k, rx);
+      for (const [px, pz] of (up ? [bot, top] : [top, bot])) {
+        if (!walkable(px, pz) || !pathClear(cx, cz, px, pz)) return false;
+        route.push([px, pz]); cx = px; cz = pz;
       }
-      if (!ok || !pathClear(cx, cz, tx, tz)) continue;
-      route.push([tx, tz]);
-      const [fx, fz] = route.shift();
-      c.tx = fx; c.tz = fz; c.route = route;
-      return true;
+      L += up ? 1 : -1;
+    }
+    if (!pathClear(cx, cz, tx, tz)) return false;
+    route.push([tx, tz]);
+    const [fx, fz] = route.shift();
+    c.tx = fx; c.tz = fz; c.route = route;
+    return true;
+  }
+  // một chỗ trên bãi cỏ phía người xem (con vật quen thì hay lại gần đây)
+  const _camI = new THREE.Vector3();
+  function frontSpot(spread = 0.5) {
+    island.worldToLocal(_camI.copy(camera.position)); const a0 = Math.atan2(_camI.z, _camI.x);
+    for (let i = 0; i < 30; i += 1) {
+      const a = a0 + (rand() - 0.5) * spread * 2; const r = 0.9 + rand() * 1.3;
+      const x = Math.cos(a) * r; const z = Math.sin(a) * r;
+      if (walkable(x, z)) return [x, z];
+    }
+    return null;
+  }
+  // chọn điểm đến ngẫu nhiên trên đảo; con vật đã quen thì hay lảng vảng gần phía người xem
+  function pickTarget(c) {
+    const { x, z } = c.g.position; const near = Math.min(0.45, (bond[c.file] || 0) * 0.04);
+    for (let tries = 0; tries < 40; tries += 1) {
+      let tx; let tz;
+      if (rand() < near) { const f = frontSpot(0.6); if (!f) continue; [tx, tz] = f; }
+      else { const a = rand() * Math.PI * 2; const r = 0.6 + rand() * 2.4; tx = x + Math.cos(a) * r; tz = z + Math.sin(a) * r; }
+      if (routeTo(c, tx, tz)) return true;
     }
     c.tx = c.spot[0]; c.tz = c.spot[1]; c.route = [];
     return false;
@@ -1528,13 +1576,17 @@ function createScene(THREE, el, initialHealth, exposeSetTarget, OrbitControls, g
         const mixer = new THREE.AnimationMixer(model);
         const acts = {};
         res.animations.forEach((clip) => { acts[clip.name] = mixer.clipAction(clip); });
-        const c = { ...cfg, g, mixer, acts, cur: null, state: 'eat', timer: 1 + rand() * 4 };
+        const c = { ...cfg, g, mixer, acts, cur: null, state: 'eat', timer: 1 + rand() * 4, baseScale: k };
         g.position.set(cfg.spot[0], groundY(cfg.spot[0], cfg.spot[1]), cfg.spot[1]);
         g.rotation.y = cfg.face ?? rand() * Math.PI * 2;
         island.add(g);
         contactShadow(0, 0, cfg.length * 0.42, g);
         critters.push(c);
         play(c, 'Eating');
+        if (controls && c.roam && (bond[c.file] || 0) >= 3) { // đã quen: thấy bạn mở vườn là chạy lại gần, ngồi chờ
+          const f = frontSpot(0.35);
+          if (f && routeTo(c, f[0], f[1])) { c.state = 'walk'; c.timer = 16; c.arrive = 'call'; play(c, 'Walk'); }
+        }
         applyHealth(h);
         wake();
       });
@@ -1552,14 +1604,45 @@ function createScene(THREE, el, initialHealth, exposeSetTarget, OrbitControls, g
     obj.rotation.y += d * Math.min(1, rate);
     return Math.abs(d);
   };
-  function rest(c) {
-    c.state = rand() < 0.5 ? 'idle' : 'eat';
-    c.timer = 2 + rand() * 4;
-    play(c, c.state === 'idle' ? 'Idle' : 'Eating');
+  // chơi một động tác một lần (nhảy mừng…), xong thì gọi then()
+  function playOnce(c, name, then) {
+    const a = c.acts[name];
+    if (!a) { then?.(); return; }
+    a.reset(); a.setLoop(THREE.LoopOnce, 1); a.clampWhenFinished = true; a.timeScale = 1; a.fadeIn(0.2).play();
+    if (c.cur && c.cur !== a) c.cur.fadeOut(0.2);
+    c.cur = a; c.onceT = a.getClip().duration; c.onceThen = then || null;
   }
-  function stepCritter(c, dt) {
+  const _camC = new THREE.Vector3();
+  const faceCam = (c, rate) => { island.worldToLocal(_camC.copy(camera.position)); return turnToward(c.g, Math.atan2(_camC.x - c.g.position.x, _camC.z - c.g.position.z), rate); };
+  function rest(c) {
+    c.run = false; c.arrive = null;
+    const r = rand(); c.state = r < 0.35 ? 'idle' : r < 0.75 ? 'eat' : 'look'; // đứng nghỉ / gặm cỏ / ngó nghiêng
+    c.timer = 2 + rand() * 4;
+    play(c, c.state === 'idle' ? 'Idle' : c.state === 'eat' ? 'Eating' : 'Idle_2');
+  }
+  function arrive(c) {
+    const why = c.arrive; c.run = false; c.arrive = null;
+    if (why === 'eat') { // tới chỗ rắc hạt: cúi ăn ngon lành
+      c.mode = 'feed'; c.state = 'eat'; c.timer = 4 + rand() * 2; play(c, 'Eating');
+      c.g.getWorldPosition(_hp); _hp.y += 0.3; spawnHearts(_hp, 3); addBond(c.file); fire('voice', { kind: c.file });
+    } else if (why === 'call') { // tới chỗ bạn gọi: nhảy mừng rồi ngồi chờ, nhìn về phía bạn
+      c.mode = 'wait'; c.timer = 6;
+      playOnce(c, 'Jump_ToIdle', () => play(c, 'Idle'));
+      fire('voice', { kind: c.file });
+    } else rest(c);
+  }
+  const BREATH_CYCLE = 12; // hít 4s · giữ 2s · thở ra 6s (khớp lớp hướng dẫn ở DashboardView)
+  function stepCritter(c, dt, t) {
     c.mixer.update(dt);
     c.timer -= dt;
+    if (c.breathT !== undefined) { // đang cùng thở: thân phồng lên / xẹp xuống theo nhịp
+      const s2 = Math.max(0, t - c.breathT) % BREATH_CYCLE; const k = s2 < 4 ? s2 / 4 : s2 < 6 ? 1 : 1 - (s2 - 6) / 6;
+      c.g.children[0].scale.setScalar(c.baseScale * (1 + 0.06 * k * k * (3 - 2 * k)));
+    }
+    if (c.onceT > 0) { c.onceT -= dt; if (c.onceT <= 0) { const f = c.onceThen; c.onceThen = null; if (f) f(); else if (!c.mode) rest(c); } return; }
+    if (c.mode === 'pet' || c.mode === 'breath') { faceCam(c, dt * 2); return; }
+    if (c.mode === 'wait') { faceCam(c, dt * 3); if (c.timer <= 0) { if (selected === c) c.timer = 1; else { c.mode = null; rest(c); } } return; }
+    if (c.mode === 'feed') { if (c.timer <= 0) { c.mode = null; rest(c); } return; }
     if (c.boost > 0) { c.boost -= dt; if (c.cur) c.cur.timeScale = c.boost > 0 ? 1.8 : 1; }
     if (!c.roam) {
       if (c.timer <= 0) { c.timer = 4 + rand() * 5; c.face = c.g.rotation.y + (rand() - 0.5) * 2; }
@@ -1573,12 +1656,14 @@ function createScene(THREE, el, initialHealth, exposeSetTarget, OrbitControls, g
     const p = c.g.position;
     const dx = c.tx - p.x; const dz = c.tz - p.z; const dist = Math.hypot(dx, dz);
     if (dist < 0.06 && c.route?.length) { [c.tx, c.tz] = c.route.shift(); c.timer = 12; return; }
-    if (dist < 0.06 || c.timer <= 0) { rest(c); return; }
-    const off = turnToward(c.g, Math.atan2(dx, dz), dt * 3.5);
+    if (dist < 0.06 || c.timer <= 0) { arrive(c); return; }
+    const off = turnToward(c.g, Math.atan2(dx, dz), dt * (c.run ? 5 : 3.5));
     // đi theo hướng đang nhìn → đường đi cong tự nhiên; lệch hướng nhiều thì đi chậm lại để quay
-    const step = Math.min(dist, c.speed * (c.boost > 0 ? 2.3 : 1) * dt) * Math.max(0.15, Math.cos(Math.min(off, Math.PI / 2)));
+    const sp = c.speed * (c.run ? 2.6 : c.boost > 0 ? 2.3 : 1);
+    const step = Math.min(dist, sp * dt) * Math.max(0.15, Math.cos(Math.min(off, Math.PI / 2)));
     const nx = p.x + Math.sin(c.g.rotation.y) * step; const nz = p.z + Math.cos(c.g.rotation.y) * step;
     if (walkable(nx, nz)) p.set(nx, groundY(nx, nz), nz);
+    else if (c.arrive) arrive(c);
     else if (!pickTarget(c)) rest(c);
   }
 
@@ -1660,11 +1745,20 @@ function createScene(THREE, el, initialHealth, exposeSetTarget, OrbitControls, g
     });
     return clone;
   }
+  // thả mồi: cá lượn quanh chỗ mồi rơi một lúc
+  function feedTarget(f) {
+    for (let i = 0; i < 12; i += 1) {
+      const x = f.feed[0] + (rand() - 0.5) * 0.36; const z = f.feed[1] + (rand() - 0.5) * 0.36;
+      if (inPoly(POND_FISH, x, z)) { f.tx = x; f.tz = z; return; }
+    }
+    fishTarget(f);
+  }
   function stepFish(f, dt, t) {
     f.mixer.update(dt * (f.boost > 0 ? 2.2 : 1));
     if (f.boost > 0) { f.boost -= dt; if (f.boost <= 0 && f.acts.Swimming_Normal && f.cur !== f.acts.Swimming_Normal) { f.acts.Swimming_Normal.reset().fadeIn(0.4).play(); f.cur.fadeOut(0.4); f.cur = f.acts.Swimming_Normal; } }
     const p = f.g.position; const dx = f.tx - p.x; const dz = f.tz - p.z;
-    if (Math.hypot(dx, dz) < 0.06) fishTarget(f);
+    if (f.feedT > 0) f.feedT -= dt;
+    if (Math.hypot(dx, dz) < 0.06) { if (f.feedT > 0) feedTarget(f); else fishTarget(f); }
     turnToward(f.g, Math.atan2(dx, dz), dt * (f.boost > 0 ? 4 : 1.8));
     const sp = f.speed * (f.boost > 0 ? 3 : 1) * dt;
     const nx = p.x + Math.sin(f.g.rotation.y) * sp; const nz = p.z + Math.cos(f.g.rotation.y) * sp;
@@ -1696,6 +1790,9 @@ function createScene(THREE, el, initialHealth, exposeSetTarget, OrbitControls, g
     butterfly('#FFD08A', -1.6, -0.2, 3.1),
     butterfly('#9FD8F0', 0.1, -1.3, 4.4)
   ];
+  // "mồi" cho bướm & đom đóm: điểm con trỏ / ngón tay vừa lướt qua (toạ độ cảnh), t = còn hiệu lực
+  const lure = { p: new THREE.Vector3(), t: 0 }; const lureL = new THREE.Vector3(); const _bo = new THREE.Vector3(); const _bp = new THREE.Vector3();
+  const attract = (world) => { lure.p.copy(world); lure.t = 3; };
   const butterflyPos = (b, t) => new THREE.Vector3(
     b.cx + Math.sin(t * 0.55 + b.phase) * 0.6,
     b.base + Math.sin(t * 1.3 + b.phase) * 0.16,
@@ -2167,6 +2264,16 @@ function createScene(THREE, el, initialHealth, exposeSetTarget, OrbitControls, g
     fgCount = fgBase.length; fgGeo.setDrawRange(0, fgCount);
   }
   const fireflies = points(55, [9, [0.6, 3.6], 9], '#FFF0A8', 0.22);
+  const ffPull = new Float32Array(55); const fgPull = new Float32Array(160);
+  // đốm sáng ở gần con trỏ thì bay dần lại quanh đó, rời đi thì tản về chỗ cũ
+  function pullToLure(pos, n, pull, dt) {
+    for (let i = 0; i < n; i += 1) {
+      const k = i * 3; const dx = lure.p.x - pos[k]; const dy = lure.p.y + 0.3 - pos[k + 1]; const dz = lure.p.z - pos[k + 2];
+      const want = lure.t > 0 && dx * dx + dy * dy + dz * dz < 4 ? 0.75 : 0;
+      pull[i] += (want - pull[i]) * Math.min(1, dt * (want ? 1.2 : 0.6));
+      if (pull[i] > 0.001) { const ph = i * 2.4; pos[k] += (dx + Math.cos(ph) * 0.35) * pull[i]; pos[k + 1] += (dy + Math.sin(ph * 1.3) * 0.2) * pull[i]; pos[k + 2] += (dz + Math.sin(ph) * 0.35) * pull[i]; }
+    }
+  }
   scene.add(fireflies.p);
   const petals = points(26, [3, [0.4, 3], 3], '#E9826A', 0.14, THREE.NormalBlending); // lá đỏ rơi từ cây phong
   petals.p.position.set(-2.05 * 1.5, 0.3, 1.35 * 1.5); // ngay cây phong (đảo đã phóng 1.5)
@@ -2278,28 +2385,32 @@ function createScene(THREE, el, initialHealth, exposeSetTarget, OrbitControls, g
   function interact(hit) {
     const { kind, ref } = hit;
     if (kind === 'flower') { // tưới hoa: giọt nước rơi → hoa rung rồi bừng nở to hơn một lúc
-      spawnDrops(hit.point, 12);
+      spawnDrops(hit.point, 12); fire('voice', { kind: 'water' });
       if (!busy(ref)) reactions.push({ kind: 'bloom', ref, t: 0, dur: 3.2, delay: 0.55 });
       wake(); return;
     }
     spawnHearts(hit.point, kind === 'butterfly' ? 2 : 4);
     if (busy(ref)) return;
     if (kind === 'critter') {
+      if (ref.mode === 'breath') return;
       const cam = island.worldToLocal(camera.position.clone());
       ref.g.rotation.y = Math.atan2(cam.x - ref.g.position.x, cam.z - ref.g.position.z); // quay về phía người chạm
-      reactions.push({ kind: 'hop', ref, t: 0, dur: ref.roam ? 0.65 : 1.0, h: 0.22, hops: ref.roam ? 1 : 2,
-        done: () => { if (ref.roam && pickTarget(ref)) { ref.state = 'walk'; ref.timer = 9; ref.boost = 3.5; play(ref, 'Walk'); } } });
+      fire('voice', { kind: ref.file }); ref.run = false; ref.arrive = null;
+      if (!ref.roam) { ref.mode = null; playOnce(ref, 'Jump', () => play(ref, 'Idle')); } // cừu nhảy cẫng
+      else if (selected === ref) { select(null); ref.mode = null; playOnce(ref, 'Jump_ToIdle'); } // chạm lần nữa: thôi gọi
+      else { select(ref); ref.mode = 'wait'; ref.timer = 8; playOnce(ref, 'Jump_ToIdle', () => play(ref, 'Idle')); } // nhảy mừng, chờ bạn gọi
     } else if (kind === 'fish') { // cá quẫy đuôi lao đi chỗ khác
-      ref.boost = 2.2; fishTarget(ref);
+      ref.boost = 2.2; ref.feedT = 0; fishTarget(ref); fire('voice', { kind: 'splash' });
       if (ref.acts.Swimming_Fast && ref.cur !== ref.acts.Swimming_Fast) { ref.acts.Swimming_Fast.reset().fadeIn(0.2).play(); ref.cur?.fadeOut(0.2); ref.cur = ref.acts.Swimming_Fast; }
       spawnDrops(hit.point, 6);
     } else if (kind === 'duck') {
-      reactions.push({ kind: 'duckhop', ref, t: 0, dur: 0.5, h: 0.13 }); ref.boost = 2.5;
+      reactions.push({ kind: 'duckhop', ref, t: 0, dur: 0.5, h: 0.13 }); ref.boost = 2.5; fire('voice', { kind: 'duck' });
     } else if (kind === 'bird') {
+      fire('voice', { kind: 'bird' });
       if (ref.state === 'perched') ref.timer = 0; // cất cánh ngay
       else reactions.push({ kind: 'roll', ref, t: 0, dur: 0.95 });
     } else if (kind === 'butterfly') {
-      reactions.push({ kind: 'flee', ref, t: 0, dur: 1.6 });
+      reactions.push({ kind: 'flee', ref, t: 0, dur: 1.6 }); fire('voice', { kind: 'chime' });
     }
     wake();
   }
@@ -2329,22 +2440,192 @@ function createScene(THREE, el, initialHealth, exposeSetTarget, OrbitControls, g
     }
     stepHearts(dt); stepDrops(dt);
   }
+  // vòng sáng dưới chân con vật đang được chọn (chờ bạn chạm bãi cỏ để gọi tới)
+  const selRing = new THREE.Mesh(new THREE.RingGeometry(0.82, 1, 40), new THREE.MeshBasicMaterial({ color: '#FFFFFF', transparent: true, opacity: 0.8, depthWrite: false, side: THREE.DoubleSide, toneMapped: false }));
+  selRing.rotation.x = -Math.PI / 2; selRing.renderOrder = 3; selRing.visible = false;
+  let selected = null; let selT = 0;
+  function select(c) {
+    if (selected && selected !== c && selected.mode === 'wait') selected.timer = Math.min(selected.timer, 1.5);
+    selected = c; selT = 10;
+    if (c) { const r = c.length * 0.62; selRing.scale.set(r, r, r); selRing.position.set(0, 0.02, 0); c.g.add(selRing); selRing.visible = true; fire('select', { animal: c.file }); }
+    else { selRing.visible = false; selRing.parent?.remove(selRing); fire('deselect'); }
+  }
+  // hạt rắc xuống cỏ / mồi thả xuống hồ
+  const seeds = Array.from({ length: 28 }, () => {
+    const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex, color: '#C9944F', transparent: true, depthWrite: false }));
+    sp.visible = false; sp.renderOrder = 4; scene.add(sp);
+    return { sp, life: 0, v: new THREE.Vector3(), gy: 0 };
+  });
+  function spawnSeeds(world, n, floorY) {
+    let k = 0;
+    for (const d of seeds) {
+      if (d.life > 0 || k >= n) continue;
+      d.sp.position.copy(world).add(_hp.set((rand() - 0.5) * 0.1, 0.45 + rand() * 0.2, (rand() - 0.5) * 0.1));
+      d.v.set((rand() - 0.5) * 0.55, 0.3 + rand() * 0.3, (rand() - 0.5) * 0.55);
+      d.gy = floorY; d.life = 4 + rand() * 1.5; d.sp.visible = true; k += 1;
+    }
+  }
+  function stepSeeds(dt) {
+    for (const d of seeds) {
+      if (d.life <= 0) continue;
+      d.life -= dt;
+      if (d.sp.position.y > d.gy) { d.v.y -= 3 * dt; d.sp.position.addScaledVector(d.v, dt); if (d.sp.position.y <= d.gy) { d.sp.position.y = d.gy; d.v.set(0, 0, 0); } }
+      d.sp.scale.setScalar(0.055); d.sp.material.opacity = Math.min(1, d.life);
+      if (d.life <= 0) d.sp.visible = false;
+    }
+  }
+  // vòng gợn nước loang ra chỗ thả mồi
+  const ripples = Array.from({ length: 4 }, () => {
+    const m = new THREE.Mesh(new THREE.RingGeometry(0.9, 1, 40), new THREE.MeshBasicMaterial({ color: '#FFFFFF', transparent: true, opacity: 0, depthWrite: false, toneMapped: false }));
+    m.rotation.x = -Math.PI / 2; m.visible = false; m.renderOrder = 3; scene.add(m);
+    return { m, life: 0, delay: 0 };
+  });
+  function spawnRipple(world, delay = 0) {
+    const r = ripples.find((rr) => rr.life <= 0 && rr.delay <= 0) || ripples[0];
+    r.m.position.copy(world); r.m.position.y += 0.012; r.life = 1.6; r.delay = delay;
+  }
+  function stepRipples(dt) {
+    for (const r of ripples) {
+      if (r.delay > 0) { r.delay -= dt; continue; }
+      if (r.life <= 0) { r.m.visible = false; continue; }
+      r.life -= dt; const u = 1 - Math.max(0, r.life) / 1.6;
+      const sc = 0.06 + u * 0.5; r.m.scale.set(sc, sc, sc); r.m.material.opacity = (1 - u) * 0.65; r.m.visible = true;
+    }
+  }
+  const _lw = new THREE.Vector3();
+  const toWorld = (x, y, z) => island.localToWorld(_lw.set(x, y, z)).clone();
+  // chạm bãi cỏ: rắc hạt → con vật gần nhất đang rảnh chạy tới ăn; thỉnh thoảng một chú chim sà xuống mổ
+  function feedGround(g) {
+    const w = toWorld(g.x, g.y, g.z);
+    spawnSeeds(w, 10, w.y + 0.01); attract(w); fire('voice', { kind: 'seeds' });
+    const free = critters.filter((c) => c.roam && c.g.visible && !c.mode && !(c.onceT > 0))
+      .sort((a, b) => Math.hypot(a.g.position.x - g.x, a.g.position.z - g.z) - Math.hypot(b.g.position.x - g.x, b.g.position.z - g.z));
+    for (const c of free) {
+      const dx = c.g.position.x - g.x; const dz = c.g.position.z - g.z; const d = Math.hypot(dx, dz) || 1;
+      if (routeTo(c, g.x + (dx / d) * 0.14, g.z + (dz / d) * 0.14) || routeTo(c, g.x, g.z)) {
+        c.state = 'walk'; c.timer = 16; c.run = true; c.arrive = 'eat'; play(c, 'Gallop'); break;
+      }
+    }
+    if (rand() < 0.6) {
+      const b = birds.find((bb) => bb.state === 'circle' && bb.g.visible && bb.g.children.length);
+      if (b) {
+        const obj = new THREE.Object3D(); obj.position.set(g.x + 0.22, g.y, g.z + 0.16); island.add(obj); obj.updateMatrixWorld(true);
+        b.nest = { obj, busy: b, temp: true }; b.state = 'toNest'; b.timer = 4.2; b.dur = 4.2; b.p0.copy(b.g.position);
+      }
+    }
+  }
+  // chạm mặt hồ: mồi rơi, nước gợn → cá & vịt bơi lại
+  function feedWater(g) {
+    const w = toWorld(g.x, WATER_Y, g.z);
+    spawnRipple(w); spawnRipple(w, 0.4); spawnSeeds(w, 6, w.y + 0.006); fire('voice', { kind: 'splash' });
+    fishes.forEach((f) => { f.feed = [g.x, g.z]; f.feedT = 6; f.boost = 1.4; feedTarget(f); });
+    const d = ducks[0];
+    if (d.g.visible && inPoly(POND_SWIM, g.x, g.z)) { d.tx = g.x; d.tz = g.z; d.boost = 2; d.pause = 0; }
+  }
+  // gọi con vật đang chọn tới chỗ vừa chạm
+  function callTo(c, g) {
+    if (g.kind !== 'ground' || !routeTo(c, g.x, g.z)) { feedGround(g); return; } // không tới được → rắc hạt thay
+    select(null);
+    c.mode = null; c.onceT = 0; c.state = 'walk'; c.timer = 16; c.run = true; c.arrive = 'call'; play(c, 'Gallop');
+    addBond(c.file); fire('voice', { kind: c.file });
+  }
+  // giữ tay lên con vật: vuốt ve (cúi đầu lim dim, tim bay lên); giữ lâu → rủ cùng hít thở
+  let pet = null;
+  function startPet(c) {
+    if (selected === c) select(null);
+    pet = { c, t: 0, hT: 0 }; c.mode = 'pet'; c.run = false; c.arrive = null; c.onceT = 0;
+    play(c, c.acts.Idle_2_HeadLow ? 'Idle_2_HeadLow' : 'Idle');
+    controls.enabled = false; fire('voice', { kind: 'purr' });
+  }
+  function stepPet(dt) {
+    if (!pet) return;
+    pet.t += dt; pet.hT -= dt;
+    if (pet.hT <= 0) { pet.hT = 0.45; pet.c.g.getWorldPosition(_hp); _hp.y += 0.25; spawnHearts(_hp, 1); }
+    if (pet.t > 2.6 && !pet.breath) {
+      pet.breath = true; pet.c.mode = 'breath'; pet.c.breathT = clock.elapsedTime + 0.3;
+      fire('breathe-start', { animal: pet.c.file }); fire('voice', { kind: 'chime' });
+    }
+  }
+  function endPet() {
+    if (!pet) return;
+    controls.enabled = true;
+    const c = pet.c; const breathing = pet.breath; pet = null;
+    if (breathing) return; // đang cùng thở: con vật ở lại tới khi bài thở kết thúc
+    c.mode = null; c.state = 'idle'; c.timer = 2 + rand() * 2; addBond(c.file);
+    playOnce(c, c.roam ? 'Jump_ToIdle' : 'Jump', () => play(c, 'Idle'));
+  }
+  // bài thở kết thúc / bấm Dừng: con vật thôi thở, nhảy mừng, tim bay lên
+  timeOpts.exposeBreath?.(() => {
+    const c = critters.find((cc) => cc.mode === 'breath');
+    if (!c) return;
+    c.breathT = undefined; c.g.children[0].scale.setScalar(c.baseScale);
+    c.mode = null; c.state = 'idle'; c.timer = 3; addBond(c.file, 2);
+    c.g.getWorldPosition(_hp); _hp.y += 0.25; spawnHearts(_hp, 6);
+    playOnce(c, c.roam ? 'Jump_ToIdle' : 'Jump', () => play(c, 'Idle'));
+    wake();
+  });
+  // điểm chạm trên mặt đảo / mặt hồ: dò theo tia trong toạ độ đảo, so với địa hình H(x, z)
+  const _ro = new THREE.Vector3(); const _rd = new THREE.Vector3(); const _inv = new THREE.Matrix4();
+  function pickGround(ev, step = 0.02) {
+    const rect = renderer.domElement.getBoundingClientRect();
+    ndc.set(((ev.clientX - rect.left) / rect.width) * 2 - 1, -((ev.clientY - rect.top) / rect.height) * 2 + 1);
+    raycaster.setFromCamera(ndc, camera);
+    island.updateMatrixWorld(); _inv.copy(island.matrixWorld).invert();
+    _ro.copy(raycaster.ray.origin).applyMatrix4(_inv); _rd.copy(raycaster.ray.direction).transformDirection(_inv);
+    if (_rd.y >= -1e-4) return null;
+    const s0 = Math.max(0, (2.4 - _ro.y) / _rd.y); const s1 = (-1.2 - _ro.y) / _rd.y;
+    for (let sd = s0; sd <= s1; sd += step) {
+      const x = _ro.x + _rd.x * sd; const y = _ro.y + _rd.y * sd; const z = _ro.z + _rd.z * sd;
+      if (!inPoly(OUTLINE, x, z)) continue;
+      if (pondDist(x, z) < 1 && y <= WATER_Y) return { kind: 'water', x, z, y: WATER_Y };
+      const gy = H(x, z);
+      if (y <= gy) return { kind: 'ground', x, z, y: gy };
+    }
+    return null;
+  }
   let cleanupInteract = () => {};
   if (controls) {
-    const dom = renderer.domElement; let down = null; let lastMove = 0;
-    const onDown = (e) => { down = { x: e.clientX, y: e.clientY, t: performance.now() }; };
+    const dom = renderer.domElement; let down = null; let lastMove = 0; let holdTimer = 0;
+    const onDown = (e) => {
+      down = { x: e.clientX, y: e.clientY, t: performance.now(), moved: false, pet: false };
+      clearTimeout(holdTimer);
+      const hit = pickAnimal(e);
+      if (hit && hit.kind === 'critter' && hit.ref.mode !== 'breath') {
+        const d = down;
+        holdTimer = setTimeout(() => { if (down === d && !d.moved) { d.pet = true; startPet(hit.ref); wake(); } }, 380);
+      }
+    };
     const onUp = (e) => {
+      clearTimeout(holdTimer);
       if (!down) return;
-      const moved = Math.hypot(e.clientX - down.x, e.clientY - down.y); const held = performance.now() - down.t; down = null;
+      const d = down; down = null;
+      if (d.pet) { endPet(); wake(); return; }
+      const moved = Math.hypot(e.clientX - d.x, e.clientY - d.y); const held = performance.now() - d.t;
       if (moved > 8 || held > 450) return; // kéo xoay đảo → không tính là chạm
-      const hit = pickAnimal(e); if (hit) interact(hit);
+      const hit = pickAnimal(e);
+      if (hit) { interact(hit); return; }
+      const g = pickGround(e);
+      if (!g) { if (selected) select(null); return; }
+      if (g.kind === 'water') feedWater(g);
+      else if (selected) callTo(selected, g);
+      else feedGround(g);
+      wake();
     };
     const onMove = (e) => {
+      if (down && !down.moved && Math.hypot(e.clientX - down.x, e.clientY - down.y) > 8) { down.moved = true; if (!down.pet) clearTimeout(holdTimer); }
       const now = performance.now(); if (e.pointerType === 'touch' || now - lastMove < 90) return; lastMove = now;
-      dom.style.cursor = pickAnimal(e) ? 'pointer' : '';
+      const hit = pickAnimal(e);
+      dom.style.cursor = hit ? 'pointer' : '';
+      if (!down && !hit) { const g = pickGround(e, 0.05); if (g) { attract(toWorld(g.x, g.y, g.z)); wake(); } } // rê chuột: bướm, đom đóm bay theo
     };
+    const onCancel = () => { clearTimeout(holdTimer); if (down?.pet) endPet(); down = null; };
     dom.addEventListener('pointerdown', onDown); dom.addEventListener('pointerup', onUp); dom.addEventListener('pointermove', onMove);
-    cleanupInteract = () => { dom.removeEventListener('pointerdown', onDown); dom.removeEventListener('pointerup', onUp); dom.removeEventListener('pointermove', onMove); };
+    dom.addEventListener('pointercancel', onCancel); dom.addEventListener('pointerleave', onCancel);
+    cleanupInteract = () => {
+      clearTimeout(holdTimer);
+      dom.removeEventListener('pointerdown', onDown); dom.removeEventListener('pointerup', onUp); dom.removeEventListener('pointermove', onMove);
+      dom.removeEventListener('pointercancel', onCancel); dom.removeEventListener('pointerleave', onCancel);
+    };
   }
 
   /* ---------- áp health ---------- */
@@ -2399,24 +2680,25 @@ function createScene(THREE, el, initialHealth, exposeSetTarget, OrbitControls, g
     rainMat.opacity = wet * 0.45; rain.visible = wet > 0.01; // mưa nhẹ
     stormMats.flat().forEach((m) => { m.opacity = wet * 0.55; }); storm.visible = wet > 0.01;
     // nắng: trưa trắng ấm → bình minh/hoàng hôn vàng cam → đêm ánh trăng xanh nhạt
-    const DAY_DIM = 0.8; // ban ngày dịu bớt (sáng/trưa/chiều)
-    sun.intensity = (1.3 + 1.7 * v) * (1 - 0.78 * nt) * (1 - 0.15 * gd) * (DAY_DIM + (1 - DAY_DIM) * nt);
+    const DAY_DIM = 0.72; // ban ngày dịu bớt (sáng/trưa/chiều)
+    const RD = realMode ? 1 - 0.2 * (1 - nt) : 1; // theo giờ thật: ban ngày tối thêm ~20%
+    sun.intensity = (1.3 + 1.7 * v) * (1 - 0.78 * nt) * (1 - 0.15 * gd) * (DAY_DIM + (1 - DAY_DIM) * nt) * RD;
     sun.color.lerpColors(C('#DCDDE6'), C('#FFE6BC'), v).lerp(C('#FFB27A'), gd * 0.8).lerp(C('#9FB2FF'), nt);
     backSun.intensity = (0.15 + 0.5 * v) * (1 - nt) * (1 + gd) * 0.75;
     backSun.color.set('#FFD58A').lerp(C('#FF9C6B'), gd * 0.6);
     const sunny = ss(0.35, 0.8, v) * (1 - nt);
     rays.forEach((r) => { r.g.visible = sunny > 0.01; r.mats.forEach((m) => { m.opacity = r.op * sunny; m.color.set('#FFFFFF').lerp(C('#FFC08A'), gd * 0.7); }); });
-    sunGlow.material.opacity = (0.25 + 0.65 * v) * (1 - nt) * 0.8 * (1 - 0.4 * gd); sunCore.material.opacity = (0.2 + 0.65 * v) * (1 - nt) * 0.8 * (1 - 0.3 * gd); // chiều: vầng sáng dịu, không trùm mờ cả góc đảo
+    sunGlow.material.opacity = (0.25 + 0.65 * v) * (1 - nt) * 0.62 * (1 - 0.4 * gd) * RD; sunCore.material.opacity = (0.2 + 0.65 * v) * (1 - nt) * 0.62 * (1 - 0.3 * gd) * RD; // chiều: vầng sáng dịu, không trùm mờ cả góc đảo
     sunGlow.scale.setScalar(9 * (1 - 0.3 * gd));
     sunGlow.material.color.set('#FFE2A8').lerp(C('#FF9E6E'), gd * 0.8);
     moon.material.opacity = 0.9 * nt; moonHalo.material.opacity = 0.35 * nt; starMat.opacity = nt; stars.visible = nt > 0.01;
-    hemi.intensity = (0.9 + 0.4 * v) * (1 - 0.45 * nt) * (0.88 + 0.12 * nt);
+    hemi.intensity = (0.9 + 0.4 * v) * (1 - 0.45 * nt) * (0.88 + 0.12 * nt) * (1 - (1 - RD) * 0.6);
     hemi.color.set('#FFE8F4').lerp(C('#FFD2B8'), gd * 0.6).lerp(C('#7480C4'), nt);
     hemi.groundColor.set('#8AA77A').lerp(C('#2F3D45'), nt);
     // đèn lồng sáng rõ lúc tối
     lanternMat.emissiveIntensity = (0.2 + 1.2 * v) * (1 + 1.6 * nt);
     lanternLight.intensity = 1.5 * v + 3 * nt;
-    renderer.toneMappingExposure = (0.9 + 0.24 * v) * (1 - 0.18 * nt) * (0.9 + 0.1 * nt);
+    renderer.toneMappingExposure = (0.9 + 0.24 * v) * (1 - 0.18 * nt) * (0.9 + 0.1 * nt) * (1 - (1 - RD) * 0.5);
     // vườn càng khoẻ càng nhiều con vật ra chơi
     // giảm chuyển động: con vật không di chuyển được nên ẩn đi
     critters.forEach((c) => { c.g.visible = v > c.threshold; });
@@ -2426,7 +2708,7 @@ function createScene(THREE, el, initialHealth, exposeSetTarget, OrbitControls, g
   }
   applyHealth(h);
   exposeSetTarget((v) => { target = v; if (reduceMotion) wake(); });
-  timeOpts.expose?.((hr) => { tod = timeOfDay(hr); placeSky(hr); applyHealth(h); wake(); });
+  timeOpts.expose?.((hr, real) => { if (real !== undefined) realMode = real; tod = timeOfDay(hr); placeSky(hr); applyHealth(h); wake(); });
 
   /* ---------- kích thước ---------- */
   function resize() {
@@ -2466,10 +2748,14 @@ function createScene(THREE, el, initialHealth, exposeSetTarget, OrbitControls, g
     if (!reduceMotion) {
       island.position.y = Math.sin(t * 0.8) * 0.08;
       island.rotation.y = Math.sin(t * 0.12) * 0.14;
-      for (const tr of trees) { tr.canopy.rotation.z = Math.sin(t * 1.1 + tr.phase) * 0.02; tr.canopy.rotation.x = Math.cos(t * 0.9 + tr.phase) * 0.015; }
+      { // gió: lúc mạnh lúc dịu, lướt qua đảo thành từng đợt
+        windU.value = t; const gust = 0.7 + 0.3 * Math.sin(t * 0.37) * Math.sin(t * 0.13 + 1);
+        for (const tr of trees) { tr.canopy.rotation.z = Math.sin(t * 1.1 + tr.phase) * 0.03 * gust; tr.canopy.rotation.x = Math.cos(t * 0.9 + tr.phase) * 0.02 * gust; }
+        for (const pl of plants) { pl.canopy.rotation.z = Math.sin(t * 1.7 + pl.phase) * pl.amp * gust; pl.canopy.rotation.x = Math.cos(t * 1.3 + pl.phase) * pl.amp * 0.5 * gust; }
+      }
       for (const s of satellites) { s.g.position.y = s.y + Math.sin(t * 0.7 + s.phase) * 0.18; s.g.rotation.y = t * s.spin + s.phase; }
 
-      for (const c of critters) if (c.g.visible) stepCritter(c, dt);
+      for (const c of critters) if (c.g.visible) stepCritter(c, dt, t);
       for (const f of fishes) stepFish(f, dt, t);
       ducks.forEach((d, i) => {
         if (!d.g.visible) return;
@@ -2493,11 +2779,16 @@ function createScene(THREE, el, initialHealth, exposeSetTarget, OrbitControls, g
         p.y = 0.24 + Math.sin(t * 2.2 + d.lag * 5) * 0.008;
         d.g.rotation.z = Math.sin(t * 1.8 + d.lag) * 0.05;
       });
+      if (lure.t > 0) { lure.t -= dt; island.worldToLocal(lureL.copy(lure.p)); }
       for (const b of butterflies) {
         if (!b.g.visible) continue;
-        const pos = butterflyPos(b, t); const nxt = butterflyPos(b, t + 0.05);
-        b.g.position.copy(pos);
-        b.g.rotation.y = Math.atan2(nxt.x - pos.x, nxt.z - pos.z);
+        const want = butterflyPos(b, t);
+        if (!b.p) b.p = want.clone();
+        const lured = lure.t > 0 && b.p.distanceTo(lureL) < 2.6;
+        if (lured) want.copy(lureL).add(_bo.set(Math.cos(t * 1.4 + b.phase) * 0.24, 0.3 + Math.sin(t * 2 + b.phase) * 0.08, Math.sin(t * 1.4 + b.phase) * 0.24));
+        _bp.copy(b.p); b.p.lerp(want, Math.min(1, dt * (lured ? 1.6 : 0.8)));
+        b.g.position.copy(b.p);
+        if (_bp.distanceToSquared(b.p) > 1e-8) b.g.rotation.y = Math.atan2(b.p.x - _bp.x, b.p.z - _bp.z);
         const flap = (Math.sin(t * 22 + b.phase) + 1) * 0.65;
         for (const w of b.wings) w.w.rotation.z = w.sx * flap;
       }
@@ -2543,7 +2834,7 @@ function createScene(THREE, el, initialHealth, exposeSetTarget, OrbitControls, g
           quad(b.p0, _bv, _bv2, e, b.g.position);
           b.flapU.value = beat * 0.7;
           b.g.rotation.z = -0.28 * e * (Math.sign(b.speed) || 1); b.g.rotation.x = -0.15 * (1 - u);
-          if (b.timer <= 0) { b.state = 'circle'; b.timer = 18 + rand() * 18; b.nest = null; }
+          if (b.timer <= 0) { b.state = 'circle'; b.timer = 18 + rand() * 18; if (b.nest?.temp) b.nest.obj.parent?.remove(b.nest.obj); b.nest = null; }
         }
         // hướng đầu theo hướng bay (trừ lúc đậu thì giữ hướng)
         if (b.state === 'toNest' || b.state === 'leave') {
@@ -2559,10 +2850,11 @@ function createScene(THREE, el, initialHealth, exposeSetTarget, OrbitControls, g
           const [x, y, z, ph, r] = fgBase[i];
           fgPos[i * 3] = x + Math.cos(t * 0.7 + ph) * r; fgPos[i * 3 + 1] = y + Math.sin(t * 1.3 + ph * 2) * 0.08; fgPos[i * 3 + 2] = z + Math.sin(t * 0.6 + ph) * r;
         }
+        pullToLure(fgPos, fgCount, fgPull, dt);
         fgGeo.attributes.position.needsUpdate = true;
         fgMat.size = 0.08 + Math.sin(t * 3.1) * 0.02;
       }
-      { const sunny = ss(0.35, 0.8, h) * (1 - tod.night); rays.forEach((r) => { const k = 0.7 + 0.3 * Math.sin(t * 0.35 + r.phase); r.mats.forEach((m) => { m.opacity = r.op * sunny * k * (r.fan === undefined ? 0.95 : 1) * 0.75 * (1 - 0.25 * tod.golden); }); }); } // tia giờ quay mặt về máy quay → hạ bớt cho khỏi chói
+      { const sunny = ss(0.35, 0.8, h) * (1 - tod.night); rays.forEach((r) => { const k = 0.7 + 0.3 * Math.sin(t * 0.35 + r.phase); r.mats.forEach((m) => { m.opacity = r.op * sunny * k * (r.fan === undefined ? 0.95 : 1) * 0.52 * (1 - 0.25 * tod.golden) * (realMode ? 0.8 : 1); }); }); } // tia giờ quay mặt về máy quay → hạ bớt cho khỏi chói
       if (rays[0]?.g.visible) layoutFan();
       if (rays[0]?.g.visible) rays.forEach((r) => {
         r.g.worldToLocal(_camL.copy(camera.position));
@@ -2570,7 +2862,11 @@ function createScene(THREE, el, initialHealth, exposeSetTarget, OrbitControls, g
         r.planes[0].rotation.y = a; r.planes[1].rotation.y = a + 0.6; // tấm chính quay về máy quay, tấm phụ lệch nhẹ cho có khối
       });
       for (const c of cloudClusters) { c.g.position.x = c.x + Math.sin(t * 0.08 + c.phase) * 0.35; }
-      stepReactions(dt);
+      stepReactions(dt); stepSeeds(dt); stepRipples(dt); stepPet(dt);
+      if (selected) {
+        selT -= dt; selRing.material.opacity = 0.55 + Math.sin(t * 4) * 0.3;
+        if (selT <= 0 || !selected.g.visible) select(null);
+      }
       flowTex.offset.y = (flowTex.offset.y - dt * 0.9) % 1;
       rippleTex.offset.x = (rippleTex.offset.x + dt * 0.025) % 1; rippleTex.offset.y = (rippleTex.offset.y + dt * 0.018) % 1;
       foamRingMat.opacity = 0.38 + Math.sin(t * 1.6) * 0.12;
@@ -2597,6 +2893,7 @@ function createScene(THREE, el, initialHealth, exposeSetTarget, OrbitControls, g
           fireflies.pos[k + 1] = fireflies.base[k + 1] + Math.sin(t * 0.9 + i * 1.7) * 0.2;
           fireflies.pos[k + 2] = fireflies.base[k + 2] + Math.cos(t * 0.5 + i * 0.7) * 0.25;
         }
+        pullToLure(fireflies.pos, fireflies.n, ffPull, dt);
         fireflies.p.geometry.attributes.position.needsUpdate = true;
         fireflies.m.size = 0.16 + Math.sin(t * 2.4) * 0.05;
       }

@@ -346,11 +346,13 @@ export const apiClient = {
     return this.request(endpoint, { method: 'PUT', body: formData, headers: {} });
   },
 
-  async getBlob(endpoint) {
+  // cache: 'no-store' (mặc định — tệp riêng tư như hồ sơ bệnh án, đính kèm) | 'default' (ảnh:
+  // dùng cache trình duyệt theo header server) | 'no-cache' (luôn hỏi lại server bằng ETag → 304 nếu không đổi)
+  async getBlob(endpoint, { cache = 'no-store' } = {}) {
     const token = getStoredAccessToken();
     const headers = {};
     if (token) headers.Authorization = `Bearer ${token}`;
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, { headers, cache: 'no-store' });
+    const response = await fetch(`${API_BASE_URL}${endpoint}`, { headers, cache });
     if (!response.ok) {
       throw new Error(`Không tải được file (HTTP ${response.status})`);
     }

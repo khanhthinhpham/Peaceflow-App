@@ -160,9 +160,10 @@ router.get('/assessments', requireAuth, async (req, res) => {
          a.is_custom,
          a.icon,
          a.category,
-         a.question_schema,
-         a.scoring_rules,
-         a.interpretation_rules,
+         -- bộ câu hỏi / thang điểm chỉ cần cho bài admin tự tạo (bài có sẵn đã nằm trong frontend)
+         case when a.is_custom then a.question_schema end as question_schema,
+         case when a.is_custom then a.scoring_rules end as scoring_rules,
+         case when a.is_custom then a.interpretation_rules end as interpretation_rules,
          latest_result.id as latest_result_id,
          latest_result.total_score as latest_total_score,
          latest_result.severity as latest_severity,

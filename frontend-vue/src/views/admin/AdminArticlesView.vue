@@ -317,7 +317,7 @@ async function openEdit(id) {
     form.contentEn = data.contentEn || '';
     enOpen.value = Boolean(form.titleEn || form.contentEn);
     if (data.hasCover) {
-      const blob = await apiClient.getBlob(`/articles/${id}/cover`);
+      const blob = await apiClient.getBlob(`/articles/${id}/cover?v=${Date.now()}`); // ?v=: bỏ qua bản CDN cũ khi vừa đổi ảnh
       coverPreview.value = URL.createObjectURL(blob);
     }
   } catch (_e) {

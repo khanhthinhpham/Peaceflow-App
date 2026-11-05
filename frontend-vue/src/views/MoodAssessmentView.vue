@@ -497,6 +497,7 @@ import { ref, reactive, computed, watch, onMounted, onBeforeUnmount } from 'vue'
 import { useRouter, useRoute } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { apiClient, SHARE_BASE_URL } from '../lib/apiClient';
+import { getExpertAvatarUrl } from '../lib/expertAvatars';
 import { useAuthStore } from '../stores/auth';
 import ShareButtons from '../components/ShareButtons.vue';
 import TestIcon from '../components/TestIcon.vue';
@@ -1324,8 +1325,7 @@ async function loadRecommendedExperts() {
       .filter((expert) => expert.has_avatar_photo && !expertAvatarUrls[expert.id])
       .forEach(async (expert) => {
         try {
-          const blob = await apiClient.getBlob(`/experts/${expert.id}/avatar`);
-          expertAvatarUrls[expert.id] = URL.createObjectURL(blob);
+          expertAvatarUrls[expert.id] = await getExpertAvatarUrl(expert.id);
         } catch (_err) { /* giữ emoji mặc định */ }
       });
   } catch (error) {

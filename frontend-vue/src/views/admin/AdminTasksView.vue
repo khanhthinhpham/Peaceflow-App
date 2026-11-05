@@ -188,7 +188,7 @@ async function openEdit(task) {
   formOpen.value = true;
   if (task.has_cover) {
     try {
-      const blob = await apiClient.getBlob(`/tasks/${task.id}/cover`);
+      const blob = await apiClient.getBlob(`/tasks/${task.id}/cover?v=${Date.now()}`); // ?v=: bỏ qua bản CDN cũ khi vừa đổi ảnh
       coverPreview.value = URL.createObjectURL(blob);
     } catch (_e) { /* khong sao neu tai anh loi, form van dung duoc */ }
   }

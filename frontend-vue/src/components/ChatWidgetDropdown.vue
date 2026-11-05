@@ -35,7 +35,7 @@
 <script setup>
 import { ref, reactive, computed, watch, onMounted, onBeforeUnmount } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { apiClient } from '../lib/apiClient';
+import { getExpertAvatarUrl } from '../lib/expertAvatars';
 import { useChatWidgetStore } from '../stores/chatWidget';
 import NavIcon from './NavIcon.vue';
 import { useRightRailStore } from '../stores/rightRail';
@@ -55,15 +55,10 @@ const filteredConversations = computed(() => {
 // Ảnh thật của chuyên gia (nếu đã upload) thay cho emoji — cùng cách tải blob có Bearer
 // token như ExpertsView.vue dùng cho danh sách chuyên gia.
 const avatarUrls = reactive({});
-const avatarUrlCache = new Map();
 async function loadAvatars(list) {
   await Promise.all(list.filter((c) => c.expertId && c.hasAvatarPhoto && !avatarUrls[c.id]).map(async (c) => {
     try {
-      if (!avatarUrlCache.has(c.expertId)) {
-        const blob = await apiClient.getBlob(`/experts/${c.expertId}/avatar`);
-        avatarUrlCache.set(c.expertId, URL.createObjectURL(blob));
-      }
-      avatarUrls[c.id] = avatarUrlCache.get(c.expertId);
+      avatarUrls[c.id] = await getExpertAvatarUrl(c.expertId); // dùng chung, không tải lại
     } catch (_err) { /* giữ nguyên emoji mặc định */ }
   }));
 }

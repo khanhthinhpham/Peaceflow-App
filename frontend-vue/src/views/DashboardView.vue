@@ -206,7 +206,15 @@
         <Teleport to="body">
           <Transition name="garden-full">
             <div v-if="gardenExpanded" class="garden-full" role="dialog" aria-modal="true" :aria-label="t('dashboard.garden.title')">
-              <MoodGarden3D interactive :health="gardenViewHealth" :hour="gardenPreviewHour" :label="gardenStatusText" />
+              <MoodGarden3D interactive :health="gardenViewHealth" :hour="gardenPreviewHour" :label="gardenStatusText" :breathing="!!gardenBreath && !gardenBreath.done" @garden-event="onGardenEvent" />
+              <!-- Cùng con vật hít thở: hít 4s · giữ 2s · thở ra 6s × 3 nhịp, dừng lúc nào cũng được -->
+              <div v-if="gardenBreath" class="garden-breath" role="status" aria-live="polite">
+                <p class="garden-breath-title">{{ gardenBreath.done ? t('dashboard.garden.breathDone') : t('dashboard.garden.breathTitle', { animal: t(`dashboard.garden.animals.${gardenBreath.animal}`) }) }}</p>
+                <div class="garden-breath-circle" :class="`is-${gardenBreath.phase}`"><span>{{ gardenBreath.done ? '' : t(`dashboard.garden.breath_${gardenBreath.phase}`) }}</span></div>
+                <p v-if="!gardenBreath.done" class="garden-breath-round">{{ t('dashboard.garden.breathRound', { n: gardenBreath.round, total: BREATH_ROUNDS }) }}</p>
+                <button v-if="!gardenBreath.done" type="button" class="garden-breath-stop" @click="stopGardenBreath">{{ t('dashboard.garden.breathStop') }}</button>
+              </div>
+              <p v-else-if="gardenSelected" class="garden-call-hint" role="status">{{ t('dashboard.garden.callHint', { animal: t(`dashboard.garden.animals.${gardenSelected}`) }) }}</p>
               <div class="garden-full-head">
                 <div>
                   <h2 class="garden-full-title">{{ t('dashboard.garden.title') }}</h2>
@@ -222,17 +230,27 @@
                     :title="gardenSoundOn ? t('dashboard.rightPanel.soundOff') : t('dashboard.rightPanel.soundOn')"
                     @click="gardenSoundOn = !gardenSoundOn"
                   ><NavIcon :name="gardenSoundOn ? 'volume' : 'volumeOff'" /></button>
+                  <button
+                    type="button"
+                    class="garden-full-close"
+                    :class="{ 'is-on': gardenCreditOpen }"
+                    :aria-expanded="gardenCreditOpen"
+                    aria-controls="garden-credit"
+                    :aria-label="t('dashboard.rightPanel.gardenCreditToggle')"
+                    :title="t('dashboard.rightPanel.gardenCreditToggle')"
+                    @click="gardenCreditOpen = !gardenCreditOpen"
+                  ><NavIcon name="info" /></button>
                   <button type="button" class="garden-full-close" :aria-label="t('common.common.close')" @click="gardenExpanded = false"><NavIcon name="close" /></button>
                 </div>
               </div>
               <div v-if="gardenMetrics.length" class="garden-full-metrics">
                 <div v-for="metric in gardenMetrics" :key="metric.key" class="rp-metric">
-                  <NavIcon :name="GARDEN_ICONS[metric.key] || 'mood'" class="rp-metric-icon" />
+                  <NavIcon :name="GARDEN_ICONS[metric.key] || 'mood'" class="rp-metric-icon" :class="`ic-${GARDEN_ICONS[metric.key] || 'mood'}`" />
                   <span class="rp-metric-label">{{ metric.label }}</span>
                   <strong class="rp-metric-value">{{ metric.status_text }}</strong>
                 </div>
               </div>
-              <div class="garden-preview" role="radiogroup" :aria-label="t('dashboard.rightPanel.gardenPreview')">
+              <div v-if="isAdmin" class="garden-preview" role="radiogroup" :aria-label="t('dashboard.rightPanel.gardenPreview')">
                 <span class="garden-preview-label">{{ t('dashboard.rightPanel.gardenPreview') }}</span>
                 <button
                   v-for="opt in GARDEN_PREVIEW_LEVELS"
@@ -245,7 +263,7 @@
                   @click="gardenPreview = opt.value"
                 >{{ t(opt.label) }}</button>
               </div>
-              <div class="garden-preview garden-preview-time" role="radiogroup" :aria-label="t('dashboard.rightPanel.previewTime')">
+              <div v-if="isAdmin" class="garden-preview garden-preview-time" role="radiogroup" :aria-label="t('dashboard.rightPanel.previewTime')">
                 <span class="garden-preview-label">{{ t('dashboard.rightPanel.previewTime') }}</span>
                 <button
                   v-for="opt in GARDEN_PREVIEW_HOURS"
@@ -259,7 +277,7 @@
                 >{{ t(opt.label) }}</button>
               </div>
               <p class="garden-full-hint">{{ t('dashboard.rightPanel.gardenHint') }}</p>
-              <p class="garden-full-credit">{{ t('dashboard.rightPanel.gardenCreditPrefix') }} Quaternius (CC0) · <a href="https://poly.pizza/m/YUAFe6TOOa" target="_blank" rel="noopener">Low Poly Tree House</a> – Dawid2K · <a href="https://poly.pizza/m/2jffIS8PMjZ" target="_blank" rel="noopener">Vines</a> – Poly by Google · <a href="https://poly.pizza/m/2q-hEEe3Njb" target="_blank" rel="noopener">Ranking plant</a> – Jakob Hippe · <a href="https://poly.pizza/m/2zt43AlwVoI" target="_blank" rel="noopener">grass mix</a> – Steve B · <a href="https://poly.pizza/m/6Tpj_vcWP3f" target="_blank" rel="noopener">Flying seagull</a>, <a href="https://poly.pizza/m/dpl7B31PqWX" target="_blank" rel="noopener">Parrot</a> – Poly by Google · <a href="https://poly.pizza/m/eLVv17bTyB-" target="_blank" rel="noopener">Pastel Plume Flowers</a> – Danni Bittman · <a href="https://poly.pizza/m/dYQFgjU5Eqx" target="_blank" rel="noopener">Desert marigold</a>, <a href="https://poly.pizza/m/eydI4__jXpi" target="_blank" rel="noopener">Flower</a>, <a href="https://poly.pizza/m/birD7XV2A44" target="_blank" rel="noopener">Water lilies</a> – Poly by Google · <a href="https://poly.pizza/m/2zT-C10njmX" target="_blank" rel="noopener">tulip 3</a> – Hugo Gibson · <a href="https://poly.pizza/m/7s3W1Ukbilm" target="_blank" rel="noopener">Nenuphar</a> – Nicolas Comtois (<a href="https://creativecommons.org/licenses/by/3.0/" target="_blank" rel="noopener">CC-BY 3.0</a>)</p>
+              <p v-if="gardenCreditOpen" id="garden-credit" class="garden-full-credit">{{ t('dashboard.rightPanel.gardenCreditPrefix') }} Quaternius (CC0) · <a href="https://poly.pizza/m/YUAFe6TOOa" target="_blank" rel="noopener">Low Poly Tree House</a> – Dawid2K · <a href="https://poly.pizza/m/2jffIS8PMjZ" target="_blank" rel="noopener">Vines</a> – Poly by Google · <a href="https://poly.pizza/m/2q-hEEe3Njb" target="_blank" rel="noopener">Ranking plant</a> – Jakob Hippe · <a href="https://poly.pizza/m/2zt43AlwVoI" target="_blank" rel="noopener">grass mix</a> – Steve B · <a href="https://poly.pizza/m/6Tpj_vcWP3f" target="_blank" rel="noopener">Flying seagull</a>, <a href="https://poly.pizza/m/dpl7B31PqWX" target="_blank" rel="noopener">Parrot</a> – Poly by Google · <a href="https://poly.pizza/m/eLVv17bTyB-" target="_blank" rel="noopener">Pastel Plume Flowers</a> – Danni Bittman · <a href="https://poly.pizza/m/dYQFgjU5Eqx" target="_blank" rel="noopener">Desert marigold</a>, <a href="https://poly.pizza/m/eydI4__jXpi" target="_blank" rel="noopener">Flower</a>, <a href="https://poly.pizza/m/birD7XV2A44" target="_blank" rel="noopener">Water lilies</a> – Poly by Google · <a href="https://poly.pizza/m/2zT-C10njmX" target="_blank" rel="noopener">tulip 3</a> – Hugo Gibson · <a href="https://poly.pizza/m/7s3W1Ukbilm" target="_blank" rel="noopener">Nenuphar</a> – Nicolas Comtois (<a href="https://creativecommons.org/licenses/by/3.0/" target="_blank" rel="noopener">CC-BY 3.0</a>)</p>
             </div>
           </Transition>
         </Teleport>
@@ -307,7 +325,7 @@
           <section class="rp-hero">
             <div class="rp-hero-art"></div>
             <div class="rp-hero-body">
-              <div class="rp-level">{{ t('dashboard.rightPanel.levelLabel', { n: String(xpInfo.currentLevel).padStart(2, '0') }) }} <NavIcon name="leaf" class="rp-level-leaf" /></div>
+              <div class="rp-level">{{ t('dashboard.rightPanel.levelLabel', { n: String(xpInfo.currentLevel).padStart(2, '0') }) }}</div>
               <h2 class="rp-hero-title">{{ xpInfo.title }}</h2>
               <p class="rp-hero-sub">{{ t('dashboard.rightPanel.heroSub') }}</p>
               <div class="rp-xp-track"><div class="rp-xp-fill" :style="{ width: xpInfo.percent + '%' }"></div></div>
@@ -487,6 +505,39 @@ const gardenExpanded = ref(false);
 // Âm thanh thiên nhiên khi xem khu vườn toàn màn hình — mặc định TẮT, nhớ lựa chọn của người dùng
 const readSoundPref = () => { try { return localStorage.getItem('pf.garden.sound') === '1'; } catch { return false; } };
 const gardenSoundOn = ref(readSoundPref());
+// Tương tác với con vật trong vườn: phát tiếng (khi bật âm thanh), gợi ý "gọi con vật", bài cùng hít thở
+const BREATH_ROUNDS = 3; const BREATH_IN = 4; const BREATH_HOLD = 2; const BREATH_OUT = 6; // giây — khớp nhịp phồng/xẹp của con vật (MoodGarden3D)
+const gardenSelected = ref(null);
+const gardenBreath = ref(null); // { animal, phase: 'out'|'in'|'hold', round, done }
+let breathTimer = null; let breathStart = 0;
+function tickGardenBreath() {
+  const b = gardenBreath.value; if (!b) return;
+  const el = (performance.now() - breathStart) / 1000 - 0.3; // 0.3s đầu: vòng tròn thu nhỏ để bắt đầu hít vào
+  const cyc = BREATH_IN + BREATH_HOLD + BREATH_OUT;
+  if (el >= cyc * BREATH_ROUNDS) {
+    clearInterval(breathTimer); breathTimer = null;
+    gardenBreath.value = { ...b, done: true, phase: 'out' };
+    if (gardenSoundOn.value) natureSound?.voice('chime');
+    setTimeout(() => { if (gardenBreath.value?.done) gardenBreath.value = null; }, 2600);
+    return;
+  }
+  const s = Math.max(0, el) % cyc;
+  b.phase = el < 0 ? 'out' : s < BREATH_IN ? 'in' : s < BREATH_IN + BREATH_HOLD ? 'hold' : 'out';
+  b.round = Math.min(BREATH_ROUNDS, Math.floor(Math.max(0, el) / cyc) + 1);
+}
+function stopGardenBreath() { clearInterval(breathTimer); breathTimer = null; gardenBreath.value = null; }
+function onGardenEvent(e) {
+  if (e.type === 'voice') { if (gardenSoundOn.value) natureSound?.voice(e.kind); }
+  else if (e.type === 'select') gardenSelected.value = e.animal;
+  else if (e.type === 'deselect') gardenSelected.value = null;
+  else if (e.type === 'breathe-start') {
+    gardenSelected.value = null;
+    gardenBreath.value = { animal: e.animal, phase: 'out', round: 1, done: false };
+    breathStart = performance.now(); clearInterval(breathTimer); breathTimer = setInterval(tickGardenBreath, 150);
+  }
+}
+const gardenCreditOpen = ref(false); // nguồn mô hình 3D: ẩn, bấm nút "i" mới hiện
+watch(gardenExpanded, (v) => { if (!v) { gardenCreditOpen.value = false; gardenSelected.value = null; stopGardenBreath(); } });
 let natureSound = null;
 const gardenHourNow = () => { const d = new Date(); return gardenPreviewHour.value ?? d.getHours() + d.getMinutes() / 60; };
 function syncNatureSound() {
@@ -519,7 +570,10 @@ const GARDEN_PREVIEW_LEVELS = [
   { key: 'attention', value: 0.42, label: 'dashboard.rightPanel.previewAttention' },
   { key: 'care', value: 0.12, label: 'dashboard.rightPanel.previewCare' }
 ];
-function onGardenKey(e) { if (e.key === 'Escape') gardenExpanded.value = false; }
+function onGardenKey(e) {
+  if (e.key !== 'Escape') return;
+  if (gardenBreath.value) stopGardenBreath(); else gardenExpanded.value = false; // Esc: dừng bài thở trước, lần nữa mới đóng
+}
 watch(gardenExpanded, (open) => {
   document.body.style.overflow = open ? 'hidden' : '';
   if (open) window.addEventListener('keydown', onGardenKey);
@@ -782,7 +836,7 @@ watch(() => [gardenViewHealth.value, gardenPreviewHour.value], () => {
   if (!natureSound) return;
   natureSound.setMood(gardenViewHealth.value); natureSound.setHour(gardenHourNow());
 });
-onBeforeUnmount(() => natureSound?.stop());
+onBeforeUnmount(() => { natureSound?.stop(); clearInterval(breathTimer); });
 
 function gardenDotClass(status) {
   if (status === 'excellent' || status === 'good') return 'dot-primary';
@@ -1204,7 +1258,6 @@ export default { name: 'DashboardView' };
   mask-image: linear-gradient(90deg, transparent 0%, transparent 32%, rgba(0, 0, 0, 0.35) 55%, #000 85%), linear-gradient(180deg, #000 65%, transparent 100%); mask-composite: intersect; }
 .rp-hero-body { position: relative; max-width: 62%; }
 .rp-level { display: flex; align-items: center; gap: 6px; font-family: var(--font-body); font-size: 13px; font-weight: 500; color: var(--color-text-muted); }
-.rp-level-leaf { width: 13px; height: 13px; color: var(--rp-accent); }
 .rp-hero-title { font-family: var(--font-display); font-style: italic; font-size: 25px; font-weight: 400; line-height: 1.3; color: #46362A; margin: 10px 0 12px; }
 .rp-hero-sub { font-family: var(--font-body); font-size: 13px; line-height: 1.6; color: var(--color-text-muted); margin: 0 0 18px; }
 .rp-xp-track { height: 10px; border-radius: 999px; background: rgba(255, 255, 255, 0.8); box-shadow: inset 0 0 0 1px rgba(74, 55, 40, 0.06); overflow: hidden; }
@@ -1258,16 +1311,45 @@ export default { name: 'DashboardView' };
 .garden-full .rp-pill { --rp-accent: #6F8F5E; }
 .garden-preview { position: absolute; top: 24px; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 4px; padding: 4px; border-radius: 999px; background: rgba(255, 253, 247, 0.9); box-shadow: 0 6px 20px rgba(80, 70, 50, 0.1); max-width: calc(100% - 32px); overflow-x: auto; scrollbar-width: none; }
 .garden-preview-time { top: 70px; }
-@media (max-width: 900px) { .garden-preview-time { top: auto; bottom: 196px; } }
 .garden-preview-label { padding: 0 8px 0 10px; font-size: 12px; color: var(--color-text-muted); white-space: nowrap; }
 .garden-preview-btn { border: none; background: none; padding: 6px 12px; border-radius: 999px; font-family: inherit; font-size: 13px; font-weight: 500; color: var(--color-text-muted); cursor: pointer; white-space: nowrap; }
 .garden-preview-btn:hover { color: var(--color-text); }
 .garden-preview-btn.is-active { background: #6F8F5E; color: #fff; }
-@media (max-width: 900px) { .garden-preview { top: auto; bottom: 150px; } }
-.garden-full-credit { position: absolute; right: 16px; bottom: 12px; margin: 0; font-size: 11px; color: var(--color-text-subtle, var(--color-text-muted)); }
+.garden-full-credit { position: absolute; z-index: 2; top: 80px; right: 28px; width: min(380px, calc(100% - 32px)); max-height: 50vh; overflow-y: auto; margin: 0; padding: 12px 14px; border-radius: 14px; background: rgba(255, 253, 247, 0.96); box-shadow: 0 8px 28px rgba(80, 70, 50, 0.14); font-size: 11.5px; line-height: 1.6; color: var(--color-text-muted); }
 .garden-full-credit a { color: inherit; }
-@media (max-width: 900px) { .garden-full-credit { left: 16px; right: 16px; bottom: 32px; text-align: center; } }
 .garden-full-hint { position: absolute; left: 0; right: 0; bottom: 14px; margin: 0; text-align: center; font-size: 12px; color: var(--color-text-muted); pointer-events: none; }
+/* Mobile / màn hẹp: xếp các lớp ở đáy thành chồng không đè nhau (từ dưới lên: credit 1 dòng cuộn ngang → gợi ý → chỉ số → 2 thanh xem thử) */
+@media (max-width: 900px) {
+  .garden-full { --gb: env(safe-area-inset-bottom, 0px); }
+  .garden-full-head { padding: calc(14px + env(safe-area-inset-top, 0px)) 16px 14px; }
+  .garden-full-title { font-size: 20px; margin-bottom: 6px; }
+  .garden-full-close { width: 44px; height: 44px; }
+  .garden-full-credit { top: calc(74px + env(safe-area-inset-top, 0px)); right: 12px; width: auto; left: 12px; font-size: 11px; }
+  .garden-full-hint { bottom: calc(10px + var(--gb)); padding: 0 20px; font-size: 11px; line-height: 1.4; }
+  .garden-full-metrics { bottom: calc(48px + var(--gb)); padding: 10px 4px; border-radius: 16px; width: calc(100% - 24px); }
+  .garden-full-metrics .rp-metric-icon { width: 20px; height: 20px; }
+  .garden-full-metrics .rp-metric-label { font-size: 11px; }
+  .garden-full-metrics .rp-metric-value { font-size: 12px; }
+  .garden-preview { top: auto; bottom: calc(152px + var(--gb)); max-width: calc(100% - 24px); }
+  .garden-preview-time { bottom: calc(200px + var(--gb)); }
+  .garden-preview-btn { min-height: 36px; padding: 6px 11px; font-size: 12px; }
+  .garden-preview-label { padding: 0 4px 0 8px; font-size: 11px; }
+}
+/* Cùng hít thở: vòng tròn phồng khi hít vào, xẹp khi thở ra (chuyển động chậm, êm) */
+.garden-breath { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 3; display: flex; flex-direction: column; align-items: center; gap: 14px; padding: 22px 28px 18px; border-radius: 28px; background: rgba(255, 253, 247, 0.82); box-shadow: 0 12px 36px rgba(80, 70, 50, 0.16); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); min-width: 240px; }
+.garden-breath-title { margin: 0; font-family: var(--font-heading); font-size: 17px; font-weight: 700; color: var(--color-text); text-align: center; }
+.garden-breath-circle { width: 132px; height: 132px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: radial-gradient(circle, rgba(159, 197, 125, 0.55) 0%, rgba(111, 143, 94, 0.35) 70%); box-shadow: 0 0 0 10px rgba(159, 197, 125, 0.16); transform: scale(0.6); transition: transform 0.3s ease; }
+.garden-breath-circle.is-in { transform: scale(1); transition: transform 4s ease-in-out; }
+.garden-breath-circle.is-hold { transform: scale(1); }
+.garden-breath-circle.is-out { transform: scale(0.6); transition: transform 6s ease-in-out; }
+.garden-breath-circle span { font-size: 15px; font-weight: 600; color: #3F5A33; }
+.garden-breath-round { margin: 0; font-size: 12px; color: var(--color-text-muted); }
+.garden-breath-stop { min-height: 40px; padding: 8px 22px; border: 1px solid rgba(74, 55, 40, 0.25); border-radius: 999px; background: transparent; font-family: inherit; font-size: 14px; font-weight: 600; color: var(--color-text); cursor: pointer; }
+.garden-breath-stop:hover { background: rgba(255, 255, 255, 0.8); }
+.garden-breath-stop:active { transform: scale(0.97); }
+@media (prefers-reduced-motion: reduce) { .garden-breath-circle, .garden-breath-circle.is-in, .garden-breath-circle.is-out { transition: none; } }
+.garden-call-hint { position: absolute; left: 50%; top: 120px; transform: translateX(-50%); z-index: 2; margin: 0; padding: 8px 16px; border-radius: 999px; background: rgba(255, 253, 247, 0.92); box-shadow: 0 6px 20px rgba(80, 70, 50, 0.12); font-size: 13px; color: var(--color-text); white-space: nowrap; max-width: calc(100% - 32px); overflow: hidden; text-overflow: ellipsis; pointer-events: none; }
+@media (max-width: 900px) { .garden-call-hint { top: calc(78px + env(safe-area-inset-top, 0px)); font-size: 12px; white-space: normal; text-align: center; } .garden-breath { min-width: 0; width: calc(100% - 48px); max-width: 300px; } }
 .garden-full-enter-active, .garden-full-leave-active { transition: opacity 0.3s ease, transform 0.3s ease; }
 .garden-full-enter-from, .garden-full-leave-to { opacity: 0; transform: scale(0.97); }
 .rp-garden-top { position: absolute; top: 0; left: 0; right: 0; z-index: 1; display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; padding: 16px 18px 0; }
@@ -1286,21 +1368,22 @@ export default { name: 'DashboardView' };
 .rp-metric-label { font-size: 12px; color: var(--color-text-muted); }
 .rp-metric-value { font-size: 13px; font-weight: 700; color: var(--color-text); line-height: 1.3; }
 
-.rp-expert { display: grid; grid-template-columns: 76px minmax(0, 1fr); align-items: center; column-gap: 12px; row-gap: 12px; }
-.rp-expert-art { width: 76px; height: 76px; }
-.rp-expert-eyebrow { display: flex; align-items: center; gap: 6px; font-family: var(--font-body); font-size: 14px; color: var(--color-text-muted); }
+/* 2 thẻ Chuyên gia & Ủng hộ dùng chung khung: cột hình 56px, khoảng cách 14px, tiêu đề 17px */
+.rp-expert { display: grid; grid-template-columns: 56px minmax(0, 1fr); align-items: center; column-gap: 14px; row-gap: 14px; }
+.rp-expert-art { width: 56px; height: 56px; }
+.rp-expert-eyebrow { display: flex; align-items: center; gap: 6px; font-family: var(--font-body); font-size: 13px; color: var(--color-text-muted); }
 .rp-expert-eyebrow .nav-icon { width: 16px; height: 16px; color: var(--rp-accent); }
-.rp-expert-title { margin: 4px 0 2px; font-family: var(--font-heading); font-size: 18px; font-weight: 700; color: var(--color-text); }
+.rp-expert-title { margin: 2px 0 4px; font-family: var(--font-heading); font-size: 17px; font-weight: 700; color: var(--color-text); }
 .rp-muted { margin: 0; font-size: 13px; line-height: 1.5; color: var(--color-text-muted); }
-.rp-btn-primary { grid-column: 1 / -1; display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 10px 18px; border-radius: 999px; background: #6F8F5E; color: #fff; font-size: 14px; font-weight: 600; text-decoration: none; transition: filter var(--duration-fast) var(--ease-standard); }
+.rp-btn-primary { grid-column: 1 / -1; display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 10px 18px; min-height: 44px; box-sizing: border-box; border-radius: 999px; background: #6F8F5E; color: #fff; font-size: 14px; font-weight: 600; text-decoration: none; transition: filter var(--duration-fast) var(--ease-standard); }
 .rp-btn-primary .nav-icon { width: 16px; height: 16px; }
 .rp-btn-primary:hover { filter: brightness(0.94); }
 
-.rp-donate { display: grid; grid-template-columns: 44px minmax(0, 1fr); align-items: center; column-gap: 12px; row-gap: 12px; }
-.rp-donate-icon { width: 44px; height: 44px; border-radius: 50%; background: #E4ECDD; color: var(--rp-accent); display: flex; align-items: center; justify-content: center; }
+.rp-donate { display: grid; grid-template-columns: 56px minmax(0, 1fr); align-items: center; column-gap: 14px; row-gap: 14px; }
+.rp-donate-icon { width: 52px; height: 52px; justify-self: center; border-radius: 50%; background: #E4ECDD; color: var(--rp-accent); display: flex; align-items: center; justify-content: center; }
 .rp-donate-icon .nav-icon { width: 22px; height: 22px; }
-.rp-donate .rp-card-title { font-size: 17px; }
-.rp-btn-outline { grid-column: 1 / -1; display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 9px 18px; border-radius: 999px; border: 1px solid rgba(74, 55, 40, 0.25); background: transparent; color: var(--color-text); font-family: inherit; font-size: 14px; font-weight: 600; cursor: pointer; }
+.rp-donate .rp-card-title { font-size: 17px; margin-bottom: 4px; }
+.rp-btn-outline { grid-column: 1 / -1; display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 10px 18px; min-height: 44px; box-sizing: border-box; border-radius: 999px; border: 1px solid rgba(74, 55, 40, 0.25); background: transparent; color: var(--color-text); font-family: inherit; font-size: 14px; font-weight: 600; cursor: pointer; }
 .rp-btn-outline .nav-icon { width: 16px; height: 16px; }
 .rp-btn-outline:hover { background: rgba(255, 255, 255, 0.7); }
 /* Hàng nút đầu panel: nút tròn trắng như mẫu */

@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import multer from 'multer';
 import { requireAuth } from '../../common/middleware/auth.middleware.js';
-import { resolveSafeContentType } from '../../common/utils/safeFileServe.js';
+import { compressUpload, sendDbImage } from '../../common/utils/dbImage.js';
 import { db } from '../../config/db.js';
 import { RecommendationEngineService } from '../risk/recommendation-engine.service.js';
 import { BadgeAwardService } from '../progress/badge-award.service.js';
@@ -42,14 +42,12 @@ const LEVELS = [
 // cong khai, khong requireAuth, giong het co che GET /articles/:id/cover.
 router.get('/tasks/:id/cover', async (req, res) => {
   try {
-    const r = await db.query(`select cover_image, cover_image_mime from tasks where id = $1`, [req.params.id]);
-    const row = r.rows[0];
-    if (!row?.cover_image) return res.status(404).end();
-    const { mime, inline } = await resolveSafeContentType(row.cover_image, row.cover_image_mime);
-    res.set('Content-Type', mime);
-    res.set('Content-Disposition', inline ? 'inline' : 'attachment; filename="cover"');
-    res.set('Cache-Control', 'public, max-age=86400');
-    return res.send(row.cover_image);
+    const sent = await sendDbImage(req, res, {
+      table: 'tasks', column: 'cover_image', mimeColumn: 'cover_image_mime', id: req.params.id,
+      cacheControl: 'public, max-age=3600, s-maxage=3600, stale-while-revalidate=86400'
+    });
+    if (!sent) return res.status(404).end();
+    return undefined;
   } catch (error) {
     console.error('Task cover error:', error.message);
     return res.status(500).end();
@@ -373,7 +371,7 @@ router.get('/admin/tasks', requireAuth, async (req, res) => {
   }
 });
 
-router.post('/admin/tasks', requireAuth, coverUpload.single('cover'), async (req, res) => {
+router.post('/admin/tasks', requireAuth, coverUpload.single('cover'), compressUpload('cover'), async (req, res) => {
   try {
     if (!req.user.is_admin) return res.status(403).json({ success: false, message: 'Admin only' });
     const validationError = validateTaskPayload(req.body);
@@ -406,7 +404,7 @@ router.post('/admin/tasks', requireAuth, coverUpload.single('cover'), async (req
   }
 });
 
-router.put('/admin/tasks/:id', requireAuth, coverUpload.single('cover'), async (req, res) => {
+router.put('/admin/tasks/:id', requireAuth, coverUpload.single('cover'), compressUpload('cover'), async (req, res) => {
   try {
     if (!req.user.is_admin) return res.status(403).json({ success: false, message: 'Admin only' });
     const validationError = validateTaskPayload(req.body);

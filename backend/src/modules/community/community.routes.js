@@ -119,7 +119,8 @@ router.get('/community', requireAuth, async (req, res) => {
            -- frontend) để họ biết bài mình đã gửi đi, không bị mất tích khó hiểu.
            and (p.moderation_status = 'approved' or (p.moderation_status = 'pending' and p.user_id = $1))
          group by p.id, u.display_name, u.full_name, u.role, u.is_admin
-         order by p.created_at desc`,
+         order by p.created_at desc
+         limit 100`, // chỉ 100 bài mới nhất (kèm bình luận) — tránh payload phình theo thời gian
         [userId]
       ).catch((e) => { console.error('[COMMUNITY_QUERY] community_posts:', e.message); return { rows: [] }; }),
       db.query(`select count(*)::int as members from users where status = 'active'`)

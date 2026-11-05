@@ -100,7 +100,7 @@ async function load() {
     void loadLatestArticles(data.id);
     if (data?.hasCover) {
       try {
-        const blob = await apiClient.getBlob(`/articles/${route.params.id}/cover`);
+        const blob = await apiClient.getBlob(`/articles/${route.params.id}/cover`, { cache: 'default' });
         coverUrl.value = URL.createObjectURL(blob);
       } catch (_e) { /* bỏ qua, không hiện ảnh bìa */ }
     }

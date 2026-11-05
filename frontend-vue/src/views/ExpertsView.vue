@@ -622,6 +622,7 @@ import { ref, reactive, computed, onMounted, onBeforeUnmount } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRoute, useRouter } from 'vue-router';
 import { apiClient } from '../lib/apiClient';
+import { getExpertAvatarUrl } from '../lib/expertAvatars';
 import { useAuthStore } from '../stores/auth';
 import ShareRecordModal from '../components/ShareRecordModal.vue';
 import NavIcon from '../components/NavIcon.vue';
@@ -720,7 +721,6 @@ const currentExpertId = ref(null);
 const bookingMonthOffset = ref(0);
 const walletBalance = ref(0);
 const avatarUrls = reactive({});
-const avatarUrlCache = new Map();
 
 const bookingData = reactive({
   expertId: null, sessionType: 'voice', durationTier: 'quick', price: 0,
@@ -790,13 +790,8 @@ const durationTierOptions = computed(() => {
   }));
 });
 
-async function getAvatarObjectUrl(id) {
-  if (avatarUrlCache.has(id)) return avatarUrlCache.get(id);
-  const blob = await apiClient.getBlob(`/experts/${id}/avatar`);
-  const url = URL.createObjectURL(blob);
-  avatarUrlCache.set(id, url);
-  return url;
-}
+// ảnh đại diện dùng chung toàn app (lib/expertAvatars.js) — không tải lại mỗi lần mở trang
+const getAvatarObjectUrl = (id) => getExpertAvatarUrl(id);
 async function preloadAvatars(list) {
   await Promise.all(list.filter((e) => e.has_avatar_photo).map(async (e) => {
     try {
@@ -1084,6 +1079,7 @@ function paymentPaidSuccess() {
 function startPaymentPoll(bookingId) {
   stopPaymentPoll();
   paymentPoll = setInterval(async () => {
+    if (document.hidden) return; // tab ẩn: tạm không hỏi (quay lại tab là hỏi tiếp)
     try {
       const p = await apiClient.get(`/bookings/${bookingId}/payment`, { noCache: true });
       // Chỉ coi là "đã thanh toán" khi chuyển sang đúng các trạng thái sau thanh toán —
@@ -1094,7 +1090,7 @@ function startPaymentPoll(bookingId) {
         stopPaymentPoll();
       }
     } catch (_e) { /* bỏ qua, thử lại lượt sau */ }
-  }, 4000);
+  }, 5000);
 }
 function stopPaymentPoll() {
   if (paymentPoll) { clearInterval(paymentPoll); paymentPoll = null; }

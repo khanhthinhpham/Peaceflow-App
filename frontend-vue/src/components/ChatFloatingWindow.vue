@@ -23,6 +23,7 @@
 <script setup>
 import { ref, onMounted, onBeforeUnmount } from 'vue';
 import { apiClient } from '../lib/apiClient';
+import { getExpertAvatarUrl } from '../lib/expertAvatars';
 import { useAuthStore } from '../stores/auth';
 import { useChatWidgetStore } from '../stores/chatWidget';
 import { subscribeChatMessages, unsubscribeChatMessages } from '../lib/supabaseRealtime';
@@ -44,8 +45,8 @@ const sending = ref(false);
 // Bearer token như ExpertsView.vue dùng cho danh sách chuyên gia.
 const avatarUrl = ref(props.conversation.clientAvatarUrl || null);
 if (props.conversation.expertId && props.conversation.hasAvatarPhoto) {
-  apiClient.getBlob(`/experts/${props.conversation.expertId}/avatar`)
-    .then((blob) => { avatarUrl.value = URL.createObjectURL(blob); })
+  getExpertAvatarUrl(props.conversation.expertId)
+    .then((url) => { avatarUrl.value = url; })
     .catch(() => {});
 }
 
