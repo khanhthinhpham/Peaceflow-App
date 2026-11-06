@@ -500,20 +500,19 @@
             </div>
           </div>
 
-          <!-- Cấp độ: chữ bên trái, cảnh vườn phía sau bên phải -->
+          <!-- Thứ bậc cột phải: Hồ sơ (gọn) → Thói quen (gọn) → Khu vườn (nhân vật chính) → Tổng quan cảm xúc.
+               Chỉ Khu vườn là thẻ nổi; các phần còn lại hoà vào nền. Đây là nơi DUY NHẤT hiện đủ cấp độ + XP. -->
           <section class="rp-hero">
-            <div class="rp-hero-art"></div>
-            <div class="rp-hero-body">
-              <div class="rp-level">{{ t('dashboard.rightPanel.levelLabel', { n: String(xpInfo.currentLevel).padStart(2, '0') }) }}</div>
+            <div class="rp-hero-row">
               <h2 class="rp-hero-title">{{ xpInfo.title }}</h2>
-              <p class="rp-hero-sub">{{ t('dashboard.rightPanel.heroSub') }}</p>
-              <div class="rp-xp-track"><div class="rp-xp-fill" :style="{ width: xpInfo.percent + '%' }"></div></div>
-              <p class="rp-xp-text"><strong>{{ xpInfo.xp }} / {{ xpInfo.maxXPLabel }}</strong> {{ t('dashboard.rightPanel.growthPoints') }}</p>
+              <span class="rp-level">{{ t('dashboard.rightPanel.levelLabel', { n: String(xpInfo.currentLevel).padStart(2, '0') }) }}</span>
             </div>
+            <div class="rp-xp-track" role="progressbar" :aria-valuenow="xpInfo.percent" aria-valuemin="0" aria-valuemax="100"><div class="rp-xp-fill" :style="{ width: xpInfo.percent + '%' }"></div></div>
+            <p class="rp-xp-text"><strong>{{ xpInfo.xp }} / {{ xpInfo.maxXPLabel }}</strong> {{ t('dashboard.rightPanel.growthPoints') }}</p>
           </section>
 
           <!-- Chuỗi thói quen -->
-          <section class="rp-card">
+          <section class="rp-flat rp-streak">
             <div class="rp-card-head">
               <h3 class="rp-card-title">{{ t('dashboard.streak.ribbonTitle') }}</h3>
               <router-link to="/achievements" class="rp-card-link">
@@ -540,21 +539,23 @@
                 <span class="rp-pill-sun"></span>{{ gardenStatusText }}<NavIcon name="chevronRight" />
               </router-link>
             </div>
-            <div class="rp-overview">
-              <div class="rp-overview-title">{{ t('dashboard.rightPanel.gardenOverview') }}</div>
-              <div v-if="gardenMetrics.length" class="rp-overview-grid">
-                <div v-for="metric in gardenMetrics" :key="metric.key" class="rp-metric" :class="`tone-${gardenDotClass(metric.status)}`">
-                  <NavIcon :name="GARDEN_ICONS[metric.key] || 'mood'" class="rp-metric-icon" :class="`ic-${GARDEN_ICONS[metric.key] || 'mood'}`" />
-                  <span class="rp-metric-label">{{ metric.label }}</span>
-                  <strong class="rp-metric-value">{{ metric.status_text }}</strong>
-                </div>
+          </section>
+
+          <!-- 4. Tổng quan cảm xúc: dữ liệu nuôi khu vườn — nằm ngay dưới, hoà nền -->
+          <section class="rp-flat rp-overview">
+            <div class="rp-overview-title">{{ t('dashboard.rightPanel.gardenOverview') }}</div>
+            <div v-if="gardenMetrics.length" class="rp-overview-grid">
+              <div v-for="metric in gardenMetrics" :key="metric.key" class="rp-metric" :class="`tone-${gardenDotClass(metric.status)}`">
+                <NavIcon :name="GARDEN_ICONS[metric.key] || 'mood'" class="rp-metric-icon" :class="`ic-${GARDEN_ICONS[metric.key] || 'mood'}`" />
+                <span class="rp-metric-label">{{ metric.label }}</span>
+                <strong class="rp-metric-value">{{ metric.status_text }}</strong>
               </div>
-              <p v-else class="rp-muted">{{ t('dashboard.garden.notEnough') }}</p>
             </div>
+            <p v-else class="rp-muted">{{ t('dashboard.garden.notEnough') }}</p>
           </section>
 
           <!-- Phiên tư vấn sắp tới -->
-          <section class="rp-card rp-expert">
+          <section class="rp-card rp-quiet rp-expert">
             <svg class="rp-expert-art" viewBox="26 10 100 100" aria-hidden="true">
               <path d="M44 62 h44 v18 a22 22 0 0 1 -44 0 z" fill="#F4EBDD" stroke="#B89B7A" stroke-width="2" />
               <path d="M88 66 a9 9 0 0 1 0 16" stroke="#B89B7A" stroke-width="2" fill="none" />
@@ -577,7 +578,7 @@
           </section>
 
           <!-- Ủng hộ PeaceFlow -->
-          <section class="rp-card rp-donate">
+          <section class="rp-card rp-quiet rp-donate">
             <span class="rp-donate-icon"><NavIcon name="heart" /></span>
             <div class="rp-donate-body">
               <h3 class="rp-card-title">{{ t('dashboard.donate.title') }}</h3>
@@ -1682,17 +1683,14 @@ export default { name: 'DashboardView' };
 
 /* ---------- Panel phải (theo mẫu "khu vườn"): nền trời nhạt, thẻ kem bo lớn, tiêu đề serif ---------- */
 .rp { --rp-accent: #6F8F5E; background: linear-gradient(180deg, #EEF1EA 0%, #F7F1E6 38%, #FBF6EE 100%); gap: 14px; padding-bottom: 16px; }
-.rp-hero { position: relative; min-height: 210px; padding: 6px 20px 8px; }
-.rp-hero-art { position: absolute; inset: -60px 0 0 30%; pointer-events: none; background: url("/images/garden-hero.jpg") center / cover no-repeat;
-  -webkit-mask-image: linear-gradient(90deg, transparent 0%, transparent 32%, rgba(0, 0, 0, 0.35) 55%, #000 85%), linear-gradient(180deg, #000 65%, transparent 100%); -webkit-mask-composite: source-in;
-  mask-image: linear-gradient(90deg, transparent 0%, transparent 32%, rgba(0, 0, 0, 0.35) 55%, #000 85%), linear-gradient(180deg, #000 65%, transparent 100%); mask-composite: intersect; }
-.rp-hero-body { position: relative; max-width: 62%; }
-.rp-level { display: flex; align-items: center; gap: 6px; font-family: var(--font-body); font-size: 13px; font-weight: 500; color: var(--color-text-muted); }
-.rp-hero-title { font-family: var(--font-heading); font-size: 24px; font-weight: 800; line-height: 1.3; color: #46362A; margin: 10px 0 12px; }
-.rp-hero-sub { font-family: var(--font-body); font-size: 13px; line-height: 1.6; color: var(--color-text-muted); margin: 0 0 18px; }
-.rp-xp-track { height: 10px; border-radius: 999px; background: rgba(255, 255, 255, 0.8); box-shadow: inset 0 0 0 1px rgba(74, 55, 40, 0.06); overflow: hidden; }
-.rp-xp-fill { height: 100%; border-radius: inherit; background: linear-gradient(90deg, #7FA866, #9CC57D); }
-.rp-xp-text { margin: 12px 0 0; font-size: 14px; color: var(--color-text-muted); }
+/* 1. Hồ sơ — gọn, không nền thẻ */
+.rp-hero { padding: 4px 22px 0; }
+.rp-hero-row { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+.rp-level { flex: none; font-family: var(--font-body); font-size: 12px; font-weight: 600; color: var(--color-text-muted); }
+.rp-hero-title { min-width: 0; margin: 0; font-family: var(--font-heading); font-size: 20px; font-weight: 800; line-height: 1.3; color: #46362A; }
+.rp-xp-track { height: 6px; margin-top: 10px; border-radius: 999px; background: rgba(74, 55, 40, 0.08); overflow: hidden; }
+.rp-xp-fill { height: 100%; border-radius: inherit; background: var(--rp-accent); }
+.rp-xp-text { margin: 6px 0 0; font-size: 12px; color: var(--color-text-muted); }
 .rp-xp-text strong { color: var(--color-text); font-weight: 700; }
 
 .rp-card { margin: 0 16px; padding: 16px 18px; border-radius: 22px; background: rgba(255, 253, 247, 0.92); box-shadow: 0 6px 20px rgba(80, 70, 50, 0.07); }
@@ -1704,6 +1702,21 @@ export default { name: 'DashboardView' };
 .rp-card-link .nav-icon { width: 16px; height: 16px; }
 .rp-card-link .rp-flame { color: var(--rp-accent); }
 .rp-card-link:hover { color: var(--rp-accent); }
+
+/* Phần hoà nền (Hồ sơ, Thói quen, Tổng quan cảm xúc): không nền trắng, không bóng */
+.rp-flat { margin: 0 22px; }
+.rp-streak { padding-top: 6px; }
+.rp-streak .rp-card-head { padding-top: 10px; }
+.rp-streak .rp-card-title { font-size: 15px; }
+.rp-streak .rp-days { margin-top: 8px; }
+.rp-streak .rp-day { gap: 4px; }
+.rp-streak .rp-day-label { font-size: 11px; }
+.rp-streak .rp-day-dot { width: 24px; height: 24px; background: rgba(74, 55, 40, 0.06); }
+.rp-streak .rp-day-dot .nav-icon { width: 13px; height: 13px; }
+.rp-streak .rp-days::before { bottom: 12px; }
+.rp-streak .rp-day.st-today .rp-day-dot, .rp-streak .rp-day.st-today-done .rp-day-dot { width: 28px; height: 28px; margin-top: -2px; box-shadow: none; }
+/* Thẻ phụ (chuyên gia, ủng hộ): viền mảnh, không nền trắng nổi — nhường sự chú ý cho Khu vườn */
+.rp-card.rp-quiet { background: transparent; box-shadow: none; }
 
 .rp-days { position: relative; display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); margin-top: 14px; }
 .rp-days::before { content: ''; position: absolute; left: 7%; right: 7%; bottom: 15px; height: 1px; background: rgba(74, 55, 40, 0.12); }
@@ -1718,7 +1731,8 @@ export default { name: 'DashboardView' };
 /* Cảnh vườn hiện trọn vẹn theo đúng tỉ lệ ảnh (400:220), tràn sát mép trên/trái/phải; tiêu đề + pill nổi trên cảnh.
    Card dài ra, tổng quan nằm hẳn bên dưới cảnh, không che. */
 .rp-garden { position: relative; overflow: hidden; padding: 0; }
-.rp-garden-art { position: relative; display: block; width: 100%; aspect-ratio: 400 / 250; padding: 0; border: none; background: none; cursor: zoom-in; font: inherit; }
+.rp-garden { margin-top: 4px; box-shadow: 0 10px 28px rgba(80, 70, 50, 0.12); }
+.rp-garden-art { position: relative; display: block; width: 100%; aspect-ratio: 4 / 3.4; padding: 0; border: none; background: none; cursor: zoom-in; font: inherit; }
 .rp-garden-top { pointer-events: none; }
 .rp-garden-top .rp-pill { pointer-events: auto; }
 .rp-garden-zoom { position: absolute; right: 10px; bottom: 10px; width: 30px; height: 30px; border-radius: 50%; background: rgba(255, 255, 255, 0.85); color: var(--color-text-muted); display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.15s ease; }
@@ -1889,8 +1903,8 @@ export default { name: 'DashboardView' };
 .rp-pill { display: inline-flex; align-items: center; gap: 6px; padding: 4px 8px 4px 6px; border-radius: 999px; background: rgba(255, 255, 255, 0.85); font-size: 12px; color: var(--color-text-muted); text-decoration: none; white-space: nowrap; }
 .rp-pill .nav-icon { width: 14px; height: 14px; }
 .rp-pill-sun { width: 10px; height: 10px; border-radius: 50%; background: var(--rp-accent); }
-.rp-overview { padding: 14px 12px 14px; }
-.rp-overview-title { display: flex; align-items: center; gap: 6px; font-family: var(--font-body); font-size: 14px; color: var(--color-text); margin-bottom: 8px; }
+.rp-overview { padding: 0 0 4px; }
+.rp-overview-title { display: flex; align-items: center; gap: 6px; font-family: var(--font-body); font-size: 12px; font-weight: 600; color: var(--color-text-muted); margin-bottom: 8px; }
 .rp-overview-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); }
 .rp-metric { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 0 4px; text-align: center; }
 .rp-metric + .rp-metric { border-left: 1px solid rgba(74, 55, 40, 0.1); }
@@ -1926,8 +1940,6 @@ export default { name: 'DashboardView' };
 .rp-head { display: none; }
 @media (min-width: 1101px) {
   .rp-head { position: relative; z-index: 2; display: flex; align-items: center; justify-content: flex-end; gap: 12px; padding: 16px 16px 0 20px; }
-  /* Hàng nút chỉ chiếm bên phải — kéo khối cấp độ lên cạnh nó cho bớt trống phía trên. */
-  .rp-hero { margin-top: -40px; }
 }
 .rp-actions { display: flex; align-items: center; gap: 8px; }
 .rp-collapse, .rp-btn {

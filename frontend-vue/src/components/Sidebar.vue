@@ -74,7 +74,6 @@
             <span v-if="isExpert" class="tag-expert">{{ t('sidebar.tagExpert') }}</span>
             <span v-if="isAdmin" class="tag-admin">{{ t('sidebar.tagAdmin') }}</span>
           </div>
-          <div class="user-level">{{ xp ?? '--' }} XP · Level {{ level ?? '--' }}</div>
         </div>
       </div>
       <router-link to="/emergency" class="emergency-btn">
@@ -85,12 +84,11 @@
 </template>
 
 <script setup>
-import { computed, ref, onMounted, onBeforeUnmount } from 'vue';
+import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRoute, useRouter } from 'vue-router';
 import { useAuthStore } from '../stores/auth';
 import { goToLegacyPage } from '../lib/legacyApp';
-import { apiClient } from '../lib/apiClient';
 import NavIcon from './NavIcon.vue';
 
 defineProps({ sidebarOpen: { type: Boolean, default: false }, collapsed: { type: Boolean, default: false } });
@@ -162,35 +160,7 @@ const avatarStyle = computed(() => {
   return { backgroundImage: `url('${url}')`, backgroundSize: 'cover', backgroundPosition: 'center' };
 });
 
-const xp = ref(null);
-const level = ref(null);
-function handleProgressUpdated(event) {
-  const nextXp = event.detail?.xp ?? event.detail?.total_xp;
-  const nextLevel = event.detail?.level ?? event.detail?.current_level;
-  if (nextXp === undefined) return;
-  xp.value = nextXp;
-  level.value = nextLevel ?? level.value;
-}
-
-// Trước đây sidebar CHỈ trông vào sự kiện 'peaceflow:progress-updated' do 1 vài trang khác
-// (Dashboard, hoàn thành nhiệm vụ, check-in, nhật ký) bắn ra — vào thẳng/tải lại bất kỳ
-// trang nào khác (Cộng đồng, Hồ sơ, Cài đặt...) mà chưa từng đi qua 1 trong các trang đó thì
-// xp/level đứng yên ở null, hiện "-- XP · Level --" vô thời hạn. Tự tải 1 lần khi mount để
-// luôn có giá trị thật, sự kiện ở trên vẫn giữ để cập nhật ngay khi có hoạt động mới.
-async function loadInitialProgress() {
-  if (!auth.isAuthenticated) return;
-  try {
-    const progress = await apiClient.get('/progress', { noCache: true });
-    xp.value = progress?.total_xp ?? progress?.xp ?? xp.value;
-    level.value = progress?.current_level ?? progress?.level ?? level.value;
-  } catch (_error) { /* giữ giá trị hiện tại, thử lại ở lần bắn sự kiện kế tiếp */ }
-}
-
-onMounted(() => {
-  window.addEventListener('peaceflow:progress-updated', handleProgressUpdated);
-  auth.waitForAuth().then(loadInitialProgress);
-});
-onBeforeUnmount(() => window.removeEventListener('peaceflow:progress-updated', handleProgressUpdated));
+// XP/Level không hiện ở sidebar nữa — cột phải Dashboard là nơi duy nhất hiện đủ cấp độ + điểm (tránh trùng lặp).
 
 async function handleLogout() {
   await auth.logout();
