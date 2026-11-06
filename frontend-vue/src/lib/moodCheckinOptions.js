@@ -107,3 +107,16 @@ export function deriveMoodPayload({ score, moodViLabel, triggerIds, notes = null
     notes
   };
 }
+
+// Bước 1 check-in: thang cảm xúc 0–100 chia 5 vùng, mỗi vùng ánh xạ về một MOOD_OPTIONS.
+// Dùng chung cho trang Check-in và thẻ check-in ở Home để hai nơi luôn khớp nhau.
+export const EMOTION_ZONES = [
+  { key: 'veryBad', min: 0, moodId: 'sad' },
+  { key: 'notGood', min: 20, moodId: 'slightlyStressed' },
+  { key: 'neutral', min: 40, moodId: 'normal' },
+  { key: 'good', min: 60, moodId: 'comfortable' },
+  { key: 'veryGood', min: 80, moodId: 'veryHappy' }
+];
+export function emotionZoneOf(value) {
+  return [...EMOTION_ZONES].reverse().find((z) => Number(value) >= z.min) || EMOTION_ZONES[0];
+}

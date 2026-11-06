@@ -17,7 +17,8 @@
     "rag:ingest": "node src/scripts/ingest-tasks-to-rag.js",
     "streak:fix": "node src/scripts/fix-streaks.js",
     "ai:embeddings": "node src/scripts/backfill-embeddings.js",
-    "images:compress": "node src/scripts/compress-db-images.js"
+    "images:compress": "node src/scripts/compress-db-images.js",
+    "images:r2": "node src/scripts/images-to-r2.js"
   },
   "overrides": {
     "exceljs": {
@@ -27,6 +28,7 @@
   "dependencies": {
     "@anthropic-ai/sdk": "^0.100.1",
     "argon2": "^0.41.1",
+    "aws4fetch": "^1.0.20",
     "cors": "^2.8.5",
     "dayjs": "^1.11.13",
     "dotenv": "^16.4.7",

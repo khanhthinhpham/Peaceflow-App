@@ -248,126 +248,9 @@
         <h2 class="section-title">{{ t('landing.moodDemo.titleLine1') }}<br>{{ t('landing.moodDemo.titleLine2') }}</h2>
       </div>
       <div class="mood-demo-layout">
-        <div class="mood-demo-card">
-          <div class="step-indicator" style="margin-bottom:16px;" v-if="!demoSaved">
-            <div class="si-dot" :class="demoDotClass(1)">1</div>
-            <div class="si-line" :class="{ done: demoStep >= 2 }"></div>
-            <div class="si-dot" :class="demoDotClass(2)">2</div>
-            <div class="si-line" :class="{ done: demoStep >= 3 }"></div>
-            <div class="si-dot" :class="demoDotClass(3)">3</div>
-            <div class="si-line" :class="{ done: demoStep >= 4 }"></div>
-            <div class="si-dot" :class="demoDotClass(4)">4</div>
-          </div>
-
-          <template v-if="!demoSaved">
-            <!-- Step 1: Mood -->
-            <div class="checkin-step" :class="{ active: demoStep === 1 }">
-              <div class="mascot-speech-box">
-                <span class="msb-avatar">🐱</span>
-                <div class="msb-text">{{ t('moodCheckin.step1.mascotGreeting', { name: demoDisplayName }) }}</div>
-              </div>
-              <div class="checkin-title">{{ t('moodCheckin.step1.title') }}</div>
-              <div class="checkin-sub">{{ t('moodCheckin.step1.sub') }}</div>
-              <div class="mood-grid">
-                <div
-                  v-for="option in MOOD_OPTIONS"
-                  :key="option.id"
-                  class="mood-btn"
-                  :class="{ selected: demoCheckin.moodId === option.id }"
-                  @click="selectDemoMood(option)"
-                >
-                  <span class="mood-emoji">{{ option.emoji }}</span>
-                  <span class="mood-label">{{ t(option.labelKey) }}</span>
-                </div>
-              </div>
-            </div>
-
-            <!-- Step 2: Intensity -->
-            <div class="checkin-step" :class="{ active: demoStep === 2 }">
-              <div class="mascot-speech-box">
-                <span class="msb-avatar">{{ demoCheckin.mood || '🐱' }}</span>
-                <div class="msb-text">{{ demoMascotMoodText }}</div>
-              </div>
-              <div class="checkin-title">{{ t('moodCheckin.step2.title') }}</div>
-              <div class="checkin-sub">{{ t('moodCheckin.step2.sub') }}</div>
-              <div class="slider-wrap">
-                <div class="slider-labels"><span>{{ t('moodCheckin.step2.sliderLow') }}</span><span>{{ t('moodCheckin.step2.sliderHigh') }}</span></div>
-                <input type="range" class="mood-slider" min="1" max="10" v-model.number="demoCheckin.score">
-                <div class="slider-value-display">
-                  <div class="slider-tree">{{ demoSliderTreeEmoji }}</div>
-                  <div class="slider-val">{{ demoCheckin.score }}</div>
-                </div>
-              </div>
-              <div style="display:flex;justify-content:space-between;align-items:center;">
-                <button class="btn-outline" @click="demoGoStep(1)">{{ t('moodCheckin.step2.backBtn') }}</button>
-                <button class="btn-primary" @click="demoGoStep(3)">{{ t('moodCheckin.step2.continueBtn') }}</button>
-              </div>
-            </div>
-
-            <!-- Step 3: Tags -->
-            <div class="checkin-step" :class="{ active: demoStep === 3 }">
-              <div class="mascot-speech-box">
-                <span class="msb-avatar">🐱</span>
-                <div class="msb-text">{{ t('moodCheckin.step3.mascotText') }}</div>
-              </div>
-              <div class="checkin-title">{{ t('moodCheckin.step3.title') }}</div>
-              <div class="checkin-sub">{{ t('moodCheckin.step3.sub') }}</div>
-              <div class="tag-grid">
-                <div
-                  v-for="tag in TAGS"
-                  :key="tag.id"
-                  class="tag-btn"
-                  :class="{ selected: demoCheckin.tags.includes(tag) }"
-                  @click="toggleDemoTag(tag)"
-                >{{ t(tag.labelKey) }}</div>
-              </div>
-              <div style="display:flex;justify-content:space-between;align-items:center;">
-                <button class="btn-outline" @click="demoGoStep(2)">{{ t('moodCheckin.step3.backBtn') }}</button>
-                <button class="btn-primary" @click="demoGoStep(4)">{{ t('moodCheckin.step3.continueBtn') }}</button>
-              </div>
-            </div>
-
-            <!-- Step 4: Body symptoms -->
-            <div class="checkin-step" :class="{ active: demoStep === 4 }">
-              <div class="mascot-speech-box">
-                <span class="msb-avatar">🐱</span>
-                <div class="msb-text">{{ t('moodCheckin.stepBody.mascotText') }}</div>
-              </div>
-              <div class="checkin-title">{{ t('moodCheckin.stepBody.title') }}</div>
-              <div class="checkin-sub">{{ t('moodCheckin.stepBody.sub') }}</div>
-              <div class="tag-grid">
-                <div
-                  v-for="group in BODY_SYMPTOM_GROUPS"
-                  :key="group.id"
-                  class="tag-btn"
-                  :class="{ selected: isDemoBodyGroupHighlighted(group) }"
-                  @click="toggleDemoBodyGroup(group)"
-                >{{ t(group.labelKey) }}<template v-if="group.children.length">{{ demoExpandedBodyGroups.has(group.id) ? ' ▲' : ' ▼' }}</template></div>
-              </div>
-              <template v-for="group in BODY_SYMPTOM_GROUPS" :key="`sub-${group.id}`">
-                <div v-if="group.children.length && demoExpandedBodyGroups.has(group.id)" class="tag-grid" style="margin-top:-6px;margin-bottom:16px;padding:12px;background:var(--cream,#fff8f0);border-radius:var(--radius-sm,10px);">
-                  <div
-                    v-for="child in group.children"
-                    :key="child.id"
-                    class="tag-btn"
-                    :class="{ selected: demoCheckin.bodySymptoms.includes(child) }"
-                    @click="toggleDemoBodySymptom(child)"
-                  >{{ t(child.labelKey) }}</div>
-                </div>
-              </template>
-              <div style="display:flex;justify-content:space-between;align-items:center;">
-                <button class="btn-outline" @click="demoGoStep(3)">{{ t('moodCheckin.stepBody.backBtn') }}</button>
-                <button class="btn-primary" :disabled="demoSubmitting" @click="saveDemoMood">{{ demoSubmitting ? t('moodCheckin.stepBody.saving') : t('moodCheckin.stepBody.saveBtn') }}</button>
-              </div>
-            </div>
-          </template>
-
-          <!-- Result -->
-          <div v-else style="text-align:center;padding:20px 0 4px;">
-            <div style="font-size:2.6rem;margin-bottom:10px;">{{ demoCheckin.mood || '🌿' }}</div>
-            <div style="font-size:1rem;font-weight:800;margin-bottom:16px;color:var(--mint-dark);">{{ demoResultLabel }}</div>
-            <button class="btn-outline" @click="resetDemoCheckin">{{ t('moodCheckin.step4.checkinAgainBtn') }}</button>
-          </div>
+        <!-- Check-in giống hệt trang Check-in; chưa đăng nhập thì lúc bấm Lưu mới chuyển sang đăng nhập -->
+        <div class="mood-demo-card" style="min-width:0;">
+          <MoodCheckinView guest />
         </div>
         <div class="mood-demo-info">
           <div class="mdi-item">
@@ -449,6 +332,8 @@
             <a href="https://www.facebook.com/profile.php?id=61594063631691" target="_blank" rel="noopener" style="color:inherit;text-decoration:none;cursor:pointer;" title="Facebook">FB</a>
             <a href="https://www.instagram.com/peaceflow.vn/" target="_blank" rel="noopener" style="color:inherit;text-decoration:none;cursor:pointer;" title="Instagram">IG</a>
             <a href="https://www.threads.com/@peaceflow.vn" target="_blank" rel="noopener" style="color:inherit;text-decoration:none;cursor:pointer;" title="Threads">TH</a>
+            <a href="https://www.tiktok.com/@peaceflow247" target="_blank" rel="noopener" style="color:inherit;text-decoration:none;cursor:pointer;" title="TikTok">TT</a>
+            <a href="https://www.youtube.com/@PeaceFlow247" target="_blank" rel="noopener" style="color:inherit;text-decoration:none;cursor:pointer;" title="YouTube">YT</a>
           </div>
         </div>
       </div>
@@ -459,6 +344,7 @@
 <script setup>
 import { ref, reactive, computed, onMounted, onBeforeUnmount, nextTick } from 'vue';
 import { useI18n } from 'vue-i18n';
+import MoodCheckinView from './MoodCheckinView.vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useAuthStore } from '../stores/auth';
 import { apiClient } from '../lib/apiClient';

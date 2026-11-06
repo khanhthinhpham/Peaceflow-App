@@ -64,6 +64,36 @@
     </div>
   </div>
 
+  <!-- Lịch sử trò chuyện (lưu mã hoá trên server khi khách đã đồng ý xử lý Dữ liệu sức khỏe) -->
+  <div v-if="historyOpen" class="chat-history-overlay" @click.self="historyOpen = false">
+    <div class="chat-history" role="dialog" aria-modal="true" :aria-label="t('chatHistory.title')">
+      <div class="chh-head">
+        <strong>{{ t('chatHistory.title') }}</strong>
+        <button type="button" class="chh-x" :aria-label="t('chatHistory.close')" @click="historyOpen = false">✕</button>
+      </div>
+      <div class="chh-body">
+        <p v-if="historyLoading" class="chh-note">{{ t('chatHistory.loading') }}</p>
+        <p v-else-if="historyError" class="chh-note">{{ t('chatHistory.loadError') }}</p>
+        <template v-else>
+          <div v-if="!storageEnabled" class="chh-warn">
+            {{ t('chatHistory.localOnly') }}
+            <router-link to="/settings">{{ t('chatHistory.goSettings') }}</router-link>
+          </div>
+          <p v-else class="chh-note">{{ t('chatHistory.encryptedNote') }}</p>
+          <p v-if="storageEnabled && !historySessions.length" class="chh-note">{{ t('chatHistory.empty') }}</p>
+          <div v-for="s in historySessions" :key="s.id" class="chh-item" :class="{ 'is-current': s.id === sessionId }">
+            <button type="button" class="chh-open" @click="openSession(s.id)">
+              <span class="chh-title">{{ s.title || t('chatHistory.untitled') }}</span>
+              <span class="chh-meta">{{ formatHistoryDate(s.updated_at) }} · {{ t('chatHistory.messages', { n: s.message_count }) }}<template v-if="s.id === sessionId"> · {{ t('chatHistory.current') }}</template></span>
+            </button>
+            <button type="button" class="chh-del" :aria-label="t('chatHistory.delete')" :title="t('chatHistory.delete')" @click="removeSession(s.id)">🗑️</button>
+          </div>
+          <button v-if="historySessions.length" type="button" class="chh-del-all" @click="removeAllSessions">{{ t('chatHistory.deleteAll') }}</button>
+        </template>
+      </div>
+    </div>
+  </div>
+
   <main class="main-content mood-chat-page" style="margin-left: 0;">
     <!-- Chat Topbar -->
     <div class="chat-topbar">
@@ -84,7 +114,8 @@
       <div class="ct-actions">
         <span class="badge-pill badge-mint">{{ t('moodChat.topbar.messageCountLabel', { n: userMessageCount }) }}</span>
         <button class="ct-action-btn" @click="showResult">{{ t('moodChat.topbar.viewResultBtn') }}</button>
-        <button class="ct-action-btn" @click="clearChat">{{ t('moodChat.topbar.clearChatBtn') }}</button>
+        <button class="ct-action-btn" @click="openHistory">{{ t('chatHistory.historyBtn') }}</button>
+        <button class="ct-action-btn" @click="clearChat">{{ t('chatHistory.newChatBtn') }}</button>
         <button class="ct-action-btn danger" @click="showEmergency">{{ t('moodChat.topbar.emergencyBtn') }}</button>
       </div>
     </div>
@@ -264,9 +295,13 @@ const router = useRouter();
 const auth = useAuthStore();
 const { t, tm, locale } = useI18n();
 
-const STORAGE_KEY = 'peaceflow_mood_chat_state_v1';
+// Lưu cuộc trò chuyện đang mở trên thiết bị (theo từng tài khoản) để đóng tab/app không mất.
+// Bản lưu lâu dài + xem trên mọi thiết bị nằm ở server (mã hoá) — xem ai.chat-history.js.
+const storageKey = () => `peaceflow_mood_chat_state_v2:${auth.user?.id || 'anon'}`;
 const MAX_MESSAGE_LENGTH = 500;
-const MAX_CONVERSATION_ITEMS = 20;
+const MAX_CONVERSATION_ITEMS = 200;
+const sessionId = ref(null);
+const storageEnabled = ref(false);
 
 // Các bộ từ khoá này so khớp trực tiếp trên NỘI DUNG người dùng gõ (tiếng Việt), không phải
 // text giao diện — không thể "dịch" mà không phá vỡ khả năng phát hiện. DANGER_KEYWORDS đặc
@@ -407,19 +442,24 @@ function isPositiveKeyword(keyword) {
 }
 
 function saveConversation() {
-  sessionStorage.setItem(STORAGE_KEY, JSON.stringify({
-    conversation: conversation.value.slice(-MAX_CONVERSATION_ITEMS),
-    analysis: { ...analysis },
-    keywords: keywords.value
-  }));
+  try {
+    localStorage.setItem(storageKey(), JSON.stringify({
+      conversation: conversation.value.slice(-MAX_CONVERSATION_ITEMS),
+      analysis: { ...analysis },
+      keywords: keywords.value,
+      sessionId: sessionId.value
+    }));
+  } catch (_e) { /* bộ nhớ đầy / chế độ riêng tư: bỏ qua, server vẫn giữ bản lưu nếu đã đồng ý */ }
 }
 
 function loadConversation() {
   try {
-    const raw = sessionStorage.getItem(STORAGE_KEY);
+    sessionStorage.removeItem('peaceflow_mood_chat_state_v1'); // bản cũ chỉ sống trong 1 tab
+    const raw = localStorage.getItem(storageKey());
     if (!raw) return false;
     const parsed = JSON.parse(raw);
     conversation.value = Array.isArray(parsed.conversation) ? parsed.conversation : [];
+    sessionId.value = typeof parsed.sessionId === 'string' ? parsed.sessionId : null;
     if (parsed.analysis && typeof parsed.analysis === 'object') {
       Object.assign(analysis, parsed.analysis);
     }
@@ -597,8 +637,9 @@ async function sendMessage() {
         offeredTask: Boolean(item.offeredTask)
       }));
 
-    const res = await apiClient.post('/ai/chat', { message: text, history });
+    const res = await apiClient.post('/ai/chat', { message: text, history, session_id: sessionId.value });
     hideTyping();
+    if (res?.session_id) sessionId.value = res.session_id;
     applyAiMoodAnalysis(res?.mood_analysis);
     addMessage('bot', res?.reply || t('moodChat.botDefaultReply'), {
       suggestedTask: res?.suggested_task || null,
@@ -618,7 +659,8 @@ async function sendMessage() {
 }
 
 function clearChat() {
-  sessionStorage.removeItem(STORAGE_KEY);
+  try { localStorage.removeItem(storageKey()); } catch (_e) { /* bỏ qua */ }
+  sessionId.value = null;
   Object.assign(analysis, buildBaseAnalysis());
   keywords.value = collectRealKeywords();
   resetChat(true);
@@ -719,6 +761,93 @@ const resultInsight = computed(() => {
   return t('moodChat.insight.defaultMessage');
 });
 
+// ===== Lịch sử trò chuyện =====
+const historyOpen = ref(false);
+const historyLoading = ref(false);
+const historyError = ref(false);
+const historySessions = ref([]);
+
+function formatHistoryDate(value) {
+  if (!value) return '';
+  return new Intl.DateTimeFormat(locale.value === 'en' ? 'en-US' : 'vi-VN', {
+    day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit'
+  }).format(new Date(value));
+}
+
+async function fetchSessions() {
+  const data = await apiClient.get('/ai/chat/sessions', { noCache: true });
+  storageEnabled.value = !!data?.storage_enabled;
+  historySessions.value = Array.isArray(data?.sessions) ? data.sessions : [];
+  return historySessions.value;
+}
+
+async function openHistory() {
+  historyOpen.value = true;
+  historyLoading.value = true;
+  historyError.value = false;
+  try { await fetchSessions(); } catch (_e) { historyError.value = true; } finally { historyLoading.value = false; }
+}
+
+function timeLabelOf(value) {
+  const d = new Date(value);
+  return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+}
+
+// Mở một cuộc trò chuyện đã lưu: hiện lại toàn bộ tin nhắn, gửi tiếp sẽ nối vào đúng cuộc đó.
+async function loadSession(id) {
+  const data = await apiClient.get(`/ai/chat/sessions/${id}`, { noCache: true });
+  if (!data) return false;
+  const items = (data.messages || []).map((m) => ({
+    role: m.role,
+    text: m.text,
+    html: escapeHtml(m.text).replace(/\n/g, '<br>'),
+    time: timeLabelOf(m.created_at),
+    suggestedTask: m.meta?.suggested_task
+      ? { ...m.meta.suggested_task, title: (locale.value === 'en' && m.meta.suggested_task.title_en) || m.meta.suggested_task.title }
+      : null,
+    suggestedExpert: m.meta?.suggested_expert || null,
+    offeredTask: Boolean(m.meta?.offered_task)
+  }));
+  sessionId.value = data.id;
+  conversation.value = [];
+  addMessage('bot', '', { html: buildWelcomeMessage(), time: t('moodChat.welcome.justNow') });
+  conversation.value = [...conversation.value, ...items].slice(-MAX_CONVERSATION_ITEMS);
+  renderConversation();
+  saveConversation();
+  return true;
+}
+
+async function openSession(id) {
+  try {
+    await loadSession(id);
+    historyOpen.value = false;
+  } catch (_e) {
+    historyError.value = true;
+  }
+}
+
+async function removeSession(id) {
+  if (!window.confirm(t('chatHistory.confirmDelete'))) return;
+  try {
+    await apiClient.delete(`/ai/chat/sessions/${id}`);
+    historySessions.value = historySessions.value.filter((s) => s.id !== id);
+    if (sessionId.value === id) clearChat();
+  } catch (_e) {
+    historyError.value = true;
+  }
+}
+
+async function removeAllSessions() {
+  if (!window.confirm(t('chatHistory.confirmDeleteAll'))) return;
+  try {
+    await apiClient.delete('/ai/chat/sessions');
+    historySessions.value = [];
+    clearChat();
+  } catch (_e) {
+    historyError.value = true;
+  }
+}
+
 async function initializePage() {
   const [dashboardData, reportData, tasksData] = await Promise.all([
     apiClient.get('/dashboard'),
@@ -740,6 +869,12 @@ async function initializePage() {
   } else {
     resetChat(true);
   }
+  // Thiết bị này chưa có cuộc trò chuyện nào (máy mới, đã xoá dữ liệu, đăng nhập lại...):
+  // mở lại cuộc gần nhất đã lưu trên server.
+  try {
+    const sessions = await fetchSessions();
+    if (!hasStoredConversation && sessions.length) await loadSession(sessions[0].id);
+  } catch (_e) { /* không có lịch sử server thì giữ màn chào */ }
 
   handleInputResize();
 }
@@ -765,4 +900,26 @@ onMounted(async () => {
 
 <style scoped>
 .chat-ai-notice { align-self: center; max-width: 560px; text-align: center; margin: 0 auto 12px; padding: 0 12px; }
+.chat-history-overlay { position: fixed; inset: 0; z-index: 1200; display: flex; align-items: center; justify-content: center; padding: 16px; background: rgba(74, 55, 40, 0.35); }
+.chat-history { display: flex; flex-direction: column; width: 100%; max-width: 520px; max-height: min(80vh, 720px); border-radius: 16px; background: var(--color-surface, #fff); box-shadow: 0 24px 60px rgba(74, 55, 40, 0.22); overflow: hidden; font-family: var(--font-body); }
+.chh-head { display: flex; align-items: center; justify-content: space-between; padding: 10px 10px 10px 18px; border-bottom: 1px solid var(--color-border, #eadfce); }
+.chh-head strong { font-family: var(--font-heading); font-size: 16px; color: var(--color-text); }
+.chh-x { width: 44px; height: 44px; border: none; border-radius: 50%; background: transparent; color: var(--color-text-muted); font-size: 18px; cursor: pointer; }
+.chh-x:hover { background: var(--color-surface-muted, #f4eee6); }
+.chh-body { padding: 12px 16px 16px; overflow-y: auto; }
+.chh-note { margin: 0 0 10px; font-size: 13px; color: var(--color-text-muted); }
+.chh-warn { margin: 0 0 12px; padding: 10px 12px; border-radius: 10px; background: var(--color-caution-soft, #fff3e0); font-size: 13px; line-height: 1.5; color: var(--color-text); }
+.chh-warn a { margin-left: 4px; font-weight: 700; color: var(--color-brand, #6F8F5E); }
+.chh-item { display: flex; align-items: center; gap: 6px; border-radius: 12px; }
+.chh-item + .chh-item { margin-top: 4px; }
+.chh-item.is-current { background: var(--color-surface-muted, #f4eee6); }
+.chh-open { flex: 1; min-width: 0; min-height: 52px; display: flex; flex-direction: column; align-items: flex-start; gap: 2px; padding: 8px 10px; border: none; border-radius: 12px; background: transparent; text-align: left; font: inherit; cursor: pointer; }
+.chh-open:hover { background: var(--color-surface-muted, #f4eee6); }
+.chh-title { width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 14px; font-weight: 600; color: var(--color-text); }
+.chh-meta { font-size: 12px; color: var(--color-text-muted); }
+.chh-del { flex: none; width: 44px; height: 44px; border: none; border-radius: 50%; background: transparent; cursor: pointer; }
+.chh-del:hover { background: var(--color-danger-soft, #fde8e6); }
+.chh-del-all { margin-top: 12px; min-height: 40px; padding: 0 14px; border: none; border-radius: 999px; background: transparent; color: var(--color-danger, #c0504a); font: 600 13px var(--font-body); cursor: pointer; }
+.chh-del-all:hover { background: var(--color-danger-soft, #fde8e6); }
+@media (max-width: 600px) { .chat-history-overlay { align-items: flex-end; padding: 0; } .chat-history { max-height: 88vh; border-radius: 16px 16px 0 0; padding-bottom: env(safe-area-inset-bottom); } }
 </style>

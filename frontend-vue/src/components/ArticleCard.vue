@@ -48,7 +48,7 @@ const saved = computed(() => isArticleSaved(props.article.id));
 // của trình duyệt — trước đây trang danh sách tự fetch blob cho TẤT CẢ bài viết ngay khi vào
 // trang (dù chưa cuộn tới), tải rất nặng/chậm. Giờ ảnh chỉ thực sự tải khi trình duyệt thấy
 // nó sắp lọt vào khung nhìn khi cuộn.
-const coverSrc = computed(() => (props.article.hasCover ? `${API_BASE_URL}/articles/${props.article.id}/cover` : ''));
+const coverSrc = computed(() => (props.article.hasCover ? `${API_BASE_URL}/articles/${props.article.id}/cover?size=card` : '')); // bản 640px
 
 function formatDate(v) {
   if (!v) return '';

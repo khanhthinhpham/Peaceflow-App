@@ -62,7 +62,7 @@ async function getCatalog() {
         db.query(
             `select id, code, title, category, difficulty, duration_minutes, xp_reward, description,
                     metadata->>'icon' as icon, title_en, description_en,
-                    (cover_image is not null) as has_cover
+                    (cover_image is not null or cover_r2 is not null) as has_cover
              from tasks where active = true order by code`
         ),
         db.query(
@@ -1183,7 +1183,7 @@ async function resolveTask(catalog, rawCode, fallbackText) {
     const { rows } = await db.query(
         `select id, code, title, category, difficulty, duration_minutes, xp_reward, description,
                 metadata->>'icon' as icon, title_en, description_en,
-                (cover_image is not null) as has_cover, embedding <=> $1::vector as distance
+                (cover_image is not null or cover_r2 is not null) as has_cover, embedding <=> $1::vector as distance
          from tasks
          where active = true and embedding is not null
          order by distance asc

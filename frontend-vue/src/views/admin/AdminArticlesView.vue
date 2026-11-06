@@ -146,7 +146,7 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue';
 import DOMPurify from 'dompurify';
-import { apiClient } from '../../lib/apiClient';
+import { apiClient, API_BASE_URL } from '../../lib/apiClient';
 import RichTextEditor from '../../components/RichTextEditor.vue';
 
 const articles = ref([]);
@@ -317,8 +317,7 @@ async function openEdit(id) {
     form.contentEn = data.contentEn || '';
     enOpen.value = Boolean(form.titleEn || form.contentEn);
     if (data.hasCover) {
-      const blob = await apiClient.getBlob(`/articles/${id}/cover?v=${Date.now()}`); // ?v=: bỏ qua bản CDN cũ khi vừa đổi ảnh
-      coverPreview.value = URL.createObjectURL(blob);
+      coverPreview.value = `${API_BASE_URL}/articles/${id}/cover?size=card&v=${Date.now()}`; // ?v=: bỏ qua bản CDN cũ khi vừa đổi ảnh
     }
   } catch (_e) {
     formError.value = 'Không tải được nội dung bài viết.';

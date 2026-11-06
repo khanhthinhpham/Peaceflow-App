@@ -83,7 +83,22 @@
     <div v-else-if="loadError" class="admin-card admin-empty" style="color:var(--coral);">{{ loadError }}</div>
     <div v-else-if="!tasks.length" class="admin-card admin-empty">Chưa có nhiệm vụ nào.</div>
     <template v-else>
-      <div v-for="task in tasks" :key="task.id" class="admin-card" style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
+      <!-- Lọc nhanh trong TOÀN BỘ nhiệm vụ (đã tải hết, không còn giới hạn 50) -->
+      <div class="admin-card" style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+        <input v-model="taskSearch" type="search" class="admin-input" style="flex:1;min-width:220px;" placeholder="Tìm theo tên hoặc mã nhiệm vụ...">
+        <select v-model="taskCategory" class="admin-input" style="max-width:170px;" aria-label="Lọc theo mức độ">
+          <option value="">Tất cả mức độ</option>
+          <option v-for="(label, key) in CATEGORY_LABELS" :key="key" :value="key">{{ label }}</option>
+        </select>
+        <select v-model="taskActive" class="admin-input" style="max-width:150px;" aria-label="Lọc theo trạng thái">
+          <option value="">Tất cả</option>
+          <option value="1">Đang hiện</option>
+          <option value="0">Đã ẩn</option>
+        </select>
+      </div>
+      <div style="font-size:.82rem;color:var(--text-light);margin-bottom:10px;">Hiển thị {{ filteredTasks.length }} / {{ tasks.length }} nhiệm vụ</div>
+      <div v-if="!filteredTasks.length" class="admin-card admin-empty">Không có nhiệm vụ nào khớp bộ lọc.</div>
+      <div v-for="task in filteredTasks" :key="task.id" class="admin-card" style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
         <div>
           <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
             <span style="font-weight:800;">{{ task.title }}</span>
@@ -105,13 +120,25 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue';
-import { apiClient } from '../../lib/apiClient';
+import { ref, reactive, computed, onMounted } from 'vue';
+import { apiClient, API_BASE_URL } from '../../lib/apiClient';
 
 const CATEGORY_LABELS = { easy: 'Dễ', medium: 'Trung bình', hard: 'Nâng cao', emergency: 'Khẩn cấp', community: 'Cộng đồng' };
 
 const tasks = ref([]);
 const loading = ref(true);
+const taskSearch = ref('');
+const taskCategory = ref('');
+const taskActive = ref('');
+const filteredTasks = computed(() => {
+  const q = taskSearch.value.trim().toLowerCase();
+  return tasks.value.filter((task) => {
+    if (taskCategory.value && task.category !== taskCategory.value) return false;
+    if (taskActive.value && String(task.active ? 1 : 0) !== taskActive.value) return false;
+    if (!q) return true;
+    return String(task.title || '').toLowerCase().includes(q) || String(task.code || '').toLowerCase().includes(q);
+  });
+});
 const loadError = ref('');
 
 const formOpen = ref(false);
@@ -134,8 +161,19 @@ async function load() {
   loading.value = true;
   loadError.value = '';
   try {
-    const data = await apiClient.get('/admin/tasks', { noCache: true });
-    tasks.value = data?.tasks || [];
+    // API trả tối đa 200/lần (mặc định chỉ 50 → trước đây admin chỉ thấy 50 nhiệm vụ mới nhất).
+    // Tải lần lượt từng trang cho tới khi đủ tổng số.
+    const PAGE = 200;
+    const all = [];
+    let total = Infinity;
+    while (all.length < total) {
+      const data = await apiClient.get(`/admin/tasks?limit=${PAGE}&offset=${all.length}`, { noCache: true });
+      const rows = data?.tasks || [];
+      total = Number(data?.total ?? rows.length);
+      all.push(...rows);
+      if (rows.length < PAGE) break;
+    }
+    tasks.value = all;
   } catch (_e) {
     loadError.value = 'Không tải được danh sách nhiệm vụ (cần quyền admin).';
   } finally {
@@ -187,10 +225,7 @@ async function openEdit(task) {
   tagsText.value = (task.tags || []).join(', ');
   formOpen.value = true;
   if (task.has_cover) {
-    try {
-      const blob = await apiClient.getBlob(`/tasks/${task.id}/cover?v=${Date.now()}`); // ?v=: bỏ qua bản CDN cũ khi vừa đổi ảnh
-      coverPreview.value = URL.createObjectURL(blob);
-    } catch (_e) { /* khong sao neu tai anh loi, form van dung duoc */ }
+    coverPreview.value = `${API_BASE_URL}/tasks/${task.id}/cover?size=card&v=${Date.now()}`; // ?v=: bỏ qua bản CDN cũ khi vừa đổi ảnh
   }
 }
 

@@ -2,7 +2,8 @@ import { Router } from 'express';
 import multer from 'multer';
 import { requireAuth } from '../../common/middleware/auth.middleware.js';
 import { resolveSafeContentType } from '../../common/utils/safeFileServe.js';
-import { compressUpload, sendDbImage } from '../../common/utils/dbImage.js';
+import { compressUpload } from '../../common/utils/dbImage.js';
+import { serveImage, promoteImage, removeImage } from '../../common/utils/imageStore.js';
 import { db } from '../../config/db.js';
 import { z } from 'zod';
 import { env } from '../../config/env.js';
@@ -55,7 +56,7 @@ router.get('/expert-portal/overview', requireAuth, async (req, res) => {
     }
 
     const expertProfileRes = await db.query(
-      `select id, code, full_name, degree, phone, avatar_emoji, (avatar_photo is not null) as has_avatar_photo,
+      `select id, code, full_name, degree, phone, avatar_emoji, (avatar_photo is not null or avatar_r2 is not null) as has_avatar_photo,
               status, rating, sessions_count, satisfaction_rate,
               base_price, location, experience_years, specialties, bio, credentials, approaches, next_slot_label,
               bio_en, specialties_en,
@@ -204,7 +205,7 @@ router.put('/expert-portal/profile', requireAuth, async (req, res) => {
            specialties_en = $16::jsonb,
            updated_at = now()
        where id = $1
-       returning id, code, full_name, degree, phone, avatar_emoji, (avatar_photo is not null) as has_avatar_photo,
+       returning id, code, full_name, degree, phone, avatar_emoji, (avatar_photo is not null or avatar_r2 is not null) as has_avatar_photo,
                  status, rating, sessions_count,
                  satisfaction_rate, base_price, location, experience_years, specialties, bio,
                  credentials, approaches, next_slot_label, bio_en, specialties_en, active, created_at, updated_at`,
@@ -275,6 +276,7 @@ router.post('/expert-portal/avatar', requireAuth, avatarUpload.single('image'), 
       [req.user.sub, req.file.buffer, req.file.mimetype]
     );
     if (!r.rows[0]) return res.status(404).json({ success: false, message: 'Không tìm thấy hồ sơ chuyên gia của bạn.' });
+    await promoteImage('experts', r.rows[0].id, req.file.buffer);
     return res.json({ success: true, data: { uploaded: true } });
   } catch (error) {
     if (error.message === 'Chỉ chấp nhận file ảnh') {
@@ -291,12 +293,9 @@ router.delete('/expert-portal/avatar', requireAuth, async (req, res) => {
     if (req.user.role !== 'expert') {
       return res.status(403).json({ success: false, message: 'Expert access required' });
     }
-    const r = await db.query(
-      `update experts set avatar_photo = null, avatar_photo_mime = null, updated_at = now()
-       where user_id = $1 returning id`,
-      [req.user.sub]
-    );
+    const r = await db.query(`select id from experts where user_id = $1 limit 1`, [req.user.sub]);
     if (!r.rows[0]) return res.status(404).json({ success: false, message: 'Không tìm thấy hồ sơ chuyên gia của bạn.' });
+    await removeImage('experts', r.rows[0].id);
     return res.json({ success: true, data: { removed: true } });
   } catch (error) {
     console.error('Expert self avatar delete error:', error);
@@ -308,7 +307,7 @@ router.delete('/expert-portal/avatar', requireAuth, async (req, res) => {
 // (bytea — ảnh gốc lưu trong DB) và embedding vector(768) của chuyên gia qua mạng về backend:
 // đo trên Supabase, danh sách 12 chuyên gia mất ~32 giây / 3,3 MB với select *, còn ~0,7 giây /
 // 21 KB khi chỉ lấy các cột dưới. Ảnh thật tải riêng qua GET /experts/:id/avatar.
-const EXPERT_PUBLIC_COLUMNS = `id, code, avatar_emoji, (avatar_photo is not null) as has_avatar_photo,
+const EXPERT_PUBLIC_COLUMNS = `id, code, avatar_emoji, (avatar_photo is not null or avatar_r2 is not null) as has_avatar_photo,
   full_name, degree, status, rating, sessions_count, satisfaction_rate, base_price,
   location, experience_years, specialties, specialties_en, tags, bio, bio_en,
   next_slot_label, credentials, approaches,
@@ -1562,11 +1561,11 @@ router.get('/expert-portal/clients/:userId/mood-history', requireAuth, async (re
     const params = [req.params.userId];
     if (req.query.from) {
       params.push(req.query.from);
-      conditions.push(`created_at >= $${params.length}::date`);
+      conditions.push(`created_at >= ($${params.length}::date::timestamp at time zone 'Asia/Ho_Chi_Minh')`);
     }
     if (req.query.to) {
       params.push(req.query.to);
-      conditions.push(`created_at < ($${params.length}::date + interval '1 day')`);
+      conditions.push(`created_at < (($${params.length}::date + interval '1 day') at time zone 'Asia/Ho_Chi_Minh')`);
     }
     const whereClause = conditions.join(' and ');
 
@@ -1632,11 +1631,11 @@ router.get('/expert-portal/clients/:userId/self-assessments', requireAuth, async
     const params = [req.params.userId];
     if (req.query.from) {
       params.push(req.query.from);
-      conditions.push(`ar.created_at >= $${params.length}::date`);
+      conditions.push(`ar.created_at >= ($${params.length}::date::timestamp at time zone 'Asia/Ho_Chi_Minh')`);
     }
     if (req.query.to) {
       params.push(req.query.to);
-      conditions.push(`ar.created_at < ($${params.length}::date + interval '1 day')`);
+      conditions.push(`ar.created_at < (($${params.length}::date + interval '1 day') at time zone 'Asia/Ho_Chi_Minh')`);
     }
     const whereClause = conditions.join(' and ');
 
@@ -1708,11 +1707,11 @@ router.get('/expert-portal/clients/:userId/journal', requireAuth, async (req, re
     const params = [req.params.userId];
     if (req.query.from) {
       params.push(req.query.from);
-      conditions.push(`created_at >= $${params.length}::date`);
+      conditions.push(`created_at >= ($${params.length}::date::timestamp at time zone 'Asia/Ho_Chi_Minh')`);
     }
     if (req.query.to) {
       params.push(req.query.to);
-      conditions.push(`created_at < ($${params.length}::date + interval '1 day')`);
+      conditions.push(`created_at < (($${params.length}::date + interval '1 day') at time zone 'Asia/Ho_Chi_Minh')`);
     }
     const whereClause = conditions.join(' and ');
 
@@ -2184,7 +2183,7 @@ router.get('/admin/experts', requireAuth, async (req, res) => {
     const countRes = await db.query(`select count(*)::int as total from experts e left join users u on u.id = e.user_id ${where}`, params);
     params.push(limit, offset);
     const rowsRes = await db.query(
-      `select e.id, e.user_id, e.code, e.full_name, e.avatar_emoji, (e.avatar_photo is not null) as has_avatar_photo,
+      `select e.id, e.user_id, e.code, e.full_name, e.avatar_emoji, (e.avatar_photo is not null or e.avatar_r2 is not null) as has_avatar_photo,
               e.status, e.active, e.rating, e.sessions_count,
               e.base_price, e.location, e.specialties, e.experience_years,
               coalesce(e.balance, 0)::int as balance,
@@ -2282,6 +2281,7 @@ router.post('/admin/experts/:id/avatar', requireAuth, avatarUpload.single('image
       [req.params.id, req.file.buffer, req.file.mimetype]
     );
     if (!r.rows[0]) return res.status(404).json({ success: false, message: 'Không tìm thấy chuyên gia.' });
+    await promoteImage('experts', req.params.id, req.file.buffer);
     return res.json({ success: true, data: { uploaded: true } });
   } catch (error) {
     if (error.message === 'Chỉ chấp nhận file ảnh') {
@@ -2296,11 +2296,8 @@ router.post('/admin/experts/:id/avatar', requireAuth, avatarUpload.single('image
 router.delete('/admin/experts/:id/avatar', requireAuth, async (req, res) => {
   try {
     if (!req.user.is_admin) return res.status(403).json({ success: false, message: 'Admin only' });
-    const r = await db.query(
-      `update experts set avatar_photo = null, avatar_photo_mime = null, updated_at = now() where id = $1 returning id`,
-      [req.params.id]
-    );
-    if (!r.rows[0]) return res.status(404).json({ success: false, message: 'Không tìm thấy chuyên gia.' });
+    const ok = await removeImage('experts', req.params.id);
+    if (!ok) return res.status(404).json({ success: false, message: 'Không tìm thấy chuyên gia.' });
     return res.json({ success: true, data: { removed: true } });
   } catch (error) {
     console.error('Admin delete expert avatar error:', error);
@@ -2308,13 +2305,12 @@ router.delete('/admin/experts/:id/avatar', requireAuth, async (req, res) => {
   }
 });
 
-// Ảnh đại diện thật của chuyên gia (yêu cầu đăng nhập, dùng trong danh sách chuyên gia).
-router.get('/experts/:id/avatar', requireAuth, async (req, res) => {
+// Ảnh đại diện chuyên gia — công khai (ảnh hồ sơ vốn hiển thị công khai) để dùng thẳng trong <img>.
+// ?size=sm|md; có bản R2 thì chuyển hướng tới đúng cỡ nhẹ, chưa có thì đọc DB (ETag → 304).
+router.get('/experts/:id/avatar', async (req, res) => {
   try {
-    // ETag: trình duyệt đã có đúng ảnh → 304, không kéo ảnh khỏi DB (giảm Egress Supabase)
-    const sent = await sendDbImage(req, res, {
-      table: 'experts', column: 'avatar_photo', mimeColumn: 'avatar_photo_mime', id: req.params.id,
-      cacheControl: 'private, max-age=3600'
+    const sent = await serveImage(req, res, 'experts', req.params.id, {
+      cacheControl: 'public, max-age=3600, s-maxage=3600, stale-while-revalidate=86400'
     });
     if (!sent) return res.status(404).json({ success: false, message: 'Chưa có ảnh đại diện' });
     return undefined;

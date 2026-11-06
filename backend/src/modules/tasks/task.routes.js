@@ -1,7 +1,8 @@
 import { Router } from 'express';
 import multer from 'multer';
 import { requireAuth } from '../../common/middleware/auth.middleware.js';
-import { compressUpload, sendDbImage } from '../../common/utils/dbImage.js';
+import { compressUpload } from '../../common/utils/dbImage.js';
+import { serveImage, promoteImage } from '../../common/utils/imageStore.js';
 import { db } from '../../config/db.js';
 import { RecommendationEngineService } from '../risk/recommendation-engine.service.js';
 import { BadgeAwardService } from '../progress/badge-award.service.js';
@@ -42,8 +43,8 @@ const LEVELS = [
 // cong khai, khong requireAuth, giong het co che GET /articles/:id/cover.
 router.get('/tasks/:id/cover', async (req, res) => {
   try {
-    const sent = await sendDbImage(req, res, {
-      table: 'tasks', column: 'cover_image', mimeColumn: 'cover_image_mime', id: req.params.id,
+    // ?size=thumb|card|full — có bản R2 thì chuyển hướng tới đúng cỡ nhẹ
+    const sent = await serveImage(req, res, 'tasks', req.params.id, {
       cacheControl: 'public, max-age=3600, s-maxage=3600, stale-while-revalidate=86400'
     });
     if (!sent) return res.status(404).end();
@@ -357,7 +358,7 @@ router.get('/admin/tasks', requireAuth, async (req, res) => {
       db.query(`select count(*)::int as total from tasks`),
       db.query(
         `select id, code, title, category, difficulty, duration_minutes, xp_reward, description,
-                steps, safety_notes, tags, active, created_at, (cover_image is not null) as has_cover
+                steps, safety_notes, tags, active, created_at, (cover_image is not null or cover_r2 is not null) as has_cover
          from tasks
          order by created_at desc
          limit $1 offset $2`,
@@ -394,6 +395,7 @@ router.post('/admin/tasks', requireAuth, coverUpload.single('cover'), compressUp
         req.file?.mimetype || null
       ]
     );
+    if (req.file?.buffer && result.rows[0]?.id) await promoteImage('tasks', result.rows[0].id, req.file.buffer);
     invalidateTasksCache();
     return res.json({ success: true, data: result.rows[0] });
   } catch (error) {
@@ -434,6 +436,7 @@ router.put('/admin/tasks/:id', requireAuth, coverUpload.single('cover'), compres
       params
     );
     if (!result.rows[0]) return res.status(404).json({ success: false, message: 'Không tìm thấy nhiệm vụ.' });
+    if (req.file?.buffer) await promoteImage('tasks', req.params.id, req.file.buffer);
     invalidateTasksCache();
     return res.json({ success: true });
   } catch (error) {

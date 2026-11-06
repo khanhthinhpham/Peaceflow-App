@@ -67,7 +67,10 @@
 
     <div class="sidebar-bottom">
       <div class="user-card-mini">
-        <div class="user-avatar-mini" :style="avatarStyle">{{ avatarEmoji }}</div>
+        <div class="user-avatar-mini">
+          <img v-if="avatarPhoto && !avatarPhotoFailed" :src="avatarPhoto" alt="" class="uam-img" referrerpolicy="no-referrer" @error="avatarPhotoFailed = true">
+          <template v-else>{{ avatarEmoji }}</template>
+        </div>
         <div class="user-info-mini">
           <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
             <div class="user-name">{{ displayName }}</div>
@@ -84,7 +87,8 @@
 </template>
 
 <script setup>
-import { computed } from 'vue';
+import { computed, ref, watch } from 'vue';
+import { avatarPhotoUrl, avatarEmojiOf } from '../lib/avatar';
 import { useI18n } from 'vue-i18n';
 import { useRoute, useRouter } from 'vue-router';
 import { useAuthStore } from '../stores/auth';
@@ -150,15 +154,11 @@ const expertRole = computed(() => Boolean(auth.user?.is_expert || auth.user?.rol
 const isAdmin = computed(() => Boolean(auth.user?.role === 'admin' || auth.user?.is_admin));
 const displayName = computed(() => auth.user?.display_name || auth.user?.full_name || t('sidebar.defaultUserLabel'));
 
-const avatarEmoji = computed(() => {
-  const url = auth.user?.avatar_url;
-  return url && url.startsWith('emoji:') ? url.replace('emoji:', '') : '🐱';
-});
-const avatarStyle = computed(() => {
-  const url = auth.user?.avatar_url;
-  if (!url || url.startsWith('emoji:')) return {};
-  return { backgroundImage: `url('${url}')`, backgroundSize: 'cover', backgroundPosition: 'center' };
-});
+// Ảnh thật thì hiện ảnh (không đè biểu tượng lên trên); ảnh Google cần referrerpolicy=no-referrer mới tải được.
+const avatarPhoto = computed(() => avatarPhotoUrl(auth.user?.avatar_url, 'sm'));
+const avatarEmoji = computed(() => avatarEmojiOf(auth.user?.avatar_url));
+const avatarPhotoFailed = ref(false);
+watch(avatarPhoto, () => { avatarPhotoFailed.value = false; });
 
 // XP/Level không hiện ở sidebar nữa — cột phải Dashboard là nơi duy nhất hiện đủ cấp độ + điểm (tránh trùng lặp).
 
@@ -335,6 +335,8 @@ async function handleLogout() {
 .sidebar-close-btn { background: #FFFFFF; box-shadow: 0 2px 8px rgba(80, 70, 50, 0.08); }
 .user-card-mini { background: #FFFFFF; border-radius: 18px; box-shadow: 0 6px 20px rgba(80, 70, 50, 0.07); }
 .user-avatar-mini { background: var(--sb-accent-soft); }
+.user-avatar-mini { overflow: hidden; }
+.uam-img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; display: block; }
 .user-info-mini .user-name { color: #46362A; }
 .user-info-mini .user-level { color: #A08E7C; }
 .tag-expert { background: var(--sb-accent-soft); color: var(--sb-accent-ink); }

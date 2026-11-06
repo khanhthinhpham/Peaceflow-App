@@ -16,21 +16,8 @@
                 <h1 class="ci-title">{{ checkinPromptTitle }}</h1>
               </div>
 
-              <div class="mood-picker">
-                <router-link
-                  v-for="(mood, idx) in moodButtons"
-                  :key="mood.id"
-                  to="/mood-checkin"
-                  class="mood-btn"
-                  :class="{ 'is-active': idx === CHECKIN_CENTER_INDEX }"
-                >
-                  <span class="mood-icon-wrap">
-                    <span class="mood-icon material-symbols-outlined" aria-hidden="true" :style="{ animationDelay: (idx * 1) + 's' }">{{ MOOD_SYMBOLS[mood.id] }}</span>
-                    <span v-if="idx === CHECKIN_CENTER_INDEX" class="mood-check" aria-hidden="true"><span class="material-symbols-outlined">check</span></span>
-                  </span>
-                  <span class="mood-label">{{ mood.label }}</span>
-                </router-link>
-              </div>
+              <!-- Đồng nhất với trang Check-in: cùng nhân vật cảm xúc + thanh trượt; "Tiếp tục" vào thẳng bước 2 -->
+              <EmotionPicker v-model="homeEmotion" @confirm="goCheckinWithEmotion" />
 
               <p class="ci-foot">{{ t('dashboard.hero.footnote') }}</p>
 
@@ -612,6 +599,7 @@ import { MOOD_OPTIONS } from '../lib/moodCheckinOptions';
 import { taskCardSrc } from '../lib/taskImages';
 import NavIcon from '../components/NavIcon.vue';
 import MoodGarden3D from '../components/MoodGarden3D.vue';
+import EmotionPicker from '../components/EmotionPicker.vue';
 import { defineAsyncComponent } from 'vue';
 // trang Check-in đầy đủ, nhúng trong Khu vườn tâm hồn (tải khi mở)
 const MoodCheckinView = defineAsyncComponent(() => import('./MoodCheckinView.vue'));
@@ -644,6 +632,11 @@ const CHART_TABS = [
 const { t, locale } = useI18n();
 const auth = useAuthStore();
 const router = useRouter();
+// Thẻ check-in ở Home: chọn cảm xúc ngay tại đây (giống trang Check-in), rồi sang trang Check-in làm tiếp từ bước 2.
+const homeEmotion = ref(50);
+function goCheckinWithEmotion(value) {
+  router.push({ path: '/mood-checkin', query: { emotion: String(Math.round(value)) } });
+}
 const donate = useDonateStore();
 
 const data = ref(null);

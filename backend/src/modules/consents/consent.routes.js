@@ -62,7 +62,7 @@ router.get('/my-expert-shares', requireAuth, async (req, res) => {
   try {
     const { rows } = await db.query(
       `select e.id as expert_id, e.full_name, e.degree, e.expert_group, e.avatar_emoji,
-              (e.avatar_photo is not null) as has_avatar_photo,
+              (e.avatar_photo is not null or e.avatar_r2 is not null) as has_avatar_photo,
               coalesce(s.share_mood, false) as share_mood,
               coalesce(s.share_assessments, false) as share_assessments,
               coalesce(s.share_journal, false) as share_journal,

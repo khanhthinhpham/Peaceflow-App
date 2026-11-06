@@ -1,23 +1,35 @@
-import { apiClient } from './apiClient';
+import { API_BASE_URL } from './apiClient';
 
-// Ảnh đại diện thật của chuyên gia, dùng chung cho cả app (trang Chuyên gia, gợi ý chuyên gia,
-// khung chat…). Trước đây mỗi màn hình tự tải lại và ép trình duyệt không cache → mỗi lần mở
-// trang là kéo lại toàn bộ ảnh từ DB (tốn Egress Supabase). Giờ:
-//  - mỗi chuyên gia chỉ tải 1 lần trong phiên (giữ object URL ở đây, không mất khi đổi trang);
-//  - trình duyệt được cache theo header của server (1 giờ + ETag → 304 khi ảnh không đổi).
-const cache = new Map(); // expertId -> Promise<objectURL>
+// Ảnh đại diện chuyên gia, dùng chung cho cả app. Ảnh nằm trên R2 (nhiều cỡ) — dùng thẳng URL
+// (server chuyển hướng tới đúng cỡ), trình duyệt + CDN tự cache; không tải blob qua JS nữa.
+// Promise chỉ thành công khi ảnh tải được (chuyên gia chưa có ảnh → lỗi → giữ emoji mặc định).
+const cache = new Map(); // `${id}:${size}` -> Promise<url>
+const bust = new Map();  // id -> mốc thời gian vừa đổi ảnh
 
-// fresh = true: vừa đổi ảnh (trang quản trị / hồ sơ chuyên gia) → hỏi lại server bằng ETag
-export function getExpertAvatarUrl(expertId, { fresh = false } = {}) {
-  if (!fresh && cache.has(expertId)) return cache.get(expertId);
-  const p = apiClient.getBlob(`/experts/${expertId}/avatar`, { cache: fresh ? 'no-cache' : 'default' })
-    .then((blob) => URL.createObjectURL(blob));
-  p.catch(() => { if (cache.get(expertId) === p) cache.delete(expertId); });
-  cache.set(expertId, p);
+export function expertAvatarSrc(expertId, size = 'sm') {
+  const v = bust.get(expertId);
+  return `${API_BASE_URL}/experts/${expertId}/avatar?size=${size}${v ? `&v=${v}` : ''}`;
+}
+
+// size: sm (96px — danh sách, chat) | md (256px — hồ sơ)
+export function getExpertAvatarUrl(expertId, { fresh = false, size = 'sm' } = {}) {
+  if (fresh) forgetExpertAvatar(expertId);
+  const key = `${expertId}:${size}`;
+  if (cache.has(key)) return cache.get(key);
+  const url = expertAvatarSrc(expertId, size);
+  const p = new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve(url);
+    img.onerror = () => reject(new Error('avatar not available'));
+    img.src = url;
+  });
+  p.catch(() => { if (cache.get(key) === p) cache.delete(key); });
+  cache.set(key, p);
   return p;
 }
 
 // gọi sau khi tải lên / xoá ảnh để lần hiển thị sau lấy bản mới
 export function forgetExpertAvatar(expertId) {
-  cache.delete(expertId);
+  bust.set(expertId, Date.now());
+  for (const k of [...cache.keys()]) if (k.startsWith(`${expertId}:`)) cache.delete(k);
 }

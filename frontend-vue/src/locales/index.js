@@ -71,10 +71,12 @@ import viMessages from './vi/messages.json';
 import enMessages from './en/messages.json';
 import viLegal from './vi/legal.json';
 import enLegal from './en/legal.json';
+import viChatHistory from './vi/chatHistory.json';
+import enChatHistory from './en/chatHistory.json';
 
 const messages = {
-  vi: { ...viCommon, ...viAuth, ...viLanding, ...viDashboard, ...viMoodCheckin, ...viTasksPage, ...viJournal, ...viProfile, ...viSettingsPage, ...viOnboarding, ...viEmergency, ...viMoodChat, ...viMoodAssessment, ...viCommunity, ...viExperts, ...viReport, ...viTaskDetail, ...viAchievements, ...viApplyExpert, ...viRavenTest, ...viTaskBreathing, ...viVerifyEmail, ...viResetPassword, ...viTaskMeditation, ...viForgotPassword, ...viDonate, ...viPushPrompt, ...viGuestEmergencyTasks, ...viInspire, ...viAppIntro, ...viSharedResult, ...viMessages, ...viLegal },
-  en: { ...enCommon, ...enAuth, ...enLanding, ...enDashboard, ...enMoodCheckin, ...enTasksPage, ...enJournal, ...enProfile, ...enSettingsPage, ...enOnboarding, ...enEmergency, ...enMoodChat, ...enMoodAssessment, ...enCommunity, ...enExperts, ...enReport, ...enTaskDetail, ...enAchievements, ...enApplyExpert, ...enRavenTest, ...enTaskBreathing, ...enVerifyEmail, ...enResetPassword, ...enTaskMeditation, ...enForgotPassword, ...enDonate, ...enPushPrompt, ...enGuestEmergencyTasks, ...enInspire, ...enAppIntro, ...enSharedResult, ...enMessages, ...enLegal }
+  vi: { ...viCommon, ...viAuth, ...viLanding, ...viDashboard, ...viMoodCheckin, ...viTasksPage, ...viJournal, ...viProfile, ...viSettingsPage, ...viOnboarding, ...viEmergency, ...viMoodChat, ...viMoodAssessment, ...viCommunity, ...viExperts, ...viReport, ...viTaskDetail, ...viAchievements, ...viApplyExpert, ...viRavenTest, ...viTaskBreathing, ...viVerifyEmail, ...viResetPassword, ...viTaskMeditation, ...viForgotPassword, ...viDonate, ...viPushPrompt, ...viGuestEmergencyTasks, ...viInspire, ...viAppIntro, ...viSharedResult, ...viMessages, ...viLegal, ...viChatHistory },
+  en: { ...enCommon, ...enAuth, ...enLanding, ...enDashboard, ...enMoodCheckin, ...enTasksPage, ...enJournal, ...enProfile, ...enSettingsPage, ...enOnboarding, ...enEmergency, ...enMoodChat, ...enMoodAssessment, ...enCommunity, ...enExperts, ...enReport, ...enTaskDetail, ...enAchievements, ...enApplyExpert, ...enRavenTest, ...enTaskBreathing, ...enVerifyEmail, ...enResetPassword, ...enTaskMeditation, ...enForgotPassword, ...enDonate, ...enPushPrompt, ...enGuestEmergencyTasks, ...enInspire, ...enAppIntro, ...enSharedResult, ...enMessages, ...enLegal, ...enChatHistory }
 };
 
 // ===== Chọn ngôn ngữ mặc định =====

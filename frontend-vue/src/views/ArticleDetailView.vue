@@ -58,7 +58,7 @@ import { ref, computed, onMounted, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import DOMPurify from 'dompurify';
-import { apiClient, SHARE_BASE_URL } from '../lib/apiClient';
+import { apiClient, SHARE_BASE_URL, API_BASE_URL } from '../lib/apiClient';
 import ArticleCard from '../components/ArticleCard.vue';
 import ShareButtons from '../components/ShareButtons.vue';
 import { useAuthStore } from '../stores/auth';
@@ -117,10 +117,8 @@ async function load() {
     article.value = data;
     void loadLatestArticles(data.id);
     if (data?.hasCover) {
-      try {
-        const blob = await apiClient.getBlob(`/articles/${route.params.id}/cover`, { cache: 'default' });
-        coverUrl.value = URL.createObjectURL(blob);
-      } catch (_e) { /* bỏ qua, không hiện ảnh bìa */ }
+      // dùng thẳng URL (công khai, server chuyển hướng tới bản 1200px trên R2) — không tải blob qua JS
+      coverUrl.value = `${API_BASE_URL}/articles/${route.params.id}/cover?size=full`;
     }
   } catch (_e) {
     loadError.value = t('inspire.notFound');

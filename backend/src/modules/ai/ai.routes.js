@@ -5,6 +5,7 @@ import { buildUserContext, invalidateContext } from './ai.context.js';
 import { getRecommendedTask, getWeeklyInsight, getChatReply, getStoredUserInsight, generateUserInsight, MAX_CHAT_HISTORY } from './ai.service.js';
 import { estimateCostUsd, USD_TO_VND } from './ai.usage.js';
 import { createAiRateLimit } from './ai.ratelimit.js';
+import { appendChatTurn, canStoreChat, listChatSessions, getChatSession, deleteChatSession, deleteAllChatSessions } from './ai.chat-history.js';
 
 const router = Router();
 
@@ -124,6 +125,25 @@ router.post('/ai/chat', requireAuth, aiRateLimit, async (req, res) => {
 
         const result = await getChatReply({ userId: req.user.sub, message, history, locale: req.locale });
 
+        // Lưu lịch sử (mã hoá) nếu khách đã đồng ý xử lý Dữ liệu sức khỏe. Lỗi lưu không được
+        // làm hỏng câu trả lời — khách vẫn nhận phản hồi, chỉ mất bản lưu của lượt này.
+        let sessionId = null;
+        try {
+            sessionId = await appendChatTurn({
+                userId: req.user.sub,
+                sessionId: typeof req.body?.session_id === 'string' ? req.body.session_id : null,
+                userText: message,
+                botText: result.reply || '',
+                meta: {
+                    suggested_task: result.suggestedTask ? { id: result.suggestedTask.id, title: result.suggestedTask.title, title_en: result.suggestedTask.title_en, icon: result.suggestedTask.icon, duration_minutes: result.suggestedTask.duration_minutes } : null,
+                    suggested_expert: result.suggestedExpert ? { id: result.suggestedExpert.id, name: result.suggestedExpert.full_name, degree: result.suggestedExpert.degree, rating: result.suggestedExpert.rating } : null,
+                    offered_task: !!result.offeredTask
+                }
+            });
+        } catch (e) {
+            console.error('[AI] chat history save failed:', e.message);
+        }
+
         return res.json({
             success: true,
             data: {
@@ -151,12 +171,55 @@ router.post('/ai/chat', requireAuth, aiRateLimit, async (req, res) => {
                 // cũng bật được UI khẩn cấp dựa vào cờ này, không chỉ dựa vào bộ từ khoá
                 // riêng phía client.
                 crisis: result.crisis,
-                mood_analysis: result.moodAnalysis
+                mood_analysis: result.moodAnalysis,
+                session_id: sessionId
             }
         });
     } catch (error) {
         console.error('[AI] chat error:', error);
         return res.status(500).json({ success: false, message: 'Không thể trả lời lúc này.' });
+    }
+});
+
+// ===== Lịch sử trò chuyện PeaceCat (đã mã hoá) =====
+router.get('/ai/chat/sessions', requireAuth, async (req, res) => {
+    try {
+        const [storageEnabled, sessions] = await Promise.all([canStoreChat(req.user.sub), listChatSessions(req.user.sub)]);
+        return res.json({ success: true, data: { storage_enabled: storageEnabled, sessions } });
+    } catch (error) {
+        console.error('[AI] list chat sessions error:', error.message);
+        return res.status(500).json({ success: false, message: 'Không tải được lịch sử trò chuyện.' });
+    }
+});
+
+router.get('/ai/chat/sessions/:id', requireAuth, async (req, res) => {
+    try {
+        const session = await getChatSession(req.user.sub, req.params.id);
+        if (!session) return res.status(404).json({ success: false, message: 'Không tìm thấy cuộc trò chuyện.' });
+        return res.json({ success: true, data: session });
+    } catch (error) {
+        console.error('[AI] get chat session error:', error.message);
+        return res.status(500).json({ success: false, message: 'Không tải được cuộc trò chuyện.' });
+    }
+});
+
+router.delete('/ai/chat/sessions/:id', requireAuth, async (req, res) => {
+    try {
+        await deleteChatSession(req.user.sub, req.params.id);
+        return res.json({ success: true, data: { deleted: true } });
+    } catch (error) {
+        console.error('[AI] delete chat session error:', error.message);
+        return res.status(500).json({ success: false, message: 'Không xoá được cuộc trò chuyện.' });
+    }
+});
+
+router.delete('/ai/chat/sessions', requireAuth, async (req, res) => {
+    try {
+        const n = await deleteAllChatSessions(req.user.sub);
+        return res.json({ success: true, data: { deleted: n } });
+    } catch (error) {
+        console.error('[AI] delete all chat sessions error:', error.message);
+        return res.status(500).json({ success: false, message: 'Không xoá được lịch sử trò chuyện.' });
     }
 });
 

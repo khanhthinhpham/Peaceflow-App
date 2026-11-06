@@ -10,7 +10,10 @@
       <div class="ph-deco">🌿</div>
       <div class="ph-content">
         <div class="ph-avatar-wrap">
-          <div class="ph-avatar" @click="switchTab('info')" :title="t('profile.hero.changeAvatarTitle')">{{ heroAvatar }}</div>
+          <div class="ph-avatar" @click="switchTab('info')" :title="t('profile.hero.changeAvatarTitle')">
+            <img v-if="usePhoto && photoUrl" :src="photoUrl" alt="" class="ph-avatar-img" referrerpolicy="no-referrer">
+            <template v-else>{{ heroAvatar }}</template>
+          </div>
           <div class="ph-avatar-edit">✏️</div>
         </div>
         <div class="ph-info">
@@ -102,14 +105,30 @@
           <div class="paper-card section-card">
             <div class="sc-title">{{ t('profile.info.avatarSectionTitle') }}</div>
             <div class="avatar-grid">
+              <!-- Ảnh đại diện riêng (vd ảnh Google): chọn biểu tượng khác rồi Lưu là bỏ ảnh riêng -->
+              <div
+                v-if="photoUrl"
+                class="avatar-option avatar-option-photo"
+                :class="{ selected: usePhoto }"
+                :title="t('profile.info.avatarPhotoLabel')"
+                @click="usePhoto = true"
+              ><img :src="photoUrl" alt="" referrerpolicy="no-referrer"></div>
               <div
                 v-for="avatar in AVATARS"
                 :key="avatar"
                 class="avatar-option"
-                :class="{ selected: avatar === selectedAvatar }"
+                :class="{ selected: !usePhoto && avatar === selectedAvatar }"
                 @click="selectAvatar(avatar)"
               >{{ avatar }}</div>
             </div>
+            <!-- Tự tải ảnh của mình (cắt vuông → lưu R2, bản 96px + 256px) -->
+            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:4px 0 8px;">
+              <button type="button" class="btn-outline" :disabled="uploadingPhoto" @click="photoInput?.click()">
+                {{ uploadingPhoto ? t('profile.info.uploadingPhoto') : t('profile.info.uploadPhotoBtn') }}
+              </button>
+              <input ref="photoInput" type="file" accept="image/*" style="display:none;" @change="onPhotoChange">
+            </div>
+            <div v-if="photoUrl" style="font-size:0.72rem;color:var(--text-secondary);margin-bottom:4px;">{{ usePhoto ? t('profile.info.avatarPhotoHint') : t('profile.info.avatarPhotoRemoveHint') }}</div>
             <div style="font-size:0.72rem;color:var(--text-light);">{{ t('profile.info.avatarHint') }}</div>
           </div>
 
@@ -424,6 +443,8 @@ import { ref, reactive, computed, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { apiClient } from '../lib/apiClient';
 import { EventLogger } from '../lib/eventLogger';
+import { avatarPhotoUrl, avatarEmojiOf } from '../lib/avatar';
+import { cropAvatarFile } from '../lib/avatarCropper';
 import { useAuthStore } from '../stores/auth';
 import LanguageSwitcher from '../components/LanguageSwitcher.vue';
 import PasswordField from '../components/PasswordField.vue';
@@ -540,6 +561,34 @@ const achievements = ref(null);
 const report = ref(null);
 const activeTab = ref('info');
 const selectedAvatar = ref('🐱');
+const photoUrl = ref(null); // ảnh đại diện riêng (ảnh tự tải lên / ảnh Google) nếu có
+const usePhoto = ref(false);
+const photoInput = ref(null);
+const uploadingPhoto = ref(false);
+
+// Tải ảnh riêng: cắt vuông rồi gửi lên server (server nén + lưu lên R2 nhiều cỡ, lưu ngay — không cần bấm Lưu)
+async function onPhotoChange(event) {
+  const file = event.target.files?.[0];
+  event.target.value = '';
+  if (!file) return;
+  try {
+    const cropped = await cropAvatarFile(file);
+    if (!cropped) return;
+    uploadingPhoto.value = true;
+    const fd = new FormData();
+    fd.append('image', cropped);
+    const data = await apiClient.postForm('/me/avatar', fd);
+    if (data) user.value = { ...user.value, ...data };
+    photoUrl.value = avatarPhotoUrl(user.value?.avatar_url);
+    usePhoto.value = Boolean(photoUrl.value);
+    syncStoredUser();
+    showToast(t('profile.info.uploadPhotoDone'));
+  } catch (error) {
+    showToast(error?.message || t('profile.info.uploadPhotoFailed'), 'error');
+  } finally {
+    uploadingPhoto.value = false;
+  }
+}
 const selectedGoals = ref([]);
 const localSettings = reactive(loadLocalSettings());
 
@@ -738,7 +787,10 @@ async function loadData() {
   progress.value = progressData || {};
   achievements.value = achievementsData || {};
   report.value = reportData || {};
-  selectedAvatar.value = profile.value?.onboarding_answers?.avatar_emoji || '🐱';
+  photoUrl.value = avatarPhotoUrl(user.value?.avatar_url);
+  usePhoto.value = Boolean(photoUrl.value);
+  selectedAvatar.value = (user.value?.avatar_url?.startsWith?.('emoji:') && avatarEmojiOf(user.value.avatar_url))
+    || profile.value?.onboarding_answers?.avatar_emoji || '🐱';
   syncStoredUser();
 }
 
@@ -765,7 +817,9 @@ async function saveProfile() {
       apiClient.put('/me', {
         display_name: formDisplayName.value?.trim() || null,
         phone: formPhone.value?.trim() || null,
-        gender: mapDisplayToGender(formGender.value || '')
+        gender: mapDisplayToGender(formGender.value || ''),
+        // giữ ảnh riêng, hoặc đổi sang biểu tượng đã chọn (= bỏ ảnh riêng)
+        avatar_url: usePhoto.value && photoUrl.value ? photoUrl.value : `emoji:${selectedAvatar.value}`
       }),
       apiClient.put('/profile', {
         onboarding_answers: onboardingAnswers
@@ -878,7 +932,9 @@ function confirmAction(action, _icon, title, message) {
 function selectAvatar(avatar) {
   EventLogger.log('profile', 'avatar:select');
   selectedAvatar.value = avatar;
+  usePhoto.value = false;
 }
+
 
 onMounted(async () => {
   try {

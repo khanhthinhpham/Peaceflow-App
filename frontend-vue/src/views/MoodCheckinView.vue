@@ -1,6 +1,6 @@
 <template> 
-  <main class="main-content mc-page" :class="{ 'is-embedded': embedded }" style="margin-left: 0;" >
-    <div class="page-header">
+  <main class="main-content mc-page" :class="{ 'is-embedded': embedded || guest }" style="margin-left: 0;" >
+    <div v-if="!guest" class="page-header">
       <div class="mc-share-row" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
         <!-- Điều 7.3: chia sẻ check-in theo TỪNG chuyên gia (thay công tắc chung cho mọi chuyên gia) -->
         <ExpertSharePill kind="mood" />
@@ -456,14 +456,15 @@
 <script setup>
 import { ref, computed, reactive, onMounted, onBeforeUnmount } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { useRouter } from 'vue-router';
+import { useRouter, useRoute } from 'vue-router';
 import { apiClient } from '../lib/apiClient';
 import { useAuthStore } from '../stores/auth';
 import { getTaskEmoji } from '../lib/dashboardHelpers';
 import { taskThumbSrc } from '../lib/taskImages';
 import EmotionFigure from '../components/EmotionFigure.vue';
 import ExpertSharePill from '../components/legal/ExpertSharePill.vue';
-import { MOOD_OPTIONS, TAGS, BODY_SYMPTOM_GROUPS, deriveMoodPayload as buildMoodPayload } from '../lib/moodCheckinOptions';
+import { stashCheckinAndLogin } from '../lib/pendingCheckin';
+import { MOOD_OPTIONS, TAGS, BODY_SYMPTOM_GROUPS, deriveMoodPayload as buildMoodPayload, emotionZoneOf } from '../lib/moodCheckinOptions';
 
 const { t } = useI18n();
 
@@ -476,8 +477,11 @@ function isToday(value) {
 
 const auth = useAuthStore();
 const router = useRouter();
+const route = useRoute();
 // embedded: mở ngay trong Khu vườn tâm hồn (DashboardView) — cùng các bước, cùng API; lưu xong báo 'saved', bấm quay lại vườn báo 'close'
-const props = defineProps({ embedded: { type: Boolean, default: false } });
+// guest: nhúng ở trang chủ công khai — đủ các bước như trang này; bấm Lưu khi chưa đăng nhập thì
+// giữ tạm check-in rồi chuyển sang đăng nhập (đăng nhập xong tự lưu), đã đăng nhập thì lưu bình thường.
+const props = defineProps({ embedded: { type: Boolean, default: false }, guest: { type: Boolean, default: false } });
 const emit = defineEmits(['saved', 'close']);
 const embedded = computed(() => props.embedded);
 const displayName = computed(() => auth.user?.display_name || auth.user?.full_name || t('dashboard.defaultUserLabel'));
@@ -513,16 +517,9 @@ const selectedMoodLabel = computed(() => {
 // --- Bước 1: thanh trượt cảm xúc 0–100 + nhân vật SVG biến đổi theo giá trị ---
 // Mỗi vùng ánh xạ về một MOOD_OPTIONS để payload gửi backend giữ nguyên định dạng cũ
 // (viLabel làm dominant_emotion — "Buồn bã" vẫn bật cờ trầm cảm ở expert.routes.js).
-const EMOTION_ZONES = [
-  { key: 'veryBad', min: 0, moodId: 'sad' },
-  { key: 'notGood', min: 20, moodId: 'slightlyStressed' },
-  { key: 'neutral', min: 40, moodId: 'normal' },
-  { key: 'good', min: 60, moodId: 'comfortable' },
-  { key: 'veryGood', min: 80, moodId: 'veryHappy' }
-];
 const emotionValue = ref(50);
 const confirmedZone = ref(null);
-const emotionZone = computed(() => [...EMOTION_ZONES].reverse().find((z) => emotionValue.value >= z.min));
+const emotionZone = computed(() => emotionZoneOf(emotionValue.value));
 const emotionLabel = computed(() => t(`moodCheckin.step1.emotion.zones.${emotionZone.value.key}`));
 
 function confirmEmotion() {
@@ -874,6 +871,10 @@ async function fetchRecommendedTasks() {
 
 async function submitCheckin() {
   if (submitting.value) return;
+  if (!auth.isAuthenticated) {
+    stashCheckinAndLogin(deriveMoodPayload(), '/dashboard');
+    return;
+  }
   submitting.value = true;
   resultPhase.value = 'saving';
 
@@ -917,6 +918,7 @@ function resetCheckin() {
 }
 
 onMounted(async () => {
+  if (props.guest && !auth.isAuthenticated) return; // khách: làm check-in trước, lúc Lưu mới cần đăng nhập
   if (!auth.isAuthenticated) {
     alert(t('moodCheckin.alerts.pleaseLogin'));
     router.replace('/login');
@@ -924,6 +926,13 @@ onMounted(async () => {
   }
   await loadRemoteProgress();
   await syncTodayCheckinBadge();
+  // Đã chọn cảm xúc ở thẻ check-in trang Home (?emotion=0..100) → giữ lựa chọn đó, vào thẳng bước 2.
+  const fromHome = Number(route.query.emotion);
+  if (!props.embedded && !props.guest && route.query.emotion !== undefined && Number.isFinite(fromHome) && fromHome >= 0 && fromHome <= 100) {
+    emotionValue.value = Math.round(fromHome);
+    confirmEmotion();
+    router.replace({ query: { ...route.query, emotion: undefined } });
+  }
 });
 </script>
 

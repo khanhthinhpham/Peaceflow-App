@@ -291,7 +291,7 @@ const brokenRelatedImages = reactive(new Set());
 // Nhiem vu co san dung anh tinh public/task-images/<code>.png; nhiem vu admin tu tao qua UI
 // dung anh luu trong DB qua GET /tasks/:id/cover.
 const taskBannerSrc = computed(() => (task.value?.has_cover
-  ? `${API_BASE_URL}/tasks/${task.value.id}/cover`
+  ? `${API_BASE_URL}/tasks/${task.value.id}/cover?size=full`
   : `/task-images/${task.value?.code}.png`));
 const guestEmergencyMode = ref(false);
 const emergencyOpen = ref(false);

@@ -939,6 +939,8 @@ async function submitSdqObs() {
 // gia" trong Cài đặt thì mới có dữ liệu (xem GET /expert-portal/clients/:id/mood-history),
 // không phải cứ có lịch hẹn là tự động thấy được. Có lọc theo khoảng ngày + phân trang vì
 // client check-in gần như mỗi ngày, vài tháng là dồn lại rất nhiều dòng.
+// Ngày theo giờ máy (VN) — toISOString() là giờ UTC, trước 7h sáng sẽ lùi về hôm qua.
+function localIsoDate(d) { return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; }
 const moodHistory = ref([]);
 const moodShared = ref(true);
 const moodHistoryLoading = ref(false);
@@ -984,8 +986,8 @@ function setMoodQuickRange(days) {
   const to = new Date();
   const from = new Date();
   from.setDate(from.getDate() - days);
-  moodTo.value = to.toISOString().slice(0, 10);
-  moodFrom.value = from.toISOString().slice(0, 10);
+  moodTo.value = localIsoDate(to);
+  moodFrom.value = localIsoDate(from);
   loadMoodHistory(0);
 }
 
@@ -1041,8 +1043,8 @@ function setSelfAssessQuickRange(days) {
   const to = new Date();
   const from = new Date();
   from.setDate(from.getDate() - days);
-  selfAssessTo.value = to.toISOString().slice(0, 10);
-  selfAssessFrom.value = from.toISOString().slice(0, 10);
+  selfAssessTo.value = localIsoDate(to);
+  selfAssessFrom.value = localIsoDate(from);
   loadSelfAssessments(0);
 }
 
@@ -1097,8 +1099,8 @@ function setJournalQuickRange(days) {
   const to = new Date();
   const from = new Date();
   from.setDate(from.getDate() - days);
-  journalTo.value = to.toISOString().slice(0, 10);
-  journalFrom.value = from.toISOString().slice(0, 10);
+  journalTo.value = localIsoDate(to);
+  journalFrom.value = localIsoDate(from);
   loadJournalEntries(0);
 }
 

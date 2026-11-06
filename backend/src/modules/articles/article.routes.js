@@ -2,7 +2,8 @@ import { Router } from 'express';
 import multer from 'multer';
 import sanitizeHtml from 'sanitize-html';
 import { requireAuth } from '../../common/middleware/auth.middleware.js';
-import { compressUpload, sendDbImage } from '../../common/utils/dbImage.js';
+import { compressUpload } from '../../common/utils/dbImage.js';
+import { serveImage, promoteImage, deleteVariants } from '../../common/utils/imageStore.js';
 import { db } from '../../config/db.js';
 import { env } from '../../config/env.js';
 import { broadcastToUsers } from '../notifications/notification.routes.js';
@@ -105,7 +106,7 @@ router.get('/articles', async (req, res) => {
     params.push(limit, offset);
     const rowsRes = await db.query(
       `select id, title, title_en, category, status, author_name, created_at, published_at,
-              (cover_image is not null) as has_cover,
+              (cover_image is not null or cover_r2 is not null) as has_cover,
               left(content, 220) as content, left(content_en, 220) as content_en
        from articles
        where ${where.join(' and ')}
@@ -134,7 +135,7 @@ router.get('/articles/home', async (req, res) => {
   try {
     const perCategory = Math.min(Math.max(parseInt(req.query.per, 10) || 6, 1), 12);
     const cols = `id, title, title_en, category, status, author_name, created_at, published_at,
-              (cover_image is not null) as has_cover,
+              (cover_image is not null or cover_r2 is not null) as has_cover,
               left(content, 220) as content, left(content_en, 220) as content_en`;
     const [categoriesMap, latestRes, groupRes, countRes] = await Promise.all([
       getCategoriesMap(req.locale),
@@ -186,7 +187,7 @@ router.get('/articles/saved', requireAuth, async (req, res) => {
       ),
       db.query(
         `select a.id, a.title, a.title_en, a.category, a.status, a.author_name, a.created_at, a.published_at,
-                (a.cover_image is not null) as has_cover,
+                (a.cover_image is not null or a.cover_r2 is not null) as has_cover,
                 left(a.content, 220) as content, left(a.content_en, 220) as content_en
          from saved_articles s join articles a on a.id = s.article_id
          where s.user_id = $1 and a.status = 'published'
@@ -245,7 +246,7 @@ router.get('/articles/:id', async (req, res) => {
   try {
     const r = await db.query(
       `select id, title, title_en, category, content, content_en, status, author_name, created_at, published_at,
-              (cover_image is not null) as has_cover
+              (cover_image is not null or cover_r2 is not null) as has_cover
        from articles where id = $1 and status = 'published'`,
       [req.params.id]
     );
@@ -263,7 +264,7 @@ router.get('/articles/:id/share', async (req, res) => {
 
   try {
     const r = await db.query(
-      `select id, title, content, author_name, (cover_image is not null) as has_cover
+      `select id, title, content, author_name, (cover_image is not null or cover_r2 is not null) as has_cover
        from articles where id = $1 and status = 'published'`,
       [req.params.id]
     );
@@ -297,8 +298,8 @@ router.get('/articles/:id/cover', async (req, res) => {
   try {
     // ETag + s-maxage: CDN của Vercel giữ ảnh 1 giờ, trình duyệt có sẵn thì 304 — ảnh chỉ bị
     // đọc khỏi DB khi thật sự đổi. AVIF cũ được đổi sang JPEG trong sendDbImage (bot MXH cần).
-    const sent = await sendDbImage(req, res, {
-      table: 'articles', column: 'cover_image', mimeColumn: 'cover_image_mime', id: req.params.id,
+    // ?size=thumb|card|full — có bản R2 thì chuyển hướng tới đúng cỡ nhẹ
+    const sent = await serveImage(req, res, 'articles', req.params.id, {
       cacheControl: 'public, max-age=3600, s-maxage=3600, stale-while-revalidate=86400'
     });
     if (!sent) return res.status(404).end();
@@ -343,7 +344,7 @@ router.get('/admin/articles', requireAuth, async (req, res) => {
     const countRes = await db.query(`select count(*)::int as total from articles`);
     const rowsRes = await db.query(
       `select id, title, category, status, author_name, created_at, published_at,
-              (cover_image is not null) as has_cover
+              (cover_image is not null or cover_r2 is not null) as has_cover
        from articles
        order by created_at desc
        limit $1 offset $2`,
@@ -369,7 +370,7 @@ router.get('/admin/articles/:id', requireAuth, async (req, res) => {
     if (!req.user.is_admin) return res.status(403).json({ success: false, message: 'Admin only' });
     const r = await db.query(
       `select id, title, title_en, category, content, content_en, status, author_name, created_at, published_at,
-              (cover_image is not null) as has_cover
+              (cover_image is not null or cover_r2 is not null) as has_cover
        from articles where id = $1`,
       [req.params.id]
     );
@@ -432,6 +433,7 @@ router.post('/admin/articles', requireAuth, coverUpload.single('cover'), compres
       }).catch((e) => console.error('[ARTICLE_BROADCAST_FAIL]', e.message));
     }
 
+    if (req.file?.buffer && newId) await promoteImage('articles', newId, req.file.buffer);
     return res.json({ success: true, data: { id: newId } });
   } catch (error) {
     if (error.message === 'Chỉ chấp nhận file ảnh') {
@@ -488,6 +490,7 @@ router.put('/admin/articles/:id', requireAuth, coverUpload.single('cover'), comp
        where id = $8`,
       params
     );
+    if (req.file?.buffer) await promoteImage('articles', req.params.id, req.file.buffer);
 
     if (isNewlyPublished && (notify_users === 'true' || notify_users === true)) {
       broadcastToUsers({
@@ -511,7 +514,8 @@ router.put('/admin/articles/:id', requireAuth, coverUpload.single('cover'), comp
 router.delete('/admin/articles/:id', requireAuth, async (req, res) => {
   try {
     if (!req.user.is_admin) return res.status(403).json({ success: false, message: 'Admin only' });
-    const r = await db.query(`delete from articles where id = $1 returning id`, [req.params.id]);
+    const r = await db.query(`delete from articles where id = $1 returning id, cover_r2`, [req.params.id]);
+    if (r.rows[0]?.cover_r2) await deleteVariants('cover', r.rows[0].cover_r2);
     if (!r.rows[0]) return res.status(404).json({ success: false, message: 'Không tìm thấy bài viết.' });
     return res.json({ success: true });
   } catch (error) {

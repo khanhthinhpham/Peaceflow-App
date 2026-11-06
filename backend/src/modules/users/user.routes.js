@@ -1,6 +1,17 @@
 import { Router } from 'express';
 import { requireAuth } from '../../common/middleware/auth.middleware.js';
 import { db } from '../../config/db.js';
+import multer from 'multer';
+import sharp from 'sharp';
+import { isR2Configured } from '../../common/services/r2.service.js';
+import { uploadVariants, deleteVariants, imageUrls, r2BaseFromAvatarUrl } from '../../common/utils/imageStore.js';
+
+// Ảnh đại diện người dùng tự tải lên → R2 (bản 96px + 256px webp), DB chỉ giữ đường link bản 256px.
+const userAvatarUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 5 * 1024 * 1024 },
+  fileFilter: (_req, file, cb) => (file.mimetype.startsWith('image/') ? cb(null, true) : cb(new Error('Chỉ chấp nhận file ảnh')))
+});
 
 const router = Router();
 
@@ -26,7 +37,20 @@ router.get('/me', requireAuth, async (req, res) => {
 
 router.put('/me', requireAuth, async (req, res) => {
   try {
-    const { display_name, phone, gender, avatar_url } = req.body;
+    const { display_name, phone, gender } = req.body;
+    // avatar_url: chỉ nhận "emoji:<biểu tượng>" (đổi sang / bỏ ảnh riêng) hoặc đúng ảnh hiện tại (giữ ảnh).
+    // Không cho client tự đặt một URL ảnh bất kỳ.
+    let avatar_url = null;
+    const rawAvatar = typeof req.body.avatar_url === 'string' ? req.body.avatar_url.trim() : null;
+    let oldR2Base = null;
+    if (rawAvatar) {
+      const cur = await db.query(`select avatar_url from users where id = $1`, [req.user.sub]);
+      const curUrl = cur.rows[0]?.avatar_url || null;
+      if (/^emoji:.{1,16}$/u.test(rawAvatar)) {
+        avatar_url = rawAvatar;
+        oldR2Base = r2BaseFromAvatarUrl(curUrl); // bỏ ảnh tự tải → xoá file trên R2
+      } else if (curUrl === rawAvatar) avatar_url = rawAvatar;
+    }
     
     // Use NULLIF to treat empty strings as null so COALESCE picks the old value if needed
     // OR just use the values directly if we want to allow empty strings
@@ -47,6 +71,7 @@ router.put('/me', requireAuth, async (req, res) => {
       return res.status(404).json({ success: false, message: 'User not found' });
     }
 
+    if (oldR2Base && isR2Configured()) await deleteVariants('avatar', oldR2Base);
     console.info(`[USER_PROFILE] updated user_id=${req.user.sub}`);
 
     return res.json({
@@ -177,6 +202,35 @@ router.post('/me/anonymize', requireAuth, async (req, res) => {
     return res.status(500).json({ success: false, message: 'Could not anonymize account' });
   } finally {
     client.release();
+  }
+});
+
+// POST /me/avatar — người dùng tự tải ảnh đại diện (multipart, trường "image", tối đa 5MB).
+router.post('/me/avatar', requireAuth, (req, res, next) => userAvatarUpload.single('image')(req, res, (err) => {
+  if (err) return res.status(400).json({ success: false, message: err.code === 'LIMIT_FILE_SIZE' ? 'Ảnh tối đa 5MB.' : (err.message || 'File không hợp lệ') });
+  return next();
+}), async (req, res) => {
+  try {
+    if (!req.file?.buffer) return res.status(400).json({ success: false, message: 'Thiếu file ảnh' });
+    if (!isR2Configured()) return res.status(503).json({ success: false, message: 'Chức năng tải ảnh đại diện chưa sẵn sàng.' });
+    // Kiểm tra là ảnh thật (không chỉ tin mimetype trình duyệt gửi)
+    const meta = await sharp(req.file.buffer, { failOn: 'error' }).metadata().catch(() => null);
+    if (!meta?.width || !meta?.height) return res.status(400).json({ success: false, message: 'File không phải ảnh hợp lệ.' });
+
+    const cur = await db.query(`select avatar_url from users where id = $1`, [req.user.sub]);
+    const oldBase = r2BaseFromAvatarUrl(cur.rows[0]?.avatar_url);
+    const base = await uploadVariants(`users/${req.user.sub}`, 'avatar', req.file.buffer);
+    const urls = imageUrls('avatar', base);
+    const r = await db.query(
+      `update users set avatar_url = $2, updated_at = now() where id = $1
+       returning id, email, full_name, display_name, phone, gender, avatar_url, city, country, status`,
+      [req.user.sub, urls.md]
+    );
+    if (oldBase && oldBase !== base) await deleteVariants('avatar', oldBase);
+    return res.json({ success: true, data: r.rows[0] });
+  } catch (error) {
+    console.error('User avatar upload error:', error);
+    return res.status(500).json({ success: false, message: 'Không tải được ảnh đại diện.' });
   }
 });
 

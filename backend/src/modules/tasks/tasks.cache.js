@@ -39,7 +39,7 @@ const FULL_COLUMNS = `id, code, title, category, difficulty, duration_minutes, x
             steps, safety_notes, tags, triggers_supported, contraindications, active,
             metadata, created_at, updated_at,
             title_en, description_en, steps_en, safety_notes_en, metadata_en,
-            (cover_image is not null) as has_cover`;
+            (cover_image is not null or cover_r2 is not null) as has_cover`;
 // Lấy đủ cột cho một số nhiệm vụ (giữ thứ tự id truyền vào)
 export async function getTasksByIds(ids) {
   const uniq = [...new Set(ids.filter(Boolean))];

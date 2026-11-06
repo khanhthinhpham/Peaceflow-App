@@ -1,0 +1,22 @@
+{
+  "chatHistory": {
+    "historyBtn": "🕘 History",
+    "newChatBtn": "✨ New chat",
+    "title": "Previous conversations",
+    "loading": "Loading...",
+    "loadError": "Could not load your chat history.",
+    "empty": "No saved conversations yet.",
+    "messages": "{n} messages",
+    "untitled": "Conversation",
+    "current": "Open now",
+    "open": "Open",
+    "delete": "Delete",
+    "deleteAll": "Delete all history",
+    "confirmDelete": "Delete this conversation? This cannot be undone.",
+    "confirmDeleteAll": "Delete ALL your PeaceCat chat history? This cannot be undone.",
+    "encryptedNote": "Your history is encrypted and only you can see it. You can delete it at any time.",
+    "localOnly": "You have not turned on \"Consent to process health data\", so this conversation is kept on this device only. Turn it on in Settings to save it securely and see it on any device.",
+    "goSettings": "Open Settings",
+    "close": "Close"
+  }
+}

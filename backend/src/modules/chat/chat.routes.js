@@ -135,7 +135,7 @@ async function mapConversationsForClient(userId) {
   const r = await db.query(
     `select c.id, c.expert_id, c.last_message_at, c.last_message_preview,
             e.full_name as expert_name, e.avatar_emoji as expert_avatar,
-            (e.avatar_photo is not null) as expert_has_avatar_photo,
+            (e.avatar_photo is not null or e.avatar_r2 is not null) as expert_has_avatar_photo,
             coalesce(
               (select count(*)::int from chat_messages m
                where m.conversation_id = c.id and m.sender_user_id != $1 and m.read_at is null),

@@ -51,6 +51,7 @@ import DonateModal from '../components/DonateModal.vue';
 import TermsGate from '../components/legal/TermsGate.vue';
 import NotificationWidgetButton from '../components/NotificationWidgetButton.vue';
 import { processPendingSave } from '../lib/savedArticles';
+import { processPendingCheckin } from '../lib/pendingCheckin';
 import ChatWidgetButton from '../components/ChatWidgetButton.vue';
 import ChatWidgetDropdown from '../components/ChatWidgetDropdown.vue';
 import ChatFloatingWindow from '../components/ChatFloatingWindow.vue';
@@ -85,6 +86,7 @@ auth.waitForAuth().then(() => {
   notif.init();
   chatWidget.init();
   processPendingSave();
+  processPendingCheckin();
 });
 </script>
 

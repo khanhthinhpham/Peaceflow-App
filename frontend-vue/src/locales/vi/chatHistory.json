@@ -1,0 +1,22 @@
+{
+  "chatHistory": {
+    "historyBtn": "🕘 Lịch sử",
+    "newChatBtn": "✨ Trò chuyện mới",
+    "title": "Các cuộc trò chuyện trước",
+    "loading": "Đang tải...",
+    "loadError": "Không tải được lịch sử trò chuyện.",
+    "empty": "Chưa có cuộc trò chuyện nào được lưu.",
+    "messages": "{n} tin nhắn",
+    "untitled": "Cuộc trò chuyện",
+    "current": "Đang mở",
+    "open": "Mở",
+    "delete": "Xoá",
+    "deleteAll": "Xoá toàn bộ lịch sử",
+    "confirmDelete": "Xoá cuộc trò chuyện này? Không thể khôi phục.",
+    "confirmDeleteAll": "Xoá TOÀN BỘ lịch sử trò chuyện với PeaceCat? Không thể khôi phục.",
+    "encryptedNote": "Lịch sử được mã hoá và chỉ bạn xem được. Bạn có thể xoá bất cứ lúc nào.",
+    "localOnly": "Bạn chưa bật \"Đồng ý xử lý Dữ liệu sức khỏe\", nên cuộc trò chuyện chỉ được giữ trên thiết bị này. Bật trong Cài đặt để lưu an toàn và xem lại trên mọi thiết bị.",
+    "goSettings": "Mở Cài đặt",
+    "close": "Đóng"
+  }
+}
