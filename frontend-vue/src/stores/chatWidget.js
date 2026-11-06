@@ -1,3 +1,4 @@
+import { avatarPhotoUrl } from '../lib/avatar';
 import { defineStore } from 'pinia';
 import { apiClient } from '../lib/apiClient';
 import { useAuthStore } from './auth';
@@ -34,7 +35,7 @@ export const useChatWidgetStore = defineStore('chatWidget', {
         ]);
         const merged = [
           ...asClient.map((c) => ({ id: c.id, name: c.expert_name, avatar: c.expert_avatar || '🩺', expertId: c.expert_id, hasAvatarPhoto: !!c.expert_has_avatar_photo, last_message_at: c.last_message_at, last_message_preview: c.last_message_preview, unread_count: c.unread_count })),
-          ...asExpert.map((c) => ({ id: c.id, name: c.client_name, avatar: '🙂', clientAvatarUrl: c.client_avatar_url && !c.client_avatar_url.startsWith('emoji:') ? c.client_avatar_url : null, last_message_at: c.last_message_at, last_message_preview: c.last_message_preview, unread_count: c.unread_count }))
+          ...asExpert.map((c) => ({ id: c.id, name: c.client_name, avatar: '🙂', clientAvatarUrl: avatarPhotoUrl(c.client_avatar_url, 'sm'), last_message_at: c.last_message_at, last_message_preview: c.last_message_preview, unread_count: c.unread_count }))
         ];
         merged.sort((a, b) => new Date(b.last_message_at || 0) - new Date(a.last_message_at || 0));
         this.conversations = merged;

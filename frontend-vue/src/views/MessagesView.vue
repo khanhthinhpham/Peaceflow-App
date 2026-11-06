@@ -21,7 +21,7 @@
           :class="{ active: c.id === activeId }"
           @click="selectConversation(c.id)"
         >
-          <div class="conv-avatar">{{ c.avatar }}</div>
+          <div class="conv-avatar" style="overflow:hidden;"><UserAvatar :value="c.clientAvatar || c.avatar" :fallback="c.avatar" /></div>
           <div class="conv-info">
             <div class="conv-name">{{ c.name }}</div>
             <div class="conv-preview">{{ c.last_message_preview || '' }}</div>
@@ -51,6 +51,7 @@
 
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue';
+import UserAvatar from '../components/UserAvatar.vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { apiClient } from '../lib/apiClient';
@@ -91,7 +92,7 @@ async function loadConversations() {
     ]);
     const merged = [
       ...asClient.map((c) => ({ id: c.id, expertId: c.expert_id, name: c.expert_name, avatar: c.expert_avatar || '🩺', last_message_at: c.last_message_at, last_message_preview: c.last_message_preview, unread_count: c.unread_count })),
-      ...asExpert.map((c) => ({ id: c.id, userId: c.user_id, name: c.client_name, avatar: '🙂', last_message_at: c.last_message_at, last_message_preview: c.last_message_preview, unread_count: c.unread_count }))
+      ...asExpert.map((c) => ({ id: c.id, userId: c.user_id, name: c.client_name, avatar: '🙂', clientAvatar: c.client_avatar_url || '', last_message_at: c.last_message_at, last_message_preview: c.last_message_preview, unread_count: c.unread_count }))
     ];
     merged.sort((a, b) => new Date(b.last_message_at || 0) - new Date(a.last_message_at || 0));
     conversations.value = merged;

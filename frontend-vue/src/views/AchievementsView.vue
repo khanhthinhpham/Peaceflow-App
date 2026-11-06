@@ -32,7 +32,7 @@
         <div class="hb-deco">🏆</div>
         <div class="hb-deco2">🌟</div>
         <div class="hb-content">
-          <div class="hb-avatar" :style="heroAvatarStyle">{{ heroAvatarText }}</div>
+          <div class="hb-avatar" style="overflow:hidden;"><UserAvatar :value="data?.user?.avatar_url || ''" :fallback="heroAvatarText" size="md" /></div>
           <div class="hb-info">
             <div class="hb-name">{{ userName }} — {{ getLevelTitle(levelInfo) }}</div>
             <div class="hb-level">{{ t('achievements.hero.levelLine', { level: data.progress.current_level, title: getLevelTitle(levelInfo) }) }}</div>
@@ -220,7 +220,7 @@
                   :style="entry.is_current_user ? { background: 'var(--mint-light)', border: '1.5px solid var(--mint)' } : {}"
                 >
                   <div class="hof-rank">#{{ entry.rank }}</div>
-                  <div class="hof-avatar" :style="entry.avatar_url ? { backgroundImage: `url('${entry.avatar_url}')`, backgroundSize: 'cover', backgroundPosition: 'center' } : { background: 'var(--lavender-light)' }">{{ entry.avatar_url ? '' : entry.name.charAt(0).toUpperCase() }}</div>
+                  <div class="hof-avatar" style="background:var(--lavender-light);overflow:hidden;"><UserAvatar :value="entry.avatar_url || ''" :fallback="(entry.name || '?').charAt(0).toUpperCase()" /></div>
                   <div class="hof-info">
                     <div class="hof-name">{{ entry.name }}{{ entry.is_current_user ? t('achievements.hof.youSuffix') : '' }}</div>
                     <div class="hof-badges">
@@ -238,7 +238,7 @@
                 <div style="font-size:0.88rem;font-weight:700;margin-bottom:10px;">{{ t('achievements.hof.positionTitle') }}</div>
                 <div class="hof-item" style="background:var(--mint-light);border:1.5px solid var(--mint);">
                   <div class="hof-rank">#{{ data.leaderboard.user_rank.rank }}</div>
-                  <div class="hof-avatar" style="background:var(--lavender-light);">{{ heroAvatarText }}</div>
+                  <div class="hof-avatar" style="background:var(--lavender-light);overflow:hidden;"><UserAvatar :value="data?.user?.avatar_url || ''" :fallback="heroAvatarText" /></div>
                   <div class="hof-info">
                     <div class="hof-name">{{ userName }}</div>
                     <div class="hof-badges">
@@ -317,6 +317,7 @@
 
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
+import UserAvatar from '../components/UserAvatar.vue';
 import { useI18n } from 'vue-i18n';
 import { apiClient } from '../lib/apiClient';
 
@@ -396,15 +397,9 @@ function getLevelTitle(level) {
 
 const userName = computed(() => data.value?.user?.display_name || data.value?.user?.full_name || t('achievements.defaultUserName'));
 const heroAvatarText = computed(() => {
-  if (data.value?.user?.avatar_url) return '';
   const name = userName.value.trim();
   return name ? name.charAt(0).toUpperCase() : 'P';
 });
-const heroAvatarStyle = computed(() => (
-  data.value?.user?.avatar_url
-    ? { backgroundImage: `url('${data.value.user.avatar_url}')`, backgroundSize: 'cover', backgroundPosition: 'center' }
-    : {}
-));
 
 const levelInfo = computed(() => data.value?.progress?.level_info || {});
 const xpCurrent = computed(() => data.value?.progress?.total_xp || 0);

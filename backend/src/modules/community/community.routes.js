@@ -53,6 +53,7 @@ router.get('/community', requireAuth, async (req, res) => {
            p.*,
            u.display_name,
            u.full_name,
+           u.avatar_url as author_avatar_url,
            (select exists(select 1 from experts e where e.user_id = p.user_id)) as author_is_expert,
            (u.role = 'admin' or u.is_admin) as author_is_admin,
            coalesce(
@@ -68,6 +69,7 @@ router.get('/community', requireAuth, async (req, res) => {
                      else coalesce(c.author_name, cu.display_name, cu.full_name, 'Người dùng')
                    end,
                  'author_avatar', c.author_avatar,
+                 'author_avatar_url', case when c.is_anonymous then null else cu.avatar_url end,
                  'author_is_expert', (select exists(select 1 from experts e where e.user_id = c.user_id)),
                  'author_is_admin', (cu.role = 'admin' or cu.is_admin),
                  'is_anonymous', c.is_anonymous,
@@ -118,7 +120,7 @@ router.get('/community', requireAuth, async (req, res) => {
            -- người đang xem thì vẫn hiện dù đang "pending" (kèm badge "Đang chờ duyệt" ở
            -- frontend) để họ biết bài mình đã gửi đi, không bị mất tích khó hiểu.
            and (p.moderation_status = 'approved' or (p.moderation_status = 'pending' and p.user_id = $1))
-         group by p.id, u.display_name, u.full_name, u.role, u.is_admin
+         group by p.id, u.display_name, u.full_name, u.avatar_url, u.role, u.is_admin
          order by p.created_at desc
          limit 100`, // chỉ 100 bài mới nhất (kèm bình luận) — tránh payload phình theo thời gian
         [userId]
@@ -731,7 +733,8 @@ function mapPost(row) {
     userId: row.user_id,
     moderationStatus: row.moderation_status || 'approved',
     anon: Boolean(row.is_anonymous),
-    avatar: row.author_avatar || '🌿',
+    // ẩn danh → 🌿; còn lại → avatar hiện tại của người viết (ảnh / biểu tượng), đổi avatar là thấy ngay
+    avatar: row.is_anonymous ? '🌿' : (row.author_avatar_url || row.author_avatar || '🐱'),
     name: row.is_anonymous
       ? row.author_name || 'Người ẩn danh'
       : row.author_name || row.display_name || row.full_name || 'Người dùng',
@@ -749,7 +752,7 @@ function mapPost(row) {
       id: comment.id,
       userId: comment.user_id,
       parentId: comment.parent_id || null,
-      avatar: comment.author_avatar || '🌿',
+      avatar: comment.is_anonymous ? '🌿' : (comment.author_avatar_url || comment.author_avatar || '🐱'),
       name: comment.author_name || 'Người dùng',
       isExpert: !comment.is_anonymous && Boolean(comment.author_is_expert),
       isAdmin: !comment.is_anonymous && Boolean(comment.author_is_admin),

@@ -15,7 +15,7 @@
       <router-link to="/inspire" class="mnp-link">📰 {{ t('landing.nav.articles') }}</router-link>
       <router-link to="/emergency" class="mnp-link" style="color:var(--coral);">🆘 {{ t('landing.nav.emergency') }}</router-link>
       <div class="mobile-auth-user" :class="{ open: isAuthenticated }">
-        <div class="mobile-auth-avatar" :class="{ 'has-image': hasAvatarImage }" :style="avatarStyle">{{ hasAvatarImage ? '' : avatarFallback }}</div>
+        <div class="mobile-auth-avatar" :class="{ 'has-image': hasAvatarImage }" style="overflow:hidden;"><UserAvatar :value="auth.user?.avatar_url || ''" :fallback="avatarFallback" /></div>
         <div>
           <div class="mobile-auth-name">{{ userLabel }}</div>
           <div class="mobile-auth-email">{{ auth.user?.email || '' }}</div>
@@ -72,10 +72,10 @@
         <router-link v-if="!isAuthenticated" to="/signup"><button class="btn-nav-primary">🌿 {{ t('landing.nav.signupFree') }}</button></router-link>
         <router-link v-if="isAuthenticated" to="/dashboard"><button class="btn-nav-primary">🌿 {{ t('landing.nav.enterApp') }}</button></router-link>
         <div v-if="isAuthenticated" class="nav-auth-menu">
-          <button class="nav-avatar-btn" :class="{ 'has-image': hasAvatarImage }" :style="avatarStyle" type="button" :aria-label="t('landing.nav.accountAria')" @click.stop="navDropdownOpen = !navDropdownOpen">{{ hasAvatarImage ? '' : avatarFallback }}</button>
+          <button class="nav-avatar-btn" :class="{ 'has-image': hasAvatarImage }" style="overflow:hidden;" type="button" :aria-label="t('landing.nav.accountAria')" @click.stop="navDropdownOpen = !navDropdownOpen"><UserAvatar :value="auth.user?.avatar_url || ''" :fallback="avatarFallback" /></button>
           <div class="nav-auth-dropdown" :class="{ open: navDropdownOpen }">
             <div class="nav-auth-user">
-              <div class="nav-auth-user-avatar" :class="{ 'has-image': hasAvatarImage }" :style="avatarStyle">{{ hasAvatarImage ? '' : avatarFallback }}</div>
+              <div class="nav-auth-user-avatar" :class="{ 'has-image': hasAvatarImage }" style="overflow:hidden;"><UserAvatar :value="auth.user?.avatar_url || ''" :fallback="avatarFallback" /></div>
               <div>
                 <div class="nav-auth-user-name">{{ userLabel }}</div>
                 <div class="nav-auth-user-email">{{ auth.user?.email || '' }}</div>
@@ -345,6 +345,8 @@
 import { ref, reactive, computed, onMounted, onBeforeUnmount, nextTick } from 'vue';
 import { useI18n } from 'vue-i18n';
 import MoodCheckinView from './MoodCheckinView.vue';
+import UserAvatar from '../components/UserAvatar.vue';
+import { avatarPhotoUrl } from '../lib/avatar';
 import { useRoute, useRouter } from 'vue-router';
 import { useAuthStore } from '../stores/auth';
 import { apiClient } from '../lib/apiClient';
@@ -376,8 +378,8 @@ const avatarFallback = computed(() => {
   const label = userLabel.value.trim();
   return label ? label.charAt(0).toUpperCase() : 'PF';
 });
-const hasAvatarImage = computed(() => Boolean(auth.user?.avatar_url));
-const avatarStyle = computed(() => (hasAvatarImage.value ? { backgroundImage: `url('${auth.user.avatar_url}')`, backgroundSize: 'cover', backgroundPosition: 'center' } : {}));
+// chỉ ảnh thật mới tính là "có ảnh" (biểu tượng emoji:… hiện như chữ)
+const hasAvatarImage = computed(() => Boolean(avatarPhotoUrl(auth.user?.avatar_url)));
 
 async function handleLogout() {
   navDropdownOpen.value = false;

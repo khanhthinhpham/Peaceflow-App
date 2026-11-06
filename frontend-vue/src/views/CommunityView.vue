@@ -67,7 +67,7 @@
           <!-- Post Composer -->
           <div class="paper-card post-composer" id="postComposer">
             <div class="pc-header">
-              <div class="pc-avatar">{{ anonymousPosting ? '🌿' : '🐱' }}</div>
+              <div class="pc-avatar ua-host"><UserAvatar :value="anonymousPosting ? '🌿' : (auth.user?.avatar_url || '')" /></div>
               <div style="flex:1;font-size:0.82rem;font-weight:700;">{{ t('community.composer.title') }}</div>
               <div class="pc-anon-toggle" :class="{ active: anonymousPosting }" @click="anonymousPosting = !anonymousPosting">
                 <span>{{ anonymousPosting ? t('community.composer.anonOn') : t('community.composer.anonOff') }}</span>
@@ -101,7 +101,7 @@
             <article v-for="post in filteredPosts" :key="post.id" class="post-card">
               <div class="post-header">
                 <div class="post-author">
-                  <div class="pa-avatar" :class="post.anon ? 'anon' : 'user'">{{ post.avatar || '🌿' }}</div>
+                  <div class="pa-avatar ua-host" :class="post.anon ? 'anon' : 'user'"><UserAvatar :value="post.avatar || '🌿'" /></div>
                   <div>
                     <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
                       <div class="pa-name">{{ post.name || t('community.post.defaultAuthor') }}</div>
@@ -318,6 +318,7 @@ import { ref, reactive, computed, onMounted, onBeforeUnmount, nextTick, h } from
 import { useI18n } from 'vue-i18n';
 import { apiClient } from '../lib/apiClient';
 import { useAuthStore } from '../stores/auth';
+import UserAvatar from '../components/UserAvatar.vue';
 
 const { t, locale } = useI18n();
 
@@ -367,7 +368,7 @@ const CommunityComment = {
     const myReactions = props.comment.myReactions || {};
     return h('div', null, [
       h('div', { class: ['comment-item', props.isReply ? 'comment-reply' : ''] }, [
-        h('div', { class: 'ci-avatar' }, props.comment.avatar || '🌿'),
+        h('div', { class: 'ci-avatar ua-host' }, [h(UserAvatar, { value: props.comment.avatar || '🌿' })]),
         h('div', { class: 'ci-bubble' }, [
           h('div', { class: 'ci-name', style: 'display:flex;align-items:center;gap:6px;flex-wrap:wrap;' }, [
             props.comment.name || t('community.comment.defaultAuthor'),
@@ -414,6 +415,8 @@ const CommunityComment = {
 };
 
 const auth = useAuthStore();
+// avatar hiện tại của chính mình (bình luận / bài mới hiện ngay, không chờ tải lại)
+const myAvatar = () => auth.user?.avatar_url || '🐱';
 
 const loading = ref(true);
 const posts = ref([]);
@@ -596,6 +599,7 @@ async function handleSubmitPost() {
       is_anonymous: anonymousPosting.value
     });
 
+    if (created && !created.anon) created.avatar = myAvatar();
     posts.value.unshift(created);
     summary.value = { ...(summary.value || {}), posts: Number(summary.value?.posts || 0) + 1 };
 
@@ -821,7 +825,7 @@ async function handleSubmitComment(postId) {
   if (!content) { showToast(t('community.toast.emptyComment')); return; }
 
   const optimisticComment = {
-    id: `temp-${Date.now()}`, userId: auth.user?.id, parentId: null, avatar: '🐱',
+    id: `temp-${Date.now()}`, userId: auth.user?.id, parentId: null, avatar: myAvatar(),
     name: currentUserName.value, isExpert: Boolean(auth.user?.is_expert), isAdmin: Boolean(auth.user?.role === 'admin' || auth.user?.is_admin), text: content
   };
   updatePostState(postId, (post) => ({ ...post, comments: [...(post.comments || []), optimisticComment] }));
@@ -836,7 +840,7 @@ async function handleSubmitComment(postId) {
       if (idx !== -1) {
         comments[idx] = {
           id: created.id, userId: created.user_id, parentId: null,
-          avatar: created.author_avatar || optimisticComment.avatar, name: created.author_name || optimisticComment.name,
+          avatar: optimisticComment.avatar, name: created.author_name || optimisticComment.name,
           isExpert: Boolean(auth.user?.is_expert), isAdmin: Boolean(auth.user?.role === 'admin' || auth.user?.is_admin), text: created.content || content
         };
       }
@@ -916,7 +920,7 @@ async function submitReply(postId, parentCommentId, content) {
   if (!trimmed) { showToast(t('community.toast.emptyReply')); return; }
 
   const optimisticReply = {
-    id: `temp-${Date.now()}`, userId: auth.user?.id, parentId: parentCommentId, avatar: '🐱',
+    id: `temp-${Date.now()}`, userId: auth.user?.id, parentId: parentCommentId, avatar: myAvatar(),
     name: currentUserName.value, isExpert: Boolean(auth.user?.is_expert), isAdmin: Boolean(auth.user?.role === 'admin' || auth.user?.is_admin), text: trimmed
   };
   updatePostState(postId, (post) => ({ ...post, comments: [...(post.comments || []), optimisticReply] }));
@@ -930,7 +934,7 @@ async function submitReply(postId, parentCommentId, content) {
       if (idx !== -1) {
         comments[idx] = {
           id: created.id, userId: created.user_id, parentId: created.parent_id || parentCommentId,
-          avatar: created.author_avatar || optimisticReply.avatar, name: created.author_name || optimisticReply.name,
+          avatar: optimisticReply.avatar, name: created.author_name || optimisticReply.name,
           isExpert: Boolean(auth.user?.is_expert), isAdmin: Boolean(auth.user?.role === 'admin' || auth.user?.is_admin), text: created.content || trimmed
         };
       }
@@ -1076,6 +1080,7 @@ onBeforeUnmount(() => {
 
 /* Khung viết bài. */
 .pc-avatar { border: none; background: var(--color-brand-soft); }
+:deep(.ua-host) { overflow: hidden; }
 .pc-anon-toggle { border: none; border-radius: 999px; background: var(--color-surface-muted); color: var(--color-text-muted); }
 .pc-anon-toggle:hover { background: var(--color-brand-soft); color: var(--color-brand); border: none; }
 .pc-anon-toggle.active { background: var(--color-brand-soft); color: var(--color-brand); }
