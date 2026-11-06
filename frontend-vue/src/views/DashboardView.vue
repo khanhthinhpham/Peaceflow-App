@@ -1540,7 +1540,8 @@ export default { name: 'DashboardView' };
 .ci-body { display: flex; flex-direction: column; gap: 24px; width: fit-content; max-width: 100%; margin: 0 auto; }
 .ci-titles { text-align: center; }
 .ci-hello-row { display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap; }
-.ci-hello { font-family: var(--font-heading); font-weight: 600; font-size: 18px; color: var(--color-text-muted); margin: 0; }
+/* Ngoại lệ duy nhất được dùng font có chân: lời chào "Xin chào, …" giữ Playfair nghiêng như trước (theo yêu cầu) */
+.ci-hello { font-family: 'Playfair Display', Georgia, serif; font-style: italic; font-size: 20px; color: var(--color-text-muted); margin: 0; }
 .role-tag { font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: var(--radius-control); background: var(--color-surface-muted); color: var(--color-text-muted); }
 .ci-title { font-family: var(--font-heading); font-size: 34px; font-weight: 800; line-height: 1.25; letter-spacing: -0.01em; color: var(--color-text); margin: 6px 0 0; }
 
@@ -2066,7 +2067,7 @@ export default { name: 'DashboardView' };
   .card-pad { padding: 22px; }
   .checkin-card { padding: 28px 18px 22px; }
   .ci-title { font-size: 26px; }
-  .ci-hello { font-size: 18px; }
+  .ci-hello { font-size: 20px; }
   .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
   .radar-grid { grid-template-columns: 1fr; }
 }
