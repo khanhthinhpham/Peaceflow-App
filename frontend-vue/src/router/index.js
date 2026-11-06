@@ -55,6 +55,7 @@ import MessagesView from '../views/MessagesView.vue';
 import ScreeningFormView from '../views/ScreeningFormView.vue';
 import SupportRegistrationView from '../views/SupportRegistrationView.vue';
 import AdminScreeningView from '../views/admin/AdminScreeningView.vue';
+import TermsView from '../views/TermsView.vue';
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -73,6 +74,8 @@ const router = createRouter({
     { path: '/raven-test', name: 'raven-test', component: RavenTestView },
     // Trang xem kết quả bài test đã được chia sẻ công khai (qua link, không cần đăng nhập).
     { path: '/shared-result/:id', name: 'shared-result', component: SharedResultView },
+    // Điều khoản phân định trách nhiệm — công khai, không cần đăng nhập.
+    { path: '/dieu-khoan', name: 'terms', component: TermsView, alias: ['/terms'] },
     {
       path: '/',
       component: AppLayout,

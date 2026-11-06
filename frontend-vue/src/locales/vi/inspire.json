@@ -13,6 +13,23 @@
     "loading": "Đang tải...",
     "loadError": "Không tải được danh sách bài viết.",
     "empty": "Chưa có bài viết nào trong danh mục này.",
-    "notFound": "Không tìm thấy bài viết hoặc bài viết chưa được đăng."
+    "notFound": "Không tìm thấy bài viết hoặc bài viết chưa được đăng.",
+    "loadingMore": "Đang tải thêm bài viết…",
+    "loadMore": "Tải thêm bài viết",
+    "retryMore": "Chưa tải được — thử lại",
+    "allLoaded": "Đã hiển thị hết {n} bài viết",
+    "save": "Lưu bài",
+    "unsave": "Bỏ lưu",
+    "savedLabel": "Đã lưu",
+    "saveLogin": "Lưu bài (cần đăng nhập)",
+    "savedTab": "Đã lưu",
+    "savedEmpty": "Bạn chưa lưu bài nào — bấm biểu tượng dấu trang trên bài viết để lưu lại đọc sau.",
+    "savedAll": "Bạn đã lưu {n} bài viết",
+    "breadcrumbHome": "Trang chủ",
+    "guestBar": "Đọc miễn phí mọi bài viết. Đăng nhập để lưu bài yêu thích và chăm sóc cảm xúc mỗi ngày.",
+    "guestTitle": "Thích bài viết này?",
+    "guestText": "Tạo tài khoản PeaceFlow miễn phí để lưu bài viết, check-in cảm xúc, nhận bài tập thư giãn phù hợp và trò chuyện với chuyên gia.",
+    "guestSignup": "Đăng ký miễn phí",
+    "guestLogin": "Đăng nhập"
   }
 }

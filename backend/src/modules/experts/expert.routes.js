@@ -12,6 +12,7 @@ import { generateOrderCode, transferContent, buildTransferContent, buildVietQrUr
 import { approveExpertApplication, rejectExpertApplication } from '../auth/auth.service.js';
 import { sendPushToUser } from '../notifications/notification.routes.js';
 import { buildNotificationMessage } from '../notifications/notification-messages.js';
+import { recordConsent } from '../../common/services/consent.service.js';
 import { encryptBuffer, decryptBuffer, encryptText, decryptText } from '../../common/services/crypto.service.js';
 import { translateToEnglish, translateListToEnglish, isTranslateConfigured } from '../../common/services/translate.service.js';
 
@@ -310,7 +311,8 @@ router.delete('/expert-portal/avatar', requireAuth, async (req, res) => {
 const EXPERT_PUBLIC_COLUMNS = `id, code, avatar_emoji, (avatar_photo is not null) as has_avatar_photo,
   full_name, degree, status, rating, sessions_count, satisfaction_rate, base_price,
   location, experience_years, specialties, specialties_en, tags, bio, bio_en,
-  next_slot_label, credentials, approaches`;
+  next_slot_label, credentials, approaches,
+  expert_group, service_scope, license_number, clinic_name`;
 
 router.get('/experts', requireAuth, async (req, res) => {
   try {
@@ -595,6 +597,14 @@ router.post('/experts/:id/bookings', requireAuth, async (req, res) => {
       ]
     );
     const booking = bookingResult.rows[0];
+    // Bằng chứng khách đã đọc & đồng ý điều khoản đặt lịch (vai trò trung gian, trách nhiệm chuyên gia,
+    // hoàn/huỷ, khẩn cấp, gửi hồ sơ cũ). Bản app cũ không gửi cờ → không ghi.
+    if (req.body.terms_accepted === true) {
+      await recordConsent({
+        userId: req.user.sub, kind: 'booking', req,
+        context: { expert_id: expert.id, booking_id: booking.id, session_type: payload.session_type, starts_at: payload.starts_at.toISOString(), amount, share_records: req.body.share_records_consent === true }
+      });
+    }
 
     const orderCode = generateOrderCode();
     const clientNameRes = await db.query(`select coalesce(display_name, full_name, '') as name, email from users where id = $1`, [req.user.sub]);
@@ -1535,9 +1545,10 @@ router.get('/expert-portal/clients/:userId/mood-history', requireAuth, async (re
       return res.status(403).json({ success: false, message: 'Client không thuộc danh sách của bạn' });
     }
 
+    // Điều 7.3: chỉ xem được khi khách đã bật chia sẻ check-in cho ĐÚNG chuyên gia này.
     const sharing = await db.query(
-      `select coalesce(share_mood_with_experts, false) as shared from user_profiles where user_id = $1`,
-      [req.params.userId]
+      `select share_mood as shared from client_expert_shares where client_id = $1 and expert_id = $2`,
+      [req.params.userId, expert.id]
     );
     if (!sharing.rows[0]?.shared) {
       return res.json({ success: true, data: { shared: false, checkins: [], total: 0, page: 0, limit: 0 } });
@@ -1606,9 +1617,10 @@ router.get('/expert-portal/clients/:userId/self-assessments', requireAuth, async
       return res.status(403).json({ success: false, message: 'Client không thuộc danh sách của bạn' });
     }
 
+    // Điều 7.3: chỉ xem được khi khách đã bật chia sẻ kết quả sàng lọc cho ĐÚNG chuyên gia này.
     const sharing = await db.query(
-      `select coalesce(share_assessments_with_experts, false) as shared from user_profiles where user_id = $1`,
-      [req.params.userId]
+      `select share_assessments as shared from client_expert_shares where client_id = $1 and expert_id = $2`,
+      [req.params.userId, expert.id]
     );
     if (!sharing.rows[0]?.shared) {
       return res.json({ success: true, data: { shared: false, results: [], total: 0, page: 0, limit: 0 } });
@@ -1681,6 +1693,15 @@ router.get('/expert-portal/clients/:userId/journal', requireAuth, async (req, re
       return res.status(403).json({ success: false, message: 'Client không thuộc danh sách của bạn' });
     }
 
+    // Điều 7.3–7.4: khách phải bật chia sẻ nhật ký cho ĐÚNG chuyên gia này (ngoài việc đánh dấu từng bài).
+    const journalShare = await db.query(
+      `select share_journal from client_expert_shares where client_id = $1 and expert_id = $2`,
+      [req.params.userId, expert.id]
+    );
+    if (!journalShare.rows[0]?.share_journal) {
+      return res.json({ success: true, data: { shared: false, entries: [], total: 0, page: 0, limit: 0 } });
+    }
+
     const page = Math.max(0, parseInt(req.query.page, 10) || 0);
     const limit = Math.min(100, Math.max(1, parseInt(req.query.limit, 10) || 20));
     const conditions = ['user_id = $1', 'shared_with_experts = true'];
@@ -1708,7 +1729,7 @@ router.get('/expert-portal/clients/:userId/journal', requireAuth, async (req, re
     ]);
     return res.json({
       success: true,
-      data: { entries: r.rows, total: countRes.rows[0]?.total || 0, page, limit }
+      data: { shared: true, entries: r.rows, total: countRes.rows[0]?.total || 0, page, limit }
     });
   } catch (error) {
     console.error('Expert client journal error:', error);
@@ -2168,6 +2189,7 @@ router.get('/admin/experts', requireAuth, async (req, res) => {
               e.base_price, e.location, e.specialties, e.experience_years,
               coalesce(e.balance, 0)::int as balance,
               e.payout_bank_name, e.payout_bank_bin, e.payout_account_number, e.payout_account_name,
+              e.expert_group, e.service_scope, e.license_number, e.clinic_name, e.classified_at,
               u.email
        from experts e
        left join users u on u.id = e.user_id
@@ -2210,6 +2232,41 @@ router.patch('/admin/experts/:id', requireAuth, async (req, res) => {
     return res.json({ success: true, data: r.rows[0] });
   } catch (error) {
     console.error('Admin toggle expert error:', error);
+    return res.status(500).json({ success: false, message: 'Could not update expert' });
+  }
+});
+
+// Điều 2.4–2.5 + 3.1: PeaceFlow (admin) xác minh và ghi nhóm chuyên gia, phạm vi dịch vụ, giấy phép,
+// cơ sở khám bệnh chữa bệnh. "Người hành nghề" bắt buộc có số giấy phép + tên cơ sở.
+const expertClassificationSchema = z.object({
+  expert_group: z.enum(['counselor', 'practitioner']),
+  service_scope: z.string().trim().max(1000).optional().nullable(),
+  license_number: z.string().trim().max(100).optional().nullable(),
+  clinic_name: z.string().trim().max(255).optional().nullable()
+}).superRefine((v, ctx) => {
+  if (v.expert_group === 'practitioner') {
+    if (!v.license_number) ctx.addIssue({ code: 'custom', path: ['license_number'], message: 'Người hành nghề cần có số giấy phép hành nghề.' });
+    if (!v.clinic_name) ctx.addIssue({ code: 'custom', path: ['clinic_name'], message: 'Người hành nghề cần có tên cơ sở khám bệnh, chữa bệnh.' });
+  }
+});
+
+router.put('/admin/experts/:id/classification', requireAuth, async (req, res) => {
+  try {
+    if (!req.user.is_admin) return res.status(403).json({ success: false, message: 'Admin only' });
+    const v = expertClassificationSchema.parse(req.body);
+    const isPr = v.expert_group === 'practitioner';
+    const r = await db.query(
+      `update experts set expert_group = $2, service_scope = $3, license_number = $4, clinic_name = $5,
+              classified_at = now(), updated_at = now()
+       where id = $1
+       returning id, expert_group, service_scope, license_number, clinic_name, classified_at`,
+      [req.params.id, v.expert_group, v.service_scope || null, isPr ? v.license_number : null, isPr ? v.clinic_name : null]
+    );
+    if (!r.rows[0]) return res.status(404).json({ success: false, message: 'Không tìm thấy chuyên gia.' });
+    return res.json({ success: true, data: r.rows[0] });
+  } catch (error) {
+    if (error instanceof z.ZodError) return res.status(400).json({ success: false, message: error.errors[0]?.message || 'Dữ liệu không hợp lệ' });
+    console.error('Admin classify expert error:', error);
     return res.status(500).json({ success: false, message: 'Could not update expert' });
   }
 });
@@ -3312,6 +3369,11 @@ function mapExpert(row, matchingTags, isReturningClient = false, locale = 'vi') 
     nextSlot: row.next_slot_label || (locale === 'en' ? 'No available slots yet' : 'Chưa có lịch trống'),
     credentials: ensureArray(row.credentials),
     approaches: ensureArray(row.approaches),
+    // Điều 2.4–2.5: nhóm chuyên gia + phạm vi dịch vụ (+ giấy phép, cơ sở KCB với Người hành nghề)
+    group: row.expert_group || 'counselor',
+    service_scope: row.service_scope || null,
+    license_number: row.expert_group === 'practitioner' ? (row.license_number || null) : null,
+    clinic_name: row.expert_group === 'practitioner' ? (row.clinic_name || null) : null,
     // Giá khám giờ áp dụng chung cho mọi chuyên gia (khám mới/tái khám × nhanh/tiêu
     // chuẩn) — is_returning_client cho biết user hiện tại đã từng hoàn thành 1 buổi
     // với đúng chuyên gia này chưa, để FE hiện đúng bảng giá trước khi đặt lịch.

@@ -13,6 +13,23 @@
     "loading": "Loading...",
     "loadError": "Could not load the article list.",
     "empty": "No articles in this category yet.",
-    "notFound": "Article not found or not yet published."
+    "notFound": "Article not found or not yet published.",
+    "loadingMore": "Loading more articles…",
+    "loadMore": "Load more articles",
+    "retryMore": "Couldn't load — try again",
+    "allLoaded": "That's all {n} articles",
+    "save": "Save",
+    "unsave": "Unsave",
+    "savedLabel": "Saved",
+    "saveLogin": "Save (sign in required)",
+    "savedTab": "Saved",
+    "savedEmpty": "You haven't saved any articles yet — tap the bookmark on an article to read it later.",
+    "savedAll": "You've saved {n} articles",
+    "breadcrumbHome": "Home",
+    "guestBar": "Read every article for free. Sign in to save your favourites and care for your mood every day.",
+    "guestTitle": "Enjoyed this article?",
+    "guestText": "Create a free PeaceFlow account to save articles, check in with your feelings, get calming exercises picked for you and talk to experts.",
+    "guestSignup": "Sign up free",
+    "guestLogin": "Sign in"
   }
 }

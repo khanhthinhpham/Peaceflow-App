@@ -14,7 +14,8 @@
       "logout": "Sign out",
       "accountAria": "Account",
       "emergencyTask": "Emergency exercise",
-      "defaultUserLabel": "User"
+      "defaultUserLabel": "User",
+      "articles": "Articles"
     },
     "hero": {
       "badge": "🌟 Vietnam's #1 mental health platform",

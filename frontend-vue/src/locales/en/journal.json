@@ -1,8 +1,8 @@
 {
   "journal": {
     "shareWithExperts": {
-      "onTitle": "Sharing this entry with your expert — click to stop",
-      "offTitle": "Share just this entry with your expert"
+      "onTitle": "Shared with the experts you turned on \"Journal\" for — click to stop",
+      "offTitle": "Mark this entry as shared with the experts you turned on \"Journal\" for"
     },
     "breadcrumbDashboard": "Overview",
     "breadcrumbJournal": "Emotional journal",

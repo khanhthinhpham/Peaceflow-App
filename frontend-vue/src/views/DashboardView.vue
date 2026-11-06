@@ -1436,7 +1436,7 @@ export default { name: 'DashboardView' };
 
 <style scoped>
 /* Dashboard theo bộ nhận diện PeaceFlow — mọi màu/chữ/bo góc lấy từ assets/brand-tokens.css.
-   Font: Nunito cho tiêu đề và số liệu nổi bật, Inter cho nội dung; Playfair chỉ cho câu nhấn
+   Font: Nunito cho tiêu đề, số liệu nổi bật và câu nhấn; Inter cho nội dung (toàn bộ font không chân)
    (lời chào, câu trích dẫn cuối trang).
    Nguyên tắc: khoảng trống tạo phân cấp trước, viền mảnh khi cần, bóng đổ rất nhẹ,
    không gradient trang trí, không viết hoa toàn bộ, ít pill/icon. */
@@ -1540,7 +1540,7 @@ export default { name: 'DashboardView' };
 .ci-body { display: flex; flex-direction: column; gap: 24px; width: fit-content; max-width: 100%; margin: 0 auto; }
 .ci-titles { text-align: center; }
 .ci-hello-row { display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap; }
-.ci-hello { font-family: var(--font-display); font-style: italic; font-size: 20px; color: var(--color-text-muted); margin: 0; }
+.ci-hello { font-family: var(--font-heading); font-weight: 600; font-size: 18px; color: var(--color-text-muted); margin: 0; }
 .role-tag { font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: var(--radius-control); background: var(--color-surface-muted); color: var(--color-text-muted); }
 .ci-title { font-family: var(--font-heading); font-size: 34px; font-weight: 800; line-height: 1.25; letter-spacing: -0.01em; color: var(--color-text); margin: 6px 0 0; }
 
@@ -1687,7 +1687,7 @@ export default { name: 'DashboardView' };
   mask-image: linear-gradient(90deg, transparent 0%, transparent 32%, rgba(0, 0, 0, 0.35) 55%, #000 85%), linear-gradient(180deg, #000 65%, transparent 100%); mask-composite: intersect; }
 .rp-hero-body { position: relative; max-width: 62%; }
 .rp-level { display: flex; align-items: center; gap: 6px; font-family: var(--font-body); font-size: 13px; font-weight: 500; color: var(--color-text-muted); }
-.rp-hero-title { font-family: var(--font-display); font-style: italic; font-size: 25px; font-weight: 400; line-height: 1.3; color: #46362A; margin: 10px 0 12px; }
+.rp-hero-title { font-family: var(--font-heading); font-size: 24px; font-weight: 800; line-height: 1.3; color: #46362A; margin: 10px 0 12px; }
 .rp-hero-sub { font-family: var(--font-body); font-size: 13px; line-height: 1.6; color: var(--color-text-muted); margin: 0 0 18px; }
 .rp-xp-track { height: 10px; border-radius: 999px; background: rgba(255, 255, 255, 0.8); box-shadow: inset 0 0 0 1px rgba(74, 55, 40, 0.06); overflow: hidden; }
 .rp-xp-fill { height: 100%; border-radius: inherit; background: linear-gradient(90deg, #7FA866, #9CC57D); }
@@ -1845,7 +1845,7 @@ export default { name: 'DashboardView' };
 .garden-lantern-bubble { position: relative; width: max-content; max-width: min(260px, 70vw); padding: 10px 34px 10px 14px; border-radius: 16px; background: rgba(255, 250, 240, 0.96); box-shadow: 0 8px 24px rgba(80, 60, 30, 0.2); animation: garden-card-in 0.3s ease both; }
 .garden-lantern-bubble::after { content: ''; position: absolute; left: 50%; bottom: -7px; width: 14px; height: 14px; transform: translateX(-50%) rotate(45deg); background: rgba(255, 250, 240, 0.96); border-radius: 2px; }
 .garden-lantern-bubble-date { margin: 0; font-size: 11px; font-weight: 600; color: #B7773A; }
-.garden-lantern-bubble-text { margin: 3px 0 0; font-family: var(--font-display); font-style: italic; font-size: 16px; line-height: 1.4; color: var(--color-text); overflow-wrap: anywhere; }
+.garden-lantern-bubble-text { margin: 3px 0 0; font-family: var(--font-heading); font-weight: 600; font-size: 16px; line-height: 1.45; color: var(--color-text); overflow-wrap: anywhere; }
 .garden-lantern-bubble-close { position: absolute; top: 6px; right: 6px; width: 26px; height: 26px; border: none; border-radius: 50%; background: transparent; color: var(--color-text-muted); display: flex; align-items: center; justify-content: center; cursor: pointer; }
 .garden-lantern-bubble-close:hover { background: rgba(74, 55, 40, 0.06); }
 .garden-lantern-bubble-close .nav-icon { width: 14px; height: 14px; }
@@ -1855,7 +1855,7 @@ export default { name: 'DashboardView' };
 .garden-card-body { flex: 1; min-width: 0; }
 .garden-card-title { margin: 0; font-size: 14px; font-weight: 700; color: var(--color-text); }
 .garden-card-text { margin: 4px 0 0; font-size: 14px; line-height: 1.5; color: var(--color-text-muted); overflow-wrap: anywhere; }
-.garden-card.is-wish .garden-card-text, .garden-card.is-lantern .garden-card-text { font-family: var(--font-display); font-style: italic; font-size: 16px; color: var(--color-text); }
+.garden-card.is-wish .garden-card-text, .garden-card.is-lantern .garden-card-text { font-family: var(--font-heading); font-weight: 600; font-size: 16px; color: var(--color-text); }
 .garden-card-close { flex: none; width: 32px; height: 32px; margin: -4px -2px 0 0; border: none; border-radius: 50%; background: transparent; color: var(--color-text-muted); display: flex; align-items: center; justify-content: center; cursor: pointer; }
 .garden-card-close:hover { background: rgba(74, 55, 40, 0.06); }
 .garden-card-close .nav-icon { width: 16px; height: 16px; }
@@ -2055,7 +2055,7 @@ export default { name: 'DashboardView' };
 
 /* ---------- Trích dẫn cuối trang ---------- */
 .dash-quote { padding: 24px 0 8px; text-align: center; }
-.dash-quote p { font-family: var(--font-display); font-style: italic; font-size: 22px; color: var(--color-text-muted); max-width: 560px; margin: 0 auto; }
+.dash-quote p { font-family: var(--font-heading); font-weight: 600; font-size: 20px; color: var(--color-text-muted); max-width: 560px; margin: 0 auto; }
 
 /* ---------- Responsive ---------- */
 @media (max-width: 1100px) {

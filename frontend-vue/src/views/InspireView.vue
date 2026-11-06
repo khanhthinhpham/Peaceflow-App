@@ -2,22 +2,36 @@
   <main class="main-content ins-page" style="margin-left:0;">
     <h1 class="ins-page-title" style="margin-bottom:6px;">{{ t('inspire.pageTitle') }}</h1>
     <p class="ins-page-desc" style="margin-bottom:20px;">{{ t('inspire.pageDesc') }}</p>
+    <div v-if="!auth.isAuthenticated" class="ins-guest-bar">
+      <span>{{ t('inspire.guestBar') }}</span>
+      <div class="ins-guest-bar-actions">
+        <router-link to="/signup" class="ins-guest-bar-primary">{{ t('inspire.guestSignup') }}</router-link>
+        <router-link to="/login" class="ins-guest-bar-secondary" @click="rememberReturn">{{ t('inspire.guestLogin') }}</router-link>
+      </div>
+    </div>
 
     <!-- Thanh tab danh mục kiểu báo chí (gạch chân dưới tab đang chọn) -->
     <nav class="ins-tabbar">
       <button
         type="button"
         class="ins-tab"
-        :class="{ active: activeCategory === null && !showFullList }"
-        @click="activeCategory = null; showFullList = false"
+        :class="{ active: activeCategory === null && !showFullList && !showSaved }"
+        @click="activeCategory = null; showFullList = false; showSaved = false"
       >{{ t('inspire.filterAll') }}</button>
+      <button
+        v-if="auth.isAuthenticated"
+        type="button"
+        class="ins-tab"
+        :class="{ active: showSaved }"
+        @click="activeCategory = null; showFullList = false; showSaved = true"
+      >🔖 {{ t('inspire.savedTab') }}</button>
       <button
         v-for="(label, key) in categories"
         :key="key"
         type="button"
         class="ins-tab"
         :class="{ active: activeCategory === key }"
-        @click="activeCategory = key; showFullList = false"
+        @click="activeCategory = key; showFullList = false; showSaved = false"
       >{{ label }}</button>
     </nav>
     <div class="ins-category-filter-wrap">
@@ -41,21 +55,22 @@
 
     <div v-if="loading" style="text-align:center;padding:40px;color:var(--text-secondary);">{{ t('inspire.loading') }}</div>
     <div v-else-if="loadError" style="text-align:center;padding:40px;color:var(--coral);">{{ loadError }}</div>
-    <div v-else-if="!articles.length" class="paper-card" style="text-align:center;padding:40px;color:var(--text-secondary);">{{ t('inspire.empty') }}</div>
+    <div v-else-if="listMode ? !list.items.length : !latest.length" class="paper-card" style="text-align:center;padding:40px;color:var(--text-secondary);">{{ showSaved ? t('inspire.savedEmpty') : t('inspire.empty') }}</div>
 
-    <!-- Bộ lọc = 1 danh mục cụ thể: danh sách dạng dòng của đúng danh mục đó -->
-    <div v-else-if="activeCategory" class="ins-row-list">
-      <ArticleCard v-for="a in articles" :key="a.id" :article="a" variant="row" />
-    </div>
-
-    <!-- "Xem tất cả bài viết": toàn bộ bài viết, không chia theo danh mục -->
-    <template v-else-if="showFullList">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
-        <h2 style="font-size:1.1rem;font-weight:800;margin:0;">{{ t('inspire.fullListTitle', { n: articles.length }) }}</h2>
+    <!-- Lọc 1 danh mục / "Xem tất cả": danh sách dạng dòng, cuộn tới đâu tải tới đó (20 bài / lần) -->
+    <template v-else-if="listMode">
+      <div v-if="showFullList && !activeCategory" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+        <h2 style="font-size:1.1rem;font-weight:800;margin:0;">{{ t('inspire.fullListTitle', { n: list.total }) }}</h2>
         <button type="button" class="ins-see-all" @click="showFullList = false">{{ t('inspire.backToCurated') }}</button>
       </div>
       <div class="ins-row-list">
-        <ArticleCard v-for="a in articles" :key="a.id" :article="a" variant="row" />
+        <ArticleCard v-for="a in list.items" :key="a.id" :article="a" variant="row" />
+      </div>
+      <div ref="moreSentinel" class="ins-more" aria-live="polite">
+        <span v-if="list.loading">{{ t('inspire.loadingMore') }}</span>
+        <button v-else-if="list.error" type="button" class="ins-see-all" @click="loadMore">{{ t('inspire.retryMore') }}</button>
+        <span v-else-if="list.done">{{ showSaved ? t('inspire.savedAll', { n: list.total }) : t('inspire.allLoaded', { n: list.total }) }}</span>
+        <button v-else type="button" class="ins-see-all" @click="loadMore">{{ t('inspire.loadMore') }}</button>
       </div>
     </template>
 
@@ -100,7 +115,7 @@
             </div>
           </section>
 
-          <button type="button" class="ins-view-full-btn" @click="showFullList = true">📚 {{ t('inspire.viewFullListBtn', { n: articles.length }) }}</button>
+          <button type="button" class="ins-view-full-btn" @click="showFullList = true">📚 {{ t('inspire.viewFullListBtn', { n: homeTotal }) }}</button>
         </div>
 
         <aside class="ins-side-col2">
@@ -118,19 +133,32 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue';
+import { ref, reactive, computed, onMounted, onBeforeUnmount, watch, nextTick } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { apiClient } from '../lib/apiClient';
 import ArticleCard from '../components/ArticleCard.vue';
+import { useAuthStore } from '../stores/auth';
+import { loadSavedIds } from '../lib/savedArticles';
 
 const { t } = useI18n();
 
-const articles = ref([]);
+// Trang gợi ý: dữ liệu từ /articles/home (bài mới nhất + vài bài đầu mỗi danh mục)
+const latest = ref([]);
+const byCategory = ref({});
+const homeTotal = ref(0);
 const categories = ref({});
+// Danh sách phân trang (lọc danh mục / xem tất cả): mỗi lần 20 bài, cuộn gần cuối thì tải tiếp
+const PAGE_SIZE = 20;
+const list = reactive({ items: [], total: 0, offset: 0, loading: false, done: false, error: false, key: '' });
+const moreSentinel = ref(null);
+let moreObserver = null;
 const loading = ref(true);
 const loadError = ref('');
 const activeCategory = ref(null);
 const showFullList = ref(false);
+const showSaved = ref(false); // tab "Đã lưu" (chỉ khi đã đăng nhập)
+const auth = useAuthStore();
+const rememberReturn = () => sessionStorage.setItem('peaceflow_post_login_redirect', `${window.location.pathname}${window.location.search}`);
 const categoryFilterOpen = ref(false);
 const categoryFilterDropdownEl = ref(null);
 function handleCategoryFilterOutsideClick(event) {
@@ -142,12 +170,13 @@ function handleCategoryFilterOutsideClick(event) {
 
 // 1 bài nổi bật (ảnh lớn) + 5 tiêu đề chỉ-chữ bên cạnh + 3 ảnh nhỏ xếp lưới bên dưới —
 // giống bố cục trang chủ báo chí (hero + danh sách headline + lưới ảnh nhỏ).
-const featured = computed(() => (!activeCategory.value && articles.value.length ? articles.value[0] : null));
-const headlineItems = computed(() => (!activeCategory.value ? articles.value.slice(1, 8) : []));
-const thumbGridItems = computed(() => (!activeCategory.value ? articles.value.slice(8, 11) : []));
+const listMode = computed(() => !!activeCategory.value || showFullList.value || showSaved.value);
+const featured = computed(() => (!activeCategory.value && latest.value.length ? latest.value[0] : null));
+const headlineItems = computed(() => (!activeCategory.value ? latest.value.slice(1, 8) : []));
+const thumbGridItems = computed(() => (!activeCategory.value ? latest.value.slice(8, 11) : []));
 // Sidebar "Mới đăng" lấy lại từ đầu danh sách (đã sắp theo mới nhất) — trùng một phần với
 // hero/lưới phía trên là chủ ý, giống cách các trang báo vẫn lặp lại tin nổi bật ở sidebar.
-const sidebarLatestItems = computed(() => (!activeCategory.value ? articles.value.slice(0, 8) : []));
+const sidebarLatestItems = computed(() => (!activeCategory.value ? latest.value.slice(0, 8) : []));
 
 const PER_CATEGORY_COUNT = 6;
 // Mỗi danh mục hiện riêng 6 bài mới nhất của nó (không loại trừ các bài đã hiện ở hero/lưới
@@ -156,43 +185,90 @@ const categoryGroups = computed(() => {
   if (activeCategory.value) return [];
   const groups = [];
   for (const [key, label] of Object.entries(categories.value)) {
-    const items = articles.value.filter((a) => a.category === key).slice(0, PER_CATEGORY_COUNT);
+    const items = (byCategory.value[key] || []).slice(0, PER_CATEGORY_COUNT);
     if (items.length) groups.push({ key, label, items });
   }
   return groups;
 });
 
-async function load() {
-  loading.value = true;
-  loadError.value = '';
+async function loadHome() {
+  loading.value = true; loadError.value = '';
   try {
-    // Backend mặc định limit=30/trang nếu không truyền — trang này tự lọc/nhóm phía client
-    // (nổi bật, theo danh mục, xem tất cả) nên luôn cần lấy hết, truyền số rất lớn để coi
-    // như không giới hạn (backend không còn ép trần 100 nữa).
-    const params = new URLSearchParams({ limit: '100000' });
-    if (activeCategory.value) params.set('category', activeCategory.value);
-    const data = await apiClient.get(`/articles?${params.toString()}`, { noCache: true });
-    articles.value = data?.articles || [];
-    categories.value = data?.categories || {};
+    const data = await apiClient.get(`/articles/home?per=${PER_CATEGORY_COUNT}`, { noCache: true });
+    latest.value = data?.latest || []; byCategory.value = data?.byCategory || {};
+    homeTotal.value = data?.total || 0; categories.value = data?.categories || {};
   } catch (_e) {
     loadError.value = t('inspire.loadError');
   } finally {
     loading.value = false;
   }
 }
+// tải trang kế tiếp của danh sách (bỏ qua nếu đang tải / đã hết; kết quả về muộn của bộ lọc cũ thì bỏ)
+async function loadMore() {
+  if (list.loading || list.done) return;
+  const key = list.key; list.loading = true; list.error = false;
+  try {
+    const params = new URLSearchParams({ limit: String(PAGE_SIZE), offset: String(list.offset) });
+    if (activeCategory.value && !showSaved.value) params.set('category', activeCategory.value);
+    const data = await apiClient.get(`${showSaved.value ? '/articles/saved' : '/articles'}?${params.toString()}`, { noCache: true });
+    if (key !== list.key) return;
+    const got = data?.articles || [];
+    const seen = new Set(list.items.map((a) => a.id));
+    list.items.push(...got.filter((a) => !seen.has(a.id)));
+    list.offset += got.length; list.total = data?.total ?? list.total;
+    if (data?.categories) categories.value = data.categories;
+    list.done = got.length < PAGE_SIZE || list.offset >= list.total;
+  } catch (_e) {
+    if (key === list.key) list.error = true;
+  } finally {
+    if (key === list.key) list.loading = false;
+  }
+  await nextTick(); checkSentinel(); // màn hình cao: tải tiếp tới khi lấp đầy
+}
+async function startList() {
+  list.key = `${activeCategory.value || 'all'}:${Date.now()}`;
+  Object.assign(list, { items: [], total: 0, offset: 0, loading: false, done: false, error: false });
+  loading.value = true; loadError.value = '';
+  await loadMore();
+  if (list.error && !list.items.length) loadError.value = t('inspire.loadError');
+  loading.value = false;
+  await nextTick(); observeSentinel();
+}
+function checkSentinel() {
+  const el = moreSentinel.value; if (!el || list.loading || list.done || list.error) return;
+  if (el.getBoundingClientRect().top < window.innerHeight + 400) loadMore();
+}
+function observeSentinel() {
+  moreObserver?.disconnect();
+  if (!moreSentinel.value || typeof IntersectionObserver === 'undefined') return;
+  moreObserver = new IntersectionObserver((entries) => { if (entries.some((e) => e.isIntersecting)) loadMore(); }, { rootMargin: '400px 0px' });
+  moreObserver.observe(moreSentinel.value);
+}
+function refresh() {
+  if (listMode.value) startList();
+  else { moreObserver?.disconnect(); if (!latest.value.length) loadHome(); }
+}
 
-watch(activeCategory, load);
+watch([activeCategory, showFullList, showSaved], refresh);
 onMounted(() => {
-  load();
+  loadHome();
+  auth.waitForAuth?.().then(() => loadSavedIds()); // đánh dấu các bài đã lưu trên thẻ
   document.addEventListener('click', handleCategoryFilterOutsideClick);
 });
 
 onBeforeUnmount(() => {
   document.removeEventListener('click', handleCategoryFilterOutsideClick);
+  moreObserver?.disconnect();
 });
 </script>
 
 <style scoped>
+.ins-guest-bar { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px 16px; margin: 0 0 20px; padding: 12px 16px; border-radius: 16px; background: linear-gradient(135deg, #EEF4E8, #FBF6EE); font-size: 0.9rem; color: var(--text-secondary); }
+.ins-guest-bar-actions { display: flex; gap: 8px; }
+.ins-guest-bar-primary, .ins-guest-bar-secondary { display: inline-flex; align-items: center; min-height: 38px; padding: 6px 16px; border-radius: 999px; font-size: 0.85rem; font-weight: 700; text-decoration: none; }
+.ins-guest-bar-primary { background: #6F8F5E; color: #fff; }
+.ins-guest-bar-secondary { border: 1.5px solid #6F8F5E; color: #4F6B42; }
+.ins-more { display: flex; justify-content: center; padding: 18px 0 8px; min-height: 48px; font-size: 0.85rem; color: var(--text-secondary); }
 .ins-tabbar {
   display: flex;
   gap: 6px;

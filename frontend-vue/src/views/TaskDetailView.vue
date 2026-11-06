@@ -727,7 +727,7 @@ onBeforeUnmount(() => {
 .th-icon { border: none; border-radius: var(--radius-control); }
 .th-title { font-family: var(--font-heading); font-weight: 800; color: var(--color-text); }
 .th-desc { color: var(--color-text-muted); }
-.th-quote { font-family: var(--font-display); font-style: italic; background: var(--color-canvas); border-left: 3px solid var(--color-brand); border-radius: 0 var(--radius-control) var(--radius-control) 0; color: var(--color-text-muted); }
+.th-quote { font-family: var(--font-heading); font-weight: 600; background: var(--color-canvas); border-left: 3px solid var(--color-brand); border-radius: 0 var(--radius-control) var(--radius-control) 0; color: var(--color-text-muted); }
 
 /* Thanh 3 giai đoạn: thanh nền nhạt, giai đoạn đang chọn là ô trắng. */
 .phase-indicator { gap: 4px; padding: 4px; border-radius: var(--radius-control); background: var(--color-surface-muted); }

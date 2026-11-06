@@ -7,6 +7,18 @@
     <div v-if="variant !== 'headline'" class="ins-cover" :class="{ 'ins-cover-featured': variant === 'featured' }">
       <img v-if="coverSrc" :src="coverSrc" :alt="article.title" loading="lazy" decoding="async">
       <span v-else class="ins-cover-fallback">📖</span>
+      <button
+        v-if="variant !== 'sidebar-row'"
+        type="button"
+        class="ins-save"
+        :class="{ 'is-saved': saved }"
+        :aria-pressed="saved"
+        :aria-label="saved ? t('inspire.unsave') : t('inspire.save')"
+        :title="saved ? t('inspire.unsave') : t('inspire.save')"
+        @click.prevent.stop="toggleSaveArticle(article.id)"
+      >
+        <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M6 3h12v18l-6-4.5L6 21z" /></svg>
+      </button>
     </div>
     <div class="ins-body">
       <span v-if="variant !== 'row' && variant !== 'headline' && variant !== 'sidebar-row'" class="ins-tag">{{ article.categoryLabel }}</span>
@@ -22,13 +34,15 @@
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { API_BASE_URL } from '../lib/apiClient';
+import { isArticleSaved, toggleSaveArticle } from '../lib/savedArticles';
 
 const props = defineProps({
   article: { type: Object, required: true },
   variant: { type: String, default: 'grid' }
 });
 
-const { locale } = useI18n();
+const { t, locale } = useI18n();
+const saved = computed(() => isArticleSaved(props.article.id));
 
 // Ảnh bìa dùng thẳng URL (endpoint /articles/:id/cover không cần đăng nhập) + loading="lazy"
 // của trình duyệt — trước đây trang danh sách tự fetch blob cho TẤT CẢ bài viết ngay khi vào
@@ -47,6 +61,13 @@ const metaLine = computed(() => `${formatDate(props.article.publishedAt || props
 </script>
 
 <style scoped>
+.ins-cover { position: relative; }
+.ins-save { position: absolute; top: 8px; right: 8px; width: 34px; height: 34px; border: none; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: rgba(255, 253, 247, 0.92); color: #6E5D4E; box-shadow: 0 2px 8px rgba(60, 45, 30, 0.18); cursor: pointer; transition: transform 0.15s ease, background-color 0.15s ease; }
+.ins-save svg { fill: none; stroke: currentColor; stroke-width: 2; stroke-linejoin: round; }
+.ins-save:hover { transform: scale(1.06); background: #fff; }
+.ins-save:active { transform: scale(0.94); }
+.ins-save.is-saved { color: #fff; background: #6F8F5E; }
+.ins-save.is-saved svg { fill: currentColor; }
 .ins-card-featured {
   flex: 2 1 0;
   min-width: 0;

@@ -42,7 +42,7 @@ import {
 
 export async function register(data, locale = 'vi') {
   const normalizedEmail = String(data.email || '').trim().toLowerCase();
-  const { password, full_name, display_name, ...consents } = data;
+  const { password, full_name, display_name, terms_version: _tv, age_confirmed: _age, ...consents } = data;
 
   const existing = await findUserByEmail(normalizedEmail);
   if (existing) {

@@ -2,13 +2,8 @@
   <main class="main-content mc-page" :class="{ 'is-embedded': embedded }" style="margin-left: 0;" >
     <div class="page-header">
       <div class="mc-share-row" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-        <label class="badge-pill" :title="t('moodCheckin.shareWithExperts.desc')" style="cursor:pointer;gap:6px;background:var(--color-surface-muted);color:var(--color-text);white-space:nowrap;flex-shrink:0;">
-          <span style="font-size:0.72rem;font-weight:700;white-space:nowrap;">{{ t('moodCheckin.shareWithExperts.title') }}</span>
-          <label class="toggle-switch" style="transform:scale(0.72);margin:-4px -6px;">
-            <input type="checkbox" v-model="shareMoodWithExperts" :disabled="shareMoodSaving" @change="toggleShareMoodWithExperts">
-            <span class="toggle-slider"></span>
-          </label>
-        </label>
+        <!-- Điều 7.3: chia sẻ check-in theo TỪNG chuyên gia (thay công tắc chung cho mọi chuyên gia) -->
+        <ExpertSharePill kind="mood" />
       </div>
     </div>
 
@@ -467,6 +462,7 @@ import { useAuthStore } from '../stores/auth';
 import { getTaskEmoji } from '../lib/dashboardHelpers';
 import { taskThumbSrc } from '../lib/taskImages';
 import EmotionFigure from '../components/EmotionFigure.vue';
+import ExpertSharePill from '../components/legal/ExpertSharePill.vue';
 import { MOOD_OPTIONS, TAGS, BODY_SYMPTOM_GROUPS, deriveMoodPayload as buildMoodPayload } from '../lib/moodCheckinOptions';
 
 const { t } = useI18n();
@@ -920,23 +916,6 @@ function resetCheckin() {
   step.value = 1;
 }
 
-// Công tắc "Chia sẻ check-in hàng ngày với chuyên gia" — đồng bộ với đúng cột
-// user_profiles.share_mood_with_experts mà SettingsView.vue dùng (2 nơi cùng đọc/ghi 1
-// trạng thái, không phải 2 cài đặt khác nhau).
-const shareMoodWithExperts = ref(false);
-const shareMoodSaving = ref(false);
-async function toggleShareMoodWithExperts() {
-  shareMoodSaving.value = true;
-  try {
-    await apiClient.put('/profile', { share_mood_with_experts: shareMoodWithExperts.value });
-  } catch (_e) {
-    // Lỗi lưu thì rollback lại UI để không hiện sai trạng thái thật trên server.
-    shareMoodWithExperts.value = !shareMoodWithExperts.value;
-  } finally {
-    shareMoodSaving.value = false;
-  }
-}
-
 onMounted(async () => {
   if (!auth.isAuthenticated) {
     alert(t('moodCheckin.alerts.pleaseLogin'));
@@ -945,12 +924,6 @@ onMounted(async () => {
   }
   await loadRemoteProgress();
   await syncTodayCheckinBadge();
-  try {
-    const profileData = await apiClient.get('/profile');
-    shareMoodWithExperts.value = profileData?.share_mood_with_experts ?? false;
-  } catch (_e) {
-    // Không tải được thì giữ mặc định false, không chặn luồng check-in chính.
-  }
 });
 </script>
 
@@ -1087,7 +1060,7 @@ onMounted(async () => {
 
 /* ---------- Bước 1: thanh trượt cảm xúc + nhân vật ---------- */
 .emo { --emo-ink: var(--color-brand); display: flex; flex-direction: column; align-items: center; text-align: center; gap: 8px; padding: 4px 0 8px; }
-.emo-hello { font-family: var(--font-display); font-style: italic; font-size: 19px; color: var(--color-text-muted); margin: 0; }
+.emo-hello { font-family: var(--font-heading); font-weight: 600; font-size: 18px; color: var(--color-text-muted); margin: 0; }
 .emo-title { font-family: var(--font-heading); font-size: 30px; font-weight: 800; line-height: 1.25; letter-spacing: -0.01em; color: var(--color-text); margin: 4px 0 0; }
 .emo-sub { font-size: 14.5px; line-height: 1.6; color: var(--color-text-muted); max-width: 420px; margin: 6px auto 0; }
 
@@ -1139,7 +1112,7 @@ onMounted(async () => {
 .gw { display: flex; flex-direction: column; align-items: center; gap: 16px; margin-bottom: 24px; }
 .gw-garden { margin: 0; display: flex; flex-direction: column; align-items: center; gap: 6px; }
 .gw-svg { width: 100%; max-width: 340px; height: auto; overflow: visible; }
-.gw-caption { font-family: var(--font-display); font-style: italic; font-size: 13.5px; color: var(--color-text-muted); text-align: center; }
+.gw-caption { font-family: var(--font-body); font-size: 13.5px; color: var(--color-text-muted); text-align: center; }
 .gw-ground { fill: #EADFC8; }
 .gw-pebble { fill: #D6C7A8; }
 .gw-grass { fill: none; stroke: #8CCB9E; stroke-width: 2.5; stroke-linecap: round; }

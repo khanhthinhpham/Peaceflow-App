@@ -29,6 +29,7 @@
           <div>
             <div class="bm-name">{{ t('experts.booking.titleWithName', { name: currentExpert.name }) }}</div>
             <div class="bm-degree">{{ currentExpert.degree }}</div>
+            <span class="lg-group-badge" :class="`is-${currentExpert.group || 'counselor'}`">{{ expertGroupLabel(currentExpert) }}</span>
           </div>
         </div>
         <div class="bm-body">
@@ -211,6 +212,12 @@
               <div class="bm-section-title">{{ t('experts.booking.confirmTitle') }}</div>
               <div class="booking-summary">
                 <div class="bs-row"><span>{{ t('experts.booking.expertLabel') }}</span><span>{{ currentExpert.name }}</span></div>
+                <div class="bs-row"><span>{{ t('legal.expert.groupLabel') }}</span><span>{{ expertGroupLabel(currentExpert) }}</span></div>
+                <div class="bs-row"><span>{{ t('legal.expert.scopeLabel') }}</span><span>{{ expertScope(currentExpert) }}</span></div>
+                <template v-if="currentExpert.group === 'practitioner'">
+                  <div class="bs-row"><span>{{ t('legal.expert.clinicLabel') }}</span><span>{{ currentExpert.clinic_name }}</span></div>
+                  <div class="bs-row"><span>{{ t('legal.expert.licenseLabel') }}</span><span>{{ currentExpert.license_number }}</span></div>
+                </template>
                 <div class="bs-row"><span>{{ t('experts.booking.typeLabel') }}</span><span>{{ bookingSummaryTypeLabel }}</span></div>
                 <div class="bs-row"><span>{{ t('experts.booking.dateTimeLabel') }}</span><span>{{ bookingData.startsAt ? formatDateTime(bookingData.startsAt) : t('experts.booking.notSelected') }}</span></div>
                 <div class="bs-row"><span>{{ t('experts.booking.durationLabel') }}</span><span>{{ t('experts.booking.minutesUnit', { n: bookingData.duration }) }}</span></div>
@@ -229,10 +236,30 @@
                   <li>{{ t('experts.booking.processGuide.step4') }}</li>
                 </ol>
               </div>
+              <!-- Điều khoản khi đặt lịch: 2 ô đồng ý bắt buộc, ghi lại ở server làm bằng chứng -->
+              <div class="lg-consent">
+                <p class="lg-consent-title">{{ t('legal.booking.title') }}</p>
+                <ul class="lg-consent-points">
+                  <li>{{ t('legal.booking.points.p1') }}</li>
+                  <li>{{ t('legal.booking.points.p2') }}</li>
+                  <li>{{ t('legal.booking.points.p3') }}</li>
+                  <li>{{ t('legal.booking.points.p4') }}</li>
+                  <li>{{ t('legal.booking.points.p5') }}</li>
+                </ul>
+                <label class="lg-check">
+                  <input v-model="bookingConsent.terms" type="checkbox">
+                  <span>{{ t('legal.booking.agreeTerms') }} <button type="button" class="lg-link" @click.prevent="termsDialogOpen = true">{{ t('legal.termsName') }}</button>.</span>
+                </label>
+                <label class="lg-check">
+                  <input v-model="bookingConsent.share" type="checkbox">
+                  <span>{{ t('legal.booking.agreeShare', { name: currentExpert.name }) }}</span>
+                </label>
+                <p v-if="bookingConsentError" class="lg-consent-error" role="alert">{{ t('legal.booking.mustAgree') }}</p>
+              </div>
             </div>
             <div style="display:flex;gap:10px;justify-content:flex-end;">
               <button class="btn-outline" @click="goBookingStep(3)">{{ t('experts.booking.backBtn') }}</button>
-              <button class="btn-primary" @click="confirmBooking">{{ t('experts.booking.confirmBtn') }}</button>
+              <button class="btn-primary" :disabled="!bookingConsent.terms || !bookingConsent.share" @click="confirmBooking">{{ t('experts.booking.confirmBtn') }}</button>
             </div>
           </div>
 
@@ -321,6 +348,7 @@
           </div>
           <div class="pm-name">{{ currentExpert.name }}</div>
           <div class="pm-degree">{{ currentExpert.degree }}</div>
+          <span class="lg-group-badge" :class="`is-${currentExpert.group || 'counselor'}`">{{ expertGroupLabel(currentExpert) }}</span>
           <div class="pm-tags">
             <span v-for="s in currentExpert.specialties" :key="s" class="badge-pill badge-mint">{{ s }}</span>
           </div>
@@ -332,6 +360,19 @@
             <div class="stat-card"><div class="sc-num">{{ currentExpert.experience }}</div><div class="sc-label">{{ t('experts.profile.experienceLabel') }}</div></div>
           </div>
           <div style="margin-top:16px;"></div>
+          <!-- Điều 2.5: nhóm chuyên gia + phạm vi dịch vụ được phép (do PeaceFlow xác minh) -->
+          <div class="pm-section">
+            <div class="pm-section-title">{{ t('legal.expert.sectionTitle') }}</div>
+            <dl class="lg-expert-info">
+              <div><dt>{{ t('legal.expert.groupLabel') }}</dt><dd>{{ expertGroupLabel(currentExpert) }}</dd></div>
+              <div><dt>{{ t('legal.expert.scopeLabel') }}</dt><dd>{{ expertScope(currentExpert) }}</dd></div>
+              <template v-if="currentExpert.group === 'practitioner'">
+                <div><dt>{{ t('legal.expert.clinicLabel') }}</dt><dd>{{ currentExpert.clinic_name }}</dd></div>
+                <div><dt>{{ t('legal.expert.licenseLabel') }}</dt><dd>{{ currentExpert.license_number }}</dd></div>
+              </template>
+            </dl>
+            <p class="lg-expert-note">{{ t('legal.expert.verifiedNote') }}</p>
+          </div>
           <div class="pm-section">
             <div class="pm-section-title">{{ t('experts.profile.bioTitle') }}</div>
             <div class="pm-bio">{{ currentExpert.bio }}</div>
@@ -463,6 +504,7 @@
         </Transition>
       </Teleport>
 
+      <TermsDialog v-if="termsDialogOpen" @close="termsDialogOpen = false" />
       <ShareRecordModal
         v-if="shareRecordExpert"
         :expert-id="shareRecordExpert.id"
@@ -571,6 +613,7 @@
               <div class="ec-info">
                 <div class="ec-name">{{ expert.name }}</div>
                 <div class="ec-degree">{{ expert.degree }}</div>
+                <span class="lg-group-badge" :class="`is-${expert.group || 'counselor'}`">{{ expertGroupLabel(expert) }}</span>
                 <div v-if="expert.rating" class="ec-rating">
                   <span class="ec-stars">{{ '★'.repeat(Math.max(1, Math.round(expert.rating || 0))) }}</span>
                   <span class="ec-rating-num">{{ expert.rating }}</span>
@@ -625,6 +668,9 @@ import { apiClient } from '../lib/apiClient';
 import { getExpertAvatarUrl } from '../lib/expertAvatars';
 import { useAuthStore } from '../stores/auth';
 import ShareRecordModal from '../components/ShareRecordModal.vue';
+import TermsDialog from '../components/legal/TermsDialog.vue';
+import { TERMS_VERSION } from '../lib/legalTerms';
+import '../assets/legal.css';
 import NavIcon from '../components/NavIcon.vue';
 // Chuỗi i18n dùng chung (vd. messages.chatBtn) có emoji đứng đầu — bỏ đi khi hiển thị, thay bằng icon nét đơn sắc.
 const plainText = (str) => String(str).replace(/^[^\p{L}\p{N}]+/u, '');
@@ -663,6 +709,18 @@ const { t, tm, locale } = useI18n();
 const intlLocale = computed(() => (locale.value === 'en' ? 'en-US' : 'vi-VN'));
 
 const shareRecordExpert = ref(null);
+// Điều 2.5: nhãn nhóm + phạm vi dịch vụ (chưa có phạm vi riêng thì dùng phạm vi chuẩn của nhóm)
+function expertGroupLabel(e) {
+  return e?.group === 'practitioner' ? t('legal.expert.groupPractitioner') : t('legal.expert.groupCounselor');
+}
+function expertScope(e) {
+  if (e?.service_scope) return e.service_scope;
+  return e?.group === 'practitioner' ? t('legal.expert.scopePractitionerDefault') : t('legal.expert.scopeCounselorDefault');
+}
+// Đồng ý điều khoản khi đặt lịch — reset mỗi lần mở form đặt lịch mới
+const bookingConsent = reactive({ terms: false, share: false });
+const bookingConsentError = ref(false);
+const termsDialogOpen = ref(false);
 function openShareRecordModal(expert) {
   shareRecordExpert.value = expert;
 }
@@ -935,6 +993,9 @@ function openBookingModal(id) {
   medicalRecordFiles.value = [];
   medicalRecordNote.value = '';
   medicalRecordError.value = '';
+  bookingConsent.terms = false;
+  bookingConsent.share = false;
+  bookingConsentError.value = false;
   bookingStep.value = 1;
   bookingPhase.value = 'form';
   paymentPaid.value = false;
@@ -1021,6 +1082,8 @@ const bookingSummaryTypeLabel = computed(() => {
 });
 
 async function confirmBooking() {
+  if (!bookingConsent.terms || !bookingConsent.share) { bookingConsentError.value = true; return; }
+  bookingConsentError.value = false;
   const startsAt = bookingData.date && bookingData.time ? `${bookingData.date}T${bookingData.time}:00+07:00` : '';
   bookingData.startsAt = startsAt;
 
@@ -1031,7 +1094,10 @@ async function confirmBooking() {
       starts_at: bookingData.startsAt,
       notes: bookingData.notes,
       contact_phone: bookingData.contactPhone.trim(),
-      contact_social: bookingData.contactSocial.trim() || null
+      contact_social: bookingData.contactSocial.trim() || null,
+      terms_accepted: true,
+      terms_version: TERMS_VERSION,
+      share_records_consent: true
     });
 
     localStorage.setItem('peaceflow_dashboard_refresh', '1');

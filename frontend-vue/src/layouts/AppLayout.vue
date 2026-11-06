@@ -26,8 +26,9 @@
     <ToastStack />
     <PushPromptModal />
     <DonateModal />
+    <TermsGate />
 
-    <template v-if="!isMessagesPage">
+    <template v-if="!isMessagesPage && auth.isAuthenticated">
       <NotificationWidgetButton />
       <ChatWidgetButton />
       <ChatWidgetDropdown />
@@ -47,7 +48,9 @@ import NotificationPanel from '../components/NotificationPanel.vue';
 import ToastStack from '../components/ToastStack.vue';
 import PushPromptModal from '../components/PushPromptModal.vue';
 import DonateModal from '../components/DonateModal.vue';
+import TermsGate from '../components/legal/TermsGate.vue';
 import NotificationWidgetButton from '../components/NotificationWidgetButton.vue';
+import { processPendingSave } from '../lib/savedArticles';
 import ChatWidgetButton from '../components/ChatWidgetButton.vue';
 import ChatWidgetDropdown from '../components/ChatWidgetDropdown.vue';
 import ChatFloatingWindow from '../components/ChatFloatingWindow.vue';
@@ -77,8 +80,11 @@ const auth = useAuthStore();
 const notif = useNotificationsStore();
 const chatWidget = useChatWidgetStore();
 auth.waitForAuth().then(() => {
+  // khách chưa đăng nhập (vd. đọc bài ở /inspire từ quảng cáo): không gọi API cần đăng nhập — tránh bị đẩy sang trang đăng nhập
+  if (!auth.isAuthenticated) return;
   notif.init();
   chatWidget.init();
+  processPendingSave();
 });
 </script>
 

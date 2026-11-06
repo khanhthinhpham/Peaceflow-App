@@ -141,10 +141,26 @@
               <div v-for="a in selectedAssessmentItems" :key="a.id" class="sr-confirm-row">{{ a.assessment_name }} — {{ a.severity || '—' }} — {{ formatDateTime(a.created_at) }}</div>
             </div>
 
+            <!-- Đồng ý chia sẻ Dữ liệu sức khỏe cho đúng chuyên gia này (Điều 7) — bắt buộc, ghi lại ở server -->
+            <div class="lg-consent">
+              <p class="lg-consent-title">{{ t('legal.share.title') }}</p>
+              <ul class="lg-consent-points">
+                <li>{{ t('legal.share.points.p1', { name: expertName }) }}</li>
+                <li>{{ t('legal.share.points.p2') }}</li>
+                <li>{{ t('legal.share.points.p3') }}</li>
+                <li>{{ t('legal.share.points.p4') }}</li>
+              </ul>
+              <p v-if="selectedJournalItems.length" class="lg-consent-warn">{{ t('legal.share.journalNote') }}</p>
+              <label class="lg-check">
+                <input v-model="shareConsent" type="checkbox">
+                <span>{{ t('legal.share.agree', { name: expertName }) }} <button type="button" class="lg-link" @click.prevent="termsOpen = true">{{ t('legal.termsName') }}</button>.</span>
+              </label>
+            </div>
+
             <p v-if="sendError" style="color:var(--coral);font-size:0.85rem;margin:0 0 10px;">{{ sendError }}</p>
             <div class="bm-footer-actions">
               <button type="button" class="btn-outline" :disabled="sending" @click="view = 'pick'">{{ t('experts.shareRecord.backBtn') }}</button>
-              <button type="button" class="btn-primary" :disabled="sending" @click="confirmSend">{{ sending ? t('experts.shareRecord.sending') : t('experts.shareRecord.confirmSendBtn') }}</button>
+              <button type="button" class="btn-primary" :disabled="sending || !shareConsent" @click="confirmSend">{{ sending ? t('experts.shareRecord.sending') : t('experts.shareRecord.confirmSendBtn') }}</button>
             </div>
           </template>
 
@@ -199,6 +215,7 @@
         </template>
       </div>
     </div>
+    <TermsDialog v-if="termsOpen" :article="7" @close="termsOpen = false" />
   </div>
 </template>
 
@@ -206,6 +223,9 @@
 import { ref, computed, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { apiClient } from '../lib/apiClient';
+import TermsDialog from './legal/TermsDialog.vue';
+import { TERMS_VERSION } from '../lib/legalTerms';
+import '../assets/legal.css';
 
 const props = defineProps({
   expertId: { type: String, required: true },
@@ -264,6 +284,8 @@ const selectedAssessment = ref([]);
 const pickTab = ref('journal');
 const sending = ref(false);
 const sendError = ref('');
+const shareConsent = ref(false);
+const termsOpen = ref(false);
 
 function startPick() {
   selectedJournal.value = [];
@@ -271,6 +293,7 @@ function startPick() {
   selectedAssessment.value = [];
   pickTab.value = 'journal';
   sendError.value = '';
+  shareConsent.value = false;
   view.value = 'pick';
 }
 const selectedCount = computed(() => selectedJournal.value.length + selectedMood.value.length + selectedAssessment.value.length);
@@ -308,13 +331,16 @@ function clearAllGlobal() {
 }
 
 async function confirmSend() {
+  if (!shareConsent.value) { sendError.value = t('legal.share.mustAgree'); return; }
   sending.value = true;
   sendError.value = '';
   try {
     await apiClient.post(`/experts/${props.expertId}/shared-records`, {
       journalEntryIds: selectedJournal.value,
       moodCheckinIds: selectedMood.value,
-      assessmentResultIds: selectedAssessment.value
+      assessmentResultIds: selectedAssessment.value,
+      consent: true,
+      terms_version: TERMS_VERSION
     });
     view.value = 'success';
   } catch (error) {

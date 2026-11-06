@@ -38,11 +38,11 @@
   /* Typography — quy định dùng font:
      --font-heading (Nunito): tiêu đề trang/khu vực/thẻ, số liệu nổi bật (KPI). Đậm 700–800.
      --font-body (Inter): nội dung, nút, form, menu, nhãn, dữ liệu biểu đồ, ngày giờ.
-     --font-display (Playfair Display): CHỈ cho một số câu điểm nhấn giàu cảm xúc
-       (lời chào, câu trích dẫn) — không dùng cho tiêu đề hay nội dung. */
+     --font-display: câu điểm nhấn (lời chào, trích dẫn) — CŨNG là font không chân (sans-serif) như cả app;
+       không dùng font có chân (Playfair, Times New Roman…) ở bất cứ đâu. */
   --font-heading: 'Nunito', system-ui, -apple-system, 'Segoe UI', sans-serif;
   --font-body: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --font-display: 'Playfair Display', Georgia, serif;
+  --font-display: 'Nunito', system-ui, -apple-system, 'Segoe UI', sans-serif;
 
   /* Shape */
   --radius-control: 8px;

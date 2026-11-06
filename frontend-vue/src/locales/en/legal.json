@@ -1,0 +1,96 @@
+{
+  "legal": {
+    "pageTitle": "Terms on the Allocation of Responsibilities to Customers",
+    "versionLine": "Version {v} · Effective from {date}",
+    "officialNote": "This document is published in Vietnamese, which is the legally binding version.",
+    "toc": "Contents",
+    "article": "Article {n}",
+    "back": "Back",
+    "home": "Home",
+    "readFull": "Read the full terms",
+    "termsName": "Terms of Use",
+    "privacyName": "Privacy Policy",
+    "close": "Close",
+    "signup": {
+      "termsPrefix": "I have read and agree to PeaceFlow's",
+      "and": "and",
+      "termsSuffix": ", including that PeaceFlow is an intermediary platform, not a medical facility, and does not replace emergency care.",
+      "age": "I am 18 or older, or I have consent and supervision from a parent or legal guardian to use PeaceFlow.",
+      "sensitive": "I agree that PeaceFlow may process my health data (mood check-ins, screening results, journal) to track my progress and personalise suggestions.",
+      "sensitiveHint": "Optional. You can change this at any time in Settings.",
+      "mustConfirmAge": "Please confirm your age to continue.",
+      "googleNote": "If you continue with Google, you will be asked to accept the terms on your first sign-in."
+    },
+    "booking": {
+      "title": "Booking terms",
+      "points": {
+        "p1": "PeaceFlow is an intermediary platform connecting you with experts; it is not a medical facility, and PeaceFlow staff do not counsel, diagnose or treat you directly.",
+        "p2": "Experts are independent and solely responsible for the professional content and quality of the session. Psychological counsellors do not diagnose, prescribe or treat.",
+        "p3": "You get a 100% refund if the expert cancels, does not attend, or the session fails due to a platform error; cancelling more than 24 hours ahead is refunded 100%, after that the Cancellation Policy applies.",
+        "p4": "Do not record, film or share the session without the expert's consent.",
+        "p5": "PeaceFlow is not an emergency service. If you are in danger or thinking of harming yourself, call 115 or go to the nearest medical facility now."
+      },
+      "agreeTerms": "I have read, understood and agree to the terms above and the",
+      "agreeShare": "I agree to send the description, severity, contact details and prior records (if any) I entered only to {name} to prepare for the session. The expert must keep this information confidential.",
+      "mustAgree": "Please tick both boxes to book."
+    },
+    "share": {
+      "title": "Before you send",
+      "points": {
+        "p1": "The items you choose are sent only to {name}, never to other experts or third parties.",
+        "p2": "The expert must keep your information confidential under professional ethics and the law, and is responsible for the professional opinions they give.",
+        "p3": "You can revoke what you sent at any time. After revoking, the expert can no longer view it; what they already read cannot be taken back.",
+        "p4": "PeaceFlow does not sell health data and does not provide it to insurers, employers or advertisers."
+      },
+      "journalNote": "You are including personal journal entries. Journals are private by default; only send them if you really want the expert to read them.",
+      "agree": "I agree to share the selected items with {name} under the",
+      "mustAgree": "Please tick the consent box before sending."
+    },
+    "gate": {
+      "titleNew": "Before you begin",
+      "titleUpdated": "Our terms have been updated",
+      "introNew": "Please read and accept the terms to keep using PeaceFlow.",
+      "introUpdated": "PeaceFlow has updated its terms. Please read and accept them to continue. If you do not agree, you may stop using the service and ask us to delete or export your data.",
+      "summaryTitle": "Key points",
+      "s1": "PeaceFlow is an intermediary platform, not a medical facility, and does not replace emergency care (115).",
+      "s2": "Screening results and suggestions from the PeaceCat AI assistant are for reference only, not a medical diagnosis.",
+      "s3": "Health data is shared with an expert only when you choose to send it, and you can revoke it at any time.",
+      "accept": "Accept and continue",
+      "saving": "Saving...",
+      "logout": "Sign out",
+      "saveFailed": "Could not save your choice. Please try again."
+    },
+    "settings": {
+      "sensitiveTitle": "Consent to process health data",
+      "sensitiveDesc": "Allow PeaceFlow to process your mood check-ins, screening results and journal to track progress and personalise suggestions. Turn it off at any time; features that do not need this data keep working. See"
+    },
+    "expert": {
+      "sectionTitle": "Practice information",
+      "groupLabel": "Expert group",
+      "groupCounselor": "Psychological counsellor",
+      "groupPractitioner": "Licensed practitioner",
+      "scopeLabel": "Scope of service",
+      "scopeCounselorDefault": "Psychological counselling and support that is not medical examination or treatment. Does not diagnose, prescribe or treat.",
+      "scopePractitionerDefault": "Remote medical examination and treatment within the scope of the practising licence.",
+      "clinicLabel": "Medical facility",
+      "licenseLabel": "Practising licence",
+      "verifiedNote": "Group, scope of service and licence are verified by PeaceFlow."
+    },
+    "shares": {
+      "title": "Sharing with each expert",
+      "desc": "Mood check-ins and screening results are shared only with the experts you turn on individually below. You can turn this off at any time.",
+      "mood": "Mood check-ins",
+      "assessments": "Screening results",
+      "empty": "You have not booked any expert yet. After booking, you can choose what to share with each expert here.",
+      "loading": "Loading...",
+      "loadError": "Could not load your experts.",
+      "saveError": "Could not save. Please try again.",
+      "pill": "Share with experts",
+      "pillCount": "Shared with {n} expert(s)",
+      "dialogTitle": "Share with experts",
+      "manage": "Manage sharing",
+      "journal": "Journal (entries marked as shared)",
+      "journalDesc": "Journal: an expert can read only the entries you mark as shared, and only if you turn on \"Journal\" for that expert."
+    }
+  }
+}

@@ -151,7 +151,7 @@
       <div id="caHistoryList">
         <p v-if="moodHistoryLoading" class="ca-empty">Đang tải...</p>
         <p v-else-if="moodHistoryError" class="ca-empty">Không tải được lịch sử check-in.</p>
-        <p v-else-if="!moodShared" class="ca-empty">Client này chưa bật "Chia sẻ check-in hàng ngày với chuyên gia" trong Cài đặt.</p>
+        <p v-else-if="!moodShared" class="ca-empty">Client chưa bật chia sẻ check-in tâm trạng cho riêng bạn.</p>
         <p v-else-if="!moodHistory.length" class="ca-empty">Không có lượt check-in nào trong khoảng thời gian này.</p>
         <div v-for="item in moodHistory" :key="item.id" class="ca-history-item">
           <span>
@@ -205,7 +205,7 @@
       <div id="caHistoryList">
         <p v-if="selfAssessLoading" class="ca-empty">Đang tải...</p>
         <p v-else-if="selfAssessError" class="ca-empty">Không tải được lịch sử bài test.</p>
-        <p v-else-if="!selfAssessShared" class="ca-empty">Client này chưa bật "Chia sẻ bài test tự làm với chuyên gia" trong Cài đặt.</p>
+        <p v-else-if="!selfAssessShared" class="ca-empty">Client chưa bật chia sẻ kết quả sàng lọc cho riêng bạn.</p>
         <p v-else-if="!selfAssessments.length" class="ca-empty">Không có bài test nào trong khoảng thời gian này.</p>
         <div v-for="item in selfAssessments" :key="item.id" class="ca-history-item" @click="openDetailModal(item, selectedClient)">
           <span><strong>{{ item.name }}</strong> — {{ item.severity || 'Đã hoàn thành' }} ({{ item.total_score }})</span>
@@ -255,7 +255,7 @@
       <div id="caHistoryList">
         <p v-if="journalLoading" class="ca-empty">Đang tải...</p>
         <p v-else-if="journalError" class="ca-empty">Không tải được nhật ký.</p>
-        <p v-else-if="!journalEntries.length" class="ca-empty">Client chưa chia sẻ bài nhật ký nào (mỗi bài phải tự bật chia sẻ riêng).</p>
+        <p v-else-if="!journalEntries.length" class="ca-empty">Client chưa chia sẻ nhật ký với bạn (client cần bật "Nhật ký" cho riêng bạn và đánh dấu chia sẻ từng bài).</p>
         <div v-for="item in journalEntries" :key="item.id" class="ca-history-item" @click="openJournalDetail(item)">
           <span>
             <strong>{{ item.title || '(Không tiêu đề)' }}</strong>

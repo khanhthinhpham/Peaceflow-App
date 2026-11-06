@@ -32,6 +32,7 @@
         </button>
         <div v-else ref="googleBtnEl" style="display:flex;justify-content:center;"></div>
         <p class="auth-google-hint">{{ t('signup.googleHint') }}</p>
+        <p class="auth-google-hint">{{ t('legal.signup.googleNote') }}</p>
         <div class="divider" style="margin:18px 0;">{{ t('signup.dividerEmail') }}</div>
       </template>
 
@@ -71,12 +72,21 @@
         <label class="checkbox-group">
           <input v-model="agreeTerms" type="checkbox" required>
           <span>
-            {{ t('signup.agreeTermsPrefix') }}
-            <a href="#" @click.prevent="goToLegacyPage('terms.html')">{{ t('signup.termsLink') }}</a>
-            {{ t('signup.and') }}
-            <a href="/privacy-policy.html" target="_blank" rel="noopener">{{ t('signup.privacyLink') }}</a>
-            {{ t('signup.ofPeaceflow') }}
+            {{ t('legal.signup.termsPrefix') }}
+            <a :href="TERMS_PATH" @click.prevent="showTerms = true">{{ t('legal.termsName') }}</a>
+            {{ t('legal.signup.and') }}
+            <a href="/privacy-policy.html" target="_blank" rel="noopener">{{ t('legal.privacyName') }}</a>
+            {{ t('legal.signup.termsSuffix') }}
           </span>
+        </label>
+        <label class="checkbox-group">
+          <input v-model="ageConfirmed" type="checkbox" required>
+          <span>{{ t('legal.signup.age') }}</span>
+        </label>
+        <!-- Đồng ý xử lý Dữ liệu sức khỏe: tách riêng, KHÔNG bắt buộc (Điều 7.1–7.2). Chuyên gia không cần. -->
+        <label v-if="mode === 'user'" class="checkbox-group">
+          <input v-model="agreeSensitive" type="checkbox">
+          <span>{{ t('legal.signup.sensitive') }} <small class="consent-hint">{{ t('legal.signup.sensitiveHint') }}</small></span>
         </label>
         <AiNotice consent class="signup-ai-notice" />
 
@@ -84,6 +94,8 @@
           {{ submitting ? t('signup.submitting') : t('signup.submit') }}
         </button>
       </form>
+
+      <TermsDialog v-if="showTerms" @close="showTerms = false" />
 
       <div class="auth-links">
         {{ t('signup.haveAccount') }} <router-link to="/login">{{ t('signup.loginNow') }}</router-link>
@@ -98,7 +110,8 @@ import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '../stores/auth';
 import { apiClient } from '../lib/apiClient';
-import { goToLegacyPage } from '../lib/legacyApp';
+import TermsDialog from '../components/legal/TermsDialog.vue';
+import { TERMS_PATH, TERMS_VERSION } from '../lib/legalTerms';
 import { isNativeApp } from '../lib/native';
 import { getCurrentLocale } from '../locales';
 import PasswordField from '../components/PasswordField.vue';
@@ -120,6 +133,9 @@ const emailError = computed(() => emailTouched.value && !isValidEmail(email.valu
 const password = ref('');
 const confirmPassword = ref('');
 const agreeTerms = ref(false);
+const ageConfirmed = ref(false);
+const agreeSensitive = ref(false);
+const showTerms = ref(false);
 const mode = ref('user');
 const submitting = ref(false);
 const resending = ref(false);
@@ -242,6 +258,10 @@ async function handleSubmit() {
     showMessage(t('signup.errors.mustAgreeTerms'), 'error');
     return;
   }
+  if (!ageConfirmed.value) {
+    showMessage(t('legal.signup.mustConfirmAge'), 'error');
+    return;
+  }
 
   submitting.value = true;
   showResend.value = false;
@@ -260,7 +280,9 @@ async function handleSubmit() {
       await auth.signup(emailValue, password.value, fullName, {
         consent_privacy: true,
         consent_terms: true,
-        consent_sensitive_data: false
+        consent_sensitive_data: agreeSensitive.value,
+        terms_version: TERMS_VERSION,
+        age_confirmed: true
       });
     }
 
@@ -426,6 +448,7 @@ onMounted(() => {
 .checkbox-group input { margin-top: 3px; accent-color: var(--peach-dark); }
 .checkbox-group a { color: var(--peach-dark); font-weight: 700; text-decoration: none; }
 .checkbox-group a:hover { text-decoration: underline; }
+.consent-hint { display: block; margin-top: 2px; font-size: 0.8rem; color: var(--color-text-muted); }
 .btn-primary[disabled] { opacity: 0.7; cursor: not-allowed; }
 .field-hint { font-size: 0.8rem; color: var(--text-light); margin-top: 6px; }
 .divider {

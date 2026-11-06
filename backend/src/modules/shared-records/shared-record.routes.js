@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { db } from '../../config/db.js';
 import { requireAuth } from '../../common/middleware/auth.middleware.js';
+import { recordConsent } from '../../common/services/consent.service.js';
 import { buildNotificationMessage } from '../notifications/notification-messages.js';
 import { sendPushToUser } from '../notifications/notification.routes.js';
 import { sendSharedRecordToExpertEmail, sendSharedRecordResponseEmail } from '../../common/services/email.service.js';
@@ -135,6 +136,14 @@ router.post('/experts/:id/shared-records', requireAuth, async (req, res) => {
       [req.user.sub, expert.expert_user_id, JSON.stringify(snapshot)]
     );
     const record = inserted.rows[0];
+    // Bằng chứng khách đã đồng ý chia sẻ cho ĐÚNG chuyên gia này (Điều 7.3–7.4). Bản app cũ không gửi cờ
+    // consent → không ghi (màn xác nhận cũ vẫn có cảnh báo).
+    if (req.body.consent === true) {
+      await recordConsent({
+        userId: req.user.sub, kind: 'share_record', req,
+        context: { expert_id: expert.id, expert_user_id: expert.expert_user_id, record_id: record.id, journal: journalRes.rows.length, mood: moodRes.rows.length, assessment: assessmentRes.rows.length }
+      });
+    }
 
     const { locale: expertLocale, email: expertEmail } = await getUserLocale(expert.expert_user_id);
     const msg = buildNotificationMessage('shared_record_sent', { clientName }, expertLocale)

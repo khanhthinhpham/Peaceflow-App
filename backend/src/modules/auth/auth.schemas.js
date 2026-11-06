@@ -7,7 +7,11 @@ export const registerSchema = z.object({
   display_name: z.string().optional(),
   consent_privacy: z.boolean().refine(v => v === true),
   consent_terms: z.boolean().refine(v => v === true),
-  consent_sensitive_data: z.boolean().default(false)
+  consent_sensitive_data: z.boolean().default(false),
+  // phiên bản điều khoản khách đã đọc + xác nhận đủ 18 tuổi / có cha mẹ-người giám hộ đồng ý (Điều 8).
+  // Tuỳ chọn để bản app cũ (Capacitor) chưa cập nhật vẫn đăng ký được — khi đó TermsGate sẽ hỏi lại.
+  terms_version: z.string().max(20).optional(),
+  age_confirmed: z.boolean().optional()
 });
 
 const coerceBool = z.preprocess(

@@ -131,6 +131,7 @@ function getPostLoginRedirect() {
 }
 
 async function redirectAfterLogin() {
+  const target = getPostLoginRedirect(); // đọc TRƯỚC khi xoá
   sessionStorage.removeItem('peaceflow_post_login_redirect');
   sessionStorage.removeItem('peaceflow_last_login_redirect_at');
 
@@ -149,7 +150,7 @@ async function redirectAfterLogin() {
 
   const onboardingDone = localStorage.getItem('peaceflow_onboarding_done');
   if (onboardingDone) {
-    redirectTo(getPostLoginRedirect());
+    redirectTo(target);
     return;
   }
 
@@ -158,12 +159,12 @@ async function redirectAfterLogin() {
     const hasOnboarded = res?.onboarding_answers != null;
     if (hasOnboarded) {
       localStorage.setItem('peaceflow_onboarding_done', '1');
-      redirectTo(getPostLoginRedirect());
+      redirectTo(target);
       return;
     }
   } catch (e) {
     console.error('Profile check failed:', e.message);
-    redirectTo(getPostLoginRedirect());
+    redirectTo(target);
     return;
   }
 

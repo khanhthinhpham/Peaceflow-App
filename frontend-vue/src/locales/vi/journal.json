@@ -1,8 +1,8 @@
 {
   "journal": {
     "shareWithExperts": {
-      "onTitle": "Đang chia sẻ bài này với chuyên gia — bấm để ngừng",
-      "offTitle": "Chia sẻ riêng bài này với chuyên gia"
+      "onTitle": "Bài này đang được chia sẻ với các chuyên gia bạn đã bật \"Nhật ký\" — bấm để ngừng",
+      "offTitle": "Đánh dấu chia sẻ bài này với các chuyên gia bạn đã bật \"Nhật ký\""
     },
     "breadcrumbDashboard": "Tổng quan",
     "breadcrumbJournal": "Nhật ký cảm xúc",

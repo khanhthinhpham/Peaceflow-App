@@ -8,6 +8,7 @@ import {
   refreshSchema
 } from './auth.schemas.js';
 import * as authService from './auth.service.js';
+import { TERMS_VERSION, recordConsent } from '../../common/services/consent.service.js';
 import { z } from 'zod';
 
 // Ngôn ngữ mặc định theo NƠI ĐĂNG NHẬP/ĐĂNG KÝ — dựa vào quốc gia suy ra từ IP.
@@ -57,6 +58,15 @@ export async function register(req, res) {
   try {
     const payload = registerSchema.parse(req.body);
     const result = await authService.register(payload, req.locale);
+    // Bằng chứng đồng ý: chỉ ghi "terms" khi khách đã đọc đúng phiên bản hiện hành và xác nhận tuổi;
+    // thiếu (app cũ) thì không ghi → lần đăng nhập đầu sẽ được hỏi đồng ý lại.
+    const userId = result?.user?.id;
+    if (userId && payload.terms_version === TERMS_VERSION && payload.age_confirmed === true) {
+      await recordConsent({ userId, kind: 'terms', context: { source: 'signup', age_confirmed: true }, req });
+    }
+    if (userId) {
+      await recordConsent({ userId, kind: 'sensitive_data', granted: !!payload.consent_sensitive_data, context: { source: 'signup' }, req });
+    }
 
     return res.status(201).json({
       success: true,

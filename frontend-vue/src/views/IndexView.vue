@@ -12,6 +12,7 @@
       <router-link to="/journal" class="mnp-link">📝 {{ t('landing.nav.journal') }}</router-link>
       <router-link to="/experts" class="mnp-link">🩺 {{ t('landing.nav.experts') }}</router-link>
       <router-link to="/community" class="mnp-link">👥 {{ t('landing.nav.community') }}</router-link>
+      <router-link to="/inspire" class="mnp-link">📰 {{ t('landing.nav.articles') }}</router-link>
       <router-link to="/emergency" class="mnp-link" style="color:var(--coral);">🆘 {{ t('landing.nav.emergency') }}</router-link>
       <div class="mobile-auth-user" :class="{ open: isAuthenticated }">
         <div class="mobile-auth-avatar" :class="{ 'has-image': hasAvatarImage }" :style="avatarStyle">{{ hasAvatarImage ? '' : avatarFallback }}</div>
@@ -62,6 +63,7 @@
         <router-link to="/journal" class="nav-link">{{ t('landing.nav.journal') }}</router-link>
         <router-link to="/experts" class="nav-link">{{ t('landing.nav.experts') }}</router-link>
         <router-link to="/community" class="nav-link">{{ t('landing.nav.community') }}</router-link>
+        <router-link to="/inspire" class="nav-link">{{ t('landing.nav.articles') }}</router-link>
         <router-link to="/emergency" class="nav-link" style="color:var(--coral);">🆘 {{ t('landing.nav.emergency') }}</router-link>
       </div>
       <div class="nav-cta">

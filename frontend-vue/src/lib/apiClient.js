@@ -89,8 +89,11 @@ function clearSession() {
   localStorage.removeItem('user');
 }
 
+// trang đọc công khai (quảng cáo dẫn về): khách được ở lại, chỉ bị hỏi đăng nhập khi tự bấm "Lưu"
+const PUBLIC_PATHS = [/^\/inspire(\/|$)/];
 function redirectToLogin() {
   if (window.location.pathname.includes('/login')) return;
+  if (PUBLIC_PATHS.some((re) => re.test(window.location.pathname)) && !localStorage.getItem('access_token')) return;
 
   const now = Date.now();
   const lastRedirectAt = Number(sessionStorage.getItem('peaceflow_last_login_redirect_at') || '0');

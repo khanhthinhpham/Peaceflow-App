@@ -27,6 +27,8 @@
         <div class="view-tab" :class="{ active: view === 'editor' }" @click="showEditor">{{ t('journal.tabEditor') }}</div>
         <div class="view-tab" :class="{ active: view === 'history' }" @click="showHistory">{{ t('journal.tabHistory') }}</div>
       </div>
+      <!-- Điều 7.3–7.4: nhật ký chỉ chia sẻ cho chuyên gia được bật riêng (ngoài việc đánh dấu từng bài) -->
+      <div class="journal-share-row"><ExpertSharePill kind="journal" /></div>
 
       <div class="journal-layout">
         <!-- LEFT COLUMN -->
@@ -280,6 +282,7 @@ import { ref, reactive, computed, onMounted, onBeforeUnmount, nextTick } from 'v
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 import { apiClient } from '../lib/apiClient';
+import ExpertSharePill from '../components/legal/ExpertSharePill.vue';
 import { useAuthStore } from '../stores/auth';
 
 const { t, tm, locale } = useI18n();
@@ -867,6 +870,7 @@ onBeforeUnmount(() => {
 .tb-btn { border-color: transparent; border-radius: var(--radius-control); color: var(--color-text-muted); }
 .tb-btn:hover { background: var(--color-brand-soft); border-color: transparent; color: var(--color-brand); }
 .tb-sep { background: var(--color-surface-muted); }
+.journal-share-row { display: flex; justify-content: flex-end; margin: 0 0 12px; }
 .journal-title-input { font-family: var(--font-heading); font-weight: 800; color: var(--color-text); }
 .journal-textarea { font-family: inherit; color: var(--color-text); line-height: 1.7; }
 .journal-title-input::placeholder, .journal-textarea::placeholder { color: var(--color-text-subtle); }

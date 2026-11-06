@@ -128,6 +128,119 @@ router.get('/articles', async (req, res) => {
   }
 });
 
+// Trang "Cảm hứng" mặc định: chỉ lấy đúng phần hiển thị (bài nổi bật / tiêu đề / lưới ảnh = 11 bài mới nhất,
+// mỗi danh mục 6 bài mới nhất) thay vì tải toàn bộ bài viết. "Xem tất cả" / lọc danh mục dùng /articles có phân trang.
+router.get('/articles/home', async (req, res) => {
+  try {
+    const perCategory = Math.min(Math.max(parseInt(req.query.per, 10) || 6, 1), 12);
+    const cols = `id, title, title_en, category, status, author_name, created_at, published_at,
+              (cover_image is not null) as has_cover,
+              left(content, 220) as content, left(content_en, 220) as content_en`;
+    const [categoriesMap, latestRes, groupRes, countRes] = await Promise.all([
+      getCategoriesMap(req.locale),
+      db.query(`select ${cols} from articles where status = 'published' order by published_at desc nulls last, created_at desc limit 11`),
+      db.query(
+        `select * from (
+           select ${cols}, row_number() over (partition by category order by published_at desc nulls last, created_at desc) as rn
+           from articles where status = 'published'
+         ) ranked where rn <= $1
+         order by category, rn`,
+        [perCategory]
+      ),
+      db.query(`select count(*)::int as total from articles where status = 'published'`)
+    ]);
+    const map = (r) => mapArticle(localizeArticle(r, req.locale), categoriesMap);
+    const byCategory = {};
+    for (const r of groupRes.rows) (byCategory[r.category] ||= []).push(map(r));
+    return res.json({
+      success: true,
+      data: { latest: latestRes.rows.map(map), byCategory, total: countRes.rows[0]?.total || 0, categories: categoriesMap }
+    });
+  } catch (error) {
+    console.error('Articles home error:', error);
+    return res.status(500).json({ success: false, message: 'Could not load articles' });
+  }
+});
+
+// ===== BÀI ĐÃ LƯU (cần đăng nhập) — đặt trước /articles/:id để không bị hiểu nhầm là id =====
+router.get('/articles/saved/ids', requireAuth, async (req, res) => {
+  try {
+    const r = await db.query('select article_id from saved_articles where user_id = $1', [req.user.sub]);
+    return res.json({ success: true, data: { ids: r.rows.map((x) => x.article_id) } });
+  } catch (error) {
+    console.error('Saved article ids error:', error);
+    return res.status(500).json({ success: false, message: 'Could not load saved articles' });
+  }
+});
+
+router.get('/articles/saved', requireAuth, async (req, res) => {
+  try {
+    const limit = Math.min(Math.max(parseInt(req.query.limit, 10) || 20, 1), 50);
+    const offset = Math.max(parseInt(req.query.offset, 10) || 0, 0);
+    const [categoriesMap, countRes, rowsRes] = await Promise.all([
+      getCategoriesMap(req.locale),
+      db.query(
+        `select count(*)::int as total from saved_articles s join articles a on a.id = s.article_id
+         where s.user_id = $1 and a.status = 'published'`,
+        [req.user.sub]
+      ),
+      db.query(
+        `select a.id, a.title, a.title_en, a.category, a.status, a.author_name, a.created_at, a.published_at,
+                (a.cover_image is not null) as has_cover,
+                left(a.content, 220) as content, left(a.content_en, 220) as content_en
+         from saved_articles s join articles a on a.id = s.article_id
+         where s.user_id = $1 and a.status = 'published'
+         order by s.created_at desc
+         limit $2 offset $3`,
+        [req.user.sub, limit, offset]
+      )
+    ]);
+    return res.json({
+      success: true,
+      data: {
+        articles: rowsRes.rows.map((r) => mapArticle(localizeArticle(r, req.locale), categoriesMap)),
+        total: countRes.rows[0]?.total || 0,
+        categories: categoriesMap
+      }
+    });
+  } catch (error) {
+    console.error('Saved articles error:', error);
+    return res.status(500).json({ success: false, message: 'Could not load saved articles' });
+  }
+});
+
+router.put('/articles/:id/save', requireAuth, async (req, res) => {
+  try {
+    const r = await db.query(
+      `insert into saved_articles (user_id, article_id)
+       select $1, id from articles where id = $2 and status = 'published'
+       on conflict do nothing
+       returning article_id`,
+      [req.user.sub, req.params.id]
+    );
+    if (!r.rowCount) {
+      const exists = await db.query(`select 1 from articles where id = $1 and status = 'published'`, [req.params.id]);
+      if (!exists.rowCount) return res.status(404).json({ success: false, message: 'Không tìm thấy bài viết.' });
+    }
+    return res.json({ success: true, data: { saved: true } });
+  } catch (error) {
+    if (error.code === '22P02') return res.status(404).json({ success: false, message: 'Không tìm thấy bài viết.' });
+    console.error('Save article error:', error);
+    return res.status(500).json({ success: false, message: 'Could not save article' });
+  }
+});
+
+router.delete('/articles/:id/save', requireAuth, async (req, res) => {
+  try {
+    await db.query('delete from saved_articles where user_id = $1 and article_id = $2', [req.user.sub, req.params.id]);
+    return res.json({ success: true, data: { saved: false } });
+  } catch (error) {
+    if (error.code === '22P02') return res.json({ success: true, data: { saved: false } });
+    console.error('Unsave article error:', error);
+    return res.status(500).json({ success: false, message: 'Could not unsave article' });
+  }
+});
+
 router.get('/articles/:id', async (req, res) => {
   try {
     const r = await db.query(

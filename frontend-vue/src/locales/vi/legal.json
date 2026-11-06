@@ -1,0 +1,96 @@
+{
+  "legal": {
+    "pageTitle": "Điều khoản phân định trách nhiệm đối với Khách hàng",
+    "versionLine": "Phiên bản {v} · Có hiệu lực từ {date}",
+    "officialNote": "",
+    "toc": "Mục lục",
+    "article": "Điều {n}",
+    "back": "Quay lại",
+    "home": "Trang chủ",
+    "readFull": "Đọc toàn văn điều khoản",
+    "termsName": "Điều khoản sử dụng",
+    "privacyName": "Chính sách quyền riêng tư",
+    "close": "Đóng",
+    "signup": {
+      "termsPrefix": "Tôi đã đọc và đồng ý với",
+      "and": "và",
+      "termsSuffix": "của PeaceFlow, bao gồm việc PeaceFlow là nền tảng trung gian, không phải cơ sở khám chữa bệnh và không thay thế cấp cứu.",
+      "age": "Tôi đủ 18 tuổi trở lên, hoặc đã được cha, mẹ hoặc người giám hộ đồng ý và giám sát khi sử dụng PeaceFlow.",
+      "sensitive": "Tôi đồng ý để PeaceFlow xử lý Dữ liệu sức khỏe của tôi (check-in tâm trạng, kết quả sàng lọc, nhật ký) để theo dõi tiến trình và gợi ý phù hợp.",
+      "sensitiveHint": "Không bắt buộc. Bạn có thể đổi lựa chọn này bất cứ lúc nào trong Cài đặt.",
+      "mustConfirmAge": "Bạn cần xác nhận độ tuổi để tiếp tục.",
+      "googleNote": "Khi tiếp tục với Google, bạn sẽ được hỏi đồng ý điều khoản ở lần đăng nhập đầu tiên."
+    },
+    "booking": {
+      "title": "Điều khoản khi đặt lịch",
+      "points": {
+        "p1": "PeaceFlow là nền tảng trung gian kết nối bạn với chuyên gia; PeaceFlow không phải cơ sở khám bệnh, chữa bệnh và nhân sự PeaceFlow không trực tiếp tư vấn, chẩn đoán hay điều trị.",
+        "p2": "Chuyên gia là bên độc lập, tự chịu trách nhiệm về nội dung và chất lượng chuyên môn của buổi tư vấn. Chuyên gia tư vấn tâm lý không chẩn đoán bệnh, không kê đơn và không điều trị.",
+        "p3": "Bạn được hoàn 100% khi chuyên gia huỷ, vắng mặt hoặc buổi tư vấn không thực hiện được do lỗi nền tảng; huỷ trước 24 giờ được hoàn 100%, sau đó áp dụng Chính sách huỷ lịch.",
+        "p4": "Không ghi âm, ghi hình hay phát tán nội dung buổi tư vấn khi chưa có sự đồng ý của chuyên gia.",
+        "p5": "PeaceFlow không phải dịch vụ cấp cứu. Nếu đang gặp nguy hiểm hoặc có ý định tự gây hại, hãy gọi ngay 115 hoặc đến cơ sở y tế gần nhất."
+      },
+      "agreeTerms": "Tôi đã đọc, hiểu và đồng ý các điều khoản trên và",
+      "agreeShare": "Tôi đồng ý gửi mô tả tình trạng, mức độ, thông tin liên hệ và hồ sơ cũ (nếu có) mà tôi đã nhập cho riêng chuyên gia {name} để chuẩn bị buổi tư vấn. Chuyên gia có nghĩa vụ giữ bí mật các thông tin này.",
+      "mustAgree": "Vui lòng đánh dấu đồng ý cả hai mục để đặt lịch."
+    },
+    "share": {
+      "title": "Trước khi gửi, bạn cần biết",
+      "points": {
+        "p1": "Nội dung bạn chọn chỉ được gửi cho riêng chuyên gia {name}, không gửi cho chuyên gia hay bên thứ ba nào khác.",
+        "p2": "Chuyên gia có nghĩa vụ giữ bí mật thông tin của bạn theo đạo đức nghề nghiệp và pháp luật, và tự chịu trách nhiệm về ý kiến chuyên môn đưa ra.",
+        "p3": "Bạn có thể thu hồi bản đã gửi bất cứ lúc nào. Sau khi thu hồi, chuyên gia không xem được nữa; những gì chuyên gia đã đọc trước đó thì không thể thu hồi.",
+        "p4": "PeaceFlow không bán Dữ liệu sức khỏe và không cung cấp cho đơn vị bảo hiểm, nhà tuyển dụng hay bên quảng cáo."
+      },
+      "journalNote": "Bạn đang chọn gửi cả nhật ký cá nhân. Nhật ký vốn được giữ riêng tư; chỉ gửi khi bạn thực sự muốn chuyên gia đọc.",
+      "agree": "Tôi đồng ý chia sẻ các nội dung đã chọn cho chuyên gia {name} theo",
+      "mustAgree": "Vui lòng đánh dấu đồng ý trước khi gửi."
+    },
+    "gate": {
+      "titleNew": "Trước khi bắt đầu",
+      "titleUpdated": "Điều khoản đã được cập nhật",
+      "introNew": "Vui lòng đọc và đồng ý điều khoản để tiếp tục sử dụng PeaceFlow.",
+      "introUpdated": "PeaceFlow đã cập nhật điều khoản. Vui lòng đọc và đồng ý để tiếp tục sử dụng. Nếu không đồng ý, bạn có quyền ngừng sử dụng và yêu cầu xoá hoặc xuất dữ liệu.",
+      "summaryTitle": "Điểm chính",
+      "s1": "PeaceFlow là nền tảng trung gian, không phải cơ sở khám chữa bệnh và không thay thế cấp cứu (115).",
+      "s2": "Kết quả sàng lọc và gợi ý của trợ lý AI PeaceCat chỉ để tham khảo, không phải chẩn đoán y khoa.",
+      "s3": "Dữ liệu sức khỏe chỉ được chia sẻ cho chuyên gia khi bạn tự chọn gửi, và bạn có thể thu hồi bất cứ lúc nào.",
+      "accept": "Đồng ý và tiếp tục",
+      "saving": "Đang lưu...",
+      "logout": "Đăng xuất",
+      "saveFailed": "Chưa lưu được lựa chọn. Vui lòng thử lại."
+    },
+    "settings": {
+      "sensitiveTitle": "Đồng ý xử lý Dữ liệu sức khỏe",
+      "sensitiveDesc": "Cho phép PeaceFlow xử lý check-in tâm trạng, kết quả sàng lọc và nhật ký để theo dõi tiến trình và gợi ý phù hợp. Tắt bất cứ lúc nào; các tính năng không cần dữ liệu này vẫn dùng bình thường. Xem"
+    },
+    "expert": {
+      "sectionTitle": "Thông tin hành nghề",
+      "groupLabel": "Nhóm chuyên gia",
+      "groupCounselor": "Chuyên gia tư vấn tâm lý",
+      "groupPractitioner": "Người hành nghề",
+      "scopeLabel": "Phạm vi dịch vụ",
+      "scopeCounselorDefault": "Tham vấn, hỗ trợ tâm lý không mang tính khám bệnh, chữa bệnh. Không chẩn đoán bệnh, không kê đơn thuốc và không điều trị.",
+      "scopePractitionerDefault": "Khám bệnh, chữa bệnh từ xa trong phạm vi giấy phép hành nghề.",
+      "clinicLabel": "Cơ sở khám bệnh, chữa bệnh",
+      "licenseLabel": "Giấy phép hành nghề",
+      "verifiedNote": "Thông tin nhóm, phạm vi dịch vụ và giấy phép do PeaceFlow xác minh."
+    },
+    "shares": {
+      "title": "Chia sẻ với từng chuyên gia",
+      "desc": "Check-in tâm trạng và kết quả sàng lọc chỉ được chia sẻ cho chuyên gia mà bạn bật riêng dưới đây. Bạn có thể tắt bất cứ lúc nào.",
+      "mood": "Check-in tâm trạng",
+      "assessments": "Kết quả sàng lọc",
+      "empty": "Bạn chưa đặt lịch với chuyên gia nào. Sau khi đặt lịch, bạn có thể chọn chia sẻ với từng chuyên gia tại đây.",
+      "loading": "Đang tải...",
+      "loadError": "Không tải được danh sách chuyên gia.",
+      "saveError": "Chưa lưu được. Vui lòng thử lại.",
+      "pill": "Chia sẻ với chuyên gia",
+      "pillCount": "Chia sẻ với {n} chuyên gia",
+      "dialogTitle": "Chia sẻ với chuyên gia",
+      "manage": "Quản lý chia sẻ",
+      "journal": "Nhật ký (bài đã đánh dấu chia sẻ)",
+      "journalDesc": "Nhật ký: chuyên gia chỉ đọc được những bài bạn đã đánh dấu chia sẻ, và chỉ khi bạn bật \"Nhật ký\" cho đúng chuyên gia đó."
+    }
+  }
+}

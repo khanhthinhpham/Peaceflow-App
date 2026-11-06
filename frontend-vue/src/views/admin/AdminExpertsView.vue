@@ -133,6 +133,45 @@
           <div v-if="specialties(e.specialties).length" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;">
             <span v-for="sp in specialties(e.specialties)" :key="sp" style="font-size:.74rem;font-weight:700;padding:2px 9px;border-radius:999px;background:var(--cream,#fff8f0);border:1px solid var(--kraft-light,#e8cba7);color:var(--text-secondary,#7a6555);">{{ sp }}</span>
           </div>
+          <!-- Điều 2.4–2.5 + 3.1: PeaceFlow xác minh & ghi nhóm chuyên gia, phạm vi dịch vụ, giấy phép, cơ sở KCB -->
+          <div class="admin-cls">
+            <template v-if="clsEditId !== e.id">
+              <div class="admin-cls-row">
+                <span class="admin-cls-badge" :class="{ pr: e.expert_group === 'practitioner' }">{{ e.expert_group === 'practitioner' ? 'Người hành nghề' : 'Chuyên gia tư vấn tâm lý' }}</span>
+                <span v-if="!e.classified_at" class="admin-cls-warn">Chưa xác minh phân loại</span>
+                <button type="button" class="btn-outline" style="font-size:.8rem;margin-left:auto;" @click="startCls(e)">Sửa phân loại</button>
+              </div>
+              <div class="admin-cls-line"><span>Phạm vi dịch vụ:</span> {{ e.service_scope || (e.expert_group === 'practitioner' ? 'Mặc định: khám bệnh, chữa bệnh từ xa trong phạm vi giấy phép hành nghề.' : 'Mặc định: tham vấn, hỗ trợ tâm lý; không chẩn đoán, không kê đơn, không điều trị.') }}</div>
+              <template v-if="e.expert_group === 'practitioner'">
+                <div class="admin-cls-line"><span>Giấy phép:</span> {{ e.license_number || '—' }}</div>
+                <div class="admin-cls-line"><span>Cơ sở KCB:</span> {{ e.clinic_name || '—' }}</div>
+              </template>
+            </template>
+            <form v-else class="admin-cls-form" @submit.prevent="saveCls(e)">
+              <label class="admin-cls-field">Nhóm chuyên gia
+                <select v-model="clsForm.expert_group" class="admin-input">
+                  <option value="counselor">Chuyên gia tư vấn tâm lý (không khám, chữa bệnh)</option>
+                  <option value="practitioner">Người hành nghề (có giấy phép KCB, thuộc cơ sở KCB)</option>
+                </select>
+              </label>
+              <label class="admin-cls-field">Phạm vi dịch vụ được phép (để trống = mặc định theo nhóm)
+                <textarea v-model="clsForm.service_scope" class="admin-input" rows="2" maxlength="1000"></textarea>
+              </label>
+              <template v-if="clsForm.expert_group === 'practitioner'">
+                <label class="admin-cls-field">Số giấy phép hành nghề *
+                  <input v-model="clsForm.license_number" class="admin-input" maxlength="100" required>
+                </label>
+                <label class="admin-cls-field">Tên cơ sở khám bệnh, chữa bệnh (đã công bố đủ điều kiện KCB từ xa) *
+                  <input v-model="clsForm.clinic_name" class="admin-input" maxlength="255" required>
+                </label>
+              </template>
+              <p v-if="clsError" style="color:var(--coral);font-size:.82rem;margin:0;">{{ clsError }}</p>
+              <div style="display:flex;gap:8px;justify-content:flex-end;">
+                <button type="button" class="btn-outline" style="font-size:.82rem;" :disabled="clsSaving" @click="clsEditId = null">Huỷ</button>
+                <button type="submit" class="btn-primary" style="font-size:.82rem;" :disabled="clsSaving">{{ clsSaving ? 'Đang lưu...' : 'Lưu phân loại' }}</button>
+              </div>
+            </form>
+          </div>
           <div class="admin-expert-payout-card" style="margin-top:12px;">
             <template v-if="e.payout_account_number">
               <div class="admin-expert-payout-info">
@@ -358,6 +397,38 @@ async function removeAvatar(id) {
   }
 }
 
+// ===== Phân loại chuyên gia (Điều 2.4–2.5) =====
+const clsEditId = ref(null);
+const clsSaving = ref(false);
+const clsError = ref('');
+const clsForm = reactive({ expert_group: 'counselor', service_scope: '', license_number: '', clinic_name: '' });
+function startCls(e) {
+  clsForm.expert_group = e.expert_group || 'counselor';
+  clsForm.service_scope = e.service_scope || '';
+  clsForm.license_number = e.license_number || '';
+  clsForm.clinic_name = e.clinic_name || '';
+  clsError.value = '';
+  clsEditId.value = e.id;
+}
+async function saveCls(e) {
+  clsSaving.value = true;
+  clsError.value = '';
+  try {
+    const data = await apiClient.put(`/admin/experts/${e.id}/classification`, {
+      expert_group: clsForm.expert_group,
+      service_scope: clsForm.service_scope.trim() || null,
+      license_number: clsForm.license_number.trim() || null,
+      clinic_name: clsForm.clinic_name.trim() || null
+    });
+    Object.assign(e, data || {});
+    clsEditId.value = null;
+  } catch (err) {
+    clsError.value = err.message || 'Lưu thất bại.';
+  } finally {
+    clsSaving.value = false;
+  }
+}
+
 async function toggleExpertActive(expert) {
   const next = !expert.active;
   if (!window.confirm(next ? 'Bật hoạt động cho chuyên gia này?' : 'Tắt hoạt động? Chuyên gia sẽ không nhận lịch mới.')) return;
@@ -376,3 +447,16 @@ onMounted(() => {
   loadApplications('pending');
 });
 </script>
+
+<style scoped>
+.admin-cls { margin-top: 12px; padding: 10px 12px; border: 1px solid var(--color-border, #eadfce); border-radius: 10px; }
+.admin-cls-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.admin-cls-badge { font-size: .74rem; font-weight: 800; padding: 2px 9px; border-radius: 999px; background: var(--color-surface-muted, #f4eee6); }
+.admin-cls-badge.pr { background: var(--color-brand-soft, #e3ecd9); }
+.admin-cls-warn { font-size: .74rem; font-weight: 700; color: var(--coral-dark, #b5543c); }
+.admin-cls-line { margin-top: 6px; font-size: .82rem; color: var(--text-secondary, #7a6555); }
+.admin-cls-line span { font-weight: 700; color: var(--color-text, #4a3728); }
+.admin-cls-form { display: grid; gap: 10px; }
+.admin-cls-field { display: grid; gap: 4px; font-size: .8rem; font-weight: 700; color: var(--color-text, #4a3728); }
+.admin-cls-field .admin-input { font-weight: 400; width: 100%; box-sizing: border-box; }
+</style>

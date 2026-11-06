@@ -383,12 +383,18 @@
                 <div class="sc-subtitle">{{ t('settingsPage.privacy.subtitle') }}</div>
               </div>
             </div>
+            <!-- Đồng ý xử lý Dữ liệu sức khỏe — tách riêng, rút lại được bất cứ lúc nào (Điều 7.1) -->
             <div class="toggle-row">
               <div class="tr-left">
-                <div class="tr-title">{{ t('settingsPage.privacy.shareMoodTitle') }}</div>
-                <div class="tr-desc">{{ t('settingsPage.privacy.shareMoodDesc') }}</div>
+                <div class="tr-title">{{ t('legal.settings.sensitiveTitle') }}</div>
+                <div class="tr-desc">{{ t('legal.settings.sensitiveDesc') }} <router-link to="/dieu-khoan#dieu-7">{{ t('legal.termsName') }}</router-link></div>
               </div>
-              <label class="toggle-switch"><input type="checkbox" v-model="form.shareMoodWithExperts" @change="persistSettings('privacy')"><span class="toggle-slider"></span></label>
+              <label class="toggle-switch"><input type="checkbox" v-model="sensitiveConsent" :disabled="sensitiveSaving" @change="saveSensitiveConsent"><span class="toggle-slider"></span></label>
+            </div>
+            <!-- Điều 7.3: check-in & kết quả sàng lọc chỉ chia sẻ cho chuyên gia được bật riêng -->
+            <div class="toggle-row" style="display:block;">
+              <div class="tr-title" style="margin-bottom:4px;">{{ t('legal.shares.title') }}</div>
+              <ExpertShareSettings />
             </div>
             <div class="toggle-row">
               <div class="tr-left">
@@ -525,6 +531,7 @@ import { useI18n } from 'vue-i18n';
 import { apiClient, getApiBaseUrl } from '../lib/apiClient';
 import { EventLogger } from '../lib/eventLogger';
 import LanguageSwitcher from '../components/LanguageSwitcher.vue';
+import ExpertShareSettings from '../components/legal/ExpertShareSettings.vue';
 
 const router = useRouter();
 const { t, locale } = useI18n();
@@ -854,7 +861,6 @@ function buildProfilePayload() {
   const existingOnboarding = getOnboardingAnswers();
 
   return {
-    share_mood_with_experts: form.shareMoodWithExperts,
     support_preferences: {
       ...existingSupport,
       notifications: {
@@ -1059,7 +1065,25 @@ async function handleLogout() {
   }
 }
 
+// Đồng ý xử lý Dữ liệu sức khỏe (ghi nhật ký đồng ý ở server mỗi lần đổi)
+const sensitiveConsent = ref(false);
+const sensitiveSaving = ref(false);
+async function loadSensitiveConsent() {
+  try { sensitiveConsent.value = !!(await apiClient.get('/consents/status', { noCache: true }))?.sensitiveData; } catch (_e) { /* giữ mặc định */ }
+}
+async function saveSensitiveConsent() {
+  sensitiveSaving.value = true;
+  try {
+    await apiClient.put('/consents/sensitive-data', { granted: sensitiveConsent.value });
+  } catch (_e) {
+    sensitiveConsent.value = !sensitiveConsent.value;
+  } finally {
+    sensitiveSaving.value = false;
+  }
+}
+
 onMounted(async () => {
+  loadSensitiveConsent();
   try {
     await loadData();
     renderPage();

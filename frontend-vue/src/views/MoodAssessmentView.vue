@@ -28,13 +28,8 @@
             <div v-html="t('moodAssessment.selector.disclaimerShort')"></div>
           </div>
           <div class="ma-share-row" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-right:120px;">
-            <label class="badge-pill" :title="t('moodAssessment.shareWithExperts.desc')" style="cursor:pointer;gap:6px;background:var(--color-surface-muted);color:var(--color-text);">
-              <span style="font-size:0.72rem;font-weight:700;">{{ plainText(t('moodAssessment.shareWithExperts.title')) }}</span>
-              <label class="toggle-switch" style="transform:scale(0.72);margin:-4px -6px;">
-                <input type="checkbox" v-model="shareAssessmentsWithExperts" :disabled="shareAssessmentsSaving" @change="toggleShareAssessmentsWithExperts">
-                <span class="toggle-slider"></span>
-              </label>
-            </label>
+            <!-- Điều 7.3: chia sẻ kết quả sàng lọc theo TỪNG chuyên gia -->
+            <ExpertSharePill kind="assessments" />
           </div>
         </div>
 
@@ -507,6 +502,7 @@ import AiNotice from '../components/AiNotice.vue';
 const plainText = (str) => String(str).replace(/^[^\p{L}\p{N}]+/u, '');
 import { TESTS as TESTS_VI } from '../lib/assessmentTests';
 import { TESTS as TESTS_EN } from '../lib/assessmentTests.en';
+import ExpertSharePill from '../components/legal/ExpertSharePill.vue';
 import { ASSESSMENT_META as ASSESSMENT_META_VI, ASSESSMENT_CATEGORIES as ASSESSMENT_CATEGORIES_VI } from '../lib/assessmentMeta';
 import { ASSESSMENT_META as ASSESSMENT_META_EN, ASSESSMENT_CATEGORIES as ASSESSMENT_CATEGORIES_EN } from '../lib/assessmentMeta.en';
 
@@ -1390,21 +1386,6 @@ function backToSelector() {
   guidedAssessment.value = null;
 }
 
-// Công tắc toàn cục "Chia sẻ bài test tự làm với chuyên gia" — giống hệt mood check-in
-// (cùng đọc/ghi qua PUT/GET /profile), khác với nhật ký (chia sẻ riêng từng bài).
-const shareAssessmentsWithExperts = ref(false);
-const shareAssessmentsSaving = ref(false);
-async function toggleShareAssessmentsWithExperts() {
-  shareAssessmentsSaving.value = true;
-  try {
-    await apiClient.put('/profile', { share_assessments_with_experts: shareAssessmentsWithExperts.value });
-  } catch (_e) {
-    shareAssessmentsWithExperts.value = !shareAssessmentsWithExperts.value;
-  } finally {
-    shareAssessmentsSaving.value = false;
-  }
-}
-
 onMounted(() => {
   loadRespondentFromStorage();
 
@@ -1419,10 +1400,6 @@ onMounted(() => {
       const testKey = route.query.test;
       if (testKey && TESTS.value[testKey]) startTest(testKey);
     });
-
-  apiClient.get('/profile').then((profileData) => {
-    shareAssessmentsWithExperts.value = profileData?.share_assessments_with_experts ?? false;
-  }).catch(() => {});
 });
 </script>
 

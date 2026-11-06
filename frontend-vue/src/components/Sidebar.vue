@@ -350,7 +350,7 @@ async function handleLogout() {
 }
 .sidebar-header, .sidebar-bottom { border-color: var(--sb-line); }
 .logo-icon { background: var(--sb-accent-soft); border-radius: 12px; }
-.logo-text { font-family: var(--font-display); font-style: italic; font-weight: 600; font-size: 1.35rem; letter-spacing: 0.01em; color: #5E4A3A; }
+.logo-text { font-family: var(--font-heading); font-style: normal; font-weight: 800; font-size: 1.25rem; color: #5E4A3A; }
 .logo-text span { color: var(--sb-accent); }
 .nav-section-label { color: #A08E7C; }
 .nav-item { color: #6E5D4E; border-radius: 12px; }

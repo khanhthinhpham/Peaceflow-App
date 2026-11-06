@@ -38,7 +38,9 @@ export const useAuthStore = defineStore('auth', {
         display_name: fullName,
         consent_privacy: consents.consent_privacy ?? true,
         consent_terms: consents.consent_terms ?? true,
-        consent_sensitive_data: consents.consent_sensitive_data ?? false
+        consent_sensitive_data: consents.consent_sensitive_data ?? false,
+        terms_version: consents.terms_version,
+        age_confirmed: consents.age_confirmed
       });
       EventLogger.log('auth', 'signup:success');
       this.setSession(data);
