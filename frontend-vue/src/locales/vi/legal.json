@@ -90,7 +90,9 @@
       "dialogTitle": "Chia sẻ với chuyên gia",
       "manage": "Quản lý chia sẻ",
       "journal": "Nhật ký (bài đã đánh dấu chia sẻ)",
-      "journalDesc": "Nhật ký: chuyên gia chỉ đọc được những bài bạn đã đánh dấu chia sẻ, và chỉ khi bạn bật \"Nhật ký\" cho đúng chuyên gia đó."
+      "journalDesc": "Nhật ký: chuyên gia chỉ đọc được những bài bạn đã đánh dấu chia sẻ, và chỉ khi bạn bật \"Nhật ký\" cho đúng chuyên gia đó.",
+      "promptJournal": "Bài nhật ký đã được đánh dấu chia sẻ, nhưng bạn chưa bật \"Nhật ký\" cho chuyên gia nào nên chưa ai xem được. Chọn chuyên gia được đọc nhật ký của bạn:",
+      "promptMood": "Đã lưu check-in. Bạn chưa chia sẻ check-in với chuyên gia nào nên chuyên gia chưa thấy. Muốn chuyên gia theo dõi, hãy chọn bên dưới:"
     }
   }
 }

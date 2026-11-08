@@ -10,6 +10,7 @@
           <button type="button" class="lg-dialog-x" :aria-label="t('legal.close')" @click="open = false">✕</button>
         </div>
         <div class="lg-dialog-body" style="padding-top:14px;">
+          <p v-if="reason" class="lg-consent-warn">{{ reason }}</p>
           <ExpertShareSettings :show="[kind]" @change="onChange" />
         </div>
       </div>
@@ -29,12 +30,24 @@ import '../../assets/legal.css';
 const props = defineProps({ kind: { type: String, default: 'mood' } }); // 'mood' | 'assessments' | 'journal'
 const { t } = useI18n();
 const open = ref(false);
-const count = ref(0);
+const count = ref(0);      // số chuyên gia đang được chia sẻ loại dữ liệu này
+const expertTotal = ref(0); // số chuyên gia thân chủ đã đặt lịch
+const reason = ref('');
 const field = () => ({ assessments: 'share_assessments', journal: 'share_journal' }[props.kind] || 'share_mood');
 
 function onChange(rows) {
   count.value = (rows || []).filter((r) => r[field()]).length;
+  expertTotal.value = (rows || []).length;
 }
+// Trang cha gọi khi thân chủ vừa muốn chia sẻ (bấm 🩺 nhật ký / check-in xong) mà CHƯA bật cho
+// chuyên gia nào → mở luôn hộp chọn kèm lời giải thích, tránh tưởng đã gửi mà chuyên gia không thấy.
+function promptIfNone(message = '') {
+  if (count.value > 0 || expertTotal.value === 0) return false;
+  reason.value = message;
+  open.value = true;
+  return true;
+}
+defineExpose({ promptIfNone });
 onMounted(async () => {
   try { onChange(await apiClient.get('/my-expert-shares', { noCache: true })); } catch (_e) { /* giữ 0 */ }
 });

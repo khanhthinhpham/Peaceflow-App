@@ -90,7 +90,9 @@
       "dialogTitle": "Share with experts",
       "manage": "Manage sharing",
       "journal": "Journal (entries marked as shared)",
-      "journalDesc": "Journal: an expert can read only the entries you mark as shared, and only if you turn on \"Journal\" for that expert."
+      "journalDesc": "Journal: an expert can read only the entries you mark as shared, and only if you turn on \"Journal\" for that expert.",
+      "promptJournal": "This entry is marked as shared, but you have not turned on \"Journal\" for any expert yet, so nobody can read it. Choose who can read your journal:",
+      "promptMood": "Check-in saved. You have not shared check-ins with any expert yet, so they cannot see it. To let an expert follow along, choose below:"
     }
   }
 }

@@ -3,7 +3,7 @@
     <div v-if="!guest" class="page-header">
       <div class="mc-share-row" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
         <!-- Điều 7.3: chia sẻ check-in theo TỪNG chuyên gia (thay công tắc chung cho mọi chuyên gia) -->
-        <ExpertSharePill kind="mood" />
+        <ExpertSharePill ref="moodSharePill" kind="mood" />
       </div>
     </div>
 
@@ -869,6 +869,7 @@ async function fetchRecommendedTasks() {
   }
 }
 
+const moodSharePill = ref(null);
 async function submitCheckin() {
   if (submitting.value) return;
   if (!auth.isAuthenticated) {
@@ -887,6 +888,7 @@ async function submitCheckin() {
     await syncTodayCheckinBadge();
 
     resultPhase.value = 'saved';
+    if (!props.embedded) setTimeout(() => moodSharePill.value?.promptIfNone(t('legal.shares.promptMood')), 900);
     if (props.embedded) emit('saved', { emotion: selectedMoodOption.value?.viLabel || null });
     todayDone.value = true;
     // Lưu nguyên văn tiếng Việt (viLabel) — khớp đúng định dạng backend trả về ở lần đọc

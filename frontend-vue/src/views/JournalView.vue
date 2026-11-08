@@ -28,7 +28,7 @@
         <div class="view-tab" :class="{ active: view === 'history' }" @click="showHistory">{{ t('journal.tabHistory') }}</div>
       </div>
       <!-- Điều 7.3–7.4: nhật ký chỉ chia sẻ cho chuyên gia được bật riêng (ngoài việc đánh dấu từng bài) -->
-      <div class="journal-share-row"><ExpertSharePill kind="journal" /></div>
+      <div class="journal-share-row"><ExpertSharePill ref="journalSharePill" kind="journal" /></div>
 
       <div class="journal-layout">
         <!-- LEFT COLUMN -->
@@ -647,11 +647,13 @@ function viewEntry(id) {
 
 // Chia sẻ TỪNG bài nhật ký với chuyên gia — khác mood check-in/bài test (công tắc toàn
 // cục): mỗi bài tự bật/tắt riêng, không ảnh hưởng các bài khác.
+const journalSharePill = ref(null);
 async function toggleEntryShare(entry) {
   const next = !entry.shared_with_experts;
   entry.shared_with_experts = next;
   try {
     await apiClient.patch(`/journal/${entry.id}`, { shared_with_experts: next });
+    if (next) journalSharePill.value?.promptIfNone(t('legal.shares.promptJournal'));
   } catch (_e) {
     entry.shared_with_experts = !next;
   }
