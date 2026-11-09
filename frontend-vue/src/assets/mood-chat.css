@@ -33,7 +33,9 @@
        nhưng trang chat cần full-bleed (chat-topbar/chat-body/chat-input-area tự quản lý
        padding riêng) -> phải reset về 0, nếu không padding đó lọt vào tạo khoảng viền xấu. */
     padding: 0;
-    height: 94vh !important;
+    /* trọn chiều cao màn hình (trước là 94vh → thừa một dải trống dưới ô nhập) */
+    height: 100vh !important;
+    height: 100dvh !important;
     display: flex;
     flex-direction: column;
     overflow: hidden;

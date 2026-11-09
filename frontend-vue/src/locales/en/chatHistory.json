@@ -1,7 +1,7 @@
 {
   "chatHistory": {
-    "historyBtn": "🕘 History",
-    "newChatBtn": "✨ New chat",
+    "historyBtn": "History",
+    "newChatBtn": "New chat",
     "title": "Previous conversations",
     "loading": "Loading...",
     "loadError": "Could not load your chat history.",

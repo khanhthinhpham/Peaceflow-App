@@ -1,7 +1,7 @@
 {
   "chatHistory": {
-    "historyBtn": "🕘 Lịch sử",
-    "newChatBtn": "✨ Trò chuyện mới",
+    "historyBtn": "Lịch sử",
+    "newChatBtn": "Trò chuyện mới",
     "title": "Các cuộc trò chuyện trước",
     "loading": "Đang tải...",
     "loadError": "Không tải được lịch sử trò chuyện.",

@@ -2,11 +2,10 @@
   <!-- Emergency Overlay -->
   <div class="emergency-overlay mood-chat-page" :class="{ show: emergencyOpen }">
     <div class="emergency-popup">
-      <div class="ep-icon">❤️</div>
       <div class="ep-title">{{ t('moodChat.emergency.title') }}</div>
       <p class="ep-text">{{ t('moodChat.emergency.text') }}</p>
       <div class="ep-hotline">
-        <div class="eph-num">📞 0931773637</div>
+        <div class="eph-num">0931773637</div>
         <div class="eph-label">{{ t('moodChat.emergency.hotlineLabel') }}</div>
       </div>
       <div class="ep-actions">
@@ -23,7 +22,7 @@
   <div class="result-overlay mood-chat-page" :class="{ show: resultOpen }">
     <div class="result-popup">
       <div class="rp-header">
-        <div class="rp-mascot">🐱</div>
+        <div class="rp-mascot"><NavIcon name="peacecat" /></div>
         <div class="rp-title">{{ t('moodChat.result.mascotTitle') }}</div>
         <div class="rp-subtitle">{{ t('moodChat.result.subtitle') }}</div>
       </div>
@@ -31,7 +30,6 @@
         <div class="rp-section-title">{{ t('moodChat.result.scoresTitle') }}</div>
         <div class="rp-scores">
           <div v-for="item in resultScores" :key="item.key" class="rps-item" :class="item.level">
-            <div class="rps-icon">{{ item.icon }}</div>
             <div class="rps-score">{{ Math.round(item.value) }}%</div>
             <div class="rps-label">{{ item.label }}</div>
             <div class="rps-level">{{ item.levelLabel }}</div>
@@ -46,10 +44,11 @@
           <div>
             <div v-if="!suggestedTasks.length" style="font-size:0.75rem;color:var(--text-light);font-style:italic;">{{ t('moodChat.result.noTasks') }}</div>
             <div v-for="task in suggestedTasks" :key="task.id" class="rp-task-item" @click="goToTask(task.id)">
-              <div class="ts-icon">🎯</div>
+              <img v-if="taskThumbSrc(task) && !brokenTaskImages.has(task.id)" :src="taskThumbSrc(task)" alt="" class="ts-thumb" loading="lazy" @error="brokenTaskImages.add(task.id)">
+              <div v-else class="ts-thumb ts-thumb-empty"><NavIcon name="tasks" /></div>
               <div class="ts-info">
                 <div class="ts-name">{{ task.title || t('moodChat.result.taskDefaultTitle') }}</div>
-                <div class="ts-meta">{{ task.category || t('moodChat.result.taskDefaultCategory') }} · {{ task.difficulty || t('moodChat.result.taskDefaultDifficulty') }}</div>
+                <div v-if="task.duration_minutes" class="ts-meta">{{ t('moodChat.chat.minutesUnit', { n: task.duration_minutes }) }}<template v-if="task.xp_reward"> · +{{ task.xp_reward }} XP</template></div>
               </div>
             </div>
           </div>
@@ -69,7 +68,7 @@
     <div class="chat-history" role="dialog" aria-modal="true" :aria-label="t('chatHistory.title')">
       <div class="chh-head">
         <strong>{{ t('chatHistory.title') }}</strong>
-        <button type="button" class="chh-x" :aria-label="t('chatHistory.close')" @click="historyOpen = false">✕</button>
+        <button type="button" class="chh-x" :aria-label="t('chatHistory.close')" @click="historyOpen = false"><NavIcon name="close" /></button>
       </div>
       <div class="chh-body">
         <p v-if="historyLoading" class="chh-note">{{ t('chatHistory.loading') }}</p>
@@ -86,7 +85,7 @@
               <span class="chh-title">{{ s.title || t('chatHistory.untitled') }}</span>
               <span class="chh-meta">{{ formatHistoryDate(s.updated_at) }} · {{ t('chatHistory.messages', { n: s.message_count }) }}<template v-if="s.id === sessionId"> · {{ t('chatHistory.current') }}</template></span>
             </button>
-            <button type="button" class="chh-del" :aria-label="t('chatHistory.delete')" :title="t('chatHistory.delete')" @click="removeSession(s.id)">🗑️</button>
+            <button type="button" class="chh-del" :aria-label="t('chatHistory.delete')" :title="t('chatHistory.delete')" @click="removeSession(s.id)"><NavIcon name="trash" /></button>
           </div>
           <button v-if="historySessions.length" type="button" class="chh-del-all" @click="removeAllSessions">{{ t('chatHistory.deleteAll') }}</button>
         </template>
@@ -98,7 +97,7 @@
     <!-- Chat Topbar -->
     <div class="chat-topbar">
       <router-link to="/mood-checkin" class="ct-back">{{ t('moodChat.topbar.back') }}</router-link>
-      <div class="ct-mascot">{{ topbarMascot }}</div>
+      <div class="ct-mascot"><NavIcon name="peacecat" /></div>
       <div class="ct-info">
         <div class="ct-name">{{ t('moodChat.topbar.mascotName') }}</div>
         <div class="ct-status">
@@ -116,7 +115,7 @@
         <button class="ct-action-btn" @click="showResult">{{ t('moodChat.topbar.viewResultBtn') }}</button>
         <button class="ct-action-btn" @click="openHistory">{{ t('chatHistory.historyBtn') }}</button>
         <button class="ct-action-btn" @click="clearChat">{{ t('chatHistory.newChatBtn') }}</button>
-        <button class="ct-action-btn danger" @click="showEmergency">{{ t('moodChat.topbar.emergencyBtn') }}</button>
+        <button class="ct-action-btn ct-sos" :aria-label="t('moodChat.topbar.emergencyBtn')" @click="showEmergency">SOS</button>
       </div>
     </div>
 
@@ -127,28 +126,28 @@
         <div class="chat-messages" ref="chatMessagesEl">
           <AiNotice class="chat-ai-notice" />
           <div v-for="(item, idx) in conversation" :key="idx" class="msg" :class="item.role === 'user' ? 'msg-user' : 'msg-bot'">
-            <div v-if="item.role !== 'user'" class="msg-avatar">🐱</div>
+            <div v-if="item.role !== 'user'" class="msg-avatar"><NavIcon name="peacecat" /></div>
             <div class="msg-content">
               <div class="msg-bubble" v-html="item.html"></div>
               <div v-if="item.suggestedTask" class="msg-suggestion" @click="goToTask(item.suggestedTask.id)">
-                <span class="msg-suggestion-icon">{{ item.suggestedTask.icon || '🎯' }}</span>
+                <span class="msg-suggestion-icon"><NavIcon name="tasks" /></span>
                 <div class="msg-suggestion-info">
                   <div class="msg-suggestion-title">{{ item.suggestedTask.title }}</div>
                   <div class="msg-suggestion-meta">{{ t('moodChat.chat.minutesUnit', { n: item.suggestedTask.duration_minutes || 0 }) }}</div>
                 </div>
               </div>
               <div v-if="item.suggestedExpert" class="msg-suggestion" @click="router.push('/experts')">
-                <span class="msg-suggestion-icon">🩺</span>
+                <span class="msg-suggestion-icon"><NavIcon name="experts" /></span>
                 <div class="msg-suggestion-info">
                   <div class="msg-suggestion-title">{{ item.suggestedExpert.name }}</div>
-                  <div class="msg-suggestion-meta">{{ item.suggestedExpert.degree || t('moodChat.chat.defaultExpertDegree') }} · ⭐ {{ item.suggestedExpert.rating || '?' }}/5</div>
+                  <div class="msg-suggestion-meta">{{ item.suggestedExpert.degree || t('moodChat.chat.defaultExpertDegree') }} · ★ {{ item.suggestedExpert.rating || '?' }}/5</div>
                 </div>
               </div>
               <div class="msg-time">{{ item.time }}</div>
             </div>
           </div>
           <div v-if="isTyping" class="msg msg-bot">
-            <div class="msg-avatar">🐱</div>
+            <div class="msg-avatar"><NavIcon name="peacecat" /></div>
             <div class="msg-content">
               <div class="typing-wrap">
                 <div class="typing-bubble"><span class="td"></span><span class="td"></span><span class="td"></span></div>
@@ -164,7 +163,7 @@
 
         <!-- Input Area -->
         <div class="chat-input-area">
-          <button class="voice-btn" :class="{ recording: isRecording }" :title="t('moodChat.chat.voiceTitle')" @click="toggleVoice">🎤</button>
+          <button class="voice-btn" :class="{ recording: isRecording }" :title="t('moodChat.chat.voiceTitle')" @click="toggleVoice"><NavIcon name="mic" /></button>
           <div class="input-wrap">
             <textarea
               class="chat-input"
@@ -177,7 +176,7 @@
             ></textarea>
             <span class="char-count">{{ chatInputValue.length }}/{{ MAX_MESSAGE_LENGTH }}</span>
           </div>
-          <button class="send-btn" :title="t('moodChat.chat.sendTitle')" @click="sendMessage">➤</button>
+          <button class="send-btn" :title="t('moodChat.chat.sendTitle')" @click="sendMessage"><NavIcon name="send" /></button>
         </div>
       </div>
 
@@ -216,14 +215,6 @@
               :key="keyword"
               class="kw-tag"
               :class="isPositiveKeyword(keyword) ? 'pos' : 'neg'"
-              :style="{
-                padding: '4px 10px',
-                background: isPositiveKeyword(keyword) ? 'var(--mint-light)' : 'var(--coral-light)',
-                color: isPositiveKeyword(keyword) ? 'var(--mint-dark)' : 'var(--coral)',
-                borderRadius: '20px',
-                fontSize: '0.7rem',
-                border: '1px solid ' + (isPositiveKeyword(keyword) ? 'var(--mint)' : 'var(--coral)')
-              }"
             >{{ keyword }}</div>
           </div>
         </div>
@@ -233,16 +224,16 @@
           <div class="portrait-title">{{ t('moodChat.sidebar.portraitTitle') }}</div>
           <div class="portrait-bars">
             <div class="pb-item"><span class="pb-label">{{ t('moodChat.sidebar.emotionLabel') }}</span>
-              <div class="pb-bar"><div class="pb-fill" :style="{ width: analysis.emotion + '%', background: 'var(--mint-dark)' }"></div></div>
+              <div class="pb-bar"><div class="pb-fill" :style="{ width: analysis.emotion + '%', background: '#6F8F5E' }"></div></div>
             </div>
             <div class="pb-item"><span class="pb-label">{{ t('moodChat.sidebar.physicalLabel') }}</span>
-              <div class="pb-bar"><div class="pb-fill" :style="{ width: analysis.physical + '%', background: 'var(--sky)' }"></div></div>
+              <div class="pb-bar"><div class="pb-fill" :style="{ width: analysis.physical + '%', background: '#8FB3C7' }"></div></div>
             </div>
             <div class="pb-item"><span class="pb-label">{{ t('moodChat.sidebar.socialLabel') }}</span>
-              <div class="pb-bar"><div class="pb-fill" :style="{ width: analysis.social + '%', background: 'var(--lavender)' }"></div></div>
+              <div class="pb-bar"><div class="pb-fill" :style="{ width: analysis.social + '%', background: '#B4A4C8' }"></div></div>
             </div>
             <div class="pb-item"><span class="pb-label">{{ t('moodChat.sidebar.cognitiveLabel') }}</span>
-              <div class="pb-bar"><div class="pb-fill" :style="{ width: analysis.cognitive + '%', background: 'var(--peach-dark)' }"></div></div>
+              <div class="pb-bar"><div class="pb-fill" :style="{ width: analysis.cognitive + '%', background: '#D9A27A' }"></div></div>
             </div>
           </div>
           <div style="margin-top:10px;">
@@ -263,18 +254,19 @@
               class="task-suggest"
               @click="goToTask(task.id)"
             >
-              <div class="ts-icon">🎯</div>
+              <img v-if="taskThumbSrc(task) && !brokenTaskImages.has(task.id)" :src="taskThumbSrc(task)" alt="" class="ts-thumb" loading="lazy" @error="brokenTaskImages.add(task.id)">
+              <div v-else class="ts-thumb ts-thumb-empty"><NavIcon name="tasks" /></div>
               <div class="ts-info">
                 <div class="ts-name">{{ task.title || t('moodChat.result.taskDefaultTitle') }}</div>
-                <div class="ts-meta">{{ task.category || t('moodChat.result.taskDefaultCategory') }} · {{ task.difficulty || t('moodChat.result.taskDefaultDifficulty') }}</div>
+                <div v-if="task.duration_minutes" class="ts-meta">{{ t('moodChat.chat.minutesUnit', { n: task.duration_minutes }) }}<template v-if="task.xp_reward"> · +{{ task.xp_reward }} XP</template></div>
               </div>
             </div>
           </div>
         </div>
 
         <!-- Safety Note -->
-        <div class="paper-card cs-card" style="background:rgba(255,139,139,0.05);border-color:var(--coral);">
-          <div class="cs-title" style="color:var(--coral);">{{ t('moodChat.sidebar.safetyTitle') }}</div>
+        <div class="paper-card cs-card cs-safety">
+          <div class="cs-title">{{ t('moodChat.sidebar.safetyTitle') }}</div>
           <div style="font-size:0.75rem;color:var(--text-secondary);line-height:1.6;margin-bottom:8px;" v-html="t('moodChat.sidebar.safetyText')"></div>
           <button class="emergency-btn-side" style="width:100%;justify-content:center;" @click="showEmergency">{{ t('moodChat.sidebar.safetyBtn') }}</button>
         </div>
@@ -286,6 +278,8 @@
 <script setup>
 import { ref, reactive, computed, nextTick, onMounted } from 'vue';
 import AiNotice from '../components/AiNotice.vue';
+import NavIcon from '../components/NavIcon.vue';
+import { taskThumbSrc } from '../lib/taskImages';
 import { useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { apiClient } from '../lib/apiClient';
@@ -347,7 +341,6 @@ const tasks = ref([]);
 const conversation = ref([]);
 const isTyping = ref(false);
 const isRecording = ref(false);
-const topbarMascot = ref('🐱');
 // Trạng thái thuần, không phải chuỗi đã dịch — computed bên dưới tự dịch lại khi đổi ngôn ngữ.
 const statusKind = ref('listening'); // 'listening' | 'typing' | 'recording' | 'error'
 const statusText = computed(() => {
@@ -490,6 +483,7 @@ function renderConversation() {
 }
 
 const suggestedTasks = ref([]);
+const brokenTaskImages = reactive(new Set()); // ảnh lỗi → hiện icon thay thế
 
 function renderSuggestedTasks() {
   suggestedTasks.value = (dashboard.value?.tasks || tasks.value || []).slice(0, 4);
@@ -586,7 +580,9 @@ function handleInputResize() {
     const input = chatInputEl.value;
     if (!input) return;
     input.style.height = 'auto';
-    input.style.height = `${Math.min(input.scrollHeight, 180)}px`;
+    // scrollHeight không gồm viền → cộng thêm viền, nếu không ô 1 dòng cũng hiện thanh cuộn
+    const border = input.offsetHeight - input.clientHeight;
+    input.style.height = `${Math.min(input.scrollHeight + border, 180)}px`;
   });
 }
 
@@ -742,10 +738,10 @@ function scoreLevelLabel(value, { good, medium }) {
 }
 
 const resultScores = computed(() => [
-  { key: 'anxiety', icon: '😰', label: t('moodChat.scoreLabels.anxiety'), value: analysis.anxiety, level: scoreLevel(analysis.anxiety, { good: 35, medium: 65 }), levelLabel: scoreLevelLabel(analysis.anxiety, { good: 35, medium: 65 }) },
-  { key: 'stress', icon: '🌀', label: t('moodChat.scoreLabels.stress'), value: analysis.stress, level: scoreLevel(analysis.stress, { good: 35, medium: 65 }), levelLabel: scoreLevelLabel(analysis.stress, { good: 35, medium: 65 }) },
-  { key: 'mood', icon: '💚', label: t('moodChat.scoreLabels.mood'), value: analysis.mood, level: analysis.mood >= 65 ? 'good' : analysis.mood >= 35 ? 'medium' : 'bad', levelLabel: analysis.mood >= 65 ? t('moodChat.scoreLevels.positive') : analysis.mood >= 35 ? t('moodChat.scoreLevels.medium') : t('moodChat.scoreLevels.needsAttention') },
-  { key: 'depression', icon: '🌧️', label: t('moodChat.scoreLabels.depression'), value: analysis.depression, level: scoreLevel(analysis.depression, { good: 35, medium: 65 }), levelLabel: scoreLevelLabel(analysis.depression, { good: 35, medium: 65 }) }
+  { key: 'anxiety', label: t('moodChat.scoreLabels.anxiety'), value: analysis.anxiety, level: scoreLevel(analysis.anxiety, { good: 35, medium: 65 }), levelLabel: scoreLevelLabel(analysis.anxiety, { good: 35, medium: 65 }) },
+  { key: 'stress', label: t('moodChat.scoreLabels.stress'), value: analysis.stress, level: scoreLevel(analysis.stress, { good: 35, medium: 65 }), levelLabel: scoreLevelLabel(analysis.stress, { good: 35, medium: 65 }) },
+  { key: 'mood', label: t('moodChat.scoreLabels.mood'), value: analysis.mood, level: analysis.mood >= 65 ? 'good' : analysis.mood >= 35 ? 'medium' : 'bad', levelLabel: analysis.mood >= 65 ? t('moodChat.scoreLevels.positive') : analysis.mood >= 35 ? t('moodChat.scoreLevels.medium') : t('moodChat.scoreLevels.needsAttention') },
+  { key: 'depression', label: t('moodChat.scoreLabels.depression'), value: analysis.depression, level: scoreLevel(analysis.depression, { good: 35, medium: 65 }), levelLabel: scoreLevelLabel(analysis.depression, { good: 35, medium: 65 }) }
 ]);
 
 const resultInsight = computed(() => {
@@ -900,6 +896,81 @@ onMounted(async () => {
 
 <style scoped>
 .chat-ai-notice { align-self: center; max-width: 560px; text-align: center; margin: 0 auto 12px; padding: 0 12px; }
+
+/* ===== Đồng bộ giao diện với Dashboard: nền kem, thẻ trắng bo 20px không viền + bóng mềm,
+   màu nhấn sage #6F8F5E, tiêu đề Nunito, nội dung Inter, nút phẳng dạng viên thuốc ===== */
+.mood-chat-page { --pc-accent: #6F8F5E; --pc-accent-soft: #E4ECDD; --pc-line: rgba(74, 55, 40, 0.1); font-family: var(--font-body); }
+.mood-chat-page.main-content { background: var(--color-canvas); }
+
+/* Thanh trên */
+.chat-topbar { background: var(--color-canvas); border-bottom: 1px solid var(--pc-line); box-shadow: none; }
+.ct-back, .ct-action-btn { min-height: 40px; padding: 0 16px; border: none; border-radius: 999px; background: rgba(255, 255, 255, 0.85); color: var(--color-text); font-family: var(--font-body); font-size: 13px; font-weight: 600; box-shadow: 0 2px 8px rgba(80, 70, 50, 0.06); transition: background var(--duration-fast) var(--ease-standard), color var(--duration-fast) var(--ease-standard); }
+.ct-back:hover, .ct-action-btn:hover { background: var(--pc-accent-soft); color: var(--pc-accent); transform: none; box-shadow: 0 2px 8px rgba(80, 70, 50, 0.06); }
+.ct-action-btn.ct-sos { min-width: 44px; padding: 0 14px; background: var(--color-danger); color: #fff; font-family: var(--font-heading); font-weight: 800; letter-spacing: 0.02em; }
+.ct-action-btn.ct-sos:hover { background: var(--color-danger); color: #fff; filter: brightness(0.94); }
+.ct-mascot { border: none; background: var(--pc-accent-soft); box-shadow: none; }
+.ct-mascot, .msg-avatar, .rp-mascot { display: flex; align-items: center; justify-content: center; color: var(--pc-accent); }
+.ct-mascot .nav-icon { width: 24px; height: 24px; }
+.msg-avatar .nav-icon { width: 18px; height: 18px; }
+.rp-mascot .nav-icon { width: 34px; height: 34px; }
+.msg-suggestion-icon { display: flex; color: var(--pc-accent); }
+.msg-suggestion-icon .nav-icon { width: 20px; height: 20px; }
+.send-btn, .voice-btn { display: flex; align-items: center; justify-content: center; }
+.send-btn .nav-icon, .voice-btn .nav-icon { width: 20px; height: 20px; }
+.voice-btn { color: var(--color-text-muted); }
+.voice-btn.recording { color: var(--color-danger); }
+.chh-x, .chh-del { display: flex; align-items: center; justify-content: center; color: var(--color-text-muted); }
+.chh-x .nav-icon, .chh-del .nav-icon { width: 18px; height: 18px; }
+.chh-del:hover { color: var(--color-danger); }
+.ct-name { font-family: var(--font-heading); font-weight: 800; color: var(--color-text); }
+.ct-status { color: var(--pc-accent); }
+.ct-actions .badge-pill { border: none; background: var(--pc-accent-soft); color: var(--pc-accent); font-weight: 600; }
+
+/* Khung chat */
+.chat-body { background: var(--color-canvas); }
+.chat-main { background: transparent; border-right: none; }
+.msg-avatar { border: none; background: var(--pc-accent-soft); box-shadow: none; }
+.msg-bubble { font-family: var(--font-body); font-size: 14.5px; line-height: 1.6; box-shadow: none; }
+.msg-bot .msg-bubble { background: var(--color-surface); border: none; border-radius: 4px 20px 20px 20px; color: var(--color-text); box-shadow: 0 6px 20px rgba(80, 70, 50, 0.07); }
+.msg-user .msg-bubble { background: var(--pc-accent); border: none; border-radius: 20px 4px 20px 20px; color: #fff; }
+.msg-time { color: var(--color-text-subtle); }
+.msg-suggestion { border: none; border-radius: 14px; background: var(--color-surface); box-shadow: 0 2px 10px rgba(80, 70, 50, 0.06); }
+.msg-suggestion:hover { background: var(--pc-accent-soft); transform: none; }
+
+/* Gợi ý nhanh + ô nhập */
+.quick-replies-area { background: transparent; border-top: none; }
+.qr-btn { min-height: 36px; border: 1px solid var(--pc-line); border-radius: 999px; background: var(--color-surface); color: var(--color-text-muted); font-family: var(--font-body); font-size: 13px; font-weight: 500; box-shadow: none; }
+.qr-btn:hover { border-color: transparent; background: var(--pc-accent-soft); color: var(--pc-accent); transform: none; }
+.chat-input-area { background: var(--color-canvas); border-top: 1px solid var(--pc-line); }
+.chat-input { border: 1px solid var(--pc-line); border-radius: 16px; background: var(--color-surface); font-family: var(--font-body); box-shadow: none; padding-right: 64px; scrollbar-width: thin; }
+.chat-input:focus { border-color: var(--pc-accent); box-shadow: 0 0 0 3px var(--pc-accent-soft); }
+.send-btn { width: 44px; height: 44px; border: none; background: var(--pc-accent); color: #fff; box-shadow: 0 4px 12px rgba(79, 122, 90, 0.25); }
+.send-btn:hover { background: var(--pc-accent); filter: brightness(0.94); transform: none; }
+.voice-btn { width: 44px; height: 44px; border: none; background: var(--color-surface); box-shadow: 0 2px 8px rgba(80, 70, 50, 0.06); }
+.voice-btn:hover { background: var(--pc-accent-soft); }
+
+/* Cột phân tích bên phải: thẻ như cột phải Dashboard */
+.chat-sidebar { background: linear-gradient(180deg, #EEF1EA 0%, #F7F1E6 38%, #FBF6EE 100%); border-left: none; }
+.chat-sidebar .paper-card, .chat-sidebar .cs-card, .chat-sidebar .portrait-card { border: none; border-radius: 20px; background: rgba(255, 253, 247, 0.92); box-shadow: 0 6px 20px rgba(80, 70, 50, 0.07); }
+.chat-sidebar .paper-card::before, .chat-sidebar .paper-card::after { display: none; }
+.cs-title, .portrait-title { font-family: var(--font-heading); font-size: 15px; font-weight: 700; color: var(--color-text); }
+.sb-label, .pb-label { color: var(--color-text-muted); }
+.sb-bar, .pb-bar { height: 6px; background: rgba(74, 55, 40, 0.08); border: none; }
+.sb-mood { background: var(--pc-accent); }
+.kw-tag { padding: 4px 10px; border: none; border-radius: 999px; font-size: 12px; font-weight: 600; }
+.kw-tag.pos { background: var(--pc-accent-soft); color: var(--pc-accent); }
+.kw-tag.neg { background: #F6E3DC; color: #A65A44; }
+.portrait-card .btn-primary { border: none; border-radius: 999px; background: var(--pc-accent); color: #fff; box-shadow: none; }
+.task-suggest { border: none; border-radius: 14px; background: var(--color-canvas); }
+.ts-thumb { flex: none; width: 48px; height: 48px; border-radius: 12px; object-fit: cover; display: block; background: var(--pc-accent-soft); }
+.ts-thumb-empty { display: flex; align-items: center; justify-content: center; color: var(--pc-accent); }
+.ts-thumb-empty .nav-icon { width: 22px; height: 22px; }
+.ts-info { min-width: 0; }
+.rp-task-item { display: flex; align-items: center; gap: 10px; }
+.task-suggest:hover { background: var(--pc-accent-soft); border-color: transparent; }
+.ts-icon { border: none; background: var(--pc-accent-soft); }
+.cs-safety .cs-title { color: var(--color-danger); }
+.cs-safety .emergency-btn-side { border: none; border-radius: 999px; background: #FBE7E4; color: var(--color-danger); min-height: 40px; }
 .chat-history-overlay { position: fixed; inset: 0; z-index: 1200; display: flex; align-items: center; justify-content: center; padding: 16px; background: rgba(74, 55, 40, 0.35); }
 .chat-history { display: flex; flex-direction: column; width: 100%; max-width: 520px; max-height: min(80vh, 720px); border-radius: 16px; background: var(--color-surface, #fff); box-shadow: 0 24px 60px rgba(74, 55, 40, 0.22); overflow: hidden; font-family: var(--font-body); }
 .chh-head { display: flex; align-items: center; justify-content: space-between; padding: 10px 10px 10px 18px; border-bottom: 1px solid var(--color-border, #eadfce); }
