@@ -27,6 +27,8 @@
     },
     "topbar": {
       "back": "← Quay lại",
+      "menu": "Mở menu",
+      "more": "Thêm tuỳ chọn",
       "mascotName": "PeaceCat AI",
       "statusListening": "Đang lắng nghe bạn...",
       "statusTyping": "PeaceCat đang phản hồi...",
@@ -38,6 +40,7 @@
     },
     "chat": {
       "inputPlaceholder": "Chia sẻ với PeaceCat... (Enter để gửi, Shift+Enter xuống dòng)",
+      "inputPlaceholderShort": "Chia sẻ với PeaceCat...",
       "voiceTitle": "Nhập bằng giọng nói",
       "sendTitle": "Gửi",
       "minutesUnit": "{n} phút",

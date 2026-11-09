@@ -96,7 +96,7 @@
   <main class="main-content mood-chat-page" style="margin-left: 0;">
     <!-- Chat Topbar -->
     <div class="chat-topbar">
-      <router-link to="/mood-checkin" class="ct-back">{{ t('moodChat.topbar.back') }}</router-link>
+      <button type="button" class="ct-icon-btn ct-menu" :aria-label="t('moodChat.topbar.menu')" @click="openAppMenu"><NavIcon name="menu" /></button>
       <div class="ct-mascot"><NavIcon name="peacecat" /></div>
       <div class="ct-info">
         <div class="ct-name">{{ t('moodChat.topbar.mascotName') }}</div>
@@ -105,17 +105,17 @@
           <span>{{ statusText }}</span>
         </div>
       </div>
-        <button
-          class="ct-mobile-emergency"
-          :aria-label="t('moodChat.topbar.emergencyBtn')"
-          @click="showEmergency"
-        >SOS</button>
-      <div class="ct-actions">
-        <span class="badge-pill badge-mint">{{ t('moodChat.topbar.messageCountLabel', { n: userMessageCount }) }}</span>
-        <button class="ct-action-btn" @click="showResult">{{ t('moodChat.topbar.viewResultBtn') }}</button>
-        <button class="ct-action-btn" @click="openHistory">{{ t('chatHistory.historyBtn') }}</button>
-        <button class="ct-action-btn" @click="clearChat">{{ t('chatHistory.newChatBtn') }}</button>
-        <button class="ct-action-btn ct-sos" :aria-label="t('moodChat.topbar.emergencyBtn')" @click="showEmergency">SOS</button>
+      <!-- Tối giản: chỉ SOS + nút "thêm" (⋯); các thao tác khác nằm trong menu bật lên -->
+      <div class="ct-right">
+        <button type="button" class="ct-sos" :aria-label="t('moodChat.topbar.emergencyBtn')" @click="showEmergency">SOS</button>
+        <div class="ct-more">
+          <button type="button" class="ct-icon-btn ct-more-btn" :class="{ 'is-open': moreOpen }" :aria-label="t('moodChat.topbar.more')" :aria-expanded="moreOpen" aria-haspopup="menu" @click.stop="moreOpen = !moreOpen"><NavIcon name="more" /></button>
+          <div v-if="moreOpen" class="ct-menu-pop" role="menu" @click="moreOpen = false">
+            <button type="button" role="menuitem" class="ct-menu-item" @click="clearChat"><NavIcon name="plus" />{{ t('chatHistory.newChatBtn') }}</button>
+            <button type="button" role="menuitem" class="ct-menu-item" @click="openHistory"><NavIcon name="clock" />{{ t('chatHistory.historyBtn') }}</button>
+            <button type="button" role="menuitem" class="ct-menu-item" @click="showResult"><NavIcon name="report" />{{ t('moodChat.topbar.viewResultBtn') }}</button>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -167,7 +167,7 @@
           <div class="input-wrap">
             <textarea
               class="chat-input"
-              :placeholder="t('moodChat.chat.inputPlaceholder')"
+              :placeholder="isCompact ? t('moodChat.chat.inputPlaceholderShort') : t('moodChat.chat.inputPlaceholder')"
               rows="1"
               ref="chatInputEl"
               v-model="chatInputValue"
@@ -276,7 +276,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, nextTick, onMounted } from 'vue';
+import { ref, reactive, computed, nextTick, onMounted, onBeforeUnmount } from 'vue';
 import AiNotice from '../components/AiNotice.vue';
 import NavIcon from '../components/NavIcon.vue';
 import { taskThumbSrc } from '../lib/taskImages';
@@ -483,6 +483,18 @@ function renderConversation() {
 }
 
 const suggestedTasks = ref([]);
+// Trang chat ẩn thanh trên/dưới chung của app → trên điện thoại mở sidebar bằng nút menu riêng
+const moreOpen = ref(false);
+function closeMoreMenu(e) { if (e.type === 'click' || e.key === 'Escape') moreOpen.value = false; }
+if (typeof window !== 'undefined') {
+  window.addEventListener('click', closeMoreMenu);
+  window.addEventListener('keydown', closeMoreMenu);
+}
+onBeforeUnmount(() => {
+  window.removeEventListener('click', closeMoreMenu);
+  window.removeEventListener('keydown', closeMoreMenu);
+});
+function openAppMenu() { window.dispatchEvent(new CustomEvent('peaceflow:open-sidebar')); }
 const brokenTaskImages = reactive(new Set()); // ảnh lỗi → hiện icon thay thế
 
 function renderSuggestedTasks() {
@@ -573,12 +585,19 @@ function resetChat(withWelcome = true) {
   saveConversation();
 }
 
+// Điện thoại / màn hẹp: dòng gợi ý ngắn (không cần nhắc phím Enter / Shift+Enter)
+const compactMq = typeof window !== 'undefined' && window.matchMedia ? window.matchMedia('(max-width: 600px), (hover: none) and (pointer: coarse)') : null;
+const isCompact = ref(Boolean(compactMq?.matches));
+compactMq?.addEventListener?.('change', (e) => { isCompact.value = e.matches; });
+
 function handleInputResize() {
   const value = String(chatInputValue.value || '').slice(0, MAX_MESSAGE_LENGTH);
   if (value !== chatInputValue.value) chatInputValue.value = value;
   nextTick(() => {
     const input = chatInputEl.value;
     if (!input) return;
+    // Ô trống: luôn 1 dòng (không để dòng gợi ý dài kéo ô cao lên)
+    if (!input.value) { input.style.height = ''; return; }
     input.style.height = 'auto';
     // scrollHeight không gồm viền → cộng thêm viền, nếu không ô 1 dòng cũng hiện thanh cuộn
     const border = input.offsetHeight - input.clientHeight;
@@ -904,11 +923,45 @@ onMounted(async () => {
 
 /* Thanh trên */
 .chat-topbar { background: var(--color-canvas); border-bottom: 1px solid var(--pc-line); box-shadow: none; }
-.ct-back, .ct-action-btn { min-height: 40px; padding: 0 16px; border: none; border-radius: 999px; background: rgba(255, 255, 255, 0.85); color: var(--color-text); font-family: var(--font-body); font-size: 13px; font-weight: 600; box-shadow: 0 2px 8px rgba(80, 70, 50, 0.06); transition: background var(--duration-fast) var(--ease-standard), color var(--duration-fast) var(--ease-standard); }
-.ct-back:hover, .ct-action-btn:hover { background: var(--pc-accent-soft); color: var(--pc-accent); transform: none; box-shadow: 0 2px 8px rgba(80, 70, 50, 0.06); }
-.ct-action-btn.ct-sos { min-width: 44px; padding: 0 14px; background: var(--color-danger); color: #fff; font-family: var(--font-heading); font-weight: 800; letter-spacing: 0.02em; }
-.ct-action-btn.ct-sos:hover { background: var(--color-danger); color: #fff; filter: brightness(0.94); }
 .ct-mascot { border: none; background: var(--pc-accent-soft); box-shadow: none; }
+/* Thanh trên tối giản: [menu (điện thoại)] [mèo] [tên + trạng thái] ……… [SOS] [⋯] */
+.chat-topbar { gap: 12px; }
+.ct-actions, .ct-mobile-actions, .ct-back { display: none !important; }
+.ct-info { flex: 1; min-width: 0; }
+.ct-name, .ct-status { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ct-right { display: flex; align-items: center; gap: 8px; flex: none; }
+.ct-icon-btn { display: flex; flex: none; width: 40px; height: 40px; align-items: center; justify-content: center; border: none; border-radius: 50%; background: rgba(255, 255, 255, 0.85); color: var(--color-text-muted); box-shadow: 0 2px 8px rgba(80, 70, 50, 0.06); cursor: pointer; }
+.ct-icon-btn:hover, .ct-icon-btn.is-open { background: var(--pc-accent-soft); color: var(--pc-accent); }
+.ct-icon-btn .nav-icon { width: 20px; height: 20px; }
+.ct-menu { display: none; }
+.ct-sos { flex: none; min-width: 44px; height: 40px; padding: 0 14px; border: none; border-radius: 999px; background: var(--color-danger); color: #fff; font-family: var(--font-heading); font-size: 13px; font-weight: 800; letter-spacing: 0.02em; cursor: pointer; }
+.ct-sos:hover { filter: brightness(0.94); }
+.ct-more { position: relative; }
+.ct-menu-pop { position: absolute; top: calc(100% + 8px); right: 0; z-index: 30; min-width: 210px; padding: 6px; border-radius: 16px; background: var(--color-surface); box-shadow: 0 12px 32px rgba(80, 70, 50, 0.16); }
+.ct-menu-item { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 44px; padding: 0 12px; border: none; border-radius: 10px; background: transparent; color: var(--color-text); font-family: var(--font-body); font-size: 14px; font-weight: 500; text-align: left; cursor: pointer; }
+.ct-menu-item:hover { background: var(--pc-accent-soft); color: var(--pc-accent); }
+.ct-menu-item .nav-icon { width: 18px; height: 18px; color: var(--color-text-muted); }
+.ct-menu-item:hover .nav-icon { color: var(--pc-accent); }
+@media (max-width: 900px), (hover: none) and (pointer: coarse) {
+  .ct-menu { display: flex; }
+  .ct-mobile-emergency { display: none !important; }
+}
+@media (max-width: 600px) {
+  .chat-topbar { gap: 8px; padding: calc(8px + env(safe-area-inset-top, 0px)) 12px 8px; position: sticky; top: 0; z-index: 5; }
+  .mood-chat-page.main-content { padding-top: 0; }
+  .ct-mascot { width: 36px; height: 36px; flex: none; }
+  .ct-mascot .nav-icon { width: 20px; height: 20px; }
+  .ct-name { font-size: 15px; }
+  .ct-status { font-size: 11px; }
+  .ct-icon-btn { width: 38px; height: 38px; }
+  .ct-sos { height: 38px; min-width: 38px; padding: 0 10px; font-size: 11px; }
+  .chat-messages { padding: 12px; }
+  .msg-bubble { font-size: 14px; }
+  .chat-input-area { gap: 8px; padding: 8px 10px calc(10px + env(safe-area-inset-bottom, 0px)); }
+  .chat-input { font-size: 16px; } /* ≥16px: iOS không tự phóng to khi bấm vào ô nhập */
+  .voice-btn, .send-btn { width: 40px; height: 40px; flex: none; }
+  .quick-replies-area { padding: 6px 10px; gap: 6px; }
+}
 .ct-mascot, .msg-avatar, .rp-mascot { display: flex; align-items: center; justify-content: center; color: var(--pc-accent); }
 .ct-mascot .nav-icon { width: 24px; height: 24px; }
 .msg-avatar .nav-icon { width: 18px; height: 18px; }
@@ -942,6 +995,7 @@ onMounted(async () => {
 .qr-btn { min-height: 36px; border: 1px solid var(--pc-line); border-radius: 999px; background: var(--color-surface); color: var(--color-text-muted); font-family: var(--font-body); font-size: 13px; font-weight: 500; box-shadow: none; }
 .qr-btn:hover { border-color: transparent; background: var(--pc-accent-soft); color: var(--pc-accent); transform: none; }
 .chat-input-area { background: var(--color-canvas); border-top: 1px solid var(--pc-line); }
+.chat-input::placeholder { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .chat-input { border: 1px solid var(--pc-line); border-radius: 16px; background: var(--color-surface); font-family: var(--font-body); box-shadow: none; padding-right: 64px; scrollbar-width: thin; }
 .chat-input:focus { border-color: var(--pc-accent); box-shadow: 0 0 0 3px var(--pc-accent-soft); }
 .send-btn { width: 44px; height: 44px; border: none; background: var(--pc-accent); color: #fff; box-shadow: 0 4px 12px rgba(79, 122, 90, 0.25); }

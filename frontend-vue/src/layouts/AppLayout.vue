@@ -76,6 +76,8 @@ const isMoodChat = computed(() => route.name === 'mood-chat');
 // .shell-host như các trang khác).
 const isMessagesPage = computed(() => route.name === 'messages');
 watch(() => route.fullPath, () => { sidebarOpen.value = false; });
+// Trang chat PeaceCat (không có thanh trên chung) mở sidebar qua sự kiện này
+window.addEventListener('peaceflow:open-sidebar', () => { sidebarOpen.value = true; });
 
 const auth = useAuthStore();
 const notif = useNotificationsStore();

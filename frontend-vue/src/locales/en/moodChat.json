@@ -27,6 +27,8 @@
     },
     "topbar": {
       "back": "← Back",
+      "menu": "Open menu",
+      "more": "More options",
       "mascotName": "PeaceCat AI",
       "statusListening": "Listening to you...",
       "statusTyping": "PeaceCat is replying...",
@@ -38,6 +40,7 @@
     },
     "chat": {
       "inputPlaceholder": "Share with PeaceCat... (Enter to send, Shift+Enter for a new line)",
+      "inputPlaceholderShort": "Share with PeaceCat...",
       "voiceTitle": "Voice input",
       "sendTitle": "Send",
       "minutesUnit": "{n} min",
