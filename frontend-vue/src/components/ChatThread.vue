@@ -21,7 +21,7 @@
               <span>{{ replyPreview(msg) }}</span>
             </div>
             <div v-if="msg.attachment_id" class="ct-attachment">
-              <div v-if="attachmentErrors[msg.id]" class="ct-attach-error">⚠️ Không tải được tệp</div>
+              <button v-if="attachmentErrors[msg.id]" type="button" class="ct-attach-error" @click="retryAttachment(msg)">Không tải được tệp · Thử lại</button>
               <div v-else-if="!attachmentUrls[msg.id]" class="ct-attach-loading">Đang tải...</div>
               <img
                 v-else-if="isImageMime(msg.attachment_mime)"
@@ -30,7 +30,7 @@
                 @click="openFull(attachmentUrls[msg.id])"
               >
               <audio v-else-if="isAudioMime(msg.attachment_mime)" :src="attachmentUrls[msg.id]" controls controlslist="nodownload noplaybackrate" class="ct-attach-audio"></audio>
-              <a v-else :href="attachmentUrls[msg.id]" :download="msg.attachment_filename" class="ct-attach-file">📎 {{ msg.attachment_filename || 'Tệp đính kèm' }}</a>
+              <a v-else :href="attachmentUrls[msg.id]" :download="msg.attachment_filename" class="ct-attach-file">{{ msg.attachment_filename || 'Tệp đính kèm' }}</a>
             </div>
             <div v-if="msg.content" class="ct-bubble">{{ msg.content }}</div>
           </div>
@@ -44,7 +44,7 @@
 
     <div v-if="pendingFile" class="ct-pending-file">
       <img v-if="pendingFilePreview" :src="pendingFilePreview" class="ct-pending-thumb">
-      <span v-else class="ct-pending-name">📎 {{ pendingFile.name }}</span>
+      <span v-else class="ct-pending-name">{{ pendingFile.name }}</span>
       <button type="button" class="ct-pending-cancel" @click="clearPendingFile">✕</button>
     </div>
     <div v-if="micError" class="ct-mic-error">{{ micError }}</div>
@@ -317,7 +317,7 @@ async function loadAttachment(msg) {
   try {
     let pending = pendingAttachmentLoads.get(msg.attachment_id);
     if (!pending) {
-      pending = apiClient.getBlob(`/chat/attachments/${msg.attachment_id}`).then((blob) => URL.createObjectURL(blob));
+      pending = fetchAttachmentWithRetry(msg.attachment_id);
       pendingAttachmentLoads.set(msg.attachment_id, pending);
     }
     const url = await pending;
@@ -330,6 +330,27 @@ async function loadAttachment(msg) {
     pendingAttachmentLoads.delete(msg.attachment_id);
   }
 }
+// Tối đa 3 lần, mỗi lần chờ tối đa 20 giây — tránh kẹt "Đang tải..." mãi khi mạng chập chờn
+// hoặc tin nhắn tới qua realtime trước khi tệp đính kèm được lưu xong.
+const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+async function fetchAttachmentWithRetry(attachmentId) {
+  let lastError;
+  for (const delay of [0, 800, 2500]) {
+    if (delay) await wait(delay);
+    try {
+      const blob = await Promise.race([
+        apiClient.getBlob(`/chat/attachments/${attachmentId}`),
+        wait(20000).then(() => { throw new Error('timeout'); })
+      ]);
+      return URL.createObjectURL(blob);
+    } catch (e) { lastError = e; }
+  }
+  throw lastError;
+}
+function retryAttachment(msg) {
+  delete attachmentErrors[msg.id];
+  loadAttachment(msg);
+}
 async function resolveAttachmentUrls(list) {
   const queue = list
     .filter((msg) => msg.attachment_id && !attachmentUrls[msg.id] && !attachmentErrors[msg.id])
@@ -340,6 +361,9 @@ async function resolveAttachmentUrls(list) {
   await Promise.all(Array.from({ length: Math.min(ATTACHMENT_CONCURRENCY, queue.length) }, worker));
 }
 
+watch(() => props.messages.map((m) => (m.attachment_id ? `${m.id}:${m.attachment_id}` : m.id)).join('|'), () => {
+  resolveAttachmentUrls(props.messages);
+});
 watch(() => props.messages.length, () => {
   scrollToBottom();
   resolveAttachmentUrls(props.messages);
@@ -750,6 +774,16 @@ defineExpose({ scrollToBottom });
   transition: border-color var(--duration-fast) var(--ease-standard);
 }
 .ct-input:focus { border-color: var(--color-brand); background: var(--color-surface); }
+/* ô nhập phải co được (input mặc định ~150px) — nếu không nút gửi bị đẩy tràn ra ngoài khung */
+.ct-input { min-width: 0; }
+/* thanh cuộn mảnh, nhạt */
+.ct-messages { scrollbar-width: thin; scrollbar-color: rgba(74, 55, 40, 0.18) transparent; }
+.ct-messages::-webkit-scrollbar { width: 6px; }
+.ct-messages::-webkit-scrollbar-thumb { background: rgba(74, 55, 40, 0.18); border-radius: 999px; }
+.ct-messages::-webkit-scrollbar-track { background: transparent; }
+.ct-reply-quote { font-style: normal; }
+.ct-attach-loading { min-width: 140px; min-height: 90px; display: flex; align-items: center; justify-content: center; color: var(--color-text-subtle); font-size: 13px; }
+.ct-attach-error { font: 500 13px var(--font-body); padding: 9px 13px; cursor: pointer; }
 .ct-send-btn { width: 40px; height: 40px; border-radius: var(--radius-control); background: var(--color-brand); color: var(--color-on-brand); }
 .ct-send-btn:not(:disabled):hover { background: var(--color-brand); color: var(--color-on-brand); filter: brightness(0.92); }
 .ct-icon-btn:focus-visible, .ct-send-btn:focus-visible, .ct-reply-btn:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }

@@ -2,11 +2,11 @@
   <div class="chat-floating-window" :style="{ right: `${16 + index * 376}px` }">
     <div class="cfw-header">
       <div class="cfw-avatar">
-        <img v-if="avatarUrl" :src="avatarUrl" alt="">
+        <img v-if="avatarUrl" :src="avatarUrl" alt="" referrerpolicy="no-referrer">
         <template v-else>{{ conversation.avatar }}</template>
       </div>
       <div class="cfw-name">{{ conversation.name }}</div>
-      <button type="button" class="cfw-close" @click="chat.closeWindow(conversation.id)" aria-label="Đóng">✕</button>
+      <button type="button" class="cfw-close" @click="chat.closeWindow(conversation.id)" aria-label="Đóng"><NavIcon name="close" /></button>
     </div>
     <div class="cfw-body">
       <ChatThread
@@ -28,6 +28,7 @@ import { useAuthStore } from '../stores/auth';
 import { useChatWidgetStore } from '../stores/chatWidget';
 import { subscribeChatMessages, unsubscribeChatMessages } from '../lib/supabaseRealtime';
 import ChatThread from './ChatThread.vue';
+import NavIcon from './NavIcon.vue';
 
 const props = defineProps({
   conversation: { type: Object, required: true },
@@ -170,6 +171,14 @@ onBeforeUnmount(() => {
   flex: 1;
   min-height: 0;
 }
+/* Đồng bộ Dashboard: thẻ trắng không viền, bo 16px, bóng mềm; đầu khung phẳng, đường kẻ mảnh */
+.chat-floating-window { width: 360px; border: none; border-radius: 16px 16px 0 0; background: var(--color-surface); box-shadow: 0 -4px 28px rgba(80, 70, 50, 0.16); font-family: var(--font-body); }
+.cfw-header { gap: 10px; padding: 10px 8px 10px 14px; border-bottom: 1px solid var(--color-surface-muted); background: var(--color-surface); }
+.cfw-avatar { width: 32px; height: 32px; border: none; background: var(--color-brand-soft); font-size: 15px; }
+.cfw-name { font-family: var(--font-heading); font-size: 15px; font-weight: 700; color: var(--color-text); }
+.cfw-close { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--color-text-muted); }
+.cfw-close:hover { background: var(--color-canvas); color: var(--color-text); }
+.cfw-close .nav-icon { width: 18px; height: 18px; }
 @media (max-width: 900px), (hover: none) and (pointer: coarse) {
   .chat-floating-window {
     display: none !important;
