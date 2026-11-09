@@ -99,7 +99,7 @@ const router = createRouter({
         { path: 'achievements', name: 'achievements', component: AchievementsView, meta: { navKey: 'achievements' } },
         { path: 'profile', name: 'profile', component: ProfileView, meta: { navKey: 'profile' } },
         { path: 'settings', name: 'settings', component: SettingsView, meta: { navKey: 'settings' } },
-        { path: 'mood-chat', name: 'mood-chat', component: MoodChatView, meta: { navKey: 'mood' } },
+        { path: 'mood-chat', name: 'mood-chat', component: MoodChatView, meta: { navKey: 'peacecat' } },
         { path: 'task-breathing', name: 'task-breathing', component: TaskBreathingView, meta: { navKey: 'tasks' } },
         { path: 'task-meditation', name: 'task-meditation', component: TaskMeditationView, meta: { navKey: 'tasks' } },
         { path: 'emergency', name: 'emergency', component: EmergencyView, meta: { navKey: 'emergency' } }

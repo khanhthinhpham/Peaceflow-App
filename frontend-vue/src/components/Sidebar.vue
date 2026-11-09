@@ -113,7 +113,8 @@ const NAV_SECTIONS = [
       { key: 'mood', icon: '💭', labelKey: 'nav.mood', route: 'mood-checkin' },
       { key: 'tests', icon: '📋', labelKey: 'nav.tests', route: 'mood-assessment' },
       { key: 'tasks', icon: '🎮', labelKey: 'nav.tasks', route: 'tasks' },
-      { key: 'journal', icon: '📝', labelKey: 'nav.journal', route: 'journal' }
+      { key: 'journal', icon: '📝', labelKey: 'nav.journal', route: 'journal' },
+      { key: 'peacecat', icon: '🐱', labelKey: 'nav.peacecat', route: 'mood-chat' }
     ]
   },
   {
