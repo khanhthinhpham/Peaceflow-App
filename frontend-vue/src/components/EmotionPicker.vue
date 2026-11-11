@@ -10,7 +10,7 @@
         class="emo-range"
         :aria-label="t('moodCheckin.step1.emotion.ariaLabel')"
         :aria-valuetext="label"
-        @input="emit('update:modelValue', Number($event.target.value))"
+        @input="onSlide(Number($event.target.value))"
       >
       <div class="emo-ends" aria-hidden="true">
         <span>{{ t('moodCheckin.step1.emotion.low') }}</span>
@@ -29,12 +29,18 @@ import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import EmotionFigure from './EmotionFigure.vue';
 import { emotionZoneOf } from '../lib/moodCheckinOptions';
+import { uiTick } from '../lib/uiSound';
 
 const props = defineProps({ modelValue: { type: Number, default: 50 } });
 const emit = defineEmits(['update:modelValue', 'confirm']);
 const { t } = useI18n();
 const zone = computed(() => emotionZoneOf(props.modelValue));
 const label = computed(() => t(`moodCheckin.step1.emotion.zones.${zone.value.key}`));
+function onSlide(v) {
+  const before = zone.value.key;
+  emit('update:modelValue', v);
+  if (emotionZoneOf(v).key !== before) uiTick(v / 100); // qua vùng cảm xúc mới: nốt cao/thấp theo cảm xúc
+}
 </script>
 
 <style scoped>

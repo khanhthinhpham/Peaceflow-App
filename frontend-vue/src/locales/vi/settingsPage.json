@@ -65,6 +65,8 @@
       "animationsDesc": "Bật/tắt các hiệu ứng chuyển động trong ứng dụng",
       "soundsTitle": "🎵 Âm thanh nền",
       "soundsDesc": "Nhạc thiền và âm thanh tự nhiên trong bài tập",
+      "tapSoundsTitle": "Âm thanh khi chạm",
+      "tapSoundsDesc": "Tiếng \"tách\" nhẹ và rung khẽ khi bấm nút, kéo thanh cảm xúc, hoàn thành check-in",
       "hapticsTitle": "📳 Rung phản hồi",
       "hapticsDesc": "Rung nhẹ khi hoàn thành nhiệm vụ hoặc đạt thành tích",
       "save": "💾 Lưu giao diện"

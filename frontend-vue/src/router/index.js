@@ -56,6 +56,7 @@ import ScreeningFormView from '../views/ScreeningFormView.vue';
 import SupportRegistrationView from '../views/SupportRegistrationView.vue';
 import AdminScreeningView from '../views/admin/AdminScreeningView.vue';
 import TermsView from '../views/TermsView.vue';
+import NotFoundView from '../views/NotFoundView.vue';
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -142,7 +143,9 @@ const router = createRouter({
         { path: 'application', name: 'expert-application', component: ExpertApplicationView, meta: { navKey: 'application' } },
         { path: 'review-status', name: 'expert-review-status', component: ExpertReviewStatusView, meta: { navKey: 'review-status' } }
       ]
-    }
+    },
+    // Đường dẫn không tồn tại → trang 404 thân thiện (PeaceCat + hít thở), thay vì trang trắng
+    { path: '/:pathMatch(.*)*', name: 'not-found', component: NotFoundView }
   ],
   // Thiếu cấu hình này thì Vue Router mặc định GIỮ NGUYÊN vị trí cuộn cũ khi chuyển sang
   // route khác (chỉ thay nội dung, không phải load lại trang thật) — nên bấm từ bài viết A

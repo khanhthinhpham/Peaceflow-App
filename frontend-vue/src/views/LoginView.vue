@@ -2,6 +2,7 @@
   <div class="auth-container">
     <div class="paper-card auth-card">
       <div class="auth-logo">🌿</div>
+      <p class="auth-greeting">{{ timeGreeting }}</p>
       <h1 class="auth-title">{{ t('login.title') }}</h1>
       <p class="auth-subtitle">{{ t('login.subtitle') }}</p>
 
@@ -54,7 +55,15 @@
 </template>
 
 <script setup>
+import { i18n as i18nInstance } from '../locales';
 import { ref, onMounted } from 'vue';
+// Lời chào theo giờ — khuya thì nhắc nhẹ nghỉ ngơi
+const timeGreeting = (() => {
+  const h = new Date().getHours();
+  const key = h < 5 ? 'lateNight' : h < 11 ? 'morning' : h < 14 ? 'noon' : h < 18 ? 'afternoon' : h < 22 ? 'evening' : 'lateNight';
+  return i18nGreeting(key);
+})();
+function i18nGreeting(key) { return i18nInstance.global.t(`login.greeting.${key}`); }
 import { useI18n } from 'vue-i18n';
 import { useRoute, useRouter } from 'vue-router';
 import { useAuthStore } from '../stores/auth';
@@ -305,6 +314,7 @@ onMounted(async () => {
 </script>
 
 <style scoped>
+.auth-greeting { margin: 0 0 4px; font-size: 13px; font-weight: 600; letter-spacing: 0.02em; color: var(--color-brand, #6F8F5E); text-align: center; }
 .btn-google-native {
   width: 100%;
   display: flex;

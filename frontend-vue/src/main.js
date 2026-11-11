@@ -7,9 +7,11 @@ import router from './router';
 import { initNativeApp } from './lib/native';
 import { i18n, setSuggestedLocale, shouldSuggestLocaleFromIp } from './locales';
 import { apiClient } from './lib/apiClient';
+import { installTapFeedback } from './lib/uiSound';
 
 createApp(App).use(createPinia()).use(router).use(i18n).mount('#app');
 initNativeApp(router);
+installTapFeedback(); // tiếng "tách" + rung nhẹ khi bấm nút (tắt được trong Cài đặt → Âm thanh)
 
 // index.html hardcode <html lang="vi">, tự cập nhật theo ngôn ngữ đang chọn để đúng chuẩn
 // accessibility/SEO (attribute lang) — chạy ngay lúc khởi động và mỗi khi đổi ngôn ngữ.

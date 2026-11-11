@@ -1,0 +1,11 @@
+{
+  "notFound": {
+    "title": "This page wandered off",
+    "text": "PeaceCat looked everywhere but couldn't find the page you wanted. The link may be old or slightly mistyped.",
+    "textPetted": "PeaceCat loves a good pet. Shall we head back together?",
+    "breathe": "While you're here, breathe in with the circle… then out, slowly.",
+    "home": "Go to home",
+    "back": "Go back",
+    "petCat": "Pet PeaceCat"
+  }
+}

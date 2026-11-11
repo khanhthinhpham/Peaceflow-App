@@ -40,6 +40,7 @@
                 :style="{ '--pct': emotionValue + '%' }"
                 :aria-label="t('moodCheckin.step1.emotion.ariaLabel')"
                 :aria-valuetext="emotionLabel"
+                @input="onEmotionSlide"
               >
               <div class="emo-ends" aria-hidden="true">
                 <span>{{ t('moodCheckin.step1.emotion.low') }}</span>
@@ -72,7 +73,7 @@
                 class="emo-range"
                 :class="{ 'is-unset': !intensityPicked }"
                 :aria-label="t('moodCheckin.step2.title')"
-                @input="intensityPicked = true"
+                @input="intensityPicked = true; uiTick((checkinData.score - 1) / 9)"
               >
               <div class="emo-ends" aria-hidden="true">
                 <span>{{ t('moodCheckin.step2.sliderLow') }}</span>
@@ -464,6 +465,7 @@ import { taskThumbSrc } from '../lib/taskImages';
 import EmotionFigure from '../components/EmotionFigure.vue';
 import ExpertSharePill from '../components/legal/ExpertSharePill.vue';
 import { stashCheckinAndLogin } from '../lib/pendingCheckin';
+import { uiTick, uiSuccess } from '../lib/uiSound';
 import { MOOD_OPTIONS, TAGS, BODY_SYMPTOM_GROUPS, deriveMoodPayload as buildMoodPayload, emotionZoneOf } from '../lib/moodCheckinOptions';
 
 const { t } = useI18n();
@@ -521,6 +523,14 @@ const emotionValue = ref(50);
 const confirmedZone = ref(null);
 const emotionZone = computed(() => emotionZoneOf(emotionValue.value));
 const emotionLabel = computed(() => t(`moodCheckin.step1.emotion.zones.${emotionZone.value.key}`));
+
+// Kéo qua vùng cảm xúc mới → một nốt nhạc cao/thấp theo cảm xúc + rung nhẹ
+let lastZoneKey = null;
+function onEmotionSlide() {
+  const key = emotionZone.value.key;
+  if (lastZoneKey && key !== lastZoneKey) uiTick(emotionValue.value / 100);
+  lastZoneKey = key;
+}
 
 function confirmEmotion() {
   const zone = emotionZone.value;
@@ -888,6 +898,7 @@ async function submitCheckin() {
     await syncTodayCheckinBadge();
 
     resultPhase.value = 'saved';
+    uiSuccess();
     if (!props.embedded) setTimeout(() => moodSharePill.value?.promptIfNone(t('legal.shares.promptMood')), 900);
     if (props.embedded) emit('saved', { emotion: selectedMoodOption.value?.viLabel || null });
     todayDone.value = true;

@@ -193,6 +193,14 @@
                 </div>
                 <label class="toggle-switch"><input type="checkbox" v-model="form.appearanceSounds"><span class="toggle-slider"></span></label>
               </div>
+              <!-- Tiếng "tách" + rung nhẹ khi bấm nút, kéo cảm xúc (lưu ngay trên máy này) -->
+              <div class="toggle-row">
+                <div class="tr-left">
+                  <div class="tr-title">{{ t('settingsPage.appearance.tapSoundsTitle') }}</div>
+                  <div class="tr-desc">{{ t('settingsPage.appearance.tapSoundsDesc') }}</div>
+                </div>
+                <label class="toggle-switch"><input v-model="tapSounds" type="checkbox" @change="onTapSoundsChange"><span class="toggle-slider"></span></label>
+              </div>
               <div class="toggle-row">
                 <div class="tr-left">
                   <div class="tr-title">{{ t('settingsPage.appearance.hapticsTitle') }}</div>
@@ -531,6 +539,7 @@ import { useI18n } from 'vue-i18n';
 import { apiClient, getApiBaseUrl } from '../lib/apiClient';
 import { EventLogger } from '../lib/eventLogger';
 import LanguageSwitcher from '../components/LanguageSwitcher.vue';
+import { uiSoundEnabled, setUiSoundEnabled, uiTap } from '../lib/uiSound';
 import ExpertShareSettings from '../components/legal/ExpertShareSettings.vue';
 
 const router = useRouter();
@@ -590,6 +599,11 @@ function normalizeAiStyle(value) {
 }
 
 const LOCAL_SETTINGS_KEY = 'peaceflow_profile_settings';
+const tapSounds = ref(uiSoundEnabled());
+function onTapSoundsChange() {
+  setUiSoundEnabled(tapSounds.value);
+  if (tapSounds.value) uiTap(); // nghe thử ngay
+}
 const APP_VERSION = '1.0.0';
 
 const THEMES = {

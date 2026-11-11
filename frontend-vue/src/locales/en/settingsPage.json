@@ -65,6 +65,8 @@
       "animationsDesc": "Toggle motion effects across the app",
       "soundsTitle": "🎵 Background sound",
       "soundsDesc": "Meditation music and nature sounds during exercises",
+      "tapSoundsTitle": "Touch sounds",
+      "tapSoundsDesc": "A soft click and gentle vibration when tapping buttons, sliding your mood, finishing a check-in",
       "hapticsTitle": "📳 Haptic feedback",
       "hapticsDesc": "Light vibration when completing tasks or earning achievements",
       "save": "💾 Save appearance"

@@ -61,3 +61,13 @@
   --duration-normal: 220ms;
   --ease-standard: cubic-bezier(0.2, 0, 0, 1);
 }
+
+/* Nút "lún" nhẹ khi bấm — cảm giác chạm thật. Dùng thuộc tính `scale` (độc lập với `transform`)
+   nên không phá vị trí của các nút đang dùng transform để căn chỉnh. */
+@media (prefers-reduced-motion: no-preference) {
+  button:not(:disabled):active,
+  [role="button"]:active,
+  .btn:active, .btn-primary:active, .btn-outline:active, a.btn:active {
+    scale: 0.96;
+  }
+}

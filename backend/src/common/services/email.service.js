@@ -5,6 +5,59 @@ import { difficultyLabel, supportNeedLabel, referralCategoryLabel, supportFormat
 const FROM = env.emailFrom;
 const APP_URL = env.frontendUrl;
 
+// Email đầu tiên người dùng nhận được — "khoảnh khắc đầu tiên": ấm áp, rõ việc cần làm, nói trước
+// điều gì đang chờ họ, có link dự phòng, ký tên PeaceCat. Bảng + style inline để hiển thị đúng trên
+// Gmail / Outlook / app mail điện thoại.
+function escapeHtml(v) {
+  return String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+function verificationEmailHtml({ name, link, locale }) {
+  const en = locale === 'en';
+  const n = escapeHtml(name || (en ? 'there' : 'bạn'));
+  const L = en ? {
+    pre: 'Confirm your email to start your PeaceFlow journey.',
+    hi: `Hi ${n},`,
+    lead: 'Welcome to PeaceFlow. We\'re really glad you\'re here.',
+    body: 'Tap the button below to confirm your email. It takes one second, and then your space is ready.',
+    cta: 'Confirm my email',
+    nextTitle: 'What\'s waiting for you',
+    next: ['A 30-second mood check-in each day', 'Your own soul garden that grows with you', 'Gentle exercises, a private journal, and real experts when you need them'],
+    fallback: 'Button not working? Copy this link into your browser:',
+    expire: 'This link expires in 24 hours. If you didn\'t sign up, simply ignore this email.',
+    sign: 'Take it slow,<br>PeaceCat & the PeaceFlow team'
+  } : {
+    pre: 'Xác nhận email để bắt đầu hành trình cùng PeaceFlow.',
+    hi: `Chào ${n},`,
+    lead: 'Chào mừng bạn đến với PeaceFlow. Tụi mình rất vui vì bạn đã ở đây.',
+    body: 'Bấm nút bên dưới để xác nhận email — chỉ mất một giây, rồi không gian của bạn sẽ sẵn sàng.',
+    cta: 'Xác nhận email của tôi',
+    nextTitle: 'Điều đang chờ bạn',
+    next: ['Check-in cảm xúc 30 giây mỗi ngày', 'Một khu vườn tâm hồn lớn lên cùng bạn', 'Bài tập nhẹ nhàng, nhật ký riêng tư và chuyên gia thật khi bạn cần'],
+    fallback: 'Nút không bấm được? Sao chép đường dẫn này vào trình duyệt:',
+    expire: 'Đường dẫn có hiệu lực trong 24 giờ. Nếu không phải bạn đăng ký, cứ bỏ qua email này nhé.',
+    sign: 'Cứ từ từ thôi,<br>PeaceCat & đội ngũ PeaceFlow'
+  };
+  const items = L.next.map((x) => `<tr><td style="padding:4px 0;color:#6F8F5E;font-size:15px;vertical-align:top;width:20px;">•</td><td style="padding:4px 0;color:#5B4A3C;font-size:15px;line-height:1.5;">${x}</td></tr>`).join('');
+  return `<!doctype html><html><body style="margin:0;padding:0;background:#FBF6EE;">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0;">${L.pre}</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#FBF6EE;padding:32px 12px;">
+<tr><td align="center">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;background:#FFFDF7;border-radius:20px;padding:36px 32px;font-family:'Nunito','Segoe UI',Arial,sans-serif;">
+<tr><td style="font-size:20px;font-weight:800;color:#6F8F5E;padding-bottom:20px;">PeaceFlow</td></tr>
+<tr><td style="font-size:22px;font-weight:800;color:#3F3127;padding-bottom:8px;">${L.hi}</td></tr>
+<tr><td style="font-size:16px;line-height:1.6;color:#5B4A3C;padding-bottom:8px;">${L.lead}</td></tr>
+<tr><td style="font-size:16px;line-height:1.6;color:#5B4A3C;padding-bottom:24px;">${L.body}</td></tr>
+<tr><td style="padding-bottom:28px;"><a href="${link}" style="display:inline-block;padding:14px 30px;background:#6F8F5E;color:#ffffff;border-radius:999px;text-decoration:none;font-weight:700;font-size:16px;">${L.cta}</a></td></tr>
+<tr><td style="font-size:14px;font-weight:700;color:#3F3127;padding-bottom:6px;">${L.nextTitle}</td></tr>
+<tr><td style="padding-bottom:24px;"><table role="presentation" cellpadding="0" cellspacing="0">${items}</table></td></tr>
+<tr><td style="font-size:13px;line-height:1.6;color:#8A7A6C;padding-bottom:6px;">${L.fallback}</td></tr>
+<tr><td style="font-size:12px;line-height:1.5;word-break:break-all;padding-bottom:20px;"><a href="${link}" style="color:#6F8F5E;">${link}</a></td></tr>
+<tr><td style="font-size:13px;line-height:1.6;color:#8A7A6C;padding-bottom:24px;">${L.expire}</td></tr>
+<tr><td style="font-size:15px;line-height:1.6;color:#5B4A3C;border-top:1px solid #EFE6D8;padding-top:18px;">${L.sign}</td></tr>
+</table>
+</td></tr></table></body></html>`;
+}
+
 export async function sendVerificationEmail(user, token, locale = 'vi') {
   ensureMailConfigured();
   const link = `${APP_URL}/verify-email?token=${token}`;
@@ -13,34 +66,8 @@ export async function sendVerificationEmail(user, token, locale = 'vi') {
   await sendMail({
     from: FROM,
     to: user.email,
-    subject: locale === 'en' ? '✉️ Confirm your email — PeaceFlow' : '✉️ Xác nhận email — PeaceFlow',
-    html: locale === 'en' ? `
-      <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:32px 24px;">
-        <h2 style="color:#2D6A4F;margin-bottom:8px;">Hi ${name} 👋</h2>
-        <p style="color:#555;line-height:1.6;">
-          Thanks for signing up for PeaceFlow. Please confirm your email address to activate your account.
-        </p>
-        <a href="${link}" style="display:inline-block;margin:24px 0;padding:12px 28px;background:#52B788;color:#fff;border-radius:8px;text-decoration:none;font-weight:700;">
-          Confirm email
-        </a>
-        <p style="color:#999;font-size:0.85rem;">
-          This link expires in 24 hours. If you didn't sign up, you can ignore this email.
-        </p>
-      </div>
-    ` : `
-      <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:32px 24px;">
-        <h2 style="color:#2D6A4F;margin-bottom:8px;">Xin chào ${name} 👋</h2>
-        <p style="color:#555;line-height:1.6;">
-          Cảm ơn bạn đã đăng ký PeaceFlow. Hãy xác nhận địa chỉ email để kích hoạt tài khoản.
-        </p>
-        <a href="${link}" style="display:inline-block;margin:24px 0;padding:12px 28px;background:#52B788;color:#fff;border-radius:8px;text-decoration:none;font-weight:700;">
-          Xác nhận email
-        </a>
-        <p style="color:#999;font-size:0.85rem;">
-          Link hết hạn sau 24 giờ. Nếu không phải bạn đăng ký, hãy bỏ qua email này.
-        </p>
-      </div>
-    `
+    subject: locale === 'en' ? 'One tap and your garden is ready — PeaceFlow' : 'Một chạm nữa là khu vườn của bạn sẵn sàng — PeaceFlow',
+    html: verificationEmailHtml({ name, link, locale })
   });
 }
 

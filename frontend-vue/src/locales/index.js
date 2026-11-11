@@ -73,10 +73,12 @@ import viLegal from './vi/legal.json';
 import enLegal from './en/legal.json';
 import viChatHistory from './vi/chatHistory.json';
 import enChatHistory from './en/chatHistory.json';
+import viNotFound from './vi/notFound.json';
+import enNotFound from './en/notFound.json';
 
 const messages = {
-  vi: { ...viCommon, ...viAuth, ...viLanding, ...viDashboard, ...viMoodCheckin, ...viTasksPage, ...viJournal, ...viProfile, ...viSettingsPage, ...viOnboarding, ...viEmergency, ...viMoodChat, ...viMoodAssessment, ...viCommunity, ...viExperts, ...viReport, ...viTaskDetail, ...viAchievements, ...viApplyExpert, ...viRavenTest, ...viTaskBreathing, ...viVerifyEmail, ...viResetPassword, ...viTaskMeditation, ...viForgotPassword, ...viDonate, ...viPushPrompt, ...viGuestEmergencyTasks, ...viInspire, ...viAppIntro, ...viSharedResult, ...viMessages, ...viLegal, ...viChatHistory },
-  en: { ...enCommon, ...enAuth, ...enLanding, ...enDashboard, ...enMoodCheckin, ...enTasksPage, ...enJournal, ...enProfile, ...enSettingsPage, ...enOnboarding, ...enEmergency, ...enMoodChat, ...enMoodAssessment, ...enCommunity, ...enExperts, ...enReport, ...enTaskDetail, ...enAchievements, ...enApplyExpert, ...enRavenTest, ...enTaskBreathing, ...enVerifyEmail, ...enResetPassword, ...enTaskMeditation, ...enForgotPassword, ...enDonate, ...enPushPrompt, ...enGuestEmergencyTasks, ...enInspire, ...enAppIntro, ...enSharedResult, ...enMessages, ...enLegal, ...enChatHistory }
+  vi: { ...viCommon, ...viAuth, ...viLanding, ...viDashboard, ...viMoodCheckin, ...viTasksPage, ...viJournal, ...viProfile, ...viSettingsPage, ...viOnboarding, ...viEmergency, ...viMoodChat, ...viMoodAssessment, ...viCommunity, ...viExperts, ...viReport, ...viTaskDetail, ...viAchievements, ...viApplyExpert, ...viRavenTest, ...viTaskBreathing, ...viVerifyEmail, ...viResetPassword, ...viTaskMeditation, ...viForgotPassword, ...viDonate, ...viPushPrompt, ...viGuestEmergencyTasks, ...viInspire, ...viAppIntro, ...viSharedResult, ...viMessages, ...viLegal, ...viChatHistory, ...viNotFound },
+  en: { ...enCommon, ...enAuth, ...enLanding, ...enDashboard, ...enMoodCheckin, ...enTasksPage, ...enJournal, ...enProfile, ...enSettingsPage, ...enOnboarding, ...enEmergency, ...enMoodChat, ...enMoodAssessment, ...enCommunity, ...enExperts, ...enReport, ...enTaskDetail, ...enAchievements, ...enApplyExpert, ...enRavenTest, ...enTaskBreathing, ...enVerifyEmail, ...enResetPassword, ...enTaskMeditation, ...enForgotPassword, ...enDonate, ...enPushPrompt, ...enGuestEmergencyTasks, ...enInspire, ...enAppIntro, ...enSharedResult, ...enMessages, ...enLegal, ...enChatHistory, ...enNotFound }
 };
 
 // ===== Chọn ngôn ngữ mặc định =====

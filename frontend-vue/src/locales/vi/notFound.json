@@ -1,0 +1,11 @@
+{
+  "notFound": {
+    "title": "Trang này đi dạo mất rồi",
+    "text": "PeaceCat tìm khắp nơi mà không thấy trang bạn cần. Có thể đường dẫn đã cũ hoặc gõ nhầm một chút.",
+    "textPetted": "PeaceCat thích được vuốt ve lắm. Giờ mình cùng quay về nhé?",
+    "breathe": "Nhân tiện, hít vào theo vòng tròn… rồi thở ra thật chậm.",
+    "home": "Về trang chính",
+    "back": "Quay lại",
+    "petCat": "Vuốt ve PeaceCat"
+  }
+}
