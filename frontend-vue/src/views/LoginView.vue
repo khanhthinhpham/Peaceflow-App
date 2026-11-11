@@ -1,9 +1,10 @@
 <template>
   <div class="auth-container">
     <div class="paper-card auth-card">
-      <div class="auth-logo">🌿</div>
-      <p class="auth-greeting">{{ timeGreeting }}</p>
-      <h1 class="auth-title">{{ t('login.title') }}</h1>
+      <div class="auth-brand">
+        <img src="/images/peaceflow-wordmark.webp" alt="PeaceFlow" class="auth-wordmark" width="104" height="72">
+      </div>
+      <h1 class="auth-title">{{ timeGreeting }}</h1>
       <p class="auth-subtitle">{{ t('login.subtitle') }}</p>
 
       <div v-if="message" :class="['auth-message', messageType]" v-html="message"></div>
@@ -444,3 +445,6 @@ onMounted(async () => {
 .divider:not(:empty)::before { margin-right: .5em; }
 .divider:not(:empty)::after { margin-left: .5em; }
 </style>
+
+<!-- Đồng bộ giao diện Dashboard (ảnh nền lá, thẻ trắng ngà, màu sage) — nạp sau cùng để ghi đè -->
+<style scoped src="../assets/auth-theme.css"></style>

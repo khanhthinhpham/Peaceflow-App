@@ -117,3 +117,6 @@ onMounted(() => {
 .auth-card { width: 100%; max-width: 400px; padding: 48px 30px; text-align: center; background: var(--warm-white); }
 .result-icon { font-size: 3rem; margin-bottom: 16px; }
 </style>
+
+<!-- Đồng bộ giao diện Dashboard (ảnh nền lá, thẻ trắng ngà, màu sage) — nạp sau cùng để ghi đè -->
+<style scoped src="../assets/auth-theme.css"></style>

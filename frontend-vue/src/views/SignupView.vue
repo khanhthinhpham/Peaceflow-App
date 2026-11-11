@@ -1,7 +1,9 @@
 <template>
   <div class="auth-container">
     <div class="paper-card auth-card" style="border-color: var(--peach);">
-      <div class="auth-logo">🌸</div>
+      <div class="auth-brand">
+        <img src="/images/peaceflow-wordmark.webp" alt="PeaceFlow" class="auth-wordmark" width="104" height="72">
+      </div>
       <h1 class="auth-title">{{ t('signup.title') }}</h1>
       <p class="auth-subtitle">{{ t('signup.subtitle') }}</p>
 
@@ -481,3 +483,6 @@ onMounted(() => {
   box-shadow: 2px 2px 0 var(--peach-dark);
 }
 </style>
+
+<!-- Đồng bộ giao diện Dashboard (ảnh nền lá, thẻ trắng ngà, màu sage) — nạp sau cùng để ghi đè -->
+<style scoped src="../assets/auth-theme.css"></style>

@@ -1,0 +1,192 @@
+/* Giao diện chung các trang xác thực (đăng nhập, đăng ký, quên / đặt lại mật khẩu, xác nhận email),
+   đồng bộ với Dashboard: ảnh nền lá lớn phía sau, thẻ trắng ngà bo 24px không viền + bóng mềm,
+   màu nhấn sage #6F8F5E, tiêu đề Nunito, nội dung Inter, nút viên thuốc.
+   Nạp SAU style riêng của từng trang (<style scoped src>) để ghi đè. */
+
+.auth-container {
+  --auth-accent: #6F8F5E;
+  --auth-accent-soft: #E4ECDD;
+  --auth-line: rgba(74, 55, 40, 0.12);
+  position: relative;
+  isolation: isolate;
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding: calc(24px + env(safe-area-inset-top, 0px)) 16px calc(24px + env(safe-area-inset-bottom, 0px));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-canvas);
+  font-family: var(--font-body);
+}
+/* Ảnh nền lớn (cùng ảnh lá của Dashboard), phủ trọn màn hình, đứng yên khi cuộn */
+.auth-container::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  background: url('/images/dashboard-leaf-light.jpg') center / cover no-repeat;
+}
+/* Lớp sáng phủ nhẹ để chữ trên thẻ luôn dễ đọc, ảnh vẫn rõ ở rìa */
+.auth-container::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background: radial-gradient(ellipse at center, rgba(251, 246, 238, 0.55) 0%, rgba(251, 246, 238, 0.15) 70%, rgba(251, 246, 238, 0) 100%);
+  pointer-events: none;
+}
+
+.auth-card,
+.auth-card.paper-card {
+  width: 100%;
+  max-width: 420px;
+  padding: 36px 32px 30px;
+  border: none;
+  border-radius: 24px;
+  background: rgba(255, 253, 247, 0.9);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 24px 60px rgba(80, 70, 50, 0.16);
+  text-align: center;
+}
+.auth-card.paper-card::before,
+.auth-card.paper-card::after { display: none; }
+
+.auth-logo {
+  width: 60px;
+  height: 60px;
+  margin-bottom: 18px;
+  border: none;
+  border-radius: 50%;
+  background: var(--auth-accent-soft);
+  box-shadow: none;
+  font-size: 1.7rem;
+}
+.auth-greeting { color: var(--auth-accent); }
+.auth-title {
+  margin: 0 0 6px;
+  font-family: var(--font-heading);
+  font-size: 26px;
+  font-weight: 800;
+  line-height: 1.3;
+  color: #3F3127;
+}
+.auth-subtitle {
+  margin: 0 0 22px;
+  font-size: 14.5px;
+  line-height: 1.6;
+  color: var(--color-text-muted);
+}
+.auth-google-hint { font-size: 12.5px; color: var(--color-text-subtle); }
+
+.divider { color: var(--color-text-subtle); font-size: 13px; }
+.divider::before,
+.divider::after { border-top: 1px solid var(--auth-line) !important; border-top-style: solid !important; background: var(--auth-line); }
+
+.auth-form { text-align: left; }
+.form-label { font-family: var(--font-body); font-size: 13px; font-weight: 600; color: var(--color-text); }
+.form-input,
+:deep(.form-input),
+:deep(input[type="password"]),
+:deep(input[type="text"]),
+:deep(input[type="email"]) {
+  min-height: 46px;
+  border: 1px solid var(--auth-line);
+  border-radius: 12px;
+  background: #FFFDF7;
+  font-family: var(--font-body);
+  font-size: 15px;
+  color: var(--color-text);
+  box-shadow: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.form-input:focus,
+:deep(.form-input:focus),
+:deep(input[type="password"]:focus),
+:deep(input[type="text"]:focus),
+:deep(input[type="email"]:focus) {
+  outline: none;
+  border-color: var(--auth-accent);
+  box-shadow: 0 0 0 3px var(--auth-accent-soft);
+  background: #fff;
+}
+
+/* Nút chính: sage đầy, viên thuốc */
+.btn-secondary-auth,
+.auth-card .btn-primary {
+  width: 100%;
+  min-height: 48px;
+  border: none;
+  border-radius: 999px;
+  background: var(--auth-accent);
+  color: #fff;
+  font-family: var(--font-body);
+  font-size: 15px;
+  font-weight: 700;
+  box-shadow: 0 6px 16px rgba(79, 122, 90, 0.22);
+  transform: none;
+}
+.btn-secondary-auth:hover,
+.auth-card .btn-primary:hover { background: var(--auth-accent); filter: brightness(0.95); transform: none; box-shadow: 0 6px 16px rgba(79, 122, 90, 0.22); }
+.btn-secondary-auth:disabled,
+.auth-card .btn-primary:disabled { opacity: 0.6; filter: none; }
+
+.btn-google-native {
+  border: 1px solid var(--auth-line);
+  background: #fff;
+  color: var(--color-text);
+  font-weight: 700;
+  box-shadow: none;
+}
+
+.auth-links { font-size: 14px; color: var(--color-text-muted); }
+.auth-links a,
+.auth-form a,
+.checkbox-group a { color: var(--auth-accent); font-weight: 700; }
+
+.account-toggle { background: var(--color-canvas); border: none; border-radius: 999px; padding: 4px; }
+.toggle-chip { border: none; border-radius: 999px; background: transparent; color: var(--color-text-muted); font-weight: 600; }
+.toggle-chip.active { background: #fff; color: var(--auth-accent); box-shadow: 0 2px 8px rgba(80, 70, 50, 0.08); }
+
+.auth-message { border: none; border-radius: 14px; font-size: 14px; }
+
+@media (max-width: 480px) {
+  .auth-card,
+  .auth-card.paper-card { padding: 28px 20px 24px; border-radius: 20px; }
+  .auth-title { font-size: 23px; }
+}
+
+/* Thẻ cao trọn màn hình: chạm sát mép trên và mép dưới, nội dung căn giữa theo chiều dọc */
+.auth-container {
+  align-items: stretch;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+.auth-card,
+.auth-card.paper-card {
+  min-height: 100vh;
+  min-height: 100dvh;
+  margin: 0;
+  border-radius: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding-top: calc(32px + env(safe-area-inset-top, 0px));
+  padding-bottom: calc(32px + env(safe-area-inset-bottom, 0px));
+  box-shadow: 0 0 60px rgba(80, 70, 50, 0.14);
+}
+@media (max-width: 480px) {
+  .auth-container { padding-left: 0; padding-right: 0; }
+  .auth-card,
+  .auth-card.paper-card { max-width: none; border-radius: 0; }
+}
+
+/* Đầu thẻ: chỉ logo chữ PeaceFlow (không emoji), rồi 1 tiêu đề + 1 dòng phụ — nhịp 20 / 6 / 24 */
+.auth-brand { display: flex; justify-content: center; margin: 0 0 20px; }
+.auth-wordmark { display: block; height: 72px; width: auto; }
+.auth-title { margin: 0 0 6px; }
+.auth-subtitle { margin: 0 0 24px; }
+@media (max-width: 480px) { .auth-wordmark { height: 64px; } }
+
+/* Tiêu đề / dòng phụ ngắt dòng cân đối (không để 1-2 chữ lẻ loi ở dòng dưới) */
+.auth-title, .auth-subtitle { text-wrap: balance; }

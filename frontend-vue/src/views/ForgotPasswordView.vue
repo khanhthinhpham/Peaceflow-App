@@ -1,7 +1,9 @@
 <template>
   <div class="auth-container">
     <div class="paper-card auth-card">
-      <div class="auth-logo">🔐</div>
+      <div class="auth-brand">
+        <img src="/images/peaceflow-wordmark.webp" alt="PeaceFlow" class="auth-wordmark" width="104" height="72">
+      </div>
       <h1 style="font-size:1.4rem;margin-bottom:8px;">{{ t('forgotPassword.title') }}</h1>
       <p style="color:var(--text-secondary);font-size:0.9rem;margin-bottom:24px;">{{ t('forgotPassword.subtitle') }}</p>
 
@@ -63,3 +65,6 @@ async function handleSubmit() {
 .auth-links { margin-top: 20px; font-size: 0.85rem; color: var(--text-secondary); }
 .auth-links a { color: var(--mint-dark); font-weight: 700; }
 </style>
+
+<!-- Đồng bộ giao diện Dashboard (ảnh nền lá, thẻ trắng ngà, màu sage) — nạp sau cùng để ghi đè -->
+<style scoped src="../assets/auth-theme.css"></style>
