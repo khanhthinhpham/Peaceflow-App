@@ -122,6 +122,7 @@
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue';
 import { apiClient, API_BASE_URL } from '../../lib/apiClient';
+import { shrinkImageFile, MAX_UPLOAD_BYTES } from '../../lib/shrinkImage';
 
 const CATEGORY_LABELS = { easy: 'Dễ', medium: 'Trung bình', hard: 'Nâng cao', emergency: 'Khẩn cấp', community: 'Cộng đồng' };
 
@@ -197,9 +198,17 @@ function resetForm() {
   coverPreview.value = '';
 }
 
-function onCoverChange(e) {
-  const file = e.target.files?.[0];
-  if (!file) return;
+async function onCoverChange(e) {
+  const raw = e.target.files?.[0];
+  if (!raw) return;
+  formError.value = '';
+  // thu nhỏ trước khi gửi (ảnh PNG lớn vượt giới hạn ~4,5MB của máy chủ → báo "Không kết nối được máy chủ")
+  const file = await shrinkImageFile(raw);
+  if (file.size > MAX_UPLOAD_BYTES) {
+    formError.value = 'Ảnh quá lớn (tối đa 4MB). Hãy chọn ảnh JPG/PNG nhỏ hơn.';
+    e.target.value = '';
+    return;
+  }
   coverFile.value = file;
   coverPreview.value = URL.createObjectURL(file);
 }
