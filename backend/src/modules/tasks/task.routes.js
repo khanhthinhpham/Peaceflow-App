@@ -358,7 +358,7 @@ router.get('/admin/tasks', requireAuth, async (req, res) => {
       db.query(`select count(*)::int as total from tasks`),
       db.query(
         `select id, code, title, category, difficulty, duration_minutes, xp_reward, description,
-                steps, safety_notes, tags, active, created_at, (cover_image is not null or cover_r2 is not null) as has_cover
+                steps, safety_notes, tags, active, created_at, metadata, (cover_image is not null or cover_r2 is not null) as has_cover
          from tasks
          order by created_at desc
          limit $1 offset $2`,
@@ -379,6 +379,7 @@ router.post('/admin/tasks', requireAuth, coverUpload.single('cover'), compressUp
     if (validationError) return res.status(400).json({ success: false, message: validationError });
 
     const { code, title, category, duration_minutes: durationMinutes, xp_reward: xpReward, description, steps, safety_notes: safetyNotes, tags, active } = req.body;
+    const scientificBasis = parseArrayField(req.body.scientific_basis).map((x) => String(x).trim()).filter(Boolean).slice(0, 30);
     const finalCode = (code && String(code).trim()) || `custom-${Date.now()}`;
 
     const result = await db.query(
@@ -395,6 +396,13 @@ router.post('/admin/tasks', requireAuth, coverUpload.single('cover'), compressUp
         req.file?.mimetype || null
       ]
     );
+    if (result.rows[0]?.id) {
+      // Căn cứ khoa học: lưu trong metadata (jsonb có sẵn) → không cần thêm cột
+      await db.query(
+        `update tasks set metadata = coalesce(metadata, '{}'::jsonb) || jsonb_build_object('scientific_basis', $2::jsonb) where id = $1`,
+        [result.rows[0].id, JSON.stringify(scientificBasis)]
+      );
+    }
     if (req.file?.buffer && result.rows[0]?.id) await promoteImage('tasks', result.rows[0].id, req.file.buffer);
     invalidateTasksCache();
     return res.json({ success: true, data: result.rows[0] });
@@ -413,6 +421,8 @@ router.put('/admin/tasks/:id', requireAuth, coverUpload.single('cover'), compres
     if (validationError) return res.status(400).json({ success: false, message: validationError });
 
     const { title, category, duration_minutes: durationMinutes, xp_reward: xpReward, description, steps, safety_notes: safetyNotes, tags, active } = req.body;
+    const hasScience = req.body.scientific_basis !== undefined;
+    const scientificBasis = parseArrayField(req.body.scientific_basis).map((x) => String(x).trim()).filter(Boolean).slice(0, 30);
     const params = [
       req.params.id, title, category, Number(durationMinutes), Number(xpReward) || 10, description || null,
       JSON.stringify(parseArrayField(steps)),
@@ -436,6 +446,12 @@ router.put('/admin/tasks/:id', requireAuth, coverUpload.single('cover'), compres
       params
     );
     if (!result.rows[0]) return res.status(404).json({ success: false, message: 'Không tìm thấy nhiệm vụ.' });
+    if (hasScience) {
+      await db.query(
+        `update tasks set metadata = coalesce(metadata, '{}'::jsonb) || jsonb_build_object('scientific_basis', $2::jsonb) where id = $1`,
+        [req.params.id, JSON.stringify(scientificBasis)]
+      );
+    }
     if (req.file?.buffer) await promoteImage('tasks', req.params.id, req.file.buffer);
     invalidateTasksCache();
     return res.json({ success: true });

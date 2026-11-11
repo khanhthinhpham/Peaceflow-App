@@ -105,6 +105,18 @@
                   <li v-for="(item, idx) in safetyNotes" :key="idx">{{ item }}</li>
                 </ul>
               </div>
+              <!-- Căn cứ khoa học (admin nhập; link tự thành đường dẫn) -->
+              <div v-if="scienceRefs.length" class="td-note td-note-science">
+                <div class="steps-title" style="margin-bottom: 8px;">{{ t('taskDetail.phase1.scienceTitle') }}</div>
+                <ol class="td-science-list">
+                  <li v-for="(refParts, idx) in scienceRefs" :key="idx">
+                    <template v-for="(part, pi) in refParts" :key="pi">
+                      <a v-if="part.url" :href="part.url" target="_blank" rel="noopener noreferrer">{{ part.text }}</a>
+                      <template v-else>{{ part.text }}</template>
+                    </template>
+                  </li>
+                </ol>
+              </div>
               <div v-if="objective" class="td-note td-note-goal">
                 <div class="steps-title" style="margin-bottom: 8px;">{{ t('taskDetail.phase1.objectiveTitle') }}</div>
                 <div style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.6;">{{ objective }}</div>
@@ -379,6 +391,20 @@ const breathPhase = computed(() => BREATH_PHASES[breathPhaseIndex.value]);
 const meta = computed(() => getTaskMeta(task.value));
 const steps = computed(() => normalizeArray(task.value?.steps));
 const safetyNotes = computed(() => normalizeArray(task.value?.safety_notes));
+// Mỗi nguồn tách thành các đoạn chữ / link (chỉ nhận http(s), hiển thị bằng text — không dùng v-html)
+const scienceRefs = computed(() => normalizeArray(getTaskMeta(task.value).scientific_basis).map((line) => {
+  const parts = [];
+  const re = /https?:\/\/[^\s)]+/g;
+  let last = 0; let m;
+  const s = String(line);
+  while ((m = re.exec(s))) {
+    if (m.index > last) parts.push({ text: s.slice(last, m.index) });
+    parts.push({ text: m[0], url: m[0] });
+    last = m.index + m[0].length;
+  }
+  if (last < s.length) parts.push({ text: s.slice(last) });
+  return parts;
+}));
 const preparation = computed(() => normalizeArray(meta.value.preparation));
 const benefits = computed(() => normalizeArray(meta.value.benefits));
 const tags = computed(() => normalizeArray(task.value?.tags));
@@ -746,6 +772,10 @@ onBeforeUnmount(() => {
 .td-note-safety { background: var(--color-danger-soft); }
 .td-note-safety .steps-title { color: var(--color-danger); }
 .td-note-goal { background: var(--color-brand-soft); }
+.td-note-science { background: var(--color-canvas); }
+.td-science-list { margin: 0; padding-left: 20px; font-size: 0.85rem; line-height: 1.6; color: var(--color-text-muted); }
+.td-science-list li + li { margin-top: 4px; }
+.td-science-list a { color: var(--color-brand); word-break: break-all; text-decoration: underline; text-underline-offset: 2px; }
 .td-note-goal .steps-title { color: var(--color-brand); }
 
 /* Hẹn giờ / hít thở. */

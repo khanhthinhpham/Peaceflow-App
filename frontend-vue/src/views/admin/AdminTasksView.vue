@@ -65,6 +65,11 @@
           <textarea v-model="safetyNotesText" rows="2" class="admin-input" style="width:100%;font-family:inherit;" placeholder="Không bắt buộc"></textarea>
         </div>
         <div>
+          <label style="display:block;font-size:0.8rem;font-weight:700;margin-bottom:6px;">Căn cứ khoa học (mỗi dòng 1 nguồn — có thể dán kèm link)</label>
+          <textarea v-model="scienceText" rows="4" class="admin-input" style="width:100%;font-family:inherit;" placeholder="Vd: Kabat-Zinn J. (1990). Full Catastrophe Living — chánh niệm giảm căng thẳng (MBSR).&#10;Hölzel et al. (2011), Psychiatry Research — https://doi.org/10.1016/j.pscychresns.2010.08.006"></textarea>
+          <div style="font-size:0.75rem;color:var(--text-light);margin-top:4px;">Hiện ở trang chi tiết nhiệm vụ, mục "Căn cứ khoa học". Link (http…) tự thành đường dẫn bấm được.</div>
+        </div>
+        <div>
           <label style="display:block;font-size:0.8rem;font-weight:700;margin-bottom:6px;">Thẻ tag (phân cách bằng dấu phẩy)</label>
           <input v-model="tagsText" type="text" class="admin-input" style="width:100%;" placeholder="Tâm lý, Cảm xúc">
         </div>
@@ -150,6 +155,7 @@ const formError = ref('');
 const form = reactive({ code: '', title: '', category: 'easy', duration_minutes: 10, xp_reward: 10, description: '', active: true });
 const stepsText = ref('');
 const safetyNotesText = ref('');
+const scienceText = ref('');
 const tagsText = ref('');
 const coverFile = ref(null);
 const coverPreview = ref('');
@@ -192,6 +198,7 @@ function resetForm() {
   form.active = true;
   stepsText.value = '';
   safetyNotesText.value = '';
+  scienceText.value = '';
   tagsText.value = '';
   formError.value = '';
   coverFile.value = null;
@@ -231,6 +238,7 @@ async function openEdit(task) {
   form.active = task.active;
   stepsText.value = (task.steps || []).join('\n');
   safetyNotesText.value = (task.safety_notes || []).join('\n');
+  scienceText.value = (task.metadata?.scientific_basis || []).join('\n');
   tagsText.value = (task.tags || []).join(', ');
   formOpen.value = true;
   if (task.has_cover) {
@@ -264,6 +272,7 @@ async function save() {
     fd.append('description', form.description.trim());
     fd.append('steps', JSON.stringify(linesToArray(stepsText.value)));
     fd.append('safety_notes', JSON.stringify(linesToArray(safetyNotesText.value)));
+    fd.append('scientific_basis', JSON.stringify(linesToArray(scienceText.value)));
     fd.append('tags', JSON.stringify(tagsText.value.split(',').map((s) => s.trim()).filter(Boolean)));
     fd.append('active', form.active ? 'true' : 'false');
     if (coverFile.value) fd.append('cover', coverFile.value);
