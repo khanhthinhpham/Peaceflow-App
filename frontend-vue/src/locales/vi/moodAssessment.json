@@ -7,8 +7,8 @@
     "emergency": {
       "title": "Bạn không đơn độc",
       "text": "Nếu điểm số cao và bạn đang cảm thấy khó khăn, hãy để ai đó giúp bạn ngay bây giờ.",
-      "hotlineLabel": "Đường dây nóng sức khỏe tâm thần — Miễn phí, 24/7",
-      "callHotline": "📞 Gọi ngay hotline",
+      "hotlineLabel": "Hỗ trợ sử dụng tính năng PeaceFlow",
+      "callHotline": "Gọi hỗ trợ PeaceFlow",
       "connectExpert": "💬 Kết nối chuyên gia",
       "understood": "Tôi hiểu, đóng lại"
     },
@@ -69,7 +69,7 @@
     },
     "test": {
       "backBtn": "← Chọn bài khác",
-      "emergencyBtn": "🆘 Khẩn cấp",
+      "emergencyBtn": "Khẩn cấp",
       "questionCountUnit": "câu hỏi",
       "questionLabel": "Câu {n}",
       "questionLabelFull": "Câu {n} / {total}",
@@ -99,7 +99,7 @@
       "expertRecommendTitle": "Nên tham khảo chuyên gia",
       "expertRecommendDesc": "Kết quả cho thấy bạn có thể cần hỗ trợ chuyên sâu hơn",
       "bookNowBtn": "Đặt lịch tư vấn ngay",
-      "disclaimer": "<strong>Tuyên bố miễn trách:</strong> Kết quả này chỉ mang tính tham khảo và <strong>không phải chẩn đoán y khoa</strong>. Chỉ bác sĩ hoặc chuyên gia tâm lý lâm sàng mới có thể đưa ra chẩn đoán chính thức. Nếu bạn lo lắng về sức khỏe tâm thần, hãy liên hệ chuyên gia hoặc gọi <strong>0931773637</strong>.",
+      "disclaimer": "<strong>Tuyên bố miễn trách:</strong> Kết quả này chỉ mang tính tham khảo và <strong>không phải chẩn đoán y khoa</strong>. Chỉ bác sĩ hoặc chuyên gia tâm lý lâm sàng mới có thể đưa ra chẩn đoán chính thức. Nếu bạn lo lắng về sức khỏe tâm thần, hãy liên hệ chuyên gia. Cần hỗ trợ sử dụng PeaceFlow: <strong>0931773637</strong>.",
       "startTasksBtn": "Bắt đầu nhiệm vụ",
       "chatBtn": "Chat với PeaceCat",
       "expertsBtn": "Kết nối chuyên gia",

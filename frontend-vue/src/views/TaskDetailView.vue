@@ -8,11 +8,12 @@
         <div class="ep-title">{{ t('taskDetail.emergency.title') }}</div>
         <p class="ep-text">{{ t('taskDetail.emergency.text') }}</p>
         <div class="ep-hotline">
-          <div class="eph-num">📞 0931773637</div>
+          <div class="eph-num">0931773637</div>
           <div class="eph-label">{{ t('taskDetail.emergency.hotlineLabel') }}</div>
         </div>
         <div class="ep-actions">
-          <a href="tel:0931773637" class="ep-btn ep-btn-red">{{ t('taskDetail.emergency.callHotline') }}</a>
+          <a href="tel:115" class="ep-btn ep-btn-red">{{ t('legal.call115') }}</a>
+          <a href="tel:0931773637" class="ep-btn ep-btn-green">{{ t('taskDetail.emergency.callHotline') }}</a>
           <router-link to="/experts" class="ep-btn ep-btn-green">{{ t('taskDetail.emergency.connectExpert') }}</router-link>
           <button class="ep-btn ep-btn-ghost" @click="emergencyOpen = false">{{ t('taskDetail.emergency.imOk') }}</button>
         </div>

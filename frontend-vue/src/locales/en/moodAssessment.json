@@ -7,8 +7,8 @@
     "emergency": {
       "title": "You are not alone",
       "text": "If your score is high and you're struggling right now, let someone help you.",
-      "hotlineLabel": "Mental health hotline — Free, 24/7",
-      "callHotline": "📞 Call the hotline now",
+      "hotlineLabel": "PeaceFlow feature support line",
+      "callHotline": "Call PeaceFlow support",
       "connectExpert": "💬 Connect with an expert",
       "understood": "I understand, close"
     },
@@ -69,7 +69,7 @@
     },
     "test": {
       "backBtn": "← Choose another test",
-      "emergencyBtn": "🆘 Emergency",
+      "emergencyBtn": "Emergency",
       "questionCountUnit": "questions",
       "questionLabel": "Question {n}",
       "questionLabelFull": "Question {n} / {total}",
@@ -99,7 +99,7 @@
       "expertRecommendTitle": "Consider consulting an expert",
       "expertRecommendDesc": "Your results suggest you may need more in-depth support",
       "bookNowBtn": "Book a consultation now",
-      "disclaimer": "<strong>Disclaimer:</strong> This result is for reference only and is <strong>not a medical diagnosis</strong>. Only a doctor or clinical psychologist can provide an official diagnosis. If you're concerned about your mental health, please contact an expert or call <strong>0931773637</strong>.",
+      "disclaimer": "<strong>Disclaimer:</strong> This result is for reference only and is <strong>not a medical diagnosis</strong>. Only a doctor or clinical psychologist can provide an official diagnosis. If you're concerned about your mental health, please contact an expert. Need help using PeaceFlow: <strong>0931773637</strong>.",
       "startTasksBtn": "Start a task",
       "chatBtn": "Chat with PeaceCat",
       "expertsBtn": "Connect with an expert",

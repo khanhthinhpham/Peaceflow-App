@@ -72,7 +72,7 @@
       "journalDesc": "A private space, AES-256 encrypted. AI analyzes your emotions and offers gentle suggestions after each entry.",
       "journalLink": "Start journaling →",
       "emergencyTitle": "24/7 emergency support",
-      "emergencyDesc": "Automatic detection of danger keywords. Instant grounding exercises, a free hotline, and immediate expert connection.",
+      "emergencyDesc": "Automatic detection of risk keywords, instant grounding exercises, a prompt to call emergency 115 and fast connection to experts.",
       "emergencyLink": "Learn more →"
     },
     "moodDemo": {
@@ -88,7 +88,7 @@
     },
     "footer": {
       "brandDesc": "A mental health support platform that helps you get through stress and find peace every day through fun, gamified exercises.",
-      "hotlineLabel": "24/7 mental health support hotline",
+      "hotlineLabel": "Platform support line",
       "legalTitle": "Legal information",
       "legalCompany": "Company",
       "legalTaxId": "Business registration No.",

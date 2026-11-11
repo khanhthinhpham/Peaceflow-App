@@ -439,7 +439,7 @@
         </div>
         <p class="ep-text">{{ t('moodCheckin.emergency.text') }}</p>
         <div class="ep-hotline">
-          <div class="eph-num">📞 0931773637</div>
+          <div class="eph-num">0931773637</div>
           <div class="eph-label">{{ t('moodCheckin.emergency.hotlineLabel') }}</div>
         </div>
         <div class="ep-actions">

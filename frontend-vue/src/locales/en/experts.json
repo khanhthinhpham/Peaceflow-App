@@ -9,8 +9,8 @@
     "emergency": {
       "title": "You are not alone",
       "text": "If you're feeling really overwhelmed right now, let someone help you.",
-      "hotlineLabel": "Mental health hotline — Free, 24/7",
-      "callHotline": "Call the hotline now",
+      "hotlineLabel": "PeaceFlow feature support line",
+      "callHotline": "Call PeaceFlow support",
       "connectNow": "Connect with an expert now",
       "imOk": "I'm okay, close"
     },
@@ -142,7 +142,7 @@
       "viewProfileBtn": "View profile",
       "shareRecordBtn": "Share records"
     },
-    "disclaimer": "<strong>Disclaimer:</strong> PeaceFlow connects users with independent psychologists. We don't provide direct medical services. If you're in an emergency, call <strong>0931773637</strong> or go to the nearest medical facility.",
+    "disclaimer": "<strong>Disclaimer:</strong> PeaceFlow connects users with independent psychologists. We don't provide direct medical services. If you're in an emergency, call <strong>emergency 115</strong> or go to the nearest medical facility. Need help using PeaceFlow: <strong>0931773637</strong>.",
     "booking": {
       "titleWithName": "Book with {name}",
       "steps": { "step1": "1. Format", "step2": "2. Schedule", "step3": "3. Details", "step4": "4. Confirm" },

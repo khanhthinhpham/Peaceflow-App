@@ -3,8 +3,8 @@
     "emergency": {
       "title": "You are not alone",
       "text": "If you're feeling really overwhelmed right now, let someone help you.",
-      "hotlineLabel": "Mental health hotline — Free, 24/7",
-      "callHotline": "📞 Call the hotline now",
+      "hotlineLabel": "PeaceFlow feature support line",
+      "callHotline": "Call PeaceFlow support",
       "connectExpert": "💬 Connect with an expert",
       "imOk": "I'm okay, close"
     },
@@ -14,7 +14,7 @@
       "startBtn": "▶ Start now",
       "saveFavorite": "🤍 Save as favorite",
       "shareBtn": "📤 Share",
-      "emergencyBtn": "🆘 Emergency"
+      "emergencyBtn": "Emergency"
     },
     "phases": {
       "prepare": "Prepare",

@@ -281,7 +281,7 @@
           </div>
           <p>{{ t('landing.footer.brandDesc') }}</p>
           <div class="footer-hotline">
-            <div class="fh-num">📞 0931773637</div>
+            <div class="fh-num">0931773637</div>
             <div class="fh-label">{{ t('landing.footer.hotlineLabel') }}</div>
           </div>
           <a href="https://online.gov.vn/nen-tang/dbceffea-6475-46c3-80b7-21e803d8b6ec" target="_blank" rel="noopener" title="Đã xác nhận với Bộ Công Thương" style="display:inline-block;margin-top:16px;">

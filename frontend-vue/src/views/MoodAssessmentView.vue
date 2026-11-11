@@ -7,11 +7,12 @@
         <div class="ep-title">{{ t('moodAssessment.emergency.title') }}</div>
         <p class="ep-text">{{ t('moodAssessment.emergency.text') }}</p>
         <div class="ep-hotline">
-          <div class="eph-num">📞 0931773637</div>
+          <div class="eph-num">0931773637</div>
           <div class="eph-label">{{ t('moodAssessment.emergency.hotlineLabel') }}</div>
         </div>
         <div class="ep-actions">
-          <a href="tel:0931773637" class="ep-btn ep-btn-red">{{ t('moodAssessment.emergency.callHotline') }}</a>
+          <a href="tel:115" class="ep-btn ep-btn-red">{{ t('legal.call115') }}</a>
+          <a href="tel:0931773637" class="ep-btn ep-btn-green">{{ t('moodAssessment.emergency.callHotline') }}</a>
           <router-link to="/experts" class="ep-btn ep-btn-green">{{ t('moodAssessment.emergency.connectExpert') }}</router-link>
           <button class="ep-btn ep-btn-ghost" @click="emergencyOpen = false">{{ t('moodAssessment.emergency.understood') }}</button>
         </div>

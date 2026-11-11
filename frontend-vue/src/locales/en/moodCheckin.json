@@ -201,10 +201,10 @@
     "emergency": {
       "title": "You're not alone",
       "text": "We noticed you're going through a really hard time. Let someone help you right now.",
-      "hotlineLabel": "Mental health support hotline — Free, 24/7",
-      "callBtn": "📞 Call now",
+      "hotlineLabel": "PeaceFlow feature support line",
+      "callBtn": "Call PeaceFlow support",
       "chatExpertBtn": "💬 Chat with an expert",
-      "emergencyCallBtn": "🆘 Call 115 for emergency",
+      "emergencyCallBtn": "Call 115 for emergency",
       "closeBtn": "I'm okay, continue",
       "footer": "\"This too shall pass. Let someone help you.\""
     },

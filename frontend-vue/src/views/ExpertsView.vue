@@ -10,7 +10,8 @@
           <div class="eph-label">{{ t('experts.emergency.hotlineLabel') }}</div>
         </div>
         <div class="ep-actions">
-          <a href="tel:0931773637" class="ep-btn ep-btn-red">{{ t('experts.emergency.callHotline') }}</a>
+          <a href="tel:115" class="ep-btn ep-btn-red">{{ t('legal.call115') }}</a>
+          <a href="tel:0931773637" class="ep-btn ep-btn-green">{{ t('experts.emergency.callHotline') }}</a>
           <button class="ep-btn ep-btn-green" @click="emergencyOpen = false">{{ t('experts.emergency.connectNow') }}</button>
           <button class="ep-btn ep-btn-ghost" @click="emergencyOpen = false">{{ t('experts.emergency.imOk') }}</button>
         </div>

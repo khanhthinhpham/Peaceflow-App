@@ -9,8 +9,8 @@
     "emergency": {
       "title": "Bạn không đơn độc",
       "text": "Nếu bạn đang cảm thấy rất khó khăn, hãy để ai đó giúp bạn ngay bây giờ.",
-      "hotlineLabel": "Đường dây nóng sức khỏe tâm thần — Miễn phí, 24/7",
-      "callHotline": "Gọi ngay hotline",
+      "hotlineLabel": "Hỗ trợ sử dụng tính năng PeaceFlow",
+      "callHotline": "Gọi hỗ trợ PeaceFlow",
       "connectNow": "Kết nối chuyên gia ngay",
       "imOk": "Tôi ổn, đóng lại"
     },
@@ -142,7 +142,7 @@
       "viewProfileBtn": "Xem hồ sơ",
       "shareRecordBtn": "Gửi hồ sơ"
     },
-    "disclaimer": "<strong>Tuyên bố miễn trách:</strong> PeaceFlow kết nối người dùng với các chuyên gia tâm lý độc lập. Chúng tôi không cung cấp dịch vụ y tế trực tiếp. Nếu bạn đang trong tình trạng khẩn cấp, hãy gọi <strong>0931773637</strong> hoặc đến cơ sở y tế gần nhất.",
+    "disclaimer": "<strong>Tuyên bố miễn trách:</strong> PeaceFlow kết nối người dùng với các chuyên gia tâm lý độc lập. Chúng tôi không cung cấp dịch vụ y tế trực tiếp. Nếu bạn đang trong tình trạng khẩn cấp, hãy gọi <strong>Cấp cứu 115</strong> hoặc đến cơ sở y tế gần nhất. Cần hỗ trợ sử dụng PeaceFlow: <strong>0931773637</strong>.",
     "booking": {
       "titleWithName": "Đặt lịch với {name}",
       "steps": { "step1": "1. Hình thức", "step2": "2. Lịch hẹn", "step3": "3. Mô tả", "step4": "4. Xác nhận" },

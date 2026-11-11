@@ -1,7 +1,7 @@
 {
   "emergency": {
     "breadcrumbDashboard": "🏡 Overview",
-    "breadcrumbCurrent": "🆘 Emergency support",
+    "breadcrumbCurrent": "Emergency support",
     "taskModal": {
       "timeRemainingLabel": "Time remaining",
       "startBtn": "▶ Start",
@@ -14,10 +14,10 @@
       "reassure": "💚 It took courage to reach out for help"
     },
     "hotlines": {
-      "sectionTitle": "📞 Reach out now — Free, 24/7",
-      "mainLabel": "Mental health hotline",
-      "mainDesc": "Experts listening 24/7",
-      "mainBadge": "Free · Confidential",
+      "sectionTitle": "Contacts",
+      "mainLabel": "PeaceFlow platform support line",
+      "mainDesc": "Help with features, your account and bookings",
+      "mainBadge": "Usage support",
       "expertNum": "Chat now",
       "expertLabel": "Connect with a psychologist",
       "expertDesc": "Book an appointment or chat now",
@@ -124,7 +124,7 @@
       "The world keeps turning, and I have the right to slow down a little.",
       "I choose to trust myself."
     ],
-    "disclaimer": "⚠️ <strong>Important note:</strong> This app provides mental health support tools, NOT a medical service or clinical diagnosis. If you're in an emergency or having thoughts of self-harm, call <strong>0931773637</strong> or <strong>115</strong> right now.",
+    "disclaimer": "<strong>Important:</strong> This app provides mental wellbeing support tools and is NOT a medical or clinical diagnosis service. If you are in an emergency or thinking of harming yourself, call <strong>emergency 115</strong> now or go to the nearest medical facility. Need help using PeaceFlow: <strong>0931773637</strong>.",
     "expertQuick": {
       "title": "🩺 Experts online",
       "online": "🟢 Online",
@@ -139,7 +139,7 @@
       "subtitle": "When you're feeling unwell, follow these steps in order:",
       "step1": "Take 5 slow, deep breaths",
       "step2": "Call a trusted family member or friend",
-      "step3": "Call the hotline at 0931773637",
+      "step3": "Call emergency 115 or go to the nearest medical facility",
       "step4": "Chat with PeaceCat or an expert",
       "step5": "Go to the nearest medical facility if needed",
       "customizeBtn": "✏️ Customize my plan"

@@ -3,10 +3,10 @@
     "emergency": {
       "title": "You are not alone",
       "text": "We can see you're going through a really tough time. Let someone help you right now.",
-      "hotlineLabel": "Mental health hotline — Free, 24/7",
-      "callHotline": "Call the hotline now",
+      "hotlineLabel": "PeaceFlow feature support line",
+      "callHotline": "Call PeaceFlow support",
       "chatExpert": "Chat with a real expert",
-      "callRescue": "🆘 Call emergency 115",
+      "callRescue": "Call emergency 115",
       "imOk": "I'm okay, continue chatting",
       "quote": "\"This too shall pass. Let someone help you.\""
     },
@@ -66,7 +66,7 @@
       "noSuggestedTasksYet": "Tasks will be suggested once you share more...",
       "safetyTitle": "Safety note",
       "safetyText": "PeaceCat AI is a companion, <strong>not a doctor</strong>. If you need emergency support:",
-      "safetyBtn": "🆘 Get emergency support now"
+      "safetyBtn": "Get emergency support now"
     },
     "quickReplies": [
       "I'm feeling pretty stressed",
@@ -85,7 +85,7 @@
       "justNow": "Just now"
     },
     "botDefaultReply": "Sorry, I couldn't come up with a good response right now.",
-    "botErrorReply": "Sorry, I'm having a bit of trouble — please try again in a few minutes. If you need help right away, tap \"🆘 Emergency\" above.",
+    "botErrorReply": "Sorry, I'm having a bit of trouble — please try again in a few minutes. If you need help right away, tap \"SOS\" above.",
     "loadFailedStatus": "Couldn't load real data",
     "scoreLabels": {
       "anxiety": "Anxiety",

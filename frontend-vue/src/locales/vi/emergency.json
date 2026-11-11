@@ -1,7 +1,7 @@
 {
   "emergency": {
     "breadcrumbDashboard": "🏡 Tổng quan",
-    "breadcrumbCurrent": "🆘 Hỗ trợ khẩn cấp",
+    "breadcrumbCurrent": "Hỗ trợ khẩn cấp",
     "taskModal": {
       "timeRemainingLabel": "Thời gian còn lại",
       "startBtn": "▶ Bắt đầu",
@@ -14,10 +14,10 @@
       "reassure": "💚 Bạn đã dũng cảm khi tìm kiếm sự giúp đỡ"
     },
     "hotlines": {
-      "sectionTitle": "📞 Liên hệ ngay — Miễn phí, 24/7",
-      "mainLabel": "Đường dây nóng sức khỏe tâm thần",
-      "mainDesc": "Chuyên gia lắng nghe 24/7",
-      "mainBadge": "Miễn phí · Bảo mật",
+      "sectionTitle": "Liên hệ",
+      "mainLabel": "Đường dây hỗ trợ sử dụng nền tảng PeaceFlow",
+      "mainDesc": "Giải đáp cách dùng tính năng, tài khoản, đặt lịch",
+      "mainBadge": "Hỗ trợ sử dụng",
       "expertNum": "Chat ngay",
       "expertLabel": "Kết nối chuyên gia tâm lý",
       "expertDesc": "Đặt lịch hoặc chat ngay",
@@ -124,7 +124,7 @@
       "Thế giới vẫn đang vận hành, và tôi có quyền sống chậm lại một chút.",
       "Tôi chọn tin tưởng vào bản thân mình."
     ],
-    "disclaimer": "⚠️ <strong>Lưu ý quan trọng:</strong> Ứng dụng này cung cấp công cụ hỗ trợ sức khỏe tinh thần, KHÔNG phải dịch vụ y tế hoặc chẩn đoán lâm sàng. Nếu bạn đang trong tình trạng khẩn cấp hoặc có ý định tự hại, hãy gọi ngay <strong>0931773637</strong> hoặc <strong>115</strong>.",
+    "disclaimer": "<strong>Lưu ý quan trọng:</strong> Ứng dụng này cung cấp công cụ hỗ trợ sức khỏe tinh thần, KHÔNG phải dịch vụ y tế hoặc chẩn đoán lâm sàng. Nếu bạn đang trong tình trạng khẩn cấp hoặc có ý định tự hại, hãy gọi ngay <strong>Cấp cứu 115</strong> hoặc đến cơ sở y tế gần nhất. Cần hỗ trợ sử dụng PeaceFlow: <strong>0931773637</strong>.",
     "expertQuick": {
       "title": "🩺 Chuyên gia đang online",
       "online": "🟢 Đang online",
@@ -139,7 +139,7 @@
       "subtitle": "Khi cảm thấy không ổn, hãy làm theo thứ tự:",
       "step1": "Hít thở sâu 5 lần chậm rãi",
       "step2": "Gọi cho người thân hoặc bạn bè tin tưởng",
-      "step3": "Gọi đường dây nóng 0931773637",
+      "step3": "Gọi Cấp cứu 115 hoặc đến cơ sở y tế gần nhất",
       "step4": "Chat với PeaceCat hoặc chuyên gia",
       "step5": "Đến cơ sở y tế gần nhất nếu cần",
       "customizeBtn": "✏️ Tùy chỉnh kế hoạch của tôi"

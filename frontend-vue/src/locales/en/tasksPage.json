@@ -82,8 +82,8 @@
     "emergency": {
       "title": "You're not alone",
       "text": "If things feel really hard right now, let someone help you.",
-      "hotlineLabel": "Mental health support hotline — Free, 24/7",
-      "callBtn": "Call hotline now",
+      "hotlineLabel": "PeaceFlow feature support line",
+      "callBtn": "Call PeaceFlow support",
       "connectExpertBtn": "Connect with an expert",
       "closeBtn": "I'm okay, close this"
     }

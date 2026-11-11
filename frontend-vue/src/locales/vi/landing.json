@@ -72,7 +72,7 @@
       "journalDesc": "Không gian riêng tư, mã hóa AES-256. AI phân tích cảm xúc và đưa ra gợi ý nhẹ nhàng sau mỗi bài viết.",
       "journalLink": "Viết nhật ký →",
       "emergencyTitle": "Hỗ trợ khẩn cấp 24/7",
-      "emergencyDesc": "Phát hiện từ khóa nguy hiểm tự động. Bài tập ổn định tức thì, hotline miễn phí và kết nối chuyên gia ngay lập tức.",
+      "emergencyDesc": "Phát hiện từ khóa nguy hiểm tự động, bài tập ổn định tức thì, nhắc gọi Cấp cứu 115 và kết nối chuyên gia ngay.",
       "emergencyLink": "Tìm hiểu →"
     },
     "moodDemo": {
@@ -88,7 +88,7 @@
     },
     "footer": {
       "brandDesc": "Nền tảng hỗ trợ sức khỏe tinh thần, giúp bạn vượt qua căng thẳng, tìm lại sự bình yên mỗi ngày bằng các nhiệm vụ game hóa thú vị.",
-      "hotlineLabel": "Đường dây nóng hỗ trợ tâm lý 24/7",
+      "hotlineLabel": "Đường dây hỗ trợ sử dụng nền tảng",
       "legalTitle": "Thông tin pháp lý",
       "legalCompany": "Công ty",
       "legalTaxId": "Mã số doanh nghiệp",
