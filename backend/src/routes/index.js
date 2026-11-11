@@ -22,6 +22,7 @@ import supportRegistrationRoutes from '../modules/screening/support-registration
 import chatRoutes from '../modules/chat/chat.routes.js';
 import gardenRoutes from '../modules/garden/garden.routes.js';
 import consentRoutes from '../modules/consents/consent.routes.js';
+import surveyRoutes from '../modules/survey/survey.routes.js';
 
 const router = Router();
 
@@ -48,5 +49,6 @@ router.use('/', supportRegistrationRoutes);
 router.use('/', chatRoutes);
 router.use('/', gardenRoutes);
 router.use('/', consentRoutes);
+router.use('/', surveyRoutes);
 
 export default router;

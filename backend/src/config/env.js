@@ -84,5 +84,13 @@ export const env = {
 
   // VietQR — tra cứu tên chủ tài khoản (lookup). Đăng ký tại my.vietqr.io
   vietqrClientId: process.env.VIETQR_CLIENT_ID,
-  vietqrApiKey: process.env.VIETQR_API_KEY
+  vietqrApiKey: process.env.VIETQR_API_KEY,
+
+  // Khảo sát hài lòng (Sở Y tế — module src/modules/survey). Giao diện là trang tĩnh riêng (dự án khao-sat-hai-long).
+  // SURVEY_FRONTEND_ORIGINS: các origin của trang tĩnh đó được phép gọi API (CORS), cách nhau dấu phẩy.
+  surveyFrontendOrigins: [...new Set([...parseOrigins(process.env.SURVEY_FRONTEND_ORIGINS), 'http://localhost:3100'])],
+  // Gốc URL trang tĩnh — link/QR phiếu công khai trỏ tới <gốc>/survey.html?t=<token>
+  surveyPublicBaseUrl: (process.env.SURVEY_PUBLIC_BASE_URL || 'http://localhost:3100').replace(/\/+$/, ''),
+  // Muối băm số điện thoại người trả lời (Nghị định 13/2023). Không đặt thì dẫn xuất từ JWT secret (xem survey.routes.js).
+  surveyPhoneSalt: process.env.SURVEY_PHONE_SALT
 };

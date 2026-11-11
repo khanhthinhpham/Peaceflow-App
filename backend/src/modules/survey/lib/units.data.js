@@ -1,0 +1,53 @@
+
+/** 40 đơn vị theo mẫu báo cáo quý của Sở Y tế Nghệ An (Q3 demo.xlsx), giữ nguyên thứ tự. */
+const NAMES = [
+  'Bệnh viện Hữu nghị đa khoa Nghệ An',
+  'Bệnh viện Sản nhi',
+  'Bệnh viện Ung bướu',
+  'Bệnh viện Tâm thần',
+  'Bệnh viện Phổi',
+  'Bệnh viện YHCT',
+  'Bệnh viện Chấn thương chỉnh hình',
+  'Bệnh viện PHCN',
+  'Bệnh viện ĐKKV Tây Bắc',
+  'Bệnh viện ĐKKV Tây Nam',
+  'Bệnh viện Mắt',
+  'Bệnh viện Nội tiết',
+  'Bệnh viện ĐK TP Vinh',
+  'Bệnh viện ĐK Diễn Châu',
+  'Bệnh viện ĐK Nghi Lộc',
+  'Bệnh viện ĐK Quỳnh Lưu',
+  'Bệnh viện ĐK Đô Lương',
+  'Bệnh viện ĐK Yên Thành',
+  'Bệnh viện ĐK Thanh Chương',
+  'TT Huyết học TM',
+  'Trung tâm Y tế Kỳ Sơn',
+  'Trung tâm Y tế Tương Dương',
+  'Trung tâm Y tế Anh Sơn',
+  'Trung tâm Y tế Tân Kỳ',
+  'Trung tâm Y tế Quế Phong',
+  'Trung tâm Y tế Quỳ Châu',
+  'Trung tâm Y tế Quỳ Hợp',
+  'Trung tâm Y tế Nghĩa Đàn',
+  'Trung tâm Y tế Nam Đàn',
+  'Trung tâm Y tế thị xã Hoàng Mai',
+  'Trung tâm Y tế Hưng Nguyên',
+  'Trung tâm Y tế Con Cuông',
+  'Trung tâm Y tế Yên Thành',
+  'Trung tâm Y tế Đô Lương',
+  'Trung tâm Y tế Nghi Lộc',
+  'Trung tâm Y tế Quỳnh Lưu',
+  'Trung tâm Y tế thị xã Thái Hòa',
+  'Trung tâm Y tế Diễn Châu',
+  'Trung tâm Y tế Thanh Chương',
+  'Trung tâm Y tế thành phố Vinh',
+];
+
+const UNITS = NAMES.map((name, i) => ({
+  code: `NA${String(i + 1).padStart(2, '0')}`,
+  name,
+  type: i < 20 ? 'benh_vien' : 'ttyt',
+  sort: i + 1,
+}));
+
+export { UNITS };

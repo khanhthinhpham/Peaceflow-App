@@ -18,7 +18,8 @@
     "streak:fix": "node src/scripts/fix-streaks.js",
     "ai:embeddings": "node src/scripts/backfill-embeddings.js",
     "images:compress": "node src/scripts/compress-db-images.js",
-    "images:r2": "node src/scripts/images-to-r2.js"
+    "images:r2": "node src/scripts/images-to-r2.js",
+    "test:survey": "node --test \"tests/survey/*.test.js\""
   },
   "overrides": {
     "exceljs": {
@@ -42,6 +43,7 @@
     "multer": "^2.2.0",
     "pdfkit": "^0.19.0",
     "pg": "^8.13.1",
+    "qrcode": "^1.5.4",
     "resend": "^6.12.4",
     "sanitize-html": "^2.17.0",
     "sharp": "^0.35.5",

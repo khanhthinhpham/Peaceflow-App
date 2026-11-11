@@ -13,7 +13,8 @@ const app = express();
 // Dùng số 1 (tin đúng một lớp proxy) thay vì true, để không ai giả được X-Forwarded-For.
 app.set('trust proxy', 1);
 const allowAllOrigins = env.appUrls.includes('*');
-const allowedOrigins = new Set(env.appUrls);
+// + origin của trang khảo sát hài lòng chạy riêng (SURVEY_FRONTEND_ORIGINS, mặc định có http://localhost:3100).
+const allowedOrigins = new Set([...env.appUrls, ...env.surveyFrontendOrigins]);
 const LOG_LEVEL = (process.env.LOG_LEVEL || 'info').toLowerCase();
 const DEBUG_ENABLED = LOG_LEVEL === 'debug';
 
