@@ -1,8 +1,10 @@
 {
   "journal": {
     "shareWithExperts": {
-      "onTitle": "Shared with the experts you turned on \"Journal\" for — click to stop",
-      "offTitle": "Mark this entry as shared with the experts you turned on \"Journal\" for"
+      "share": "Share",
+      "shared": "Shared",
+      "onTitle": "The experts you chose can read this entry — click to stop sharing",
+      "offTitle": "Let the experts you chose read this entry"
     },
     "breadcrumbDashboard": "Overview",
     "breadcrumbJournal": "Emotional journal",
@@ -14,6 +16,7 @@
     "tabHistory": "Library",
     "untitled": "Untitled entry",
     "editor": {
+      "shareWithExperts": "Let my experts read this",
       "todayMoodLabel": "Today's mood:",
       "private": "Private",
       "public": "Public",

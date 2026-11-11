@@ -90,9 +90,11 @@
       "dialogTitle": "Share with experts",
       "manage": "Manage sharing",
       "journal": "Journal (entries marked as shared)",
-      "journalDesc": "Journal: an expert can read only the entries you mark as shared, and only if you turn on \"Journal\" for that expert.",
+      "journalDesc": "Experts can read only the entries you mark \"Share\" (or tick \"Let my experts read this\" while writing), and only if you tick that expert here.",
       "promptJournal": "This entry is marked as shared, but you have not turned on \"Journal\" for any expert yet, so nobody can read it. Choose who can read your journal:",
-      "promptMood": "Check-in saved. You have not shared check-ins with any expert yet, so they cannot see it. To let an expert follow along, choose below:"
+      "promptMood": "Check-in saved. You have not shared check-ins with any expert yet, so they cannot see it. To let an expert follow along, choose below:",
+      "journalPill": "Choose experts to read my journal",
+      "journalPillCount": "{n} expert(s) can read shared entries"
     }
   }
 }

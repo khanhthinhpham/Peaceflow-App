@@ -1,6 +1,8 @@
 <template>
   <button type="button" class="lg-share-pill" :title="t('legal.shares.desc')" @click="open = true">
-    {{ count ? t('legal.shares.pillCount', { n: count }) : t('legal.shares.pill') }}
+    {{ kind === 'journal'
+      ? (count ? t('legal.shares.journalPillCount', { n: count }) : t('legal.shares.journalPill'))
+      : (count ? t('legal.shares.pillCount', { n: count }) : t('legal.shares.pill')) }}
   </button>
   <Teleport to="body">
     <div v-if="open" class="lg-dialog-overlay" @click.self="open = false">

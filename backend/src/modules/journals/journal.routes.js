@@ -70,7 +70,7 @@ router.patch('/journal/:id', requireAuth, async (req, res) => {
 
 // POST /api/v1/journal
 router.post('/journal', requireAuth, async (req, res) => {
-  const { title, content, mood_before, mood_after, sentiment_score, tags, is_private } = req.body;
+  const { title, content, mood_before, mood_after, sentiment_score, tags, is_private, shared_with_experts } = req.body;
   const client = await db.connect();
 
   if (!content || !content.trim()) {
@@ -85,8 +85,8 @@ router.post('/journal', requireAuth, async (req, res) => {
 
     const result = await client.query(
       `insert into journal_entries
-        (user_id, title, content, mood_before, mood_after, sentiment_score, tags, is_private)
-       values ($1, $2, $3, $4, $5, $6, $7, $8)
+        (user_id, title, content, mood_before, mood_after, sentiment_score, tags, is_private, shared_with_experts)
+       values ($1, $2, $3, $4, $5, $6, $7, $8, $9)
        returning *`,
       [
         req.user.sub,
@@ -96,7 +96,8 @@ router.post('/journal', requireAuth, async (req, res) => {
         mood_after || null,
         sentiment_score || null,
         JSON.stringify(tags || []),
-        is_private !== undefined ? Boolean(is_private) : true
+        is_private !== undefined ? Boolean(is_private) : true,
+        shared_with_experts === true // chọn "Cho chuyên gia đọc bài này" ngay lúc viết
       ]
     );
 

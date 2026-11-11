@@ -107,7 +107,7 @@ router.get('/me/export', requireAuth, async (req, res) => {
       db.query(`select id, email, full_name, display_name, phone, gender, city, country, created_at from users where id = $1`, [userId]),
       db.query(`select * from user_profiles where user_id = $1`, [userId]).catch(() => ({ rows: [] })),
       db.query(`select mood_score, anxiety_score, stress_score, energy_score, dominant_emotion, notes, created_at from mood_checkins where user_id = $1 order by created_at desc`, [userId]).catch(() => ({ rows: [] })),
-      db.query(`select title, content, tags, sentiment_score, created_at from journal_entries where user_id = $1 and is_private = false order by created_at desc`, [userId]).catch(() => ({ rows: [] })),
+      db.query(`select title, content, tags, sentiment_score, created_at from journal_entries where user_id = $1 order by created_at desc`, [userId]).catch(() => ({ rows: [] })),
       db.query(`select t.title, t.category, tc.xp_earned, tc.created_at from task_completions tc join tasks t on t.id = tc.task_id where tc.user_id = $1 order by tc.created_at desc`, [userId]).catch(() => ({ rows: [] })),
       db.query(`select total_xp, current_level, current_streak, longest_streak from user_progress where user_id = $1`, [userId]).catch(() => ({ rows: [] })),
       db.query(`select b.name, b.code, ub.earned_at from user_badges ub join badges b on b.id = ub.badge_id where ub.user_id = $1`, [userId]).catch(() => ({ rows: [] }))

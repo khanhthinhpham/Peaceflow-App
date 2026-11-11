@@ -1,8 +1,10 @@
 {
   "journal": {
     "shareWithExperts": {
-      "onTitle": "Bài này đang được chia sẻ với các chuyên gia bạn đã bật \"Nhật ký\" — bấm để ngừng",
-      "offTitle": "Đánh dấu chia sẻ bài này với các chuyên gia bạn đã bật \"Nhật ký\""
+      "share": "Chia sẻ",
+      "shared": "Đã chia sẻ",
+      "onTitle": "Chuyên gia bạn chọn đang đọc được bài này — bấm để ngừng chia sẻ",
+      "offTitle": "Cho các chuyên gia bạn đã chọn đọc bài này"
     },
     "breadcrumbDashboard": "Tổng quan",
     "breadcrumbJournal": "Nhật ký cảm xúc",
@@ -14,6 +16,7 @@
     "tabHistory": "Thư viện",
     "untitled": "Nhật ký không tiêu đề",
     "editor": {
+      "shareWithExperts": "Cho chuyên gia đọc bài này",
       "todayMoodLabel": "Cảm xúc hôm nay:",
       "private": "Riêng tư",
       "public": "Công khai",

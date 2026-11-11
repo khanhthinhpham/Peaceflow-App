@@ -52,9 +52,11 @@
                   </div>
                 </div>
                 <div class="etb-right">
-                  <div class="privacy-toggle" @click="togglePrivacy">
-                    <span>{{ isPrivate ? t('journal.editor.private') : t('journal.editor.public') }}</span>
-                  </div>
+                  <label class="share-toggle" :class="{ on: shareNewEntry }">
+                    <input v-model="shareNewEntry" type="checkbox">
+                    <NavIcon name="experts" />
+                    <span>{{ t('journal.editor.shareWithExperts') }}</span>
+                  </label>
                 </div>
               </div>
 
@@ -187,8 +189,9 @@
                       class="ec-share-btn"
                       :class="{ 'is-shared': entry.shared_with_experts }"
                       :title="entry.shared_with_experts ? t('journal.shareWithExperts.onTitle') : t('journal.shareWithExperts.offTitle')"
+                      :aria-pressed="entry.shared_with_experts ? 'true' : 'false'"
                       @click.stop="toggleEntryShare(entry)"
-                    >🩺</button>
+                    ><NavIcon :name="entry.shared_with_experts ? 'check' : 'experts'" />{{ entry.shared_with_experts ? t('journal.shareWithExperts.shared') : t('journal.shareWithExperts.share') }}</button>
                     <div class="ec-mood-emoji">{{ getEntryPresentation(entry).emoji }}</div>
                   </div>
                 </div>
@@ -283,6 +286,7 @@ import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 import { apiClient } from '../lib/apiClient';
 import ExpertSharePill from '../components/legal/ExpertSharePill.vue';
+import NavIcon from '../components/NavIcon.vue';
 import { useAuthStore } from '../stores/auth';
 
 const { t, tm, locale } = useI18n();
@@ -347,7 +351,7 @@ const entries = ref([]);
 const dashboard = ref(null);
 const selectedMood = ref(null);
 const selectedTags = reactive(new Set());
-const isPrivate = ref(true);
+const shareNewEntry = ref(false); // "Cho chuyên gia đọc bài này" khi viết
 const activeFilter = ref('all');
 const searchQuery = ref('');
 const currentPromptIndex = ref(0);
@@ -432,9 +436,6 @@ function selectMood(mood) {
 function toggleTag(tag) {
   if (selectedTags.has(tag)) selectedTags.delete(tag);
   else selectedTags.add(tag);
-}
-function togglePrivacy() {
-  isPrivate.value = !isPrivate.value;
 }
 function refreshPrompt() {
   currentPromptIndex.value = (currentPromptIndex.value + 1) % journalPrompts.value.length;
@@ -639,7 +640,7 @@ function clearEditor() {
   content.value = '';
   selectedMood.value = null;
   selectedTags.clear();
-  isPrivate.value = true;
+  shareNewEntry.value = false;
 }
 function viewEntry(id) {
   activeEntry.value = entries.value.find((e) => String(e.id) === String(id)) || null;
@@ -683,7 +684,7 @@ function saveDraftAndRedirectToLogin() {
     content: content.value,
     selectedMood: selectedMood.value,
     selectedTags: Array.from(selectedTags),
-    isPrivate: isPrivate.value
+    shareNewEntry: shareNewEntry.value
   }));
   sessionStorage.setItem('peaceflow_post_login_redirect', '/journal');
   router.push('/login');
@@ -699,7 +700,7 @@ function restoreDraftIfAny() {
     selectedMood.value = draft.selectedMood || null;
     selectedTags.clear();
     (draft.selectedTags || []).forEach((tag) => selectedTags.add(tag));
-    isPrivate.value = draft.isPrivate ?? true;
+    shareNewEntry.value = Boolean(draft.shareNewEntry);
   } catch (_error) {
     // Nháp hỏng -> bỏ qua, không chặn trang load.
   }
@@ -727,8 +728,10 @@ async function saveEntry() {
       mood_before: moodMeta?.score ?? null,
       sentiment_score: sentimentScore,
       tags,
-      is_private: isPrivate.value
+      shared_with_experts: shareNewEntry.value
     });
+    // vừa chia sẻ mà chưa chọn chuyên gia nào được đọc → hỏi chọn luôn
+    if (shareNewEntry.value) journalSharePill.value?.promptIfNone(t('legal.shares.promptJournal'));
 
     entries.value.unshift({ ...result, tags: normalizeArray(result.tags) });
 
@@ -902,8 +905,14 @@ onBeforeUnmount(() => {
 .ec-date, .ec-wordcount { color: var(--color-text-subtle); }
 .ec-preview { font-family: inherit; color: var(--color-text-muted); }
 .ec-tag { border: none; background: var(--color-canvas); color: var(--color-text-muted); }
-.ec-share-btn { border: none; background: var(--color-surface-muted); }
-.ec-share-btn.is-shared { background: var(--color-brand-soft); }
+.ec-share-btn { display: inline-flex; align-items: center; gap: 5px; width: auto; height: 30px; padding: 0 12px; border: none; border-radius: 999px; background: var(--color-canvas); color: var(--color-text-muted); font: 600 12px var(--font-body); white-space: nowrap; opacity: 1; }
+.ec-share-btn .nav-icon { width: 14px; height: 14px; }
+.ec-share-btn:hover { background: var(--color-brand-soft); color: var(--color-brand); opacity: 1; }
+.share-toggle { display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 0 12px; border-radius: 999px; background: var(--color-canvas); color: var(--color-text-muted); font: 600 12.5px var(--font-body); cursor: pointer; user-select: none; }
+.share-toggle input { width: 16px; height: 16px; margin: 0; accent-color: var(--color-brand); cursor: pointer; }
+.share-toggle .nav-icon { width: 16px; height: 16px; }
+.share-toggle.on { background: var(--color-brand-soft); color: var(--color-brand); }
+.ec-share-btn.is-shared { background: var(--color-brand-soft); color: var(--color-brand); border: none; }
 
 /* Cột phải: lịch, thống kê, xu hướng, gợi ý viết. */
 .mc-nav { color: var(--color-text-muted); }
