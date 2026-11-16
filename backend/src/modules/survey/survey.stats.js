@@ -2,22 +2,20 @@
 // Mọi phép tính chỉ số dùng hàm thuần trong lib/indices.js (QĐ 56/QĐ-BYT mục III).
 // Các hàm nhận `q` = đối tượng có q.query(text, params) → { rows } (pg Pool hoặc client).
 import { COMPONENTS, emptyCounts, computeIndices, mergeCounts, mean, pct } from './lib/indices.js';
-import { kcbSampleSize, tcmrSampleSize, nvytSampleSize } from './lib/sampleSize.js';
+import { kcbSampleSize, nvytSampleSize } from './lib/sampleSize.js';
 
 export const QUY_FORMS = ['noi_tru', 'ngoai_tru', 'nhan_vien'];
-export const TCMR_FORMS = ['tcmr'];
-export const FORM_LABELS = { noi_tru: 'Người bệnh nội trú', ngoai_tru: 'Người bệnh ngoại trú', nhan_vien: 'Nhân viên y tế', tcmr: 'Tiêm chủng mở rộng' };
+export const FORM_LABELS = { noi_tru: 'Người bệnh nội trú', ngoai_tru: 'Người bệnh ngoại trú', nhan_vien: 'Nhân viên y tế' };
 export const TARGETS = { 2025: 85, 2030: 90 };
 
-export const formsForRound = (round) => (round.kind === 'tcmr' ? TCMR_FORMS : QUY_FORMS);
+export const formsForRound = () => QUY_FORMS;
 
-/** TCMR chỉ áp dụng cho TTYT/TYT; KCB và NVYT cho bệnh viện và TTYT. */
-export function formApplies(unit, formCode) {
-  if (formCode === 'tcmr') return unit.type === 'ttyt' || unit.type === 'tyt';
+/** KCB và NVYT áp dụng cho bệnh viện và TTYT. */
+export function formApplies(unit, formCode) { // eslint-disable-line no-unused-vars
   return unit.type !== 'tyt';
 }
 
-export const roundLabel = (r) => (r.kind === 'tcmr' ? `TCMR đợt ${r.period}/${r.year}` : `Quý ${r.period}/${r.year}`);
+export const roundLabel = (r) => `Quý ${r.period}/${r.year}`;
 
 function filters({ includeExcluded = false, source = 'tu_do' } = {}) {
   let sql = '';
@@ -49,25 +47,9 @@ export function requiredSample(units, unit, formCode) {
       return kcbSampleSize(unit.luot_ngoai_tru_ngay);
     case 'nhan_vien':
       return nvytSampleSize(unit.so_nhan_vien);
-    case 'tcmr': {
-      if (unit.type === 'tyt') return tcmrSampleSize(unit.luot_tiem_thang);
-      const tyts = units.children.get(unit.id) || [];
-      if (tyts.length) {
-        const parts = tyts.map((t) => tcmrSampleSize(t.luot_tiem_thang));
-        return parts.some((p) => p === null) ? null : parts.reduce((s, x) => s + x, 0);
-      }
-      const per = tcmrSampleSize(unit.luot_tiem_thang);
-      return per === null ? null : per * Math.max(1, unit.so_tyt || 1);
-    }
     default:
       return null;
   }
-}
-
-function soTyt(units, unit) {
-  if (unit.type !== 'ttyt') return null;
-  const n = (units.children.get(unit.id) || []).length;
-  return n > 0 ? n : unit.so_tyt ?? null;
 }
 
 /** Đếm câu trả lời 4–5 / 1–5 theo (đơn vị hoặc TYT, mẫu phiếu, thành phần). */
@@ -117,75 +99,50 @@ async function findRound(q, kind, year, period) {
   return rows[0] || null;
 }
 
-/** Năm + quý → đợt quý và đợt TCMR cùng nửa năm (Q1–2 → đợt 1, Q3–4 → đợt 2). */
+/** Năm + quý (hoặc id đợt) → đợt quý. */
 export async function resolveRounds(q, { year, quarter, roundId }) {
   let quy = null;
   if (roundId) {
-    const { rows } = await q.query('select * from ks_rounds where id = $1', [roundId]);
-    const r = rows[0];
-    if (r && r.kind === 'tcmr') return { quy: null, tcmr: r };
-    quy = r || null;
+    const { rows } = await q.query("select * from ks_rounds where id = $1 and kind = 'quy'", [roundId]);
+    quy = rows[0] || null;
   } else if (year && quarter) {
     quy = await findRound(q, 'quy', year, quarter);
   }
-  const y = quy ? quy.year : year;
-  const qq = quy ? quy.period : quarter;
-  const tcmr = y && qq ? await findRound(q, 'tcmr', y, qq <= 2 ? 1 : 2) : null;
-  return { quy, tcmr };
+  return { quy };
 }
 
-/** Bảng tổng hợp toàn bộ đơn vị cho một quý (và đợt TCMR tương ứng) + chỉ số tỉnh + KPI. */
+/** Bảng tổng hợp toàn bộ đơn vị cho một quý + chỉ số tỉnh + KPI. */
 export async function provinceSummary(q, { year, quarter, roundId, unitType = 'all', includeExcluded = false, source = 'tu_do', units: preUnits } = {}) {
   const units = preUnits || (await loadUnits(q));
-  const { quy, tcmr } = await resolveRounds(q, { year, quarter, roundId });
+  const { quy } = await resolveRounds(q, { year, quarter, roundId });
   const opts = { includeExcluded, source };
   const quyIds = quy ? [quy.id] : [];
-  const tcmrIds = tcmr ? [tcmr.id] : [];
-  const [cQuy, cTcmr, nQuy, nTcmr, tcmrEntities, impRows] = await Promise.all([
+  const [cQuy, nQuy, impRows] = await Promise.all([
     componentCounts(q, quyIds, opts),
-    componentCounts(q, tcmrIds, opts),
     responseCounts(q, quyIds, opts),
-    responseCounts(q, tcmrIds, opts),
-    componentCounts(q, tcmrIds, { ...opts, groupBy: 'entity' }),
-    q.query('select * from ks_improvements where round_id = any($1::int[])', [[...quyIds, ...tcmrIds]]).then((r) => r.rows),
+    q.query('select * from ks_improvements where round_id = any($1::int[])', [quyIds]).then((r) => r.rows),
   ]);
   const imp = new Map(impRows.map((r) => [`${r.unit_id}:${r.round_id}`, r]));
   const reporting = units.all.filter((u) => u.type !== 'tyt' && u.active && (unitType === 'all' || u.type === unitType));
 
   const rows = reporting.map((u) => {
     const fq = cQuy.get(u.id) || {};
-    const ft = cTcmr.get(u.id) || {};
     const forms = {};
-    const mk = (counts, n, f) => {
-      const ix = counts ? computeIndices(counts) : null;
-      return { n, required: requiredSample(units, u, f), index: ix ? ix.method2 : null, method1: ix ? ix.method1 : null, components: ix ? ix.components : null };
-    };
-    for (const f of QUY_FORMS) forms[f] = mk(fq[f], (nQuy.get(u.id) || {})[f]?.n || 0, f);
-    if (u.type === 'ttyt') forms.tcmr = mk(ft.tcmr, (nTcmr.get(u.id) || {}).tcmr?.n || 0, 'tcmr');
-
+    for (const f of QUY_FORMS) {
+      const ix = fq[f] ? computeIndices(fq[f]) : null;
+      forms[f] = { n: (nQuy.get(u.id) || {})[f]?.n || 0, required: requiredSample(units, u, f), index: ix ? ix.method2 : null, method1: ix ? ix.method1 : null, components: ix ? ix.components : null };
+    }
     const kcb = computeIndices(mergeCounts(fq.noi_tru, fq.ngoai_tru));
     const iQuy = quy ? imp.get(`${u.id}:${quy.id}`) : null;
-    const iTcmr = tcmr ? imp.get(`${u.id}:${tcmr.id}`) : null;
-    const tytTotal = soTyt(units, u);
-    let tytDone = null;
-    if (u.type === 'ttyt') {
-      if ((units.children.get(u.id) || []).length > 0) tytDone = (nTcmr.get(u.id) || {}).tcmr?.tyt_count || 0;
-      else tytDone = iTcmr?.so_tyt_thuc_hien ?? null;
-    }
     const measuredKcb = forms.noi_tru.n + forms.ngoai_tru.n > 0;
-    const measuredAny = measuredKcb || forms.nhan_vien.n > 0 || (forms.tcmr ? forms.tcmr.n > 0 : false);
-    const hasPlan = !!(iQuy?.applied || iTcmr?.applied);
+    const measuredAny = measuredKcb || forms.nhan_vien.n > 0;
     return {
       id: u.id,
       code: u.code,
       name: u.name,
       type: u.type,
       co_mau_kcb: forms.noi_tru.n + forms.ngoai_tru.n,
-      co_mau_tcmr: forms.tcmr ? forms.tcmr.n : null,
-      so_tyt: tytTotal,
-      so_tyt_thuc_hien: tytDone,
-      ty_le_tyt: tytTotal && tytDone !== null ? pct(tytDone, tytTotal) : null,
-      ap_dung: measuredAny ? hasPlan : null,
+      ap_dung: measuredAny ? !!iQuy?.applied : null,
       chung: kcb.valid ? kcb.method2 : null,
       chung_method1: kcb.valid ? kcb.method1 : null,
       measured_kcb: measuredKcb,
@@ -194,69 +151,46 @@ export async function provinceSummary(q, { year, quarter, roundId, unitType = 'a
     };
   });
 
-  // TCMR cấp tỉnh = TB cộng chỉ số các TYT đã đo (TTYT chưa nhập danh sách TYT thì tính theo TTYT).
-  const reportingIds = new Set(reporting.map((u) => u.id));
-  const tcmrIdx = [];
-  const tcmrComp = Object.fromEntries(COMPONENTS.map((k) => [k, []]));
-  for (const [eid, byForm] of tcmrEntities) {
-    const e = units.byId.get(eid);
-    const owner = e && e.type === 'tyt' ? e.parent_id : eid;
-    if (!reportingIds.has(owner) || !byForm.tcmr) continue;
-    const ix = computeIndices(byForm.tcmr);
-    if (ix.method2 !== null) tcmrIdx.push(ix.method2);
-    for (const k of COMPONENTS) if (ix.components[k] !== null) tcmrComp[k].push(ix.components[k]);
-  }
-
   const province = {
     chung: mean(rows.map((r) => r.chung)),
     noi_tru: mean(rows.map((r) => r.forms.noi_tru.index)),
     ngoai_tru: mean(rows.map((r) => r.forms.ngoai_tru.index)),
     nhan_vien: mean(rows.map((r) => r.forms.nhan_vien.index)),
-    tcmr: mean(tcmrIdx),
-    tcmr_so_diem_do: tcmrIdx.length,
   };
   const componentsByForm = {};
   for (const f of QUY_FORMS) componentsByForm[f] = Object.fromEntries(COMPONENTS.map((k) => [k, mean(rows.map((r) => r.forms[f].components?.[k] ?? null))]));
-  componentsByForm.tcmr = Object.fromEntries(COMPONENTS.map((k) => [k, mean(tcmrComp[k])]));
 
-  const ttyt = rows.filter((r) => r.type === 'ttyt');
-  const sumTyt = ttyt.reduce((s, r) => s + (r.so_tyt || 0), 0);
-  const sumTytDone = ttyt.reduce((s, r) => s + (r.so_tyt_thuc_hien || 0), 0);
   const measured = rows.filter((r) => r.measured_any);
   const nKcb = rows.filter((r) => r.measured_kcb).length;
   const kpi = {
     tong_don_vi: rows.length,
     so_don_vi_do_kcb: nKcb,
     ty_le_don_vi_do_kcb: rows.length ? pct(nKcb, rows.length) : null,
-    tong_tyt: sumTyt,
-    tyt_thuc_hien: sumTytDone,
-    ty_le_tyt_tcmr: sumTyt ? pct(sumTytDone, sumTyt) : null,
     so_don_vi_da_do: measured.length,
     so_don_vi_ap_dung: measured.filter((r) => r.ap_dung).length,
     ty_le_ap_dung: measured.length ? pct(measured.filter((r) => r.ap_dung).length, measured.length) : null,
   };
 
   const pending = [];
-  for (const r of rows) {
-    for (const [f, v] of Object.entries(r.forms)) {
-      if ((f === 'tcmr' && !tcmr) || (f !== 'tcmr' && !quy)) continue;
-      if (v.required === null || v.n < v.required) pending.push({ code: r.code, name: r.name, form: f, n: v.n, required: v.required });
+  if (quy) {
+    for (const r of rows) {
+      for (const [f, v] of Object.entries(r.forms)) {
+        if (v.required === null || v.n < v.required) pending.push({ code: r.code, name: r.name, form: f, n: v.n, required: v.required });
+      }
     }
   }
-  return { round: quy, tcmrRound: tcmr, rows, province, componentsByForm, kpi, pending, targets: TARGETS, method: 'method2' };
+  return { round: quy, rows, province, componentsByForm, kpi, pending, targets: TARGETS, method: 'method2' };
 }
 
 export async function provinceTrend(q, { unitType = 'all', source = 'tu_do' } = {}) {
   const units = await loadUnits(q);
-  const { rows: all } = await q.query('select * from ks_rounds order by year, period');
+  const { rows: all } = await q.query("select * from ks_rounds where kind = 'quy' order by year, period");
   const quarters = [];
-  const tcmr = [];
   for (const r of all) {
     const s = await provinceSummary(q, { roundId: r.id, unitType, source, units });
-    if (r.kind === 'quy') quarters.push({ round_id: r.id, label: roundLabel(r), chung: s.province.chung, noi_tru: s.province.noi_tru, ngoai_tru: s.province.ngoai_tru, nhan_vien: s.province.nhan_vien });
-    else tcmr.push({ round_id: r.id, label: roundLabel(r), tcmr: s.province.tcmr });
+    quarters.push({ round_id: r.id, label: roundLabel(r), chung: s.province.chung, noi_tru: s.province.noi_tru, ngoai_tru: s.province.ngoai_tru, nhan_vien: s.province.nhan_vien });
   }
-  return { quarters, tcmr };
+  return { quarters };
 }
 
 /** Tiêu chí có tỷ lệ hài lòng thấp nhất (toàn tỉnh hoặc một đơn vị). */
@@ -303,6 +237,6 @@ export async function unitDetail(q, unitId, round, opts = {}, preUnits = null) {
     const ix = computeIndices(counts[f] || emptyCounts());
     forms[f] = { label: FORM_LABELS[f], n: ns[f]?.n || 0, flagged: ns[f]?.flagged || 0, required: requiredSample(units, unit, f), method1: ix.method1, method2: ix.method2, components: ix.components };
   }
-  const chung = round.kind === 'quy' ? computeIndices(mergeCounts(counts.noi_tru, counts.ngoai_tru)) : null;
+  const chung = computeIndices(mergeCounts(counts.noi_tru, counts.ngoai_tru));
   return { unit, round: { ...round, label: roundLabel(round) }, forms, chung };
 }

@@ -1,7 +1,7 @@
 
 /** Cờ chất lượng dữ liệu (không xóa phiếu, chỉ đánh dấu). */
 const MIN_SECONDS_PATIENT = 30;
-const PATIENT_FORMS = new Set(['noi_tru', 'ngoai_tru', 'tcmr']);
+const PATIENT_FORMS = new Set(['noi_tru', 'ngoai_tru']);
 
 function computeFlags({ formCode, durationSec, answers, mode }) {
   const flags = [];

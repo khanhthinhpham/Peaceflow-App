@@ -18,7 +18,6 @@ test('số tiêu chí của các mẫu phiếu', () => {
   const counts = Object.fromEntries(FORMS.map((f) => [f.code, f.groups.map((g) => g.items.length).join('/')]));
   assert.equal(counts.ngoai_tru, '5/10/8/4/4');
   assert.equal(counts.noi_tru, '5/5/9/7/5'); // theo 3869; QĐ 56 yêu cầu 5/7/11/7/6
-  assert.equal(counts.tcmr, '4/8/12/5/3');
   assert.equal(counts.nhan_vien, '9/9/12/7/7');
 });
 

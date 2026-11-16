@@ -5,7 +5,6 @@
  *
  * Nguồn: QĐ 3869/QĐ-BYT (2019) — Mẫu 1 (nội trú), Mẫu 2 (ngoại trú), Mẫu 3 (nhân viên y tế), giữ nguyên câu chữ.
  * Nhóm A–E được gán vào 5 chỉ số thành phần A1–A5 của QĐ 56/QĐ-BYT (2024).
- * Mẫu TCMR là BẢN NHÁP do hệ thống soạn (chưa có văn bản mẫu phiếu chính thức trong tài liệu đầu vào).
  */
 
 const g = (component, code, title, items) => ({
@@ -176,84 +175,6 @@ const ngoai_tru = {
   comment: { code: 'H', label: 'Ông/Bà có ý kiến gì khác, xin ghi rõ?' },
 };
 
-const tcmr = {
-  code: 'tcmr',
-  name: 'Tiêm chủng mở rộng',
-  kind: 'tcmr',
-  title: 'PHIẾU KHẢO SÁT Ý KIẾN NGƯỜI SỬ DỤNG DỊCH VỤ TIÊM CHỦNG MỞ RỘNG',
-  source: 'BẢN NHÁP do hệ thống soạn theo cấu trúc QĐ 56 (4/8/12/5/3 tiêu chí)',
-  status: 'ban_nhap',
-  note: 'Bản nháp — thay bằng mẫu chính thức QĐ 56',
-  required_counts: { A1: 4, A2: 8, A3: 12, A4: 5, A5: 3 },
-  intro:
-    'Nhằm nâng cao chất lượng dịch vụ tiêm chủng mở rộng, ngành y tế tổ chức khảo sát ý kiến của phụ nữ mang thai đi tiêm phòng và người đưa trẻ đi tiêm chủng. Thông tin được giữ bí mật và không ảnh hưởng đến việc tiêm chủng. Xin trân trọng cảm ơn!',
-  consent: CONSENT_PATIENT,
-  phone: true,
-  demographics: [
-    { code: 'nguoi_tra_loi', label: 'Người trả lời', type: 'choice', required: true, options: [{ v: 1, l: 'Phụ nữ mang thai đi tiêm phòng' }, { v: 2, l: 'Người đưa trẻ đi tiêm chủng' }] },
-    GIOI_TINH,
-    TUOI,
-    KHOANG_CACH('trạm y tế'),
-  ],
-  groups: [
-    g('A1', 'A', 'Khả năng tiếp cận', [
-      'Trạm y tế/điểm tiêm chủng dễ tìm, có biển báo, chỉ dẫn rõ ràng.',
-      'Lịch tiêm chủng được thông báo kịp thời, đầy đủ (qua loa truyền thanh, tin nhắn, nhân viên y tế thôn bản...).',
-      'Thời gian tổ chức buổi tiêm chủng thuận tiện cho người dân.',
-      'Có thể liên hệ, hỏi thông tin về tiêm chủng qua điện thoại hoặc nhân viên y tế khi cần.',
-    ]),
-    g('A2', 'B', 'Sự minh bạch thông tin và thủ tục tiêm chủng', [
-      'Quy trình tiêm chủng (đón tiếp, khám sàng lọc, tiêm, theo dõi sau tiêm) được niêm yết rõ ràng, dễ hiểu.',
-      'Thủ tục đăng ký, đón tiếp đơn giản, nhanh chóng.',
-      'Được xếp lượt theo thứ tự trước sau.',
-      'Được thông báo rõ loại vắc xin, bệnh được phòng ngừa và lịch tiêm mũi tiếp theo.',
-      'Được khám sàng lọc và giải thích kết quả khám sàng lọc trước khi tiêm.',
-      'Được tư vấn về phản ứng có thể gặp sau tiêm và cách theo dõi, xử trí tại nhà.',
-      'Thông tin tiêm chủng được ghi đầy đủ vào sổ/phiếu tiêm chủng hoặc hệ thống tiêm chủng điện tử.',
-      'Đánh giá thời gian chờ đợi từ khi đến đến khi được tiêm.',
-    ]),
-    g('A3', 'C', 'Cơ sở vật chất và phương tiện phục vụ', [
-      'Khu vực chờ tiêm sạch sẽ, thoáng mát vào mùa hè; kín gió và ấm áp vào mùa đông.',
-      'Khu vực chờ có đủ ghế ngồi và sử dụng tốt.',
-      'Có khu vực theo dõi sau tiêm riêng, đủ chỗ ngồi.',
-      'Có quạt (điều hòa) đầy đủ, hoạt động tốt.',
-      'Được cung cấp đầy đủ nước uống sạch.',
-      'Nhà vệ sinh thuận tiện, sử dụng tốt, sạch sẽ.',
-      'Phòng tiêm sạch sẽ, gọn gàng, bảo đảm vô khuẩn.',
-      'Có chỗ thay tã, cho trẻ bú hoặc chăm sóc trẻ.',
-      'Tài liệu truyền thông (tờ rơi, áp phích) về tiêm chủng đầy đủ, dễ hiểu.',
-      'Được bảo đảm sự riêng tư khi khám sàng lọc và tiêm.',
-      'Môi trường trong khuôn viên trạm y tế xanh, sạch, đẹp.',
-      'Bảo đảm an ninh, trật tự, có chỗ để xe an toàn.',
-    ]),
-    g('A4', 'D', 'Thái độ ứng xử, năng lực chuyên môn của nhân viên y tế', [
-      'Nhân viên y tế có lời nói, thái độ, giao tiếp đúng mực, thân thiện.',
-      'Được nhân viên y tế tôn trọng, đối xử công bằng, quan tâm, giúp đỡ.',
-      'Nhân viên y tế thực hiện tiêm thành thạo, nhẹ nhàng, đúng kỹ thuật.',
-      'Nhân viên y tế sẵn sàng giải đáp thắc mắc.',
-      'Nhân viên y tế không có biểu hiện gợi ý bồi dưỡng.',
-    ]),
-    g('A5', 'E', 'Kết quả cung cấp dịch vụ', [
-      'Được tiêm đúng, đủ loại vắc xin theo lịch.',
-      'Đánh giá mức độ tin tưởng về chất lượng, an toàn của vắc xin và dịch vụ tiêm chủng.',
-      'Dịch vụ tiêm chủng mở rộng đáp ứng được mong đợi của Ông/Bà.',
-    ]),
-  ],
-  expect: { code: 'G1', label: 'Đánh giá chung, dịch vụ tiêm chủng đã đáp ứng được bao nhiêu % so với mong đợi của Ông/Bà? (0% đến 100%, có thể trên 100%)' },
-  return: {
-    code: 'G2',
-    label: 'Ông/Bà có tiếp tục sử dụng dịch vụ tiêm chủng tại đây hoặc giới thiệu cho người khác không?',
-    options: [
-      { v: 1, l: 'Chắc chắn không' },
-      { v: 2, l: 'Không muốn nhưng có ít lựa chọn khác' },
-      { v: 3, l: 'Có thể sẽ tiếp tục' },
-      { v: 4, l: 'Chắc chắn sẽ tiếp tục hoặc giới thiệu cho người khác' },
-      { v: 5, l: 'Khác' },
-    ],
-  },
-  comment: { code: 'H', label: 'Ông/Bà có ý kiến gì khác, xin ghi rõ?' },
-};
-
 const nhan_vien = {
   code: 'nhan_vien',
   name: 'Nhân viên y tế',
@@ -341,6 +262,6 @@ const nhan_vien = {
   comment: { code: 'G', label: 'Anh/Chị có ý kiến hoặc đề xuất nào khác với Bộ Y tế và lãnh đạo bệnh viện?' },
 };
 
-const FORMS = [noi_tru, ngoai_tru, nhan_vien, tcmr];
+const FORMS = [noi_tru, ngoai_tru, nhan_vien];
 
 export { FORMS };

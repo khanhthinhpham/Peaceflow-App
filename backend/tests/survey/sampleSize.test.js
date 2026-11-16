@@ -1,7 +1,7 @@
 
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { kcbSampleSize, tcmrSampleSize, nvytSampleSize, KCB_TABLE } from '../../src/modules/survey/lib/sampleSize.js';
+import { kcbSampleSize, nvytSampleSize, KCB_TABLE } from '../../src/modules/survey/lib/sampleSize.js';
 
 test('bảng cỡ mẫu KCB khớp QĐ 56 tại mọi ngưỡng', () => {
   const expected = [
@@ -38,20 +38,6 @@ test('cỡ mẫu KCB: chưa khai báo hoặc không hợp lệ → null', () => 
   assert.equal(kcbSampleSize(''), null);
   assert.equal(kcbSampleSize(-5), null);
   assert.equal(kcbSampleSize('abc'), null);
-});
-
-test('cỡ mẫu TCMR theo lượt tiêm/tháng', () => {
-  assert.equal(tcmrSampleSize(20), 20); // <50 và không đủ 30 → toàn bộ
-  assert.equal(tcmrSampleSize(30), 30);
-  assert.equal(tcmrSampleSize(49), 30);
-  assert.equal(tcmrSampleSize(50), 30);
-  assert.equal(tcmrSampleSize(99), 30);
-  assert.equal(tcmrSampleSize(100), 40);
-  assert.equal(tcmrSampleSize(299), 40);
-  assert.equal(tcmrSampleSize(300), 50);
-  assert.equal(tcmrSampleSize(499), 50);
-  assert.equal(tcmrSampleSize(800), 50); // QĐ 56 không quy định ≥500 → giữ 50
-  assert.equal(tcmrSampleSize(null), null);
 });
 
 test('cỡ mẫu NVYT: toàn bộ nhân viên, mặc định tối thiểu 30', () => {

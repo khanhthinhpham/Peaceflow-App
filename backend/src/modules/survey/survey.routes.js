@@ -1,4 +1,4 @@
-// Khảo sát hài lòng người bệnh / nhân viên y tế / tiêm chủng mở rộng cho Sở Y tế (QĐ 56/QĐ-BYT 2024, QĐ 3869/QĐ-BYT 2019).
+// Khảo sát hài lòng người bệnh / nhân viên y tế cho Sở Y tế (QĐ 56/QĐ-BYT 2024, QĐ 3869/QĐ-BYT 2019).
 // - Công khai (không đăng nhập): GET/POST /survey/public/:token — phiếu mở qua QR/link.
 // - Quản trị: tài khoản PeaceFlow + vai trò trong ks_members (so_yte = Sở Y tế, don_vi = một đơn vị).
 //   Quản trị viên PeaceFlow (is_admin) được coi như so_yte.
@@ -102,14 +102,11 @@ export function createSurveyRouter({ db = defaultDb, authMiddleware = requireAut
     const def = await getForm(L.link.form_code);
     const { note, required_counts, source, ...publicDef } = def; // eslint-disable-line no-unused-vars
     const parent = L.unit.type === 'tyt' ? await one('select name from ks_units where id = $1', [L.unit.parent_id]) : null;
-    const tyts = L.link.form_code === 'tcmr' && L.unit.type === 'ttyt'
-      ? (await db.query("select id, name from ks_units where parent_id = $1 and type = 'tyt' and active order by sort, name", [L.unit.id])).rows
-      : [];
     return ok(res, {
       unit: { name: L.unit.name, parent: parent?.name || null, type: L.unit.type },
       round: { label: stats.roundLabel(L.round), open: L.round.status === 'mo' },
       form: publicDef,
-      tyts,
+      tyts: [],
       start_token: makeStartToken(startSecret),
     });
   }));
@@ -176,7 +173,7 @@ export function createSurveyRouter({ db = defaultDb, authMiddleware = requireAut
     if (!isAdmin(req)) list = list.filter((u) => u.id === req.survey.unit_id || u.parent_id === req.survey.unit_id);
     const data = list.map((u) => {
       const required = {};
-      for (const f of ['noi_tru', 'ngoai_tru', 'nhan_vien', 'tcmr']) if (stats.formApplies(u, f)) required[f] = stats.requiredSample(units, u, f);
+      for (const f of ['noi_tru', 'ngoai_tru', 'nhan_vien']) if (stats.formApplies(u, f)) required[f] = stats.requiredSample(units, u, f);
       return { ...u, required, tyt_count: u.type === 'ttyt' ? (units.children.get(u.id) || []).length : null };
     });
     data.sort((a, b) => (a.type === 'tyt') - (b.type === 'tyt') || a.sort - b.sort || a.name.localeCompare(b.name));
@@ -202,37 +199,6 @@ export function createSurveyRouter({ db = defaultDb, authMiddleware = requireAut
     if (!keys.length) return ok(res, { updated: false });
     await db.query(`update ks_units set ${keys.map((k, i) => `${k} = $${i + 2}`).join(', ')} where id = $1`, [id, ...keys.map((k) => body[k])]);
     return ok(res, { updated: true });
-  }));
-
-  router.post('/survey/units/:id/tyt', anyRole, h(async (req, res) => {
-    const id = Number(req.params.id);
-    const parent = await one("select * from ks_units where id = $1 and type = 'ttyt'", [id]);
-    if (!parent) return fail(res, 404, 'Chỉ thêm trạm y tế cho Trung tâm Y tế');
-    if (!(await canAccessUnit(req, id))) return fail(res, 403, 'Không có quyền');
-    const body = z.object({ name: z.string().trim().min(2).max(200), luot_tiem_thang: intOrNull.optional() }).parse(req.body || {});
-    const n = (await one("select count(*)::int as n from ks_units where parent_id = $1 and type = 'tyt'", [id])).n;
-    const code = `${parent.code}-T${String(n + 1).padStart(2, '0')}`;
-    const tyt = await one(
-      "insert into ks_units (code, name, type, parent_id, sort, luot_tiem_thang) values ($1, $2, 'tyt', $3, $4, $5) returning *",
-      [code, body.name, id, n + 1, body.luot_tiem_thang ?? null]
-    );
-    // Tạo link TCMR cho các đợt TCMR đang mở
-    await db.query(
-      `insert into ks_links (token, round_id, unit_id, form_code)
-       select replace(gen_random_uuid()::text, '-', ''), r.id, $1, 'tcmr' from ks_rounds r where r.kind = 'tcmr' and r.status = 'mo'
-       on conflict (round_id, unit_id, form_code) do nothing`,
-      [tyt.id]
-    );
-    return ok(res, tyt, 201);
-  }));
-
-  router.delete('/survey/tyt/:id', anyRole, h(async (req, res) => {
-    const id = Number(req.params.id);
-    const t = await one("select * from ks_units where id = $1 and type = 'tyt'", [id]);
-    if (!t) return fail(res, 404, 'Không tìm thấy trạm y tế');
-    if (!(await canAccessUnit(req, id))) return fail(res, 403, 'Không có quyền');
-    await db.query('update ks_units set active = false where id = $1', [id]); // giữ lịch sử phiếu
-    return ok(res, { deactivated: true });
   }));
 
   // ---------- Mẫu phiếu ----------
@@ -291,11 +257,11 @@ export function createSurveyRouter({ db = defaultDb, authMiddleware = requireAut
 
   router.post('/survey/rounds', adminOnly, h(async (req, res) => {
     const { kind, year, period } = z.object({
-      kind: z.enum(['quy', 'tcmr']),
+      kind: z.literal('quy').default('quy'),
       year: z.coerce.number().int().min(2024).max(2035),
       period: z.coerce.number().int().min(1).max(4),
-    }).refine((d) => d.kind === 'quy' || d.period <= 2, { message: 'TCMR chỉ có đợt 1 (tháng 3–4) và đợt 2 (tháng 9–10)' }).parse(req.body || {});
-    const name = kind === 'quy' ? `Quý ${period}/${year}` : `TCMR đợt ${period}/${year} (tháng ${period === 1 ? '3–4' : '9–10'})`;
+    }).parse(req.body || {});
+    const name = `Quý ${period}/${year}`;
     const row = await one(
       'insert into ks_rounds (kind, year, period, name) values ($1, $2, $3, $4) on conflict (kind, year, period) do nothing returning *',
       [kind, year, period, name]
@@ -314,7 +280,7 @@ export function createSurveyRouter({ db = defaultDb, authMiddleware = requireAut
         `insert into ks_links (token, round_id, unit_id, form_code)
          select replace(gen_random_uuid()::text, '-', ''), $1, u.id, f.code
          from ks_units u cross join unnest($2::text[]) as f(code)
-         where u.active and (case when f.code = 'tcmr' then u.type in ('ttyt', 'tyt') else u.type <> 'tyt' end)
+         where u.active and u.type <> 'tyt'
          on conflict (round_id, unit_id, form_code) do nothing`,
         [round.id, stats.formsForRound(round)]
       );
@@ -483,11 +449,10 @@ export function createSurveyRouter({ db = defaultDb, authMiddleware = requireAut
   router.get('/survey/dashboard/province', adminOnly, h(async (req, res) => {
     const qy = dashQuery(req);
     const s = await stats.provinceSummary(db, qy);
-    const roundIds = [s.round?.id, s.tcmrRound?.id].filter(Boolean);
+    const roundIds = s.round ? [s.round.id] : [];
     const weakest = await stats.weakestItems(db, roundIds, { unitType: qy.unitType, includeExcluded: qy.includeExcluded, source: qy.source });
     return ok(res, {
       round: s.round ? { ...s.round, label: stats.roundLabel(s.round) } : null,
-      tcmr_round: s.tcmrRound ? { ...s.tcmrRound, label: stats.roundLabel(s.tcmrRound) } : null,
       method: 'Cách thứ hai (gộp tất cả câu trả lời mức 1–5 của đơn vị); cấp tỉnh = trung bình cộng các đơn vị đã đo',
       province: roundObj(s.province),
       components: Object.fromEntries(Object.entries(s.componentsByForm).map(([f, c]) => [f, roundObj(c)])),
@@ -497,9 +462,7 @@ export function createSurveyRouter({ db = defaultDb, authMiddleware = requireAut
         id: x.id, code: x.code, name: x.name, type: x.type,
         chung: r1(x.chung), chung_method1: r1(x.chung_method1),
         noi_tru: r1(x.forms.noi_tru.index), ngoai_tru: r1(x.forms.ngoai_tru.index), nhan_vien: r1(x.forms.nhan_vien.index),
-        tcmr: x.forms.tcmr ? r1(x.forms.tcmr.index) : null,
-        co_mau_kcb: x.co_mau_kcb, co_mau_tcmr: x.co_mau_tcmr, so_tyt: x.so_tyt, so_tyt_thuc_hien: x.so_tyt_thuc_hien,
-        ty_le_tyt: r1(x.ty_le_tyt), ap_dung: x.ap_dung,
+        co_mau_kcb: x.co_mau_kcb, ap_dung: x.ap_dung,
         progress: Object.fromEntries(Object.entries(x.forms).map(([f, v]) => [f, { n: v.n, required: v.required }])),
       })),
       weakest: weakest.map((w) => ({ ...w, index: r1(w.index) })),
@@ -510,7 +473,7 @@ export function createSurveyRouter({ db = defaultDb, authMiddleware = requireAut
   router.get('/survey/dashboard/trend', adminOnly, h(async (req, res) => {
     const qy = dashQuery(req);
     const t = await stats.provinceTrend(db, { unitType: qy.unitType, source: qy.source });
-    return ok(res, { quarters: t.quarters.map(roundObj), tcmr: t.tcmr.map(roundObj) });
+    return ok(res, { quarters: t.quarters.map(roundObj) });
   }));
 
   router.get('/survey/dashboard/unit/:unitId', anyRole, h(async (req, res) => {
@@ -520,11 +483,11 @@ export function createSurveyRouter({ db = defaultDb, authMiddleware = requireAut
     const units = await stats.loadUnits(db);
     const unit = units.byId.get(unitId);
     if (!unit || unit.type === 'tyt') return fail(res, 404, 'Không tìm thấy đơn vị');
-    const { quy, tcmr } = await stats.resolveRounds(db, qy);
+    const { quy } = await stats.resolveRounds(db, qy);
     const opts = { includeExcluded: qy.includeExcluded, source: qy.source };
     const prov = await stats.provinceSummary(db, { ...qy, unitType: 'all', units });
     const details = [];
-    for (const round of [quy, tcmr].filter(Boolean)) details.push(await stats.unitDetail(db, unitId, round, opts, units));
+    for (const round of [quy].filter(Boolean)) details.push(await stats.unitDetail(db, unitId, round, opts, units));
     const forms = {};
     for (const d of details) {
       for (const [f, v] of Object.entries(d.forms)) {
@@ -555,7 +518,6 @@ export function createSurveyRouter({ db = defaultDb, authMiddleware = requireAut
     return ok(res, {
       unit,
       round: quy ? { ...quy, label: stats.roundLabel(quy) } : null,
-      tcmr_round: tcmr ? { ...tcmr, label: stats.roundLabel(tcmr) } : null,
       chung: quyDetail?.chung?.valid ? { method1: r1(quyDetail.chung.method1), method2: r1(quyDetail.chung.method2), components: roundObj(quyDetail.chung.components) } : null,
       province_chung: r1(prov.province.chung),
       forms,

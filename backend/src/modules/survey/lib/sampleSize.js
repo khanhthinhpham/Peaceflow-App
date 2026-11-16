@@ -40,22 +40,6 @@ function kcbSampleSize(luotNgay) {
   return Math.min(max, Math.max(min, v));
 }
 
-/**
- * Cỡ mẫu TCMR theo số lượt tiêm/tháng của trạm y tế (QĐ 56 mục 2.2):
- *  <50: toàn bộ cho đến đủ 30 (nếu không đủ 30 thì toàn bộ) → min(30, lượt)
- *  50–<100: 30; 100–<300: 40; 300–<500: 50.
- *  ≥500: QĐ 56 không quy định → áp dụng mức 50 (giả định của hệ thống).
- */
-function tcmrSampleSize(luotThang) {
-  if (luotThang === null || luotThang === undefined || luotThang === '') return null;
-  const L = Math.floor(Number(luotThang));
-  if (!Number.isFinite(L) || L < 0) return null;
-  if (L < 50) return Math.min(30, L);
-  if (L < 100) return 30;
-  if (L < 300) return 40;
-  return 50;
-}
-
 /** NVYT: QĐ 3869 mục 7.1 — chọn mẫu toàn bộ nhân viên; nếu chưa khai báo số NV thì tối thiểu 30 (mục 7.2). */
 function nvytSampleSize(soNhanVien) {
   const n = Number(soNhanVien);
@@ -63,4 +47,4 @@ function nvytSampleSize(soNhanVien) {
   return Math.floor(n);
 }
 
-export { KCB_TABLE, kcbSampleSize, kcbFormula, tcmrSampleSize, nvytSampleSize };
+export { KCB_TABLE, kcbSampleSize, kcbFormula, nvytSampleSize };
