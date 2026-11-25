@@ -604,6 +604,22 @@ router.post('/experts/:id/bookings', requireAuth, async (req, res) => {
         context: { expert_id: expert.id, booking_id: booking.id, session_type: payload.session_type, starts_at: payload.starts_at.toISOString(), amount, share_records: req.body.share_records_consent === true }
       });
     }
+    // Khách tick "đồng ý chia sẻ" khi đặt lịch → bật luôn chia sẻ check-in, bài test và nhật ký cho ĐÚNG
+    // chuyên gia này (Điều 7.3), để hồ sơ thân chủ bên chuyên gia tự cập nhật, không phải gửi từng lần.
+    // Chỉ BẬT, không tắt gì; khách vẫn tắt được trong "Chia sẻ với chuyên gia".
+    if (req.body.share_records_consent === true) {
+      await db.query(
+        `insert into client_expert_shares (client_id, expert_id, share_mood, share_assessments, share_journal, updated_at)
+         values ($1, $2, true, true, true, now())
+         on conflict (client_id, expert_id)
+         do update set share_mood = true, share_assessments = true, share_journal = true, updated_at = now()`,
+        [req.user.sub, expert.id]
+      );
+      await recordConsent({
+        userId: req.user.sub, kind: 'expert_share', granted: true, req,
+        context: { expert_id: expert.id, booking_id: booking.id, share_mood: true, share_assessments: true, share_journal: true, source: 'booking' }
+      });
+    }
 
     const orderCode = generateOrderCode();
     const clientNameRes = await db.query(`select coalesce(display_name, full_name, '') as name, email from users where id = $1`, [req.user.sub]);

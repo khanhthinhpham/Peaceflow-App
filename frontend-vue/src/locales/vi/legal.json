@@ -32,7 +32,7 @@
         "p5": "PeaceFlow không phải dịch vụ cấp cứu. Nếu đang gặp nguy hiểm hoặc có ý định tự gây hại, hãy gọi ngay 115 hoặc đến cơ sở y tế gần nhất."
       },
       "agreeTerms": "Tôi đã đọc, hiểu và đồng ý các điều khoản trên và",
-      "agreeShare": "Tôi đồng ý gửi mô tả tình trạng, mức độ, thông tin liên hệ và hồ sơ cũ (nếu có) mà tôi đã nhập cho riêng chuyên gia {name} để chuẩn bị buổi tư vấn. Chuyên gia có nghĩa vụ giữ bí mật các thông tin này.",
+      "agreeShare": "Tôi đồng ý gửi mô tả tình trạng, mức độ, thông tin liên hệ và hồ sơ cũ (nếu có) mà tôi đã nhập cho riêng chuyên gia {name} để chuẩn bị buổi tư vấn. Tôi cũng đồng ý cho chuyên gia {name} theo dõi check-in tâm trạng, kết quả bài test và nhật ký của tôi; bài mới sẽ tự cập nhật vào hồ sơ của tôi bên chuyên gia (tôi có thể tắt bất cứ lúc nào trong mục \"Chia sẻ với chuyên gia\"). Chuyên gia có nghĩa vụ giữ bí mật các thông tin này.",
       "mustAgree": "Vui lòng đánh dấu đồng ý cả hai mục để đặt lịch."
     },
     "share": {

@@ -32,7 +32,7 @@
         "p5": "PeaceFlow is not an emergency service. If you are in danger or thinking of harming yourself, call 115 or go to the nearest medical facility now."
       },
       "agreeTerms": "I have read, understood and agree to the terms above and the",
-      "agreeShare": "I agree to send the description, severity, contact details and prior records (if any) I entered only to {name} to prepare for the session. The expert must keep this information confidential.",
+      "agreeShare": "I agree to send the description, severity, contact details and prior records (if any) I entered only to {name} to prepare for the session. I also agree to let {name} follow my mood check-ins, test results and journal; new entries will update my profile on their side automatically (I can turn this off at any time under \"Share with experts\"). The expert must keep this information confidential.",
       "mustAgree": "Please tick both boxes to book."
     },
     "share": {
