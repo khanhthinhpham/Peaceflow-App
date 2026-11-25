@@ -173,7 +173,7 @@ Liệu pháp âm nhạc thụ động: Người bệnh nghe, cảm nhận và t�
 Âm nhạc giúp cho người bệnh nhanh chóng lấy lại sự cân bằng dễ dàng vượt qua các bất ổn về tinh thần thể chất và xã hội. Các giai điệu âm nhạc kích thích sự hoạt động của các giác quan kích hoạt cơ chế điều hòa của não bộ giúp cho con người điều chỉnh cảm xúc, phục hồi chức năng nhận thức như tập trung chú ý và trí nhớ, giúp cải thiện nhận thức và điều chỉnh hành vi, sống tự tin vào bản thân, sống thỏai mái hơn, hạnh phúc hơn và dễ gắn kết yêu thương nhau hơn.
 
 Qua các hoạt động âm nhạc người bệnh được cải thiện khả năng và kỹ năng giao tiếp với mọi người giúp họ tự khám phá bản thân, phát triển tư duy sáng tạo, tâm lý thoải mái hỗ trợ cho quá trình điều trị và phục hồi chức năng.`,
-  58: `Trị liệu nghệ thuật hội họa là một hình thức trị liệu tâm lý sử dụng tiến trình sáng tạo trong một không gian chữa lành an toàn để cải thiện và gia tăng sức khỏe tâm lý cho người bệnh.
+  58: `Trị liệu nghệ thuật hội họa là một hình thức trị liệu tâm lý sử dụng tiến trình sáng tạo trong một không gian an toàn giúp phục hồi để cải thiện và gia tăng sức khỏe tâm lý cho người bệnh.
 
 Có nhiều hình thức nghệ thuật được sử dụng trong liệu pháp này, tuy nhiên cách hiểu phổ biến nhất với cụm từ “nghệ thuật” ở đây là nghệ thuật thị giác. Nghệ thuật thị giác được sử dụng trong trị liệu nghệ thuật bao gồm nhưng không giới hạn trong các hình thức vẽ tranh với than, chì, màu nước, sáp màu, cắt dán hình ảnh, vẽ kể chuyện, nặn đất sét, sáng tạo với vải…
 

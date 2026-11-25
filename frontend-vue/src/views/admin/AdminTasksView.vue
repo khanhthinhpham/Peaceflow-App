@@ -4,7 +4,7 @@
       <div>
         <p class="admin-page-kicker">PeaceFlow Admin</p>
         <h1 class="admin-page-title">Quản lý nhiệm vụ</h1>
-        <p class="admin-page-sub">Tạo, sửa, bật/tắt nhiệm vụ (bài tập chữa lành) hiển thị trong mục Nhiệm vụ của người dùng.</p>
+        <p class="admin-page-sub">Tạo, sửa, bật/tắt nhiệm vụ (bài tập rèn luyện khả năng phục hồi) hiển thị trong mục Nhiệm vụ của người dùng.</p>
       </div>
       <button type="button" class="btn-primary" @click="openCreate">+ Nhiệm vụ mới</button>
     </div>
