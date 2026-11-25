@@ -93,7 +93,7 @@ function replyHasConcreteHelp(reply) {
 // và 115 (cấp cứu y tế). CỐ Ý nêu số trực tiếp trong câu trả lời chứ không chỉ bảo "bấm
 // nút": người đang khủng hoảng cần thấy ngay số để gọi, không phải thêm một bước bấm.
 const MENTAL_HEALTH_HOTLINE = '0931773637';
-const CRISIS_RESOURCE_TEXT = `Mình nói thẳng nhé: điều bạn vừa nói làm mình lo cho bạn thật sự. Nếu cảm giác này đang dâng lên ngay lúc này, bạn gọi ngay đường dây nóng sức khỏe tâm thần ${MENTAL_HEALTH_HOTLINE} (miễn phí, 24/7), hoặc 115 nếu cần cấp cứu. Bạn không phải chịu một mình chuyện này.`;
+const CRISIS_RESOURCE_TEXT = `Mình nói thẳng nhé: điều bạn vừa nói làm mình lo cho bạn thật sự. Nếu cảm giác này đang dâng lên ngay lúc này, bạn gọi ngay đường dây nóng sức khỏe tinh thần ${MENTAL_HEALTH_HOTLINE} (miễn phí, 24/7), hoặc 115 nếu cần cấp cứu. Bạn không phải chịu một mình chuyện này.`;
 
 // Bảo đảm câu trả lời cuối cùng LUÔN có nguồn trợ giúp cụ thể khi phát hiện dấu hiệu.
 export function ensureCrisisResources(reply) {

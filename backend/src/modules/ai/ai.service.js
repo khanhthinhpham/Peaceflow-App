@@ -602,7 +602,7 @@ QUY TẮC AN TOÀN BẮT BUỘC — NGƯỜI ĐỌC LÀ HỌC SINH (có thể l�
 - TUYỆT ĐỐI không dùng từ ngữ khiến học sinh hoảng sợ, xấu hổ, hoặc cảm thấy bị phán xét/dán nhãn. Không viết kiểu "em có vấn đề nghiêm trọng" hay liệt kê bệnh lý.
 - KHÔNG mô tả chi tiết cách thức tự làm hại bản thân, tự tử, hay bất kỳ hành vi nguy hiểm nào — kể cả khi chỉ để "cảnh báo tránh". Nếu cần nhắc tới, chỉ nói chung chung kiểu "có ý nghĩ muốn làm hại bản thân" rồi hướng ngay tới việc tìm người lớn/chuyên gia, không mô tả thêm.
 - KHÔNG đưa lời khuyên có thể gây hại nếu làm theo sai cách (vd không gợi ý tự xử lý bạo lực/bắt nạt một mình, không gợi ý đối đầu trực tiếp với người bắt nạt).
-- Nếu phần "Khó khăn đang gặp" hoặc "Chia sẻ thêm" có dấu hiệu bị bắt nạt, bạo lực, xâm hại, hoặc ý nghĩ muốn làm hại bản thân/không muốn sống: PHẢI nhắc rõ trong summary rằng đây là chuyện quan trọng, em KHÔNG có lỗi, và em nên nói với một người lớn tin cậy (giáo viên, tổ tư vấn, cha mẹ) hoặc gọi đường dây nóng sức khỏe tâm thần 0931773637 (miễn phí, 24/7) càng sớm càng tốt — không chờ nhà trường liên hệ lại.
+- Nếu phần "Khó khăn đang gặp" hoặc "Chia sẻ thêm" có dấu hiệu bị bắt nạt, bạo lực, xâm hại, hoặc ý nghĩ muốn làm hại bản thân/không muốn sống: PHẢI nhắc rõ trong summary rằng đây là chuyện quan trọng, em KHÔNG có lỗi, và em nên nói với một người lớn tin cậy (giáo viên, tổ tư vấn, cha mẹ) hoặc gọi đường dây nóng sức khỏe tinh thần 0931773637 (miễn phí, 24/7) càng sớm càng tốt — không chờ nhà trường liên hệ lại.
 - Giọng văn luôn mang tính xây dựng, hướng tới hy vọng và hành động cụ thể, không bi kịch hoá vấn đề.`;
 }
 
@@ -1090,7 +1090,7 @@ Lượt này bạn KHÔNG có cách nào tra cứu sách hay tài liệu chuyên
     const crisisBlock = options.crisisDetected
         ? `ƯU TIÊN TUYỆT ĐỐI LƯỢT NÀY — TIN NHẮN CỦA HỌ CÓ DẤU HIỆU TỰ HẠI/TỰ TỬ:
 Bỏ mọi thứ khác lại. Lượt này KHÔNG gợi ý bài tập, KHÔNG hỏi có muốn gợi ý gì không, KHÔNG phân tích dài dòng.
-Hãy: (1) nói thẳng rằng bạn lo cho họ và bạn đang ở đây, (2) hỏi xem ngay lúc này họ có đang an toàn không, (3) khuyên liên hệ trợ giúp ngay — nêu ĐÚNG số này, không được tự nghĩ ra số khác: đường dây nóng sức khỏe tâm thần 0931773637 (miễn phí, 24/7), hoặc 115 nếu cần cấp cứu; và nếu có thể thì nói với một người họ tin cậy ở gần.
+Hãy: (1) nói thẳng rằng bạn lo cho họ và bạn đang ở đây, (2) hỏi xem ngay lúc này họ có đang an toàn không, (3) khuyên liên hệ trợ giúp ngay — nêu ĐÚNG số này, không được tự nghĩ ra số khác: đường dây nóng sức khỏe tinh thần 0931773637 (miễn phí, 24/7), hoặc 115 nếu cần cấp cứu; và nếu có thể thì nói với một người họ tin cậy ở gần.
 Giọng bình tĩnh, ấm, không phán xét, không giảng giải, không hứa thay họ điều gì. Ngắn thôi — 3-4 câu.
 
 `
@@ -1118,7 +1118,7 @@ Không bao giờ điền suggested_task_code ở lượt bạn chưa hỏi ý h�
 LƯU Ý RIÊNG LƯỢT NÀY: ${turnNote}
 
 ${toolBlock}QUY TẮC KHÁC:
-1. Chỉ nói về cảm xúc, sức khỏe tâm thần, chuyện đời sống đang ảnh hưởng tinh thần họ, bài tập/chuyên gia trong app, dữ liệu cá nhân của họ${options.toolAvailable ? ', và nội dung tài liệu/sách chuyên môn qua tool ở trên' : ''}. Hỏi ngoài phạm vi này (lập trình, thời sự, kiến thức chung không liên quan sức khỏe tâm thần...) thì từ chối lịch sự, mời họ quay lại chuyện của mình, VÀ đặt on_topic = false cho lượt đó (xem quy tắc 5).
+1. Chỉ nói về cảm xúc, sức khỏe tinh thần, chuyện đời sống đang ảnh hưởng tinh thần họ, bài tập/chuyên gia trong app, dữ liệu cá nhân của họ${options.toolAvailable ? ', và nội dung tài liệu/sách chuyên môn qua tool ở trên' : ''}. Hỏi ngoài phạm vi này (lập trình, thời sự, kiến thức chung không liên quan sức khỏe tinh thần...) thì từ chối lịch sự, mời họ quay lại chuyện của mình, VÀ đặt on_topic = false cho lượt đó (xem quy tắc 5).
 2. Dài 2-5 câu, viết liền như một tin nhắn, không markdown, không gạch đầu dòng. Khi họ xin lời khuyên: đưa việc CỤ THỂ làm được ngay hôm nay, gắn đúng cái cốt lõi vừa nói ra, không nói "hãy chăm sóc bản thân".
 3. Không chẩn đoán, không gọi tên bệnh lý cho họ. Có dấu hiệu tự hại/tự tử: nói thẳng sự lo lắng của bạn và khuyên liên hệ hotline hoặc chuyên gia ngay.
 4. suggested_expert_code mặc định TRỐNG — chỉ điền khi họ hỏi về chuyên gia/muốn gặp người có chuyên môn, hoặc khi nguy cấp; đừng tự mời gặp chuyên gia lúc họ chỉ đang tâm sự. suggested_task_code copy chính xác phần mã trước dấu | trong DANH SÁCH BÀI TẬP, tránh bài phản tác dụng với tình trạng của họ.
