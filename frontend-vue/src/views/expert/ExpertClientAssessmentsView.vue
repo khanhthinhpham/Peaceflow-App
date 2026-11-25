@@ -255,7 +255,7 @@
       <div id="caHistoryList">
         <p v-if="journalLoading" class="ca-empty">Đang tải...</p>
         <p v-else-if="journalError" class="ca-empty">Không tải được nhật ký.</p>
-        <p v-else-if="!journalEntries.length" class="ca-empty">Thân chủ chưa chia sẻ bài nhật ký nào với bạn (thân chủ cần bấm "Chia sẻ" trên bài và chọn bạn trong danh sách chuyên gia được đọc nhật ký).</p>
+        <p v-else-if="!journalEntries.length" class="ca-empty">Chưa có nhật ký nào. Thân chủ cần bật "Nhật ký" cho bạn trong mục "Chia sẻ với chuyên gia"; khi đã bật, mọi bài nhật ký (cả bài cũ và bài mới) sẽ tự hiện ở đây.</p>
         <div v-for="item in journalEntries" :key="item.id" class="ca-history-item" @click="openJournalDetail(item)">
           <span>
             <strong>{{ item.title || '(Không tiêu đề)' }}</strong>

@@ -1669,8 +1669,9 @@ router.get('/expert-portal/clients/:userId/self-assessments', requireAuth, async
   }
 });
 
-// Nhật ký của 1 client mà CHÍNH client đã tự bật chia sẻ cho TỪNG bài (không phải công tắc
-// toàn cục) — vẫn cần có quan hệ booking confirmed/completed mới xem được.
+// Nhật ký của 1 client — xem được khi có quan hệ booking confirmed/completed VÀ client đã bật
+// "Nhật ký" cho đúng chuyên gia này. Bật là chuyên gia thấy TOÀN BỘ nhật ký (cả bài viết trước
+// lúc bật), bài mới viết tự hiện ngay — không còn phải chia sẻ từng bài như trước.
 router.get('/expert-portal/clients/:userId/journal', requireAuth, async (req, res) => {
   try {
     if (req.user.role !== 'expert') {
@@ -1692,7 +1693,7 @@ router.get('/expert-portal/clients/:userId/journal', requireAuth, async (req, re
       return res.status(403).json({ success: false, message: 'Client không thuộc danh sách của bạn' });
     }
 
-    // Điều 7.3–7.4: khách phải bật chia sẻ nhật ký cho ĐÚNG chuyên gia này (ngoài việc đánh dấu từng bài).
+    // Điều 7.3–7.4: khách phải bật chia sẻ nhật ký cho ĐÚNG chuyên gia này.
     const journalShare = await db.query(
       `select share_journal from client_expert_shares where client_id = $1 and expert_id = $2`,
       [req.params.userId, expert.id]
@@ -1703,7 +1704,8 @@ router.get('/expert-portal/clients/:userId/journal', requireAuth, async (req, re
 
     const page = Math.max(0, parseInt(req.query.page, 10) || 0);
     const limit = Math.min(100, Math.max(1, parseInt(req.query.limit, 10) || 20));
-    const conditions = ['user_id = $1', 'shared_with_experts = true'];
+    // (cột journal_entries.shared_with_experts — chia sẻ từng bài — không còn dùng để lọc ở đây)
+    const conditions = ['user_id = $1'];
     const params = [req.params.userId];
     if (req.query.from) {
       params.push(req.query.from);
