@@ -19,14 +19,29 @@ import { translateToEnglish, translateListToEnglish, isTranslateConfigured } fro
 
 const router = Router();
 
-// Bảng giá áp dụng CHUNG cho mọi chuyên gia (không còn tính theo base_price riêng từng
-// người) — khám mới hay tái khám do hệ thống tự xác định (đã có buổi "completed" với
-// đúng chuyên gia đó chưa), khách chỉ chọn thời lượng nhanh/tiêu chuẩn và hình thức gọi
-// thoại/video (không ảnh hưởng giá).
+// Bảng giá MẶC ĐỊNH — khám mới hay tái khám do hệ thống tự xác định (đã có buổi "completed"
+// với đúng chuyên gia đó chưa), khách chỉ chọn thời lượng nhanh/tiêu chuẩn và hình thức gọi
+// thoại/video (không ảnh hưởng giá). Mỗi chuyên gia tự đặt giá riêng (experts.session_pricing,
+// nhập trong "Hồ sơ chuyên gia"); ô nào chuyên gia chưa nhập thì lấy giá ở bảng này.
 const SESSION_PRICING = {
   new_client: { quick: 300000, standard: 500000 },
   returning_client: { quick: 150000, standard: 200000 }
 };
+const PRICING_TIERS = ['new_client', 'returning_client'];
+const PRICING_DURATIONS = ['quick', 'standard'];
+// Bảng giá áp dụng cho 1 chuyên gia: giá riêng (nếu đã nhập, số nguyên ≥ 0) đè lên bảng mặc định.
+function pricingForExpert(sessionPricing) {
+  const own = sessionPricing && typeof sessionPricing === 'object' ? sessionPricing : {};
+  const out = {};
+  for (const tier of PRICING_TIERS) {
+    out[tier] = {};
+    for (const dur of PRICING_DURATIONS) {
+      const v = own[tier]?.[dur];
+      out[tier][dur] = Number.isInteger(v) && v >= 0 ? v : SESSION_PRICING[tier][dur];
+    }
+  }
+  return out;
+}
 const SESSION_DURATION_MINUTES = { quick: 25, standard: 45 };
 
 const avatarUpload = multer({
@@ -58,7 +73,7 @@ router.get('/expert-portal/overview', requireAuth, async (req, res) => {
     const expertProfileRes = await db.query(
       `select id, code, full_name, degree, phone, avatar_emoji, (avatar_photo is not null or avatar_r2 is not null) as has_avatar_photo,
               status, rating, sessions_count, satisfaction_rate,
-              base_price, location, experience_years, specialties, bio, credentials, approaches, next_slot_label,
+              base_price, session_pricing, location, experience_years, specialties, bio, credentials, approaches, next_slot_label,
               bio_en, specialties_en,
               active, created_at
        from experts
@@ -203,12 +218,13 @@ router.put('/expert-portal/profile', requireAuth, async (req, res) => {
            next_slot_label = $14,
            bio_en = $15,
            specialties_en = $16::jsonb,
+           session_pricing = case when $17::boolean then $18::jsonb else session_pricing end,
            updated_at = now()
        where id = $1
        returning id, code, full_name, degree, phone, avatar_emoji, (avatar_photo is not null or avatar_r2 is not null) as has_avatar_photo,
                  status, rating, sessions_count,
                  satisfaction_rate, base_price, location, experience_years, specialties, bio,
-                 credentials, approaches, next_slot_label, bio_en, specialties_en, active, created_at, updated_at`,
+                 credentials, approaches, next_slot_label, bio_en, specialties_en, session_pricing, active, created_at, updated_at`,
       [
         expert.id,
         payload.full_name,
@@ -225,7 +241,9 @@ router.put('/expert-portal/profile', requireAuth, async (req, res) => {
         JSON.stringify(payload.approaches || []),
         payload.next_slot_label || null,
         payload.bio_en || null,
-        JSON.stringify(payload.specialties_en || [])
+        JSON.stringify(payload.specialties_en || []),
+        payload.session_pricing !== undefined,
+        JSON.stringify(cleanSessionPricing(payload.session_pricing))
       ]
     );
 
@@ -308,7 +326,7 @@ router.delete('/expert-portal/avatar', requireAuth, async (req, res) => {
 // đo trên Supabase, danh sách 12 chuyên gia mất ~32 giây / 3,3 MB với select *, còn ~0,7 giây /
 // 21 KB khi chỉ lấy các cột dưới. Ảnh thật tải riêng qua GET /experts/:id/avatar.
 const EXPERT_PUBLIC_COLUMNS = `id, code, avatar_emoji, (avatar_photo is not null or avatar_r2 is not null) as has_avatar_photo,
-  full_name, degree, status, rating, sessions_count, satisfaction_rate, base_price,
+  full_name, degree, status, rating, sessions_count, satisfaction_rate, base_price, session_pricing,
   location, experience_years, specialties, specialties_en, tags, bio, bio_en,
   next_slot_label, credentials, approaches,
   expert_group, service_scope, license_number, clinic_name`;
@@ -515,7 +533,7 @@ router.post('/experts/:id/bookings', requireAuth, async (req, res) => {
     await expireStaleBookings();
 
     const expertResult = await db.query(
-      `select e.id, e.user_id, e.full_name, e.degree, e.avatar_emoji, u.email as user_email
+      `select e.id, e.user_id, e.full_name, e.degree, e.avatar_emoji, e.session_pricing, u.email as user_email
        from experts e
        left join users u on u.id = e.user_id
        where e.id = $1
@@ -574,7 +592,7 @@ router.post('/experts/:id/bookings', requireAuth, async (req, res) => {
       [req.user.sub, expert.id]
     );
     const pricingTier = returningRes.rows[0] ? 'returning_client' : 'new_client';
-    const amount = SESSION_PRICING[pricingTier][payload.duration_tier];
+    const amount = pricingForExpert(expert.session_pricing)[pricingTier][payload.duration_tier];
 
     // Đặt lịch ở trạng thái CHỜ THANH TOÁN — sinh đơn + QR VietQR. Chỉ sau khi
     // thân chủ chuyển khoản (claim) lịch mới vào hàng "Cần xác nhận" của chuyên gia.
@@ -3373,7 +3391,8 @@ function mapExpert(row, matchingTags, isReturningClient = false, locale = 'vi') 
     rating: row.rating === null ? 0 : Number(row.rating),
     sessions: row.sessions_count || 0,
     satisfaction_rate: row.satisfaction_rate === null ? 0 : Number(row.satisfaction_rate),
-    price: row.base_price || 0,
+    // giá khởi điểm (khách mới, gói nhanh) — dùng để sắp xếp chuyên gia theo giá
+    price: pricingForExpert(row.session_pricing).new_client.quick,
     location: row.location || 'Online',
     experience: row.experience_years || 0,
     specialties: specialtiesList,
@@ -3388,12 +3407,12 @@ function mapExpert(row, matchingTags, isReturningClient = false, locale = 'vi') 
     service_scope: row.service_scope || null,
     license_number: row.expert_group === 'practitioner' ? (row.license_number || null) : null,
     clinic_name: row.expert_group === 'practitioner' ? (row.clinic_name || null) : null,
-    // Giá khám giờ áp dụng chung cho mọi chuyên gia (khám mới/tái khám × nhanh/tiêu
-    // chuẩn) — is_returning_client cho biết user hiện tại đã từng hoàn thành 1 buổi
-    // với đúng chuyên gia này chưa, để FE hiện đúng bảng giá trước khi đặt lịch.
+    // Giá khám của ĐÚNG chuyên gia này (giá riêng, ô nào chưa nhập thì giá mặc định) —
+    // is_returning_client cho biết user hiện tại đã từng hoàn thành 1 buổi với chuyên gia
+    // này chưa, để FE hiện đúng bảng giá trước khi đặt lịch.
     is_returning_client: isReturningClient,
-    session_pricing: SESSION_PRICING[isReturningClient ? 'returning_client' : 'new_client'],
-    session_pricing_all: SESSION_PRICING
+    session_pricing: pricingForExpert(row.session_pricing)[isReturningClient ? 'returning_client' : 'new_client'],
+    session_pricing_all: pricingForExpert(row.session_pricing)
   };
 }
 
@@ -3476,6 +3495,21 @@ function csvToArray(value) {
 
 const csvOrArraySchema = z.preprocess(csvToArray, z.array(z.string()).default([]));
 
+const sessionPriceSchema = z.coerce.number().int('Giá phải là số nguyên.').min(0, 'Giá không được âm.').nullable().optional();
+const sessionPriceTierSchema = z.object({ quick: sessionPriceSchema, standard: sessionPriceSchema }).partial().optional();
+// Chỉ giữ các ô có số; cả bảng trống thì lưu null (= dùng toàn bộ giá mặc định).
+function cleanSessionPricing(input) {
+  if (!input) return null;
+  const out = {};
+  for (const tier of PRICING_TIERS) {
+    for (const dur of PRICING_DURATIONS) {
+      const v = input[tier]?.[dur];
+      if (Number.isInteger(v) && v >= 0) (out[tier] ||= {})[dur] = v;
+    }
+  }
+  return Object.keys(out).length ? out : null;
+}
+
 const expertProfileSchema = z.object({
   full_name: z.string().min(2, 'Vui lòng nhập họ tên.').max(255),
   degree: z.string().min(2, 'Vui lòng nhập bằng cấp.'),
@@ -3493,7 +3527,13 @@ const expertProfileSchema = z.object({
   // Bản tiếng Anh do chính chuyên gia tự nhập (không máy dịch) — để trống thì trang public
   // vẫn fallback về bản tiếng Việt, xem mapExpert().
   bio_en: z.string().optional().nullable(),
-  specialties_en: csvOrArraySchema
+  specialties_en: csvOrArraySchema,
+  // Bảng giá riêng (đồng/buổi, số nguyên ≥ 0, không giới hạn trên). Ô để trống (null) = dùng giá
+  // mặc định. Không gửi cả trường này (bản app cũ) = giữ nguyên bảng giá đang lưu.
+  session_pricing: z.object({
+    new_client: sessionPriceTierSchema,
+    returning_client: sessionPriceTierSchema
+  }).partial().nullable().optional()
 });
 
 function round1(value) {

@@ -68,3 +68,32 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* Bảng giá tư vấn của chuyên gia (Hồ sơ chuyên gia): 3 cột — nhãn, nhanh, tiêu chuẩn */
+.price-grid {
+  display: grid;
+  grid-template-columns: minmax(96px, auto) 1fr 1fr;
+  gap: 10px 12px;
+  align-items: center;
+}
+
+.price-head {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+}
+
+.price-row-label {
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+@media (max-width: 560px) {
+  .price-grid {
+    grid-template-columns: minmax(80px, auto) 1fr 1fr;
+    gap: 8px;
+  }
+  .price-grid .form-input {
+    min-width: 0;
+  }
+}

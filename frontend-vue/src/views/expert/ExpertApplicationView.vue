@@ -93,9 +93,35 @@
             <input v-model="location" type="text" id="location" class="form-input" placeholder="Bệnh viện, phòng khám, trung tâm...">
           </div>
 
-          <div class="form-group">
+          <div v-if="mode !== 'profile'" class="form-group">
             <label class="form-label" for="basePrice">Giá phiên tham khảo</label>
             <input v-model="basePrice" type="number" id="basePrice" class="form-input" min="0" step="1000" placeholder="0">
+          </div>
+
+          <!-- Bảng giá riêng của chuyên gia: áp dụng ngay khi lưu, cho các lịch đặt từ lúc đó.
+               Ô để trống = dùng giá mặc định của PeaceFlow (hiện ở chỗ gợi ý mờ). -->
+          <div v-if="mode === 'profile'" class="form-group full">
+            <label class="form-label">Bảng giá tư vấn của bạn (đồng/buổi)</label>
+            <div class="price-grid">
+              <span></span>
+              <span class="price-head">Nhanh (25 phút)</span>
+              <span class="price-head">Tiêu chuẩn (45 phút)</span>
+              <template v-for="tier in PRICE_TIERS" :key="tier.key">
+                <span class="price-row-label">{{ tier.label }}</span>
+                <input
+                  v-for="dur in ['quick', 'standard']"
+                  :key="dur"
+                  v-model="sessionPrices[tier.key][dur]"
+                  type="number"
+                  class="form-input"
+                  min="0"
+                  step="1000"
+                  :aria-label="`${tier.label} — ${dur === 'quick' ? 'nhanh' : 'tiêu chuẩn'}`"
+                  :placeholder="`${DEFAULT_PRICES[tier.key][dur].toLocaleString('vi-VN')} (mặc định)`"
+                >
+              </template>
+            </div>
+            <div class="field-hint">Khách mới: thân chủ chưa từng hoàn thành buổi nào với bạn. Tái tham vấn: đã từng hoàn thành ít nhất 1 buổi. Để trống ô nào thì ô đó dùng giá mặc định của PeaceFlow. Giá mới áp dụng ngay cho các lịch đặt sau khi lưu; lịch đã đặt giữ giá cũ. PeaceFlow giữ phí nền tảng trên mỗi buổi như hiện tại.</div>
           </div>
 
           <div class="form-group">
@@ -150,7 +176,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, reactive, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '../../stores/auth';
 import { useExpertPortalStore } from '../../stores/expertPortal';
@@ -189,6 +215,33 @@ const degree = ref('');
 const specialties = ref('');
 const location = ref('');
 const basePrice = ref('0');
+// Bảng giá riêng: '' = để trống (dùng giá mặc định). Giá mặc định khớp SESSION_PRICING ở backend.
+const DEFAULT_PRICES = { new_client: { quick: 300000, standard: 500000 }, returning_client: { quick: 150000, standard: 200000 } };
+const PRICE_TIERS = [{ key: 'new_client', label: 'Khách mới' }, { key: 'returning_client', label: 'Tái tham vấn' }];
+const sessionPrices = reactive({ new_client: { quick: '', standard: '' }, returning_client: { quick: '', standard: '' } });
+function fillSessionPrices(saved) {
+  for (const { key } of PRICE_TIERS) {
+    for (const dur of ['quick', 'standard']) {
+      const v = saved?.[key]?.[dur];
+      sessionPrices[key][dur] = Number.isInteger(v) ? String(v) : '';
+    }
+  }
+}
+// Gửi lên: ô trống → null; còn lại phải là số nguyên ≥ 0, sai thì trả về thông báo lỗi.
+function readSessionPrices() {
+  const out = {};
+  for (const { key, label } of PRICE_TIERS) {
+    out[key] = {};
+    for (const dur of ['quick', 'standard']) {
+      const raw = String(sessionPrices[key][dur] ?? '').trim();
+      if (raw === '') { out[key][dur] = null; continue; }
+      const n = Number(raw);
+      if (!Number.isInteger(n) || n < 0) return { error: `Giá "${label} — ${dur === 'quick' ? 'nhanh' : 'tiêu chuẩn'}" phải là số nguyên từ 0 trở lên.` };
+      out[key][dur] = n;
+    }
+  }
+  return { value: out };
+}
 const nextSlotLabel = ref('');
 const bio = ref('');
 const bioEn = ref('');
@@ -235,6 +288,7 @@ async function hydrateFromExpertProfile(expert) {
   specialties.value = Array.isArray(expert?.specialties) ? expert.specialties.join(', ') : '';
   location.value = expert?.location || '';
   basePrice.value = String(expert?.base_price ?? 0);
+  fillSessionPrices(expert?.session_pricing);
   nextSlotLabel.value = expert?.next_slot_label || '';
   bio.value = expert?.bio || '';
   bioEn.value = expert?.bio_en || '';
@@ -304,6 +358,8 @@ async function submit() {
   submitting.value = true;
   try {
     if (mode.value === 'profile') {
+      const prices = readSessionPrices();
+      if (prices.error) { setBanner(prices.error, 'error'); return; }
       const updated = await auth.updateExpertProfile({
         full_name: trimmedFullName,
         phone: trimmedPhone,
@@ -319,7 +375,8 @@ async function submit() {
         approaches: approaches.value.trim(),
         next_slot_label: nextSlotLabel.value.trim(),
         bio_en: bioEn.value.trim(),
-        specialties_en: specialtiesEn.value.trim()
+        specialties_en: specialtiesEn.value.trim(),
+        session_pricing: prices.value
       });
       expertPortal.overview = { ...expertPortal.overview, expert: updated };
       const user = { ...(auth.user || {}), full_name: trimmedFullName, display_name: trimmedFullName };

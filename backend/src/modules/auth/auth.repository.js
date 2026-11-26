@@ -223,7 +223,7 @@ export async function listApplicationsByUserId(userId) {
 export async function findExpertByUserId(userId) {
   const result = await db.query(
     `select id, code, full_name, degree, phone, avatar_emoji, status, rating, sessions_count,
-            satisfaction_rate, base_price, location, experience_years, specialties, bio,
+            satisfaction_rate, base_price, session_pricing, location, experience_years, specialties, bio,
             credentials, approaches, next_slot_label, active, user_id, created_at, updated_at
      from experts
      where user_id = $1

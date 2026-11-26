@@ -379,7 +379,12 @@ const hasProfile = ref(false);
 const profile = ref(null);
 const pageTitle = ref('Bảng điều khiển chuyên gia');
 const ratingText = computed(() => (Number(profile.value?.rating) > 0 ? Number(profile.value.rating).toFixed(1) : '—'));
-const priceText = computed(() => (profile.value && Number(profile.value.base_price) > 0 ? money(profile.value.base_price) : 'Chưa đặt giá'));
+// Giá hiển thị: thấp nhất trong bảng giá riêng chuyên gia đã nhập (Hồ sơ chuyên gia); chưa nhập ô nào → giá mặc định.
+const priceText = computed(() => {
+  const own = profile.value?.session_pricing;
+  const values = own ? Object.values(own).flatMap((tier) => Object.values(tier || {})).filter((v) => Number.isInteger(v)) : [];
+  return values.length ? `Từ ${money(Math.min(...values))}` : 'Giá mặc định';
+});
 
 // Không cần bác sĩ tự bật Online nữa — hễ vào khu chuyên gia là tự coi như đang hoạt động
 // (xem setAutoOnline bên dưới), bỏ hẳn UI chọn trạng thái thủ công.
