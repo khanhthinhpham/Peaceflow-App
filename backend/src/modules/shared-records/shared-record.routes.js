@@ -301,6 +301,168 @@ router.get('/expert-portal/shared-records', requireAuth, async (req, res) => {
   }
 });
 
+// ===== BÁC SĨ — Hồ sơ thân chủ (gộp "hồ sơ gửi" + dữ liệu chia sẻ tự cập nhật) =====
+// Một trang duy nhất cho mỗi thân chủ thay vì 2 tab chồng chéo:
+//  - thân chủ ĐÃ ĐẶT LỊCH (lịch confirmed/completed với bác sĩ này): check-in, bài test, nhật ký đọc
+//    THẲNG từ dữ liệu gốc khi thân chủ bật chia sẻ (client_expert_shares) → tự cập nhật; cộng thêm
+//    những gì họ từng chủ động gửi.
+//  - thân chủ CHƯA ĐẶT LỊCH: chỉ những gì họ đã gửi (bản chụp client_shared_records).
+// Bản chụp đã bị thân chủ thu hồi thì không tính.
+const LIVE_LIMIT = 500; // đủ cho biểu đồ + lịch; quá mức này là dữ liệu nhiều năm
+
+async function expertProfileIdOf(userId) {
+  const r = await db.query(`select id from experts where user_id = $1 limit 1`, [userId]);
+  return r.rows[0]?.id || null;
+}
+
+router.get('/expert-portal/client-records', requireAuth, async (req, res) => {
+  try {
+    if (req.user.role !== 'expert') return res.status(403).json({ success: false, message: 'Expert access required' });
+    const expertId = await expertProfileIdOf(req.user.sub);
+    if (!expertId) return res.status(404).json({ success: false, message: 'Expert profile not found' });
+
+    const r = await db.query(
+      `with booked as (
+         select user_id as client_id, max(starts_at) as last_booking_at
+         from expert_bookings
+         where expert_id = $1 and status in ('confirmed', 'completed')
+         group by user_id
+       ),
+       sent as (
+         select csr.client_id,
+                count(*) filter (where csr.status <> 'revoked')::int as record_count,
+                max(csr.sent_at) filter (where csr.status <> 'revoked') as last_sent_at,
+                (select count(*)::int from client_shared_record_responses resp
+                   join client_shared_records c2 on c2.id = resp.shared_record_id
+                  where c2.client_id = csr.client_id and c2.expert_id = $2) as response_count
+         from client_shared_records csr
+         where csr.expert_id = $2
+         group by csr.client_id
+       ),
+       ids as (select client_id from booked union select client_id from sent where record_count > 0)
+       select ids.client_id, coalesce(u.display_name, u.full_name, 'Người dùng') as client_name, u.email,
+              (b.client_id is not null) as booked, b.last_booking_at,
+              coalesce(s.record_count, 0) as record_count, s.last_sent_at, coalesce(s.response_count, 0) as response_count,
+              coalesce(sh.share_mood, false) as share_mood,
+              coalesce(sh.share_assessments, false) as share_assessments,
+              coalesce(sh.share_journal, false) as share_journal
+       from ids
+       join users u on u.id = ids.client_id
+       left join booked b on b.client_id = ids.client_id
+       left join sent s on s.client_id = ids.client_id
+       left join client_expert_shares sh on sh.client_id = ids.client_id and sh.expert_id = $1
+       order by greatest(coalesce(b.last_booking_at, 'epoch'), coalesce(s.last_sent_at, 'epoch')) desc`,
+      [expertId, req.user.sub]
+    );
+    return res.json({ success: true, data: r.rows });
+  } catch (error) {
+    console.error('List expert client records error:', error.message);
+    return res.status(500).json({ success: false, message: 'Could not load client records' });
+  }
+});
+
+router.get('/expert-portal/client-records/:clientId', requireAuth, async (req, res) => {
+  try {
+    if (req.user.role !== 'expert') return res.status(403).json({ success: false, message: 'Expert access required' });
+    const expertId = await expertProfileIdOf(req.user.sub);
+    if (!expertId) return res.status(404).json({ success: false, message: 'Expert profile not found' });
+    const clientId = req.params.clientId;
+    if (!/^[0-9a-f-]{36}$/i.test(clientId)) return res.status(400).json({ success: false, message: 'Mã thân chủ không hợp lệ' });
+
+    const [userRes, bookedRes, recordsRes, shareRes, bookingsRes] = await Promise.all([
+      db.query(`select id, coalesce(display_name, full_name, 'Người dùng') as name, email from users where id = $1`, [clientId]),
+      db.query(`select 1 from expert_bookings where expert_id = $1 and user_id = $2 and status in ('confirmed', 'completed') limit 1`, [expertId, clientId]),
+      db.query(
+        `select id, status, sent_at, revoked_at, snapshot from client_shared_records
+         where client_id = $1 and expert_id = $2 order by sent_at desc`,
+        [clientId, req.user.sub]
+      ),
+      db.query(`select share_mood, share_assessments, share_journal from client_expert_shares where client_id = $1 and expert_id = $2`, [clientId, expertId]),
+      db.query(
+        `select id, session_type, starts_at, status, notes from expert_bookings
+         where user_id = $1 and expert_id = $2 order by starts_at desc`,
+        [clientId, expertId]
+      )
+    ]);
+    const client = userRes.rows[0];
+    const booked = Boolean(bookedRes.rows[0]);
+    const activeRecords = recordsRes.rows.filter((rec) => rec.status !== 'revoked');
+    // Chỉ xem được thân chủ có quan hệ với bác sĩ này: đã đặt lịch, hoặc đã gửi hồ sơ (chưa thu hồi hết).
+    if (!client || (!booked && !activeRecords.length)) {
+      return res.status(403).json({ success: false, message: 'Thân chủ không thuộc danh sách của bạn' });
+    }
+
+    // Dữ liệu chia sẻ tự cập nhật (Điều 7.3): chỉ khi đã đặt lịch VÀ thân chủ bật đúng mục cho bác sĩ này.
+    const share = shareRes.rows[0] || {};
+    const live = { mood: booked && share.share_mood === true, assessments: booked && share.share_assessments === true, journal: booked && share.share_journal === true };
+    const [moodRes, testRes, journalRes] = await Promise.all([
+      live.mood
+        ? db.query(
+          `select id, mood_score, anxiety_score, stress_score, energy_score, sleep_quality_score, dominant_emotion, triggers, notes, created_at
+           from mood_checkins where user_id = $1 order by created_at desc limit ${LIVE_LIMIT}`,
+          [clientId]
+        )
+        : { rows: [] },
+      live.assessments
+        ? db.query(
+          `select ar.id, a.name as assessment_name, ar.total_score, ar.severity, ar.dimension_scores, ar.interpreted_result, ar.created_at
+           from assessment_results ar join assessments a on a.id = ar.assessment_id
+           where ar.user_id = $1 and ar.administered_by is null
+           order by ar.created_at desc limit ${LIVE_LIMIT}`,
+          [clientId]
+        )
+        : { rows: [] },
+      live.journal
+        ? db.query(`select id, title, content, created_at from journal_entries where user_id = $1 order by created_at desc limit ${LIVE_LIMIT}`, [clientId])
+        : { rows: [] }
+    ]);
+
+    // Gộp: bản gốc (tự cập nhật) trước, rồi những mục chỉ có trong hồ sơ gửi (đánh dấu fromRecord).
+    const merge = (liveRows, key) => {
+      const out = liveRows.map((row) => ({ ...row, total_score: row.total_score !== undefined ? Number(row.total_score || 0) : undefined }));
+      const seen = new Set(out.map((row) => String(row.id)));
+      for (const rec of activeRecords) {
+        for (const item of rec.snapshot?.[key] || []) {
+          if (seen.has(String(item.id))) continue;
+          seen.add(String(item.id));
+          out.push({ ...item, fromRecord: true });
+        }
+      }
+      return out.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+    };
+
+    const responsesRes = activeRecords.length
+      ? await db.query(
+        `select id, shared_record_id, content, created_at from client_shared_record_responses
+         where shared_record_id = any($1::uuid[]) order by created_at asc`,
+        [activeRecords.map((rec) => rec.id)]
+      )
+      : { rows: [] };
+
+    return res.json({
+      success: true,
+      data: {
+        clientId,
+        clientName: client.name,
+        clientEmail: client.email,
+        booked,
+        live,
+        journalEntries: merge(journalRes.rows, 'journalEntries'),
+        moodCheckins: merge(moodRes.rows, 'moodCheckins'),
+        assessmentResults: merge(testRes.rows, 'assessmentResults'),
+        bookings: bookingsRes.rows,
+        // các lần gửi còn hiệu lực (mới nhất trước) — phản hồi của bác sĩ gắn vào lần gửi mới nhất
+        records: activeRecords.map((rec) => ({ id: rec.id, sentAt: rec.sent_at })),
+        revokedCount: recordsRes.rows.length - activeRecords.length,
+        responses: responsesRes.rows
+      }
+    });
+  } catch (error) {
+    console.error('Get expert client record error:', error.message);
+    return res.status(500).json({ success: false, message: 'Could not load client record' });
+  }
+});
+
 router.post('/shared-records/:id/responses', requireAuth, async (req, res) => {
   try {
     const content = (req.body.content || '').trim();

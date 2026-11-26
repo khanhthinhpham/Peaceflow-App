@@ -3,8 +3,8 @@
     <header class="expert-topbar expert-dashboard-topbar">
       <div class="expert-topbar-copy">
         <p class="expert-page-kicker">PeaceFlow Expert</p>
-        <h1 class="expert-page-title">Hồ sơ thân chủ gửi</h1>
-        <p class="expert-page-subtitle">Nhật ký, check-in tâm trạng và kết quả test mà thân chủ chủ động gửi cho bạn trước hoặc trong buổi hẹn.</p>
+        <h1 class="expert-page-title">Hồ sơ thân chủ</h1>
+        <p class="expert-page-subtitle">Nhật ký, check-in tâm trạng và kết quả test của thân chủ. Thân chủ đã đặt lịch và bật chia sẻ thì dữ liệu tự cập nhật; thân chủ chưa đặt lịch thì là những gì họ chủ động gửi cho bạn.</p>
       </div>
       <div class="expert-topbar-tools">
         <button type="button" class="expert-bell-btn" data-notif-bell aria-label="Thông báo" @click="notif.togglePanel()">
@@ -20,42 +20,34 @@
          ExpertLayout nữa — trước đây .sr-fullscreen dùng position:fixed; inset:0 nên phủ
          luôn cả sidebar, khiến bấm vào 1 hồ sơ là mất hết điều hướng). Chỉ ẩn/hiện qua lại
          giữa 2 section, vẫn nằm trong <main> như mọi trang khác trong Expert Portal. -->
+    <!-- Danh sách theo TỪNG THÂN CHỦ (không còn theo từng lần gửi), chia 2 nhóm: đã đặt lịch
+         (dữ liệu tự cập nhật khi thân chủ bật chia sẻ) và chưa đặt lịch (chỉ những gì họ gửi). -->
     <section v-if="!showDetail" class="expert-panel expert-section">
-      <div class="expert-section-head">
-        <div>
-          <h2 class="expert-section-title">Danh sách hồ sơ đã nhận</h2>
-          <p class="expert-section-copy">Bấm vào một dòng để xem chi tiết và phản hồi/kê đơn cho thân chủ.</p>
-        </div>
-      </div>
       <div class="sr-list-body">
         <p v-if="loading" class="ca-empty">Đang tải...</p>
-        <p v-else-if="loadError" class="ca-empty">Không tải được danh sách hồ sơ.</p>
-        <p v-else-if="!records.length" class="ca-empty">Chưa có thân chủ nào gửi hồ sơ cho bạn.</p>
-        <div v-for="r in records" :key="r.id" class="sr-list-row" @click="openDetail(r)">
-          <div class="sr-list-main">
-            <div class="ca-selftest-name">{{ r.client_name }}</div>
-            <div class="ca-selftest-meta">Gửi lúc {{ formatDateTime(r.sent_at) }}{{ r.status === 'revoked' ? ` · Đã thu hồi lúc ${formatDateTime(r.revoked_at)}` : '' }}</div>
+        <p v-else-if="loadError" class="ca-empty">Không tải được danh sách thân chủ.</p>
+        <p v-else-if="!clients.length" class="ca-empty">Chưa có thân chủ nào đặt lịch hoặc gửi hồ sơ cho bạn.</p>
+        <template v-else>
+          <div v-for="group in clientGroups" :key="group.key" class="sr-group">
+            <h2 class="expert-section-title sr-group-title">{{ group.title }} <span class="sr-tab-count">{{ group.items.length }}</span></h2>
+            <p class="expert-section-copy sr-group-copy">{{ group.copy }}</p>
+            <p v-if="!group.items.length" class="ca-empty">{{ group.empty }}</p>
+            <div v-for="c in group.items" :key="c.client_id" class="sr-list-row" @click="openDetail(c)">
+              <div class="sr-list-main">
+                <div class="ca-selftest-name">{{ c.client_name }}</div>
+                <div class="ca-selftest-meta">
+                  {{ c.email || '' }}
+                  <template v-if="c.booked"> · Lịch gần nhất {{ formatDateTime(c.last_booking_at) }}</template>
+                  <template v-if="c.record_count"> · Gửi hồ sơ gần nhất {{ formatDateTime(c.last_sent_at) }}</template>
+                </div>
+              </div>
+              <div class="sr-list-meta">
+                <span v-if="c.booked" class="mb-badge" :style="sharedLabel(c) ? { color: 'var(--mint-dark)', background: 'var(--mint-light)' } : { color: 'var(--text-secondary)', background: 'var(--cream)' }">{{ sharedLabel(c) ? `Tự cập nhật: ${sharedLabel(c)}` : 'Chưa bật chia sẻ' }}</span>
+                <span v-if="c.record_count" class="ca-selftest-meta">Đã gửi {{ c.record_count }} lần · {{ c.response_count > 0 ? `${c.response_count} phản hồi` : 'chưa phản hồi' }}</span>
+              </div>
+            </div>
           </div>
-          <div class="sr-list-meta">
-            <span class="mb-badge" :style="r.status === 'revoked' ? { color: 'var(--coral-dark)', background: 'var(--coral-light)' } : { color: 'var(--mint-dark)', background: 'var(--mint-light)' }">{{ r.status === 'revoked' ? 'Đã thu hồi' : 'Đang chia sẻ' }}</span>
-            <span class="ca-selftest-meta">{{ r.response_count > 0 ? `${r.response_count} phản hồi đã gửi` : 'Chưa phản hồi' }}</span>
-          </div>
-        </div>
-        <div class="ca-pager">
-          <template v-if="total">
-            <span class="ca-pager-meta">{{ pageFrom }}–{{ pageTo }} trong {{ total }}</span>
-            <template v-if="totalPages > 1">
-              <button type="button" class="ca-page-btn" :disabled="page === 0" title="Trang đầu" @click="loadRecords(0)">« Đầu</button>
-              <button type="button" class="ca-page-btn" :disabled="page === 0" @click="loadRecords(page - 1)">‹ Trước</button>
-              <template v-for="(p, idx) in pageWindowList" :key="idx">
-                <span v-if="p === '…'" class="ca-page-ellipsis">…</span>
-                <button v-else type="button" class="ca-page-btn" :class="{ active: p === page }" @click="loadRecords(p)">{{ p + 1 }}</button>
-              </template>
-              <button type="button" class="ca-page-btn" :disabled="page >= totalPages - 1" @click="loadRecords(page + 1)">Sau ›</button>
-              <button type="button" class="ca-page-btn" :disabled="page >= totalPages - 1" title="Trang cuối" @click="loadRecords(totalPages - 1)">Cuối »</button>
-            </template>
-          </template>
-        </div>
+        </template>
       </div>
     </section>
 
@@ -63,14 +55,14 @@
       <div class="ca-detail-head">
         <div>
           <div class="ca-detail-title">{{ detailRecord?.clientName || '...' }}</div>
-          <div class="ca-detail-meta" v-if="detailRecord">Gửi lúc {{ formatDateTime(detailRecord.sentAt) }}</div>
+          <div class="ca-detail-meta" v-if="detailRecord">{{ detailMeta }}</div>
         </div>
         <button type="button" class="ca-detail-close" @click="closeDetail">✕ Quay lại danh sách</button>
       </div>
 
       <p v-if="detailLoading" class="ca-empty">Đang tải...</p>
       <template v-else-if="detailRecord">
-        <div v-if="detailRecord.status === 'revoked'" class="sr-revoked-banner">⚠️ Thân chủ đã thu hồi hồ sơ này lúc {{ formatDateTime(detailRecord.revokedAt) }}.</div>
+        <div v-if="detailRecord.revokedCount" class="sr-revoked-banner">⚠️ Thân chủ đã thu hồi {{ detailRecord.revokedCount }} lần gửi hồ sơ; nội dung các lần đó không hiện ở đây.</div>
 
         <!-- 2 cột: trái 2/3 là tổng quan (biểu đồ tâm trạng + lịch gộp), phải 1/3 là tab lọc
              chi tiết từng loại (như bản cũ trước khi có lịch) — xem đủ cả 2 kiểu cùng lúc. -->
@@ -78,15 +70,15 @@
           <div class="sr-detail-col-left">
             <!-- Biểu đồ xu hướng tâm trạng — khác bản chất với lịch (đường theo thời gian
                  thay vì xem theo từng ngày rời rạc) nên giữ riêng, không gộp vào lịch. -->
-            <ExpertMoodChart v-if="detailRecord.snapshot?.moodCheckins?.length" :checkins="detailRecord.snapshot.moodCheckins" />
+            <ExpertMoodChart v-if="detailRecord.moodCheckins?.length" :checkins="detailRecord.moodCheckins" />
 
             <!-- Toàn bộ dữ liệu gộp vào 1 lịch, mỗi loại 1 màu chấm riêng — bấm vào ngày có
                  dữ liệu để xem nhanh đúng ngày đó. -->
             <ExpertRecordsCalendar
               :bookings="detailRecord.bookings || []"
-              :journal-entries="detailRecord.snapshot?.journalEntries || []"
-              :mood-checkins="detailRecord.snapshot?.moodCheckins || []"
-              :assessment-results="detailRecord.snapshot?.assessmentResults || []"
+              :journal-entries="detailRecord.journalEntries || []"
+              :mood-checkins="detailRecord.moodCheckins || []"
+              :assessment-results="detailRecord.assessmentResults || []"
               :responses="detailRecord.responses || []"
             />
           </div>
@@ -164,28 +156,28 @@
             </div>
 
             <div v-show="detailTab === 'journal'" class="sr-detail-section">
-              <p v-if="!detailRecord.snapshot?.journalEntries?.length" class="ca-empty">Không có nhật ký nào trong hồ sơ này.</p>
-              <div v-for="j in detailRecord.snapshot?.journalEntries" :key="j.id" class="sr-detail-item">
+              <p v-if="!detailRecord.journalEntries?.length" class="ca-empty">{{ emptyText('journal', 'nhật ký') }}</p>
+              <div v-for="j in detailRecord.journalEntries" :key="j.id" class="sr-detail-item">
                 <div class="ca-selftest-name">{{ j.title || '(Không có tiêu đề)' }}</div>
-                <div class="ca-selftest-meta">{{ formatDateTime(j.created_at) }}</div>
+                <div class="ca-selftest-meta">{{ formatDateTime(j.created_at) }}{{ j.fromRecord ? ' · từ hồ sơ gửi' : '' }}</div>
                 <p class="sr-detail-content">{{ j.content }}</p>
               </div>
             </div>
 
             <div v-show="detailTab === 'mood'" class="sr-detail-section">
-              <p v-if="!detailRecord.snapshot?.moodCheckins?.length" class="ca-empty">Không có check-in nào trong hồ sơ này.</p>
-              <div v-for="m in detailRecord.snapshot?.moodCheckins" :key="m.id" class="sr-detail-item">
+              <p v-if="!detailRecord.moodCheckins?.length" class="ca-empty">{{ emptyText('mood', 'check-in') }}</p>
+              <div v-for="m in detailRecord.moodCheckins" :key="m.id" class="sr-detail-item">
                 <div class="ca-selftest-name">{{ m.dominant_emotion || '—' }} ({{ m.mood_score }}/10)</div>
-                <div class="ca-selftest-meta">{{ formatDateTime(m.created_at) }}</div>
+                <div class="ca-selftest-meta">{{ formatDateTime(m.created_at) }}{{ m.fromRecord ? ' · từ hồ sơ gửi' : '' }}</div>
                 <p v-if="m.notes" class="sr-detail-content">{{ m.notes }}</p>
               </div>
             </div>
 
             <div v-show="detailTab === 'tests'" class="sr-detail-section">
-              <p v-if="!detailRecord.snapshot?.assessmentResults?.length" class="ca-empty">Không có kết quả bài test nào trong hồ sơ này.</p>
-              <div v-for="a in detailRecord.snapshot?.assessmentResults" :key="a.id" class="sr-detail-item">
+              <p v-if="!detailRecord.assessmentResults?.length" class="ca-empty">{{ emptyText('assessments', 'kết quả bài test') }}</p>
+              <div v-for="a in detailRecord.assessmentResults" :key="a.id" class="sr-detail-item">
                 <div class="ca-selftest-name">{{ a.assessment_name }} — {{ a.severity || '—' }} ({{ a.total_score }})</div>
-                <div class="ca-selftest-meta">{{ formatDateTime(a.created_at) }}</div>
+                <div class="ca-selftest-meta">{{ formatDateTime(a.created_at) }}{{ a.fromRecord ? ' · từ hồ sơ gửi' : '' }}</div>
               </div>
             </div>
 
@@ -196,13 +188,14 @@
              với thân chủ, bác sĩ cần thấy/gửi được ngay, không phải chọn đúng tab mới thấy. -->
         <div class="sr-response-section">
           <h3 class="sr-response-title">💬 Phản hồi cho thân chủ</h3>
-          <p v-if="!detailRecord.responses.length" class="ca-empty">Bạn chưa phản hồi hồ sơ này.</p>
+          <p v-if="!detailRecord.records.length" class="ca-empty">Thân chủ chưa gửi hồ sơ nào nên chưa có chỗ phản hồi ở đây — trao đổi với thân chủ qua mục Tin nhắn.</p>
+          <p v-else-if="!detailRecord.responses.length" class="ca-empty">Bạn chưa phản hồi hồ sơ của thân chủ này.</p>
           <div v-for="resp in detailRecord.responses" :key="resp.id" class="sr-response-bubble">
             <div>{{ resp.content }}</div>
             <div class="ca-selftest-meta">{{ formatDateTime(resp.created_at) }}</div>
           </div>
 
-          <div class="sr-reply-box">
+          <div v-if="detailRecord.records.length" class="sr-reply-box">
             <textarea v-model="replyText" class="form-input sr-reply-textarea" placeholder="Nhập phản hồi hoặc phương án/đơn thuốc cho thân chủ..."></textarea>
             <p v-if="replyError" style="color:var(--coral);font-size:0.85rem;margin:4px 0 0;">{{ replyError }}</p>
             <button type="button" class="ca-export-btn" style="margin-top:8px;" :disabled="sendingReply" @click="submitReply">{{ sendingReply ? 'Đang gửi...' : '💬 Gửi phản hồi' }}</button>
@@ -250,41 +243,37 @@ const BOOKING_STATUS_LABELS = {
   expired: 'Đã hết hạn'
 };
 
-const records = ref([]);
+// Danh sách THÂN CHỦ (GET /expert-portal/client-records), chia 2 nhóm: đã đặt lịch / chưa đặt lịch.
+const clients = ref([]);
 const loading = ref(false);
 const loadError = ref(false);
-const page = ref(0);
-const limit = 10;
-const total = ref(0);
-
-const totalPages = computed(() => Math.max(1, Math.ceil(total.value / limit)));
-const pageFrom = computed(() => page.value * limit + 1);
-const pageTo = computed(() => Math.min(total.value, (page.value + 1) * limit));
-function pageWindow(current, totalP) {
-  const pages = new Set([0, totalP - 1, current, current - 1, current + 1]);
-  const sorted = [...pages].filter((p) => p >= 0 && p < totalP).sort((a, b) => a - b);
-  const out = [];
-  let prev = null;
-  for (const p of sorted) {
-    if (prev !== null && p - prev > 1) out.push('…');
-    out.push(p);
-    prev = p;
+const clientGroups = computed(() => [
+  {
+    key: 'booked',
+    title: '📅 Đã đặt lịch với bạn',
+    copy: 'Thân chủ có lịch hẹn đã xác nhận/hoàn thành. Mục nào thân chủ bật chia sẻ thì tự cập nhật, không cần gửi lại.',
+    empty: 'Chưa có thân chủ nào đặt lịch với bạn.',
+    items: clients.value.filter((c) => c.booked)
+  },
+  {
+    key: 'sent-only',
+    title: '📨 Chưa đặt lịch — chỉ gửi hồ sơ',
+    copy: 'Thân chủ chủ động gửi hồ sơ cho bạn nhưng chưa có lịch hẹn. Chỉ xem được những gì họ đã gửi.',
+    empty: 'Không có thân chủ nào ở nhóm này.',
+    items: clients.value.filter((c) => !c.booked)
   }
-  return out;
+]);
+function sharedLabel(c) {
+  return [c.share_journal && 'nhật ký', c.share_mood && 'check-in', c.share_assessments && 'bài test'].filter(Boolean).join(', ');
 }
-const pageWindowList = computed(() => pageWindow(page.value, totalPages.value));
 
-async function loadRecords(nextPage = 0) {
-  page.value = Math.max(0, nextPage);
+async function loadClients() {
   loading.value = true;
   loadError.value = false;
   try {
-    const data = await apiClient.get(`/expert-portal/shared-records?limit=${limit}&offset=${page.value * limit}`, { noCache: true });
-    records.value = data?.items || [];
-    total.value = data?.total || 0;
+    clients.value = (await apiClient.get('/expert-portal/client-records', { noCache: true })) || [];
   } catch (_error) {
-    records.value = [];
-    total.value = 0;
+    clients.value = [];
     loadError.value = true;
   } finally {
     loading.value = false;
@@ -316,11 +305,24 @@ const historyBookings = computed(() => (detailRecord.value?.bookings || []).filt
 const historyOpen = ref(false);
 const detailTabs = computed(() => [
   { key: 'bookings', label: '📅 Lịch hẹn', count: detailRecord.value?.bookings?.length ?? null },
-  { key: 'journal', label: '📔 Nhật ký', count: detailRecord.value?.snapshot?.journalEntries?.length ?? null },
-  { key: 'mood', label: '🌤️ Check-in', count: detailRecord.value?.snapshot?.moodCheckins?.length ?? null },
-  { key: 'tests', label: '🩺 Kết quả test', count: detailRecord.value?.snapshot?.assessmentResults?.length ?? null }
+  { key: 'journal', label: '📔 Nhật ký', count: detailRecord.value?.journalEntries?.length ?? null },
+  { key: 'mood', label: '🌤️ Check-in', count: detailRecord.value?.moodCheckins?.length ?? null },
+  { key: 'tests', label: '🩺 Kết quả test', count: detailRecord.value?.assessmentResults?.length ?? null }
 ]);
 const activeTabInfo = computed(() => detailTabs.value.find((tab) => tab.key === detailTab.value) || detailTabs.value[0]);
+
+const detailMeta = computed(() => {
+  const d = detailRecord.value;
+  if (!d) return '';
+  if (!d.booked) return `Chưa đặt lịch với bạn · dữ liệu từ ${d.records.length} lần gửi hồ sơ`;
+  const on = [d.live.journal && 'nhật ký', d.live.mood && 'check-in', d.live.assessments && 'bài test'].filter(Boolean);
+  return on.length ? `Đã đặt lịch · tự cập nhật: ${on.join(', ')}` : 'Đã đặt lịch · thân chủ chưa bật chia sẻ mục nào';
+});
+function emptyText(kind, noun) {
+  const d = detailRecord.value;
+  if (d?.booked && !d.live[kind]) return `Thân chủ chưa bật chia sẻ ${noun} với bạn.`;
+  return `Chưa có ${noun} nào.`;
+}
 
 const tabFilterOpen = ref(false);
 const tabFilterDropdownEl = ref(null);
@@ -333,7 +335,7 @@ function handleTabFilterOutsideClick(event) {
 onMounted(() => document.addEventListener('click', handleTabFilterOutsideClick));
 onBeforeUnmount(() => document.removeEventListener('click', handleTabFilterOutsideClick));
 
-async function openDetail(record) {
+async function openDetail(client) {
   showDetail.value = true;
   detailLoading.value = true;
   detailRecord.value = null;
@@ -344,7 +346,7 @@ async function openDetail(record) {
   replyText.value = '';
   replyError.value = '';
   try {
-    detailRecord.value = await apiClient.get(`/shared-records/${record.id}`, { noCache: true });
+    detailRecord.value = await apiClient.get(`/expert-portal/client-records/${client.client_id}`, { noCache: true });
     // Chỉ 1 lịch hẹn: mở sẵn luôn cho khỏi phải bấm thêm 1 lần.
     if (detailRecord.value?.bookings?.length === 1) {
       openBookingIds.value = new Set([detailRecord.value.bookings[0].id]);
@@ -370,10 +372,11 @@ async function submitReply() {
   sendingReply.value = true;
   replyError.value = '';
   try {
-    const inserted = await apiClient.post(`/shared-records/${detailRecord.value.id}/responses`, { content });
-    detailRecord.value.responses.push({ id: inserted.id, content, created_at: inserted.created_at });
+    const latest = detailRecord.value.records[0];
+    const inserted = await apiClient.post(`/shared-records/${latest.id}/responses`, { content });
+    detailRecord.value.responses.push({ id: inserted.id, shared_record_id: latest.id, content, created_at: inserted.created_at });
     replyText.value = '';
-    const listed = records.value.find((r) => r.id === detailRecord.value.id);
+    const listed = clients.value.find((c) => c.client_id === detailRecord.value.clientId);
     if (listed) listed.response_count = (listed.response_count || 0) + 1;
     setBanner('Đã gửi phản hồi cho thân chủ.', 'success');
   } catch (error) {
@@ -383,7 +386,7 @@ async function submitReply() {
   }
 }
 
-onMounted(loadRecords);
+onMounted(loadClients);
 </script>
 
 <style scoped src="../../assets/expertDashboard.css"></style>
@@ -391,6 +394,20 @@ onMounted(loadRecords);
 <style scoped>
 .sr-list-body {
     padding: 18px 24px 24px;
+}
+.sr-group + .sr-group {
+    margin-top: 26px;
+    padding-top: 20px;
+    border-top: 1.5px dashed var(--kraft-light, #e8cba7);
+}
+.sr-group-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.sr-group-title .sr-tab-count { margin-left: 0; }
+.sr-group-copy {
+    margin: 4px 0 8px;
 }
 .sr-list-row {
     display: flex;

@@ -66,7 +66,7 @@ const NAV_ITEMS = [
   { route: 'expert-dashboard', key: 'dashboard', icon: '🏡', label: 'Tổng quan', badge: 'pendingBookings' },
   { route: 'expert-messages', key: 'messages', icon: '💬', label: 'Tin nhắn' },
   { route: 'expert-client-assessments', key: 'client-assessments', icon: '🩺', label: 'Đánh giá lâm sàng' },
-  { route: 'expert-shared-records', key: 'shared-records', icon: '📋', label: 'Hồ sơ thân chủ gửi' },
+  { route: 'expert-shared-records', key: 'shared-records', icon: '📋', label: 'Hồ sơ thân chủ' },
   { route: 'expert-payments', key: 'payments', icon: '💳', label: 'Thanh toán' },
   { route: 'expert-application', key: 'application', icon: '📋', label: 'Hồ sơ chuyên gia' },
   { route: 'expert-review-status', key: 'review-status', icon: '🧾', label: 'Lịch sử xét duyệt' },
